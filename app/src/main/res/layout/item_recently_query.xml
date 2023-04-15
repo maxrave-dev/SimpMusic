@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <RelativeLayout
+            android:id="@+id/rlRecentlyQuery"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="60sp">
+            <TextView
+                android:id="@+id/tvRecentlyQuery"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="15sp"
+                android:layout_marginTop="15sp"
+                android:layout_marginEnd="15sp"
+                android:layout_marginBottom="15sp"
+                android:gravity="start"
+                android:maxLines="1"
+                android:text="Recently Query"
+                android:textSize="15sp" />
+        </RelativeLayout>
+        <ImageButton
+            android:id="@+id/btDeleteQuery"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_marginEnd="15sp"
+            android:src="@drawable/baseline_close_24"
+            android:background="@android:color/transparent"
+            android:layout_centerVertical="true">
+
+        </ImageButton>
+    </RelativeLayout>
+</layout>

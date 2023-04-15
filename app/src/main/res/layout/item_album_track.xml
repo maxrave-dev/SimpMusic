@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android">
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="5sp"
+        android:layout_marginTop="5sp">
+        <TextView
+            android:id="@+id/tvPosition"
+            android:layout_width="40sp"
+            android:layout_height="40sp"
+            android:text="1"
+            android:gravity="center"
+            android:fontFamily="@font/roboto"
+            android:textStyle="bold"
+            android:layout_alignParentStart="true">
+
+        </TextView>
+        <ImageButton
+            android:id="@+id/btMore"
+            android:layout_width="40sp"
+            android:layout_height="40sp"
+            android:src="@drawable/baseline_more_vert_24"
+            android:background="@android:color/transparent"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="5sp">
+
+        </ImageButton>
+        <LinearLayout
+            android:id="@+id/rootLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginStart="10sp"
+            android:layout_toStartOf="@+id/btMore"
+            android:layout_toEndOf="@+id/tvPosition"
+            android:layout_marginEnd="10sp">
+            <TextView
+                android:id="@+id/tvSongName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:text = "Song Name"
+                android:fontFamily="@font/roboto"
+                android:textStyle="bold"
+                android:textSize="18sp"
+                android:scrollHorizontally="true"
+                android:layout_marginBottom="3sp">
+
+            </TextView>
+            <TextView
+                android:id="@+id/tvArtistName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:text="Song Artists"
+                android:fontFamily="@font/roboto"
+                android:textStyle="normal"
+                android:textSize="13sp"
+                android:scrollHorizontally="true"/>
+        </LinearLayout>
+    </RelativeLayout>
+</layout>

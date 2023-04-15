@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <array name="preloaded_fonts" translatable="false">
+        <item>@font/jetbrains_mono_bold</item>
+        <item>@font/roboto</item>
+        <item>@font/roboto_bold</item>
+    </array>
+</resources>

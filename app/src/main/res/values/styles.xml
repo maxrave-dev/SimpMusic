@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="rounded_corner">
+        <item name="cornerSize">10dp</item>
+    </style>
+
+
+    <style name="artist_name"
+        parent="TextAppearance.Material3.DisplayMedium">
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:fontFamily">@font/jetbrains_mono_bold</item>
+        <item name="android:textStyle">bold</item>
+        </style>
+
+
+</resources>

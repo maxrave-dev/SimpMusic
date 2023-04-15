@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <LinearLayout
+        android:layout_height="wrap_content"
+        android:layout_width="match_parent"
+        android:orientation="vertical">
+
+        <RelativeLayout
+            android:padding="10sp"
+            android:layout_width="match_parent"
+            android:layout_height="65sp">
+
+            <ImageView
+                android:layout_width="60sp"
+                android:layout_height="60sp"
+                android:src="@drawable/demo_list_song_thumbnail"
+                android:id="@+id/ivThumbnail"
+                android:layout_alignParentStart="true">
+
+            </ImageView>
+
+            <LinearLayout
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:layout_toEndOf="@+id/ivThumbnail"
+                android:layout_marginStart="20sp"
+                android:layout_centerVertical="true"
+                android:layout_toStartOf="@+id/cbLove"
+                android:orientation="vertical">
+
+                <TextView
+                    android:text="Nghe Như Tình Yêu"
+                    android:id="@+id/tvSongTitle"
+                    android:fontFamily="@font/roboto"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:maxLines="1"
+                    android:scrollHorizontally="true"
+                    android:ellipsize="marquee"
+                    android:marqueeRepeatLimit ="marquee_forever"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                </TextView>
+
+                <TextView
+                    android:text="HIEUTHUHAI"
+                    android:id="@+id/tvSongArtist"
+                    android:fontFamily="@font/roboto"
+                    android:textStyle="normal"
+                    android:textSize="13sp"
+                    android:maxLines="1"
+                    android:scrollHorizontally="true"
+                    android:ellipsize="marquee"
+                    android:marqueeRepeatLimit ="marquee_forever"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                </TextView>
+            </LinearLayout>
+
+            <com.google.android.material.checkbox.MaterialCheckBox
+                android:id="@+id/cbLove"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:button="@drawable/selector_favorite_check_box"
+                app:useMaterialThemeColors="false"
+                android:layout_toStartOf="@+id/btMore">
+
+            </com.google.android.material.checkbox.MaterialCheckBox>
+
+
+            <ImageButton
+                android:id="@+id/btMore"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/baseline_more_vert_24"
+                android:background="@android:color/transparent"
+                android:layout_alignParentEnd="true"
+                android:layout_centerVertical="true">
+
+            </ImageButton>
+
+        </RelativeLayout>
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2sp"
+            android:layout_marginStart="15sp"
+            android:layout_marginEnd="15sp"
+            android:id="@+id/progressDownload"
+            android:visibility="gone">
+
+        </com.google.android.material.progressindicator.LinearProgressIndicator>
+    </LinearLayout>
+</layout>

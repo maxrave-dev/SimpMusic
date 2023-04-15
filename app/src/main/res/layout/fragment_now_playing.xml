@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+    <data>
+        <variable
+            name="viewModel"
+            type="com.maxrave.simpmusic.viewModel.SharedViewModel">
+
+        </variable>
+    </data>
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_height="match_parent"
+        android:layout_width="match_parent">
+
+        <RelativeLayout
+            android:id="@+id/now_playing_dialog"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <com.google.android.material.appbar.AppBarLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/topAppBarLayout">
+
+                <com.google.android.material.appbar.MaterialToolbar
+                    android:id="@+id/topAppBar"
+                    android:layout_width="match_parent"
+                    android:layout_height="?attr/actionBarSize"
+                    app:title="Now Playing"
+                    app:titleTextAppearance="@style/TextAppearance.AppCompat"
+                    app:subtitle="Liked Songs"
+                    app:subtitleCentered="true"
+                    app:titleCentered="true"
+                    app:menu="@menu/top_app_bar_now_playing"
+                    app:navigationIcon="@drawable/baseline_keyboard_arrow_down_24" />
+            </com.google.android.material.appbar.AppBarLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_below="@+id/topAppBarLayout">
+
+                <ImageView
+                    android:layout_width="325sp"
+                    android:layout_height="325sp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="40sp"
+                    android:src="@drawable/test_thumbnail">
+
+                </ImageView>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginTop="30sp"
+                    android:layout_marginHorizontal="40sp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <LinearLayout
+                            android:layout_height="wrap_content"
+                            android:layout_width="match_parent"
+                            android:orientation="vertical"
+                            android:id="@+id/meta_data_layout"
+                            android:layout_weight="1">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:ellipsize="marquee"
+                                android:focusable="true"
+                                android:focusableInTouchMode="true"
+                                android:fontFamily="@font/roboto_bold"
+                                android:marqueeRepeatLimit="marquee_forever"
+                                android:scrollHorizontally="true"
+                                android:singleLine="true"
+                                android:text="People Change"
+                                android:textSize="20sp"
+                                android:textStyle="bold"
+                                android:id="@+id/tvSongTitle" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:ellipsize="marquee"
+                                android:focusable="true"
+                                android:focusableInTouchMode="true"
+                                android:fontFamily="@font/roboto"
+                                android:marqueeRepeatLimit="marquee_forever"
+                                android:scrollHorizontally="true"
+                                android:singleLine="true"
+                                android:text="Hoang, RUNN"
+                                android:textSize="15sp"
+                                android:textStyle="normal"
+                                android:id="@+id/tvSongArtist" />
+                        </LinearLayout>
+
+                        <com.google.android.material.checkbox.MaterialCheckBox
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="5"
+                            android:layout_gravity="center_vertical"
+                            android:button="@drawable/selector_favorite_check_box"
+                            android:id="@+id/cbFavorite">
+
+                        </com.google.android.material.checkbox.MaterialCheckBox>
+                    </LinearLayout>
+
+                    <FrameLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="25sp">
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_marginStart="12sp"
+                            android:layout_marginEnd="12sp">
+                            <com.google.android.material.progressindicator.LinearProgressIndicator
+                                android:id="@+id/buffered"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_centerInParent="true"
+                                android:progress="0">
+
+                            </com.google.android.material.progressindicator.LinearProgressIndicator>
+                        </RelativeLayout>
+                        <com.google.android.material.slider.Slider
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:value="0.0"
+                            android:valueFrom="0.0"
+                            android:valueTo="100.0"
+                            android:id="@+id/progress_song"
+                            android:indeterminate="true">
+
+                        </com.google.android.material.slider.Slider>
+
+                    </FrameLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:id="@+id/time_layout"
+                        android:layout_marginTop="5sp">
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@{viewModel.timePosition}"
+                            android:id="@+id/tvCurrentTime"
+                            android:layout_weight="1"
+                            android:layout_gravity="center_vertical"
+                            android:gravity="start"
+                            android:textSize="13sp"
+                            android:textStyle="normal"
+                            android:fontFamily="@font/roboto" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@{viewModel.timeDuration}"
+                            android:id="@+id/tvFullTime"
+                            android:layout_weight="1"
+                            android:layout_gravity="center_vertical"
+                            android:gravity="end"
+                            android:textSize="13sp"
+                            android:textStyle="normal"
+                            android:fontFamily="@font/roboto" />
+
+                    </LinearLayout>
+
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/controler_layout"
+                        android:layout_marginTop="5sp">
+
+                        <ImageButton
+                            android:layout_width="80dp"
+                            android:layout_height="80sp"
+                            android:layout_centerInParent="true"
+                            android:background="@null"
+                            android:src="@drawable/baseline_play_circle_24"
+                            android:scaleType="fitCenter"
+                            android:id="@+id/btPlayPause" />
+
+                        <ImageButton
+                            android:id="@+id/btNext"
+                            android:layout_width="50sp"
+                            android:layout_height="50sp"
+                            android:background="@null"
+                            android:layout_centerVertical="true"
+                            android:layout_marginStart="20sp"
+                            android:scaleType="fitCenter"
+                            android:layout_toEndOf="@+id/btPlayPause"
+                            android:src="@drawable/baseline_skip_next_24">
+
+                        </ImageButton>
+
+                        <ImageButton
+                            android:id="@+id/btRepeat"
+                            android:layout_width="30sp"
+                            android:layout_height="30sp"
+                            android:background="@null"
+                            android:layout_centerVertical="true"
+                            android:layout_marginStart="20sp"
+                            android:scaleType="fitCenter"
+                            android:layout_toEndOf="@+id/btNext"
+                            android:src="@drawable/baseline_repeat_24">
+
+                        </ImageButton>
+
+                        <ImageButton
+                            android:id="@+id/btPrevious"
+                            android:layout_width="50sp"
+                            android:layout_height="50sp"
+                            android:background="@null"
+                            android:layout_centerVertical="true"
+                            android:layout_marginEnd="20sp"
+                            android:scaleType="fitCenter"
+                            android:layout_toStartOf="@+id/btPlayPause"
+                            android:src="@drawable/baseline_skip_previous_24">
+
+                        </ImageButton>
+
+                        <ImageButton
+                            android:id="@+id/btShuffle"
+                            android:layout_width="30sp"
+                            android:layout_height="30sp"
+                            android:background="@null"
+                            android:layout_centerVertical="true"
+                            android:layout_marginEnd="20sp"
+                            android:scaleType="fitCenter"
+                            android:layout_toStartOf="@+id/btPrevious"
+                            android:src="@drawable/baseline_shuffle_24">
+
+                        </ImageButton>
+
+                    </RelativeLayout>
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="5sp">
+                        <ImageButton
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:src="@drawable/baseline_info_24"
+                            android:layout_alignParentStart="true"
+                            android:background="@null"
+                            android:id="@+id/btSongInfo">
+
+                        </ImageButton>
+                        <ImageButton
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:src="@drawable/baseline_queue_music_24"
+                            android:layout_alignParentEnd="true"
+                            android:background="@null"
+                            android:id="@+id/btQueue">
+
+                        </ImageButton>
+
+                    </RelativeLayout>
+
+                    <com.google.android.material.card.MaterialCardView
+                        style="@style/Widget.Material3.CardView.Elevated"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="15sp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:layout_margin="10sp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:padding="10sp">
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Lyrics"
+                                    android:gravity="start"
+                                    android:layout_weight="1"
+                                    style="@style/TextAppearance.Material3.ActionBar.Subtitle">
+
+                                </TextView>
+                                <ImageButton
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:src="@drawable/baseline_edit_24"
+                                    android:background="@null"
+                                    android:layout_weight="0">
+
+                                </ImageButton>
+                            </LinearLayout>
+
+                        </LinearLayout>
+
+                    </com.google.android.material.card.MaterialCardView>
+                </LinearLayout>
+            </LinearLayout>
+
+        </RelativeLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</layout>

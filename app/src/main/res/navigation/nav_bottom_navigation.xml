@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_bottom_navigation"
+    app:startDestination="@id/bottom_navigation_item_home">
+
+    <fragment
+        android:id="@+id/bottom_navigation_item_search"
+        android:name="com.maxrave.simpmusic.ui.fragment.SearchFragment"
+        android:label="fragment_search"
+        tools:layout="@layout/fragment_search" >
+        <action
+            android:id="@+id/action_bottom_navigation_item_search_to_artistFragment"
+            app:destination="@id/artistFragment" >
+            <argument
+                android:name="channelId"
+                app:argType="string" />
+        </action>
+    </fragment>
+    <fragment
+        android:id="@+id/bottom_navigation_item_library"
+        android:name="com.maxrave.simpmusic.ui.fragment.LibraryFragment"
+        android:label="fragment_library"
+        tools:layout="@layout/fragment_library" />
+    <fragment
+        android:id="@+id/bottom_navigation_item_home"
+        android:name="com.maxrave.simpmusic.ui.fragment.HomeFragment"
+        android:label="fragment_home"
+        tools:layout="@layout/fragment_home"/>
+    <fragment
+        android:id="@+id/artistFragment"
+        android:name="com.maxrave.simpmusic.ui.fragment.other.ArtistFragment"
+        android:label="ArtistFragment" />
+    <action
+        android:id="@+id/action_global_artistFragment"
+        app:destination="@id/artistFragment"
+        app:enterAnim="@anim/bottom_to_top" />
+    <fragment
+        android:id="@+id/albumFragment"
+        android:name="com.maxrave.simpmusic.ui.fragment.other.AlbumFragment"
+        android:label="AlbumFragment" />
+    <action
+        android:id="@+id/action_global_albumFragment"
+        app:destination="@id/albumFragment" />
+    <fragment
+        android:id="@+id/playlistFragment"
+        android:name="com.maxrave.simpmusic.ui.fragment.other.PlaylistFragment"
+        android:label="PlaylistFragment" />
+    <action
+        android:id="@+id/action_global_playlistFragment"
+        app:destination="@id/playlistFragment" />
+
+</navigation>

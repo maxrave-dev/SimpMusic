@@ -1,0 +1,131 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id 'androidx.navigation.safeargs'
+    id 'kotlin-kapt'
+    id 'com.google.dagger.hilt.android'
+}
+
+android {
+    namespace 'com.maxrave.simpmusic'
+    compileSdk 33
+
+    defaultConfig {
+        applicationId "com.maxrave.simpmusic"
+        minSdk 26
+        targetSdk 33
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_19
+        targetCompatibility JavaVersion.VERSION_19
+    }
+    kotlinOptions {
+        jvmTarget = '19'
+    }
+    //enable data binding
+    dataBinding {
+        enabled = true
+    }
+    //enable view binding
+    viewBinding {
+        enabled = true
+    }
+}
+
+dependencies {
+
+    implementation 'androidx.core:core-ktx:1.10.0'
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    //material design 3
+    implementation 'com.google.android.material:material:1.8.0'
+    //rive animation
+    implementation 'app.rive:rive-android:4.3.2'
+    //runtime
+    implementation "androidx.startup:startup-runtime:1.1.1"
+    //ExoPlayer
+    implementation 'androidx.media3:media3-exoplayer:1.0.0'
+    implementation 'androidx.media3:media3-ui:1.0.0'
+    implementation 'androidx.media3:media3-session:1.0.0'
+    implementation 'androidx.media3:media3-exoplayer-dash:1.0.0'
+    implementation 'androidx.media3:media3-exoplayer-hls:1.0.0'
+    implementation 'androidx.media3:media3-exoplayer-ima:1.0.0'
+    implementation 'androidx.media3:media3-exoplayer-rtsp:1.0.0'
+    implementation 'androidx.media3:media3-exoplayer-smoothstreaming:1.0.0'
+    implementation 'androidx.media3:media3-exoplayer-workmanager:1.0.0'
+    //Youtube
+    implementation 'com.github.sealedtx:java-youtube-downloader:3.1.0'
+    //palette color
+    implementation 'androidx.palette:palette:1.0.0'
+    //expandable text view
+    implementation 'com.github.giangpham96:expandable-text:2.0.0'
+
+    implementation 'net.colindodd:gradientlayout:1.2'
+
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+    testImplementation 'junit:junit:4.13.2'
+    androidTestImplementation 'androidx.test.ext:junit:1.1.5'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
+
+    implementation 'androidx.room:room-runtime:2.5.1'
+    annotationProcessor "androidx.room:room-compiler:2.5.1"
+    implementation 'androidx.room:room-ktx:2.5.1'
+    //Legacy Support
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+    //Coroutines
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4'
+    //Navigation
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.5.3'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.5.3'
+
+    //Retrofit 2
+    implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.9.0'
+    implementation 'com.squareup.retrofit2:adapter-rxjava3:2.9.0'
+    //OkHttp
+    implementation 'com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.11'
+
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
+
+    //RxJava
+    implementation "io.reactivex.rxjava3:rxkotlin:3.0.1"
+    implementation "io.reactivex.rxjava3:rxjava:3.1.6"
+    implementation 'io.reactivex.rxjava3:rxandroid:3.0.2'
+
+    //Coil
+    implementation 'io.coil-kt:coil:2.3.0'
+    //Glide
+    implementation 'com.github.bumptech.glide:glide:4.15.0'
+
+
+    //Palette Color
+    implementation 'androidx.palette:palette:1.0.0'
+    implementation 'androidx.palette:palette-ktx:1.0.0'
+
+    //Preference
+    implementation 'androidx.preference:preference:1.2.0'
+    implementation 'androidx.preference:preference-ktx:1.2.0'
+
+    //fragment ktx
+    implementation 'androidx.fragment:fragment-ktx:1.5.6'
+    //Hilt
+    implementation 'com.google.dagger:hilt-android:2.45'
+    kapt 'com.google.dagger:hilt-compiler:2.45'
+    //Swipe To Refresh
+    implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.2.0-alpha01"
+}
+// Allow references to generated code
+kapt {
+    correctErrorTypes true
+}
