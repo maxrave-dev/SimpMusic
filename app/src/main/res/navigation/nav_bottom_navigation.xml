@@ -50,5 +50,12 @@
     <action
         android:id="@+id/action_global_playlistFragment"
         app:destination="@id/playlistFragment" />
+    <dialog
+        android:id="@+id/nowPlayingFragment"
+        android:name="com.maxrave.simpmusic.ui.fragment.NowPlayingFragment"
+        android:label="NowPlayingFragment" />
+    <action
+        android:id="@+id/action_global_nowPlayingFragment"
+        app:destination="@id/nowPlayingFragment" />
 
 </navigation>

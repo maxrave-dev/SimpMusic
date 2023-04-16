@@ -3,6 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools">
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.READ_MEDIA_AUDIO"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
@@ -37,15 +38,23 @@
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
-        <service android:name=".service.SimpleMediaService"
+<!--        <service android:name=".service.SimpleMediaService"-->
+<!--            android:foregroundServiceType="mediaPlayback"-->
+<!--            android:exported="true">-->
+<!--            <intent-filter>-->
+<!--                <action-->
+<!--                    android:name="androidx.media3.session.MediaSessionService">-->
+
+<!--                </action>-->
+
+<!--            </intent-filter>-->
+<!--        </service>-->
+        <service
+            android:name=".service.test.MusicService"
             android:foregroundServiceType="mediaPlayback"
             android:exported="true">
             <intent-filter>
-                <action
-                    android:name="androidx.media3.session.MediaSessionService">
-
-                </action>
-
+                <action android:name="androidx.media3.session.MediaLibraryService"/>
             </intent-filter>
         </service>
     </application>

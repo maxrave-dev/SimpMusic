@@ -12,10 +12,12 @@ import androidx.core.content.ContextCompat
 import androidx.customview.widget.ViewDragHelper
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -25,13 +27,15 @@ import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.viewModel.NowPlayingDialogViewModel
 import com.maxrave.simpmusic.databinding.FragmentNowPlayingBinding
 import com.maxrave.simpmusic.viewModel.SharedViewModel
+import dagger.hilt.android.AndroidEntryPoint
 import kotlin.math.log
 
-
+@UnstableApi
+@AndroidEntryPoint
 class NowPlayingFragment: BottomSheetDialogFragment() {
     private val UPDATE_INTERVAL_MS: Long = 1000
     private lateinit var dragHelper: ViewDragHelper
-    private val viewModel: SharedViewModel by activityViewModels()
+    private val viewModel by viewModels<NowPlayingDialogViewModel>()
     private var _binding: FragmentNowPlayingBinding? = null
     private val binding get() = _binding!!
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -42,6 +46,10 @@ class NowPlayingFragment: BottomSheetDialogFragment() {
     override fun onStart() {
         super.onStart()
         dialog?.window?.setWindowAnimations(R.style.DialogAnimation)
+        val videoId = arguments?.getString("videoId")
+        if (videoId != null) {
+            viewModel.songResult.postValue(videoId)
+        }
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
@@ -76,38 +84,10 @@ class NowPlayingFragment: BottomSheetDialogFragment() {
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        if (!viewModel.initedPlayer) {
-            viewModel.initializePlayer(requireContext())
-            viewModel.init()
-            viewModel.setMediaSource()
-            viewModel.initedPlayer = true
-            viewModel.isPlaying.value = false
-            viewModel.isLoading.value = true
-        }
-        viewModel.isPlaying.observe(this, Observer {isPlaying ->
-            if (isPlaying) {
-                binding.btPlayPause.setImageResource(R.drawable.baseline_pause_24)
-                viewModel.updatePosition()
-            } else {
-                binding.btPlayPause.setImageResource(R.drawable.baseline_play_arrow_24)
-            }
-        })
-        viewModel.currentSongBuffered.observe(this, Observer {buffered ->
-            binding.buffered.progress = (buffered*100/viewModel.currentSongDuration.value!!).toInt()
-        })
         binding.btPlayPause.setOnClickListener {
-            if (viewModel.player.playbackState == Player.STATE_READY) {
-                if (viewModel.isPlaying.value!!) {
-                    viewModel.player.pause()
-                    viewModel.isPlaying.value = false
-                } else {
-                    viewModel.player.play()
-                    viewModel.isPlaying.value = true
-                }
-            } else {
-                Toast.makeText(requireContext(), "Loading...", Toast.LENGTH_SHORT).show()
-            }
+            viewModel.onUIEvent(NowPlayingDialogViewModel.UIEvent.PlayPause)
         }
+
         binding.topAppBar.setNavigationOnClickListener {
             dismiss()
         }

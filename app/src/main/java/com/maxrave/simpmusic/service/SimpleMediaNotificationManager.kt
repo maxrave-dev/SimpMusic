@@ -12,12 +12,14 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import androidx.media3.ui.PlayerNotificationManager
 import com.maxrave.simpmusic.R
+import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 
 private const val NOTIFICATION_ID = 200
 private const val NOTIFICATION_CHANNEL_NAME = "notification channel 1"
 private const val NOTIFICATION_CHANNEL_ID = "notification channel id 1"
+
 
 class SimpleMediaNotificationManager @Inject constructor(
     @ApplicationContext private val context: Context,

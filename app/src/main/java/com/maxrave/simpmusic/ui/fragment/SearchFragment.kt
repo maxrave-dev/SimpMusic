@@ -206,6 +206,12 @@ class SearchFragment : Fragment() {
                     args.putString("id", id)
                     findNavController().navigate(R.id.action_global_playlistFragment, args)
                 }
+                if (type == "song"){
+                    val videoId = (resultAdapter.getCurrentList()[position] as SongsResult).videoId.toString()
+                    val args = Bundle()
+                    args.putString("videoId", videoId)
+                    findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                }
             }
 
         })

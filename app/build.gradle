@@ -28,11 +28,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_19
-        targetCompatibility JavaVersion.VERSION_19
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
     }
     kotlinOptions {
-        jvmTarget = '19'
+        jvmTarget = '1.8'
     }
     //enable data binding
     dataBinding {
@@ -46,6 +46,7 @@ android {
 
 dependencies {
 
+    implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.1'
     implementation 'androidx.core:core-ktx:1.10.0'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     //material design 3
@@ -55,15 +56,18 @@ dependencies {
     //runtime
     implementation "androidx.startup:startup-runtime:1.1.1"
     //ExoPlayer
-    implementation 'androidx.media3:media3-exoplayer:1.0.0'
-    implementation 'androidx.media3:media3-ui:1.0.0'
-    implementation 'androidx.media3:media3-session:1.0.0'
-    implementation 'androidx.media3:media3-exoplayer-dash:1.0.0'
-    implementation 'androidx.media3:media3-exoplayer-hls:1.0.0'
-    implementation 'androidx.media3:media3-exoplayer-ima:1.0.0'
-    implementation 'androidx.media3:media3-exoplayer-rtsp:1.0.0'
-    implementation 'androidx.media3:media3-exoplayer-smoothstreaming:1.0.0'
-    implementation 'androidx.media3:media3-exoplayer-workmanager:1.0.0'
+    def media3_version = '1.0.0'
+
+    implementation "androidx.media3:media3-exoplayer:$media3_version"
+    implementation "androidx.media3:media3-ui:$media3_version"
+    implementation "androidx.media3:media3-session:$media3_version"
+    implementation "androidx.media3:media3-exoplayer-dash:$media3_version"
+    implementation "androidx.media3:media3-exoplayer-hls:$media3_version"
+    implementation "androidx.media3:media3-exoplayer-ima:$media3_version"
+    implementation "androidx.media3:media3-exoplayer-rtsp:$media3_version"
+    implementation "androidx.media3:media3-exoplayer-smoothstreaming:$media3_version"
+    implementation "androidx.media3:media3-exoplayer-workmanager:$media3_version"
+
     //Youtube
     implementation 'com.github.sealedtx:java-youtube-downloader:3.1.0'
     //palette color
@@ -106,7 +110,7 @@ dependencies {
     //Coil
     implementation 'io.coil-kt:coil:2.3.0'
     //Glide
-    implementation 'com.github.bumptech.glide:glide:4.15.0'
+    implementation 'com.github.bumptech.glide:glide:4.15.1'
 
 
     //Palette Color
@@ -122,10 +126,24 @@ dependencies {
     //Hilt
     implementation 'com.google.dagger:hilt-android:2.45'
     kapt 'com.google.dagger:hilt-compiler:2.45'
+
+    // For instrumentation tests
+    androidTestImplementation  'com.google.dagger:hilt-android-testing:2.45'
+    kaptAndroidTest 'com.google.dagger:hilt-compiler:2.45'
+
+    // For local unit tests
+    testImplementation 'com.google.dagger:hilt-android-testing:2.45'
+    kaptTest 'com.google.dagger:hilt-compiler:2.45'
     //Swipe To Refresh
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.2.0-alpha01"
+
+//    def kotlinx_metadata_version = 0.6.0
+//    kapt "org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.6.0"
 }
 // Allow references to generated code
 kapt {
     correctErrorTypes true
+}
+hilt {
+    enableAggregatingTask = true
 }

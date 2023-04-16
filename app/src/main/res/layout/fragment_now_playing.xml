@@ -2,13 +2,13 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools">
-    <data>
-        <variable
-            name="viewModel"
-            type="com.maxrave.simpmusic.viewModel.SharedViewModel">
+<!--    <data>-->
+<!--        <variable-->
+<!--            name="viewModel"-->
+<!--            type="com.maxrave.simpmusic.viewModel.SharedViewModel">-->
 
-        </variable>
-    </data>
+<!--        </variable>-->
+<!--    </data>-->
 
     <androidx.core.widget.NestedScrollView
         android:layout_height="match_parent"
@@ -154,7 +154,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@{viewModel.timePosition}"
+                            android:text=""
                             android:id="@+id/tvCurrentTime"
                             android:layout_weight="1"
                             android:layout_gravity="center_vertical"
@@ -166,7 +166,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="@{viewModel.timeDuration}"
+                            android:text=""
                             android:id="@+id/tvFullTime"
                             android:layout_weight="1"
                             android:layout_gravity="center_vertical"

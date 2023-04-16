@@ -2,6 +2,7 @@ package com.maxrave.simpmusic.data.model.browse.album
 
 
 import com.google.gson.annotations.SerializedName
+import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 
 data class Track(

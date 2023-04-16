@@ -3,12 +3,16 @@ package com.maxrave.simpmusic.service
 import android.annotation.SuppressLint
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.MediaSource
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 
+@UnstableApi
 class SimpleMediaServiceHandler @Inject constructor(
     private val player: ExoPlayer
 ) : Player.Listener {
@@ -21,6 +25,14 @@ class SimpleMediaServiceHandler @Inject constructor(
     init {
         player.addListener(this)
         job = Job()
+    }
+    fun addMediaSource(mediaSource: MediaSource) {
+        player.setMediaSource(mediaSource)
+        player.prepare()
+    }
+    fun addMediaSourceList(mediaSourceList: List<MediaSource>) {
+        player.setMediaSources(mediaSourceList)
+        player.prepare()
     }
 
     fun addMediaItem(mediaItem: MediaItem) {
