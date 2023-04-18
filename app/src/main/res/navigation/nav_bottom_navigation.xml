@@ -57,5 +57,12 @@
     <action
         android:id="@+id/action_global_nowPlayingFragment"
         app:destination="@id/nowPlayingFragment" />
+    <fragment
+        android:id="@+id/moodFragment"
+        android:name="com.maxrave.simpmusic.ui.fragment.other.MoodFragment"
+        android:label="MoodFragment" />
+    <action
+        android:id="@+id/action_global_moodFragment"
+        app:destination="@id/moodFragment" />
 
 </navigation>

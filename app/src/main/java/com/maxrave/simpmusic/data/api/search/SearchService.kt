@@ -5,6 +5,7 @@ import com.maxrave.simpmusic.data.model.browse.album.AlbumBrowse
 import com.maxrave.simpmusic.data.model.browse.artist.ArtistBrowse
 import com.maxrave.simpmusic.data.model.browse.playlist.PlaylistBrowse
 import com.maxrave.simpmusic.data.model.explore.mood.Mood
+import com.maxrave.simpmusic.data.model.explore.mood.moodmoments.MoodsMomentObject
 import com.maxrave.simpmusic.data.model.home.homeItem
 import com.maxrave.simpmusic.data.model.searchResult.albums.AlbumsResult
 import com.maxrave.simpmusic.data.model.searchResult.artists.ArtistsResult
@@ -40,8 +41,11 @@ interface SearchService {
     suspend fun getHome(): Response<ArrayList<homeItem>>
 
     //exploreMood
-    @GET("explore/mood")
+    @GET("explore/mood/title")
     suspend fun exploreMood(): Response<Mood>
+    @GET("explore/mood")
+    suspend fun getMood(@Query("p") params: String): Response<MoodsMomentObject>
+
     //Chart
     @GET("explore/charts")
     suspend fun exploreChart(@Query("cc") regionCode: String): Response<Chart>

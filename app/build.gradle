@@ -32,8 +32,10 @@ android {
         targetCompatibility JavaVersion.VERSION_1_8
     }
     kotlinOptions {
-        jvmTarget = '1.8'
+        jvmTarget = JavaVersion.VERSION_1_8.toString()
     }
+
+
     //enable data binding
     dataBinding {
         enabled = true
@@ -75,7 +77,6 @@ dependencies {
     //expandable text view
     implementation 'com.github.giangpham96:expandable-text:2.0.0'
 
-    implementation 'net.colindodd:gradientlayout:1.2'
 
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
     testImplementation 'junit:junit:4.13.2'

@@ -20,7 +20,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-class MusicServiceModule {
+object MusicServiceModule {
 
     @Provides
     @Singleton

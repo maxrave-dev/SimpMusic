@@ -4,7 +4,9 @@
     <style name="rounded_corner">
         <item name="cornerSize">10dp</item>
     </style>
-
+    <style name="rounded_corner_for_quick_pick">
+        <item name="cornerSize">5dp</item>
+    </style>
 
     <style name="artist_name"
         parent="TextAppearance.Material3.DisplayMedium">

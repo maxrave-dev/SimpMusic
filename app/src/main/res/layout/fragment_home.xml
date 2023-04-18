@@ -26,7 +26,8 @@
                 app:titleTextAppearance="@style/TextAppearance.Material3.TitleMedium"
                 app:subtitleTextAppearance="@style/TextAppearance.AppCompat"
                 app:subtitle="Good Evening"
-                app:menu="@menu/top_app_bar_home" />
+                app:menu="@menu/top_app_bar_home"
+                app:layout_scrollFlags="scroll|enterAlways|snap"/>
         </com.google.android.material.appbar.AppBarLayout>
         <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
             android:id="@+id/swipeRefreshLayout"
@@ -37,159 +38,249 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/fullLayout">
-                <LinearLayout
-                    android:orientation="vertical"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="0sp"
-                    android:padding="15sp">
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:scrollbars="none"
-                        android:fillViewport="true">
-                        <androidx.recyclerview.widget.RecyclerView
-                            android:id="@+id/rvHome"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content">
 
-                        </androidx.recyclerview.widget.RecyclerView>
-
-                    </LinearLayout>
-                    <TextView
-                        android:id="@+id/tvTitleMoodsMoment"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:textSize="25sp"
-                        android:textStyle="bold"
-                        android:fontFamily="@font/roboto"
-                        android:text="Moods &amp; Moment"
-                        android:layout_marginBottom="10sp"
-                        android:layout_marginTop="5sp">
-                    </TextView>
                     <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-                        <androidx.recyclerview.widget.RecyclerView
-                            android:id="@+id/rvMoodsMoment"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" />
-                    </LinearLayout>
-                    <TextView
-                        android:id="@+id/tvTitleGenre"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:textSize="25sp"
-                        android:textStyle="bold"
-                        android:fontFamily="@font/roboto"
-                        android:text="Genre"
-                        android:layout_marginBottom="10sp"
-                        android:layout_marginTop="5sp">
-                    </TextView>
-                    <LinearLayout
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal">
-                        <androidx.recyclerview.widget.RecyclerView
-                            android:id="@+id/rvGenre"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content" />
-                    </LinearLayout>
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:id="@+id/chartLayout">
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="15sp"
+                        android:layout_marginTop="10sp">
+
                         <TextView
-                            android:id="@+id/tvTitleChart"
+                            android:id="@+id/tvStartWithARadio"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textSize="15sp"
+                            android:textStyle="normal"
+                            android:fontFamily="@font/roboto"
+                            android:text="LET'S START WITH A RADIO"
+                            android:layout_marginBottom="3sp"
+                            android:layout_marginTop="5sp">
+
+                        </TextView>
+
+                        <TextView
+                            android:id="@+id/tvTitleQuickPicks"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:textSize="25sp"
                             android:textStyle="bold"
                             android:fontFamily="@font/roboto"
-                            android:text="Chart"
-                            android:layout_marginBottom="5sp"
+                            android:text="Quick Picks"
+                            android:layout_marginBottom="10sp"
                             android:layout_marginTop="5sp">
+
                         </TextView>
-                        <Button
-                            android:id="@+id/btRegionCode"
+
+                        <LinearLayout
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            style="@style/Widget.Material3.Button.OutlinedButton"
-                            android:text="Global"
-                            android:textColor="?attr/colorOnSurface"
-                            android:drawableRight="@drawable/baseline_arrow_drop_down_24">
+                            android:orientation="horizontal">
 
-                        </Button>
+                            <androidx.recyclerview.widget.RecyclerView
+                                android:id="@+id/rvQuickPicks"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:scrollbars="none"
+                            android:fillViewport="true">
+
+                            <androidx.recyclerview.widget.RecyclerView
+                                android:id="@+id/rvHome"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content">
+
+                            </androidx.recyclerview.widget.RecyclerView>
+
+                        </LinearLayout>
+
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textSize="15sp"
+                            android:textStyle="normal"
+                            android:fontFamily="@font/roboto"
+                            android:text="LET'S PICK A PLAYLIST FOR YOU"
+                            android:layout_marginBottom="3sp"
+                            android:layout_marginTop="10sp">
+
+                        </TextView>
+
+                        <TextView
+                            android:id="@+id/tvTitleMoodsMoment"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="5sp"
+                            android:layout_marginBottom="10sp"
+                            android:fontFamily="@font/roboto"
+                            android:text="Moods &amp; Moment"
+                            android:textSize="25sp"
+                            android:textStyle="bold">
+
+                        </TextView>
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <androidx.recyclerview.widget.RecyclerView
+                                android:id="@+id/rvMoodsMoment"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content" />
+                        </LinearLayout>
+
+                        <TextView
+                            android:id="@+id/tvTitleGenre"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textSize="25sp"
+                            android:textStyle="bold"
+                            android:fontFamily="@font/roboto"
+                            android:text="Genre"
+                            android:layout_marginBottom="10sp"
+                            android:layout_marginTop="5sp">
+
+                        </TextView>
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <androidx.recyclerview.widget.RecyclerView
+                                android:id="@+id/rvGenre"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content" />
+                        </LinearLayout>
 
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:orientation="vertical"
-                            android:id="@+id/chartResultLayout">
+                            android:id="@+id/chartLayout"
+                            android:layout_marginTop="10sp">
 
                             <TextView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:textSize="20sp"
+                                android:textSize="15sp"
                                 android:textStyle="normal"
                                 android:fontFamily="@font/roboto"
-                                android:layout_marginBottom="10sp"
-                                android:layout_marginTop="5sp"
-                                android:text="Top tracks">
+                                android:text="WHAT IS BEST CHOICE TODAY"
+                                android:layout_marginBottom="3sp"
+                                android:layout_marginTop="5sp">
 
                             </TextView>
-
-                            <LinearLayout
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:scrollbars="horizontal"
-                                android:fillViewport="true">
-
-                                <androidx.recyclerview.widget.RecyclerView
-                                    android:id="@+id/rvTopTrack"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content">
-
-                                </androidx.recyclerview.widget.RecyclerView>
-
-                            </LinearLayout>
 
                             <TextView
+                                android:id="@+id/tvTitleChart"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:textSize="20sp"
-                                android:textStyle="normal"
+                                android:textSize="25sp"
+                                android:textStyle="bold"
                                 android:fontFamily="@font/roboto"
-                                android:layout_marginBottom="10sp"
-                                android:layout_marginTop="5sp"
-                                android:text="Top artists">
+                                android:text="Chart"
+                                android:layout_marginBottom="5sp"
+                                android:layout_marginTop="5sp">
 
                             </TextView>
 
-                            <LinearLayout
+                            <Button
+                                android:id="@+id/btRegionCode"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:scrollbars="horizontal"
-                                android:fillViewport="true">
+                                style="@style/Widget.Material3.Button.OutlinedButton"
+                                android:text="Global"
+                                android:textColor="?attr/colorOnSurface"
+                                android:drawableRight="@drawable/baseline_arrow_drop_down_24">
 
-                                <androidx.recyclerview.widget.RecyclerView
-                                    android:id="@+id/rvTopArtist"
+                            </Button>
+                            <RelativeLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="200sp"
+                                android:id="@+id/chartLoadingLayout">
+                                <com.google.android.material.progressindicator.CircularProgressIndicator
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_centerInParent="true"
+                                    android:indeterminate="true"
+                                    app:indicatorColor="#B2C5FF">
+
+                                </com.google.android.material.progressindicator.CircularProgressIndicator>
+                            </RelativeLayout>
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical"
+                                android:id="@+id/chartResultLayout">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:textSize="20sp"
+                                    android:textStyle="normal"
+                                    android:fontFamily="@font/roboto"
+                                    android:layout_marginBottom="10sp"
+                                    android:layout_marginTop="5sp"
+                                    android:text="Top tracks">
+
+                                </TextView>
+
+                                <LinearLayout
                                     android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content">
+                                    android:layout_height="wrap_content"
+                                    android:scrollbars="horizontal"
+                                    android:fillViewport="true">
 
-                                </androidx.recyclerview.widget.RecyclerView>
+                                    <androidx.recyclerview.widget.RecyclerView
+                                        android:id="@+id/rvTopTrack"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content">
 
+                                    </androidx.recyclerview.widget.RecyclerView>
+
+                                </LinearLayout>
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:textSize="20sp"
+                                    android:textStyle="normal"
+                                    android:fontFamily="@font/roboto"
+                                    android:layout_marginBottom="10sp"
+                                    android:layout_marginTop="5sp"
+                                    android:text="Top artists">
+
+                                </TextView>
+
+                                <LinearLayout
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:scrollbars="horizontal"
+                                    android:fillViewport="true">
+
+                                    <androidx.recyclerview.widget.RecyclerView
+                                        android:id="@+id/rvTopArtist"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content">
+
+                                    </androidx.recyclerview.widget.RecyclerView>
+
+                                </LinearLayout>
                             </LinearLayout>
                         </LinearLayout>
-                    </LinearLayout>
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="150sp">
 
-                    </RelativeLayout>
-                </LinearLayout>
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="150sp">
+
+                        </RelativeLayout>
+                    </LinearLayout>
             </androidx.core.widget.NestedScrollView>
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
