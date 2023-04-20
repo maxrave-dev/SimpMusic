@@ -50,13 +50,7 @@
     <action
         android:id="@+id/action_global_playlistFragment"
         app:destination="@id/playlistFragment" />
-    <dialog
-        android:id="@+id/nowPlayingFragment"
-        android:name="com.maxrave.simpmusic.ui.fragment.NowPlayingFragment"
-        android:label="NowPlayingFragment" />
-    <action
-        android:id="@+id/action_global_nowPlayingFragment"
-        app:destination="@id/nowPlayingFragment" />
+
     <fragment
         android:id="@+id/moodFragment"
         android:name="com.maxrave.simpmusic.ui.fragment.other.MoodFragment"
@@ -64,5 +58,12 @@
     <action
         android:id="@+id/action_global_moodFragment"
         app:destination="@id/moodFragment" />
+    <dialog
+        android:id="@+id/nowPlayingFragment"
+        android:name="com.maxrave.simpmusic.ui.fragment.NowPlayingFragment"
+        android:label="NowPlayingFragment" />
+    <action
+        android:id="@+id/action_global_nowPlayingFragment"
+        app:destination="@id/nowPlayingFragment" />
 
 </navigation>

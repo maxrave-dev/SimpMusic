@@ -27,15 +27,27 @@
             <androidx.core.widget.NestedScrollView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/topAppBarLayout">
-                <androidx.recyclerview.widget.RecyclerView
+                android:layout_below="@+id/topAppBarLayout"
+                android:id="@+id/listLayout">
+                <LinearLayout
+                    android:orientation="vertical"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/rvListPlaylist"
-                    tools:listitem="@layout/item_mood_moment_playlist">
+                    android:layout_height="wrap_content">
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/rvListPlaylist"
+                        tools:listitem="@layout/item_mood_moment_playlist">
 
-                </androidx.recyclerview.widget.RecyclerView>
+                    </androidx.recyclerview.widget.RecyclerView>
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="150sp">
+
+                    </RelativeLayout>
+                </LinearLayout>
             </androidx.core.widget.NestedScrollView>
+
         </RelativeLayout>
         <com.google.android.material.progressindicator.CircularProgressIndicator
             android:layout_width="match_parent"

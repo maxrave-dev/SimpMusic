@@ -9,7 +9,6 @@ import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 data class Song (
     val title: String?,
     val artists: List<Artist>?,
-    val mediaItem: MediaItem,
     val duration: Long,
     val lyrics: Any,
     val album: Album,

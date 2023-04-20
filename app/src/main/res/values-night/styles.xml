@@ -8,4 +8,11 @@
     <style name="circle">
         <item name="cornerSize">50%</item>
     </style>
+    <style name="ShapeAppearanceOverlay.MaterialCardView.Cut" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopRight">2dp</item>
+        <item name="cornerSizeTopLeft">2dp</item>
+        <item name="cornerSizeBottomRight">2dp</item>
+        <item name="cornerSizeBottomLeft">2dp</item>
+    </style>
 </resources>

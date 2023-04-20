@@ -10,8 +10,22 @@ import com.maxrave.simpmusic.data.model.home.Content
 import com.maxrave.simpmusic.databinding.ItemQuickPicksBinding
 
 class QuickPicksAdapter(val contentList: ArrayList<Content>, val context: Context, val navController: NavController): RecyclerView.Adapter<QuickPicksAdapter.ViewHolder>() {
-    inner class ViewHolder(val binding: ItemQuickPicksBinding): RecyclerView.ViewHolder(binding.root) {
-
+    inner class ViewHolder(val binding: ItemQuickPicksBinding, listener: OnClickListener): RecyclerView.ViewHolder(binding.root) {
+        init {
+            binding.root.setOnClickListener {
+                listener.onClick(bindingAdapterPosition)
+            }
+        }
+    }
+    fun getData(): ArrayList<Content> {
+        return contentList
+    }
+    interface OnClickListener{
+        fun onClick(position: Int)
+    }
+    private lateinit var mListener: OnClickListener
+    fun setOnClickListener(listener: OnClickListener){
+        mListener = listener
     }
     fun updateData(newData: ArrayList<Content>) {
         contentList.clear()
@@ -20,7 +34,7 @@ class QuickPicksAdapter(val contentList: ArrayList<Content>, val context: Contex
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(ItemQuickPicksBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+        return ViewHolder(ItemQuickPicksBinding.inflate(LayoutInflater.from(parent.context), parent, false), mListener)
     }
 
     override fun getItemCount(): Int {

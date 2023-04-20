@@ -12,7 +12,8 @@
 
     <androidx.core.widget.NestedScrollView
         android:layout_height="match_parent"
-        android:layout_width="match_parent">
+        android:layout_width="match_parent"
+        android:id="@+id/rootLayout">
 
         <RelativeLayout
             android:id="@+id/now_playing_dialog"
@@ -22,7 +23,8 @@
             <com.google.android.material.appbar.AppBarLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/topAppBarLayout">
+                android:id="@+id/topAppBarLayout"
+                android:background="@android:color/transparent">
 
                 <com.google.android.material.appbar.MaterialToolbar
                     android:id="@+id/topAppBar"
@@ -43,14 +45,29 @@
                 android:orientation="vertical"
                 android:layout_below="@+id/topAppBarLayout">
 
-                <ImageView
+                <RelativeLayout
                     android:layout_width="325sp"
                     android:layout_height="325sp"
                     android:layout_gravity="center_horizontal"
-                    android:layout_marginTop="40sp"
-                    android:src="@drawable/test_thumbnail">
+                    android:layout_marginTop="40sp">
 
-                </ImageView>
+                    <ImageView
+                        android:id="@+id/ivArt"
+                        android:layout_width="325sp"
+                        android:layout_height="325sp"
+                        android:layout_centerInParent="true">
+
+                    </ImageView>
+                    <com.google.android.material.progressindicator.CircularProgressIndicator
+                        android:id="@+id/loading_art"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:indeterminate="true"
+                        android:layout_centerInParent="true">
+
+                    </com.google.android.material.progressindicator.CircularProgressIndicator>
+
+                </RelativeLayout>
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -120,8 +137,8 @@
                         <RelativeLayout
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:layout_marginStart="12sp"
-                            android:layout_marginEnd="12sp">
+                            android:layout_marginStart="15sp"
+                            android:layout_marginEnd="15sp">
                             <com.google.android.material.progressindicator.LinearProgressIndicator
                                 android:id="@+id/buffered"
                                 android:layout_width="match_parent"
@@ -134,11 +151,15 @@
                         <com.google.android.material.slider.Slider
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:value="0.0"
+                            android:value="50.0"
                             android:valueFrom="0.0"
                             android:valueTo="100.0"
                             android:id="@+id/progress_song"
-                            android:indeterminate="true">
+                            android:indeterminate="true"
+                            app:labelBehavior="gone"
+                            app:trackColorActive = "@android:color/white"
+                            app:thumbColor = "@android:color/white"
+                            app:thumbRadius="5sp">
 
                         </com.google.android.material.slider.Slider>
 
@@ -275,7 +296,9 @@
                         style="@style/Widget.Material3.CardView.Elevated"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="15sp">
+                        android:layout_marginTop="15sp"
+                        app:cardPreventCornerOverlap="true"
+                        android:id="@+id/lyricsLayout">
 
                         <LinearLayout
                             android:layout_width="match_parent"

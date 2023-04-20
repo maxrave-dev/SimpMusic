@@ -5,8 +5,10 @@ import com.maxrave.simpmusic.data.model.browse.album.AlbumBrowse
 import com.maxrave.simpmusic.data.model.browse.artist.ArtistBrowse
 import com.maxrave.simpmusic.data.model.browse.playlist.PlaylistBrowse
 import com.maxrave.simpmusic.data.model.explore.mood.Mood
+import com.maxrave.simpmusic.data.model.explore.mood.genre.GenreObject
 import com.maxrave.simpmusic.data.model.explore.mood.moodmoments.MoodsMomentObject
 import com.maxrave.simpmusic.data.model.home.homeItem
+import com.maxrave.simpmusic.data.model.metadata.MetadataSong
 import com.maxrave.simpmusic.data.model.searchResult.albums.AlbumsResult
 import com.maxrave.simpmusic.data.model.searchResult.artists.ArtistsResult
 import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
@@ -45,6 +47,8 @@ interface SearchService {
     suspend fun exploreMood(): Response<Mood>
     @GET("explore/mood")
     suspend fun getMood(@Query("p") params: String): Response<MoodsMomentObject>
+    @GET("explore/genre")
+    suspend fun getGenre(@Query("p") params: String): Response<GenreObject>
 
     //Chart
     @GET("explore/charts")
@@ -64,5 +68,8 @@ interface SearchService {
     @GET("playlists")
     suspend fun browsePlaylist(@Query("id") id: String): Response<PlaylistBrowse>
 
+    //getMetadata
+    @GET("/songs/metadata")
+    suspend fun getMetadata(@Query("videoId") videoId: String): Response<MetadataSong>
 
 }

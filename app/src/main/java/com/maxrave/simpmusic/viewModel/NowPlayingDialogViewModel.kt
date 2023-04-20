@@ -44,7 +44,6 @@ class NowPlayingDialogViewModel @Inject constructor( private val simpleMediaServ
 
     init {
         viewModelScope.launch {
-            loadMediaSource(songResult.value!!)
 
             simpleMediaServiceHandler.simpleMediaState.collect { mediaState ->
                 when (mediaState) {
@@ -61,21 +60,21 @@ class NowPlayingDialogViewModel @Inject constructor( private val simpleMediaServ
         }
     }
 
-    private fun loadMediaSource(song: String): String {
-        val url = getStreamLink(song)
-        return url
-    }
+//    private fun loadMediaSource(song: String): String {
+//        val url = getStreamLink(song)
+//        return url
+//    }
 
-    private fun loadData(song: String) {
-        val mediaItem = MediaItem.Builder()
-            .setUri(getStreamLink(song))
-            .setMediaMetadata(
-                MediaMetadata.Builder()
-                    .setFolderType(MediaMetadata.FOLDER_TYPE_ALBUMS)
-                    .build()
-            ).build()
-        simpleMediaServiceHandler.addMediaItem(mediaItem)
-    }
+//    private fun loadData(song: String) {
+//        val mediaItem = MediaItem.Builder()
+//            .setUri(getStreamLink(song))
+//            .setMediaMetadata(
+//                MediaMetadata.Builder()
+//                    .setFolderType(MediaMetadata.FOLDER_TYPE_ALBUMS)
+//                    .build()
+//            ).build()
+//        simpleMediaServiceHandler.addMediaItem(mediaItem)
+//    }
 
     fun onUIEvent(uiEvent: UIEvent) = viewModelScope.launch {
         when (uiEvent) {
@@ -121,8 +120,5 @@ class NowPlayingDialogViewModel @Inject constructor( private val simpleMediaServ
         object Initial : UIState()
         object Ready : UIState()
     }
-    private fun getStreamLink(videoId: String): String{
-        val yt = YoutubeModule(videoId)
-        return yt.Request().bestAudioFormat().url()
-    }
+
 }

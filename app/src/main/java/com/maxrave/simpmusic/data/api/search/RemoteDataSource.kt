@@ -5,8 +5,10 @@ import com.maxrave.simpmusic.data.model.browse.album.AlbumBrowse
 import com.maxrave.simpmusic.data.model.browse.artist.ArtistBrowse
 import com.maxrave.simpmusic.data.model.browse.playlist.PlaylistBrowse
 import com.maxrave.simpmusic.data.model.explore.mood.Mood
+import com.maxrave.simpmusic.data.model.explore.mood.genre.GenreObject
 import com.maxrave.simpmusic.data.model.explore.mood.moodmoments.MoodsMomentObject
 import com.maxrave.simpmusic.data.model.home.homeItem
+import com.maxrave.simpmusic.data.model.metadata.MetadataSong
 import com.maxrave.simpmusic.data.model.searchResult.albums.AlbumsResult
 import com.maxrave.simpmusic.data.model.searchResult.artists.ArtistsResult
 import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
@@ -45,6 +47,7 @@ class RemoteDataSource @Inject constructor(private val searchService: SearchServ
 
     suspend fun exploreMood(): Response<Mood> = searchService.exploreMood()
     suspend fun getMood(params: String): Response<MoodsMomentObject> = searchService.getMood(params)
+    suspend fun getGenre(params: String): Response<GenreObject> = searchService.getGenre(params)
 
     suspend fun browseArtist(channelId: String): Response<ArtistBrowse> = searchService.browseArtist(channelId)
 
@@ -53,4 +56,6 @@ class RemoteDataSource @Inject constructor(private val searchService: SearchServ
     suspend fun browsePlaylist(id: String): Response<PlaylistBrowse> = searchService.browsePlaylist(id)
 
     suspend fun exploreChart(regionCode: String): Response<Chart> = searchService.exploreChart(regionCode)
+
+    suspend fun getMetadata(videoId: String): Response<MetadataSong> = searchService.getMetadata(videoId)
 }

@@ -103,6 +103,7 @@ class HomeFragment : Fragment() {
         Log.d("Date", "onCreateView: $date")
         binding.tvTitleMoodsMoment.visibility = View.GONE
         binding.tvTitleGenre.visibility = View.GONE
+        binding.fullLayout.visibility = View.GONE
         mAdapter = HomeItemAdapter(arrayListOf(), requireContext(), findNavController())
         moodsMomentAdapter = MoodsMomentAdapter(arrayListOf())
         genreAdapter = GenreAdapter(arrayListOf())
@@ -185,9 +186,11 @@ class HomeFragment : Fragment() {
                     })
                     binding.tvTitleMoodsMoment.visibility = View.VISIBLE
                     binding.tvTitleGenre.visibility = View.VISIBLE
+                    binding.fullLayout.visibility = View.VISIBLE
 //                    binding.swipeRefreshLayout.isRefreshing = false
                 }
                 else {
+                    binding.fullLayout.visibility = View.GONE
                     binding.swipeRefreshLayout.isRefreshing = true
                 }
             })
@@ -245,6 +248,7 @@ class HomeFragment : Fragment() {
             binding.tvTitleGenre.visibility = View.VISIBLE
             moodsMomentAdapter.updateData(moodsMoment!!)
             genreAdapter.updateData(genre!!)
+            binding.fullLayout.visibility = View.VISIBLE
             binding.swipeRefreshLayout.isRefreshing = false
         }
 //        fetchHomeData()
@@ -296,6 +300,9 @@ class HomeFragment : Fragment() {
         genreAdapter.setOnGenreClickListener(object : GenreAdapter.onGenreItemClickListener {
             override fun onGenreItemClick(position: Int) {
                 Toast.makeText( requireContext(),"${genre?.get(position)}", Toast.LENGTH_SHORT).show()
+                val args = Bundle()
+                args.putString("params", genre?.get(position)?.params.toString())
+                findNavController().navigate(R.id.action_global_moodFragment, args)
             }
         })
         artistChartAdapter.setOnArtistClickListener(object : ArtistChartAdapter.onArtistItemClickListener {
@@ -304,6 +311,15 @@ class HomeFragment : Fragment() {
                 val args = Bundle()
                 args.putString("channelId", artistChart?.get(position)?.browseId.toString())
                 findNavController().navigate(R.id.action_global_artistFragment, args)
+            }
+        })
+        quickPicksAdapter.setOnClickListener(object : QuickPicksAdapter.OnClickListener {
+            override fun onClick(position: Int) {
+                Toast.makeText( requireContext(),"${quickPicksAdapter.getData()[position]}", Toast.LENGTH_SHORT).show()
+                val args = Bundle()
+                args.putString("videoId", quickPicksAdapter.getData()[position].videoId)
+                args.putString("from", "Quick Picks")
+                findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
             }
         })
         binding.swipeRefreshLayout.setOnRefreshListener {
@@ -395,6 +411,7 @@ class HomeFragment : Fragment() {
                         }
                         Log.d("Data", "onViewCreated: $homeItemList")
                         mAdapter.updateData(homeItemListWithoutQuickPicks!!)
+                        binding.fullLayout.visibility = View.VISIBLE
                         binding.swipeRefreshLayout.isRefreshing = false
                     }
                 }
