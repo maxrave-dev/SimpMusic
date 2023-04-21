@@ -1,50 +1,36 @@
 package com.maxrave.simpmusic.ui.fragment
 
+import android.app.Activity
 import android.app.Dialog
 import android.graphics.Bitmap
-import android.graphics.Rect
-import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.Drawable
+import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
+import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import android.view.*
-import android.widget.SeekBar
 import android.widget.Toast
-import androidx.core.content.ContextCompat
+import androidx.core.graphics.alpha
 import androidx.customview.widget.ViewDragHelper
-import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
-import androidx.media3.common.MediaItem
-import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.ExoPlayer
-import androidx.navigation.fragment.findNavController
 import androidx.palette.graphics.Palette
 import coil.ImageLoader
-import coil.load
 import coil.request.ImageRequest
 import coil.size.Size
 import coil.transform.Transformation
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import com.google.android.material.slider.Slider
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.data.model.metadata.MetadataSong
-import com.maxrave.simpmusic.viewModel.NowPlayingDialogViewModel
 import com.maxrave.simpmusic.databinding.FragmentNowPlayingBinding
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import dagger.hilt.android.AndroidEntryPoint
-import kotlin.math.log
+
 
 @UnstableApi
 @AndroidEntryPoint
@@ -98,7 +84,7 @@ class NowPlayingFragment: BottomSheetDialogFragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
         _binding = FragmentNowPlayingBinding.inflate(inflater, container, false)
         return binding.root
@@ -298,6 +284,7 @@ class NowPlayingFragment: BottomSheetDialogFragment() {
                         })
                         viewModel.lyricsBackground.observe(viewLifecycleOwner, Observer {
                             binding.lyricsLayout.setCardBackgroundColor(it)
+                            updateStatusBarColor(it)
                         })
                         Log.d("Metadata", "updateUI: NULL")
                     }
@@ -368,5 +355,10 @@ class NowPlayingFragment: BottomSheetDialogFragment() {
         binding.tvSongArtist.visibility = View.VISIBLE
         Log.d("Metadata", metadataCurSong.toString())
     }
-
+    fun updateStatusBarColor(color: Int) { // Color must be in hexadecimal format
+        requireActivity().window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS)
+        val window: Window = requireActivity().window
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
+        window.statusBarColor = Color.parseColor("99"+color.toString())
+    }
 }
