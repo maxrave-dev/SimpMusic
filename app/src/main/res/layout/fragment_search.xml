@@ -115,12 +115,18 @@
                         android:layout_height="wrap_content"
                         android:layout_width="match_parent">
 
-                        <androidx.recyclerview.widget.RecyclerView
+                        <LinearLayout
+                            android:orientation="vertical"
                             android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:id="@+id/resultList">
+                            android:layout_height="wrap_content">
+                            <androidx.recyclerview.widget.RecyclerView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:id="@+id/resultList"
+                                android:layout_marginBottom="135sp">
 
-                        </androidx.recyclerview.widget.RecyclerView>
+                            </androidx.recyclerview.widget.RecyclerView>
+                        </LinearLayout>
                     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
                 </LinearLayout>

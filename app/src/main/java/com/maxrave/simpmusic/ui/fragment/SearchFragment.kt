@@ -68,7 +68,7 @@ class SearchFragment : Fragment() {
                     binding.defaultLayout.visibility = View.GONE
                     binding.resultView.visibility = View.VISIBLE
                     if (!searchHistory.contains(query)){
-                        searchHistory.add(query)
+                        searchHistory.add(0 ,query)
                         Log.d("Check History in Fragment", searchHistory.toString())
                     }
                     Log.d("Check History", searchHistory.toString())

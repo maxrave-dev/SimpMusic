@@ -89,7 +89,7 @@
                             android:layout_weight="1">
 
                             <TextView
-                                android:layout_width="wrap_content"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:ellipsize="marquee"
                                 android:focusable="true"
@@ -104,7 +104,7 @@
                                 android:id="@+id/tvSongTitle" />
 
                             <TextView
-                                android:layout_width="wrap_content"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:ellipsize="marquee"
                                 android:focusable="true"
@@ -139,25 +139,29 @@
                             android:layout_height="match_parent"
                             android:layout_marginStart="15sp"
                             android:layout_marginEnd="15sp">
+
                             <com.google.android.material.progressindicator.LinearProgressIndicator
                                 android:id="@+id/buffered"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:layout_centerInParent="true"
-                                android:progress="0">
+                                app:indicatorColor="@android:color/darker_gray"
+                                android:progress="60"
+                                android:max="100"
+                                android:min="0">
 
                             </com.google.android.material.progressindicator.LinearProgressIndicator>
                         </RelativeLayout>
                         <com.google.android.material.slider.Slider
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:value="50.0"
                             android:valueFrom="0.0"
                             android:valueTo="100.0"
                             android:id="@+id/progress_song"
                             android:indeterminate="true"
                             app:labelBehavior="gone"
                             app:trackColorActive = "@android:color/white"
+                            app:trackColorInactive="@android:color/transparent"
                             app:thumbColor = "@android:color/white"
                             app:thumbRadius="5sp">
 

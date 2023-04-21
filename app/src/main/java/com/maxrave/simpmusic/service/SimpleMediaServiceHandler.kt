@@ -59,7 +59,7 @@ class SimpleMediaServiceHandler @Inject constructor(
                 }
             }
             PlayerEvent.Stop -> stopProgressUpdate()
-            is PlayerEvent.UpdateProgress -> player.seekTo((player.duration * playerEvent.newProgress).toLong())
+            is PlayerEvent.UpdateProgress -> player.seekTo((player.duration * playerEvent.newProgress/100).toLong())
         }
     }
 

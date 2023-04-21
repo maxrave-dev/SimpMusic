@@ -26,12 +26,16 @@ import com.google.android.material.snackbar.Snackbar
 import com.maxrave.simpmusic.data.model.mediaService.Song
 import com.maxrave.simpmusic.data.model.metadata.MetadataSong
 import com.maxrave.simpmusic.data.repository.MainRepository
+import com.maxrave.simpmusic.databinding.FragmentNowPlayingBinding
 import com.maxrave.simpmusic.service.PlayerEvent
 import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
+import com.maxrave.simpmusic.service.SimpleMediaState
 import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -49,8 +53,18 @@ class SharedViewModel @Inject constructor(private val mainRepository: MainReposi
     private var _metadata = MutableLiveData<Resource<MetadataSong>>()
     val metadata: LiveData<Resource<MetadataSong>> = _metadata
 
+    private var _bufferedPosition = MutableStateFlow<Long>(0L)
+    val bufferedPosition: StateFlow<Long> = _bufferedPosition
+
     private var _progress = MutableStateFlow<Float>(0F)
     val progress: StateFlow<Float> = _progress
+    var progressString : MutableLiveData<String> = MutableLiveData("00:00")
+    private val _duration = MutableStateFlow<Long>(0L)
+    val duration: StateFlow<Long> = _duration
+    private val _uiState = MutableStateFlow<UIState>(UIState.Initial)
+    val uiState = _uiState.asStateFlow()
+
+    var isPlaying = MutableLiveData<Boolean>()
 
     private val _mediaItems = MutableLiveData<Resource<ArrayList<Song>>>()
     val mediaItems: LiveData<Resource<ArrayList<Song>>> = _mediaItems
@@ -59,6 +73,24 @@ class SharedViewModel @Inject constructor(private val mainRepository: MainReposi
     val mediaSources: LiveData<Resource<String>> = _mediaSources
 
     val playbackState = simpleMediaServiceHandler.simpleMediaState
+
+    init {
+        viewModelScope.launch {
+            simpleMediaServiceHandler.simpleMediaState.collect { mediaState ->
+                when (mediaState) {
+                    is SimpleMediaState.Buffering -> calculateProgressValues(mediaState.progress)
+                    SimpleMediaState.Initial -> _uiState.value = UIState.Initial
+                    is SimpleMediaState.Playing -> isPlaying.value = mediaState.isPlaying
+                    is SimpleMediaState.Progress -> calculateProgressValues(mediaState.progress)
+                    is SimpleMediaState.Ready -> {
+                        _duration.value = mediaState.duration
+                        _uiState.value = UIState.Ready
+                    }
+                    else -> {}
+                }
+            }
+        }
+    }
 
     fun getMetadata(videoId: String) {
         viewModelScope.launch {
@@ -126,6 +158,7 @@ class SharedViewModel @Inject constructor(private val mainRepository: MainReposi
                                 )
                                 .build()
                             simpleMediaServiceHandler.addMediaItem(mediaItem)
+                            getBufferedPosition()
                         }
                     }
                 }
@@ -169,9 +202,26 @@ class SharedViewModel @Inject constructor(private val mainRepository: MainReposi
                 - minutes * TimeUnit.SECONDS.convert(1, TimeUnit.MINUTES))
         return String.format("%02d:%02d", minutes, seconds)
     }
+    private fun calculateProgressValues(currentProgress: Long) {
+        _progress.value = if (currentProgress > 0) (currentProgress.toFloat() / duration.value) else 0f
+        progressString.value = formatDuration(currentProgress)
+    }
+    fun getBufferedPosition() = viewModelScope.launch {
+        playbackState.collect{
+            when (it){
+                is SimpleMediaState.Ready -> {
+                    _bufferedPosition.value = it.duration
+                }
+                is SimpleMediaState.Buffering -> {
+                    _bufferedPosition.value = it.progress
+                }
+                else -> {}
+            }
+        }
+    }
 
+    @UnstableApi
     fun seekTo(position: Long) {
-
     }
     fun nextSong() {
 
@@ -202,8 +252,12 @@ class SharedViewModel @Inject constructor(private val mainRepository: MainReposi
             string
         }
     }
-
-
+    @UnstableApi
+    override fun onCleared() {
+        viewModelScope.launch {
+            simpleMediaServiceHandler.onPlayerEvent(PlayerEvent.Stop)
+        }
+    }
 }
 sealed class UIEvent {
     object PlayPause : UIEvent()
