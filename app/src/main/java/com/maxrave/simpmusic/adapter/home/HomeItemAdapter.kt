@@ -46,7 +46,10 @@ class HomeItemAdapter(private var homeItemList: ArrayList<homeItem>, var context
         itemAdapter.setOnSongClickListener(object : HomeItemContentAdapter.onSongItemClickListener{
             override fun onSongItemClick(position: Int) {
                 Toast.makeText(context, homeItemList[holder.bindingAdapterPosition].contents[position].toString(), Toast.LENGTH_SHORT).show()
-
+                val args = Bundle()
+                args.putString("videoId", homeItemList[holder.bindingAdapterPosition].contents[position]?.videoId)
+                args.putString("from", homeItem.title)
+                navController.navigate(R.id.action_global_nowPlayingFragment, args)
             }
         })
         itemAdapter.setOnPlaylistClickListener(object : HomeItemContentAdapter.onPlaylistItemClickListener{

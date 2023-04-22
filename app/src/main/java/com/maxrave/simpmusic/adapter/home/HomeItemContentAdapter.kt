@@ -37,6 +37,7 @@ class HomeItemContentAdapter(private var listContent: ArrayList<Content>): Recyc
                     ivArt.load(content.thumbnails[0].url)
                 }
                 tvSongName.text = content.title
+                tvSongName.isSelected = true
                 var artistName = ""
                 if (content.artists != null) {
                     for (artist in content.artists) {
@@ -46,7 +47,9 @@ class HomeItemContentAdapter(private var listContent: ArrayList<Content>): Recyc
                     artistName = removeComma(artistName)
                 }
                 tvArtistName.text = artistName
+                tvArtistName.isSelected = true
                 tvAlbumName.text = content.album?.name
+                tvAlbumName.isSelected = true
             }
         }
     }
@@ -63,7 +66,9 @@ class HomeItemContentAdapter(private var listContent: ArrayList<Content>): Recyc
                     ivArt.load(content.thumbnails[0].url)
                 }
                 tvTitle.text = content.title
+                tvTitle.isSelected = true
                 tvDescription.text = content.description
+                tvDescription.isSelected = true
             }
         }
     }

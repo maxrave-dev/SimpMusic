@@ -91,30 +91,30 @@
                             <TextView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:fontFamily="@font/roboto_bold"
+                                android:singleLine="true"
                                 android:ellipsize="marquee"
+                                android:marqueeRepeatLimit="marquee_forever"
                                 android:focusable="true"
                                 android:focusableInTouchMode="true"
-                                android:fontFamily="@font/roboto_bold"
-                                android:marqueeRepeatLimit="marquee_forever"
                                 android:scrollHorizontally="true"
-                                android:singleLine="true"
                                 android:text="People Change"
-                                android:textSize="20sp"
+                                android:textSize="22sp"
                                 android:textStyle="bold"
                                 android:id="@+id/tvSongTitle" />
 
                             <TextView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:singleLine="true"
                                 android:ellipsize="marquee"
+                                android:marqueeRepeatLimit="marquee_forever"
                                 android:focusable="true"
                                 android:focusableInTouchMode="true"
-                                android:fontFamily="@font/roboto"
-                                android:marqueeRepeatLimit="marquee_forever"
                                 android:scrollHorizontally="true"
-                                android:singleLine="true"
+                                android:fontFamily="@font/roboto"
                                 android:text="Hoang, RUNN"
-                                android:textSize="15sp"
+                                android:textSize="18sp"
                                 android:textStyle="normal"
                                 android:id="@+id/tvSongArtist" />
                         </LinearLayout>
@@ -133,7 +133,7 @@
                     <FrameLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="25sp">
+                        android:layout_marginTop="20sp">
                         <RelativeLayout
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
@@ -146,7 +146,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_centerInParent="true"
                                 app:indicatorColor="@android:color/darker_gray"
-                                android:progress="60"
+                                android:progress="0"
                                 android:max="100"
                                 android:min="0">
 
@@ -184,7 +184,7 @@
                             android:layout_weight="1"
                             android:layout_gravity="center_vertical"
                             android:gravity="start"
-                            android:textSize="13sp"
+                            android:textSize="15sp"
                             android:textStyle="normal"
                             android:fontFamily="@font/roboto" />
 
@@ -196,7 +196,7 @@
                             android:layout_weight="1"
                             android:layout_gravity="center_vertical"
                             android:gravity="end"
-                            android:textSize="13sp"
+                            android:textSize="15sp"
                             android:textStyle="normal"
                             android:fontFamily="@font/roboto" />
 
@@ -209,13 +209,13 @@
                         android:layout_marginTop="5sp">
 
                         <ImageButton
+                            android:id="@+id/btPlayPause"
                             android:layout_width="80dp"
                             android:layout_height="80sp"
                             android:layout_centerInParent="true"
                             android:background="@null"
-                            android:src="@drawable/baseline_play_circle_24"
                             android:scaleType="fitCenter"
-                            android:id="@+id/btPlayPause" />
+                            android:src="@drawable/baseline_play_circle_24" />
 
                         <ImageButton
                             android:id="@+id/btNext"

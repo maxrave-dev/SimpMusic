@@ -1,9 +1,12 @@
 package com.maxrave.simpmusic.service
 
+import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.pm.PackageManager
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.media3.common.util.UnstableApi
@@ -14,12 +17,13 @@ import androidx.media3.ui.PlayerNotificationManager
 import com.maxrave.simpmusic.R
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 private const val NOTIFICATION_ID = 200
 private const val NOTIFICATION_CHANNEL_NAME = "notification channel 1"
 private const val NOTIFICATION_CHANNEL_ID = "notification channel id 1"
-
 
 class SimpleMediaNotificationManager @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -28,9 +32,27 @@ class SimpleMediaNotificationManager @Inject constructor(
 
     private var notificationManager: NotificationManagerCompat =
         NotificationManagerCompat.from(context)
+    private lateinit var playerNotificationManager: PlayerNotificationManager
+
+    @UnstableApi
+    private var notificationListener: PlayerNotificationManager.NotificationListener =
+        object : PlayerNotificationManager.NotificationListener {
+            override fun onNotificationCancelled(notificationId: Int, dismissedByUser: Boolean) {
+                super.onNotificationCancelled(notificationId, dismissedByUser)
+            }
+
+            override fun onNotificationPosted(
+                notificationId: Int,
+                notification: Notification,
+                ongoing: Boolean
+            ) {
+                super.onNotificationPosted(notificationId, notification, ongoing)
+            }
+        }
 
     init {
         createNotificationChannel()
+
     }
 
     @UnstableApi
@@ -44,13 +66,14 @@ class SimpleMediaNotificationManager @Inject constructor(
 
     @UnstableApi
     private fun buildNotification(mediaSession: MediaSession) {
-        PlayerNotificationManager.Builder(context, NOTIFICATION_ID, NOTIFICATION_CHANNEL_ID)
+        playerNotificationManager = PlayerNotificationManager.Builder(context, NOTIFICATION_ID, NOTIFICATION_CHANNEL_ID)
             .setMediaDescriptionAdapter(
                 SimpleMediaNotificationAdapter(
                     context = context,
                     pendingIntent = mediaSession.sessionActivity
                 )
             )
+            .setNotificationListener(notificationListener)
             .setSmallIconResourceId(R.drawable.ic_microphone)
             .build()
             .also {

@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.util.Log
 import androidx.core.graphics.drawable.toBitmap
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -20,14 +21,15 @@ class SimpleMediaNotificationAdapter(
     private val pendingIntent: PendingIntent?
 ) : PlayerNotificationManager.MediaDescriptionAdapter {
 
-    override fun getCurrentContentTitle(player: Player): CharSequence =
-        player.mediaMetadata.albumTitle ?: ""
-
+    override fun getCurrentContentTitle(player: Player): CharSequence {
+        Log.d("SimpleMediaNotificationAdapter", "getCurrentContentTitle: ${player.mediaMetadata.title}")
+     return player.mediaMetadata.title ?: ""
+    }
     override fun createCurrentContentIntent(player: Player): PendingIntent? =
         pendingIntent
 
     override fun getCurrentContentText(player: Player): CharSequence =
-        player.mediaMetadata.displayTitle ?: ""
+        player.mediaMetadata.artist ?: ""
 
     override fun getCurrentLargeIcon(
         player: Player,
@@ -48,5 +50,4 @@ class SimpleMediaNotificationAdapter(
             })
         return null
     }
-
 }

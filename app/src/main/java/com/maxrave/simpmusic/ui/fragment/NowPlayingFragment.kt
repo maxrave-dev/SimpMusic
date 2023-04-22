@@ -142,15 +142,46 @@ class NowPlayingFragment: BottomSheetDialogFragment() {
         }
 
         lifecycleScope.launch {
-            viewModel.progressString.observe(viewLifecycleOwner, Observer {
-                binding.tvCurrentTime.text = it
-                if (viewModel.progress.value * 100 in 0f..100f){
-                    binding.progressSong.value = viewModel.progress.value * 100
+            val job1 = launch {
+                viewModel.progressString.observe(viewLifecycleOwner, Observer {
+                    binding.tvCurrentTime.text = it
+                    if (viewModel.progress.value * 100 in 0f..100f){
+                        binding.progressSong.value = viewModel.progress.value * 100
+                    }
+                })
+                viewModel.duration.collect {
+                    binding.tvFullTime.text = viewModel.formatDuration(it)
                 }
-            })
-            viewModel.duration.collect {
-                binding.tvFullTime.text = viewModel.formatDuration(it)
             }
+            val job2 = launch {
+                viewModel.isPlaying.observe(viewLifecycleOwner){
+                    if (it){
+                        binding.btPlayPause.setImageResource(R.drawable.baseline_pause_circle_24)
+                        songChangeListener.onIsPlayingChange()
+                    }
+                    else{
+                        binding.btPlayPause.setImageResource(R.drawable.baseline_play_circle_24)
+                        songChangeListener.onIsPlayingChange()
+                    }
+                }
+            }
+            //Update progress bar from buffered percentage
+            val job3 = launch {
+                viewModel.bufferedPercentage.collect{
+                    binding.buffered.progress = it
+                    Log.d("buffered", it.toString())
+                }
+            }
+            //Check if song is ready to play. And make progress bar indeterminate
+            val job4 = launch {
+                viewModel.notReady.observe(viewLifecycleOwner){
+                    binding.buffered.isIndeterminate = it
+                }
+            }
+            job1.join()
+            job2.join()
+            job3.join()
+            job4.join()
         }
 
         binding.progressSong.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
@@ -279,13 +310,13 @@ class NowPlayingFragment: BottomSheetDialogFragment() {
         }
     }
     private fun observerMetadata(){
-        viewModel.loadMediaItems(videoId!!)
         viewModel.videoId.postValue(videoId)
         viewModel.from.postValue(from)
         viewModel.metadata.observe(viewLifecycleOwner, Observer {
             when (it){
                 is Resource.Success ->{
                     metadataCurSong = it.data
+                    viewModel.loadMediaItems(videoId!!)
                     updateUI()
                 }
                 is Resource.Error ->{
@@ -378,6 +409,7 @@ class NowPlayingFragment: BottomSheetDialogFragment() {
         Log.d("Metadata", metadataCurSong.toString())
         binding.topAppBar.subtitle = from
         binding.tvSongTitle.text = metadataCurSong?.title
+        binding.tvSongTitle.isSelected = true
         var artistName = ""
         if (metadataCurSong?.artists != null) {
             for (artist in metadataCurSong!!.artists) {
@@ -387,6 +419,7 @@ class NowPlayingFragment: BottomSheetDialogFragment() {
         artistName = removeTrailingComma(artistName)
         artistName = removeComma(artistName)
         binding.tvSongArtist.text = artistName
+        binding.tvSongArtist.isSelected = true
         binding.tvSongTitle.visibility = View.VISIBLE
         binding.tvSongArtist.visibility = View.VISIBLE
 
@@ -400,6 +433,7 @@ class NowPlayingFragment: BottomSheetDialogFragment() {
     }
     public interface OnNowPlayingSongChangeListener{
         fun onNowPlayingSongChange()
+        fun onIsPlayingChange()
     }
 
 

@@ -5,8 +5,10 @@ import android.annotation.SuppressLint
 import android.app.Application
 import android.content.Context
 import android.graphics.drawable.GradientDrawable
+import android.net.Uri
 import android.util.Log
 import android.util.SparseArray
+import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -45,6 +47,8 @@ class SharedViewModel @Inject constructor(private val mainRepository: MainReposi
     protected val context
         get() = getApplication<Application>()
 
+    val isServiceRunning = MutableLiveData<Boolean>(false)
+
     val listItag = listOf(171,249,250,251,140,141,256,258)
     var videoId = MutableLiveData<String>()
     var from = MutableLiveData<String>()
@@ -53,18 +57,20 @@ class SharedViewModel @Inject constructor(private val mainRepository: MainReposi
     private var _metadata = MutableLiveData<Resource<MetadataSong>>()
     val metadata: LiveData<Resource<MetadataSong>> = _metadata
 
-    private var _bufferedPosition = MutableStateFlow<Long>(0L)
-    val bufferedPosition: StateFlow<Long> = _bufferedPosition
+    private var _bufferedPercentage = MutableStateFlow<Int>(0)
+    val bufferedPercentage: StateFlow<Int> = _bufferedPercentage
 
     private var _progress = MutableStateFlow<Float>(0F)
     val progress: StateFlow<Float> = _progress
     var progressString : MutableLiveData<String> = MutableLiveData("00:00")
+
     private val _duration = MutableStateFlow<Long>(0L)
     val duration: StateFlow<Long> = _duration
     private val _uiState = MutableStateFlow<UIState>(UIState.Initial)
     val uiState = _uiState.asStateFlow()
 
-    var isPlaying = MutableLiveData<Boolean>()
+    var isPlaying = MutableLiveData<Boolean>(false)
+    var notReady = MutableLiveData<Boolean>(true)
 
     private val _mediaItems = MutableLiveData<Resource<ArrayList<Song>>>()
     val mediaItems: LiveData<Resource<ArrayList<Song>>> = _mediaItems
@@ -78,11 +84,21 @@ class SharedViewModel @Inject constructor(private val mainRepository: MainReposi
         viewModelScope.launch {
             simpleMediaServiceHandler.simpleMediaState.collect { mediaState ->
                 when (mediaState) {
-                    is SimpleMediaState.Buffering -> calculateProgressValues(mediaState.progress)
+                    is SimpleMediaState.Buffering -> {
+                        notReady.value = true
+                    }
                     SimpleMediaState.Initial -> _uiState.value = UIState.Initial
                     is SimpleMediaState.Playing -> isPlaying.value = mediaState.isPlaying
-                    is SimpleMediaState.Progress -> calculateProgressValues(mediaState.progress)
+                    is SimpleMediaState.Progress -> {
+                        if (duration.value > 0){
+                            calculateProgressValues(mediaState.progress)
+                        }
+                    }
+                    is SimpleMediaState.Loading -> {
+                        _bufferedPercentage.value = mediaState.bufferedPercentage
+                    }
                     is SimpleMediaState.Ready -> {
+                        notReady.value = false
                         _duration.value = mediaState.duration
                         _uiState.value = UIState.Ready
                     }
@@ -102,14 +118,7 @@ class SharedViewModel @Inject constructor(private val mainRepository: MainReposi
     @UnstableApi
     fun loadMediaItems(videoId: String){
         val title = metadata.value?.data?.title
-        var artist = ""
-        if (metadata.value?.data?.artists != null) {
-            for (a in metadata.value?.data?.artists!!) {
-                artist += a.name + ", "
-            }
-        }
-        artist = removeTrailingComma(artist)
-        artist = removeComma(artist)
+
         var uri = ""
 //
 //        val job = viewModelScope.launch{
@@ -148,18 +157,33 @@ class SharedViewModel @Inject constructor(private val mainRepository: MainReposi
                         else if (ytFiles[250] != null){
                             uri = ytFiles[249].url
                         }
+                        else{
+                            Toast.makeText(context, "This track is not available in your country! Use VPN to fix this problem", Toast.LENGTH_LONG).show()
+                        }
                         if(uri != ""){
+                            var artist = ""
+                            if (metadata.value?.data?.artists != null) {
+                                for (a in metadata.value?.data?.artists!!) {
+                                    artist += a.name + ", "
+                                }
+                            }
+                            artist = removeTrailingComma(artist)
+                            artist = removeComma(artist)
+                            Log.d("Check Title", title + " " + artist)
                             val mediaItem = MediaItem.Builder().setUri(uri)
                                 .setMediaMetadata(
                                     MediaMetadata.Builder()
-                                        .setTitle(title)
+                                        .setTitle(metadata.value?.data?.title)
                                         .setArtist(artist)
+                                        .setArtworkUri(Uri.parse(metadata.value?.data?.thumbnails?.last()?.url))
                                         .build()
                                 )
                                 .build()
                             simpleMediaServiceHandler.addMediaItem(mediaItem)
-                            getBufferedPosition()
                         }
+                    }
+                    else {
+                        Toast.makeText(context, "This track is not available in your country! Use VPN to fix this problem", Toast.LENGTH_LONG).show()
                     }
                 }
 
@@ -206,19 +230,7 @@ class SharedViewModel @Inject constructor(private val mainRepository: MainReposi
         _progress.value = if (currentProgress > 0) (currentProgress.toFloat() / duration.value) else 0f
         progressString.value = formatDuration(currentProgress)
     }
-    fun getBufferedPosition() = viewModelScope.launch {
-        playbackState.collect{
-            when (it){
-                is SimpleMediaState.Ready -> {
-                    _bufferedPosition.value = it.duration
-                }
-                is SimpleMediaState.Buffering -> {
-                    _bufferedPosition.value = it.progress
-                }
-                else -> {}
-            }
-        }
-    }
+
 
     @UnstableApi
     fun seekTo(position: Long) {

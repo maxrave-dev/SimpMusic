@@ -55,6 +55,9 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
                 artistName = removeComma(artistName)
                 tvSongArtist.text = context.getString(R.string.Song_and_artist_name, artistName)
                 tvSongAlbum.text = song.album?.name
+                tvSongTitle.isSelected = true
+                tvSongArtist.isSelected = true
+                tvSongAlbum.isSelected = true
             }
         }
     }
@@ -85,6 +88,8 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
                     ivThumbnail.load(playlist.thumbnails[0].url)}
                 tvPlaylistName.text = playlist.title
                 tvPlaylistAuthor.text = context.getString(R.string.playlist_and_author, playlist.author)
+                tvPlaylistName.isSelected = true
+                tvPlaylistAuthor.isSelected = true
             }
         }
     }
@@ -109,6 +114,9 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
                 artistName = removeComma(artistName)
                 tvAlbumArtist.text = context.getString(R.string.album_and_artist_name, artistName)
                 tvAlbumYear.text = album.year
+                tvAlbumName.isSelected = true
+                tvAlbumArtist.isSelected = true
+                tvAlbumYear.isSelected = true
             }
         }
     }

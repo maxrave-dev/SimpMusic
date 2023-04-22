@@ -24,7 +24,12 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="People Change"
-            android:maxLines="1"
+            android:singleLine="true"
+            android:ellipsize="marquee"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:scrollHorizontally="true"
             android:fontFamily="@font/roboto"
             android:textStyle="bold"
             android:textSize="18sp"
@@ -37,9 +42,14 @@
             android:fontFamily="@font/roboto"
             android:textStyle="normal"
             android:textSize="13sp"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:maxLines="1">
+            android:singleLine="true"
+            android:ellipsize="marquee"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:scrollHorizontally="true">
 
         </TextView>
         <TextView
@@ -48,8 +58,14 @@
             android:fontFamily="@font/roboto"
             android:textStyle="normal"
             android:textSize="12sp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:singleLine="true"
+            android:ellipsize="marquee"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:scrollHorizontally="true">
 
         </TextView>
 

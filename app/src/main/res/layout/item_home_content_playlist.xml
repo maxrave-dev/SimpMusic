@@ -30,7 +30,12 @@
                 android:layout_width="160sp"
                 android:layout_height="wrap_content"
                 android:text="HIEUTHUHAI"
-                android:maxLines="1"
+                android:singleLine="true"
+                android:ellipsize="marquee"
+                android:marqueeRepeatLimit="marquee_forever"
+                android:focusable="true"
+                android:focusableInTouchMode="true"
+                android:scrollHorizontally="true"
                 android:textStyle="normal"
                 android:textSize="13sp"
                 android:layout_marginTop="0sp">

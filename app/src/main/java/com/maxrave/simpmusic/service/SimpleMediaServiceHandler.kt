@@ -37,6 +37,7 @@ class SimpleMediaServiceHandler @Inject constructor(
     fun addMediaItem(mediaItem: MediaItem) {
         player.setMediaItem(mediaItem)
         player.prepare()
+        player.playWhenReady = true
     }
 
     fun addMediaItemList(mediaItemList: List<MediaItem>) {
@@ -66,6 +67,8 @@ class SimpleMediaServiceHandler @Inject constructor(
     @SuppressLint("SwitchIntDef")
     override fun onPlaybackStateChanged(playbackState: Int) {
         when (playbackState) {
+            ExoPlayer.STATE_IDLE -> _simpleMediaState.value = SimpleMediaState.Initial
+            ExoPlayer.STATE_ENDED -> {}
             ExoPlayer.STATE_BUFFERING -> _simpleMediaState.value =
                 SimpleMediaState.Buffering(player.currentPosition)
             ExoPlayer.STATE_READY -> _simpleMediaState.value =
@@ -92,9 +95,33 @@ class SimpleMediaServiceHandler @Inject constructor(
         }
     }
 
+    private suspend fun startBufferedUpdate() = job.run {
+        while (true){
+            delay(500)
+            _simpleMediaState.value = SimpleMediaState.Loading(player.bufferedPercentage)
+        }
+    }
+
     private fun stopProgressUpdate() {
         job?.cancel()
         _simpleMediaState.value = SimpleMediaState.Playing(isPlaying = false)
+    }
+    private fun stopBufferedUpdate() {
+        job?.cancel()
+        _simpleMediaState.value = SimpleMediaState.Loading(player.bufferedPercentage)
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    override fun onIsLoadingChanged(isLoading: Boolean) {
+        super.onIsLoadingChanged(isLoading)
+        _simpleMediaState.value = SimpleMediaState.Loading(player.bufferedPercentage)
+        if (isLoading) {
+            GlobalScope.launch(Dispatchers.Main) {
+                startBufferedUpdate()
+            }
+        } else {
+            stopBufferedUpdate()
+        }
     }
 }
 
@@ -109,7 +136,8 @@ sealed class PlayerEvent {
 sealed class SimpleMediaState {
     object Initial : SimpleMediaState()
     data class Ready(val duration: Long) : SimpleMediaState()
+    data class Loading(val bufferedPercentage: Int): SimpleMediaState()
     data class Progress(val progress: Long) : SimpleMediaState()
-    data class Buffering(val progress: Long) : SimpleMediaState()
+    data class Buffering(val position: Long) : SimpleMediaState()
     data class Playing(val isPlaying: Boolean) : SimpleMediaState()
 }

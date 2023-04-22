@@ -123,7 +123,8 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:id="@+id/resultList"
-                                android:layout_marginBottom="135sp">
+                                android:paddingBottom="135sp"
+                                android:clipToPadding="false">
 
                             </androidx.recyclerview.widget.RecyclerView>
                         </LinearLayout>

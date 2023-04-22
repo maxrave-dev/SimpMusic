@@ -67,10 +67,12 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="4dp"
+                        android:singleLine="true"
                         android:ellipsize="marquee"
                         android:marqueeRepeatLimit="marquee_forever"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
                         android:scrollHorizontally="true"
-                        android:singleLine="true"
                         android:textColor="?android:textColorPrimary"
                         android:textSize="16sp"
                         android:textStyle="bold"
@@ -80,10 +82,12 @@
                         android:id="@+id/song_artist"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:singleLine="true"
                         android:ellipsize="marquee"
                         android:marqueeRepeatLimit="marquee_forever"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
                         android:scrollHorizontally="true"
-                        android:singleLine="true"
                         android:text="Hoang &amp; RUNN"
                         android:textColor="?android:textColorSecondary"
                         android:textSize="12sp" />
@@ -98,6 +102,7 @@
 
                 </com.google.android.material.checkbox.MaterialCheckBox>
                 <ImageButton
+                    android:id="@+id/btPlayPause"
                     android:layout_height="40sp"
                     android:layout_width="40sp"
                     android:layout_marginEnd="10sp"

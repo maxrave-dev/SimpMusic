@@ -42,23 +42,23 @@ class NowPlayingDialogViewModel @Inject constructor( private val simpleMediaServ
 
 
 
-    init {
-        viewModelScope.launch {
-
-            simpleMediaServiceHandler.simpleMediaState.collect { mediaState ->
-                when (mediaState) {
-                    is SimpleMediaState.Buffering -> calculateProgressValues(mediaState.progress)
-                    SimpleMediaState.Initial -> _uiState.value = UIState.Initial
-                    is SimpleMediaState.Playing -> isPlaying.value = mediaState.isPlaying
-                    is SimpleMediaState.Progress -> calculateProgressValues(mediaState.progress)
-                    is SimpleMediaState.Ready -> {
-                        duration.postValue(mediaState.duration)
-                        _uiState.value = UIState.Ready
-                    }
-                }
-            }
-        }
-    }
+//    init {
+//        viewModelScope.launch {
+//
+//            simpleMediaServiceHandler.simpleMediaState.collect { mediaState ->
+//                when (mediaState) {
+//                    is SimpleMediaState.Buffering -> {}
+//                    SimpleMediaState.Initial -> _uiState.value = UIState.Initial
+//                    is SimpleMediaState.Playing -> isPlaying.value = mediaState.isPlaying
+//                    is SimpleMediaState.Progress -> calculateProgressValues(mediaState.progress)
+//                    is SimpleMediaState.Ready -> {
+//                        duration.postValue(mediaState.duration)
+//                        _uiState.value = UIState.Ready
+//                    }
+//                }
+//            }
+//        }
+//    }
 
 //    private fun loadMediaSource(song: String): String {
 //        val url = getStreamLink(song)
