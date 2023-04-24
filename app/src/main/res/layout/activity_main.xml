@@ -30,9 +30,8 @@
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/card"
             android:layout_width="match_parent"
-            android:layout_height="60sp"
+            android:layout_height="65sp"
             android:layout_marginStart="5sp"
-            android:layout_marginEnd="5sp"
             app:cardCornerRadius="6sp"
             style="?attr/materialCardViewFilledStyle"
             android:layout_gravity="bottom"
@@ -40,79 +39,100 @@
             android:layout_above="@+id/bottom_navigation_view"
             app:cardPreventCornerOverlap="true">
 
-            <LinearLayout
+            <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:orientation="horizontal"
-                android:padding="0dp">
-                <com.google.android.material.imageview.ShapeableImageView
-                    android:id="@+id/ivArt"
-                    android:layout_width="45sp"
-                    android:layout_height="45sp"
-                    android:layout_marginStart="8sp"
-                    android:layout_gravity="center_vertical"
-                    android:src="@drawable/outline_album_24">
-
-                </com.google.android.material.imageview.ShapeableImageView>
+                android:layout_height="match_parent">
                 <LinearLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginStart="10sp"
-                    android:layout_gravity="center_vertical"
-                    android:layout_weight="1">
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    android:padding="0dp"
+                    android:layout_alignParentTop="true">
+                    <com.google.android.material.imageview.ShapeableImageView
+                        android:id="@+id/ivArt"
+                        android:layout_width="45sp"
+                        android:layout_height="45sp"
+                        android:layout_marginStart="8sp"
+                        android:layout_gravity="center_vertical"
+                        android:src="@drawable/outline_album_24">
 
-                    <TextView
-                        android:id="@+id/song_title"
+                    </com.google.android.material.imageview.ShapeableImageView>
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="4dp"
-                        android:singleLine="true"
-                        android:ellipsize="marquee"
-                        android:marqueeRepeatLimit="marquee_forever"
-                        android:focusable="true"
-                        android:focusableInTouchMode="true"
-                        android:scrollHorizontally="true"
-                        android:textColor="?android:textColorPrimary"
-                        android:textSize="16sp"
-                        android:textStyle="bold"
-                        android:text="" />
+                        android:orientation="vertical"
+                        android:layout_marginStart="10sp"
+                        android:layout_gravity="center_vertical"
+                        android:layout_weight="1">
 
-                    <TextView
-                        android:id="@+id/song_artist"
+                        <TextView
+                            android:id="@+id/song_title"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginBottom="4dp"
+                            android:singleLine="true"
+                            android:ellipsize="marquee"
+                            android:marqueeRepeatLimit="marquee_forever"
+                            android:focusable="true"
+                            android:focusableInTouchMode="true"
+                            android:scrollHorizontally="true"
+                            android:textColor="?android:textColorPrimary"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:text="" />
+
+                        <TextView
+                            android:id="@+id/song_artist"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:singleLine="true"
+                            android:ellipsize="marquee"
+                            android:marqueeRepeatLimit="marquee_forever"
+                            android:focusable="true"
+                            android:focusableInTouchMode="true"
+                            android:scrollHorizontally="true"
+                            android:text="Hoang &amp; RUNN"
+                            android:textColor="?android:textColorSecondary"
+                            android:textSize="12sp" />
+                    </LinearLayout>
+                    <com.google.android.material.checkbox.MaterialCheckBox
+                        android:id="@+id/cbFavorite"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:singleLine="true"
-                        android:ellipsize="marquee"
-                        android:marqueeRepeatLimit="marquee_forever"
-                        android:focusable="true"
-                        android:focusableInTouchMode="true"
-                        android:scrollHorizontally="true"
-                        android:text="Hoang &amp; RUNN"
-                        android:textColor="?android:textColorSecondary"
-                        android:textSize="12sp" />
+                        android:layout_weight="2"
+                        android:layout_gravity="center_vertical"
+                        android:button="@drawable/selector_favorite_check_box">
+
+                    </com.google.android.material.checkbox.MaterialCheckBox>
+                    <ImageButton
+                        android:id="@+id/btPlayPause"
+                        android:layout_height="40sp"
+                        android:layout_width="40sp"
+                        android:layout_marginEnd="10sp"
+                        android:layout_gravity="center_vertical"
+                        android:src="@drawable/baseline_play_arrow_24"
+                        android:background="@null"
+                        android:scaleType="fitCenter">
+
+                    </ImageButton>
                 </LinearLayout>
-                <com.google.android.material.checkbox.MaterialCheckBox
-                    android:id="@+id/cbFavorite"
+                <com.google.android.material.progressindicator.LinearProgressIndicator
+                    android:layout_alignParentBottom="true"
+                    android:id="@+id/progressBar"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="2"
-                    android:layout_gravity="center_vertical"
-                    android:button="@drawable/selector_favorite_check_box">
+                    android:layout_height="10sp"
+                    android:layout_marginTop="3sp"
+                    android:layout_marginStart="10sp"
+                    android:layout_marginEnd="6sp"
+                    android:max="100"
+                    android:min="0"
+                    android:progress="60"
+                    app:indicatorColor="#B2FFFFFF"
+                    app:trackColor="@android:color/transparent"
+                    app:trackCornerRadius="3sp">
 
-                </com.google.android.material.checkbox.MaterialCheckBox>
-                <ImageButton
-                    android:id="@+id/btPlayPause"
-                    android:layout_height="40sp"
-                    android:layout_width="40sp"
-                    android:layout_marginEnd="10sp"
-                    android:layout_gravity="center_vertical"
-                    android:src="@drawable/baseline_play_arrow_24"
-                    android:background="@null"
-                    android:scaleType="fitCenter">
-
-                </ImageButton>
-            </LinearLayout>
+                </com.google.android.material.progressindicator.LinearProgressIndicator>
+            </RelativeLayout>
 
 
         </com.google.android.material.card.MaterialCardView>

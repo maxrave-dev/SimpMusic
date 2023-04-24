@@ -61,7 +61,7 @@ class SearchFragment : Fragment() {
         binding.svSearch.setOnQueryTextListener(object : SearchView.OnQueryTextListener{
             override fun onQueryTextSubmit(query: String?): Boolean {
                 if (query != null) {
-                    fetchSearchAll(query)
+//                    fetchSearchAll(query)
                     binding.svSearch.clearFocus()
                     binding.suggestList.visibility = View.GONE
                     binding.recentlyQueryView.visibility = View.GONE
@@ -74,28 +74,45 @@ class SearchFragment : Fragment() {
                     Log.d("Check History", searchHistory.toString())
                     viewModel.searchHistory.postValue(searchHistory)
                     searchHistoryAdapter.updateData(searchHistory)
-                    binding.refreshSearch.isRefreshing = true
-                    if (binding.chipAll.isChecked){
-                        fetchSearchAll(query)
-                    }
-                    else if (binding.chipSong.isChecked){
-                        fetchSearchSongs(query)
-                    }
-                    else if (binding.chipAlbum.isChecked){
-                        fetchSearchAlbums(query)
-                    }
-                    else if (binding.chipArtists.isChecked){
-                        fetchSearchArtists(query)
-                    }
-                    else if (binding.chipPlaylist.isChecked){
-                        fetchSearchPlaylists(query)
+                    when (viewModel.searchType.value) {
+                        "all" -> {
+                            resultList.clear()
+                            resultAdapter.updateList(resultList)
+                            fetchSearchAll(query)
+                            Log.d("Check All", "All is checked")
+                        }
+                        "songs" -> {
+                            resultList.clear()
+                            Log.d("Check ResultList", resultList.toString())
+                            resultAdapter.updateList(resultList)
+                            fetchSearchSongs(query)
+                            Log.d("Check Song", "Song is checked")
+                        }
+                        "albums" -> {
+                            resultList.clear()
+                            resultAdapter.updateList(resultList)
+                            fetchSearchAlbums(query)
+                            Log.d("Check Album", "Album is checked")
+                        }
+                        "artists" -> {
+                            resultList.clear()
+                            resultAdapter.updateList(resultList)
+                            fetchSearchArtists(query)
+                            Log.d("Check Artist", "Artist is checked")
+                        }
+                        "playlists" -> {
+                            resultList.clear()
+                            resultAdapter.updateList(resultList)
+                            fetchSearchPlaylists(query)
+                            Log.d("Check Playlist", "Playlist is checked")
+                        }
                     }
                 }
                 return false
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                if ((newText == null) || newText.isEmpty())
+                if (newText.isNullOrEmpty())
                 {
                     binding.suggestList.visibility = View.GONE
                     binding.recentlyQueryView.visibility = View.VISIBLE
@@ -151,7 +168,6 @@ class SearchFragment : Fragment() {
             layoutManager = LinearLayoutManager(context)
         }
 
-        viewModel.searchType.value = "all"
         binding.suggestList.visibility = View.GONE
         if (viewModel.searchAllResult.value == null || viewModel.searchAllResult.value!!.isEmpty()){
             Log.d("SearchFragment Dòng 92", "viewModel.searchAllResult.value == null")
@@ -259,12 +275,14 @@ class SearchFragment : Fragment() {
                     resultList.add(i)
                 }
                 resultAdapter.updateList(resultList)
+                viewModel.searchType.postValue("songs")
             }
             else if (checkedIds.contains(binding.chipAll.id))
             {
                 resultList.clear()
                 resultList.addAll(searchAllResult)
                 resultAdapter.updateList(resultList)
+                viewModel.searchType.postValue("all")
             }
             else if (checkedIds.contains(binding.chipAlbum.id))
             {
@@ -274,6 +292,7 @@ class SearchFragment : Fragment() {
                     resultList.add(i)
                 }
                 resultAdapter.updateList(resultList)
+                viewModel.searchType.postValue("albums")
             }
             else if (checkedIds.contains(binding.chipArtists.id))
             {
@@ -283,6 +302,7 @@ class SearchFragment : Fragment() {
                     resultList.add(i)
                 }
                 resultAdapter.updateList(resultList)
+                viewModel.searchType.postValue("artists")
             }
             else if (checkedIds.contains(binding.chipPlaylist.id))
             {
@@ -292,6 +312,7 @@ class SearchFragment : Fragment() {
                     resultList.add(i)
                 }
                 resultAdapter.updateList(resultList)
+                viewModel.searchType.postValue("playlists")
             }
         }
         suggestAdapter.setOnClickListener(object: SuggestQueryAdapter.onItemClickListener{
@@ -300,223 +321,152 @@ class SearchFragment : Fragment() {
             }
         })
     }
-
-
-    //    private fun observeSuggestList() {
-//        viewModel.suggestQuery.observe(viewLifecycleOwner, Observer { result ->
-//            result?.let {
-//                suggestList.clear()
-//                for (i in result){
-//                    suggestList += i
-//                }
-//                Log.d("SearchFragment", "observeSuggestList: $suggestList")
-//                suggestAdapter.updateData(suggestList)
-//            }
-//        })
-//    }
-//
-//    private fun observeSongSearchResultList() {
-//        viewModel.songsSearchResult.observe(viewLifecycleOwner, Observer { result ->
-//            result?.let {
-//                resultList.clear()
-//                for (i in result){
-//                    resultList += i
-//                }
-//
-//                Log.d("SearchFragment", "observeResultList: $resultList")
-//                resultAdapter.updateList(resultList)
-//                binding.refreshSearch.isRefreshing = false
-//            }
-//
-//        })
-//    }
-//    private fun observeAllSearchResultList() {
-//        viewModel.searchAllResult.observe(viewLifecycleOwner, Observer { result ->
-//            result?.let {
-//                resultList.clear()
-//                for (i in result){
-//                    resultList += i
-//                }
-//                Log.d("SearchFragment", "observeResultList: $resultList")
-//                resultAdapter.updateList(resultList)
-//                binding.refreshSearch.isRefreshing = false
-//            }
-//        })
-//    }
-//    private fun observeAlbumSearchResult() {
-//        viewModel.albumsSearchResult.observe(viewLifecycleOwner, Observer {
-//            result ->
-//            result?.let {
-//                resultList.clear()
-//                for (i in result){
-//                    resultList += i
-//                }
-//                Log.d("SearchFragment", "observeResultList: $resultList")
-//                resultAdapter.updateList(resultList)
-//                binding.refreshSearch.isRefreshing = false
-//            }
-//        })
-//    }
-//    private fun observeArtistSearchResult() {
-//        viewModel.artistsSearchResult.observe(viewLifecycleOwner, Observer {
-//                result ->
-//            result?.let {
-//                resultList.clear()
-//                for (i in result){
-//                    resultList += i
-//                }
-//                Log.d("SearchFragment", "observeResultList: $resultList")
-//                resultAdapter.updateList(resultList)
-//                binding.refreshSearch.isRefreshing = false
-//            }
-//        })
-//    }
-//    private fun observePlaylistSearchResult() {
-//        viewModel.playlistSearchResult.observe(viewLifecycleOwner, Observer {
-//                result ->
-//            result?.let {
-//                resultList.clear()
-//                for (i in result){
-//                    resultList += i
-//                }
-//                Log.d("SearchFragment", "observeResultList: $resultList")
-//                resultAdapter.updateList(resultList)
-//                binding.refreshSearch.isRefreshing = false
-//            }
-//        })
-//    }
     private fun fetchSearchAlbums(query: String) {
         binding.refreshSearch.isRefreshing = true
         viewModel.searchAlbums(query)
-        viewModel.albumsSearchResult.observe(viewLifecycleOwner, Observer { response ->
-            when (response) {
-                is Resource.Success -> {
-                    response.data.let {
-                        Log.d("SearchFragment", "observeResultList: $it")
-                        resultList.clear()
-                        if (it != null) {
-                            for (i in it){
-                                resultList += i
+        viewModel.loading.observe(viewLifecycleOwner){
+            viewModel.albumsSearchResult.observe(viewLifecycleOwner, Observer { response ->
+                when (response) {
+                    is Resource.Success -> {
+                        response.data.let {
+                            Log.d("SearchFragment", "observeAlbumList: $it")
+                            resultList.clear()
+                            if (it != null) {
+                                for (i in it){
+                                    resultList += i
+                                }
                             }
+                            resultAdapter.updateList(resultList)
+                            binding.refreshSearch.isRefreshing = false
                         }
-                        resultAdapter.updateList(resultList)
-                        binding.refreshSearch.isRefreshing = false
+                    }
+                    is Resource.Loading -> {
+                    }
+                    is Resource.Error -> {
+                        response.message?.let { message ->
+                            Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
+                                .setAction("Retry") {
+                                    fetchSearchAlbums(query)
+                                }
+                                .setDuration(5000)
+                                .show()
+                        }
                     }
                 }
-                is Resource.Loading -> {
-                }
-                is Resource.Error -> {
-                    response.message?.let { message ->
-                        Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
-                            .setAction("Retry") {
-                                fetchSearchAlbums(query)
-                            }
-                            .setDuration(5000)
-                            .show()
-                    }
-                }
-            }
-        })
+            })
+        }
     }
     private fun fetchSearchPlaylists(query: String) {
         binding.refreshSearch.isRefreshing = true
         viewModel.searchPlaylists(query)
-        viewModel.playlistSearchResult.observe(viewLifecycleOwner, Observer { response ->
-            when (response) {
-                is Resource.Success -> {
-                    response.data.let {
-                        Log.d("SearchFragment", "observeResultList: $it")
-                        resultList.clear()
-                        if (it != null) {
-                            for (i in it){
-                                resultList += i
+        viewModel.loading.observe(viewLifecycleOwner){
+            if (it == false){
+                viewModel.playlistSearchResult.observe(viewLifecycleOwner, Observer { response ->
+                    when (response) {
+                        is Resource.Success -> {
+                            response.data.let { playlistsResultArrayList ->
+                                Log.d("SearchFragment", "observePlaylistsList: $playlistsResultArrayList")
+                                resultList.clear()
+                                if (playlistsResultArrayList != null) {
+                                    for (i in playlistsResultArrayList){
+                                        resultList += i
+                                    }
+                                }
+                                resultAdapter.updateList(resultList)
+                                binding.refreshSearch.isRefreshing = false
                             }
                         }
-                        resultAdapter.updateList(resultList)
-                        binding.refreshSearch.isRefreshing = false
-                    }
-                }
-                is Resource.Loading -> {
-                }
-                is Resource.Error -> {
-                    response.message?.let { message ->
-                        Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
-                            .setAction("Retry") {
-                                fetchSearchPlaylists(query)
+                        is Resource.Loading -> {
+                        }
+                        is Resource.Error -> {
+                            response.message?.let { message ->
+                                Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
+                                    .setAction("Retry") {
+                                        fetchSearchPlaylists(query)
+                                    }
+                                    .setDuration(5000)
+                                    .show()
                             }
-                            .setDuration(5000)
-                            .show()
+                        }
                     }
-                }
+                })
             }
-        })
+        }
     }
     private fun fetchSearchArtists(query: String) {
         binding.refreshSearch.isRefreshing = true
         viewModel.searchArtists(query)
-        viewModel.artistsSearchResult.observe(viewLifecycleOwner, Observer { response ->
-            when (response) {
-                is Resource.Success -> {
-                    response.data.let {
-                        Log.d("SearchFragment", "observeResultList: $it")
-                        resultList.clear()
-                        if (it != null) {
-                            for (i in it){
-                                resultList += i
+        viewModel.loading.observe(viewLifecycleOwner){
+            if (it == false){
+                viewModel.artistsSearchResult.observe(viewLifecycleOwner, Observer { response ->
+                    when (response) {
+                        is Resource.Success -> {
+                            response.data.let { artistsResultArrayList ->
+                                Log.d("SearchFragment", "observeArtistList: $artistsResultArrayList")
+                                resultList.clear()
+                                if (artistsResultArrayList != null) {
+                                    for (i in artistsResultArrayList){
+                                        resultList += i
+                                    }
+                                }
+                                resultAdapter.updateList(resultList)
+                                binding.refreshSearch.isRefreshing = false
                             }
                         }
-                        resultAdapter.updateList(resultList)
-                        binding.refreshSearch.isRefreshing = false
-                    }
-                }
-                is Resource.Loading -> {
-                }
-                is Resource.Error -> {
-                    response.message?.let { message ->
-                        Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
-                            .setAction("Retry") {
-                                fetchSearchArtists(query)
+                        is Resource.Loading -> {
+                        }
+                        is Resource.Error -> {
+                            response.message?.let { message ->
+                                Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
+                                    .setAction("Retry") {
+                                        fetchSearchArtists(query)
+                                    }
+                                    .setDuration(5000)
+                                    .show()
                             }
-                            .setDuration(5000)
-                            .show()
+                        }
                     }
-                }
+                })
             }
-        })
+        }
     }
     private fun fetchSearchSongs(query: String) {
         binding.refreshSearch.isRefreshing = true
         viewModel.searchSongs(query)
-        viewModel.songsSearchResult.observe(viewLifecycleOwner, Observer { response ->
-            when (response) {
-                is Resource.Success -> {
-                    response.data.let {
-                        Log.d("SearchFragment", "observeResultList: $it")
-                        resultList.clear()
-                        if (it != null) {
-                            for (i in it){
-                                resultList += i
+        viewModel.loading.observe(viewLifecycleOwner){
+            if (it == false){
+                viewModel.songsSearchResult.observe(viewLifecycleOwner, Observer { response ->
+                    when (response) {
+                        is Resource.Success -> {
+                            response.data.let { songsResultArrayList ->
+                                Log.d("SearchFragment", "observeSongList: $songsResultArrayList")
+                                resultList.clear()
+                                if (songsResultArrayList != null) {
+                                    for (i in songsResultArrayList){
+                                        resultList += i
+                                    }
+                                }
+                                resultAdapter.updateList(resultList)
+                                binding.refreshSearch.isRefreshing = false
                             }
                         }
-                        resultAdapter.updateList(resultList)
-                        binding.refreshSearch.isRefreshing = false
-                    }
-                }
-                is Resource.Loading -> {
-                }
-                is Resource.Error -> {
-                    response.message?.let { message ->
-                        Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
-                            .setAction("Retry") {
-                                fetchSearchSongs(query)
+                        is Resource.Loading -> {
+                        }
+                        is Resource.Error -> {
+                            response.message?.let { message ->
+                                Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
+                                    .setAction("Retry") {
+                                        fetchSearchSongs(query)
+                                    }
+                                    .setDuration(5000)
+                                    .show()
                             }
-                            .setDuration(5000)
-                            .show()
+                            binding.refreshSearch.isRefreshing = false
+                        }
                     }
-                    binding.refreshSearch.isRefreshing = false
-                }
+                })
             }
-        })
+        }
     }
     private fun fetchSearchAll(query: String) {
         viewModel.searchAll(query)
@@ -525,140 +475,144 @@ class SearchFragment : Fragment() {
         var artist = ArrayList<ArtistsResult>()
         var playlist = ArrayList<PlaylistsResult>()
         val temp: ArrayList<Any> = ArrayList()
-        viewModel.songsSearchResult.observe(viewLifecycleOwner, Observer { response ->
-            when (response) {
-                is Resource.Success -> {
-                    response.data.let {
-                        Log.d("SearchFragment", "observeResultList: $it")
-                        song = it!!
-                    }
-                }
-                is Resource.Loading -> {
-                }
-                is Resource.Error -> {
-                    response.message?.let { message ->
-                        Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
-                            .setAction("Retry") {
-                                fetchSearchAll(query)
+        viewModel.loading.observe(viewLifecycleOwner){
+            if (it == false){
+                viewModel.songsSearchResult.observe(viewLifecycleOwner, Observer { response ->
+                    when (response) {
+                        is Resource.Success -> {
+                            response.data.let { songsResultArrayList ->
+                                Log.d("SearchFragment", "observeResultList: $songsResultArrayList")
+                                song = songsResultArrayList!!
                             }
-                            .setDuration(5000)
-                            .show()
-                    }
-                }
-            }
-        })
-        viewModel.albumsSearchResult.observe(viewLifecycleOwner, Observer { response ->
-            when (response) {
-                is Resource.Success -> {
-                    response.data.let {
-                        print(it)
-                        album = it!!
-                    }
-                }
-                is Resource.Loading -> {
-                }
-                is Resource.Error -> {
-                    response.message?.let { message ->
-                        Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
-                            .setAction("Retry") {
-                                fetchSearchAll(query)
+                        }
+                        is Resource.Loading -> {
+                        }
+                        is Resource.Error -> {
+                            response.message?.let { message ->
+                                Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
+                                    .setAction("Retry") {
+                                        fetchSearchAll(query)
+                                    }
+                                    .setDuration(5000)
+                                    .show()
                             }
-                            .setDuration(5000)
-                            .show()
+                        }
                     }
-                }
-            }
-        })
-        viewModel.artistsSearchResult.observe(viewLifecycleOwner, Observer { response ->
-            when (response) {
-                is Resource.Success -> {
-                    response.data.let {
-                        print(it)
-                        artist = it!!
-                    }
-                }
-                is Resource.Loading -> {
-                }
-                is Resource.Error -> {
-                    response.message?.let { message ->
-                        Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
-                            .setAction("Retry") {
-                                fetchSearchAll(query)
+                })
+                viewModel.albumsSearchResult.observe(viewLifecycleOwner, Observer { response ->
+                    when (response) {
+                        is Resource.Success -> {
+                            response.data.let {
+                                print(it)
+                                album = it!!
                             }
-                            .setDuration(5000)
-                            .show()
-                    }
-                }
-            }
-        })
-        viewModel.playlistSearchResult.observe(viewLifecycleOwner, Observer { response ->
-            when (response) {
-                is Resource.Success -> {
-                    response.data.let {
-                        print(it)
-                        playlist = it!!
-                    }
-                }
-                is Resource.Loading -> {
-                }
-                is Resource.Error -> {
-                    response.message?.let { message ->
-                        Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
-                            .setAction("Retry") {
-                                fetchSearchAll(query)
+                        }
+                        is Resource.Loading -> {
+                        }
+                        is Resource.Error -> {
+                            response.message?.let { message ->
+                                Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
+                                    .setAction("Retry") {
+                                        fetchSearchAll(query)
+                                    }
+                                    .setDuration(5000)
+                                    .show()
                             }
-                            .setDuration(5000)
-                            .show()
+                        }
                     }
-                }
+                })
+                viewModel.artistsSearchResult.observe(viewLifecycleOwner, Observer { response ->
+                    when (response) {
+                        is Resource.Success -> {
+                            response.data.let { artistsResultArrayList ->
+                                print(artistsResultArrayList)
+                                artist = artistsResultArrayList!!
+                            }
+                        }
+                        is Resource.Loading -> {
+                        }
+                        is Resource.Error -> {
+                            response.message?.let { message ->
+                                Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
+                                    .setAction("Retry") {
+                                        fetchSearchAll(query)
+                                    }
+                                    .setDuration(5000)
+                                    .show()
+                            }
+                        }
+                    }
+                })
+                viewModel.playlistSearchResult.observe(viewLifecycleOwner, Observer { response ->
+                    when (response) {
+                        is Resource.Success -> {
+                            response.data.let { playlistsResultArrayList ->
+                                print(playlistsResultArrayList)
+                                playlist = playlistsResultArrayList!!
+                            }
+                        }
+                        is Resource.Loading -> {
+                        }
+                        is Resource.Error -> {
+                            response.message?.let { message ->
+                                Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
+                                    .setAction("Retry") {
+                                        fetchSearchAll(query)
+                                    }
+                                    .setDuration(5000)
+                                    .show()
+                            }
+                        }
+                    }
+                })
+                viewModel.loading.observe(viewLifecycleOwner, Observer { loading ->
+                    if (loading) {
+                        binding.refreshSearch.isRefreshing = true
+                    } else {
+                        try {
+                            if (artist.size >= 3) {
+                                for (i in 0..2)
+                                {
+                                    temp += artist[i]
+                                }
+                                for (i in 0 until song.size)
+                                {
+                                    temp += song[i]
+                                }
+                                for (i in 0 until album.size)
+                                {
+                                    temp += album[i]
+                                }
+                                for (i in 0 until playlist.size)
+                                {
+                                    temp += playlist[i]
+                                }
+                            }
+                            else {
+                                temp.addAll(song)
+                                temp.addAll(artist)
+                                temp.addAll(album)
+                                temp.addAll(playlist)
+                            }
+                        }
+                        catch (e: Exception){
+                            Snackbar.make(binding.root, e.message.toString(), Snackbar.LENGTH_LONG)
+                                .setAction("Retry") {
+                                    fetchSearchAll(query)
+                                }
+                                .setDuration(5000)
+                                .show()
+                        }
+                        resultList.clear()
+                        viewModel.searchAllResult.postValue(temp)
+                        searchAllResult.addAll(temp)
+                        resultList.addAll(temp)
+                        resultAdapter.updateList(resultList)
+                        binding.refreshSearch.isRefreshing = false
+                    }
+                })
             }
-        })
-        viewModel.loading.observe(viewLifecycleOwner, Observer { loading ->
-            if (loading) {
-                binding.refreshSearch.isRefreshing = true
-            } else {
-                try {
-                    if (song.size >= 3) {
-                        for (i in 0..2)
-                        {
-                            temp += artist[i]
-                        }
-                        for (i in 0 until song.size)
-                        {
-                            temp += song[i]
-                        }
-                        for (i in 0 until album.size)
-                        {
-                            temp += album[i]
-                        }
-                        for (i in 0 until playlist.size)
-                        {
-                            temp += playlist[i]
-                        }
-                    }
-                    else {
-                        temp.addAll(song)
-                        temp.addAll(artist)
-                        temp.addAll(album)
-                        temp.addAll(playlist)
-                    }
-                }
-                catch (e: Exception){
-                    Snackbar.make(binding.root, e.message.toString(), Snackbar.LENGTH_LONG)
-                        .setAction("Retry") {
-                            fetchSearchAll(query)
-                        }
-                        .setDuration(5000)
-                        .show()
-                }
-                resultList.clear()
-                viewModel.searchAllResult.postValue(temp)
-                searchAllResult.addAll(temp)
-                resultList.addAll(temp)
-                resultAdapter.updateList(resultList)
-                binding.refreshSearch.isRefreshing = false
-            }
-        })
+        }
     }
 
     private fun fetchSuggestList(query: String) {

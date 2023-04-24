@@ -24,22 +24,22 @@ class RemoteDataSource @Inject constructor(private val searchService: SearchServ
     suspend fun searchSongs(
         query: String,
         filter: String = "songs"
-    ): Response<ArrayList<SongsResult>> = searchService.searchSongs(query, filter = "songs")
+    ): Response<ArrayList<SongsResult>> = searchService.searchSongs(query, filter)
 
     suspend fun searchArtists(
         query: String,
         filter: String = "artists",
-    ): Response<ArrayList<ArtistsResult>> = searchService.searchArtists(query, filter = "artists")
+    ): Response<ArrayList<ArtistsResult>> = searchService.searchArtists(query, filter)
 
     suspend fun searchAlbums(
         query: String,
         filter: String = "albums",
-    ): Response<ArrayList<AlbumsResult>> = searchService.searchAlbums(query, filter = "albums")
+    ): Response<ArrayList<AlbumsResult>> = searchService.searchAlbums(query, filter)
 
     suspend fun searchPlaylists(
         query: String,
         filter: String = "playlists",
-    ): Response<ArrayList<PlaylistsResult>> = searchService.searchPlaylists(query, filter = "playlists")
+    ): Response<ArrayList<PlaylistsResult>> = searchService.searchPlaylists(query, filter)
 
     suspend fun suggestQuery(query: String): Response<ArrayList<String>> = searchService.suggestQuery(query)
 

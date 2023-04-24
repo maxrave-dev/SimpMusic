@@ -29,10 +29,10 @@ class MainRepository @Inject constructor(private val remoteDataSource: RemoteDat
     suspend fun getThumbnails(songId: String): Flow<Resource<ArrayList<thumbnailUrl>>> = flow { emit(safeApiCall { remoteDataSource.getThumbnails(songId) }) }.flowOn(Dispatchers.IO)
     //search
     suspend fun searchAll(query: String) = remoteDataSource.searchAll(query)
-    suspend fun searchSongs(query: String): Flow<Resource<ArrayList<SongsResult>>> = flow<Resource<ArrayList<SongsResult>>> { emit(safeApiCall { remoteDataSource.searchSongs(query) }) }.flowOn(Dispatchers.IO)
-    suspend fun searchArtists(query: String): Flow<Resource<ArrayList<ArtistsResult>>> = flow<Resource<ArrayList<ArtistsResult>>> { emit(safeApiCall { remoteDataSource.searchArtists(query) }) }.flowOn(Dispatchers.IO)
-    suspend fun searchAlbums(query: String): Flow<Resource<ArrayList<AlbumsResult>>> = flow<Resource<ArrayList<AlbumsResult>>> { emit(safeApiCall { remoteDataSource.searchAlbums(query) }) }.flowOn(Dispatchers.IO)
-    suspend fun searchPlaylists(query: String): Flow<Resource<ArrayList<PlaylistsResult>>> = flow<Resource<ArrayList<PlaylistsResult>>> { emit(safeApiCall { remoteDataSource.searchPlaylists(query) }) }.flowOn(Dispatchers.IO)
+    suspend fun searchSongs(query: String, filter: String = "songs"): Flow<Resource<ArrayList<SongsResult>>> = flow<Resource<ArrayList<SongsResult>>> { emit(safeApiCall { remoteDataSource.searchSongs(query, filter) }) }.flowOn(Dispatchers.IO)
+    suspend fun searchArtists(query: String, filter: String = "artists"): Flow<Resource<ArrayList<ArtistsResult>>> = flow<Resource<ArrayList<ArtistsResult>>> { emit(safeApiCall { remoteDataSource.searchArtists(query, filter) }) }.flowOn(Dispatchers.IO)
+    suspend fun searchAlbums(query: String, filter: String = "albums"): Flow<Resource<ArrayList<AlbumsResult>>> = flow<Resource<ArrayList<AlbumsResult>>> { emit(safeApiCall { remoteDataSource.searchAlbums(query, filter) }) }.flowOn(Dispatchers.IO)
+    suspend fun searchPlaylists(query: String, filter: String = "playlists"): Flow<Resource<ArrayList<PlaylistsResult>>> = flow<Resource<ArrayList<PlaylistsResult>>> { emit(safeApiCall { remoteDataSource.searchPlaylists(query, filter) }) }.flowOn(Dispatchers.IO)
 
     //suggest query
     suspend fun suggestQuery(query: String): Flow<Resource<ArrayList<String>>> = flow<Resource<ArrayList<String>>> { emit(safeApiCall { remoteDataSource.suggestQuery(query) }) }.flowOn(Dispatchers.IO)

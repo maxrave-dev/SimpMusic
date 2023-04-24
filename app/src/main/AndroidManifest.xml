@@ -52,6 +52,7 @@
         <service
             android:name=".service.SimpleMediaService"
             android:foregroundServiceType="mediaPlayback"
+            android:stopWithTask="true"
             android:exported="true">
             <intent-filter>
                 <action android:name="androidx.media3.session.MediaSessionService"/>

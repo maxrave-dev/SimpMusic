@@ -90,7 +90,7 @@ class SimpleMediaServiceHandler @Inject constructor(
 
     private suspend fun startProgressUpdate() = job.run {
         while (true) {
-            delay(500)
+            delay(100)
             _simpleMediaState.value = SimpleMediaState.Progress(player.currentPosition)
         }
     }

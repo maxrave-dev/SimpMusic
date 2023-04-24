@@ -23,7 +23,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(private val mainRepository: MainRepository, application: Application) : AndroidViewModel(application) {
-    var searchType: MutableLiveData<String> = MutableLiveData()
+    var searchType: MutableLiveData<String> = MutableLiveData("all")
     var searchAllResult: MutableLiveData<ArrayList<Any>> = MutableLiveData()
 
     var searchHistory: MutableLiveData<ArrayList<String>> = MutableLiveData()
@@ -66,10 +66,16 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
 //                }
 //            }
 //        }
-        var job = viewModelScope.launch {
-            mainRepository.searchSongs(query).collect {values ->
-                _songSearchResult.value = values
-                Log.d("SearchViewModel", "searchSongs: ${_songSearchResult.value}")
+        if (loading.value == false){
+            loading.value = true
+            viewModelScope.launch {
+                mainRepository.searchSongs(query, "songs").collect {values ->
+                    _songSearchResult.value = values
+                    Log.d("SearchViewModel", "searchSongs: ${_songSearchResult.value}")
+                    withContext(Dispatchers.Main) {
+                        loading.value = false
+                    }
+                }
             }
         }
     }
@@ -77,27 +83,27 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
         searchAllResult.value?.clear()
         loading.value = true
         val temp = ArrayList<Any>()
-        val parentJob = viewModelScope.launch {
+        viewModelScope.launch {
             val job1 = launch {
-                mainRepository.searchSongs(query).collect {values ->
+                mainRepository.searchSongs(query, "songs").collect {values ->
                     _songSearchResult.value = values
                     Log.d("SearchViewModel", "searchSongs: ${_songSearchResult.value}")
                 }
             }
             val job2 = launch {
-                mainRepository.searchArtists(query).collect {values ->
+                mainRepository.searchArtists(query, "artists").collect {values ->
                     _artistSearchResult.value = values
                     Log.d("SearchViewModel", "searchArtists: ${_artistSearchResult.value}")
                 }
             }
             val job3 = launch {
-                mainRepository.searchAlbums(query).collect {values ->
+                mainRepository.searchAlbums(query, "albums").collect {values ->
                     _albumSearchResult.value = values
                     Log.d("SearchViewModel", "searchAlbums: ${_albumSearchResult.value}")
                 }
             }
             val job4 = launch {
-                mainRepository.searchPlaylists(query).collect {values ->
+                mainRepository.searchPlaylists(query, "playlists").collect {values ->
                     _playlistSearchResult.value = values
                     Log.d("SearchViewModel", "searchPlaylists: ${_playlistSearchResult.value}")
                 }
@@ -112,10 +118,11 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
         }
     }
     fun suggestQuery(query: String){
-        var job = viewModelScope.launch { mainRepository.suggestQuery(query).collect {values ->
-            _suggestQuery.value = values
-            Log.d("SearchViewModel", "suggestQuery: ${_suggestQuery.value}")
-        } }
+            var job = viewModelScope.launch { mainRepository.suggestQuery(query).collect {values ->
+                _suggestQuery.value = values
+                Log.d("SearchViewModel", "suggestQuery: ${_suggestQuery.value}")
+            }
+        }
     }
     fun updateSearchHistory(searchHistoryList: ArrayList<String>) {
         searchHistory.postValue(searchHistoryList)
@@ -132,23 +139,41 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
     }
 
     fun searchAlbums(query: String) {
-        var job = viewModelScope.launch { mainRepository.searchAlbums(query).collect {values ->
-            _albumSearchResult.value = values
-            Log.d("SearchViewModel", "searchAlbums: ${_albumSearchResult.value}")
-        } }
+        if (loading.value == false){
+            loading.value = true
+            viewModelScope.launch { mainRepository.searchAlbums(query, "albums").collect {values ->
+                _albumSearchResult.value = values
+                Log.d("SearchViewModel", "searchAlbums: ${_albumSearchResult.value}")
+                withContext(Dispatchers.Main) {
+                    loading.value = false
+                }
+            } }
+        }
     }
 
     fun searchArtists(query: String) {
-        var job = viewModelScope.launch { mainRepository.searchArtists(query).collect {values ->
-            _artistSearchResult.value = values
-            Log.d("SearchViewModel", "searchArtists: ${_artistSearchResult.value}")
-        } }
+        if (loading.value == false){
+            loading.value = true
+            viewModelScope.launch { mainRepository.searchArtists(query, "artists").collect {values ->
+                _artistSearchResult.value = values
+                Log.d("SearchViewModel", "searchArtists: ${_artistSearchResult.value}")
+                withContext(Dispatchers.Main) {
+                    loading.value = false
+                }
+            } }
+        }
     }
 
     fun searchPlaylists(query: String) {
-        var job = viewModelScope.launch { mainRepository.searchPlaylists(query).collect {values ->
-            _playlistSearchResult.value = values
-            Log.d("SearchViewModel", "searchPlaylists: ${_playlistSearchResult.value}")
-        } }
+        if (loading.value == false){
+            loading.value = true
+            viewModelScope.launch { mainRepository.searchPlaylists(query, "playlists").collect {values ->
+                _playlistSearchResult.value = values
+                Log.d("SearchViewModel", "searchPlaylists: ${_playlistSearchResult.value}")
+                withContext(Dispatchers.Main) {
+                    loading.value = false
+                }
+            } }
+        }
     }
 }
