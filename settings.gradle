@@ -15,4 +15,3 @@ dependencyResolutionManagement {
 }
 rootProject.name = "SimpMusic"
 include ':app'
-include ':youtubeExtractor'

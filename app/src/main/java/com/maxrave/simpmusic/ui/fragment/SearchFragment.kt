@@ -6,12 +6,19 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewGroup.MarginLayoutParams
 import android.widget.Toast
 import androidx.appcompat.widget.SearchView
+import androidx.core.view.MarginLayoutParamsCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
+import androidx.core.view.updatePadding
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import applySystemWindows
 import com.google.android.material.snackbar.Snackbar
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.adapter.search.SearchHistoryItemAdapter
@@ -25,6 +32,9 @@ import com.maxrave.simpmusic.databinding.FragmentSearchBinding
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.SearchViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import dev.chrisbanes.insetter.applyInsetter
+import doOnApplyWindowInsets
+import requestApplyInsetsWhenAttached
 
 @AndroidEntryPoint
 class SearchFragment : Fragment() {
@@ -50,6 +60,11 @@ class SearchFragment : Fragment() {
         _binding = FragmentSearchBinding.inflate(inflater, container, false)
 //        binding.svSearch.setQuery("", false)
 //        binding.svSearch.clearFocus()
+        binding.svSearch.applyInsetter {
+            type(statusBars = true) {
+                margin()
+            }
+        }
         return binding.root
     }
 

@@ -27,11 +27,12 @@
                 android:background="@android:color/transparent">
 
                 <com.google.android.material.appbar.MaterialToolbar
+
                     android:id="@+id/topAppBar"
                     android:layout_width="match_parent"
                     android:layout_height="?attr/actionBarSize"
-                    app:title="Now Playing"
-                    app:titleTextAppearance="@style/TextAppearance.AppCompat"
+                    app:title="NOW PLAYING"
+                    app:titleTextAppearance="@style/TextAppearance.MaterialComponents.Caption"
                     app:subtitle="Liked Songs"
                     app:subtitleCentered="true"
                     app:titleCentered="true"
@@ -46,16 +47,17 @@
                 android:layout_below="@+id/topAppBarLayout">
 
                 <RelativeLayout
-                    android:layout_width="335sp"
-                    android:layout_height="335sp"
+                    android:layout_width="350sp"
+                    android:layout_height="350sp"
                     android:layout_gravity="center_horizontal"
-                    android:layout_marginTop="40sp">
+                    android:layout_marginTop="80sp">
 
                     <ImageView
                         android:id="@+id/ivArt"
-                        android:layout_width="340sp"
-                        android:layout_height="340sp"
-                        android:layout_centerInParent="true">
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_centerInParent="true"
+                        android:scaleType="fitXY">
 
                     </ImageView>
                     <com.google.android.material.progressindicator.CircularProgressIndicator
@@ -73,7 +75,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:layout_marginTop="90sp"
+                    android:layout_marginTop="100sp"
                     android:layout_marginHorizontal="30sp">
 
                     <LinearLayout
@@ -99,7 +101,7 @@
                                 android:focusableInTouchMode="true"
                                 android:scrollHorizontally="true"
                                 android:text="People Change"
-                                android:textSize="22sp"
+                                android:textSize="20sp"
                                 android:textStyle="bold"
                                 android:id="@+id/tvSongTitle" />
 
@@ -114,7 +116,7 @@
                                 android:scrollHorizontally="true"
                                 android:fontFamily="@font/roboto"
                                 android:text="Hoang, RUNN"
-                                android:textSize="18sp"
+                                android:textSize="13sp"
                                 android:textStyle="normal"
                                 android:id="@+id/tvSongArtist" />
                         </LinearLayout>
@@ -174,7 +176,8 @@
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:id="@+id/time_layout"
-                        android:layout_marginTop="5sp">
+                        android:layout_marginStart="8sp"
+                        android:layout_marginEnd="8sp">
 
                         <TextView
                             android:layout_width="wrap_content"
@@ -395,20 +398,34 @@
                                             android:id="@+id/tvFullLyrics"
                                             android:textSize="26sp"
                                             android:textStyle="bold"/>
-                                        <TextView
-                                            android:layout_width="match_parent"
-                                            android:layout_height="wrap_content"
-                                            android:gravity="end"
-                                            android:layout_marginTop="10sp"
-                                            android:textSize="10sp"
-                                            android:text="Lyrics provided by akashrchandran/spotify-lyrics-api">
 
-                                        </TextView>
                                     </LinearLayout>
                                 </androidx.core.widget.NestedScrollView>
 
                             </RelativeLayout>
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+                                <TextView
+                                    android:id="@+id/tvSyncState"
+                                    android:text="SYNCED"
+                                    android:gravity="end"
+                                    android:layout_marginTop="10sp"
+                                    android:textSize="10sp"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content">
 
+                                </TextView>
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:gravity="end"
+                                    android:textSize="10sp"
+                                    android:text="@string/lyrics_provider">
+
+                                </TextView>
+                            </LinearLayout>
                         </LinearLayout>
 
                     </com.google.android.material.card.MaterialCardView>

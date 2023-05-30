@@ -12,6 +12,11 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.core.graphics.drawable.toBitmap
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.marginTop
+import androidx.core.view.setPadding
+import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
@@ -35,6 +40,9 @@ import com.maxrave.simpmusic.databinding.FragmentArtistBinding
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.ArtistViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import dev.chrisbanes.insetter.Insetter
+import dev.chrisbanes.insetter.applyInsetter
+import dev.chrisbanes.insetter.windowInsetTypesOf
 
 @AndroidEntryPoint
 class ArtistFragment: Fragment(){
@@ -55,6 +63,20 @@ class ArtistFragment: Fragment(){
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentArtistBinding.inflate(inflater, container, false)
+//        binding.toolBar.applyInsetter {
+//            type(statusBars = true) {
+//                padding()
+//            }
+//        }
+//        Insetter.builder()
+//
+//            // This will add the status bars insets as margin to all sides of the view,
+//            // maintaining the original margins (from the layout XML, etc)`
+//            .margin(windowInsetTypesOf(statusBars = true))
+//
+//            // This is a shortcut for view.setOnApplyWindowInsetsListener(builder.build())
+//            .applyToView(binding.toolBar)
+
         return binding.root
     }
 

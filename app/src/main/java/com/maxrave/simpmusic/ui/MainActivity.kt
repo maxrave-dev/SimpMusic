@@ -1,19 +1,20 @@
 package com.maxrave.simpmusic.ui
 
-import android.app.Notification
 import android.content.Intent
-import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.view.Window
-import android.view.WindowManager
+import android.view.ViewGroup
+import android.view.ViewGroup.MarginLayoutParams
 import android.view.animation.AnimationUtils
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.ServiceCompat
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
@@ -27,7 +28,7 @@ import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @UnstableApi
@@ -39,18 +40,42 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
     @UnstableApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            WindowCompat.setDecorFitsSystemWindows(window, false)
+        } else {
+            window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
+        }
+
+
+
         binding = ActivityMainBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
-
+//        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v , windowInsets ->
+//            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
+//            // Apply the insets as a margin to the view. Here the system is setting
+//            // only the bottom, left, and right dimensions, but apply whichever insets are
+//            // appropriate to your layout. You can also update the view padding
+//            // if that's more appropriate.
+//            v.updateLayoutParams<MarginLayoutParams>() {
+//                bottomMargin = insets.bottom
+//            }
+//
+//            // Return CONSUMED if you don't want want the window insets to keep being
+//            // passed down to descendant views.
+//            WindowInsetsCompat.CONSUMED
+//        }
+//        window.statusBarColor = getColor(R.color.colorPrimaryDark)
+//        window.setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
         binding.card.visibility = View.GONE
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.fragment_container_view)
         val navController = navHostFragment?.findNavController()
         binding.bottomNavigationView.setupWithNavController(navController!!)
 
         binding.card.setOnClickListener {
-            val nowPlayingFragment = NowPlayingFragment()
-            nowPlayingFragment.show(supportFragmentManager, "NowPlayingFragment")
+            navController.navigate(R.id.action_global_nowPlayingFragment)
         }
         binding.btPlayPause.setOnClickListener {
             viewModel.onUIEvent(UIEvent.PlayPause)
@@ -59,11 +84,10 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
             val job1 = launch {
                 viewModel.metadata.observe(this@MainActivity){
                     if (it is Resource.Success){
-                        binding.card.visibility = View.VISIBLE
-                        startService()
-                    }
-                    else{
-                        binding.card.visibility = View.GONE
+                        if (viewModel.isServiceRunning.value == false){
+                            startService()
+                            viewModel.isServiceRunning.postValue(true)
+                        }
                     }
                 }
             }
@@ -162,6 +186,14 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
         } else {
             string
         }
+    }
+    fun hideBottomNav(){
+        binding.bottomNavigationView.visibility = View.GONE
+        binding.miniPlayerContainer.visibility = View.GONE
+    }
+    fun showBottomNav(){
+        binding.bottomNavigationView.visibility = View.VISIBLE
+        binding.miniPlayerContainer.visibility = View.VISIBLE
     }
 
 }

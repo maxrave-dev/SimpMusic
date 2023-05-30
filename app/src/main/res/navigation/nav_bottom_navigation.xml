@@ -58,12 +58,15 @@
     <action
         android:id="@+id/action_global_moodFragment"
         app:destination="@id/moodFragment" />
-    <dialog
+    <fragment
         android:id="@+id/nowPlayingFragment"
         android:name="com.maxrave.simpmusic.ui.fragment.NowPlayingFragment"
         android:label="NowPlayingFragment" />
     <action
         android:id="@+id/action_global_nowPlayingFragment"
-        app:destination="@id/nowPlayingFragment" />
+        app:destination="@id/nowPlayingFragment"
+        app:enterAnim="@anim/bottom_to_top"
+        app:exitAnim="@anim/top_to_bottom"
+        app:popExitAnim="@anim/top_to_bottom" />
 
 </navigation>

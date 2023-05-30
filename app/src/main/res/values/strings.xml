@@ -8,4 +8,5 @@
     <string name="year_and_category">%1$s • %2$s</string>
     <string name="album_length">%1$s tracks • %2$s</string>
     <string name="view_count">%1$s views</string>
+    <string name="lyrics_provider">Lyrics provided by akashrchandran/spotify-lyrics-api</string>
 </resources>

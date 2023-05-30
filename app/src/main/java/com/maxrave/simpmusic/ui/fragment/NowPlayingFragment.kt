@@ -10,37 +10,46 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.*
+import android.widget.RelativeLayout
 import android.widget.Toast
 import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.alpha
+import androidx.core.view.WindowCompat
 import androidx.customview.widget.ViewDragHelper
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
+import androidx.navigation.fragment.findNavController
 import androidx.palette.graphics.Palette
+import applyEdgeToEdge
 import coil.ImageLoader
 import coil.request.ImageRequest
 import coil.size.Size
 import coil.transform.Transformation
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.android.material.card.MaterialCardView
 import com.google.android.material.slider.Slider
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.data.model.metadata.MetadataSong
 import com.maxrave.simpmusic.databinding.FragmentNowPlayingBinding
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import dagger.hilt.android.AndroidEntryPoint
+import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 
 @UnstableApi
 @AndroidEntryPoint
-class NowPlayingFragment: BottomSheetDialogFragment() {
+class NowPlayingFragment: Fragment() {
     private val UPDATE_INTERVAL_MS: Long = 1000
     private val viewModel by activityViewModels<SharedViewModel>()
     private lateinit var dragHelper: ViewDragHelper
@@ -65,49 +74,31 @@ class NowPlayingFragment: BottomSheetDialogFragment() {
         }
     }
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        setStyle(STYLE_NORMAL, R.style.FullScreenDialogTheme)
-    }
-
-    override fun onStart() {
-        super.onStart()
-        dialog?.window?.setWindowAnimations(R.style.DialogAnimation)
-    }
-
-    override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
-        val dialog = BottomSheetDialog(requireContext(), theme)
-        dialog.setOnShowListener {
-
-            val bottomSheetDialog = it as BottomSheetDialog
-            val parentLayout =
-                bottomSheetDialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
-            parentLayout?.let { bottom ->
-                val behaviour = BottomSheetBehavior.from(bottom)
-                behaviour.isDraggable = false
-                setupFullHeight(bottom)
-                behaviour.state = BottomSheetBehavior.STATE_EXPANDED
-            }
-        }
-        return dialog
-    }
-
-    private fun setupFullHeight(bottomSheet: View) {
-        val layoutParams = bottomSheet.layoutParams
-        layoutParams.height = WindowManager.LayoutParams.MATCH_PARENT
-        bottomSheet.layoutParams = layoutParams
-    }
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
         _binding = FragmentNowPlayingBinding.inflate(inflater, container, false)
+        binding.topAppBar.applyInsetter {
+            type(statusBars = true) {
+                margin()
+            }
+        }
+        binding.root.applyInsetter {
+            type(navigationBars = true) {
+                margin()
+            }
+        }
         return binding.root
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val activity = requireActivity()
+        val bottom = activity.findViewById<BottomNavigationView>(R.id.bottom_navigation_view)
+        val card = activity.findViewById<MaterialCardView>(R.id.card)
+        bottom.visibility = View.GONE
+        card.visibility = View.GONE
         binding.lyricsFullLayout.visibility = View.GONE
         binding.buffered.max = 100
         Log.d("check Video ID in ViewModel", viewModel.videoId.value.toString())
@@ -185,6 +176,11 @@ class NowPlayingFragment: BottomSheetDialogFragment() {
                     viewModel.progressMillis.collect{
                         if (viewModel.metadata.value?.data != null){
                             val temp = viewModel.getLyricsString(it)
+                            binding.tvSyncState.text = when (viewModel.getLyricsSyncState()){
+                                Config.SyncState.NOT_FOUND -> null
+                                Config.SyncState.LINE_SYNCED -> "Line Synced"
+                                Config.SyncState.UNSYNCED -> "Unsynced"
+                            }
                             if (temp != null){
                                 if (temp.nowLyric == "Lyrics not found"){
                                     binding.lyricsLayout.visibility = View.GONE
@@ -280,7 +276,7 @@ class NowPlayingFragment: BottomSheetDialogFragment() {
         }
 
         binding.topAppBar.setNavigationOnClickListener {
-            dismiss()
+            findNavController().popBackStack()
         }
     }
 //
@@ -517,6 +513,15 @@ class NowPlayingFragment: BottomSheetDialogFragment() {
         fun onNowPlayingSongChange()
         fun onIsPlayingChange()
         fun onUpdateProgressBar(progress: Float)
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        val activity = requireActivity()
+        val bottom = activity.findViewById<BottomNavigationView>(R.id.bottom_navigation_view)
+        val card = activity.findViewById<MaterialCardView>(R.id.card)
+        bottom.visibility = View.VISIBLE
+        card.visibility = View.VISIBLE
     }
 
 

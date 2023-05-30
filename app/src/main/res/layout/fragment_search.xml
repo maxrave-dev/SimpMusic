@@ -9,6 +9,7 @@
         android:layout_height="match_parent"
         android:padding="10sp">
         <androidx.appcompat.widget.SearchView
+            app:marginTopSystemWindowInsets="true"
             android:id="@+id/svSearch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

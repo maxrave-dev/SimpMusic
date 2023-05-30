@@ -12,8 +12,7 @@
     <RelativeLayout
         android:id="@+id/mini_player_container"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@+id/bottom_navigation_view">
+        android:layout_height="match_parent">
             <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
@@ -30,7 +29,7 @@
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/card"
             android:layout_width="match_parent"
-            android:layout_height="65sp"
+            android:layout_height="60sp"
             android:layout_marginStart="5sp"
             app:cardCornerRadius="6sp"
             style="?attr/materialCardViewFilledStyle"
@@ -50,8 +49,8 @@
                     android:layout_alignParentTop="true">
                     <com.google.android.material.imageview.ShapeableImageView
                         android:id="@+id/ivArt"
-                        android:layout_width="45sp"
-                        android:layout_height="45sp"
+                        android:layout_width="40sp"
+                        android:layout_height="40sp"
                         android:layout_marginStart="8sp"
                         android:layout_gravity="center_vertical"
                         android:src="@drawable/outline_album_24">
@@ -77,7 +76,7 @@
                             android:focusableInTouchMode="true"
                             android:scrollHorizontally="true"
                             android:textColor="?android:textColorPrimary"
-                            android:textSize="16sp"
+                            android:textSize="15sp"
                             android:textStyle="bold"
                             android:text="" />
 
@@ -93,7 +92,7 @@
                             android:scrollHorizontally="true"
                             android:text="Hoang &amp; RUNN"
                             android:textColor="?android:textColorSecondary"
-                            android:textSize="12sp" />
+                            android:textSize="10sp" />
                     </LinearLayout>
                     <com.google.android.material.checkbox.MaterialCheckBox
                         android:id="@+id/cbFavorite"
@@ -120,7 +119,7 @@
                     android:layout_alignParentBottom="true"
                     android:id="@+id/progressBar"
                     android:layout_width="match_parent"
-                    android:layout_height="10sp"
+                    android:layout_height="wrap_content"
                     android:layout_marginTop="3sp"
                     android:layout_marginStart="10sp"
                     android:layout_marginEnd="6sp"

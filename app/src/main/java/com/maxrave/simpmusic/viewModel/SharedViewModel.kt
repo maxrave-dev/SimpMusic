@@ -15,10 +15,9 @@ import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
-import at.huber.youtubeExtractor.VideoMeta
-import at.huber.youtubeExtractor.YouTubeExtractor
-import at.huber.youtubeExtractor.YtFile
 import com.github.kiulian.downloader.YoutubeDownloader
+import com.maxrave.kotlinyoutubeextractor.YTExtractor
+import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.data.model.mediaService.Song
 import com.maxrave.simpmusic.data.model.metadata.Line
 import com.maxrave.simpmusic.data.model.metadata.Lyrics
@@ -125,25 +124,37 @@ class SharedViewModel @Inject constructor(private val mainRepository: MainReposi
     @UnstableApi
     fun loadMediaItems(videoId: String){
         val title = metadata.value?.data?.title
-            @SuppressLint("StaticFieldLeak")
-            val request = object: YouTubeExtractor(context) {
-
-                override fun onExtractionComplete(
-                    ytFiles: SparseArray<YtFile>?,
-                    videoMeta: VideoMeta?,
-                ) {
-                    var uri = ""
-                    Log.d("Check YT data", ytFiles.toString())
-                    if (ytFiles != null)
-                    {
+        viewModelScope.launch {
+                YTExtractor(context).getYtFile(videoId).let { ytFiles ->
+                    ytFiles?.let {
+                        var uri = ""
                         if (ytFiles[251] != null){
-                            uri = ytFiles[251].url
+                            ytFiles[251].url.let {
+                                if (it != null){
+                                    uri = it
+                                }
+                            }
                         }
-                        else if (ytFiles[140] != null){
-                            uri = ytFiles[140].url
+                        else if (ytFiles[171] != null){
+                            ytFiles[171].url.let {
+                                if (it != null){
+                                    uri = it
+                                }
+                            }
                         }
                         else if (ytFiles[250] != null){
-                            uri = ytFiles[249].url
+                            ytFiles[250].url.let {
+                                if (it != null){
+                                    uri = it
+                                }
+                            }
+                        }
+                        else if (ytFiles[249] != null){
+                            ytFiles[249].url.let {
+                                if (it != null){
+                                    uri = it
+                                }
+                            }
                         }
                         else{
                             Toast.makeText(context, "This track is not available in your country! Use VPN to fix this problem", Toast.LENGTH_LONG).show()
@@ -171,12 +182,9 @@ class SharedViewModel @Inject constructor(private val mainRepository: MainReposi
                             simpleMediaServiceHandler.addMediaItem(mediaItem)
                         }
                     }
-                    else {
-                        Toast.makeText(context, "This track is not available in your country! Use VPN to fix this problem", Toast.LENGTH_LONG).show()
-                    }
                 }
-
-            }.extract("https://youtube.com/watch?v="+videoId)
+            }
+        }
 
 
 //            val mediaItem = MediaItem.Builder().setUri(uri)
@@ -190,7 +198,7 @@ class SharedViewModel @Inject constructor(private val mainRepository: MainReposi
 //            simpleMediaServiceHandler.addMediaItem(mediaItem)
 
 
-    }
+
 
 
     @UnstableApi
@@ -242,11 +250,10 @@ class SharedViewModel @Inject constructor(private val mainRepository: MainReposi
                     lyricsFormat.postValue(lines)
                     var txt = ""
                     for (line in lines){
-                        if (line == lines.last()){
-                            txt += line.words
-                        }
-                        else{
-                            txt += line.words + "\n"
+                        txt += if (line == lines.last()){
+                            line.words
+                        } else{
+                            line.words + "\n"
                         }
                     }
                     lyricsFull.postValue(txt)
@@ -275,6 +282,17 @@ class SharedViewModel @Inject constructor(private val mainRepository: MainReposi
             }
         }
     }
+    fun getLyricsSyncState(): Config.SyncState {
+        return when(_lyrics.value?.syncType) {
+            null -> Config.SyncState.NOT_FOUND
+            "LINE_SYNCED" -> Config.SyncState.LINE_SYNCED
+            "UNSYNCED" -> Config.SyncState.UNSYNCED
+            else -> Config.SyncState.NOT_FOUND
+        }
+    }
+
+
+
     fun getLyricsString(current: Long): LyricDict? {
 //        viewModelScope.launch {
 //            while (isPlaying.value == true){

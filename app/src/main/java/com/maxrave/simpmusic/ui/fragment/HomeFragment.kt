@@ -37,6 +37,7 @@ import com.maxrave.simpmusic.databinding.FragmentHomeBinding
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.HomeViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import dev.chrisbanes.insetter.applyInsetter
 import java.text.SimpleDateFormat
 import java.util.Calendar
 
@@ -71,6 +72,11 @@ class HomeFragment : Fragment() {
         savedInstanceState: Bundle?,
     ): View {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
+        binding.root.applyInsetter {
+            type(statusBars = true) {
+                margin()
+            }
+        }
         return binding.root
     }
 
@@ -219,11 +225,12 @@ class HomeFragment : Fragment() {
                 homeItemList?.clear()
                 homeItemListWithoutQuickPicks?.clear()
             }
-            chart = viewModel.chart.value?.data as Chart
+            chart = viewModel.chart.value?.data!!
+            Log.d("Chart", "onViewCreated: $chart")
             trackChart = chart?.videos?.items as ArrayList<ItemVideo>
             artistChart = chart?.artists?.itemArtists as ArrayList<ItemArtist>
-            trackChartAdapter.updateData(trackChart!!)
-            artistChartAdapter.updateData(artistChart!!)
+            trackChartAdapter.updateData(viewModel.chart.value?.data?.videos?.items!! as ArrayList<ItemVideo>)
+            artistChartAdapter.updateData(viewModel.chart.value?.data?.artists?.itemArtists!! as ArrayList<ItemArtist>)
             homeItemList?.addAll(viewModel.homeItemList.value?.data!!)
             Log.d("Data", "onViewCreated: $homeItemList")
             if (homeItemList!![0].title == "Quick picks")

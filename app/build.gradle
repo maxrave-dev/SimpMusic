@@ -47,19 +47,22 @@ android {
 }
 
 dependencies {
-    implementation project(':youtubeExtractor')
+    //implementation project(':youtubeExtractor')
+
+    def youtube_extractor_version = '0.0.2'
+    implementation "com.github.maxrave-dev:kotlin-youtubeExtractor:$youtube_extractor_version"
 
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.1'
-    implementation 'androidx.core:core-ktx:1.10.0'
+    implementation 'androidx.core:core-ktx:1.10.1'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     //material design 3
     implementation 'com.google.android.material:material:1.8.0'
     //rive animation
-    implementation 'app.rive:rive-android:4.3.2'
+    implementation 'app.rive:rive-android:5.0.1'
     //runtime
     implementation "androidx.startup:startup-runtime:1.1.1"
     //ExoPlayer
-    def media3_version = '1.0.0'
+    def media3_version = '1.0.2'
 
     implementation "androidx.media3:media3-exoplayer:$media3_version"
     implementation "androidx.media3:media3-ui:$media3_version"
@@ -90,7 +93,7 @@ dependencies {
     //Legacy Support
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     //Coroutines
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1'
     //Navigation
     implementation 'androidx.navigation:navigation-fragment-ktx:2.5.3'
     implementation 'androidx.navigation:navigation-ui-ktx:2.5.3'
@@ -110,7 +113,7 @@ dependencies {
     implementation 'io.reactivex.rxjava3:rxandroid:3.0.2'
 
     //Coil
-    implementation 'io.coil-kt:coil:2.3.0'
+    implementation 'io.coil-kt:coil:2.4.0'
     //Glide
     implementation 'com.github.bumptech.glide:glide:4.15.1'
 
@@ -124,20 +127,23 @@ dependencies {
     implementation 'androidx.preference:preference-ktx:1.2.0'
 
     //fragment ktx
-    implementation 'androidx.fragment:fragment-ktx:1.5.6'
+    implementation 'androidx.fragment:fragment-ktx:1.5.7'
     //Hilt
-    implementation 'com.google.dagger:hilt-android:2.45'
-    kapt 'com.google.dagger:hilt-compiler:2.45'
+    implementation 'com.google.dagger:hilt-android:2.46.1'
+    kapt 'com.google.dagger:hilt-compiler:2.46.1'
 
     // For instrumentation tests
-    androidTestImplementation  'com.google.dagger:hilt-android-testing:2.45'
-    kaptAndroidTest 'com.google.dagger:hilt-compiler:2.45'
+    androidTestImplementation 'com.google.dagger:hilt-android-testing:2.46.1'
+    kaptAndroidTest 'com.google.dagger:hilt-compiler:2.46.1'
 
     // For local unit tests
-    testImplementation 'com.google.dagger:hilt-android-testing:2.45'
-    kaptTest 'com.google.dagger:hilt-compiler:2.45'
+    testImplementation 'com.google.dagger:hilt-android-testing:2.46.1'
+    kaptTest 'com.google.dagger:hilt-compiler:2.46.1'
     //Swipe To Refresh
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.2.0-alpha01"
+    //Insetter
+    implementation 'dev.chrisbanes.insetter:insetter:0.6.1'
+    implementation 'dev.chrisbanes.insetter:insetter-dbx:0.6.1'
 
 //    def kotlinx_metadata_version = 0.6.0
 //    kapt "org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.6.0"

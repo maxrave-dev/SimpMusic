@@ -5,7 +5,7 @@ import com.google.gson.annotations.SerializedName
 
 data class Videos(
     @SerializedName("items")
-    val items: List<ItemVideo>,
+    val items: ArrayList<ItemVideo>,
     @SerializedName("playlist")
     val playlist: String
 )
