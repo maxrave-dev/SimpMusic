@@ -15,6 +15,7 @@ import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
 import com.maxrave.simpmusic.databinding.ItemAlbumSearchResultBinding
 import com.maxrave.simpmusic.databinding.ItemArtistSearchResultBinding
 import com.maxrave.simpmusic.databinding.ItemPlaylistSearchResultBinding
+import com.maxrave.simpmusic.databinding.ItemsVideosSearchResultBinding
 
 class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var context: Context): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     private lateinit var mListener: onItemClickListener
@@ -58,6 +59,30 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
                 tvSongTitle.isSelected = true
                 tvSongArtist.isSelected = true
                 tvSongAlbum.isSelected = true
+            }
+        }
+    }
+    inner class VideoViewHolder(val binding: ItemsVideosSearchResultBinding, listener: onItemClickListener): RecyclerView.ViewHolder(binding.root) {
+        init {
+            binding.root.setOnClickListener {
+                listener.onItemClick(bindingAdapterPosition, "video")
+            }
+        }
+        fun bind(video: VideosResult){
+            with (binding) {
+                ivThumbnail.load(video.thumbnails[0].url)
+                tvVideoTitle.text = video.title
+                var artistName = ""
+                if (video.artists != null) {
+                    for (artist in video.artists) {
+                        artistName += artist.name + ", "
+                    }
+                }
+                artistName = removeTrailingComma(artistName)
+                artistName = removeComma(artistName)
+                tvAuthor.text = artistName
+                tvView.text = video.views
+                tvVideoTitle.isSelected = true
             }
         }
     }
@@ -155,10 +180,10 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
                 val binding = ItemAlbumSearchResultBinding.inflate(inflater, parent, false)
                 AlbumViewHolder(binding, mListener)
             }
-//            VIEW_TYPE_VIDEO -> {
-//                TODO()
-//            }
-            //Chưa kịp làm video, h mới biết là có video trong search kkk
+            VIEW_TYPE_VIDEO -> {
+                val binding = ItemsVideosSearchResultBinding.inflate(inflater, parent, false)
+                VideoViewHolder(binding, mListener)
+            }
             else -> throw IllegalArgumentException("Unknown view type")
         }
     }
@@ -180,6 +205,9 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
             }
             is AlbumViewHolder -> {
                 holder.bind(searchResultList[position] as AlbumsResult)
+            }
+            is VideoViewHolder -> {
+                holder.bind(searchResultList[position] as VideosResult)
             }
         }
     }

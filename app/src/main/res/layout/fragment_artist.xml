@@ -23,11 +23,13 @@
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/rootFull">
+        android:id="@+id/rootFull"
+        android:fitsSystemWindows="true">
         <com.google.android.material.appbar.AppBarLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/topAppBarLayout">
+            android:id="@+id/topAppBarLayout"
+            android:fitsSystemWindows="true">
             <com.google.android.material.appbar.CollapsingToolbarLayout
                 android:layout_width="match_parent"
                 android:layout_height="300sp"
@@ -37,13 +39,16 @@
                 app:expandedTitleTextColor="@android:color/white"
                 app:collapsedTitleTextAppearance="@style/TextAppearance.Material3.TitleMedium"
                 app:layout_scrollFlags="scroll|exitUntilCollapsed"
-                app:contentScrim="?attr/colorSurface">
+                app:statusBarScrim="@android:color/transparent"
+                app:toolbarId="@id/toolBar">
                 <ImageView
+                    android:fitsSystemWindows="true"
                     android:id="@+id/ivArtistImage"
                     android:layout_width="match_parent"
                     android:layout_height="300dp"
                     android:scaleType="centerCrop"
                     android:src="@drawable/artist_thumbail"
+                    android:alpha="0.8"
                     app:layout_collapseMode="parallax"
                     app:layout_collapseParallaxMultiplier="0.7" />
                 <com.google.android.material.appbar.MaterialToolbar

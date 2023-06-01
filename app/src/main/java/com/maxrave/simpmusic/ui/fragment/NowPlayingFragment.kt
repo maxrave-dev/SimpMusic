@@ -1,20 +1,18 @@
 package com.maxrave.simpmusic.ui.fragment
 
-import android.app.Activity
-import android.app.Dialog
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.view.*
-import android.widget.RelativeLayout
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.view.Window
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.core.graphics.ColorUtils
-import androidx.core.graphics.alpha
-import androidx.core.view.WindowCompat
 import androidx.customview.widget.ViewDragHelper
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -23,15 +21,11 @@ import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
 import androidx.palette.graphics.Palette
-import applyEdgeToEdge
 import coil.ImageLoader
 import coil.request.ImageRequest
 import coil.size.Size
 import coil.transform.Transformation
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.slider.Slider
 import com.maxrave.simpmusic.R
@@ -43,7 +37,6 @@ import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
 

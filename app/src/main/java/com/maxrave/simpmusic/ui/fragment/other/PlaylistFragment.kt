@@ -9,6 +9,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
@@ -26,6 +28,7 @@ import com.maxrave.simpmusic.databinding.FragmentPlaylistBinding
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.PlaylistViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlin.math.abs
 
 @AndroidEntryPoint
 class PlaylistFragment: Fragment() {
@@ -48,6 +51,7 @@ class PlaylistFragment: Fragment() {
     }
     override fun onDestroyView() {
         super.onDestroyView()
+        requireActivity().window.statusBarColor = ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark)
         _binding = null
     }
 
@@ -57,7 +61,8 @@ class PlaylistFragment: Fragment() {
             gradientDrawable = viewModel.gradientDrawable.value
             toolbarBackground = gradientDrawable?.colors?.get(0)
         }
-        binding.root.visibility = View.GONE
+        binding.rootLayout.visibility = View.GONE
+        binding.loadingLayout.visibility = View.VISIBLE
 
         playlistItemAdapter = PlaylistItemAdapter(arrayListOf())
         binding.rvListSong.apply {
@@ -70,6 +75,7 @@ class PlaylistFragment: Fragment() {
         binding.topAppBar.setNavigationOnClickListener {
             findNavController().popBackStack()
         }
+
         playlistItemAdapter.setOnClickListener(object: PlaylistItemAdapter.OnItemClickListener{
             override fun onItemClick(position: Int) {
                 Toast.makeText(requireContext(), playlistItemAdapter.getItem(position).toString(), Toast.LENGTH_SHORT).show()
@@ -80,6 +86,19 @@ class PlaylistFragment: Fragment() {
                 Toast.makeText(requireContext(), "Option", Toast.LENGTH_SHORT).show()
             }
         })
+        binding.topAppBarLayout.addOnOffsetChangedListener { it, verticalOffset ->
+            Log.d("ArtistFragment", "Offset: $verticalOffset" + "Total: ${it.totalScrollRange}")
+            if(abs(it.totalScrollRange) == abs(verticalOffset)) {
+                binding.topAppBar.background = viewModel.gradientDrawable.value
+                requireActivity().window.statusBarColor = viewModel.gradientDrawable.value?.colors!!.first()
+            }
+            else
+            {
+                binding.topAppBar.background = null
+                requireActivity().window.statusBarColor = ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark)
+                Log.d("ArtistFragment", "Expanded")
+            }
+        }
     }
 
     private fun fetchData(id: String) {
@@ -90,7 +109,6 @@ class PlaylistFragment: Fragment() {
                     response.data.let {
                         with(binding){
                             topAppBar.title = it?.title
-                            tvPlaylistName.text = it?.title
                             tvPlaylistAuthor.text = it?.author?.name
                             tvYearAndCategory.text = requireContext().getString(R.string.year_and_category, it?.year.toString(), "Playlist")
                             tvTrackCountAndDuration.text = requireContext().getString(R.string.album_length, it?.trackCount.toString(), it?.duration.toString())
@@ -103,23 +121,24 @@ class PlaylistFragment: Fragment() {
                             playlistItemAdapter.updateList(it?.tracks as ArrayList<TrackPlaylist>)
                             if (viewModel.gradientDrawable.value == null) {
                                 viewModel.gradientDrawable.observe(viewLifecycleOwner, Observer { gradient ->
-                                    rootLayout.background = gradient
+                                    fullRootLayout.background = gradient
                                     toolbarBackground = gradient?.colors?.get(0)
-                                    topAppBar.background = ColorDrawable(toolbarBackground!!)
+                                    topAppBarLayout.background = ColorDrawable(toolbarBackground!!)
                                 })
                             }
                             else {
-                                rootLayout.background = gradientDrawable
-                                topAppBar.background = ColorDrawable(toolbarBackground!!)
+                                fullRootLayout.background = gradientDrawable
+                                topAppBarLayout.background = ColorDrawable(toolbarBackground!!)
                             }
                         }
                     }
-                    binding.root.visibility = View.VISIBLE
+                    binding.rootLayout.visibility = View.VISIBLE
+                    binding.loadingLayout.visibility = View.GONE
                 }
                 is Resource.Loading -> {}
                 is Resource.Error -> {
-                    binding.root.visibility = View.VISIBLE
                     Snackbar.make(binding.root, response.message.toString(), Snackbar.LENGTH_LONG).show()
+                    findNavController().popBackStack()
                 }
             }
         })
@@ -152,7 +171,8 @@ class PlaylistFragment: Fragment() {
                             }
                             Log.d("Check Start Color", "transform: $startColor")
                         }
-                        val endColor = 0x1b1a1f
+                        startColor = ColorUtils.setAlphaComponent(startColor, 150)
+                        val endColor = resources.getColor(R.color.md_theme_dark_background, null)
                         val gd = GradientDrawable(
                             GradientDrawable.Orientation.TOP_BOTTOM,
                             intArrayOf(startColor, endColor)
@@ -160,7 +180,6 @@ class PlaylistFragment: Fragment() {
                         gd.cornerRadius = 0f
                         gd.gradientType = GradientDrawable.LINEAR_GRADIENT
                         gd.gradientRadius = 0.5f
-                        gd.alpha = 150
                         viewModel.gradientDrawable.postValue(gd)
                         return input
                     }

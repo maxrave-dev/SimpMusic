@@ -13,6 +13,7 @@ import com.maxrave.simpmusic.data.model.searchResult.albums.AlbumsResult
 import com.maxrave.simpmusic.data.model.searchResult.artists.ArtistsResult
 import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
+import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
 import com.maxrave.simpmusic.data.model.thumbnailUrl
 import retrofit2.Response
 import javax.inject.Inject
@@ -40,6 +41,11 @@ class RemoteDataSource @Inject constructor(private val searchService: SearchServ
         query: String,
         filter: String = "playlists",
     ): Response<ArrayList<PlaylistsResult>> = searchService.searchPlaylists(query, filter)
+
+    suspend fun searchVideos(
+        query: String,
+        filter: String = "videos",
+    ): Response<ArrayList<VideosResult>> = searchService.searchVideos(query, filter)
 
     suspend fun suggestQuery(query: String): Response<ArrayList<String>> = searchService.suggestQuery(query)
 

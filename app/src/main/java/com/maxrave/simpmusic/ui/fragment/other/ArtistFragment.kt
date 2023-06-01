@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.ui.fragment.other
 
+import android.content.res.Resources
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.ColorDrawable
@@ -9,8 +10,11 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.ViewGroup.LayoutParams
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -43,6 +47,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.Insetter
 import dev.chrisbanes.insetter.applyInsetter
 import dev.chrisbanes.insetter.windowInsetTypesOf
+import kotlin.math.abs
 
 @AndroidEntryPoint
 class ArtistFragment: Fragment(){
@@ -63,25 +68,12 @@ class ArtistFragment: Fragment(){
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentArtistBinding.inflate(inflater, container, false)
-//        binding.toolBar.applyInsetter {
-//            type(statusBars = true) {
-//                padding()
-//            }
-//        }
-//        Insetter.builder()
-//
-//            // This will add the status bars insets as margin to all sides of the view,
-//            // maintaining the original margins (from the layout XML, etc)`
-//            .margin(windowInsetTypesOf(statusBars = true))
-//
-//            // This is a shortcut for view.setOnApplyWindowInsetsListener(builder.build())
-//            .applyToView(binding.toolBar)
-
         return binding.root
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
+        requireActivity().window.statusBarColor = ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark)
         _binding = null
     }
 
@@ -146,6 +138,19 @@ class ArtistFragment: Fragment(){
                 Toast.makeText(context, "${type.toString()} ${popularAdapter.getItem(position).toString()}", Toast.LENGTH_LONG).show()
             }
         })
+        binding.topAppBarLayout.addOnOffsetChangedListener { it, verticalOffset ->
+            Log.d("ArtistFragment", "Offset: $verticalOffset" + "Total: ${it.totalScrollRange}")
+            if(abs(it.totalScrollRange) == abs(verticalOffset)) {
+                    binding.toolBar.background = viewModel.gradientDrawable.value
+                    requireActivity().window.statusBarColor = viewModel.gradientDrawable.value?.colors!!.first()
+                }
+            else
+                {
+                    binding.toolBar.background = null
+                    requireActivity().window.statusBarColor = ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark)
+                    Log.d("ArtistFragment", "Expanded")
+                }
+            }
 
     }
     private fun fetchData(channelId: String){
@@ -245,15 +250,16 @@ class ArtistFragment: Fragment(){
                         Log.d("Check Start Color", "transform: $startColor")
                     }
 //                    val centerColor = 0x6C6C6C
-                    val endColor = 0x1b1a1f
+                    val endColor = resources.getColor(R.color.md_theme_dark_background, null)
+                    startColor = ColorUtils.setAlphaComponent(startColor, 150)
+                    Log.d("Check End Color", "transform: $endColor")
                     val gd = GradientDrawable(
                         GradientDrawable.Orientation.TOP_BOTTOM,
                         intArrayOf(startColor, endColor)
                     )
                     gd.cornerRadius = 0f
                     gd.gradientType = GradientDrawable.LINEAR_GRADIENT
-                    gd.gradientRadius = 0.5f
-                    gd.alpha = 150
+                    gd.gradientRadius = 0.2f
                     viewModel.gradientDrawable.postValue(gd)
                     return input
                 }

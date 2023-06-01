@@ -6,7 +6,7 @@ import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 
 data class VideosResult(
     @SerializedName("artists")
-    val artists: List<Artist>,
+    val artists: List<Artist>?,
     @SerializedName("category")
     val category: String,
     @SerializedName("duration")

@@ -41,6 +41,9 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
     private val _playlistSearchResult: MutableLiveData<Resource<ArrayList<PlaylistsResult>>> = MutableLiveData()
     val playlistSearchResult: LiveData<Resource<ArrayList<PlaylistsResult>>> = _playlistSearchResult
 
+    private val _videoSearchResult: MutableLiveData<Resource<ArrayList<VideosResult>>> = MutableLiveData()
+    val videoSearchResult: LiveData<Resource<ArrayList<VideosResult>>> = _videoSearchResult
+
     var loading = MutableLiveData<Boolean>()
 
     private val _suggestQuery: MutableLiveData<Resource<ArrayList<String>>> = MutableLiveData()
@@ -108,10 +111,17 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
                     Log.d("SearchViewModel", "searchPlaylists: ${_playlistSearchResult.value}")
                 }
             }
+            val job5 = launch {
+                mainRepository.searchVideos(query, "videos").collect {values ->
+                    _videoSearchResult.value = values
+                    Log.d("SearchViewModel", "searchVideos: ${_videoSearchResult.value}")
+                }
+            }
             job1.join()
             job2.join()
             job3.join()
             job4.join()
+            job5.join()
             withContext(Dispatchers.Main) {
                 loading.value = false
             }
@@ -174,6 +184,20 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
                     loading.value = false
                 }
             } }
+        }
+    }
+    fun searchVideos(query: String) {
+        if (loading.value == false) {
+            loading.value = true
+            viewModelScope.launch {
+                mainRepository.searchVideos(query, "videos").collect { values ->
+                    _videoSearchResult.value = values
+                    Log.d("SearchViewModel", "searchVideos: ${_videoSearchResult.value}")
+                    withContext(Dispatchers.Main) {
+                        loading.value = false
+                    }
+                }
+            }
         }
     }
 }

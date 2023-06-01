@@ -9,6 +9,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.ColorUtils
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
@@ -26,6 +28,7 @@ import com.maxrave.simpmusic.databinding.FragmentAlbumBinding
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.AlbumViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlin.math.abs
 
 @AndroidEntryPoint
 class AlbumFragment: Fragment() {
@@ -49,6 +52,7 @@ class AlbumFragment: Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        requireActivity().window.statusBarColor = ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark)
         _binding = null
     }
 
@@ -92,6 +96,19 @@ class AlbumFragment: Fragment() {
                 Toast.makeText(requireContext(), "Position: $position", Toast.LENGTH_SHORT).show()
             }
         })
+        binding.topAppBarLayout.addOnOffsetChangedListener { it, verticalOffset ->
+            Log.d("ArtistFragment", "Offset: $verticalOffset" + "Total: ${it.totalScrollRange}")
+            if(abs(it.totalScrollRange) == abs(verticalOffset)) {
+                binding.topAppBar.background = viewModel.gradientDrawable.value
+                requireActivity().window.statusBarColor = viewModel.gradientDrawable.value?.colors!!.first()
+            }
+            else
+            {
+                binding.topAppBar.background = null
+                requireActivity().window.statusBarColor = ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark)
+                Log.d("ArtistFragment", "Expanded")
+            }
+        }
     }
 
     private fun fetchData(browseId: String) {
@@ -102,7 +119,6 @@ class AlbumFragment: Fragment() {
                     response.data.let {
                         with(binding){
                             topAppBar.title = it?.title
-                            tvAlbumName.text = it?.title
                             btArtist.text = it?.artists?.get(0)?.name
                             tvYearAndCategory.text= context?.getString(R.string.year_and_category, it?.year, it?.type)
                             tvTrackCountAndDuration.text = context?.getString(R.string.album_length, it?.trackCount.toString(), it?.duration)
@@ -132,12 +148,14 @@ class AlbumFragment: Fragment() {
                                     binding.fullRootLayout.background = gradient
                                     toolbarBackground = gradient.colors?.get(0)
                                     Log.d("TAG", "fetchData: $toolbarBackground")
-                                    binding.topAppBar.background = ColorDrawable(toolbarBackground!!)
+                                    //binding.topAppBar.background = ColorDrawable(toolbarBackground!!)
+                                    binding.topAppBarLayout.background = ColorDrawable(toolbarBackground!!)
                                 })
                             }
                             else {
                                 binding.fullRootLayout.background = gradientDrawable
-                                binding.topAppBar.background = ColorDrawable(toolbarBackground!!)
+                                //binding.topAppBar.background = ColorDrawable(toolbarBackground!!)
+                                binding.topAppBarLayout.background = ColorDrawable(toolbarBackground!!)
                             }
                         }
                     }
@@ -178,7 +196,8 @@ class AlbumFragment: Fragment() {
                         }
                         Log.d("Check Start Color", "transform: $startColor")
                     }
-                    val endColor = 0x1b1a1f
+                    startColor = ColorUtils.setAlphaComponent(startColor, 150)
+                    val endColor = resources.getColor(R.color.md_theme_dark_background, null)
                     val gd = GradientDrawable(
                         GradientDrawable.Orientation.TOP_BOTTOM,
                         intArrayOf(startColor, endColor)
@@ -186,7 +205,6 @@ class AlbumFragment: Fragment() {
                     gd.cornerRadius = 0f
                     gd.gradientType = GradientDrawable.LINEAR_GRADIENT
                     gd.gradientRadius = 0.5f
-                    gd.alpha = 150
                     viewModel.gradientDrawable.postValue(gd)
                     return input
                 }

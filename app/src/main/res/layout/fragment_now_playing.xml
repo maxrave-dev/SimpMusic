@@ -32,10 +32,11 @@
                     android:layout_width="match_parent"
                     android:layout_height="?attr/actionBarSize"
                     app:title="NOW PLAYING"
-                    app:titleTextAppearance="@style/TextAppearance.MaterialComponents.Caption"
-                    app:subtitle="Liked Songs"
+                    app:titleTextAppearance="@style/TitleToolBar"
+                    app:subtitle=""
                     app:subtitleCentered="true"
                     app:titleCentered="true"
+                    app:subtitleTextAppearance="@style/SubTitleToolBar"
                     app:menu="@menu/top_app_bar_now_playing"
                     app:navigationIcon="@drawable/baseline_keyboard_arrow_down_24" />
             </com.google.android.material.appbar.AppBarLayout>
@@ -150,7 +151,9 @@
                                 android:max="100"
                                 android:min="0"
                                 android:progress="0"
-                                app:indicatorColor="@android:color/darker_gray">
+                                app:indicatorColor="@android:color/darker_gray"
+                                app:trackCornerRadius="5sp"
+                                android:shadowRadius="0.2">
 
                             </com.google.android.material.progressindicator.LinearProgressIndicator>
                         </RelativeLayout>
@@ -324,7 +327,7 @@
                                     android:text="Lyrics"
                                     android:gravity="start"
                                     android:layout_weight="1"
-                                    style="@style/TextAppearance.Material3.ActionBar.Subtitle">
+                                    style="@style/SubTitleToolBar">
 
                                 </TextView>
                                 <Button
@@ -351,7 +354,7 @@
                                         android:layout_width="match_parent"
                                         android:layout_height="wrap_content"
                                         android:id="@+id/tvPrevLyrics"
-                                        android:textSize="20sp"
+                                        android:textSize="18sp"
                                         android:textStyle="normal"
                                         android:layout_above="@+id/tvNowLyrics"
                                         android:lineSpacingExtra="5sp"
@@ -361,7 +364,7 @@
                                         android:layout_width="match_parent"
                                         android:layout_height="wrap_content"
                                         android:textStyle="bold"
-                                        android:textSize="26sp"
+                                        android:textSize="22sp"
                                         android:id="@+id/tvNowLyrics"
                                         android:maxLines="6"
                                         android:layout_centerInParent="true"
@@ -373,7 +376,7 @@
                                         android:layout_width="match_parent"
                                         android:layout_height="wrap_content"
                                         android:id="@+id/tvNextLyrics"
-                                        android:textSize="20sp"
+                                        android:textSize="18sp"
                                         android:textStyle="normal"
                                         android:layout_below="@+id/tvNowLyrics"
                                         android:lineSpacingExtra="5sp">
@@ -396,7 +399,7 @@
                                             android:layout_width="match_parent"
                                             android:layout_height="wrap_content"
                                             android:id="@+id/tvFullLyrics"
-                                            android:textSize="26sp"
+                                            android:textSize="22sp"
                                             android:textStyle="bold"/>
 
                                     </LinearLayout>

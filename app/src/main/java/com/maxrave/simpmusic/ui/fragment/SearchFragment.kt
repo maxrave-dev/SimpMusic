@@ -18,7 +18,6 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import applySystemWindows
 import com.google.android.material.snackbar.Snackbar
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.adapter.search.SearchHistoryItemAdapter
@@ -28,13 +27,12 @@ import com.maxrave.simpmusic.data.model.searchResult.albums.AlbumsResult
 import com.maxrave.simpmusic.data.model.searchResult.artists.ArtistsResult
 import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
+import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
 import com.maxrave.simpmusic.databinding.FragmentSearchBinding
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.SearchViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
-import doOnApplyWindowInsets
-import requestApplyInsetsWhenAttached
 
 @AndroidEntryPoint
 class SearchFragment : Fragment() {
@@ -95,6 +93,12 @@ class SearchFragment : Fragment() {
                             resultAdapter.updateList(resultList)
                             fetchSearchAll(query)
                             Log.d("Check All", "All is checked")
+                        }
+                        "videos" -> {
+                            resultList.clear()
+                            resultAdapter.updateList(resultList)
+                            fetchSearchVideos(query)
+                            Log.d("Check Video", "Video is checked")
                         }
                         "songs" -> {
                             resultList.clear()
@@ -241,7 +245,14 @@ class SearchFragment : Fragment() {
                     val videoId = (resultAdapter.getCurrentList()[position] as SongsResult).videoId.toString()
                     val args = Bundle()
                     args.putString("videoId", videoId)
-                    args.putString("from", "Search Result")
+                    args.putString("from", "\"${binding.svSearch.query}\" in Search")
+                    findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                }
+                if (type == "video") {
+                    val videoId = (resultAdapter.getCurrentList()[position] as VideosResult).videoId.toString()
+                    val args = Bundle()
+                    args.putString("videoId", videoId)
+                    args.putString("from", "\"${binding.svSearch.query}\" in Search")
                     findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
                 }
             }
@@ -268,6 +279,9 @@ class SearchFragment : Fragment() {
             if (binding.chipAll.isChecked){
                 fetchSearchAll(binding.svSearch.query.toString())
             }
+            else if (binding.chipVideo.isChecked){
+                fetchSearchVideos(binding.svSearch.query.toString())
+            }
             else if (binding.chipSong.isChecked){
                 fetchSearchSongs(binding.svSearch.query.toString())
             }
@@ -291,6 +305,15 @@ class SearchFragment : Fragment() {
                 }
                 resultAdapter.updateList(resultList)
                 viewModel.searchType.postValue("songs")
+            }
+            else if (checkedIds.contains(binding.chipVideo.id)){
+                resultList.clear()
+                val temp = viewModel.videoSearchResult.value?.data
+                for (i in temp!!){
+                    resultList.add(i)
+                }
+                resultAdapter.updateList(resultList)
+                viewModel.searchType.postValue("videos")
             }
             else if (checkedIds.contains(binding.chipAll.id))
             {
@@ -335,6 +358,40 @@ class SearchFragment : Fragment() {
                 binding.svSearch.setQuery(suggestList[position], false)
             }
         })
+    }
+    private fun fetchSearchVideos(query: String) {
+        binding.refreshSearch.isRefreshing = true
+        viewModel.searchVideos(query)
+        viewModel.loading.observe(viewLifecycleOwner){
+            viewModel.videoSearchResult.observe(viewLifecycleOwner){response ->
+                when (response) {
+                    is Resource.Success -> {
+                        response.data.let {
+                            resultList.clear()
+                            if (it != null) {
+                                for (i in it){
+                                    resultList += i
+                                }
+                            }
+                            resultAdapter.updateList(resultList)
+                            binding.refreshSearch.isRefreshing = false
+                        }
+                    }
+                    is Resource.Loading -> {
+                    }
+                    is Resource.Error -> {
+                        response.message?.let { message ->
+                            Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
+                                .setAction("Retry") {
+                                    fetchSearchVideos(query)
+                                }
+                                .setDuration(5000)
+                                .show()
+                        }
+                    }
+                }
+            }
+        }
     }
     private fun fetchSearchAlbums(query: String) {
         binding.refreshSearch.isRefreshing = true
@@ -486,6 +543,7 @@ class SearchFragment : Fragment() {
     private fun fetchSearchAll(query: String) {
         viewModel.searchAll(query)
         var song = ArrayList<SongsResult>()
+        var video = ArrayList<VideosResult>()
         var album = ArrayList<AlbumsResult>()
         var artist = ArrayList<ArtistsResult>()
         var playlist = ArrayList<PlaylistsResult>()
@@ -514,6 +572,30 @@ class SearchFragment : Fragment() {
                         }
                     }
                 })
+                viewModel.videoSearchResult.observe(viewLifecycleOwner){ response ->
+                    when (response) {
+                        is Resource.Success -> {
+                            response.data.let { videoResultArrayList ->
+                                Log.d("SearchFragment", "observeResultList: $videoResultArrayList")
+                                for (i in videoResultArrayList!!){
+                                    video += i
+                                }
+                            }
+                        }
+                        is Resource.Loading -> {
+                        }
+                        is Resource.Error -> {
+                            response.message?.let { message ->
+                                Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
+                                    .setAction("Retry") {
+                                        fetchSearchAll(query)
+                                    }
+                                    .setDuration(5000)
+                                    .show()
+                            }
+                        }
+                    }
+                }
                 viewModel.albumsSearchResult.observe(viewLifecycleOwner, Observer { response ->
                     when (response) {
                         is Resource.Success -> {
@@ -594,6 +676,10 @@ class SearchFragment : Fragment() {
                                 {
                                     temp += song[i]
                                 }
+                                for (i in 0 until video.size)
+                                {
+                                    temp += video[i]
+                                }
                                 for (i in 0 until album.size)
                                 {
                                     temp += album[i]
@@ -605,6 +691,7 @@ class SearchFragment : Fragment() {
                             }
                             else {
                                 temp.addAll(song)
+                                temp.addAll(video)
                                 temp.addAll(artist)
                                 temp.addAll(album)
                                 temp.addAll(playlist)

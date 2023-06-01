@@ -15,6 +15,7 @@ import com.maxrave.simpmusic.data.model.browse.playlist.PlaylistBrowse
 import com.maxrave.simpmusic.data.model.explore.mood.genre.GenreObject
 import com.maxrave.simpmusic.data.model.explore.mood.moodmoments.MoodsMomentObject
 import com.maxrave.simpmusic.data.model.metadata.MetadataSong
+import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
 import com.maxrave.simpmusic.data.model.thumbnailUrl
 import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.scopes.ActivityRetainedScoped
@@ -33,6 +34,7 @@ class MainRepository @Inject constructor(private val remoteDataSource: RemoteDat
     suspend fun searchArtists(query: String, filter: String = "artists"): Flow<Resource<ArrayList<ArtistsResult>>> = flow<Resource<ArrayList<ArtistsResult>>> { emit(safeApiCall { remoteDataSource.searchArtists(query, filter) }) }.flowOn(Dispatchers.IO)
     suspend fun searchAlbums(query: String, filter: String = "albums"): Flow<Resource<ArrayList<AlbumsResult>>> = flow<Resource<ArrayList<AlbumsResult>>> { emit(safeApiCall { remoteDataSource.searchAlbums(query, filter) }) }.flowOn(Dispatchers.IO)
     suspend fun searchPlaylists(query: String, filter: String = "playlists"): Flow<Resource<ArrayList<PlaylistsResult>>> = flow<Resource<ArrayList<PlaylistsResult>>> { emit(safeApiCall { remoteDataSource.searchPlaylists(query, filter) }) }.flowOn(Dispatchers.IO)
+    suspend fun searchVideos(query: String, filter: String = "videos"): Flow<Resource<ArrayList<VideosResult>>> = flow<Resource<ArrayList<VideosResult>>> { emit(safeApiCall { remoteDataSource.searchVideos(query, filter) }) }.flowOn(Dispatchers.IO)
 
     //suggest query
     suspend fun suggestQuery(query: String): Flow<Resource<ArrayList<String>>> = flow<Resource<ArrayList<String>>> { emit(safeApiCall { remoteDataSource.suggestQuery(query) }) }.flowOn(Dispatchers.IO)

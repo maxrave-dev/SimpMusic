@@ -6,8 +6,8 @@
     android:padding="5sp"
     android:layout_marginBottom="10sp">
     <com.google.android.material.imageview.ShapeableImageView
-        android:layout_width="70sp"
-        android:layout_height="70sp"
+        android:layout_width="55sp"
+        android:layout_height="55sp"
         app:srcCompat="@drawable/test_thumbnail"
         android:scaleType="centerCrop"
         app:shapeAppearance="@style/circle"
@@ -30,7 +30,7 @@
             android:maxLines="1"
             android:fontFamily="@font/roboto"
             android:textStyle="bold"
-            android:textSize="18sp"
+            android:textSize="15sp"
             android:id="@+id/tvArtistName">
 
         </TextView>
@@ -39,7 +39,7 @@
             android:text="Artist"
             android:fontFamily="@font/roboto"
             android:textStyle="normal"
-            android:textSize="13sp"
+            android:textSize="11sp"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:maxLines="1">

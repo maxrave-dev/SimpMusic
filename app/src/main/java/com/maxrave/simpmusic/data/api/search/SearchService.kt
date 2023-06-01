@@ -13,6 +13,7 @@ import com.maxrave.simpmusic.data.model.searchResult.albums.AlbumsResult
 import com.maxrave.simpmusic.data.model.searchResult.artists.ArtistsResult
 import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
+import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
 import com.maxrave.simpmusic.data.model.thumbnailUrl
 import retrofit2.Response
 import retrofit2.http.GET
@@ -33,6 +34,8 @@ interface SearchService {
     suspend fun searchAlbums(@Query("q") query: String, @Query("f") filter: String = "albums"): Response<ArrayList<AlbumsResult>>
     @GET("search")
     suspend fun searchPlaylists(@Query("q") query: String, @Query("f") filter: String = "playlists"): Response<ArrayList<PlaylistsResult>>
+    @GET("search")
+    suspend fun searchVideos(@Query("q") query: String, @Query("f") filter: String = "videos"): Response<ArrayList<VideosResult>>
 
     //suggest query
     @GET("query")

@@ -16,7 +16,8 @@
         <com.google.android.material.appbar.AppBarLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/topAppBarLayout">
+            android:id="@+id/topAppBarLayout"
+            android:background="@color/md_theme_dark_background">
 
             <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/topAppBar"
