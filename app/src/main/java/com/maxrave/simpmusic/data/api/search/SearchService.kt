@@ -2,6 +2,7 @@ package com.maxrave.simpmusic.data.api.search
 
 import com.maxrave.simpmusic.data.model.home.chart.Chart
 import com.maxrave.simpmusic.data.model.browse.album.AlbumBrowse
+import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.browse.artist.ArtistBrowse
 import com.maxrave.simpmusic.data.model.browse.playlist.PlaylistBrowse
 import com.maxrave.simpmusic.data.model.explore.mood.Mood
@@ -40,6 +41,9 @@ interface SearchService {
     //suggest query
     @GET("query")
     suspend fun suggestQuery(@Query("q") query: String): Response<ArrayList<String>>
+    //songs related
+    @GET("songs/related")
+    suspend fun songsRelated(@Query("videoId") videoId: String): Response<ArrayList<Track>>
 
     //getHome
     @GET("home")

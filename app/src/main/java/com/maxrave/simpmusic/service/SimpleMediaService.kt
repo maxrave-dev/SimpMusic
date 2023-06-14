@@ -1,18 +1,17 @@
 package com.maxrave.simpmusic.service
 
-import android.annotation.SuppressLint
+
+import android.app.Application
 import android.content.Intent
-import androidx.media.app.NotificationCompat
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.session.MediaNotification
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
-import androidx.media3.ui.PlayerNotificationManager
-import com.google.android.gms.common.internal.Constants
-import com.maxrave.simpmusic.R
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -27,13 +26,15 @@ class SimpleMediaService : MediaSessionService() {
     @Inject
     lateinit var notificationManager: SimpleMediaNotificationManager
 
+    @Inject
+    lateinit var context: Application
+
     @UnstableApi
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         notificationManager.startNotificationService(
             mediaSessionService = this,
             mediaSession = mediaSession
         )
-
         return super.onStartCommand(intent, flags, startId)
     }
 
@@ -42,7 +43,9 @@ class SimpleMediaService : MediaSessionService() {
         mediaSession.run {
             release()
             if (player.playbackState != Player.STATE_IDLE) {
-                player.release()
+                player.seekTo(0)
+                player.playWhenReady = false
+                player.stop()
             }
         }
     }
@@ -55,4 +58,6 @@ class SimpleMediaService : MediaSessionService() {
         super.onUpdateNotification(session, startInForegroundRequired)
     }
 }
+const val NEXT = "next"
+const val PREVIOUS = "previous"
 

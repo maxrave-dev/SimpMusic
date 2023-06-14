@@ -1,11 +1,21 @@
 package com.maxrave.simpmusic.service
 
 import android.annotation.SuppressLint
+import android.app.Application
+import android.content.Context
+import android.net.Uri
+import android.util.Log
+import android.widget.Toast
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
+import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.MediaSource
+import com.maxrave.kotlinyoutubeextractor.State
+import com.maxrave.kotlinyoutubeextractor.YTExtractor
+import com.maxrave.simpmusic.data.queue.Queue
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,11 +23,15 @@ import javax.inject.Inject
 
 @UnstableApi
 class SimpleMediaServiceHandler @Inject constructor(
-    private val player: ExoPlayer
+    private val player: ExoPlayer,
+    private val context: Context
 ) : Player.Listener {
 
     private val _simpleMediaState = MutableStateFlow<SimpleMediaState>(SimpleMediaState.Initial)
     val simpleMediaState = _simpleMediaState.asStateFlow()
+
+    private val _changeTrack = MutableStateFlow<Boolean>(false)
+    val changeTrack = _changeTrack.asStateFlow()
 
     private var job: Job? = null
 
@@ -33,6 +47,9 @@ class SimpleMediaServiceHandler @Inject constructor(
         player.setMediaSources(mediaSourceList)
         player.prepare()
     }
+    fun changeTrackToFalse() {
+        _changeTrack.value = false
+    }
 
     fun addMediaItem(mediaItem: MediaItem) {
         player.setMediaItem(mediaItem)
@@ -41,7 +58,7 @@ class SimpleMediaServiceHandler @Inject constructor(
     }
 
     fun addMediaItemList(mediaItemList: List<MediaItem>) {
-        player.setMediaItems(mediaItemList)
+        player.addMediaItems(mediaItemList)
         player.prepare()
     }
 
@@ -59,16 +76,25 @@ class SimpleMediaServiceHandler @Inject constructor(
                     startProgressUpdate()
                 }
             }
+            PlayerEvent.Next -> player.seekToNext()
+            PlayerEvent.Previous -> player.seekToPrevious()
             PlayerEvent.Stop -> stopProgressUpdate()
             is PlayerEvent.UpdateProgress -> player.seekTo((player.duration * playerEvent.newProgress/100).toLong())
         }
     }
 
+    override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+        super.onMediaItemTransition(mediaItem, reason)
+        _changeTrack.value = true
+        Log.d("Media Item Transition", "onMediaItemTransition: $mediaItem")
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
     @SuppressLint("SwitchIntDef")
     override fun onPlaybackStateChanged(playbackState: Int) {
         when (playbackState) {
             ExoPlayer.STATE_IDLE -> _simpleMediaState.value = SimpleMediaState.Initial
-            ExoPlayer.STATE_ENDED -> {}
+            ExoPlayer.STATE_ENDED -> _simpleMediaState.value = SimpleMediaState.Ended
             ExoPlayer.STATE_BUFFERING -> _simpleMediaState.value =
                 SimpleMediaState.Buffering(player.currentPosition)
             ExoPlayer.STATE_READY -> _simpleMediaState.value =
@@ -101,6 +127,9 @@ class SimpleMediaServiceHandler @Inject constructor(
             _simpleMediaState.value = SimpleMediaState.Loading(player.bufferedPercentage)
         }
     }
+    fun getCurrentMediaItem(): MediaItem? {
+        return player.currentMediaItem
+    }
 
     private fun stopProgressUpdate() {
         job?.cancel()
@@ -123,6 +152,25 @@ class SimpleMediaServiceHandler @Inject constructor(
             stopBufferedUpdate()
         }
     }
+
+
+    private fun removeTrailingComma(sentence: String): String {
+        val trimmed = sentence.trimEnd()
+        return if (trimmed.endsWith(", ")) {
+            trimmed.dropLast(2)
+        } else {
+            trimmed
+        }
+    }
+
+
+    private fun removeComma(string: String): String {
+        return if (string.endsWith(',')) {
+            string.substring(0, string.length - 1)
+        } else {
+            string
+        }
+    }
 }
 
 sealed class PlayerEvent {
@@ -130,11 +178,14 @@ sealed class PlayerEvent {
     object Backward : PlayerEvent()
     object Forward : PlayerEvent()
     object Stop : PlayerEvent()
+    object Next : PlayerEvent()
+    object Previous : PlayerEvent()
     data class UpdateProgress(val newProgress: Float) : PlayerEvent()
 }
 
 sealed class SimpleMediaState {
     object Initial : SimpleMediaState()
+    object Ended : SimpleMediaState()
     data class Ready(val duration: Long) : SimpleMediaState()
     data class Loading(val bufferedPercentage: Int): SimpleMediaState()
     data class Progress(val progress: Long) : SimpleMediaState()

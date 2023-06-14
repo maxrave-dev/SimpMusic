@@ -23,6 +23,7 @@ import coil.transform.Transformation
 import com.google.android.material.snackbar.Snackbar
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.adapter.playlist.PlaylistItemAdapter
+import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.browse.playlist.TrackPlaylist
 import com.maxrave.simpmusic.databinding.FragmentPlaylistBinding
 import com.maxrave.simpmusic.utils.Resource
@@ -118,7 +119,7 @@ class PlaylistFragment: Fragment() {
                                 tvDescription.originalText = "No description"
                             }
                             loadImage(it?.thumbnails?.last()?.url)
-                            playlistItemAdapter.updateList(it?.tracks as ArrayList<TrackPlaylist>)
+                            playlistItemAdapter.updateList(it?.tracks as ArrayList<Track>)
                             if (viewModel.gradientDrawable.value == null) {
                                 viewModel.gradientDrawable.observe(viewLifecycleOwner, Observer { gradient ->
                                     fullRootLayout.background = gradient

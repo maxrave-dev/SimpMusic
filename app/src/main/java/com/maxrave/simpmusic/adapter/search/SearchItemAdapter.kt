@@ -132,11 +132,13 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
                     ivThumbnail.load(album.thumbnails[0].url)}
                 tvAlbumName.text = album.title
                 var artistName = ""
+                var tempArtist = mutableListOf<String>()
                 for (artist in album.artists) {
-                    artistName += artist.name + ", "
+                    tempArtist.add(artist.name)
                 }
-                artistName = removeTrailingComma(artistName)
-                artistName = removeComma(artistName)
+                artistName = connectArtists(tempArtist)
+//                artistName = removeTrailingComma(artistName)
+//                artistName = removeComma(artistName)
                 tvAlbumArtist.text = context.getString(R.string.album_and_artist_name, artistName)
                 tvAlbumYear.text = album.year
                 tvAlbumName.isSelected = true
@@ -227,6 +229,19 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
         } else {
             return string
         }
+    }
+    fun connectArtists(artists: List<String>): String {
+        val stringBuilder = StringBuilder()
+
+        for ((index, artist) in artists.withIndex()) {
+            stringBuilder.append(artist)
+
+            if (index < artists.size - 1) {
+                stringBuilder.append(", ")
+            }
+        }
+
+        return stringBuilder.toString()
     }
     companion object {
         private const val VIEW_TYPE_SONG = 0

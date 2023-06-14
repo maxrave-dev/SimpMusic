@@ -2,12 +2,14 @@ package com.maxrave.simpmusic.data.model.browse.album
 
 
 import com.google.gson.annotations.SerializedName
+import com.maxrave.simpmusic.data.model.searchResult.songs.Album
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
+import com.maxrave.simpmusic.data.model.searchResult.songs.FeedbackTokens
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 
 data class Track(
     @SerializedName("album")
-    val album: String,
+    val album: Album?,
     @SerializedName("artists")
     val artists: List<Artist>?,
     @SerializedName("duration")
@@ -27,5 +29,13 @@ data class Track(
     @SerializedName("videoId")
     val videoId: String,
     @SerializedName("videoType")
-    val videoType: String
+    val videoType: String,
+    @SerializedName("category")
+    val category: String?,
+    @SerializedName("feedbackTokens")
+    val feedbackTokens: FeedbackTokens?,
+    @SerializedName("resultType")
+    val resultType: String?,
+    @SerializedName("year")
+    val year: Any
 )

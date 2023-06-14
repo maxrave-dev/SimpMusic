@@ -2,6 +2,7 @@ package com.maxrave.simpmusic.data.api.search
 
 import com.maxrave.simpmusic.data.model.home.chart.Chart
 import com.maxrave.simpmusic.data.model.browse.album.AlbumBrowse
+import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.browse.artist.ArtistBrowse
 import com.maxrave.simpmusic.data.model.browse.playlist.PlaylistBrowse
 import com.maxrave.simpmusic.data.model.explore.mood.Mood
@@ -64,4 +65,7 @@ class RemoteDataSource @Inject constructor(private val searchService: SearchServ
     suspend fun exploreChart(regionCode: String): Response<Chart> = searchService.exploreChart(regionCode)
 
     suspend fun getMetadata(videoId: String): Response<MetadataSong> = searchService.getMetadata(videoId)
+
+    suspend fun getRelated(videoId: String): Response<ArrayList<Track>> = searchService.songsRelated(videoId)
+
 }

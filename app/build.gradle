@@ -49,20 +49,20 @@ android {
 dependencies {
     //implementation project(':youtubeExtractor')
 
-    def youtube_extractor_version = '0.0.2'
+    def youtube_extractor_version = '0.0.3'
     implementation "com.github.maxrave-dev:kotlin-youtubeExtractor:$youtube_extractor_version"
 
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.1'
     implementation 'androidx.core:core-ktx:1.10.1'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     //material design 3
-    implementation 'com.google.android.material:material:1.8.0'
+    implementation 'com.google.android.material:material:1.9.0'
     //rive animation
     implementation 'app.rive:rive-android:5.0.1'
     //runtime
     implementation "androidx.startup:startup-runtime:1.1.1"
     //ExoPlayer
-    def media3_version = '1.0.2'
+    def media3_version = '1.1.0-beta01'
 
     implementation "androidx.media3:media3-exoplayer:$media3_version"
     implementation "androidx.media3:media3-ui:$media3_version"
@@ -74,8 +74,6 @@ dependencies {
     implementation "androidx.media3:media3-exoplayer-smoothstreaming:$media3_version"
     implementation "androidx.media3:media3-exoplayer-workmanager:$media3_version"
 
-    //Youtube
-    implementation 'com.github.sealedtx:java-youtube-downloader:3.2.2'
     //palette color
     implementation 'androidx.palette:palette:1.0.0'
     //expandable text view
@@ -95,8 +93,8 @@ dependencies {
     //Coroutines
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1'
     //Navigation
-    implementation 'androidx.navigation:navigation-fragment-ktx:2.5.3'
-    implementation 'androidx.navigation:navigation-ui-ktx:2.5.3'
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.6.0'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.6.0'
 
     //Retrofit 2
     implementation 'com.squareup.retrofit2:retrofit:2.9.0'
@@ -127,7 +125,7 @@ dependencies {
     implementation 'androidx.preference:preference-ktx:1.2.0'
 
     //fragment ktx
-    implementation 'androidx.fragment:fragment-ktx:1.5.7'
+    implementation 'androidx.fragment:fragment-ktx:1.6.0'
     //Hilt
     implementation 'com.google.dagger:hilt-android:2.46.1'
     kapt 'com.google.dagger:hilt-compiler:2.46.1'

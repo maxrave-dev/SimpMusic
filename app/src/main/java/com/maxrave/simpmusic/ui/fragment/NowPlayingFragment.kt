@@ -1,6 +1,7 @@
 package com.maxrave.simpmusic.ui.fragment
 
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
@@ -11,6 +12,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.Window
 import android.view.WindowManager
+import android.view.animation.AnimationUtils
 import android.widget.Toast
 import androidx.core.graphics.ColorUtils
 import androidx.customview.widget.ViewDragHelper
@@ -31,18 +33,32 @@ import com.google.android.material.slider.Slider
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.data.model.metadata.MetadataSong
+import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.FragmentNowPlayingBinding
+import com.maxrave.simpmusic.service.test.source.FetchQueue
+import com.maxrave.simpmusic.service.test.source.MusicSource
+import com.maxrave.simpmusic.ui.fragment.other.QueueFragmentDirections
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
+import com.maxrave.simpmusic.viewModel.UIState
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 
 @UnstableApi
 @AndroidEntryPoint
 class NowPlayingFragment: Fragment() {
+
+    @Inject
+    lateinit var musicSource: MusicSource
+
+
     private val UPDATE_INTERVAL_MS: Long = 1000
     private val viewModel by activityViewModels<SharedViewModel>()
     private lateinit var dragHelper: ViewDragHelper
@@ -114,8 +130,10 @@ class NowPlayingFragment: Fragment() {
                 viewModel.lyricsBackground.postValue(null)
                 binding.tvSongTitle.visibility = View.GONE
                 binding.tvSongArtist.visibility = View.GONE
+                getRelated(videoId!!)
                 viewModel.getMetadata(videoId!!)
                 observerMetadata()
+                viewModel.loadMediaItems(videoId!!)
             }
         }
         else {
@@ -156,7 +174,7 @@ class NowPlayingFragment: Fragment() {
             val job3 = launch {
                 viewModel.bufferedPercentage.collect{
                     binding.buffered.progress = it
-                    Log.d("buffered", it.toString())
+//                    Log.d("buffered", it.toString())
                 }
             }
             //Check if song is ready to play. And make progress bar indeterminate
@@ -234,12 +252,24 @@ class NowPlayingFragment: Fragment() {
                     }
                 }
             }
+            val job7 = launch {
+                viewModel.videoId.observe(viewLifecycleOwner){
+                    if (it != null && it != videoId){
+                        videoId = it
+                        viewModel.getMetadata(videoId!!)
+                        observerMetadata()
+                        updateUI()
+                    }
+                }
+            }
+
             job1.join()
             job2.join()
             job3.join()
             job4.join()
             job5.join()
             job6.join()
+            job7.join()
         }
         binding.btFull.setOnClickListener {
             if (binding.btFull.text == "Show"){
@@ -267,9 +297,18 @@ class NowPlayingFragment: Fragment() {
         binding.btPlayPause.setOnClickListener {
             viewModel.onUIEvent(UIEvent.PlayPause)
         }
+        binding.btNext.setOnClickListener {
+            viewModel.onUIEvent(UIEvent.Next)
+        }
+        binding.btPrevious.setOnClickListener {
+            viewModel.onUIEvent(UIEvent.Previous)
+        }
 
         binding.topAppBar.setNavigationOnClickListener {
             findNavController().popBackStack()
+        }
+        binding.btQueue.setOnClickListener {
+            findNavController().navigate(R.id.action_nowPlayingFragment_to_queueFragment)
         }
     }
 //
@@ -379,6 +418,23 @@ class NowPlayingFragment: Fragment() {
             string
         }
     }
+    private fun getRelated(videoId: String){
+        viewModel.getRelated(videoId)
+        viewModel.related.observe(viewLifecycleOwner){ response ->
+            when (response) {
+                is Resource.Success -> {
+                    Queue.clear()
+                    Queue.addAll(response.data!!)
+                    requireActivity().startService(Intent(requireContext(), FetchQueue::class.java))
+                }
+                is Resource.Loading -> {}
+                is Resource.Error -> {
+                    Toast.makeText(requireContext(), response.message, Toast.LENGTH_SHORT).show()
+                    Log.d("Error", "${response.message}")
+                }
+            }
+        }
+    }
     private fun observerMetadata(){
         viewModel.videoId.postValue(videoId)
         viewModel.from.postValue(from)
@@ -386,7 +442,6 @@ class NowPlayingFragment: Fragment() {
             when (it){
                 is Resource.Success ->{
                     metadataCurSong = it.data
-                    viewModel.loadMediaItems(videoId!!)
                     updateUI()
                 }
                 is Resource.Error ->{
@@ -513,7 +568,9 @@ class NowPlayingFragment: Fragment() {
         val activity = requireActivity()
         val bottom = activity.findViewById<BottomNavigationView>(R.id.bottom_navigation_view)
         val card = activity.findViewById<MaterialCardView>(R.id.card)
+        bottom.animation = AnimationUtils.loadAnimation(requireContext(), R.anim.bottom_to_top)
         bottom.visibility = View.VISIBLE
+        card.animation = AnimationUtils.loadAnimation(requireContext(), R.anim.bottom_to_top)
         card.visibility = View.VISIBLE
     }
 

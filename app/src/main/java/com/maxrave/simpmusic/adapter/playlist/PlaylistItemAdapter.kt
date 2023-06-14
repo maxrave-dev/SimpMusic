@@ -8,7 +8,7 @@ import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.browse.playlist.TrackPlaylist
 import com.maxrave.simpmusic.databinding.ItemPopularSongBinding
 
-class PlaylistItemAdapter(private var playlistItemList: ArrayList<TrackPlaylist>): RecyclerView.Adapter<PlaylistItemAdapter.ViewHolder>() {
+class PlaylistItemAdapter(private var playlistItemList: ArrayList<Track>): RecyclerView.Adapter<PlaylistItemAdapter.ViewHolder>() {
     private lateinit var mListener: OnItemClickListener
     private lateinit var optionListener: OnOptionClickListener
     interface OnItemClickListener{
@@ -33,7 +33,7 @@ class PlaylistItemAdapter(private var playlistItemList: ArrayList<TrackPlaylist>
             }
         }
     }
-    fun updateList(newList: ArrayList<TrackPlaylist>){
+    fun updateList(newList: ArrayList<Track>){
         playlistItemList.clear()
         playlistItemList.addAll(newList)
         notifyDataSetChanged()
@@ -49,15 +49,15 @@ class PlaylistItemAdapter(private var playlistItemList: ArrayList<TrackPlaylist>
         with(holder){
             binding.tvSongTitle.text = track.title
             var artistName = ""
-            if (track.artistPlaylists != null) {
-                for (artist in track.artistPlaylists) {
+            if (track.artists != null) {
+                for (artist in track.artists) {
                     artistName += artist.name + ", "
                 }
             }
             artistName = removeTrailingComma(artistName)
             artistName = removeComma(artistName)
             binding.tvSongArtist.text = artistName
-            binding.ivThumbnail.load(track.thumbnails.last().url)
+            binding.ivThumbnail.load(track.thumbnails?.last()?.url)
         }
     }
     private fun removeTrailingComma(sentence: String): String {
@@ -78,7 +78,7 @@ class PlaylistItemAdapter(private var playlistItemList: ArrayList<TrackPlaylist>
         }
     }
 
-    fun getItem(position: Int): TrackPlaylist {
+    fun getItem(position: Int): Track {
         return playlistItemList[position]
     }
 }

@@ -21,6 +21,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.setupWithNavController
 import coil.load
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.ActivityMainBinding
 import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.ui.fragment.NowPlayingFragment
@@ -103,6 +104,9 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
 
     }
     override fun onDestroy() {
+        Queue.clear()
+        stopService(Intent(this, SimpleMediaService::class.java))
+        viewModel.isServiceRunning.postValue(false)
         super.onDestroy()
         Log.d("Service", "Service destroyed")
     }

@@ -8,7 +8,9 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.MediaSession
 import com.maxrave.simpmusic.service.SimpleMediaNotificationManager
+import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
+import com.maxrave.simpmusic.service.test.source.MusicSource
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -60,15 +62,24 @@ object MusicServiceModule {
         @ApplicationContext context: Context,
         player: ExoPlayer
     ): MediaSession =
-        MediaSession.Builder(context, player).build()
+        MediaSession.Builder(context, player)
+            .build()
 
     @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
     @Provides
     @Singleton
     fun provideServiceHandler(
-        player: ExoPlayer
+        player: ExoPlayer,
+        @ApplicationContext context: Context
     ): SimpleMediaServiceHandler =
         SimpleMediaServiceHandler(
-            player = player
+            player = player, context = context
         )
+
+    @Provides
+    @Singleton
+    fun provideMusicSource(
+        @ApplicationContext context: Context
+    ): MusicSource =
+        MusicSource(context)
 }

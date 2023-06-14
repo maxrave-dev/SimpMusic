@@ -2,6 +2,7 @@ package com.maxrave.simpmusic.data.model.browse.playlist
 
 
 import com.google.gson.annotations.SerializedName
+import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 
 data class PlaylistBrowse(
@@ -24,7 +25,7 @@ data class PlaylistBrowse(
     @SerializedName("trackCount")
     val trackCount: Int,
     @SerializedName("tracks")
-    val tracks: List<TrackPlaylist>,
+    val tracks: List<Track>,
     @SerializedName("year")
     val year: String
 )

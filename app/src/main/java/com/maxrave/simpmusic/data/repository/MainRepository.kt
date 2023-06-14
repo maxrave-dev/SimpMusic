@@ -4,6 +4,7 @@ import com.maxrave.simpmusic.data.model.home.chart.Chart
 import com.maxrave.simpmusic.data.api.BaseApiResponse
 import com.maxrave.simpmusic.data.api.search.RemoteDataSource
 import com.maxrave.simpmusic.data.model.browse.album.AlbumBrowse
+import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.explore.mood.Mood
 import com.maxrave.simpmusic.data.model.home.homeItem
 import com.maxrave.simpmusic.data.model.searchResult.albums.AlbumsResult
@@ -58,4 +59,6 @@ class MainRepository @Inject constructor(private val remoteDataSource: RemoteDat
     suspend fun exploreChart(regionCode: String): Flow<Resource<Chart>> = flow<Resource<Chart>> { emit(safeApiCall { remoteDataSource.exploreChart(regionCode) }) }.flowOn(Dispatchers.IO)
     //metadata
     suspend fun getMetadata(videoId: String): Flow<Resource<MetadataSong>> = flow<Resource<MetadataSong>> { emit(safeApiCall { remoteDataSource.getMetadata(videoId) }) }.flowOn(Dispatchers.IO)
+    //related
+    suspend fun getRelated(videoId: String): Flow<Resource<ArrayList<Track>>> = flow<Resource<ArrayList<Track>>> { emit(safeApiCall { remoteDataSource.getRelated(videoId) }) }.flowOn(Dispatchers.IO)
 }
