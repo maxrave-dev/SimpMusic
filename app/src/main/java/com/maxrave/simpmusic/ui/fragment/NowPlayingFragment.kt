@@ -256,6 +256,8 @@ class NowPlayingFragment: Fragment() {
                 viewModel.videoId.observe(viewLifecycleOwner){
                     if (it != null && it != videoId){
                         videoId = it
+                        binding.ivArt.visibility = View.GONE
+                        binding.loadingArt.visibility = View.VISIBLE
                         viewModel.getMetadata(videoId!!)
                         observerMetadata()
                         updateUI()

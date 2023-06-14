@@ -86,6 +86,7 @@ class SimpleMediaServiceHandler @Inject constructor(
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
         super.onMediaItemTransition(mediaItem, reason)
         _changeTrack.value = true
+        Log.d("Change Track", "onMediaItemTransition: ${changeTrack.value}")
         Log.d("Media Item Transition", "onMediaItemTransition: $mediaItem")
     }
 

@@ -125,6 +125,7 @@ class SharedViewModel @Inject constructor(private val mainRepository: MainReposi
             }
             val job2 = launch {
                 simpleMediaServiceHandler.changeTrack.collect { isChanged ->
+                    Log.d("Check Change Track", "Change Track: $isChanged")
                     if (isChanged){
                         if (simpleMediaServiceHandler.getCurrentMediaItem()?.mediaId != videoId.value){
                             videoId.postValue(simpleMediaServiceHandler.getCurrentMediaItem()?.mediaId)
@@ -226,6 +227,7 @@ class SharedViewModel @Inject constructor(private val mainRepository: MainReposi
                         )
                         .build()
                     simpleMediaServiceHandler.addMediaItem(mediaItem)
+                    simpleMediaServiceHandler.changeTrackToFalse()
                 }
             }
         }
