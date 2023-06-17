@@ -8,6 +8,10 @@ import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
 import com.maxrave.simpmusic.databinding.ItemSongsSearchResultBinding
 import coil.load
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.common.Config.SONG_CLICK
+import com.maxrave.simpmusic.common.Config.VIDEO_CLICK
+import com.maxrave.simpmusic.common.Config.PLAYLIST_CLICK
+import com.maxrave.simpmusic.common.Config.ALBUM_CLICK
 import com.maxrave.simpmusic.data.model.searchResult.albums.AlbumsResult
 import com.maxrave.simpmusic.data.model.searchResult.artists.ArtistsResult
 import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
@@ -34,7 +38,7 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
     inner class SongViewHolder(val binding: ItemSongsSearchResultBinding, listener: onItemClickListener): RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
-                listener.onItemClick(bindingAdapterPosition, "song")
+                listener.onItemClick(bindingAdapterPosition, SONG_CLICK)
             }
         }
         fun bind(song: SongsResult){
@@ -46,14 +50,13 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
                         ivThumbnail.load(song.thumbnails[0].url)}
                 }
                 tvSongTitle.text = song.title
-                var artistName = ""
-                if (song.artists != null) {
+                var tempArtist = mutableListOf<String>()
+                if (song.artists != null){
                     for (artist in song.artists) {
-                        artistName += artist.name + ", "
+                        tempArtist.add(artist.name)
                     }
                 }
-                artistName = removeTrailingComma(artistName)
-                artistName = removeComma(artistName)
+                val artistName = connectArtists(tempArtist)
                 tvSongArtist.text = context.getString(R.string.Song_and_artist_name, artistName)
                 tvSongAlbum.text = song.album?.name
                 tvSongTitle.isSelected = true
@@ -65,22 +68,24 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
     inner class VideoViewHolder(val binding: ItemsVideosSearchResultBinding, listener: onItemClickListener): RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
-                listener.onItemClick(bindingAdapterPosition, "video")
+                listener.onItemClick(bindingAdapterPosition, VIDEO_CLICK)
             }
         }
         fun bind(video: VideosResult){
             with (binding) {
-                ivThumbnail.load(video.thumbnails[0].url)
+                ivThumbnail.load(video.thumbnails?.get(0)?.url)
                 tvVideoTitle.text = video.title
-                var artistName = ""
-                if (video.artists != null) {
+                val tempArtist = mutableListOf<String>()
+                if (video.artists != null){
                     for (artist in video.artists) {
-                        artistName += artist.name + ", "
+                        tempArtist.add(artist.name)
                     }
+                    val artistName = connectArtists(tempArtist)
+                    tvAuthor.text = artistName
                 }
-                artistName = removeTrailingComma(artistName)
-                artistName = removeComma(artistName)
-                tvAuthor.text = artistName
+                else{
+                    tvAuthor.text = ""
+                }
                 tvView.text = video.views
                 tvVideoTitle.isSelected = true
             }
@@ -102,7 +107,7 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
     inner class PlaylistViewHolder(val binding: ItemPlaylistSearchResultBinding, listener: onItemClickListener): RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
-                listener.onItemClick(bindingAdapterPosition, "playlist")
+                listener.onItemClick(bindingAdapterPosition, PLAYLIST_CLICK)
             }
         }
         fun bind(playlist: PlaylistsResult) {
@@ -121,7 +126,7 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
     inner class AlbumViewHolder(val binding: ItemAlbumSearchResultBinding, listener: onItemClickListener): RecyclerView.ViewHolder(binding.root){
         init {
             binding.root.setOnClickListener {
-                listener.onItemClick(bindingAdapterPosition, "album")
+                listener.onItemClick(bindingAdapterPosition, ALBUM_CLICK)
             }
         }
         fun bind(album: AlbumsResult){
@@ -131,12 +136,11 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
                 else{
                     ivThumbnail.load(album.thumbnails[0].url)}
                 tvAlbumName.text = album.title
-                var artistName = ""
                 var tempArtist = mutableListOf<String>()
                 for (artist in album.artists) {
                     tempArtist.add(artist.name)
                 }
-                artistName = connectArtists(tempArtist)
+                val artistName = connectArtists(tempArtist)
 //                artistName = removeTrailingComma(artistName)
 //                artistName = removeComma(artistName)
                 tvAlbumArtist.text = context.getString(R.string.album_and_artist_name, artistName)
@@ -211,23 +215,6 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
             is VideoViewHolder -> {
                 holder.bind(searchResultList[position] as VideosResult)
             }
-        }
-    }
-    fun removeTrailingComma(sentence: String): String {
-        val trimmed = sentence.trimEnd()
-        return if (trimmed.endsWith(", ")) {
-            trimmed.dropLast(2)
-        } else {
-            trimmed
-        }
-    }
-
-
-    fun removeComma(string: String): String {
-        if (string.endsWith(',')) {
-            return string.substring(0, string.length - 1)
-        } else {
-            return string
         }
     }
     fun connectArtists(artists: List<String>): String {

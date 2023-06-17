@@ -17,15 +17,19 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
 import com.maxrave.kotlinyoutubeextractor.State
 import com.maxrave.kotlinyoutubeextractor.YTExtractor
+import com.maxrave.kotlinyoutubeextractor.bestQuality
+import com.maxrave.kotlinyoutubeextractor.getAudioOnly
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.mediaService.Song
 import com.maxrave.simpmusic.data.model.metadata.Line
 import com.maxrave.simpmusic.data.model.metadata.Lyrics
 import com.maxrave.simpmusic.data.model.metadata.MetadataSong
+import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.service.PlayerEvent
+import com.maxrave.simpmusic.service.RepeatState
 import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
 import com.maxrave.simpmusic.service.SimpleMediaState
 import com.maxrave.simpmusic.service.test.source.MusicSource
@@ -53,6 +57,9 @@ class SharedViewModel @Inject constructor(private val mainRepository: MainReposi
     private var _related = MutableLiveData<Resource<ArrayList<Track>>>()
     val related: LiveData<Resource<ArrayList<Track>>> = _related
 
+    private var _videoRelated = MutableLiveData<Resource<ArrayList<VideosResult>>>()
+    val videoRelated: LiveData<Resource<ArrayList<VideosResult>>> = _videoRelated
+
     val listItag = listOf(171,249,250,251,140,141,256,258)
     var videoId = MutableLiveData<String>()
     var from = MutableLiveData<String>()
@@ -78,7 +85,8 @@ class SharedViewModel @Inject constructor(private val mainRepository: MainReposi
     var isPlaying = MutableLiveData<Boolean>(false)
     var notReady = MutableLiveData<Boolean>(true)
 
-    private var _lyrics = MutableLiveData<Lyrics>()
+    var _lyrics = MutableLiveData<Resource<Lyrics>>()
+//    val lyrics: LiveData<Resource<Lyrics>> = _lyrics
     private var lyricsFormat: MutableLiveData<ArrayList<Line>> = MutableLiveData()
     var lyricsFull = MutableLiveData<String>()
 
@@ -90,6 +98,18 @@ class SharedViewModel @Inject constructor(private val mainRepository: MainReposi
 
 
     val playbackState = simpleMediaServiceHandler.simpleMediaState
+
+    private var _nowPlayingMediaItem = MutableLiveData<MediaItem?>()
+    val nowPlayingMediaItem: LiveData<MediaItem?> = _nowPlayingMediaItem
+
+    private var _songTransitions = MutableStateFlow<Boolean>(false)
+    val songTransitions: StateFlow<Boolean> = _songTransitions
+
+    private var _shuffleModeEnabled = MutableStateFlow<Boolean>(false)
+    val shuffleModeEnabled: StateFlow<Boolean> = _shuffleModeEnabled
+
+    private var _repeatMode = MutableStateFlow<RepeatState>(RepeatState.None)
+    val repeatMode: StateFlow<RepeatState> = _repeatMode
 
     init {
         viewModelScope.launch {
@@ -127,18 +147,52 @@ class SharedViewModel @Inject constructor(private val mainRepository: MainReposi
                 simpleMediaServiceHandler.changeTrack.collect { isChanged ->
                     Log.d("Check Change Track", "Change Track: $isChanged")
                     if (isChanged){
-                        if (simpleMediaServiceHandler.getCurrentMediaItem()?.mediaId != videoId.value){
+                        if (simpleMediaServiceHandler.getCurrentMediaItem()?.mediaId != videoId.value && simpleMediaServiceHandler.getCurrentMediaItem() != null){
                             videoId.postValue(simpleMediaServiceHandler.getCurrentMediaItem()?.mediaId)
-                            simpleMediaServiceHandler.changeTrackToFalse()
+                            _nowPlayingMediaItem.value = getCurrentMediaItem()
+                            _songTransitions.value = true
                         }
                         Log.d("Change Track in ViewModel", "Change Track")
                     }
                 }
             }
+            val job3 = launch {
+                simpleMediaServiceHandler.shuffle.collect { shuffle ->
+                    _shuffleModeEnabled.value = shuffle
+                }
+            }
+            val job4 = launch {
+                simpleMediaServiceHandler.repeat.collect { repeat ->
+                    _repeatMode.value = repeat
+                }
+            }
+
             job1.join()
             job2.join()
+            job3.join()
+            job4.join()
         }
     }
+    fun getLyrics(query: String) {
+        viewModelScope.launch {
+            mainRepository.getLyrics(query).collect { response ->
+                _lyrics.value = response
+                withContext(Dispatchers.Main){
+                    when(_lyrics.value) {
+                        is Resource.Success -> {
+                            parseLyrics(_lyrics.value?.data)
+                            Log.d("Check Lyrics", _lyrics.value?.data.toString())
+                        }
+                        is Resource.Error -> {
+
+                        }
+                        else -> {}
+                    }
+                }
+            }
+        }
+    }
+
     fun getRelated(videoId: String){
         Queue.clear()
         viewModelScope.launch {
@@ -147,23 +201,96 @@ class SharedViewModel @Inject constructor(private val mainRepository: MainReposi
             }
         }
     }
-
-    fun getMetadata(videoId: String) {
+    fun getVideoRelated(videoId: String){
+        Queue.clear()
         viewModelScope.launch {
-            mainRepository.getMetadata(videoId).collect{response ->
-                _metadata.value = response
-                _lyrics.value = response.data?.lyrics
-//                Log.d("Check lại Lyrics", _lyrics.value.toString())
-                parseLyrics(_lyrics.value)
+            mainRepository.getVideoRelated(videoId).collect{ response ->
+                _videoRelated.value = response
             }
         }
+    }
+    fun getCurrentMediaItem(): MediaItem? {
+        return simpleMediaServiceHandler.getCurrentMediaItem()
+    }
+
+    fun getCurrentMediaItemIndex(): Int {
+        return simpleMediaServiceHandler.currentIndex()
+    }
+    fun getMediaListSize(): Int {
+        return simpleMediaServiceHandler.mediaListSize()
+    }
+
+//    fun getMetadata(videoId: String) {
+//        viewModelScope.launch {
+//            mainRepository.getMetadata(videoId).collect{response ->
+//                _metadata.value = response
+//                if (simpleMediaServiceHandler.getCurrentMediaItem()?.mediaId == videoId){
+//
+//                }
+//                _lyrics.value = response.data?.lyrics
+////                Log.d("Check lại Lyrics", _lyrics.value.toString())
+//                parseLyrics(_lyrics.value)
+//            }
+//        }
+//    }
+    @UnstableApi
+    fun playMediaItemInMediaSource(index: Int){
+        simpleMediaServiceHandler.playMediaItemInMediaSource(index)
+    }
+    @UnstableApi
+    fun moveMediaItem(fromIndex: Int, toIndex: Int) {
+        simpleMediaServiceHandler.moveMediaItem(fromIndex, toIndex)
     }
     @UnstableApi
     fun addMediaItemList(song: List<MediaItem>){
         simpleMediaServiceHandler.addMediaItemList(song)
     }
     @UnstableApi
+    fun loadMediaItemFromTrack(track: Track){
+        viewModelScope.launch {
+            var uri = ""
+            val yt = YTExtractor(context)
+            yt.extract(track.videoId)
+            if (yt.state == State.SUCCESS) {
+                yt.getYTFiles()?.getAudioOnly()?.bestQuality()?.url?.let {
+                    uri = it
+                    val tempArtist = mutableListOf<String>()
+                    if (track.artists != null){
+                        for (artist in track.artists) {
+                            tempArtist.add(artist.name)
+                        }
+                    }
+                    val artistName: String = connectArtists(tempArtist)
+                    var thumbUrl = track.thumbnails?.last()?.url!!
+                    if (thumbUrl.contains("w120")){
+                        thumbUrl = Regex("(w|h)120").replace(thumbUrl, "$1544")
+                    }
+                    simpleMediaServiceHandler.clearMediaItems()
+                    simpleMediaServiceHandler.addMediaItem(
+                        MediaItem.Builder().setUri(uri)
+                            .setMediaId(track.videoId)
+                            .setMediaMetadata(
+                                MediaMetadata.Builder()
+                                    .setTitle(track.title)
+                                    .setArtist(artistName)
+                                    .setArtworkUri(Uri.parse(thumbUrl))
+                                    .setAlbumTitle(track.album?.name)
+                                    .build()
+                            )
+                            .build()
+                    )
+                    _nowPlayingMediaItem.value = getCurrentMediaItem()
+                    simpleMediaServiceHandler.changeTrackToFalse()
+                }
+            }
+            else {
+                Toast.makeText(context, "Error: ${yt.state}, use VPN to fix this problem", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+    @UnstableApi
     fun loadMediaItems(videoId: String){
+        Log.w("Check loadMediaItems", "Load Media Items")
         val title = metadata.value?.data?.title
         viewModelScope.launch {
             var uri = ""
@@ -206,22 +333,21 @@ class SharedViewModel @Inject constructor(private val mainRepository: MainReposi
                     ).show()
                 }
                 if(uri != ""){
-                    var artist = ""
                     Log.d("Itag", uri)
-                    if (metadata.value?.data?.artists != null) {
-                        for (a in metadata.value?.data?.artists!!) {
-                            artist += a.name + ", "
+                    val tempArtist = mutableListOf<String>()
+                    if (metadata.value?.data?.artists != null){
+                        for (artist in metadata.value?.data?.artists!!) {
+                            tempArtist.add(artist.name)
                         }
                     }
-                    artist = removeTrailingComma(artist)
-                    artist = removeComma(artist)
-                    Log.d("Check Title", title + " " + artist)
+                    val artistName: String = connectArtists(tempArtist)
+                    Log.d("Check Title", title + " " + artistName)
                     val mediaItem = MediaItem.Builder().setUri(uri)
                         .setMediaId(videoId)
                         .setMediaMetadata(
                             MediaMetadata.Builder()
                                 .setTitle(metadata.value?.data?.title)
-                                .setArtist(artist)
+                                .setArtist(artistName)
                                 .setArtworkUri(Uri.parse(metadata.value?.data?.thumbnails?.last()?.url))
                                 .build()
                         )
@@ -243,6 +369,7 @@ class SharedViewModel @Inject constructor(private val mainRepository: MainReposi
             UIEvent.PlayPause -> simpleMediaServiceHandler.onPlayerEvent(PlayerEvent.PlayPause)
             UIEvent.Next -> simpleMediaServiceHandler.onPlayerEvent(PlayerEvent.Next)
             UIEvent.Previous -> simpleMediaServiceHandler.onPlayerEvent(PlayerEvent.Previous)
+            UIEvent.Stop -> simpleMediaServiceHandler.onPlayerEvent(PlayerEvent.Stop)
             is UIEvent.UpdateProgress -> {
                 _progress.value = uiEvent.newProgress
                 simpleMediaServiceHandler.onPlayerEvent(
@@ -251,6 +378,8 @@ class SharedViewModel @Inject constructor(private val mainRepository: MainReposi
                     )
                 )
             }
+            UIEvent.Repeat -> simpleMediaServiceHandler.onPlayerEvent(PlayerEvent.Repeat)
+            UIEvent.Shuffle -> simpleMediaServiceHandler.onPlayerEvent(PlayerEvent.Shuffle)
         }
     }
     fun formatDuration(duration: Long): String {
@@ -264,16 +393,6 @@ class SharedViewModel @Inject constructor(private val mainRepository: MainReposi
         progressString.value = formatDuration(currentProgress)
     }
 
-
-    @UnstableApi
-    fun seekTo(position: Long) {
-    }
-    fun nextSong() {
-
-    }
-    fun previousSong() {
-
-    }
     fun parseLyrics(lyrics: Lyrics?){
         if (lyrics != null){
             if (!lyrics.error){
@@ -319,7 +438,7 @@ class SharedViewModel @Inject constructor(private val mainRepository: MainReposi
         }
     }
     fun getLyricsSyncState(): Config.SyncState {
-        return when(_lyrics.value?.syncType) {
+        return when(_lyrics.value?.data?.syncType) {
             null -> Config.SyncState.NOT_FOUND
             "LINE_SYNCED" -> Config.SyncState.LINE_SYNCED
             "UNSYNCED" -> Config.SyncState.UNSYNCED
@@ -371,7 +490,19 @@ class SharedViewModel @Inject constructor(private val mainRepository: MainReposi
         return listLyricDict
     }
 
+    fun connectArtists(artists: List<String>): String {
+        val stringBuilder = StringBuilder()
 
+        for ((index, artist) in artists.withIndex()) {
+            stringBuilder.append(artist)
+
+            if (index < artists.size - 1) {
+                stringBuilder.append(", ")
+            }
+        }
+
+        return stringBuilder.toString()
+    }
 
 
 
@@ -398,6 +529,15 @@ class SharedViewModel @Inject constructor(private val mainRepository: MainReposi
             simpleMediaServiceHandler.onPlayerEvent(PlayerEvent.Stop)
         }
     }
+
+    fun changeSongTransitionToFalse() {
+        _songTransitions.value = false
+        simpleMediaServiceHandler.changeTrackToFalse()
+    }
+
+    fun resetLyrics() {
+        _lyrics = MutableLiveData<Resource<Lyrics>>(null)
+    }
 }
 sealed class UIEvent {
     object PlayPause : UIEvent()
@@ -405,6 +545,9 @@ sealed class UIEvent {
     object Forward : UIEvent()
     object Next : UIEvent()
     object Previous : UIEvent()
+    object Stop : UIEvent()
+    object Shuffle : UIEvent()
+    object Repeat : UIEvent()
     data class UpdateProgress(val newProgress: Float) : UIEvent()
 }
 

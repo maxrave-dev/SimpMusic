@@ -62,7 +62,7 @@ dependencies {
     //runtime
     implementation "androidx.startup:startup-runtime:1.1.1"
     //ExoPlayer
-    def media3_version = '1.1.0-beta01'
+    def media3_version = '1.0.2'
 
     implementation "androidx.media3:media3-exoplayer:$media3_version"
     implementation "androidx.media3:media3-ui:$media3_version"

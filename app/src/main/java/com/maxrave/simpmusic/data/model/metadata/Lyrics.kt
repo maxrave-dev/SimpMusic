@@ -7,7 +7,7 @@ data class Lyrics(
     @SerializedName("error")
     val error: Boolean,
     @SerializedName("lines")
-    val lines: List<Line>,
+    val lines: List<Line>?,
     @SerializedName("syncType")
-    val syncType: String
+    val syncType: String?
 )

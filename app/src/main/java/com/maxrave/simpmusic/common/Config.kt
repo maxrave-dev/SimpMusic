@@ -10,4 +10,9 @@ object Config {
         UNSYNCED,
         NOT_FOUND
     }
+    const val SONG_CLICK = "SONG_CLICK"
+    const val VIDEO_CLICK = "VIDEO_CLICK"
+    const val PLAYLIST_CLICK = "PLAYLIST_CLICK"
+    const val ALBUM_CLICK = "ALBUM_CLICK"
+    const val MINIPLAYER_CLICK = "MINIPLAYER_CLICK"
 }

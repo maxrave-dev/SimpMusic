@@ -15,6 +15,7 @@ import com.maxrave.simpmusic.data.model.browse.artist.ArtistBrowse
 import com.maxrave.simpmusic.data.model.browse.playlist.PlaylistBrowse
 import com.maxrave.simpmusic.data.model.explore.mood.genre.GenreObject
 import com.maxrave.simpmusic.data.model.explore.mood.moodmoments.MoodsMomentObject
+import com.maxrave.simpmusic.data.model.metadata.Lyrics
 import com.maxrave.simpmusic.data.model.metadata.MetadataSong
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
 import com.maxrave.simpmusic.data.model.thumbnailUrl
@@ -59,6 +60,8 @@ class MainRepository @Inject constructor(private val remoteDataSource: RemoteDat
     suspend fun exploreChart(regionCode: String): Flow<Resource<Chart>> = flow<Resource<Chart>> { emit(safeApiCall { remoteDataSource.exploreChart(regionCode) }) }.flowOn(Dispatchers.IO)
     //metadata
     suspend fun getMetadata(videoId: String): Flow<Resource<MetadataSong>> = flow<Resource<MetadataSong>> { emit(safeApiCall { remoteDataSource.getMetadata(videoId) }) }.flowOn(Dispatchers.IO)
+    suspend fun getLyrics(query: String): Flow<Resource<Lyrics>> = flow<Resource<Lyrics>> { emit(safeApiCall { remoteDataSource.getLyrics(query) }) }.flowOn(Dispatchers.IO)
     //related
     suspend fun getRelated(videoId: String): Flow<Resource<ArrayList<Track>>> = flow<Resource<ArrayList<Track>>> { emit(safeApiCall { remoteDataSource.getRelated(videoId) }) }.flowOn(Dispatchers.IO)
+    suspend fun getVideoRelated(videoId: String): Flow<Resource<ArrayList<VideosResult>>> = flow<Resource<ArrayList<VideosResult>>> { emit(safeApiCall { remoteDataSource.getVideoRelated(videoId) }) }.flowOn(Dispatchers.IO)
 }

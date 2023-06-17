@@ -21,6 +21,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.setupWithNavController
 import coil.load
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.ActivityMainBinding
 import com.maxrave.simpmusic.service.SimpleMediaService
@@ -76,29 +77,68 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
         binding.bottomNavigationView.setupWithNavController(navController!!)
 
         binding.card.setOnClickListener {
-            navController.navigate(R.id.action_global_nowPlayingFragment)
+            val bundle = Bundle()
+            bundle.putString("type", Config.MINIPLAYER_CLICK)
+            navController.navigate(R.id.action_global_nowPlayingFragment, bundle)
         }
         binding.btPlayPause.setOnClickListener {
             viewModel.onUIEvent(UIEvent.PlayPause)
         }
         lifecycleScope.launch {
-            val job1 = launch {
-                viewModel.metadata.observe(this@MainActivity){
-                    if (it is Resource.Success){
+//            val job3 = launch {
+//                viewModel.videoId.observe(this@MainActivity){
+//                    if (it != null){
+//                        if (viewModel.songTransitions.value){
+//                            Log.i("Now Playing Fragment", "Ở Activity")
+//                            Log.d("Song Transition", "Song Transition")
+//                            viewModel.getMetadata(it)
+//                            viewModel.changeSongTransitionToFalse()
+//                        }
+//                    }
+//                }
+//            }
+            val job5 = launch {
+                viewModel.nowPlayingMediaItem.observe(this@MainActivity){
+                    if (it != null){
                         if (viewModel.isServiceRunning.value == false){
                             startService()
                             viewModel.isServiceRunning.postValue(true)
                         }
+                        binding.songTitle.text = it.mediaMetadata.title
+                        binding.songTitle.isSelected = true
+                        binding.songArtist.text = it.mediaMetadata.artist
+                        binding.songArtist.isSelected = true
+                        binding.ivArt.load(it.mediaMetadata.artworkUri)
                     }
                 }
             }
+//            val job1 = launch {
+//                viewModel.metadata.observe(this@MainActivity){
+//                    if (it is Resource.Success){
+//                        if (viewModel.isServiceRunning.value == false){
+//                            startService()
+//                            viewModel.isServiceRunning.postValue(true)
+//                        }
+//                    }
+//                }
+//            }
             val job2 = launch {
                 viewModel.progress.collect{
                     binding.progressBar.progress = (it * 100).toInt()
                 }
             }
-            job1.join()
+            val job4 = launch {
+                viewModel.lyricsBackground.observe(this@MainActivity){
+                    if (it != null){
+                        binding.card.setCardBackgroundColor(it)
+                    }
+                }
+            }
+            //job1.join()
             job2.join()
+            //job3.join()
+            job4.join()
+            job5.join()
         }
         binding.card.animation = AnimationUtils.loadAnimation(this, R.anim.bottom_to_top)
 
@@ -133,15 +173,14 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
                 is Resource.Success -> {
                     binding.songTitle.text = it.data?.title
                     binding.songTitle.isSelected = true
-                    var artistName = ""
-                    if (it.data?.artists != null) {
+                    if (it.data?.artists != null){
+                        var tempArtist = mutableListOf<String>()
                         for (artist in it.data.artists) {
-                            artistName += artist.name + ", "
+                            tempArtist.add(artist.name)
                         }
+                        val artistName = connectArtists(tempArtist)
+                        binding.songArtist.text = artistName
                     }
-                    artistName = removeTrailingComma(artistName)
-                    artistName = removeComma(artistName)
-                    binding.songArtist.text = artistName
                     binding.songArtist.isSelected = true
                     viewModel.lyricsBackground.value?.let { it1 ->
                         binding.card.setCardBackgroundColor(
@@ -149,9 +188,6 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
                         )
                     }
                     binding.ivArt.load(it.data?.thumbnails?.get(0)?.url)
-                }
-                is Resource.Loading -> {
-
                 }
                 is Resource.Error -> {
 
@@ -172,6 +208,19 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
 
     override fun onUpdateProgressBar(progress: Float) {
 
+    }
+    fun connectArtists(artists: List<String>): String {
+        val stringBuilder = StringBuilder()
+
+        for ((index, artist) in artists.withIndex()) {
+            stringBuilder.append(artist)
+
+            if (index < artists.size - 1) {
+                stringBuilder.append(", ")
+            }
+        }
+
+        return stringBuilder.toString()
     }
 
     private fun removeTrailingComma(sentence: String): String {

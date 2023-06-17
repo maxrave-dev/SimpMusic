@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.data.api.search
 
+import android.provider.MediaStore.Video
 import com.maxrave.simpmusic.data.model.home.chart.Chart
 import com.maxrave.simpmusic.data.model.browse.album.AlbumBrowse
 import com.maxrave.simpmusic.data.model.browse.album.Track
@@ -9,6 +10,7 @@ import com.maxrave.simpmusic.data.model.explore.mood.Mood
 import com.maxrave.simpmusic.data.model.explore.mood.genre.GenreObject
 import com.maxrave.simpmusic.data.model.explore.mood.moodmoments.MoodsMomentObject
 import com.maxrave.simpmusic.data.model.home.homeItem
+import com.maxrave.simpmusic.data.model.metadata.Lyrics
 import com.maxrave.simpmusic.data.model.metadata.MetadataSong
 import com.maxrave.simpmusic.data.model.searchResult.albums.AlbumsResult
 import com.maxrave.simpmusic.data.model.searchResult.artists.ArtistsResult
@@ -65,7 +67,9 @@ class RemoteDataSource @Inject constructor(private val searchService: SearchServ
     suspend fun exploreChart(regionCode: String): Response<Chart> = searchService.exploreChart(regionCode)
 
     suspend fun getMetadata(videoId: String): Response<MetadataSong> = searchService.getMetadata(videoId)
+    suspend fun getLyrics(query: String): Response<Lyrics> = searchService.getLyrics(query)
 
     suspend fun getRelated(videoId: String): Response<ArrayList<Track>> = searchService.songsRelated(videoId)
+    suspend fun getVideoRelated(videoId: String): Response<ArrayList<VideosResult>> = searchService.videosRelated(videoId)
 
 }

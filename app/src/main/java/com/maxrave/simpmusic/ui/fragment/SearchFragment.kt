@@ -1,43 +1,65 @@
 package com.maxrave.simpmusic.ui.fragment
 
+import android.app.Application
 import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewGroup.MarginLayoutParams
 import android.widget.Toast
 import androidx.appcompat.widget.SearchView
-import androidx.core.view.MarginLayoutParamsCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updateLayoutParams
-import androidx.core.view.updatePadding
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
+import com.maxrave.kotlinyoutubeextractor.State
+import com.maxrave.kotlinyoutubeextractor.YTExtractor
+import com.maxrave.kotlinyoutubeextractor.bestQuality
+import com.maxrave.kotlinyoutubeextractor.getAudioOnly
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.adapter.search.SearchHistoryItemAdapter
 import com.maxrave.simpmusic.adapter.search.SearchItemAdapter
 import com.maxrave.simpmusic.adapter.search.SuggestQueryAdapter
+import com.maxrave.simpmusic.common.Config
+import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.searchResult.albums.AlbumsResult
 import com.maxrave.simpmusic.data.model.searchResult.artists.ArtistsResult
 import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
+import com.maxrave.simpmusic.data.model.searchResult.videos.toTrack
+import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.FragmentSearchBinding
+import com.maxrave.simpmusic.service.test.source.MusicSource
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.SearchViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class SearchFragment : Fragment() {
+    @Inject
+    lateinit var musicSource: MusicSource
+
+    @Inject
+    lateinit var application: Application
+
     private var _binding: FragmentSearchBinding? = null
     private val binding get() = _binding!!
+    //Coroutines
+    private val scope = CoroutineScope(Dispatchers.Main)
+    private val job = SupervisorJob()
 
     //Data Saved
     private lateinit var searchHistory: ArrayList<String>
@@ -229,30 +251,56 @@ class SearchFragment : Fragment() {
                     args.putString("channelId", channelId)
                     findNavController().navigate(R.id.action_bottom_navigation_item_search_to_artistFragment, args)
                 }
-                if (type == "album"){
+                if (type == Config.ALBUM_CLICK){
                     val browseId = (resultAdapter.getCurrentList()[position] as AlbumsResult).browseId.toString()
                     val args = Bundle()
                     args.putString("browseId", browseId)
                     findNavController().navigate(R.id.action_global_albumFragment, args)
                 }
-                if (type == "playlist"){
+                if (type == Config.PLAYLIST_CLICK){
                     val id = (resultAdapter.getCurrentList()[position] as PlaylistsResult).browseId.toString()
                     val args = Bundle()
                     args.putString("id", id)
                     findNavController().navigate(R.id.action_global_playlistFragment, args)
                 }
-                if (type == "song"){
+                if (type == Config.SONG_CLICK){
+                    val songClicked = resultAdapter.getCurrentList()[position] as SongsResult
                     val videoId = (resultAdapter.getCurrentList()[position] as SongsResult).videoId.toString()
+                    Queue.clear()
+                    val firstQueue: Track = Track(
+                        songClicked.album,
+                        songClicked.artists,
+                        songClicked.duration!!,
+                        songClicked.durationSeconds!!,
+                        true,
+                        songClicked.isExplicit!!,
+                        "",
+                        songClicked.thumbnails,
+                        songClicked.title!!,
+                        songClicked.videoId,
+                        songClicked.videoType!!,
+                        songClicked.category,
+                        songClicked.feedbackTokens,
+                        songClicked.resultType,
+                        ""
+                    )
+                    Queue.setNowPlaying(firstQueue)
                     val args = Bundle()
                     args.putString("videoId", videoId)
                     args.putString("from", "\"${binding.svSearch.query}\" in Search")
+                    args.putString("type", Config.SONG_CLICK)
                     findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
                 }
-                if (type == "video") {
-                    val videoId = (resultAdapter.getCurrentList()[position] as VideosResult).videoId.toString()
+                if (type == Config.VIDEO_CLICK) {
+                    val videoClicked = resultAdapter.getCurrentList()[position] as VideosResult
+                    val videoId = videoClicked.videoId
+                    Queue.clear()
+                    val firstQueue = videoClicked.toTrack()
+                    Queue.setNowPlaying(firstQueue)
                     val args = Bundle()
                     args.putString("videoId", videoId)
                     args.putString("from", "\"${binding.svSearch.query}\" in Search")
+                    args.putString("type", Config.VIDEO_CLICK)
                     findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
                 }
             }
@@ -377,8 +425,6 @@ class SearchFragment : Fragment() {
                             binding.refreshSearch.isRefreshing = false
                         }
                     }
-                    is Resource.Loading -> {
-                    }
                     is Resource.Error -> {
                         response.message?.let { message ->
                             Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
@@ -411,8 +457,6 @@ class SearchFragment : Fragment() {
                             resultAdapter.updateList(resultList)
                             binding.refreshSearch.isRefreshing = false
                         }
-                    }
-                    is Resource.Loading -> {
                     }
                     is Resource.Error -> {
                         response.message?.let { message ->
@@ -447,8 +491,6 @@ class SearchFragment : Fragment() {
                                 resultAdapter.updateList(resultList)
                                 binding.refreshSearch.isRefreshing = false
                             }
-                        }
-                        is Resource.Loading -> {
                         }
                         is Resource.Error -> {
                             response.message?.let { message ->
@@ -485,8 +527,6 @@ class SearchFragment : Fragment() {
                                 binding.refreshSearch.isRefreshing = false
                             }
                         }
-                        is Resource.Loading -> {
-                        }
                         is Resource.Error -> {
                             response.message?.let { message ->
                                 Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
@@ -522,8 +562,6 @@ class SearchFragment : Fragment() {
                                 binding.refreshSearch.isRefreshing = false
                             }
                         }
-                        is Resource.Loading -> {
-                        }
                         is Resource.Error -> {
                             response.message?.let { message ->
                                 Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
@@ -558,8 +596,7 @@ class SearchFragment : Fragment() {
                                 song = songsResultArrayList!!
                             }
                         }
-                        is Resource.Loading -> {
-                        }
+
                         is Resource.Error -> {
                             response.message?.let { message ->
                                 Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
@@ -582,8 +619,6 @@ class SearchFragment : Fragment() {
                                 }
                             }
                         }
-                        is Resource.Loading -> {
-                        }
                         is Resource.Error -> {
                             response.message?.let { message ->
                                 Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
@@ -603,8 +638,6 @@ class SearchFragment : Fragment() {
                                 print(it)
                                 album = it!!
                             }
-                        }
-                        is Resource.Loading -> {
                         }
                         is Resource.Error -> {
                             response.message?.let { message ->
@@ -626,8 +659,6 @@ class SearchFragment : Fragment() {
                                 artist = artistsResultArrayList!!
                             }
                         }
-                        is Resource.Loading -> {
-                        }
                         is Resource.Error -> {
                             response.message?.let { message ->
                                 Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
@@ -647,8 +678,6 @@ class SearchFragment : Fragment() {
                                 print(playlistsResultArrayList)
                                 playlist = playlistsResultArrayList!!
                             }
-                        }
-                        is Resource.Loading -> {
                         }
                         is Resource.Error -> {
                             response.message?.let { message ->
@@ -728,9 +757,6 @@ class SearchFragment : Fragment() {
                         suggestList.addAll(it!!)
                         suggestAdapter.updateData(suggestList)
                     }
-                }
-                is Resource.Loading -> {
-
                 }
                 is Resource.Error -> {
 

@@ -88,10 +88,6 @@ class GenreFragment: Fragment(){
                         Snackbar.make(binding.root, "An error occured: $message", Snackbar.LENGTH_LONG).show()
                     }
                 }
-                is Resource.Loading -> {
-                    binding.contentLayout.visibility = View.GONE
-                    binding.loadingLayout.visibility = View.VISIBLE
-                }
             }
         })
     }

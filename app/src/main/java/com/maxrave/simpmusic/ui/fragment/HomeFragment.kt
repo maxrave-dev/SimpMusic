@@ -422,9 +422,6 @@ class HomeFragment : Fragment() {
                         binding.swipeRefreshLayout.isRefreshing = false
                     }
                 }
-                is Resource.Loading -> {
-                    binding.swipeRefreshLayout.isRefreshing = true
-                }
                 is Resource.Error -> {
                     binding.swipeRefreshLayout.isRefreshing = false
                     response.message?.let { message ->
@@ -453,9 +450,6 @@ class HomeFragment : Fragment() {
                         binding.tvTitleMoodsMoment.visibility = View.VISIBLE
                         binding.tvTitleGenre.visibility = View.VISIBLE
                     }
-                }
-                is Resource.Loading -> {
-                    binding.swipeRefreshLayout.isRefreshing = true
                 }
                 is Resource.Error -> {
                     binding.swipeRefreshLayout.isRefreshing = false
@@ -489,8 +483,6 @@ class HomeFragment : Fragment() {
                     }
                     binding.chartResultLayout.visibility = View.VISIBLE
                     binding.chartLoadingLayout.visibility = View.GONE
-                }
-                is Resource.Loading -> {
                 }
                 is Resource.Error -> {
                     response.message?.let { message ->

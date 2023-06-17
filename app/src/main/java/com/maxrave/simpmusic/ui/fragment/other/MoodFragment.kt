@@ -87,10 +87,6 @@ class MoodFragment: Fragment() {
                     Snackbar.make(binding.root, response.message.toString(), Snackbar.LENGTH_LONG).show()
                     findNavController().popBackStack()
                 }
-                is Resource.Loading -> {
-                    binding.contentLayout.visibility = View.GONE
-                    binding.loadingLayout.visibility = View.VISIBLE
-                }
             }
         })
     }

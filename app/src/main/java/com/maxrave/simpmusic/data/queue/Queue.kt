@@ -25,6 +25,13 @@ object Queue {
     }
     fun clear() {
         queue = ArrayList()
+        queue.clear()
+    }
+    fun setNowPlaying(song: Track) {
+        nowPlaying = song
+    }
+    fun getNowPlaying(): Track? {
+        return nowPlaying
     }
     fun getTrack(index: Int): Track {
         recently.add(queue.elementAt(index))

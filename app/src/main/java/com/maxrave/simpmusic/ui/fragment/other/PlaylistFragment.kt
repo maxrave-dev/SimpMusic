@@ -136,7 +136,6 @@ class PlaylistFragment: Fragment() {
                     binding.rootLayout.visibility = View.VISIBLE
                     binding.loadingLayout.visibility = View.GONE
                 }
-                is Resource.Loading -> {}
                 is Resource.Error -> {
                     Snackbar.make(binding.root, response.message.toString(), Snackbar.LENGTH_LONG).show()
                     findNavController().popBackStack()

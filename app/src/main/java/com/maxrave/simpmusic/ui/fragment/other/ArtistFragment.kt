@@ -208,7 +208,6 @@ class ArtistFragment: Fragment(){
                         binding.rootFull.visibility = View.VISIBLE
                     }
                 }
-                is Resource.Loading -> {}
                 is Resource.Error -> {
                     binding.loadingLayout.visibility = View.GONE
                     Snackbar.make(binding.root, "Can't get artist data because: ${response.message}", Snackbar.LENGTH_LONG)

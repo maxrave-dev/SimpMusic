@@ -79,7 +79,8 @@ object MusicServiceModule {
     @Provides
     @Singleton
     fun provideMusicSource(
-        @ApplicationContext context: Context
+        @ApplicationContext context: Context,
+        simpleMediaServiceHandler: SimpleMediaServiceHandler
     ): MusicSource =
-        MusicSource(context)
+        MusicSource(context, simpleMediaServiceHandler)
 }

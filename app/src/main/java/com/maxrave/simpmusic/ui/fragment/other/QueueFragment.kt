@@ -2,6 +2,7 @@ package com.maxrave.simpmusic.ui.fragment.other
 
 import android.app.Dialog
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,6 +11,8 @@ import android.widget.Toast
 import androidx.customview.widget.ViewDragHelper
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.media3.common.MediaItem
+import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.LinearLayoutManager
 import coil.load
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -39,7 +42,6 @@ class QueueFragment: BottomSheetDialogFragment() {
     private var _binding: QueueBottomSheetBinding? = null
     private val binding get() = _binding!!
     private lateinit var queueAdapter: QueueAdapter
-    private var listTracks: ArrayList<Track>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -83,6 +85,7 @@ class QueueFragment: BottomSheetDialogFragment() {
         return binding.root
     }
 
+    @UnstableApi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.loadingQueue.visibility = View.VISIBLE
@@ -91,8 +94,7 @@ class QueueFragment: BottomSheetDialogFragment() {
         binding.topAppBar.setNavigationOnClickListener {
             dismiss()
         }
-        listTracks = ArrayList()
-        queueAdapter = QueueAdapter(arrayListOf())
+        queueAdapter = QueueAdapter(arrayListOf(), requireContext(), 0)
         binding.rvQueue.apply {
             adapter = queueAdapter
             layoutManager = LinearLayoutManager(requireContext())
@@ -104,37 +106,80 @@ class QueueFragment: BottomSheetDialogFragment() {
 
         })
         lifecycleScope.launch {
-            while (musicSource.state == StateSource.STATE_INITIALIZING){
-                binding.loadingQueue.visibility = View.VISIBLE
-                binding.rvQueue.visibility = View.GONE
-            }
-            binding.loadingQueue.visibility = View.GONE
-            binding.rvQueue.visibility = View.VISIBLE
-        }
-
-        when (viewModel.metadata.value){
-            is Resource.Success -> {
-                binding.ivThumbnail.load((viewModel.metadata.value as Resource.Success<MetadataSong>).data?.thumbnails?.last()?.url)
-                binding.tvSongTitle.text = (viewModel.metadata.value as Resource.Success<MetadataSong>).data?.title
-                binding.tvSongTitle.isSelected = true
-                binding.tvSongArtist.text = (viewModel.metadata.value as Resource.Success<MetadataSong>).data?.artists?.first()?.name
-                binding.tvSongArtist.isSelected = true
-                viewModel.related.observe(viewLifecycleOwner){response ->
-                    when(response){
-                        is Resource.Success -> {
-                            listTracks?.clear()
-                            listTracks?.addAll(Queue.getQueue())
-                            queueAdapter.updateList(listTracks!!)
+            val job1 = launch {
+                musicSource.stateFlow.collect{ state ->
+                    when(state) {
+                        StateSource.STATE_INITIALIZING -> {
+                            binding.loadingQueue.visibility = View.VISIBLE
+                            binding.rvQueue.visibility = View.GONE
                         }
-                        is Resource.Loading -> {}
-                        is Resource.Error -> {}
-                        else -> {}
+                        StateSource.STATE_ERROR -> {
+                            binding.loadingQueue.visibility = View.GONE
+                            binding.rvQueue.visibility = View.VISIBLE
+                        }
+                        StateSource.STATE_INITIALIZED -> {
+//                            val tempList = arrayListOf<MediaItem>()
+//                            for (i in 1 until musicSource.catalog.size){
+//                                tempList.add(musicSource.catalog[i])
+//                            }
+                            binding.loadingQueue.visibility = View.GONE
+                            binding.rvQueue.visibility = View.VISIBLE
+                            queueAdapter.updateList(musicSource.catalog)
+                        }
+                        else -> {
+                            binding.loadingQueue.visibility = View.VISIBLE
+                            binding.rvQueue.visibility = View.GONE
+                        }
                     }
                 }
             }
-            is Resource.Loading -> {}
-            is Resource.Error -> {}
-            else -> {}
+            val job2 = launch {
+                updateNowPlaying()
+            }
+            val job3 = launch {
+                musicSource.currentSongIndex.collect{ index ->
+                    Log.d("QueueFragment", "onViewCreated: $index")
+                    if (musicSource.stateFlow.value == StateSource.STATE_INITIALIZED){
+                        binding.rvQueue.smoothScrollToPosition(index)
+                        queueAdapter.setCurrentPlaying(index)
+                    }
+                }
+            }
+            job1.join()
+            job2.join()
+            job3.join()
+        }
+        binding.rvQueue.smoothScrollToPosition(musicSource.currentSongIndex.value)
+        binding.tvSongTitle.isSelected = true
+        binding.tvSongArtist.isSelected = true
+
+        queueAdapter.setOnClickListener(object : QueueAdapter.OnItemClickListener {
+            override fun onItemClick(position: Int) {
+                viewModel.playMediaItemInMediaSource(position)
+                dismiss()
+            }
+        })
+    }
+    private fun updateNowPlaying(){
+//        when (viewModel.metadata.value){
+//            is Resource.Success -> {
+//                binding.ivThumbnail.load((viewModel.metadata.value as Resource.Success<MetadataSong>).data?.thumbnails?.last()?.url)
+//                binding.tvSongTitle.text = (viewModel.metadata.value as Resource.Success<MetadataSong>).data?.title
+//                binding.tvSongTitle.isSelected = true
+//                binding.tvSongArtist.text = (viewModel.metadata.value as Resource.Success<MetadataSong>).data?.artists?.first()?.name
+//                binding.tvSongArtist.isSelected = true
+//            }
+//            is Resource.Error -> {}
+//            else -> {}
+//        }
+        viewModel.nowPlayingMediaItem.observe(viewLifecycleOwner) {
+            if (it != null){
+                binding.ivThumbnail.load(it.mediaMetadata.artworkUri)
+                binding.tvSongTitle.text = it.mediaMetadata.title
+                binding.tvSongTitle.isSelected = true
+                binding.tvSongArtist.text = it.mediaMetadata.artist
+                binding.tvSongArtist.isSelected = true
+            }
         }
     }
 }

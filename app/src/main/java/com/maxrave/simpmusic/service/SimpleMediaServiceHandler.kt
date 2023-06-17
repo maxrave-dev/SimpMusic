@@ -33,6 +33,12 @@ class SimpleMediaServiceHandler @Inject constructor(
     private val _changeTrack = MutableStateFlow<Boolean>(false)
     val changeTrack = _changeTrack.asStateFlow()
 
+    private val _shuffle = MutableStateFlow<Boolean>(false)
+    val shuffle = _shuffle.asStateFlow()
+
+    private val _repeat = MutableStateFlow<RepeatState>(RepeatState.None)
+    val repeat = _repeat.asStateFlow()
+
     private var job: Job? = null
 
     init {
@@ -49,17 +55,44 @@ class SimpleMediaServiceHandler @Inject constructor(
     }
     fun changeTrackToFalse() {
         _changeTrack.value = false
+        Log.i("Check song index", "${player.currentMediaItemIndex}")
     }
 
     fun addMediaItem(mediaItem: MediaItem) {
+        player.clearMediaItems()
         player.setMediaItem(mediaItem)
         player.prepare()
         player.playWhenReady = true
     }
 
+    fun addMediaItemNotSet(mediaItem: MediaItem) {
+        player.addMediaItem(mediaItem)
+        if (player.mediaItemCount == 1){
+            player.prepare()
+            player.playWhenReady = true
+        }
+    }
+
+    fun clearMediaItems() {
+        player.clearMediaItems()
+    }
+
     fun addMediaItemList(mediaItemList: List<MediaItem>) {
         player.addMediaItems(mediaItemList)
         player.prepare()
+    }
+
+    fun playMediaItemInMediaSource(index: Int){
+//        player.moveMediaItems(index, player.mediaItemCount - 1, 0)
+//        player.prepare()
+//        player.playWhenReady = true
+        player.seekTo(index, 0)
+        player.prepare()
+        player.playWhenReady = true
+    }
+
+    fun moveMediaItem(fromIndex: Int, toIndex: Int) {
+        player.moveMediaItems(fromIndex, toIndex, 0)
     }
 
     suspend fun onPlayerEvent(playerEvent: PlayerEvent) {
@@ -78,8 +111,38 @@ class SimpleMediaServiceHandler @Inject constructor(
             }
             PlayerEvent.Next -> player.seekToNext()
             PlayerEvent.Previous -> player.seekToPrevious()
-            PlayerEvent.Stop -> stopProgressUpdate()
+            PlayerEvent.Stop -> {stopProgressUpdate()
+            player.stop()}
             is PlayerEvent.UpdateProgress -> player.seekTo((player.duration * playerEvent.newProgress/100).toLong())
+            PlayerEvent.Shuffle -> {
+                if (player.shuffleModeEnabled) {
+                    player.shuffleModeEnabled = false
+                    _shuffle.value = false
+                } else {
+                    player.shuffleModeEnabled = true
+                    _shuffle.value = true
+                }
+            }
+            PlayerEvent.Repeat -> {
+                when (player.repeatMode) {
+                    ExoPlayer.REPEAT_MODE_OFF -> {
+                        player.repeatMode = ExoPlayer.REPEAT_MODE_ONE
+                        _repeat.value = RepeatState.One
+                    }
+                    ExoPlayer.REPEAT_MODE_ONE -> {
+                        player.repeatMode = ExoPlayer.REPEAT_MODE_ALL
+                        _repeat.value = RepeatState.All
+                    }
+                    ExoPlayer.REPEAT_MODE_ALL -> {
+                        player.repeatMode = ExoPlayer.REPEAT_MODE_OFF
+                        _repeat.value = RepeatState.None
+                    }
+                    else -> {
+                        player.repeatMode = ExoPlayer.REPEAT_MODE_OFF
+                        _repeat.value = RepeatState.None
+                    }
+                }
+            }
         }
     }
 
@@ -87,7 +150,7 @@ class SimpleMediaServiceHandler @Inject constructor(
         super.onMediaItemTransition(mediaItem, reason)
         _changeTrack.value = true
         Log.d("Change Track", "onMediaItemTransition: ${changeTrack.value}")
-        Log.d("Media Item Transition", "onMediaItemTransition: $mediaItem")
+        Log.d("Media Item Transition", "Media Item: $mediaItem")
     }
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -100,6 +163,21 @@ class SimpleMediaServiceHandler @Inject constructor(
                 SimpleMediaState.Buffering(player.currentPosition)
             ExoPlayer.STATE_READY -> _simpleMediaState.value =
                 SimpleMediaState.Ready(player.duration)
+        }
+    }
+
+    override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
+        when (shuffleModeEnabled){
+            true -> _shuffle.value = true
+            false -> _shuffle.value = false
+        }
+    }
+
+    override fun onRepeatModeChanged(repeatMode: Int) {
+        when (repeatMode){
+            ExoPlayer.REPEAT_MODE_OFF -> _repeat.value = RepeatState.None
+            ExoPlayer.REPEAT_MODE_ONE -> _repeat.value = RepeatState.One
+            ExoPlayer.REPEAT_MODE_ALL -> _repeat.value = RepeatState.All
         }
     }
 
@@ -128,6 +206,14 @@ class SimpleMediaServiceHandler @Inject constructor(
             _simpleMediaState.value = SimpleMediaState.Loading(player.bufferedPercentage)
         }
     }
+    fun currentIndex(): Int {
+        return player.currentMediaItemIndex
+    }
+
+    fun mediaListSize(): Int {
+        return player.mediaItemCount
+    }
+
     fun getCurrentMediaItem(): MediaItem? {
         return player.currentMediaItem
     }
@@ -155,23 +241,13 @@ class SimpleMediaServiceHandler @Inject constructor(
     }
 
 
-    private fun removeTrailingComma(sentence: String): String {
-        val trimmed = sentence.trimEnd()
-        return if (trimmed.endsWith(", ")) {
-            trimmed.dropLast(2)
-        } else {
-            trimmed
-        }
-    }
 
+}
 
-    private fun removeComma(string: String): String {
-        return if (string.endsWith(',')) {
-            string.substring(0, string.length - 1)
-        } else {
-            string
-        }
-    }
+sealed class RepeatState {
+    object None : RepeatState()
+    object All : RepeatState()
+    object One : RepeatState()
 }
 
 sealed class PlayerEvent {
@@ -181,6 +257,8 @@ sealed class PlayerEvent {
     object Stop : PlayerEvent()
     object Next : PlayerEvent()
     object Previous : PlayerEvent()
+    object Shuffle : PlayerEvent()
+    object Repeat : PlayerEvent()
     data class UpdateProgress(val newProgress: Float) : PlayerEvent()
 }
 
