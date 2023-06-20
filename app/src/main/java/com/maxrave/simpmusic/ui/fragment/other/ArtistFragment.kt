@@ -36,10 +36,16 @@ import com.maxrave.simpmusic.adapter.artist.AlbumsAdapter
 import com.maxrave.simpmusic.adapter.artist.PopularAdapter
 import com.maxrave.simpmusic.adapter.artist.RelatedArtistsAdapter
 import com.maxrave.simpmusic.adapter.artist.SinglesAdapter
+import com.maxrave.simpmusic.common.Config
+import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.browse.artist.ResultAlbum
 import com.maxrave.simpmusic.data.model.browse.artist.ResultRelated
 import com.maxrave.simpmusic.data.model.browse.artist.ResultSingle
 import com.maxrave.simpmusic.data.model.browse.artist.ResultSong
+import com.maxrave.simpmusic.data.model.browse.artist.toTrack
+import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
+import com.maxrave.simpmusic.data.model.searchResult.songs.toTrack
+import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.FragmentArtistBinding
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.ArtistViewModel
@@ -110,6 +116,17 @@ class ArtistFragment: Fragment(){
         binding.toolBar.setNavigationOnClickListener {
             findNavController().popBackStack()
         }
+        binding.btShuffle.setOnClickListener {
+            val id = viewModel.artistBrowse.value?.data?.songs?.browseId
+            if (id != null){
+                val args = Bundle()
+                args.putString("id", id)
+                findNavController().navigate(R.id.action_global_playlistFragment, args)
+            }
+            else {
+                Snackbar.make(binding.root, "Error", Snackbar.LENGTH_LONG).show()
+            }
+        }
         relatedArtistsAdapter.setOnClickListener(object: RelatedArtistsAdapter.OnItemClickListener{
             override fun onItemClick(position: Int) {
                 val bundle = Bundle()
@@ -136,6 +153,16 @@ class ArtistFragment: Fragment(){
         popularAdapter.setOnClickListener(object: PopularAdapter.OnItemClickListener{
             override fun onItemClick(position: Int, type: String) {
                 Toast.makeText(context, "${type.toString()} ${popularAdapter.getItem(position).toString()}", Toast.LENGTH_LONG).show()
+                val songClicked = popularAdapter.getCurrentList()[position]
+                val videoId = songClicked.videoId
+                Queue.clear()
+                val firstQueue: Track = songClicked.toTrack()
+                Queue.setNowPlaying(firstQueue)
+                val args = Bundle()
+                args.putString("videoId", videoId)
+                args.putString("from", "\"${viewModel.artistBrowse.value?.data?.name}\" Popular")
+                args.putString("type", Config.SONG_CLICK)
+                findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
             }
         })
         binding.topAppBarLayout.addOnOffsetChangedListener { it, verticalOffset ->

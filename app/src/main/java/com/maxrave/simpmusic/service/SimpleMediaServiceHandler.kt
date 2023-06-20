@@ -8,6 +8,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
@@ -43,6 +44,8 @@ class SimpleMediaServiceHandler @Inject constructor(
 
     init {
         player.addListener(this)
+        player.shuffleModeEnabled = false
+        player.repeatMode = Player.REPEAT_MODE_OFF
         job = Job()
     }
     fun addMediaSource(mediaSource: MediaSource) {
@@ -91,8 +94,12 @@ class SimpleMediaServiceHandler @Inject constructor(
         player.playWhenReady = true
     }
 
-    fun moveMediaItem(fromIndex: Int, toIndex: Int) {
+    fun moveMediaItemsToFirst(fromIndex: Int, toIndex: Int) {
         player.moveMediaItems(fromIndex, toIndex, 0)
+    }
+
+    fun moveMediaItem(fromIndex: Int, newIndex: Int) {
+        player.moveMediaItem(fromIndex, newIndex)
     }
 
     suspend fun onPlayerEvent(playerEvent: PlayerEvent) {
@@ -138,11 +145,30 @@ class SimpleMediaServiceHandler @Inject constructor(
                         _repeat.value = RepeatState.None
                     }
                     else -> {
-                        player.repeatMode = ExoPlayer.REPEAT_MODE_OFF
-                        _repeat.value = RepeatState.None
+                        when(_repeat.value) {
+                            RepeatState.None -> {
+                                player.repeatMode = ExoPlayer.REPEAT_MODE_ONE
+                                _repeat.value = RepeatState.One
+                            }
+                            RepeatState.One -> {
+                                player.repeatMode = ExoPlayer.REPEAT_MODE_ALL
+                                _repeat.value = RepeatState.All
+                            }
+                            RepeatState.All -> {
+                                player.repeatMode = ExoPlayer.REPEAT_MODE_OFF
+                                _repeat.value = RepeatState.None
+                            }
+                        }
                     }
                 }
             }
+        }
+    }
+
+    override fun onPlayerError(error: PlaybackException) {
+        when(error.errorCode) {
+            PlaybackException.ERROR_CODE_TIMEOUT -> {player.seekToNext()}
+            else -> {player.seekToNext()}
         }
     }
 

@@ -29,23 +29,25 @@ data class VideosResult(
     @SerializedName("year")
     val year: Any
 )
-
 fun VideosResult.toTrack(): Track {
+    val thumb = Thumbnail(720, "http://i.ytimg.com/vi/${this.videoId}/maxresdefault.jpg", 1280)
+    val thumbList: List<Thumbnail>?
+    thumbList = this.thumbnails ?: mutableListOf(thumb)
     return Track(
         album = null,
-        artists = artists,
-        duration = duration?: "",
-        durationSeconds = durationSeconds?: 0,
+        artists = this.artists,
+        duration = this.duration?: "",
+        durationSeconds = this.durationSeconds?: 0,
         isAvailable = true,
         isExplicit = false,
         likeStatus = "INDIFFERENT",
-        thumbnails = thumbnails,
-        title = title,
-        videoId = videoId,
-        videoType = videoType?: "",
-        category = category,
+        thumbnails = thumbList,
+        title = this.title,
+        videoId = this.videoId,
+        videoType = this.videoType?: "",
+        category = this.category,
         feedbackTokens = null,
-        resultType = resultType,
+        resultType = this.resultType,
         year = "")
 }
 fun ArrayList<VideosResult>.toListTrack(): ArrayList<Track> {

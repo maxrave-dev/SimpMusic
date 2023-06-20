@@ -1,6 +1,11 @@
 package com.maxrave.simpmusic.ui
 
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.drawable.ColorDrawable
+import android.graphics.drawable.GradientDrawable
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -10,6 +15,8 @@ import android.view.ViewGroup.MarginLayoutParams
 import android.view.animation.AnimationUtils
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.DrawableUtils
+import androidx.core.graphics.ColorUtils
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -19,7 +26,12 @@ import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.setupWithNavController
+import androidx.palette.graphics.Palette
+import coil.ImageLoader
 import coil.load
+import coil.request.ImageRequest
+import coil.size.Size
+import coil.transform.Transformation
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.data.queue.Queue
@@ -108,7 +120,56 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
                         binding.songTitle.isSelected = true
                         binding.songArtist.text = it.mediaMetadata.artist
                         binding.songArtist.isSelected = true
-                        binding.ivArt.load(it.mediaMetadata.artworkUri)
+                        val request = ImageRequest.Builder(this@MainActivity)
+                            .data(it.mediaMetadata.artworkUri)
+                            .target(
+                                onSuccess = { result ->
+                                    binding.ivArt.setImageDrawable(result)
+                                },
+                            )
+                            .transformations(object : Transformation {
+                                override val cacheKey: String
+                                    get() = "paletteArtTransformer"
+
+                                override suspend fun transform(input: Bitmap, size: Size): Bitmap {
+                                    val p = Palette.from(input).generate()
+                                    val defaultColor = 0x000000
+                                    var startColor = p.getDarkVibrantColor(defaultColor)
+                                    Log.d("Check Start Color", "transform: $startColor")
+                                    if (startColor == defaultColor){
+                                        startColor = p.getDarkMutedColor(defaultColor)
+                                        if (startColor == defaultColor){
+                                            startColor = p.getVibrantColor(defaultColor)
+                                            if (startColor == defaultColor){
+                                                startColor = p.getMutedColor(defaultColor)
+                                                if (startColor == defaultColor){
+                                                    startColor = p.getLightVibrantColor(defaultColor)
+                                                    if (startColor == defaultColor){
+                                                        startColor = p.getLightMutedColor(defaultColor)
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        Log.d("Check Start Color", "transform: $startColor")
+                                    }
+//                    val centerColor = 0x6C6C6C
+                                    val endColor = 0x1b1a1f
+                                    val gd = GradientDrawable(
+                                        GradientDrawable.Orientation.TOP_BOTTOM,
+                                        intArrayOf(startColor, endColor)
+                                    )
+                                    gd.cornerRadius = 0f
+                                    gd.gradientType = GradientDrawable.LINEAR_GRADIENT
+                                    gd.gradientRadius = 0.5f
+                                    gd.alpha = 150
+                                    val bg = ColorUtils.setAlphaComponent(startColor, 230)
+                                    binding.card.setCardBackgroundColor(bg)
+                                    return input
+                                }
+
+                            })
+                            .build()
+                        ImageLoader(this@MainActivity).enqueue(request)
                     }
                 }
             }
@@ -127,17 +188,9 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
                     binding.progressBar.progress = (it * 100).toInt()
                 }
             }
-            val job4 = launch {
-                viewModel.lyricsBackground.observe(this@MainActivity){
-                    if (it != null){
-                        binding.card.setCardBackgroundColor(it)
-                    }
-                }
-            }
             //job1.join()
             job2.join()
             //job3.join()
-            job4.join()
             job5.join()
         }
         binding.card.animation = AnimationUtils.loadAnimation(this, R.anim.bottom_to_top)
@@ -182,12 +235,8 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
                         binding.songArtist.text = artistName
                     }
                     binding.songArtist.isSelected = true
-                    viewModel.lyricsBackground.value?.let { it1 ->
-                        binding.card.setCardBackgroundColor(
-                            it1
-                        )
-                    }
                     binding.ivArt.load(it.data?.thumbnails?.get(0)?.url)
+
                 }
                 is Resource.Error -> {
 

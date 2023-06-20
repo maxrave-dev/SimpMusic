@@ -4,8 +4,12 @@ import android.Manifest
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
+import android.app.PendingIntent.FLAG_IMMUTABLE
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.os.Bundle
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
@@ -14,7 +18,11 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import androidx.media3.ui.PlayerNotificationManager
+import androidx.navigation.NavController
+import androidx.navigation.NavDeepLinkBuilder
+import androidx.navigation.Navigation
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.ui.MainActivity
 import dagger.hilt.android.AndroidEntryPoint
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.GlobalScope
@@ -70,7 +78,10 @@ class SimpleMediaNotificationManager @Inject constructor(
             .setMediaDescriptionAdapter(
                 SimpleMediaNotificationAdapter(
                     context = context,
-                    pendingIntent = mediaSession.sessionActivity
+//                    pendingIntent = mediaSession.sessionActivity
+                    pendingIntent = PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java).apply {
+                        action = "show_now_playing"
+                    }, FLAG_IMMUTABLE)
                 )
             )
             .setNotificationListener(notificationListener)
@@ -86,6 +97,7 @@ class SimpleMediaNotificationManager @Inject constructor(
             }
     }
 
+    @UnstableApi
     private fun startForegroundNotification(mediaSessionService: MediaSessionService) {
         val notification = Notification.Builder(context, NOTIFICATION_CHANNEL_ID)
             .setCategory(Notification.CATEGORY_SERVICE)

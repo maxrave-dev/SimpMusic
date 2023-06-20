@@ -58,6 +58,9 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_centerInParent="true"
+                        android:background="@android:color/background_dark"
+                        android:elevation="10sp"
+                        android:outlineProvider="bounds"
                         android:scaleType="centerCrop">
 
                     </ImageView>

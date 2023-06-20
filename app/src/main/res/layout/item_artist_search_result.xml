@@ -4,7 +4,10 @@
     android:layout_height="wrap_content"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:padding="5sp"
-    android:layout_marginBottom="10sp">
+    android:layout_marginBottom="10sp"
+    android:focusable="true"
+    android:clickable="true"
+    android:foreground="?android:attr/selectableItemBackground">
     <com.google.android.material.imageview.ShapeableImageView
         android:layout_width="55sp"
         android:layout_height="55sp"

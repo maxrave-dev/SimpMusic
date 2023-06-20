@@ -30,6 +30,7 @@ import com.maxrave.simpmusic.data.model.searchResult.albums.AlbumsResult
 import com.maxrave.simpmusic.data.model.searchResult.artists.ArtistsResult
 import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
+import com.maxrave.simpmusic.data.model.searchResult.songs.toTrack
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
 import com.maxrave.simpmusic.data.model.searchResult.videos.toTrack
 import com.maxrave.simpmusic.data.queue.Queue
@@ -246,44 +247,28 @@ class SearchFragment : Fragment() {
             override fun onItemClick(position: Int, type: String) {
                 Toast.makeText(context, resultAdapter.getCurrentList()[position].toString(), Toast.LENGTH_SHORT).show()
                 if (type == "artist"){
-                    val channelId = (resultAdapter.getCurrentList()[position] as ArtistsResult).browseId.toString()
+                    val channelId = (resultAdapter.getCurrentList()[position] as ArtistsResult).browseId
                     val args = Bundle()
                     args.putString("channelId", channelId)
                     findNavController().navigate(R.id.action_bottom_navigation_item_search_to_artistFragment, args)
                 }
                 if (type == Config.ALBUM_CLICK){
-                    val browseId = (resultAdapter.getCurrentList()[position] as AlbumsResult).browseId.toString()
+                    val browseId = (resultAdapter.getCurrentList()[position] as AlbumsResult).browseId
                     val args = Bundle()
                     args.putString("browseId", browseId)
                     findNavController().navigate(R.id.action_global_albumFragment, args)
                 }
                 if (type == Config.PLAYLIST_CLICK){
-                    val id = (resultAdapter.getCurrentList()[position] as PlaylistsResult).browseId.toString()
+                    val id = (resultAdapter.getCurrentList()[position] as PlaylistsResult).browseId
                     val args = Bundle()
                     args.putString("id", id)
                     findNavController().navigate(R.id.action_global_playlistFragment, args)
                 }
                 if (type == Config.SONG_CLICK){
                     val songClicked = resultAdapter.getCurrentList()[position] as SongsResult
-                    val videoId = (resultAdapter.getCurrentList()[position] as SongsResult).videoId.toString()
+                    val videoId = (resultAdapter.getCurrentList()[position] as SongsResult).videoId
                     Queue.clear()
-                    val firstQueue: Track = Track(
-                        songClicked.album,
-                        songClicked.artists,
-                        songClicked.duration!!,
-                        songClicked.durationSeconds!!,
-                        true,
-                        songClicked.isExplicit!!,
-                        "",
-                        songClicked.thumbnails,
-                        songClicked.title!!,
-                        songClicked.videoId,
-                        songClicked.videoType!!,
-                        songClicked.category,
-                        songClicked.feedbackTokens,
-                        songClicked.resultType,
-                        ""
-                    )
+                    val firstQueue: Track = songClicked.toTrack()
                     Queue.setNowPlaying(firstQueue)
                     val args = Bundle()
                     args.putString("videoId", videoId)

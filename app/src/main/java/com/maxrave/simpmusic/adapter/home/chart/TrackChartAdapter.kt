@@ -11,17 +11,26 @@ import com.maxrave.simpmusic.data.model.home.chart.ItemVideo
 import com.maxrave.simpmusic.databinding.ItemTrackChartBinding
 
 class TrackChartAdapter(private var trackList: ArrayList<ItemVideo>, val context: Context): RecyclerView.Adapter<TrackChartAdapter.ViewHolder>() {
-    inner class ViewHolder(val binding: ItemTrackChartBinding): RecyclerView.ViewHolder(binding.root) {
-
+    inner class ViewHolder(val binding: ItemTrackChartBinding, listener: setOnItemClickListener): RecyclerView.ViewHolder(binding.root) {
+        init {
+            binding.root.setOnClickListener {listener.onItemClick(bindingAdapterPosition)}
+        }
     }
     fun updateData(newData: ArrayList<ItemVideo>){
         trackList.clear()
         trackList.addAll(newData)
         notifyDataSetChanged()
     }
+    interface setOnItemClickListener {
+        fun onItemClick(position: Int)
+    }
+    private lateinit var mTrackListener: setOnItemClickListener
+    fun setOnItemClickListener(listener: setOnItemClickListener){
+        mTrackListener = listener
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder = ViewHolder(ItemTrackChartBinding.inflate(
-        LayoutInflater.from(parent.context), parent, false))
+        LayoutInflater.from(parent.context), parent, false), mTrackListener)
 
     override fun getItemCount(): Int = trackList.size
 

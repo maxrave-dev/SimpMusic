@@ -41,4 +41,10 @@ object Queue {
         }
         return nowPlaying!!
     }
+    fun removeFirstTrackForPlaylistAndAlbum() {
+        queue.removeAt(0)
+    }
+    fun removeTrackWithIndex(index: Int) {
+        queue.removeAt(index)
+    }
 }

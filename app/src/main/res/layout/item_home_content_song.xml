@@ -5,7 +5,10 @@
             android:layout_width="wrap_content"
             android:layout_height="280sp"
             android:padding="10sp"
-            android:orientation="vertical">
+            android:orientation="vertical"
+            android:focusable="true"
+            android:clickable="true"
+            android:foreground="?android:attr/selectableItemBackground">
             <com.google.android.material.imageview.ShapeableImageView
                 android:id="@+id/ivArt"
                 android:layout_width="160sp"

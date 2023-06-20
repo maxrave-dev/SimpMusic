@@ -16,6 +16,7 @@ import com.maxrave.simpmusic.databinding.MoodMomentDialogBinding
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.GenreViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import dev.chrisbanes.insetter.applyInsetter
 
 @AndroidEntryPoint
 class GenreFragment: Fragment(){
@@ -32,6 +33,11 @@ class GenreFragment: Fragment(){
         savedInstanceState: Bundle?
     ): View {
         _binding = MoodMomentDialogBinding.inflate(inflater, container, false)
+        binding.topAppBarLayout.applyInsetter {
+            type(statusBars = true) {
+                margin()
+            }
+        }
         return binding.root
     }
 

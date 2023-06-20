@@ -23,8 +23,10 @@ import coil.transform.Transformation
 import com.google.android.material.snackbar.Snackbar
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.adapter.playlist.PlaylistItemAdapter
+import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.browse.playlist.TrackPlaylist
+import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.FragmentPlaylistBinding
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.PlaylistViewModel
@@ -77,9 +79,40 @@ class PlaylistFragment: Fragment() {
             findNavController().popBackStack()
         }
 
+        binding.btPlayPause.setOnClickListener {
+            if (viewModel.playlistBrowse.value is Resource.Success && viewModel.playlistBrowse.value?.data != null){
+                val args = Bundle()
+                args.putString("type", Config.PLAYLIST_CLICK)
+                args.putString("videoId", viewModel.playlistBrowse.value?.data?.tracks?.get(0)?.videoId)
+                args.putString("from", "Playlist \"${viewModel.playlistBrowse.value?.data?.title}\"")
+                Queue.clear()
+                Queue.setNowPlaying(viewModel.playlistBrowse.value?.data!!.tracks[0])
+                Queue.addAll(viewModel.playlistBrowse.value?.data!!.tracks as ArrayList<Track>)
+                Queue.removeFirstTrackForPlaylistAndAlbum()
+                findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+            }
+            else {
+                Snackbar.make(requireView(), "Playlist is empty", Snackbar.LENGTH_SHORT).show()
+            }
+        }
+
         playlistItemAdapter.setOnClickListener(object: PlaylistItemAdapter.OnItemClickListener{
             override fun onItemClick(position: Int) {
-                Toast.makeText(requireContext(), playlistItemAdapter.getItem(position).toString(), Toast.LENGTH_SHORT).show()
+                if (viewModel.playlistBrowse.value is Resource.Success && viewModel.playlistBrowse.value?.data != null){
+                    val args = Bundle()
+                    args.putString("type", Config.ALBUM_CLICK)
+                    args.putString("videoId", viewModel.playlistBrowse.value?.data!!.tracks[0].videoId)
+                    args.putString("from", "Album \"${viewModel.playlistBrowse.value?.data!!.title}\"")
+                    args.putInt("index", position)
+                    Queue.clear()
+                    Queue.setNowPlaying(viewModel.playlistBrowse.value?.data!!.tracks[position])
+                    Queue.addAll(viewModel.playlistBrowse.value?.data!!.tracks as ArrayList<Track>)
+                    Queue.removeTrackWithIndex(position)
+                    findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                }
+                else {
+                    Snackbar.make(requireView(), "Error", Snackbar.LENGTH_SHORT).show()
+                }
             }
         })
         playlistItemAdapter.setOnOptionClickListener(object: PlaylistItemAdapter.OnOptionClickListener{

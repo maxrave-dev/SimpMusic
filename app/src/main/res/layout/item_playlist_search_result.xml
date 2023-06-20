@@ -3,7 +3,10 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:padding="5sp"
-    android:layout_marginBottom="10sp">
+    android:layout_marginBottom="10sp"
+    android:focusable="true"
+    android:clickable="true"
+    android:foreground="?android:attr/selectableItemBackground">
     <ImageView
         android:id="@+id/ivThumbnail"
         android:layout_width="55sp"

@@ -73,6 +73,13 @@ dependencies {
     implementation "androidx.media3:media3-exoplayer-rtsp:$media3_version"
     implementation "androidx.media3:media3-exoplayer-smoothstreaming:$media3_version"
     implementation "androidx.media3:media3-exoplayer-workmanager:$media3_version"
+    // For loading data using the Cronet network stack
+    implementation("androidx.media3:media3-datasource-cronet:$media3_version")
+    // For loading data using the OkHttp network stack
+    implementation("androidx.media3:media3-datasource-okhttp:$media3_version")
+    // For loading data using librtmp
+    implementation("androidx.media3:media3-datasource-rtmp:$media3_version")
+
 
     //palette color
     implementation 'androidx.palette:palette:1.0.0'

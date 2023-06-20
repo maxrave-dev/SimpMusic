@@ -4,8 +4,11 @@ import android.content.Context
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
+import androidx.media3.session.MediaLibraryService.MediaLibrarySession
 import androidx.media3.session.MediaSession
 import com.maxrave.simpmusic.service.SimpleMediaNotificationManager
 import com.maxrave.simpmusic.service.SimpleMediaService
@@ -35,14 +38,24 @@ object MusicServiceModule {
     @Provides
     @Singleton
     @UnstableApi
+    fun provideDataSource(@ApplicationContext context: Context): DefaultMediaSourceFactory = DefaultMediaSourceFactory(context).setDataSourceFactory(
+        DefaultHttpDataSource.Factory()
+            .setAllowCrossProtocolRedirects(true)
+    )
+
+    @Provides
+    @Singleton
+    @UnstableApi
     fun providePlayer(
         @ApplicationContext context: Context,
-        audioAttributes: AudioAttributes
+        audioAttributes: AudioAttributes,
+        mediaSourceFactory: DefaultMediaSourceFactory
     ): ExoPlayer =
         ExoPlayer.Builder(context)
             .setAudioAttributes(audioAttributes, true)
             .setHandleAudioBecomingNoisy(true)
             .setTrackSelector(DefaultTrackSelector(context))
+            .setMediaSourceFactory(mediaSourceFactory)
             .build()
 
     @Provides
@@ -64,6 +77,11 @@ object MusicServiceModule {
     ): MediaSession =
         MediaSession.Builder(context, player)
             .build()
+
+//    @Provides
+//    @Singleton
+//    fun provideMediaLibrarySession(@ApplicationContext context: Context): MediaLibrarySession =
+//        MediaLibrarySession.Builder().build()
 
     @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
     @Provides

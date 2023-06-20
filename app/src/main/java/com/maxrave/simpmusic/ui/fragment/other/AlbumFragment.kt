@@ -1,6 +1,7 @@
 package com.maxrave.simpmusic.ui.fragment.other
 
 import android.graphics.Bitmap
+import com.maxrave.simpmusic.common.Config
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
@@ -24,6 +25,9 @@ import com.google.android.material.snackbar.Snackbar
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.adapter.album.TrackAdapter
 import com.maxrave.simpmusic.data.model.browse.album.Track
+import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
+import com.maxrave.simpmusic.data.model.searchResult.videos.toTrack
+import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.FragmentAlbumBinding
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.AlbumViewModel
@@ -85,9 +89,40 @@ class AlbumFragment: Fragment() {
                 findNavController().navigate(R.id.action_global_artistFragment, args)
             }
         }
+        binding.btPlayPause.setOnClickListener {
+            Snackbar.make(requireView(), "Play/Pause", Snackbar.LENGTH_SHORT).show()
+            if (viewModel.albumBrowse.value is Resource.Success && viewModel.albumBrowse.value?.data != null){
+                val args = Bundle()
+                args.putString("type", Config.ALBUM_CLICK)
+                args.putString("videoId", viewModel.albumBrowse.value?.data!!.tracks[0].videoId)
+                args.putString("from", "Album \"${viewModel.albumBrowse.value?.data!!.title}\"")
+                Queue.clear()
+                Queue.setNowPlaying(viewModel.albumBrowse.value?.data!!.tracks[0])
+                Queue.addAll(viewModel.albumBrowse.value?.data!!.tracks as ArrayList<Track>)
+                Queue.removeFirstTrackForPlaylistAndAlbum()
+                findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+            }
+            else {
+                Snackbar.make(requireView(), "Error", Snackbar.LENGTH_SHORT).show()
+            }
+        }
         songsAdapter.setOnClickListener(object : TrackAdapter.OnItemClickListener{
             override fun onItemClick(position: Int) {
-                Toast.makeText(requireContext(), "Position: $position", Toast.LENGTH_SHORT).show()
+                if (viewModel.albumBrowse.value is Resource.Success && viewModel.albumBrowse.value?.data != null){
+                    val args = Bundle()
+                    args.putString("type", Config.ALBUM_CLICK)
+                    args.putString("videoId", viewModel.albumBrowse.value?.data!!.tracks[0].videoId)
+                    args.putString("from", "Album \"${viewModel.albumBrowse.value?.data!!.title}\"")
+                    args.putInt("index", position)
+                    Queue.clear()
+                    Queue.setNowPlaying(viewModel.albumBrowse.value?.data!!.tracks[position])
+                    Queue.addAll(viewModel.albumBrowse.value?.data!!.tracks as ArrayList<Track>)
+                    Queue.removeTrackWithIndex(position)
+                    findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                }
+                else {
+                    Snackbar.make(requireView(), "Error", Snackbar.LENGTH_SHORT).show()
+                }
             }
 
         })

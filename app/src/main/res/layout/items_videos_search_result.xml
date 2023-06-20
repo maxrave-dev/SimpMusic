@@ -9,7 +9,10 @@
         android:layout_width="55sp"
         android:layout_height="55sp"
         android:src="@drawable/test_thumbnail"
-        android:layout_alignParentStart="true">
+        android:layout_alignParentStart="true"
+        android:focusable="true"
+        android:clickable="true"
+        android:foreground="?android:attr/selectableItemBackground">
 
     </ImageView>
     <LinearLayout

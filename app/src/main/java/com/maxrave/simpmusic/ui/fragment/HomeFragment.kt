@@ -28,11 +28,17 @@ import com.maxrave.simpmusic.adapter.home.MoodsMomentAdapter
 import com.maxrave.simpmusic.adapter.home.QuickPicksAdapter
 import com.maxrave.simpmusic.adapter.home.chart.ArtistChartAdapter
 import com.maxrave.simpmusic.adapter.home.chart.TrackChartAdapter
+import com.maxrave.simpmusic.common.Config
+import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.home.Content
 import com.maxrave.simpmusic.data.model.home.chart.Chart
 import com.maxrave.simpmusic.data.model.home.chart.ItemArtist
 import com.maxrave.simpmusic.data.model.home.chart.ItemVideo
+import com.maxrave.simpmusic.data.model.home.chart.toTrack
 import com.maxrave.simpmusic.data.model.home.homeItem
+import com.maxrave.simpmusic.data.model.home.toTrack
+import com.maxrave.simpmusic.data.model.searchResult.songs.toTrack
+import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.FragmentHomeBinding
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.HomeViewModel
@@ -322,11 +328,37 @@ class HomeFragment : Fragment() {
         })
         quickPicksAdapter.setOnClickListener(object : QuickPicksAdapter.OnClickListener {
             override fun onClick(position: Int) {
+                val song = quickPicksAdapter.getData()[position]
                 Toast.makeText( requireContext(),"${quickPicksAdapter.getData()[position]}", Toast.LENGTH_SHORT).show()
-                val args = Bundle()
-                args.putString("videoId", quickPicksAdapter.getData()[position].videoId)
-                args.putString("from", "Quick Picks")
-                findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                if (song.videoId != null){
+                    Queue.clear()
+                    val firstQueue: Track = song.toTrack()
+                    Queue.setNowPlaying(firstQueue)
+                    val args = Bundle()
+                    args.putString("videoId", song.videoId)
+                    args.putString("from", "\"${song.title}\" Radio")
+                    args.putString("type", Config.SONG_CLICK)
+                    findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                }
+                else
+                {
+                    Toast.makeText( requireContext(),"This song is not available", Toast.LENGTH_SHORT).show()
+                }
+            }
+        })
+        trackChartAdapter.setOnItemClickListener(object : TrackChartAdapter.setOnItemClickListener{
+            override fun onItemClick(position: Int) {
+                val song = trackChart?.get(position)
+                if (song != null){
+                    Queue.clear()
+                    val firstQueue: Track = song.toTrack()
+                    Queue.setNowPlaying(firstQueue)
+                    val args = Bundle()
+                    args.putString("videoId", song.videoId)
+                    args.putString("from", "\"${song.title}\" in Charts")
+                    args.putString("type", Config.SONG_CLICK)
+                    findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                }
             }
         })
         binding.swipeRefreshLayout.setOnRefreshListener {

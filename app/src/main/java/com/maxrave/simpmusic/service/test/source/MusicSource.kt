@@ -62,6 +62,14 @@ class MusicSource @Inject constructor(val context: Context, val simpleMediaServi
             catalog.add(0, mediaItem)
         }
     }
+    @UnstableApi
+    fun addFirstMediaItemToIndex(mediaItem: MediaItem?, index: Int) {
+        if (mediaItem != null){
+            Log.d("MusicSource", "addFirstMediaItem: ${mediaItem.mediaId}")
+            catalog.add(index, mediaItem)
+            simpleMediaServiceHandler.moveMediaItem(0, index)
+        }
+    }
     fun reset() {
         _currentSongIndex.value = 0
         catalog.clear()
@@ -101,7 +109,7 @@ class MusicSource @Inject constructor(val context: Context, val simpleMediaServi
                                 }
                             }
                             val artistName: String = connectArtists(tempArtist)
-                            var thumbUrl = track.thumbnails?.last()?.url!!
+                            var thumbUrl = track.thumbnails?.last()?.url ?: "http://i.ytimg.com/vi/${track.videoId}/maxresdefault.jpg"
                             if (thumbUrl.contains("w120")){
                                 thumbUrl = Regex("(w|h)120").replace(thumbUrl, "$1544")
                             }

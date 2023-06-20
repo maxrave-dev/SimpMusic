@@ -33,6 +33,8 @@ class FetchQueue: Service() {
 
     @UnstableApi
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        val index = intent?.extras?.getInt("index")
+        Log.d("Check Index inside Service", "$index")
         musicSource.reset()
         Log.d("Check Queue", "getRelated: ${Queue.getQueue().toString()}")
         scope.launch {
@@ -45,7 +47,12 @@ class FetchQueue: Service() {
 //            }
             musicSource.stateFlow.collect{ state ->
                 if (state == StateSource.STATE_INITIALIZED) {
-                    musicSource.addFirstMediaItem(simpleMediaServiceHandler.getCurrentMediaItem())
+                    if (index == null){
+                        musicSource.addFirstMediaItem(simpleMediaServiceHandler.getCurrentMediaItem())
+                    }
+                    else {
+                        musicSource.addFirstMediaItemToIndex(simpleMediaServiceHandler.getCurrentMediaItem(), index)
+                    }
                     simpleMediaServiceHandler.addMediaItemList(musicSource.catalog)
                 }
             }

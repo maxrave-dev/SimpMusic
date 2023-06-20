@@ -13,13 +13,15 @@
             <com.google.android.material.appbar.AppBarLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/topAppBarLayout">
+                android:id="@+id/topAppBarLayout"
+                android:background="@android:color/transparent">
 
                 <com.google.android.material.appbar.MaterialToolbar
                     android:id="@+id/topAppBar"
                     android:layout_width="match_parent"
                     android:layout_height="?attr/actionBarSize"
                     app:title="Chill"
+                    android:background="@android:color/transparent"
                     app:navigationIcon="@drawable/baseline_arrow_back_ios_24"
                     app:titleTextAppearance="@style/TextAppearance.Material3.TitleLarge"
                     app:layout_scrollFlags="scroll|enterAlways|snap"/>

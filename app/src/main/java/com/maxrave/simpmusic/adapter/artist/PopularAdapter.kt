@@ -16,7 +16,9 @@ class PopularAdapter(private var popularList: ArrayList<ResultSong>): RecyclerVi
     fun setOnClickListener(listener: OnItemClickListener){
         mListener = listener
     }
-
+    fun getCurrentList(): ArrayList<ResultSong> {
+        return popularList
+    }
 
     inner class ViewHolder(val binding: ItemPopularSongBinding, listener: OnItemClickListener): RecyclerView.ViewHolder(binding.root) {
         init {

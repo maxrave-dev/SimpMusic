@@ -8,6 +8,7 @@ import android.net.Uri
 import android.util.Log
 import android.util.SparseArray
 import android.widget.Toast
+import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -238,8 +239,8 @@ class SharedViewModel @Inject constructor(private val mainRepository: MainReposi
         simpleMediaServiceHandler.playMediaItemInMediaSource(index)
     }
     @UnstableApi
-    fun moveMediaItem(fromIndex: Int, toIndex: Int) {
-        simpleMediaServiceHandler.moveMediaItem(fromIndex, toIndex)
+    fun moveMediaItem(fromIndex: Int, newIndex: Int) {
+        simpleMediaServiceHandler.moveMediaItem(fromIndex, newIndex)
     }
     @UnstableApi
     fun addMediaItemList(song: List<MediaItem>){
@@ -248,6 +249,7 @@ class SharedViewModel @Inject constructor(private val mainRepository: MainReposi
     @UnstableApi
     fun loadMediaItemFromTrack(track: Track){
         viewModelScope.launch {
+            simpleMediaServiceHandler.clearMediaItems()
             var uri = ""
             val yt = YTExtractor(context)
             yt.extract(track.videoId)
@@ -265,7 +267,7 @@ class SharedViewModel @Inject constructor(private val mainRepository: MainReposi
                     if (thumbUrl.contains("w120")){
                         thumbUrl = Regex("(w|h)120").replace(thumbUrl, "$1544")
                     }
-                    simpleMediaServiceHandler.clearMediaItems()
+                    Log.d("Check thumbUrl", thumbUrl)
                     simpleMediaServiceHandler.addMediaItem(
                         MediaItem.Builder().setUri(uri)
                             .setMediaId(track.videoId)
@@ -273,13 +275,14 @@ class SharedViewModel @Inject constructor(private val mainRepository: MainReposi
                                 MediaMetadata.Builder()
                                     .setTitle(track.title)
                                     .setArtist(artistName)
-                                    .setArtworkUri(Uri.parse(thumbUrl))
+                                    .setArtworkUri(thumbUrl.toUri())
                                     .setAlbumTitle(track.album?.name)
                                     .build()
                             )
                             .build()
                     )
                     _nowPlayingMediaItem.value = getCurrentMediaItem()
+                    Log.d("Check MediaItem Thumbnail", getCurrentMediaItem()?.mediaMetadata?.artworkUri.toString())
                     simpleMediaServiceHandler.changeTrackToFalse()
                 }
             }

@@ -4,7 +4,10 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="5sp"
-        android:layout_marginTop="5sp">
+        android:layout_marginTop="5sp"
+        android:focusable="true"
+        android:clickable="true"
+        android:foreground="?android:attr/selectableItemBackground">
         <TextView
             android:id="@+id/tvPosition"
             android:layout_width="40sp"
