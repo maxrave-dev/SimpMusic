@@ -37,10 +37,10 @@ import com.google.android.material.slider.Slider
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.data.model.metadata.MetadataSong
-import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
-import com.maxrave.simpmusic.data.model.searchResult.videos.toListTrack
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.FragmentNowPlayingBinding
+import com.maxrave.simpmusic.extension.toListTrack
+import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.service.RepeatState
 import com.maxrave.simpmusic.service.test.source.FetchQueue
 import com.maxrave.simpmusic.service.test.source.MusicSource
@@ -61,9 +61,7 @@ class NowPlayingFragment: Fragment() {
     lateinit var musicSource: MusicSource
 
 
-    private val UPDATE_INTERVAL_MS: Long = 1000
     private val viewModel by activityViewModels<SharedViewModel>()
-    private lateinit var dragHelper: ViewDragHelper
     private var _binding: FragmentNowPlayingBinding? = null
     private val binding get() = _binding!!
     private var metadataCurSong: MetadataSong? = null
@@ -85,6 +83,11 @@ class NowPlayingFragment: Fragment() {
         else{
             throw RuntimeException("$context must implement OnNowPlayingSongChangeListener")
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        updateUIfromCurrentMediaItem(viewModel.getCurrentMediaItem())
     }
 
     override fun onCreateView(
@@ -133,7 +136,6 @@ class NowPlayingFragment: Fragment() {
                 }
                 else
                 {
-//                if (!viewModel.songTransitions.value){
                     Log.i("Now Playing Fragment", "Bên trên")
                     binding.ivArt.visibility = View.GONE
                     binding.loadingArt.visibility = View.VISIBLE
@@ -143,20 +145,26 @@ class NowPlayingFragment: Fragment() {
                     binding.tvSongArtist.visibility = View.GONE
                     Queue.getNowPlaying()?.let {
                         musicSource.reset()
-//                        viewModel.onUIEvent(UIEvent.Stop)
                         viewModel.loadMediaItemFromTrack(it)
-
-//                        viewModel.getMetadata(it.videoId)
-//                        observerMetadata()
                         viewModel.videoId.postValue(it.videoId)
                         viewModel.from.postValue(from)
                         viewModel.resetLyrics()
-                        viewModel.getLyrics(it.title + " " + it.artists?.first()?.name)
+                        if (it.artists.isNullOrEmpty()) {
+                            viewModel.getLyrics(it.title)
+                        }
+                        else {
+                            viewModel.getLyrics(it.title + " " + it.artists.first().name)
+                        }
                         updateUIfromQueueNowPlaying()
-                        getRelated(it.videoId)
+                        lifecycleScope.launch {
+                            viewModel.firstTrackAdded.collect { added ->
+                                if (added) {
+                                    viewModel.changeFirstTrackAddedToFalse()
+                                    getRelated(it.videoId)
+                                }
+                            }
+                        }
                     }
-                    //}
-//                viewModel.loadMediaItems(videoId!!)
                 }
             }
             Config.VIDEO_CLICK -> {
@@ -179,17 +187,20 @@ class NowPlayingFragment: Fragment() {
                     binding.tvSongArtist.visibility = View.GONE
                     Queue.getNowPlaying()?.let {
                         musicSource.reset()
-//                        viewModel.onUIEvent(UIEvent.Stop)
                         viewModel.loadMediaItemFromTrack(it)
-
-//                        viewModel.getMetadata(it.videoId)
-//                        observerMetadata()
                         viewModel.videoId.postValue(it.videoId)
                         viewModel.from.postValue(from)
                         viewModel.resetLyrics()
                         viewModel.getLyrics(it.title + " " + it.artists?.first()?.name)
                         updateUIfromQueueNowPlaying()
-                        getVideosRelated(it.videoId)
+                        lifecycleScope.launch {
+                            viewModel.firstTrackAdded.collect { added ->
+                                if (added) {
+                                    viewModel.changeFirstTrackAddedToFalse()
+                                    getVideosRelated(it.videoId)
+                                }
+                            }
+                        }
                     }
                     //}
 //                viewModel.loadMediaItems(videoId!!)
@@ -226,11 +237,18 @@ class NowPlayingFragment: Fragment() {
                         viewModel.getLyrics(it.title + " " + it.artists?.first()?.name)
                         updateUIfromQueueNowPlaying()
                         Log.d("check index", index.toString())
-                        if (index == null){
-                            fetchSourceFromQueue()
-                        }
-                        else{
-                            fetchSourceFromQueue(index!!)
+                        lifecycleScope.launch {
+                            viewModel.firstTrackAdded.collect { added ->
+                                if (added) {
+                                    viewModel.changeFirstTrackAddedToFalse()
+                                    if (index == null){
+                                        fetchSourceFromQueue()
+                                    }
+                                    else{
+                                        fetchSourceFromQueue(index!!)
+                                    }
+                                }
+                            }
                         }
                     }
                     //}
@@ -268,11 +286,18 @@ class NowPlayingFragment: Fragment() {
                         viewModel.getLyrics(it.title + " " + it.artists?.first()?.name)
                         updateUIfromQueueNowPlaying()
                         Log.d("check index", index.toString())
-                        if (index == null){
-                            fetchSourceFromQueue()
-                        }
-                        else{
-                            fetchSourceFromQueue(index!!)
+                        lifecycleScope.launch {
+                            viewModel.firstTrackAdded.collect { added ->
+                                if (added) {
+                                    viewModel.changeFirstTrackAddedToFalse()
+                                    if (index == null){
+                                        fetchSourceFromQueue()
+                                    }
+                                    else{
+                                        fetchSourceFromQueue(index!!)
+                                    }
+                                }
+                            }
                         }
                     }
                     //}
@@ -290,28 +315,7 @@ class NowPlayingFragment: Fragment() {
         }
 
         lifecycleScope.launch {
-//            val job8 = launch {
-//                viewModel.nowPlayingMediaItem.observe(viewLifecycleOwner){
-//                    if (it != null){
-//                        updateUIfromCurrentMediaItem(it)
-//                    }
-//                }
-//            }
             val job7 = launch {
-//                viewModel.videoId.observe(viewLifecycleOwner){
-//                    if (it != null && it != videoId){
-//                        if (viewModel.songTransitions.value){
-//                            Log.i("Now Playing Fragment", "Bên dưới")
-//                            Log.d("Song Transition", "Song Transition")
-//                            videoId = it
-//                            binding.ivArt.visibility = View.GONE
-//                            binding.loadingArt.visibility = View.VISIBLE
-////                            viewModel.getMetadata(videoId!!)
-//                            updateUIfromCurrentMediaItem(viewModel.getCurrentMediaItem())
-//                            viewModel.changeSongTransitionToFalse()
-//                        }
-//                    }
-//                }
                 viewModel.songTransitions.collect{isChanged ->
                     if (isChanged){
                         if (viewModel.getCurrentMediaItem() != null){
@@ -320,7 +324,7 @@ class NowPlayingFragment: Fragment() {
                             videoId = viewModel.videoId.value
                             binding.ivArt.visibility = View.GONE
                             binding.loadingArt.visibility = View.VISIBLE
-                            val track = viewModel.getCurrentMediaItem()
+                            val track = viewModel.nowPlayingMediaItem.value
 //                        viewModel.getMetadata(videoId!!)
 //                        observerMetadata()
                             if (track != null) {
@@ -328,7 +332,7 @@ class NowPlayingFragment: Fragment() {
                                 viewModel.getLyrics(track.mediaMetadata.title.toString() + " " + track.mediaMetadata.artist)
                             }
                             Log.d("Check Lyrics", viewModel._lyrics.value?.data.toString())
-                            updateUIfromCurrentMediaItem(viewModel.getCurrentMediaItem())
+                            updateUIfromCurrentMediaItem(viewModel.nowPlayingMediaItem.value)
                             musicSource.setCurrentSongIndex(viewModel.getCurrentMediaItemIndex())
                             viewModel.changeSongTransitionToFalse()
                         }
@@ -344,13 +348,19 @@ class NowPlayingFragment: Fragment() {
                     }
                 }
                 viewModel.duration.collect {
-                    binding.tvFullTime.text = viewModel.formatDuration(it)
+                    if (viewModel.formatDuration(it).contains('-')){
+                        binding.tvFullTime.text = "NA:NA"
+                    }
+                    else {
+                        binding.tvFullTime.text = viewModel.formatDuration(it)
+                    }
                 }
             }
             val job2 = launch {
                 viewModel.isPlaying.observe(viewLifecycleOwner){
                     Log.d("Check Song Transistion", "${viewModel.songTransitions.value}")
                     if (it){
+                        //updateUIfromCurrentMediaItem(viewModel.getCurrentMediaItem())
                         binding.btPlayPause.setImageResource(R.drawable.baseline_pause_circle_24)
                         songChangeListener.onIsPlayingChange()
                     }
@@ -469,6 +479,11 @@ class NowPlayingFragment: Fragment() {
                     }
                 }
             }
+            val job10 = launch {
+                viewModel.liked.collect { liked ->
+                    binding.cbFavorite.isChecked = liked
+                }
+            }
 
             job1.join()
             job2.join()
@@ -479,6 +494,7 @@ class NowPlayingFragment: Fragment() {
             job7.join()
             job8.join()
             job9.join()
+            job10.join()
         }
         binding.btFull.setOnClickListener {
             if (binding.btFull.text == "Show"){
@@ -525,6 +541,19 @@ class NowPlayingFragment: Fragment() {
         binding.btQueue.setOnClickListener {
             findNavController().navigate(R.id.action_nowPlayingFragment_to_queueFragment)
         }
+        binding.btSongInfo.setOnClickListener {
+            findNavController().navigate(R.id.action_global_infoFragment)
+        }
+        binding.cbFavorite.setOnCheckedChangeListener { cb, isChecked ->
+            if (!isChecked){
+                Log.d("cbFavorite", "onCheckedChanged: $isChecked")
+                viewModel.getCurrentMediaItem()?.let { nowPlayingSong -> viewModel.updateLikeStatus(nowPlayingSong.mediaId, false) }
+            }
+            else {
+                Log.d("cbFavorite", "onCheckedChanged: $isChecked")
+                viewModel.getCurrentMediaItem()?.let { nowPlayingSong -> viewModel.updateLikeStatus(nowPlayingSong.mediaId, true) }
+            }
+        }
     }
 
     private fun fetchSourceFromQueue(index: Int? = null) {
@@ -539,7 +568,7 @@ class NowPlayingFragment: Fragment() {
         }
         else {
             Log.d("fetchSourceFromQueue", "fetchSourceFromQueue: $index")
-            var mIntent = Intent(requireContext(), FetchQueue::class.java)
+            val mIntent = Intent(requireContext(), FetchQueue::class.java)
             mIntent.putExtra("index", index)
             if (!requireContext().isMyServiceRunning(FetchQueue:: class.java)){
                 requireActivity().startService(mIntent)
@@ -708,34 +737,19 @@ class NowPlayingFragment: Fragment() {
             }
         }
     }
-    private fun observerMetadataAndLoadMedia(){
-        viewModel.videoId.postValue(videoId)
-        viewModel.from.postValue(from)
-        viewModel.metadata.observe(viewLifecycleOwner) {
-            when (it){
-                is Resource.Success ->{
-                    metadataCurSong = it.data
-                    viewModel.loadMediaItems(videoId!!)
-                    updateUI()
-                }
-                is Resource.Error ->{
-                    Toast.makeText(requireContext(), it.message, Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-    }
+
 
     private fun updateUIfromQueueNowPlaying() {
         Log.w("CHECK NOW PLAYING IN QUEUE", "updateUIfromQueueNowPlaying: ${Queue.getNowPlaying()}")
         Log.d("CHECK QUEUE", "updateUIfromQueueNowPlaying: ${Queue.getQueue()}")
-        var nowPlaying = Queue.getNowPlaying()
+        val nowPlaying = Queue.getNowPlaying()
         if (nowPlaying != null) {
             binding.ivArt.visibility = View.GONE
             binding.loadingArt.visibility = View.VISIBLE
             Log.d("Update UI", "current: ${nowPlaying.title}")
             var thumbUrl = nowPlaying.thumbnails?.last()?.url!!
             if (thumbUrl.contains("w120")){
-                thumbUrl = Regex("(w|h)120").replace(thumbUrl, "$1544")
+                thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
             }
             val request = ImageRequest.Builder(requireContext())
                 .data(Uri.parse(thumbUrl))
@@ -751,7 +765,7 @@ class NowPlayingFragment: Fragment() {
                         binding.ivArt.setImageDrawable(result)
                         Log.d("Update UI", "onSuccess: ")
                         if (viewModel.gradientDrawable.value != null){
-                            viewModel.gradientDrawable.observe(viewLifecycleOwner, Observer {
+                            viewModel.gradientDrawable.observe(viewLifecycleOwner) {
                                 binding.rootLayout.background = it
 //                            viewModel.lyricsBackground.observe(viewLifecycleOwner, Observer { color ->
 //                                binding.lyricsLayout.setCardBackgroundColor(color)
@@ -763,7 +777,7 @@ class NowPlayingFragment: Fragment() {
                                         it1
                                     )
                                 }
-                            })
+                            }
                             Log.d("Update UI", "updateUI: NULL")
                         }
                         songChangeListener.onNowPlayingSongChange()
@@ -818,7 +832,7 @@ class NowPlayingFragment: Fragment() {
             binding.tvSongTitle.isSelected = true
             val tempArtist = mutableListOf<String>()
             if (nowPlaying.artists != null){
-                for (artist in nowPlaying.artists!!) {
+                for (artist in nowPlaying.artists) {
                     tempArtist.add(artist.name)
                 }
             }
@@ -848,7 +862,7 @@ class NowPlayingFragment: Fragment() {
                     binding.ivArt.setImageDrawable(result)
                     Log.d("Update UI", "onSuccess: ")
                     if (viewModel.gradientDrawable.value != null){
-                        viewModel.gradientDrawable.observe(viewLifecycleOwner, Observer {
+                        viewModel.gradientDrawable.observe(viewLifecycleOwner) {
                             binding.rootLayout.background = it
 //                            viewModel.lyricsBackground.observe(viewLifecycleOwner, Observer { color ->
 //                                binding.lyricsLayout.setCardBackgroundColor(color)
@@ -860,7 +874,7 @@ class NowPlayingFragment: Fragment() {
                                     it1
                                 )
                             }
-                        })
+                        }
                         Log.d("Update UI", "updateUI: NULL")
                     }
                     songChangeListener.onNowPlayingSongChange()

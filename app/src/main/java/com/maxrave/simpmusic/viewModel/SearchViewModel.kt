@@ -8,12 +8,14 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
+import com.maxrave.simpmusic.data.db.entities.SearchHistory
 import com.maxrave.simpmusic.data.model.searchResult.albums.AlbumsResult
 import com.maxrave.simpmusic.data.model.searchResult.artists.ArtistsResult
 import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
 import com.maxrave.simpmusic.data.repository.MainRepository
+import com.maxrave.simpmusic.extension.toQueryList
 import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
@@ -51,6 +53,29 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
 
     var errorMessage = MutableLiveData<String>()
 
+    fun getSearchHistory() {
+        viewModelScope.launch {
+            mainRepository.getSearchHistory().collect{ values ->
+                if (values.isNotEmpty()) {
+                    values.toQueryList().let { list ->
+                        searchHistory.value = list
+                    }
+                }
+            }
+        }
+    }
+
+    fun insertSearchHistory(query: String) {
+        viewModelScope.launch {
+            mainRepository.insertSearchHistory(SearchHistory(query = query))
+        }
+    }
+
+    fun deleteSearchHistory() {
+        viewModelScope.launch {
+            mainRepository.deleteSearchHistory()
+        }
+    }
 
     fun searchSongs(query: String) {
 //        songsSearchResult.value?.clear()

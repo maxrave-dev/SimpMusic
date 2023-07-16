@@ -29,6 +29,7 @@ import com.maxrave.simpmusic.service.test.source.StateSource
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -94,24 +95,22 @@ class QueueFragment: BottomSheetDialogFragment() {
         binding.topAppBar.setNavigationOnClickListener {
             dismiss()
         }
-        queueAdapter = QueueAdapter(arrayListOf(), requireContext(), 0)
+        queueAdapter = QueueAdapter(arrayListOf(), requireContext(), -1)
         binding.rvQueue.apply {
             adapter = queueAdapter
             layoutManager = LinearLayoutManager(requireContext())
         }
-        queueAdapter.setOnClickListener(object : QueueAdapter.OnItemClickListener {
-            override fun onItemClick(position: Int) {
-                Toast.makeText(requireContext(), "Clicked", Toast.LENGTH_SHORT).show()
-            }
+        if (musicSource.catalogMetadata.isNotEmpty()) {
+            queueAdapter.updateList(musicSource.catalogMetadata)
+        }
 
-        })
         lifecycleScope.launch {
             val job1 = launch {
                 musicSource.stateFlow.collect{ state ->
                     when(state) {
                         StateSource.STATE_INITIALIZING -> {
                             binding.loadingQueue.visibility = View.VISIBLE
-                            binding.rvQueue.visibility = View.GONE
+                            binding.rvQueue.visibility = View.VISIBLE
                         }
                         StateSource.STATE_ERROR -> {
                             binding.loadingQueue.visibility = View.GONE
@@ -124,11 +123,11 @@ class QueueFragment: BottomSheetDialogFragment() {
 //                            }
                             binding.loadingQueue.visibility = View.GONE
                             binding.rvQueue.visibility = View.VISIBLE
-                            queueAdapter.updateList(musicSource.catalog)
+                            queueAdapter.updateList(musicSource.catalogMetadata)
                         }
                         else -> {
                             binding.loadingQueue.visibility = View.VISIBLE
-                            binding.rvQueue.visibility = View.GONE
+                            binding.rvQueue.visibility = View.VISIBLE
                         }
                     }
                 }
@@ -139,17 +138,28 @@ class QueueFragment: BottomSheetDialogFragment() {
             val job3 = launch {
                 musicSource.currentSongIndex.collect{ index ->
                     Log.d("QueueFragment", "onViewCreated: $index")
-                    if (musicSource.stateFlow.value == StateSource.STATE_INITIALIZED){
+                    if (musicSource.stateFlow.value == StateSource.STATE_INITIALIZED || musicSource.stateFlow.value == StateSource.STATE_INITIALIZING){
                         binding.rvQueue.smoothScrollToPosition(index)
                         queueAdapter.setCurrentPlaying(index)
+                    }
+                }
+            }
+            val job4 = launch {
+                musicSource.added.collect{ isAdded ->
+                    Log.d("Check Added in Queue", "$isAdded")
+                    if (isAdded){
+                        Log.d("Check Queue", "${musicSource.catalogMetadata}")
+                        queueAdapter.updateList(musicSource.catalogMetadata)
+                        musicSource.changeAddedState()
                     }
                 }
             }
             job1.join()
             job2.join()
             job3.join()
+            job4.join()
         }
-        binding.rvQueue.smoothScrollToPosition(musicSource.currentSongIndex.value)
+
         binding.tvSongTitle.isSelected = true
         binding.tvSongArtist.isSelected = true
 

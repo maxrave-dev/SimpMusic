@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.data.model.browse.artist
 import com.google.gson.annotations.SerializedName
-import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.searchResult.songs.Album
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
@@ -25,22 +24,3 @@ data class ResultSong (
     @SerializedName("videoType")
     val videoType: String,
 )
-fun ResultSong.toTrack(): Track {
-    return Track(
-        album = album,
-        artists = artists,
-        duration = "",
-        durationSeconds = 0,
-        isAvailable = isAvailable,
-        isExplicit = isExplicit,
-        likeStatus = likeStatus,
-        thumbnails = thumbnails,
-        title = title,
-        videoId = videoId,
-        videoType = videoType,
-        category = null,
-        feedbackTokens = null,
-        resultType = null,
-        year = ""
-    )
-}

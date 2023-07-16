@@ -63,4 +63,6 @@
     <color name="md_theme_dark_scrim">#000000</color>
     <color name="colorPrimaryDark">#19000000</color>
     <color name="back_button_color">#197E7E7E</color>
+
+    <color name="shimmerBackground">#7E878383</color>
 </resources>

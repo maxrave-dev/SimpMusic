@@ -1,22 +1,20 @@
 package com.maxrave.simpmusic.service
 
 import android.annotation.SuppressLint
-import android.app.Application
 import android.content.Context
-import android.net.Uri
 import android.util.Log
-import android.widget.Toast
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.common.Timeline
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.MediaSource
-import com.maxrave.kotlinyoutubeextractor.State
-import com.maxrave.kotlinyoutubeextractor.YTExtractor
-import com.maxrave.simpmusic.data.queue.Queue
+import com.maxrave.simpmusic.data.repository.MainRepository
+import com.maxrave.simpmusic.extension.toSongEntity
+import com.maxrave.simpmusic.service.test.source.MusicSource
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -25,7 +23,6 @@ import javax.inject.Inject
 @UnstableApi
 class SimpleMediaServiceHandler @Inject constructor(
     private val player: ExoPlayer,
-    private val context: Context
 ) : Player.Listener {
 
     private val _simpleMediaState = MutableStateFlow<SimpleMediaState>(SimpleMediaState.Initial)
@@ -60,6 +57,9 @@ class SimpleMediaServiceHandler @Inject constructor(
         _changeTrack.value = false
         Log.i("Check song index", "${player.currentMediaItemIndex}")
     }
+    fun getMediaItemWithIndex(index: Int): MediaItem {
+        return player.getMediaItemAt(index)
+    }
 
     fun addMediaItem(mediaItem: MediaItem) {
         player.clearMediaItems()
@@ -81,8 +81,10 @@ class SimpleMediaServiceHandler @Inject constructor(
     }
 
     fun addMediaItemList(mediaItemList: List<MediaItem>) {
-        player.addMediaItems(mediaItemList)
-        player.prepare()
+        for (mediaItem in mediaItemList) {
+            addMediaItemNotSet(mediaItem)
+        }
+        Log.d("Media Item List", "addMediaItemList: ${player.mediaItemCount}")
     }
 
     fun playMediaItemInMediaSource(index: Int){
@@ -165,21 +167,48 @@ class SimpleMediaServiceHandler @Inject constructor(
         }
     }
 
+    override fun onTracksChanged(tracks: Tracks) {
+        Log.d("Tracks", "onTracksChanged: ${tracks.groups.size}")
+        super.onTracksChanged(tracks)
+    }
+
     override fun onPlayerError(error: PlaybackException) {
         when(error.errorCode) {
-            PlaybackException.ERROR_CODE_TIMEOUT -> {player.seekToNext()}
-            else -> {player.seekToNext()}
+            PlaybackException.ERROR_CODE_TIMEOUT -> {
+                Log.e("Player Error", "onPlayerError: ${error.message}")
+                player.seekToNext()
+                player.prepare()
+                player.playWhenReady = true
+            }
+            else -> {
+                Log.e("Player Error", "onPlayerError: ${error.message}")
+                player.seekToNext()
+                player.prepare()
+                player.playWhenReady = true
+            }
         }
     }
 
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
         super.onMediaItemTransition(mediaItem, reason)
-        _changeTrack.value = true
-        Log.d("Change Track", "onMediaItemTransition: ${changeTrack.value}")
-        Log.d("Media Item Transition", "Media Item: $mediaItem")
+        if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO || reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT || reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK || reason == Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED){
+            if (!_changeTrack.value) {
+                _changeTrack.value = true
+                Log.d("Change Track", "onMediaItemTransition: ${changeTrack.value}")
+                Log.d("Media Item Transition", "Media Item: ${mediaItem?.mediaMetadata?.title}")
+                Log.d("Media Item Transition", "Reason: $reason")
+            }
+            else {
+                _changeTrack.value = false
+                Log.d("Change Track", "onMediaItemTransition: ${changeTrack.value}")
+                Log.d("Media Item Transition", "Media Item: ${mediaItem?.mediaMetadata?.title}")
+                Log.d("Media Item Transition", "Reason: $reason")
+                _changeTrack.value = true
+            }
+        }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
+
     @SuppressLint("SwitchIntDef")
     override fun onPlaybackStateChanged(playbackState: Int) {
         when (playbackState) {
@@ -229,7 +258,7 @@ class SimpleMediaServiceHandler @Inject constructor(
     private suspend fun startBufferedUpdate() = job.run {
         while (true){
             delay(500)
-            _simpleMediaState.value = SimpleMediaState.Loading(player.bufferedPercentage)
+            _simpleMediaState.value = SimpleMediaState.Loading(player.bufferedPercentage, player.duration)
         }
     }
     fun currentIndex(): Int {
@@ -250,13 +279,13 @@ class SimpleMediaServiceHandler @Inject constructor(
     }
     private fun stopBufferedUpdate() {
         job?.cancel()
-        _simpleMediaState.value = SimpleMediaState.Loading(player.bufferedPercentage)
+        _simpleMediaState.value = SimpleMediaState.Loading(player.bufferedPercentage, player.duration)
     }
 
     @OptIn(DelicateCoroutinesApi::class)
     override fun onIsLoadingChanged(isLoading: Boolean) {
         super.onIsLoadingChanged(isLoading)
-        _simpleMediaState.value = SimpleMediaState.Loading(player.bufferedPercentage)
+        _simpleMediaState.value = SimpleMediaState.Loading(player.bufferedPercentage, player.duration)
         if (isLoading) {
             GlobalScope.launch(Dispatchers.Main) {
                 startBufferedUpdate()
@@ -265,9 +294,6 @@ class SimpleMediaServiceHandler @Inject constructor(
             stopBufferedUpdate()
         }
     }
-
-
-
 }
 
 sealed class RepeatState {
@@ -292,7 +318,7 @@ sealed class SimpleMediaState {
     object Initial : SimpleMediaState()
     object Ended : SimpleMediaState()
     data class Ready(val duration: Long) : SimpleMediaState()
-    data class Loading(val bufferedPercentage: Int): SimpleMediaState()
+    data class Loading(val bufferedPercentage: Int, val duration: Long): SimpleMediaState()
     data class Progress(val progress: Long) : SimpleMediaState()
     data class Buffering(val position: Long) : SimpleMediaState()
     data class Playing(val isPlaying: Boolean) : SimpleMediaState()

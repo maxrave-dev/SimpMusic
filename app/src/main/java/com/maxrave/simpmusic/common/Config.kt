@@ -16,4 +16,14 @@ object Config {
     const val ALBUM_CLICK = "ALBUM_CLICK"
     const val RADIO_CLICK = "RADIO_CLICK"
     const val MINIPLAYER_CLICK = "MINIPLAYER_CLICK"
+
+    const val VN = "VN"
+
+}
+
+object DownloadState {
+    const val STATE_NOT_DOWNLOADED = 0
+    const val STATE_PREPARING = 1
+    const val STATE_DOWNLOADING = 2
+    const val STATE_DOWNLOADED = 3
 }

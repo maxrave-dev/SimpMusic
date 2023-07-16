@@ -8,12 +8,12 @@ plugins {
 
 android {
     namespace 'com.maxrave.simpmusic'
-    compileSdk 33
+    compileSdk 34
 
     defaultConfig {
         applicationId "com.maxrave.simpmusic"
         minSdk 26
-        targetSdk 33
+        targetSdk 34
         versionCode 1
         versionName "1.0"
 
@@ -49,8 +49,8 @@ android {
 dependencies {
     //implementation project(':youtubeExtractor')
 
-    def youtube_extractor_version = '0.0.3'
-    implementation "com.github.maxrave-dev:kotlin-youtubeExtractor:$youtube_extractor_version"
+    def youtube_extractor_version = '0.0.5'
+    implementation ("com.github.maxrave-dev:kotlin-youtubeExtractor:$youtube_extractor_version") {changing = true}
 
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.1'
     implementation 'androidx.core:core-ktx:1.10.1'
@@ -62,7 +62,7 @@ dependencies {
     //runtime
     implementation "androidx.startup:startup-runtime:1.1.1"
     //ExoPlayer
-    def media3_version = '1.0.2'
+    def media3_version = '1.1.0'
 
     implementation "androidx.media3:media3-exoplayer:$media3_version"
     implementation "androidx.media3:media3-ui:$media3_version"
@@ -74,12 +74,11 @@ dependencies {
     implementation "androidx.media3:media3-exoplayer-smoothstreaming:$media3_version"
     implementation "androidx.media3:media3-exoplayer-workmanager:$media3_version"
     // For loading data using the Cronet network stack
-    implementation("androidx.media3:media3-datasource-cronet:$media3_version")
+    implementation "androidx.media3:media3-datasource-cronet:$media3_version"
     // For loading data using the OkHttp network stack
-    implementation("androidx.media3:media3-datasource-okhttp:$media3_version")
+    implementation "androidx.media3:media3-datasource-okhttp:$media3_version"
     // For loading data using librtmp
-    implementation("androidx.media3:media3-datasource-rtmp:$media3_version")
-
+    implementation "androidx.media3:media3-datasource-rtmp:$media3_version"
 
     //palette color
     implementation 'androidx.palette:palette:1.0.0'
@@ -92,13 +91,13 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.5'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 
-    implementation 'androidx.room:room-runtime:2.5.1'
-    annotationProcessor "androidx.room:room-compiler:2.5.1"
-    implementation 'androidx.room:room-ktx:2.5.1'
+    implementation 'androidx.room:room-runtime:2.5.2'
+    kapt "androidx.room:room-compiler:2.5.2"
+    implementation 'androidx.room:room-ktx:2.5.2'
     //Legacy Support
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     //Coroutines
-    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.2'
     //Navigation
     implementation 'androidx.navigation:navigation-fragment-ktx:2.6.0'
     implementation 'androidx.navigation:navigation-ui-ktx:2.6.0'
@@ -111,11 +110,6 @@ dependencies {
     implementation 'com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.11'
 
     implementation 'androidx.constraintlayout:constraintlayout:2.1.4'
-
-    //RxJava
-    implementation "io.reactivex.rxjava3:rxkotlin:3.0.1"
-    implementation "io.reactivex.rxjava3:rxjava:3.1.6"
-    implementation 'io.reactivex.rxjava3:rxandroid:3.0.2'
 
     //Coil
     implementation 'io.coil-kt:coil:2.4.0'
@@ -149,6 +143,13 @@ dependencies {
     //Insetter
     implementation 'dev.chrisbanes.insetter:insetter:0.6.1'
     implementation 'dev.chrisbanes.insetter:insetter-dbx:0.6.1'
+
+    //Shimmer
+    implementation 'com.facebook.shimmer:shimmer:0.5.0'
+
+    //Lottie
+    def lottieVersion = "6.0.1"
+    implementation "com.airbnb.android:lottie:$lottieVersion"
 
 //    def kotlinx_metadata_version = 0.6.0
 //    kapt "org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.6.0"

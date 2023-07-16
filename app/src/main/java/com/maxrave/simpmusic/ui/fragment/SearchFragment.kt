@@ -8,18 +8,12 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.widget.SearchView
+import androidx.core.os.trace
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Observer
-import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaMetadata
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
-import com.maxrave.kotlinyoutubeextractor.State
-import com.maxrave.kotlinyoutubeextractor.YTExtractor
-import com.maxrave.kotlinyoutubeextractor.bestQuality
-import com.maxrave.kotlinyoutubeextractor.getAudioOnly
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.adapter.search.SearchHistoryItemAdapter
 import com.maxrave.simpmusic.adapter.search.SearchItemAdapter
@@ -30,22 +24,15 @@ import com.maxrave.simpmusic.data.model.searchResult.albums.AlbumsResult
 import com.maxrave.simpmusic.data.model.searchResult.artists.ArtistsResult
 import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
-import com.maxrave.simpmusic.data.model.searchResult.songs.toTrack
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
-import com.maxrave.simpmusic.data.model.searchResult.videos.toTrack
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.FragmentSearchBinding
+import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.test.source.MusicSource
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.SearchViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -58,9 +45,6 @@ class SearchFragment : Fragment() {
 
     private var _binding: FragmentSearchBinding? = null
     private val binding get() = _binding!!
-    //Coroutines
-    private val scope = CoroutineScope(Dispatchers.Main)
-    private val job = SupervisorJob()
 
     //Data Saved
     private lateinit var searchHistory: ArrayList<String>
@@ -89,8 +73,22 @@ class SearchFragment : Fragment() {
         return binding.root
     }
 
+    override fun onPause() {
+        binding.shimmerLayout.stopShimmer()
+        binding.shimmerLayout.visibility = View.GONE
+        super.onPause()
+    }
+
     override fun onResume() {
         super.onResume()
+        if (viewModel.loading.value == true){
+            binding.shimmerLayout.startShimmer()
+            binding.shimmerLayout.visibility = View.VISIBLE
+        }
+        else {
+            binding.shimmerLayout.stopShimmer()
+            binding.shimmerLayout.visibility = View.GONE
+        }
         Log.d("SearchFragment", "onResume")
 //        binding.svSearch.setQuery("", false)
 //        binding.svSearch.clearFocus()
@@ -103,10 +101,14 @@ class SearchFragment : Fragment() {
                     binding.recentlyQueryView.visibility = View.GONE
                     binding.defaultLayout.visibility = View.GONE
                     binding.resultView.visibility = View.VISIBLE
-                    if (!searchHistory.contains(query)){
-                        searchHistory.add(0 ,query)
-                        Log.d("Check History in Fragment", searchHistory.toString())
-                    }
+//                    if (!searchHistory.contains(query)){
+//                        viewModel.insertSearchHistory(query)
+//                        viewModel.getSearchHistory()
+//                        observeSearchHistory()
+//                    }
+                    viewModel.insertSearchHistory(query)
+                    viewModel.getSearchHistory()
+                    observeSearchHistory()
                     Log.d("Check History", searchHistory.toString())
                     viewModel.searchHistory.postValue(searchHistory)
                     searchHistoryAdapter.updateData(searchHistory)
@@ -183,7 +185,7 @@ class SearchFragment : Fragment() {
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        viewModel.getSearchHistory()
         Log.d("SearchFragment", "onViewCreated")
         Log.d("SearchFragment", "viewModel.searchAllResult.value: ${viewModel.searchAllResult.value}")
         resultList = ArrayList<Any>()
@@ -196,10 +198,7 @@ class SearchFragment : Fragment() {
             adapter = searchHistoryAdapter
             layoutManager = LinearLayoutManager(context)
         }
-        if (viewModel.searchHistory.value != null){
-            searchHistory.addAll(viewModel.searchHistory.value as ArrayList<String>)
-            searchHistoryAdapter.updateData(searchHistory)
-        }
+        observeSearchHistory()
         suggestAdapter = SuggestQueryAdapter(arrayListOf())
         binding.suggestList.apply {
             adapter = suggestAdapter
@@ -237,9 +236,9 @@ class SearchFragment : Fragment() {
         binding.svSearch.setOnQueryTextFocusChangeListener{ v, hasFocus ->
             if (hasFocus){
                 Log.d("Check History in ViewModel", viewModel.searchHistory.value.toString())
-                viewModel.searchHistory.observe(viewLifecycleOwner, Observer { history ->
+                viewModel.searchHistory.observe(viewLifecycleOwner){ history ->
                     searchHistoryAdapter.updateData(searchHistory)
-                })
+                }
             }
         }
 
@@ -307,6 +306,7 @@ class SearchFragment : Fragment() {
             viewModel.searchHistory.value?.clear()
             searchHistory.clear()
             searchHistoryAdapter.updateData(searchHistory)
+            viewModel.deleteSearchHistory()
         }
         binding.refreshSearch.setOnRefreshListener {
             if (binding.chipAll.isChecked){
@@ -328,7 +328,7 @@ class SearchFragment : Fragment() {
                 fetchSearchPlaylists(binding.svSearch.query.toString())
             }
         }
-        binding.chipGroupTypeSearch.setOnCheckedStateChangeListener { group, checkedIds ->
+        binding.chipGroupTypeSearch.setOnCheckedStateChangeListener { _, checkedIds ->
             if (checkedIds.contains(binding.chipSong.id))
             {
                 resultList.clear()
@@ -392,8 +392,23 @@ class SearchFragment : Fragment() {
             }
         })
     }
+
+    private fun observeSearchHistory() {
+        viewModel.searchHistory.observe(viewLifecycleOwner){ searchHistoryList ->
+            if (searchHistoryList != null){
+                searchHistory.clear()
+                for (i in searchHistoryList.size - 1 downTo 0){
+                    searchHistory.add(searchHistoryList[i])
+                }
+                searchHistoryAdapter.updateData(searchHistory)
+            }
+        }
+    }
+
     private fun fetchSearchVideos(query: String) {
         binding.refreshSearch.isRefreshing = true
+        binding.shimmerLayout.startShimmer()
+        binding.shimmerLayout.visibility = View.VISIBLE
         viewModel.searchVideos(query)
         viewModel.loading.observe(viewLifecycleOwner){
             viewModel.videoSearchResult.observe(viewLifecycleOwner){response ->
@@ -408,6 +423,8 @@ class SearchFragment : Fragment() {
                             }
                             resultAdapter.updateList(resultList)
                             binding.refreshSearch.isRefreshing = false
+                            binding.shimmerLayout.stopShimmer()
+                            binding.shimmerLayout.visibility = View.GONE
                         }
                     }
                     is Resource.Error -> {
@@ -419,6 +436,8 @@ class SearchFragment : Fragment() {
                                 .setDuration(5000)
                                 .show()
                         }
+                        binding.shimmerLayout.stopShimmer()
+                        binding.shimmerLayout.visibility = View.GONE
                     }
                 }
             }
@@ -426,9 +445,11 @@ class SearchFragment : Fragment() {
     }
     private fun fetchSearchAlbums(query: String) {
         binding.refreshSearch.isRefreshing = true
+        binding.shimmerLayout.startShimmer()
+        binding.shimmerLayout.visibility = View.VISIBLE
         viewModel.searchAlbums(query)
         viewModel.loading.observe(viewLifecycleOwner){
-            viewModel.albumsSearchResult.observe(viewLifecycleOwner, Observer { response ->
+            viewModel.albumsSearchResult.observe(viewLifecycleOwner) { response ->
                 when (response) {
                     is Resource.Success -> {
                         response.data.let {
@@ -441,6 +462,8 @@ class SearchFragment : Fragment() {
                             }
                             resultAdapter.updateList(resultList)
                             binding.refreshSearch.isRefreshing = false
+                            binding.shimmerLayout.stopShimmer()
+                            binding.shimmerLayout.visibility = View.GONE
                         }
                     }
                     is Resource.Error -> {
@@ -452,17 +475,21 @@ class SearchFragment : Fragment() {
                                 .setDuration(5000)
                                 .show()
                         }
+                        binding.shimmerLayout.stopShimmer()
+                        binding.shimmerLayout.visibility = View.GONE
                     }
                 }
-            })
+            }
         }
     }
     private fun fetchSearchPlaylists(query: String) {
         binding.refreshSearch.isRefreshing = true
+        binding.shimmerLayout.startShimmer()
+        binding.shimmerLayout.visibility = View.VISIBLE
         viewModel.searchPlaylists(query)
         viewModel.loading.observe(viewLifecycleOwner){
             if (it == false){
-                viewModel.playlistSearchResult.observe(viewLifecycleOwner, Observer { response ->
+                viewModel.playlistSearchResult.observe(viewLifecycleOwner) { response ->
                     when (response) {
                         is Resource.Success -> {
                             response.data.let { playlistsResultArrayList ->
@@ -474,6 +501,8 @@ class SearchFragment : Fragment() {
                                     }
                                 }
                                 resultAdapter.updateList(resultList)
+                                binding.shimmerLayout.stopShimmer()
+                                binding.shimmerLayout.visibility = View.GONE
                                 binding.refreshSearch.isRefreshing = false
                             }
                         }
@@ -486,18 +515,22 @@ class SearchFragment : Fragment() {
                                     .setDuration(5000)
                                     .show()
                             }
+                            binding.shimmerLayout.stopShimmer()
+                            binding.shimmerLayout.visibility = View.GONE
                         }
                     }
-                })
+                }
             }
         }
     }
     private fun fetchSearchArtists(query: String) {
+        binding.shimmerLayout.startShimmer()
+        binding.shimmerLayout.visibility = View.VISIBLE
         binding.refreshSearch.isRefreshing = true
         viewModel.searchArtists(query)
         viewModel.loading.observe(viewLifecycleOwner){
             if (it == false){
-                viewModel.artistsSearchResult.observe(viewLifecycleOwner, Observer { response ->
+                viewModel.artistsSearchResult.observe(viewLifecycleOwner) { response ->
                     when (response) {
                         is Resource.Success -> {
                             response.data.let { artistsResultArrayList ->
@@ -509,6 +542,8 @@ class SearchFragment : Fragment() {
                                     }
                                 }
                                 resultAdapter.updateList(resultList)
+                                binding.shimmerLayout.stopShimmer()
+                                binding.shimmerLayout.visibility = View.GONE
                                 binding.refreshSearch.isRefreshing = false
                             }
                         }
@@ -521,18 +556,22 @@ class SearchFragment : Fragment() {
                                     .setDuration(5000)
                                     .show()
                             }
+                            binding.shimmerLayout.stopShimmer()
+                            binding.shimmerLayout.visibility = View.GONE
                         }
                     }
-                })
+                }
             }
         }
     }
     private fun fetchSearchSongs(query: String) {
+        binding.shimmerLayout.startShimmer()
+        binding.shimmerLayout.visibility = View.VISIBLE
         binding.refreshSearch.isRefreshing = true
         viewModel.searchSongs(query)
         viewModel.loading.observe(viewLifecycleOwner){
             if (it == false){
-                viewModel.songsSearchResult.observe(viewLifecycleOwner, Observer { response ->
+                viewModel.songsSearchResult.observe(viewLifecycleOwner) { response ->
                     when (response) {
                         is Resource.Success -> {
                             response.data.let { songsResultArrayList ->
@@ -544,6 +583,8 @@ class SearchFragment : Fragment() {
                                     }
                                 }
                                 resultAdapter.updateList(resultList)
+                                binding.shimmerLayout.stopShimmer()
+                                binding.shimmerLayout.visibility = View.GONE
                                 binding.refreshSearch.isRefreshing = false
                             }
                         }
@@ -556,24 +597,29 @@ class SearchFragment : Fragment() {
                                     .setDuration(5000)
                                     .show()
                             }
+                            binding.shimmerLayout.stopShimmer()
+                            binding.shimmerLayout.visibility = View.GONE
                             binding.refreshSearch.isRefreshing = false
                         }
                     }
-                })
+                }
             }
         }
     }
     private fun fetchSearchAll(query: String) {
+        binding.shimmerLayout.startShimmer()
+        binding.shimmerLayout.visibility = View.VISIBLE
+        binding.refreshSearch.isRefreshing = true
         viewModel.searchAll(query)
         var song = ArrayList<SongsResult>()
-        var video = ArrayList<VideosResult>()
+        val video = ArrayList<VideosResult>()
         var album = ArrayList<AlbumsResult>()
         var artist = ArrayList<ArtistsResult>()
         var playlist = ArrayList<PlaylistsResult>()
-        val temp: ArrayList<Any> = ArrayList()
-        viewModel.loading.observe(viewLifecycleOwner){
+        var temp: ArrayList<Any> = ArrayList()
+        viewModel.loading.observe(viewLifecycleOwner){ it ->
             if (it == false){
-                viewModel.songsSearchResult.observe(viewLifecycleOwner, Observer { response ->
+                viewModel.songsSearchResult.observe(viewLifecycleOwner) { response ->
                     when (response) {
                         is Resource.Success -> {
                             response.data.let { songsResultArrayList ->
@@ -593,7 +639,7 @@ class SearchFragment : Fragment() {
                             }
                         }
                     }
-                })
+                }
                 viewModel.videoSearchResult.observe(viewLifecycleOwner){ response ->
                     when (response) {
                         is Resource.Success -> {
@@ -616,7 +662,7 @@ class SearchFragment : Fragment() {
                         }
                     }
                 }
-                viewModel.albumsSearchResult.observe(viewLifecycleOwner, Observer { response ->
+                viewModel.albumsSearchResult.observe(viewLifecycleOwner) { response ->
                     when (response) {
                         is Resource.Success -> {
                             response.data.let {
@@ -635,8 +681,8 @@ class SearchFragment : Fragment() {
                             }
                         }
                     }
-                })
-                viewModel.artistsSearchResult.observe(viewLifecycleOwner, Observer { response ->
+                }
+                viewModel.artistsSearchResult.observe(viewLifecycleOwner) { response ->
                     when (response) {
                         is Resource.Success -> {
                             response.data.let { artistsResultArrayList ->
@@ -655,8 +701,8 @@ class SearchFragment : Fragment() {
                             }
                         }
                     }
-                })
-                viewModel.playlistSearchResult.observe(viewLifecycleOwner, Observer { response ->
+                }
+                viewModel.playlistSearchResult.observe(viewLifecycleOwner) { response ->
                     when (response) {
                         is Resource.Success -> {
                             response.data.let { playlistsResultArrayList ->
@@ -675,8 +721,8 @@ class SearchFragment : Fragment() {
                             }
                         }
                     }
-                })
-                viewModel.loading.observe(viewLifecycleOwner, Observer { loading ->
+                }
+                viewModel.loading.observe(viewLifecycleOwner) { loading ->
                     if (loading) {
                         binding.refreshSearch.isRefreshing = true
                     } else {
@@ -719,21 +765,56 @@ class SearchFragment : Fragment() {
                                 .setDuration(5000)
                                 .show()
                         }
+//                        val sortedList = temp.sortedWith(compareByDescending<Any>
+//                            {compareQuery ->
+//                                    when (compareQuery){
+//                                    is SongsResult -> compareQuery.title?.lowercase()?.contains(binding.svSearch.query.toString().lowercase())
+//                                    is VideosResult -> compareQuery.title.lowercase().contains(binding.svSearch.query.toString().lowercase())
+//                                    is AlbumsResult -> compareQuery.title.lowercase().contains(binding.svSearch.query.toString().lowercase())
+//                                    is ArtistsResult -> compareQuery.artist.lowercase().contains(binding.svSearch.query.toString().lowercase())
+//                                    is PlaylistsResult -> compareQuery.title.lowercase().contains(binding.svSearch.query.toString().lowercase())
+//                                    else -> ""
+//                                }
+//                            }
+//                            .thenBy {compareQuery ->
+//                                when (compareQuery){
+//                                    is SongsResult -> compareQuery.title?.length
+//                                    is VideosResult -> compareQuery.title.length
+//                                    is AlbumsResult -> compareQuery.title.length
+//                                    is ArtistsResult -> compareQuery.artist.length
+//                                    is PlaylistsResult -> compareQuery.title.length
+//                                    else -> ""
+//                                }  }
+//                            .thenBy { compareQuery ->
+//                                when (compareQuery){
+//                                    is SongsResult -> compareQuery.title
+//                                    is VideosResult -> compareQuery.title
+//                                    is AlbumsResult -> compareQuery.title
+//                                    is ArtistsResult -> compareQuery.artist
+//                                    is PlaylistsResult -> compareQuery.title
+//                                    else -> ""
+//                                }
+//                            }
+//                        )
+//                        temp.clear()
+//                        temp.addAll(sortedList)
                         resultList.clear()
                         viewModel.searchAllResult.postValue(temp)
                         searchAllResult.addAll(temp)
                         resultList.addAll(temp)
                         resultAdapter.updateList(resultList)
+                        binding.shimmerLayout.stopShimmer()
+                        binding.shimmerLayout.visibility = View.GONE
                         binding.refreshSearch.isRefreshing = false
                     }
-                })
+                }
             }
         }
     }
 
     private fun fetchSuggestList(query: String) {
         viewModel.suggestQuery(query)
-        viewModel.suggestQuery.observe(viewLifecycleOwner, Observer { response ->
+        viewModel.suggestQuery.observe(viewLifecycleOwner) { response ->
             when (response) {
                 is Resource.Success -> {
                     response.data.let {
@@ -747,6 +828,6 @@ class SearchFragment : Fragment() {
 
                 }
             }
-        })
+        }
     }
 }

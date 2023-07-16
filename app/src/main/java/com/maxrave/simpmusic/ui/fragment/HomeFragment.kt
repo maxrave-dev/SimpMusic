@@ -36,10 +36,9 @@ import com.maxrave.simpmusic.data.model.home.chart.ItemArtist
 import com.maxrave.simpmusic.data.model.home.chart.ItemVideo
 import com.maxrave.simpmusic.data.model.home.chart.toTrack
 import com.maxrave.simpmusic.data.model.home.homeItem
-import com.maxrave.simpmusic.data.model.home.toTrack
-import com.maxrave.simpmusic.data.model.searchResult.songs.toTrack
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.FragmentHomeBinding
+import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.HomeViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -86,8 +85,27 @@ class HomeFragment : Fragment() {
         return binding.root
     }
 
+    override fun onResume() {
+        if (viewModel.loading.value == true) {
+            binding.shimmerLayout.startShimmer()
+            binding.shimmerLayout.visibility = View.VISIBLE
+        } else {
+            binding.shimmerLayout.stopShimmer()
+            binding.shimmerLayout.visibility = View.GONE
+        }
+        super.onResume()
+    }
+
+    override fun onPause() {
+        binding.shimmerLayout.stopShimmer()
+        binding.shimmerLayout.visibility = View.GONE
+        super.onPause()
+    }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        binding.shimmerLayout.stopShimmer()
+        binding.shimmerLayout.visibility = View.GONE
         val items = arrayOf("US", "ZZ", "AR", "AU", "AT", "BE", "BO", "BR", "CA", "CL", "CO", "CR", "CZ", "DK", "DO", "EC", "EG", "SV", "EE", "FI", "FR", "DE", "GT", "HN", "HU", "IS", "IN", "ID", "IE", "IL", "IT", "JP", "KE", "LU", "MX", "NL", "NZ", "NI", "NG", "NO", "PA", "PY", "PE", "PL", "PT", "RO", "RU", "SA", "RS", "ZA", "KR", "ES", "SE", "CH", "TZ", "TR", "UG", "UA", "AE", "GB", "UY", "ZW")
         val itemsData = arrayOf("United States", "Global", "Argentina", "Australia", "Austria", "Belgium", "Bolivia", "Brazil", "Canada", "Chile", "Colombia", "Costa Rica", "Czech Republic", "Denmark", "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Estonia", "Finland", "France", "Germany", "Guatemala", "Honduras", "Hungary", "Iceland", "India", "Indonesia", "Ireland", "Israel", "Italy", "Japan", "Kenya", "Luxembourg", "Mexico", "Netherlands", "New Zealand", "Nicaragua", "Nigeria", "Norway", "Panama", "Paraguay", "Peru", "Poland", "Portugal", "Romania", "Russia", "Saudi Arabia", "Serbia", "South Africa", "South Korea", "Spain", "Sweden", "Switzerland", "Tanzania", "Turkey", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "Uruguay", "Zimbabwe")
 
@@ -113,8 +131,8 @@ class HomeFragment : Fragment() {
         }
         Log.d("Check",formatter.format(date))
         Log.d("Date", "onCreateView: $date")
-        binding.tvTitleMoodsMoment.visibility = View.GONE
-        binding.tvTitleGenre.visibility = View.GONE
+//        binding.tvTitleMoodsMoment.visibility = View.GONE
+//        binding.tvTitleGenre.visibility = View.GONE
         binding.fullLayout.visibility = View.GONE
         mAdapter = HomeItemAdapter(arrayListOf(), requireContext(), findNavController())
         moodsMomentAdapter = MoodsMomentAdapter(arrayListOf())
@@ -196,9 +214,9 @@ class HomeFragment : Fragment() {
                             genreAdapter.updateData(genre!!)
                         }
                     })
-                    binding.tvTitleMoodsMoment.visibility = View.VISIBLE
-                    binding.tvTitleGenre.visibility = View.VISIBLE
-                    binding.fullLayout.visibility = View.VISIBLE
+//                    binding.tvTitleMoodsMoment.visibility = View.VISIBLE
+//                    binding.tvTitleGenre.visibility = View.VISIBLE
+//                    binding.fullLayout.visibility = View.VISIBLE
 //                    binding.swipeRefreshLayout.isRefreshing = false
                 }
                 else {
@@ -257,8 +275,8 @@ class HomeFragment : Fragment() {
             genre = exploreMoodItem?.genres as ArrayList<Genre>
             Log.d("Moods & Moment", "onViewCreated: $moodsMoment")
             Log.d("Genre", "onViewCreated: $genre")
-            binding.tvTitleMoodsMoment.visibility = View.VISIBLE
-            binding.tvTitleGenre.visibility = View.VISIBLE
+//            binding.tvTitleMoodsMoment.visibility = View.VISIBLE
+//            binding.tvTitleGenre.visibility = View.VISIBLE
             moodsMomentAdapter.updateData(moodsMoment!!)
             genreAdapter.updateData(genre!!)
             binding.fullLayout.visibility = View.VISIBLE
@@ -420,6 +438,7 @@ class HomeFragment : Fragment() {
     }
 
     private fun fetchHomeData() {
+        binding.shimmerLayout.startShimmer()
         fetchResponse()
         viewModel.homeItemList.observe(viewLifecycleOwner, Observer { response ->
             when (response) {
@@ -450,11 +469,21 @@ class HomeFragment : Fragment() {
                         }
                         Log.d("Data", "onViewCreated: $homeItemList")
                         mAdapter.updateData(homeItemListWithoutQuickPicks!!)
+                        binding.shimmerLayout.stopShimmer()
+                        binding.shimmerLayout.visibility = View.GONE
                         binding.fullLayout.visibility = View.VISIBLE
+//                        binding.tvTitleMoodsMoment.visibility = View.VISIBLE
+//                        binding.tvTitleGenre.visibility = View.VISIBLE
                         binding.swipeRefreshLayout.isRefreshing = false
+
                     }
                 }
                 is Resource.Error -> {
+                    binding.shimmerLayout.stopShimmer()
+                    binding.shimmerLayout.visibility = View.GONE
+                    binding.fullLayout.visibility = View.VISIBLE
+//                    binding.tvTitleMoodsMoment.visibility = View.VISIBLE
+//                    binding.tvTitleGenre.visibility = View.VISIBLE
                     binding.swipeRefreshLayout.isRefreshing = false
                     response.message?.let { message ->
                         Snackbar.make(binding.root, "Home Data Error "+message, Snackbar.LENGTH_LONG)
@@ -479,8 +508,7 @@ class HomeFragment : Fragment() {
                         Log.d("Genre", "onViewCreated: $genre")
                         moodsMomentAdapter.updateData(moodsMoment!!)
                         genreAdapter.updateData(genre!!)
-                        binding.tvTitleMoodsMoment.visibility = View.VISIBLE
-                        binding.tvTitleGenre.visibility = View.VISIBLE
+
                     }
                 }
                 is Resource.Error -> {

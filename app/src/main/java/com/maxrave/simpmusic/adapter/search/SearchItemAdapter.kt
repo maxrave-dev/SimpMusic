@@ -12,6 +12,10 @@ import com.maxrave.simpmusic.common.Config.SONG_CLICK
 import com.maxrave.simpmusic.common.Config.VIDEO_CLICK
 import com.maxrave.simpmusic.common.Config.PLAYLIST_CLICK
 import com.maxrave.simpmusic.common.Config.ALBUM_CLICK
+import com.maxrave.simpmusic.data.db.entities.AlbumEntity
+import com.maxrave.simpmusic.data.db.entities.ArtistEntity
+import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
+import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.searchResult.albums.AlbumsResult
 import com.maxrave.simpmusic.data.model.searchResult.artists.ArtistsResult
 import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
@@ -20,6 +24,8 @@ import com.maxrave.simpmusic.databinding.ItemAlbumSearchResultBinding
 import com.maxrave.simpmusic.databinding.ItemArtistSearchResultBinding
 import com.maxrave.simpmusic.databinding.ItemPlaylistSearchResultBinding
 import com.maxrave.simpmusic.databinding.ItemsVideosSearchResultBinding
+import com.maxrave.simpmusic.extension.connectArtists
+import com.maxrave.simpmusic.extension.toListName
 
 class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var context: Context): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     private lateinit var mListener: onItemClickListener
@@ -50,15 +56,27 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
                         ivThumbnail.load(song.thumbnails[0].url)}
                 }
                 tvSongTitle.text = song.title
-                var tempArtist = mutableListOf<String>()
-                if (song.artists != null){
-                    for (artist in song.artists) {
-                        tempArtist.add(artist.name)
-                    }
-                }
-                val artistName = connectArtists(tempArtist)
+                val artistName = song.artists.toListName().connectArtists()
                 tvSongArtist.text = context.getString(R.string.Song_and_artist_name, artistName)
                 tvSongAlbum.text = song.album?.name
+                tvSongTitle.isSelected = true
+                tvSongArtist.isSelected = true
+                tvSongAlbum.isSelected = true
+            }
+        }
+    }
+    inner class SongEntityViewHolder(val binding: ItemSongsSearchResultBinding, listener: onItemClickListener): RecyclerView.ViewHolder(binding.root) {
+        init {
+            binding.root.setOnClickListener {
+                listener.onItemClick(bindingAdapterPosition, SONG_CLICK)
+            }
+        }
+        fun bind(song: SongEntity){
+            with(binding){
+                ivThumbnail.load(song.thumbnails)
+                tvSongTitle.text = song.title
+                tvSongArtist.text = context.getString(R.string.Song_and_artist_name, song.artistName?.connectArtists())
+                tvSongAlbum.text = song.albumName
                 tvSongTitle.isSelected = true
                 tvSongArtist.isSelected = true
                 tvSongAlbum.isSelected = true
@@ -77,11 +95,7 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
                 tvVideoTitle.text = video.title
                 val tempArtist = mutableListOf<String>()
                 if (video.artists != null){
-                    for (artist in video.artists) {
-                        tempArtist.add(artist.name)
-                    }
-                    val artistName = connectArtists(tempArtist)
-                    tvAuthor.text = artistName
+                    tvAuthor.text = video.artists.toListName().connectArtists()
                 }
                 else{
                     tvAuthor.text = ""
@@ -104,6 +118,19 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
             }
         }
     }
+    inner class ArtistEntityViewHolder(val binding: ItemArtistSearchResultBinding, listener: onItemClickListener): RecyclerView.ViewHolder(binding.root) {
+        init {
+            binding.root.setOnClickListener {
+                listener.onItemClick(bindingAdapterPosition, "artist")
+            }
+        }
+        fun bind(artist: ArtistEntity){
+            with(binding){
+                ivThumbnail.load(artist.thumbnails)
+                tvArtistName.text = artist.name
+            }
+        }
+    }
     inner class PlaylistViewHolder(val binding: ItemPlaylistSearchResultBinding, listener: onItemClickListener): RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
@@ -116,6 +143,22 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
                     ivThumbnail.load(playlist.thumbnails[1].url)}
                 else{
                     ivThumbnail.load(playlist.thumbnails[0].url)}
+                tvPlaylistName.text = playlist.title
+                tvPlaylistAuthor.text = context.getString(R.string.playlist_and_author, playlist.author)
+                tvPlaylistName.isSelected = true
+                tvPlaylistAuthor.isSelected = true
+            }
+        }
+    }
+    inner class PlaylistEntityViewHolder(val binding: ItemPlaylistSearchResultBinding, listener: onItemClickListener): RecyclerView.ViewHolder(binding.root) {
+        init {
+            binding.root.setOnClickListener {
+                listener.onItemClick(bindingAdapterPosition, PLAYLIST_CLICK)
+            }
+        }
+        fun bind(playlist: PlaylistEntity) {
+            with(binding) {
+                ivThumbnail.load(playlist.thumbnails)
                 tvPlaylistName.text = playlist.title
                 tvPlaylistAuthor.text = context.getString(R.string.playlist_and_author, playlist.author)
                 tvPlaylistName.isSelected = true
@@ -136,13 +179,28 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
                 else{
                     ivThumbnail.load(album.thumbnails[0].url)}
                 tvAlbumName.text = album.title
-                var tempArtist = mutableListOf<String>()
-                for (artist in album.artists) {
-                    tempArtist.add(artist.name)
-                }
-                val artistName = connectArtists(tempArtist)
+                val artistName = album.artists.toListName().connectArtists()
 //                artistName = removeTrailingComma(artistName)
 //                artistName = removeComma(artistName)
+                tvAlbumArtist.text = context.getString(R.string.album_and_artist_name, artistName)
+                tvAlbumYear.text = album.year
+                tvAlbumName.isSelected = true
+                tvAlbumArtist.isSelected = true
+                tvAlbumYear.isSelected = true
+            }
+        }
+    }
+    inner class AlbumEntityViewHolder(val binding: ItemAlbumSearchResultBinding, listener: onItemClickListener): RecyclerView.ViewHolder(binding.root){
+        init {
+            binding.root.setOnClickListener {
+                listener.onItemClick(bindingAdapterPosition, ALBUM_CLICK)
+            }
+        }
+        fun bind(album: AlbumEntity){
+            with(binding){
+                ivThumbnail.load(album.thumbnails)
+                tvAlbumName.text = album.title
+                val artistName = album.artistName?.connectArtists()
                 tvAlbumArtist.text = context.getString(R.string.album_and_artist_name, artistName)
                 tvAlbumYear.text = album.year
                 tvAlbumName.isSelected = true
@@ -164,6 +222,10 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
             is PlaylistsResult -> VIEW_TYPE_PLAYLIST
             is AlbumsResult -> VIEW_TYPE_ALBUM
             is VideosResult -> VIEW_TYPE_VIDEO
+            is SongEntity -> VIEW_TYPE_SONG_ENTITY
+            is ArtistEntity -> VIEW_TYPE_ARTIST_ENTITY
+            is PlaylistEntity -> VIEW_TYPE_PLAYLIST_ENTITY
+            is AlbumEntity -> VIEW_TYPE_ALBUM_ENTITY
             else -> throw IllegalArgumentException("Unknown view type")
         }
     }
@@ -190,6 +252,22 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
                 val binding = ItemsVideosSearchResultBinding.inflate(inflater, parent, false)
                 VideoViewHolder(binding, mListener)
             }
+            VIEW_TYPE_SONG_ENTITY -> {
+                val binding = ItemSongsSearchResultBinding.inflate(inflater, parent, false)
+                SongEntityViewHolder(binding, mListener)
+            }
+            VIEW_TYPE_ARTIST_ENTITY -> {
+                val binding = ItemArtistSearchResultBinding.inflate(inflater, parent, false)
+                ArtistEntityViewHolder(binding, mListener)
+            }
+            VIEW_TYPE_PLAYLIST_ENTITY -> {
+                val binding = ItemPlaylistSearchResultBinding.inflate(inflater, parent, false)
+                PlaylistEntityViewHolder(binding, mListener)
+            }
+            VIEW_TYPE_ALBUM_ENTITY -> {
+                val binding = ItemAlbumSearchResultBinding.inflate(inflater, parent, false)
+                AlbumEntityViewHolder(binding, mListener)
+            }
             else -> throw IllegalArgumentException("Unknown view type")
         }
     }
@@ -215,20 +293,19 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
             is VideoViewHolder -> {
                 holder.bind(searchResultList[position] as VideosResult)
             }
-        }
-    }
-    fun connectArtists(artists: List<String>): String {
-        val stringBuilder = StringBuilder()
-
-        for ((index, artist) in artists.withIndex()) {
-            stringBuilder.append(artist)
-
-            if (index < artists.size - 1) {
-                stringBuilder.append(", ")
+            is SongEntityViewHolder -> {
+                holder.bind(searchResultList[position] as SongEntity)
+            }
+            is ArtistEntityViewHolder -> {
+                holder.bind(searchResultList[position] as ArtistEntity)
+            }
+            is PlaylistEntityViewHolder -> {
+                holder.bind(searchResultList[position] as PlaylistEntity)
+            }
+            is AlbumEntityViewHolder -> {
+                holder.bind(searchResultList[position] as AlbumEntity)
             }
         }
-
-        return stringBuilder.toString()
     }
     companion object {
         private const val VIEW_TYPE_SONG = 0
@@ -236,6 +313,9 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
         private const val VIEW_TYPE_PLAYLIST = 2
         private const val VIEW_TYPE_ALBUM = 3
         private const val VIEW_TYPE_VIDEO = 4
-
+        private const val VIEW_TYPE_SONG_ENTITY = 5
+        private const val VIEW_TYPE_ARTIST_ENTITY = 6
+        private const val VIEW_TYPE_PLAYLIST_ENTITY = 7
+        private const val VIEW_TYPE_ALBUM_ENTITY = 8
     }
 }

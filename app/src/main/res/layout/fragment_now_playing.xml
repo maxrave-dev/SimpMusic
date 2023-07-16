@@ -58,7 +58,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_centerInParent="true"
-                        android:background="@android:color/background_dark"
+                        android:background="@drawable/background_image_view"
                         android:elevation="10sp"
                         android:outlineProvider="bounds"
                         android:scaleType="centerCrop">
@@ -131,7 +131,11 @@
                             android:layout_weight="5"
                             android:layout_gravity="center_vertical"
                             android:button="@drawable/selector_favorite_check_box"
-                            android:id="@+id/cbFavorite">
+                            app:buttonTint="@color/selector_favorite_check_box"
+                            app:buttonIconTint="@color/selector_favorite_check_box"
+                            android:id="@+id/cbFavorite"
+                            android:clickable="true"
+                            android:focusable="true">
 
                         </com.google.android.material.checkbox.MaterialCheckBox>
                     </LinearLayout>
@@ -290,7 +294,10 @@
                             android:src="@drawable/baseline_info_24"
                             android:layout_alignParentStart="true"
                             android:background="@null"
-                            android:id="@+id/btSongInfo">
+                            android:id="@+id/btSongInfo"
+                            android:focusable="true"
+                            android:clickable="true"
+                            android:foreground="?android:attr/selectableItemBackground">
 
                         </ImageButton>
                         <ImageButton
@@ -299,7 +306,10 @@
                             android:src="@drawable/baseline_queue_music_24"
                             android:layout_alignParentEnd="true"
                             android:background="@null"
-                            android:id="@+id/btQueue">
+                            android:id="@+id/btQueue"
+                            android:focusable="true"
+                            android:clickable="true"
+                            android:foreground="?android:attr/selectableItemBackground">
 
                         </ImageButton>
 

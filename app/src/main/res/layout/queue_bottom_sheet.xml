@@ -4,9 +4,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools">
-    <androidx.core.widget.NestedScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -114,23 +111,31 @@
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:textColor="@android:color/white" />
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rvQueue"
+                <androidx.core.widget.NestedScrollView
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    tools:listitem="@layout/item_album_track">
+                    android:layout_height="wrap_content">
+                    <LinearLayout
+                        android:orientation="vertical"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/rvQueue"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            tools:listitem="@layout/item_album_track">
 
-                </androidx.recyclerview.widget.RecyclerView>
-                <com.google.android.material.progressindicator.CircularProgressIndicator
-                    android:id="@+id/loadingQueue"
-                    android:layout_width="50sp"
-                    android:layout_height="50sp"
-                    android:indeterminate="true"
-                    android:layout_gravity="center_horizontal"
-                    android:layout_marginVertical="15sp">
+                        </androidx.recyclerview.widget.RecyclerView>
+                        <com.google.android.material.progressindicator.CircularProgressIndicator
+                            android:id="@+id/loadingQueue"
+                            android:layout_width="50sp"
+                            android:layout_height="50sp"
+                            android:indeterminate="true"
+                            android:layout_gravity="center_horizontal"
+                            android:layout_marginVertical="15sp">
 
-                </com.google.android.material.progressindicator.CircularProgressIndicator>
+                        </com.google.android.material.progressindicator.CircularProgressIndicator>
+                    </LinearLayout>
+                </androidx.core.widget.NestedScrollView>
             </LinearLayout>
         </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
 </RelativeLayout>

@@ -92,7 +92,7 @@ class SimpleMediaNotificationManager @Inject constructor(
                 it.setUseFastForwardActionInCompactView(true)
                 it.setUseRewindActionInCompactView(true)
                 it.setUseNextActionInCompactView(false)
-                it.setPriority(NotificationCompat.PRIORITY_LOW)
+                it.setPriority(NotificationCompat.PRIORITY_HIGH)
                 it.setPlayer(player)
             }
     }

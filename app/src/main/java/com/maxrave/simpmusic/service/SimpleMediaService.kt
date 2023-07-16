@@ -57,6 +57,7 @@ class SimpleMediaService : MediaSessionService() {
     override fun onUpdateNotification(session: MediaSession, startInForegroundRequired: Boolean) {
         super.onUpdateNotification(session, startInForegroundRequired)
     }
+
 }
 const val NEXT = "next"
 const val PREVIOUS = "previous"

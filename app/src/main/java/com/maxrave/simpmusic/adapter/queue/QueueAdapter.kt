@@ -1,18 +1,20 @@
 package com.maxrave.simpmusic.adapter.queue
 
+import android.animation.ValueAnimator
 import android.content.Context
-import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.media3.common.MediaItem
 import androidx.recyclerview.widget.RecyclerView
-import androidx.vectordrawable.graphics.drawable.Animatable2Compat
-import androidx.vectordrawable.graphics.drawable.AnimatedVectorDrawableCompat
-import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.databinding.ItemQueueTrackBinding
+import com.maxrave.simpmusic.extension.connectArtists
+import com.maxrave.simpmusic.extension.toListId
+import com.maxrave.simpmusic.extension.toListName
 
-class QueueAdapter(private val listTrack: ArrayList<MediaItem>, val context: Context, private var currentPlaying: Int): RecyclerView.Adapter<QueueAdapter.QueueViewHolder>() {
+
+class QueueAdapter(private val listTrack: ArrayList<Track>, val context: Context, private var currentPlaying: Int): RecyclerView.Adapter<QueueAdapter.QueueViewHolder>() {
     private lateinit var mListener: OnItemClickListener
     interface OnItemClickListener{
         fun onItemClick(position: Int)
@@ -33,10 +35,14 @@ class QueueAdapter(private val listTrack: ArrayList<MediaItem>, val context: Con
          }
     }
 
-    fun updateList(tracks: ArrayList<MediaItem>) {
+    fun updateList(tracks: ArrayList<Track>) {
         listTrack.clear()
         listTrack.addAll(tracks)
         notifyDataSetChanged()
+    }
+    fun addToList(track: Track){
+        listTrack.add(track)
+        notifyItemInserted(listTrack.size - 1)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): QueueViewHolder {
@@ -53,35 +59,35 @@ class QueueAdapter(private val listTrack: ArrayList<MediaItem>, val context: Con
             if (position == currentPlaying){
                 binding.tvPosition.visibility = View.VISIBLE
                 binding.ivPlaying.visibility = View.VISIBLE
-                val drawable = AnimatedVectorDrawableCompat.create(context, R.drawable.playing_anim)
-                drawable?.registerAnimationCallback(object : Animatable2Compat.AnimationCallback(){
-                    override fun onAnimationEnd(d: Drawable?) {
-                        binding.ivPlaying.post { drawable.start() }
-                    }
-                })
-                binding.ivPlaying.setImageDrawable(drawable)
-                drawable?.start()
+//                val drawable = AnimatedVectorDrawableCompat.create(context, R.drawable.playing_anim)
+//                drawable?.registerAnimationCallback(object : Animatable2Compat.AnimationCallback(){
+//                    override fun onAnimationEnd(d: Drawable?) {
+//                        binding.ivPlaying.post { drawable.start() }
+//                    }
+//                })
+//                binding.ivPlaying.setImageDrawable(drawable)
+//                drawable?.start()
                 binding.tvPosition.text = null
-                binding.tvSongName.text = track.mediaMetadata.title
+                binding.tvSongName.text = track.title
                 binding.tvSongName.isSelected = true
 //            var artist = ""
 //            for (i in track.artists!!.indices){
 //                artist += if (i == track.artists.size - 1) track.artists[i].name else "${track.artists[i].name}, "
 //            }
-                binding.tvArtistName.text = track.mediaMetadata.artist
+                binding.tvArtistName.text = track.artists.toListName().connectArtists()
                 binding.tvArtistName.isSelected = true
             }
             else {
                 binding.tvPosition.visibility = View.VISIBLE
                 binding.ivPlaying.visibility = View.GONE
                 binding.tvPosition.text = (position + 1).toString()
-                binding.tvSongName.text = track.mediaMetadata.title
+                binding.tvSongName.text = track.title
                 binding.tvSongName.isSelected = true
 //            var artist = ""
 //            for (i in track.artists!!.indices){
 //                artist += if (i == track.artists.size - 1) track.artists[i].name else "${track.artists[i].name}, "
 //            }
-                binding.tvArtistName.text = track.mediaMetadata.artist
+                binding.tvArtistName.text = track.artists.toListName().connectArtists()
                 binding.tvArtistName.isSelected = true
             }
         }

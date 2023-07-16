@@ -25,7 +25,6 @@ class FetchQueue: Service() {
     private val job = SupervisorJob()
     private val scope = CoroutineScope(Dispatchers.Main + job)
 
-    var IS_ACTIVITY_RUNNING = false
 
     override fun onBind(p0: Intent?): IBinder? {
         return null
@@ -35,25 +34,33 @@ class FetchQueue: Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val index = intent?.extras?.getInt("index")
         Log.d("Check Index inside Service", "$index")
-        musicSource.reset()
         Log.d("Check Queue", "getRelated: ${Queue.getQueue().toString()}")
         scope.launch {
             musicSource.load()
             Log.d("CHECK SOURCE", "${musicSource.catalog.size}")
-//            musicSource.whenReady { isInitilized ->
-//                if (isInitilized) {
-//                    simpleMediaServiceHandler.addMediaItemList(musicSource.catalog)
-//                }
-//            }
             musicSource.stateFlow.collect{ state ->
                 if (state == StateSource.STATE_INITIALIZED) {
-                    if (index == null){
-                        musicSource.addFirstMediaItem(simpleMediaServiceHandler.getCurrentMediaItem())
+                    when (index) {
+                        null -> {
+                            musicSource.addFirstMediaItem(simpleMediaServiceHandler.getMediaItemWithIndex(0))
+                        }
+                        -1 -> {
+
+                        }
+                        else -> {
+                            musicSource.addFirstMediaItemToIndex(simpleMediaServiceHandler.getMediaItemWithIndex(0), index)
+                            Queue.getNowPlaying().let { song ->
+                                if (song != null) {
+                                    musicSource.catalogMetadata.removeAt(0)
+                                    musicSource.catalogMetadata.add(index, song)
+                                    val tempUrl = musicSource.downloadUrl[0]
+                                    musicSource.downloadUrl.removeAt(0)
+                                    musicSource.downloadUrl.add(index, tempUrl)
+                                }
+                            }
+                        }
                     }
-                    else {
-                        musicSource.addFirstMediaItemToIndex(simpleMediaServiceHandler.getCurrentMediaItem(), index)
-                    }
-                    simpleMediaServiceHandler.addMediaItemList(musicSource.catalog)
+//                    simpleMediaServiceHandler.addMediaItemList(musicSource.catalog)
                 }
             }
         }

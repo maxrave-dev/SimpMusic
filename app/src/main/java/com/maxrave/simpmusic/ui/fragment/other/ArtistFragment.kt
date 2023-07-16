@@ -1,33 +1,24 @@
 package com.maxrave.simpmusic.ui.fragment.other
 
-import android.content.res.Resources
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.ViewGroup.LayoutParams
-import android.widget.ImageView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
-import androidx.core.graphics.drawable.toBitmap
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.marginTop
-import androidx.core.view.setPadding
-import androidx.core.view.updateLayoutParams
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.palette.graphics.Palette
 import androidx.recyclerview.widget.LinearLayoutManager
 import coil.load
+import coil.request.CachePolicy
 import coil.size.Size
 import coil.transform.Transformation
 import com.google.android.material.snackbar.Snackbar
@@ -37,22 +28,19 @@ import com.maxrave.simpmusic.adapter.artist.PopularAdapter
 import com.maxrave.simpmusic.adapter.artist.RelatedArtistsAdapter
 import com.maxrave.simpmusic.adapter.artist.SinglesAdapter
 import com.maxrave.simpmusic.common.Config
+import com.maxrave.simpmusic.data.db.entities.ArtistEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.browse.artist.ResultAlbum
 import com.maxrave.simpmusic.data.model.browse.artist.ResultRelated
 import com.maxrave.simpmusic.data.model.browse.artist.ResultSingle
 import com.maxrave.simpmusic.data.model.browse.artist.ResultSong
-import com.maxrave.simpmusic.data.model.browse.artist.toTrack
-import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
-import com.maxrave.simpmusic.data.model.searchResult.songs.toTrack
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.FragmentArtistBinding
+import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.ArtistViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import dev.chrisbanes.insetter.Insetter
-import dev.chrisbanes.insetter.applyInsetter
-import dev.chrisbanes.insetter.windowInsetTypesOf
+import kotlinx.coroutines.launch
 import kotlin.math.abs
 
 @AndroidEntryPoint
@@ -136,7 +124,7 @@ class ArtistFragment: Fragment(){
         })
         singlesAdapter.setOnClickListener(object: SinglesAdapter.OnItemClickListener{
             override fun onItemClick(position: Int, type: String) {
-                Toast.makeText(context, "${type.toString()} ${singlesAdapter.getItem(position).toString()}", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, "$type ${singlesAdapter.getItem(position)}", Toast.LENGTH_LONG).show()
                 val args = Bundle()
                 args.putString("browseId", singlesAdapter.getItem(position).browseId)
                 findNavController().navigate(R.id.action_global_albumFragment, args)
@@ -144,7 +132,7 @@ class ArtistFragment: Fragment(){
         })
         albumsAdapter.setOnClickListener(object: AlbumsAdapter.OnItemClickListener{
             override fun onItemClick(position: Int, type: String) {
-                Toast.makeText(context, "${type.toString()} ${albumsAdapter.getItem(position).toString()}", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, "$type ${albumsAdapter.getItem(position)}", Toast.LENGTH_LONG).show()
                 val args = Bundle()
                 args.putString("browseId", albumsAdapter.getItem(position).browseId)
                 findNavController().navigate(R.id.action_global_albumFragment, args)
@@ -152,7 +140,7 @@ class ArtistFragment: Fragment(){
         })
         popularAdapter.setOnClickListener(object: PopularAdapter.OnItemClickListener{
             override fun onItemClick(position: Int, type: String) {
-                Toast.makeText(context, "${type.toString()} ${popularAdapter.getItem(position).toString()}", Toast.LENGTH_LONG).show()
+                Toast.makeText(context, "$type ${popularAdapter.getItem(position)}", Toast.LENGTH_LONG).show()
                 val songClicked = popularAdapter.getCurrentList()[position]
                 val videoId = songClicked.videoId
                 Queue.clear()
@@ -169,7 +157,11 @@ class ArtistFragment: Fragment(){
             Log.d("ArtistFragment", "Offset: $verticalOffset" + "Total: ${it.totalScrollRange}")
             if(abs(it.totalScrollRange) == abs(verticalOffset)) {
                     binding.toolBar.background = viewModel.gradientDrawable.value
-                    requireActivity().window.statusBarColor = viewModel.gradientDrawable.value?.colors!!.first()
+                    if (viewModel.gradientDrawable.value != null ){
+                        if (viewModel.gradientDrawable.value?.colors != null){
+                            requireActivity().window.statusBarColor = viewModel.gradientDrawable.value?.colors!!.first()
+                        }
+                    }
                 }
             else
                 {
@@ -178,15 +170,44 @@ class ArtistFragment: Fragment(){
                     Log.d("ArtistFragment", "Expanded")
                 }
             }
+        binding.btFollow.setOnClickListener {
+            val id = viewModel.artistEntity.value?.channelId
+            if (id  != null) {
+                Log.d("ChannelId", id)
+                if (binding.btFollow.text == "Follow"){
+                    viewModel.updateFollowed(1, id)
+                    binding.btFollow.text = "Followed"
+                }
+                else {
+                    viewModel.updateFollowed(0, id)
+                    binding.btFollow.text = "Follow"
+                }
+            }
+        }
 
     }
     private fun fetchData(channelId: String){
         viewModel.browseArtist(channelId)
-        viewModel.artistBrowse.observe(viewLifecycleOwner, Observer {response ->
+        viewModel.artistBrowse.observe(viewLifecycleOwner) { response ->
             when(response){
                 is Resource.Success -> {
                     response.data.let {
                         with(binding){
+                            if (it != null){
+                                viewModel.insertArtist(ArtistEntity(it.channelId!!, it.name,
+                                    it.thumbnails?.first()?.url
+                                ))
+                                lifecycleScope.launch {
+                                    viewModel.followed.collect { followed ->
+                                        if (followed) {
+                                            binding.btFollow.text = "Followed"
+                                        }
+                                        else {
+                                            binding.btFollow.text = "Follow"
+                                        }
+                                    }
+                                }
+                            }
                             topAppBar.title = it?.name.toString()
                             if (it?.thumbnails?.size!! > 1){
                                 loadImage(it.thumbnails[1].url)
@@ -195,15 +216,15 @@ class ArtistFragment: Fragment(){
                                 loadImage(it.thumbnails[0].url)
                             }
                             if (viewModel.gradientDrawable.value == null){
-                                viewModel.gradientDrawable.observe(viewLifecycleOwner, Observer {gd ->
-                                    binding.belowAppBarLayoutContainer.background = gd
+                                viewModel.gradientDrawable.observe(viewLifecycleOwner) { gd ->
+                                    binding.cardBelowAppBarLayout.background = gd
                                     binding.aboutContainer.background = gd
                                     Log.d("Load Gradient from Image", gd.toString())
-                                })
+                                }
                             }
                             else {
                                 Log.d("Load Gradient from Cache", gradientDrawable.toString())
-                                binding.belowAppBarLayoutContainer.background = gradientDrawable
+                                binding.cardBelowAppBarLayout.background = gradientDrawable
                                 binding.aboutContainer.background = gradientDrawable
                             }
                             tvSubscribers.text = context?.getString(R.string.subscribers,
@@ -245,11 +266,12 @@ class ArtistFragment: Fragment(){
                     findNavController().popBackStack()
                 }
             }
-        })
+        }
     }
 
     private fun loadImage(url: String) {
         binding.ivArtistImage.load(url) {
+            memoryCachePolicy(CachePolicy.DISABLED)
             transformations(object: Transformation {
                 override val cacheKey: String
                     get() = "paletteTransformer"

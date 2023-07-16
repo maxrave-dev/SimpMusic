@@ -96,12 +96,16 @@
                             android:textSize="10sp" />
                     </LinearLayout>
                     <com.google.android.material.checkbox.MaterialCheckBox
-                        android:id="@+id/cbFavorite"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_weight="2"
                         android:layout_gravity="center_vertical"
-                        android:button="@drawable/selector_favorite_check_box">
+                        android:button="@drawable/selector_favorite_check_box"
+                        app:buttonTint="@color/selector_favorite_check_box"
+                        app:buttonIconTint="@color/selector_favorite_check_box"
+                        android:id="@+id/cbFavorite"
+                        android:clickable="true"
+                        android:focusable="true">
 
                     </com.google.android.material.checkbox.MaterialCheckBox>
                     <ImageButton

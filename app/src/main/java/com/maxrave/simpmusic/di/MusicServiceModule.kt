@@ -41,6 +41,8 @@ object MusicServiceModule {
     fun provideDataSource(@ApplicationContext context: Context): DefaultMediaSourceFactory = DefaultMediaSourceFactory(context).setDataSourceFactory(
         DefaultHttpDataSource.Factory()
             .setAllowCrossProtocolRedirects(true)
+            .setUserAgent("Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36")
+            .setConnectTimeoutMs(5000)
     )
 
     @Provides
@@ -91,7 +93,7 @@ object MusicServiceModule {
         @ApplicationContext context: Context
     ): SimpleMediaServiceHandler =
         SimpleMediaServiceHandler(
-            player = player, context = context
+            player = player
         )
 
     @Provides

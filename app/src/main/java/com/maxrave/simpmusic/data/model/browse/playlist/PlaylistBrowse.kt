@@ -9,7 +9,7 @@ data class PlaylistBrowse(
     @SerializedName("author")
     val author: Author,
     @SerializedName("description")
-    val description: String,
+    val description: String?,
     @SerializedName("duration")
     val duration: String,
     @SerializedName("duration_seconds")

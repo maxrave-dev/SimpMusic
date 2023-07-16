@@ -121,26 +121,17 @@
 
                     </ImageButton>
 
-                    <ImageButton
-                        android:id="@+id/btShuffle"
-                        android:layout_width="35sp"
-                        android:layout_height="35sp"
-                        android:layout_centerVertical="true"
-                        android:layout_marginStart="15sp"
-                        android:layout_toEndOf="@+id/btPlayPause"
-                        android:background="@android:color/transparent"
-                        android:src="@drawable/baseline_shuffle_24">
-
-                    </ImageButton>
-
                     <com.google.android.material.checkbox.MaterialCheckBox
                         android:id="@+id/cbLove"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="5sp"
-                        android:layout_toEndOf="@+id/btShuffle"
+                        android:layout_toEndOf="@+id/btPlayPause"
                         android:button="@drawable/selector_favorite_check_box"
-                        app:useMaterialThemeColors="false">
+                        app:buttonTint="@color/selector_favorite_check_box"
+                        app:buttonIconTint="@color/selector_favorite_check_box"
+                        android:clickable="true"
+                        android:focusable="true">
 
                     </com.google.android.material.checkbox.MaterialCheckBox>
 
@@ -155,16 +146,6 @@
 
                     </ImageButton>
 
-                    <ImageButton
-                        android:id="@+id/btDownload"
-                        android:layout_width="35sp"
-                        android:layout_height="35sp"
-                        android:layout_centerVertical="true"
-                        android:layout_toStartOf="@+id/btMore"
-                        android:background="@android:color/transparent"
-                        android:src="@drawable/outline_download_for_offline_24">
-
-                    </ImageButton>
                 </RelativeLayout>
                 <io.github.giangpham96.expandable_textview.ExpandableTextView
                     android:id="@+id/tvDescription"
@@ -179,13 +160,6 @@
                     android:fontFamily="@font/roboto"
                     android:textStyle="normal"
                     android:textSize="15sp" />
-                <com.google.android.material.progressindicator.LinearProgressIndicator
-                    android:id="@+id/progressDownload"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:visibility="gone">
-
-                </com.google.android.material.progressindicator.LinearProgressIndicator>
 
                 <TextView
                     android:id="@+id/tvTrackCountAndDuration"

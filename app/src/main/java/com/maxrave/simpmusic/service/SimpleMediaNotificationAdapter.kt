@@ -24,7 +24,7 @@ class SimpleMediaNotificationAdapter(
 ) : PlayerNotificationManager.MediaDescriptionAdapter {
 
     override fun getCurrentContentTitle(player: Player): CharSequence {
-        Log.d("SimpleMediaNotificationAdapter", "getCurrentContentTitle: ${player.currentMediaItem?.mediaMetadata?.title}")
+//        Log.d("SimpleMediaNotificationAdapter", "getCurrentContentTitle: ${player.currentMediaItem?.mediaMetadata?.title}")
      return player.currentMediaItem?.mediaMetadata?.title ?: ""
     }
     override fun createCurrentContentIntent(player: Player): PendingIntent? =
@@ -41,14 +41,14 @@ class SimpleMediaNotificationAdapter(
             .data(player.mediaMetadata.artworkUri)
             .target(
                 onStart = {
-                    Log.d("SimpleMediaNotificationAdapter", "onStart: ")
+//                    Log.d("SimpleMediaNotificationAdapter", "onStart: ")
                 },
                 onSuccess = { result ->
                     Log.d("SimpleMediaNotificationAdapter", "onSuccess: ")
                     callback.onBitmap(result.toBitmap())
                 },
                 onError = { error ->
-                    Log.d("SimpleMediaNotificationAdapter", "onError: ")
+                    Log.d("SimpleMediaNotificationAdapter", "onError: $error")
                 }
             )
             .build()

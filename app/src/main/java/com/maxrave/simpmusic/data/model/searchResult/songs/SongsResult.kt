@@ -2,7 +2,6 @@ package com.maxrave.simpmusic.data.model.searchResult.songs
 
 
 import com.google.gson.annotations.SerializedName
-import com.maxrave.simpmusic.data.model.browse.album.Track
 
 data class SongsResult(
     @SerializedName("album")
@@ -33,30 +32,5 @@ data class SongsResult(
     val year: Any
 )
 
-fun SongsResult.toTrack(): Track {
-    return Track(
-        this.album,
-        this.artists,
-        this.duration ?: "",
-        this.durationSeconds?: 0,
-        true,
-        this.isExplicit ?: false,
-        "",
-        this.thumbnails,
-        this.title ?: "",
-        this.videoId,
-        this.videoType ?: "",
-        this.category,
-        this.feedbackTokens,
-        this.resultType,
-        ""
-    )
-}
 
-fun ArrayList<SongsResult>.toListTrack(): ArrayList<Track> {
-    val listTrack = arrayListOf<Track>()
-    for (song in this) {
-        listTrack.add(song.toTrack())
-    }
-    return listTrack
-}
+

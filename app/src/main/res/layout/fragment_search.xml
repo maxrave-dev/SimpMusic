@@ -38,29 +38,34 @@
 
                 </androidx.recyclerview.widget.RecyclerView>
 
-                <LinearLayout
-                    android:layout_height="wrap_content"
-                    android:layout_width="match_parent"
+                <androidx.core.widget.NestedScrollView
                     android:id="@+id/recentlyQueryView"
-                    android:orientation="vertical"
-                    android:visibility="visible">
-
-                    <androidx.recyclerview.widget.RecyclerView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:visibility="visible"
+                    android:layout_marginBottom="100sp">
+                    <LinearLayout
+                        android:layout_height="wrap_content"
                         android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:id="@+id/recentlyList"
-                        tools:listitem="@layout/item_recently_query">
+                        android:orientation="vertical">
 
-                    </androidx.recyclerview.widget.RecyclerView>
-                    <Button
-                        android:id="@+id/btClearSearchHistory"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        style="@style/Widget.Material3.Button.TextButton"
-                        android:text="Clear search history"
-                        android:textColor="?attr/colorOnBackground">
-                    </Button>
-                </LinearLayout>
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:id="@+id/recentlyList"
+                            tools:listitem="@layout/item_recently_query">
+
+                        </androidx.recyclerview.widget.RecyclerView>
+                        <Button
+                            android:id="@+id/btClearSearchHistory"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            style="@style/Widget.Material3.Button.TextButton"
+                            android:text="@string/clear_search_history"
+                            android:textColor="?attr/colorOnBackground">
+                        </Button>
+                    </LinearLayout>
+                </androidx.core.widget.NestedScrollView>
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -83,36 +88,60 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="All"
+                            android:checkable="true"
+                            android:clickable="true"
+                            android:focusable="true"
+                            app:chipBackgroundColor="@color/bg_chip_state_list"
                             style="@style/Widget.MaterialComponents.Chip.Filter" />
                         <com.google.android.material.chip.Chip
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:id="@+id/chipVideo"
                             android:text="Videos"
+                            android:checkable="true"
+                            android:clickable="true"
+                            android:focusable="true"
+                            app:chipBackgroundColor="@color/bg_chip_state_list"
                             style="@style/Widget.MaterialComponents.Chip.Filter"/>
                         <com.google.android.material.chip.Chip
                             android:id="@+id/chipSong"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Songs"
+                            android:checkable="true"
+                            android:clickable="true"
+                            android:focusable="true"
+                            app:chipBackgroundColor="@color/bg_chip_state_list"
                             style="@style/Widget.MaterialComponents.Chip.Filter" />
                         <com.google.android.material.chip.Chip
                             android:id="@+id/chipArtists"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Artists"
+                            android:checkable="true"
+                            android:clickable="true"
+                            android:focusable="true"
+                            app:chipBackgroundColor="@color/bg_chip_state_list"
                             style="@style/Widget.MaterialComponents.Chip.Filter" />
                         <com.google.android.material.chip.Chip
                             android:id="@+id/chipAlbum"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Albums"
+                            android:checkable="true"
+                            android:clickable="true"
+                            android:focusable="true"
+                            app:chipBackgroundColor="@color/bg_chip_state_list"
                             style="@style/Widget.MaterialComponents.Chip.Filter" />
                         <com.google.android.material.chip.Chip
                             android:id="@+id/chipPlaylist"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Playlists"
+                            android:checkable="true"
+                            android:clickable="true"
+                            android:focusable="true"
+                            app:chipBackgroundColor="@color/bg_chip_state_list"
                             style="@style/Widget.MaterialComponents.Chip.Filter" />
 
                     </com.google.android.material.chip.ChipGroup>
@@ -127,6 +156,29 @@
                             android:orientation="vertical"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content">
+                            <com.facebook.shimmer.ShimmerFrameLayout
+                                android:id="@+id/shimmerLayout"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                app:shimmer_duration="1500">
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="vertical">
+                                    <include layout="@layout/shimmer_search_fragment"/>
+                                    <include layout="@layout/shimmer_search_fragment"/>
+                                    <include layout="@layout/shimmer_search_fragment"/>
+                                    <include layout="@layout/shimmer_search_fragment"/>
+                                    <include layout="@layout/shimmer_search_fragment"/>
+                                    <include layout="@layout/shimmer_search_fragment"/>
+                                    <include layout="@layout/shimmer_search_fragment"/>
+                                    <include layout="@layout/shimmer_search_fragment"/>
+                                    <include layout="@layout/shimmer_search_fragment"/>
+                                    <include layout="@layout/shimmer_search_fragment"/>
+                                    <include layout="@layout/shimmer_search_fragment"/>
+                                </LinearLayout>
+
+                            </com.facebook.shimmer.ShimmerFrameLayout>
                             <androidx.recyclerview.widget.RecyclerView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"

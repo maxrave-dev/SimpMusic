@@ -27,22 +27,3 @@ data class Content(
     @SerializedName("views")
     val views: String?
 )
-fun Content.toTrack(): Track {
-    return Track(
-        album = album,
-        artists = artists,
-        duration = "",
-        durationSeconds = 0,
-        isAvailable = false,
-        isExplicit = false,
-        likeStatus = "INDIFFERENT",
-        thumbnails = thumbnails,
-        title = title,
-        videoId = videoId!!,
-        videoType = "",
-        category = null,
-        feedbackTokens = null,
-        resultType = null,
-        year = ""
-    )
-}

@@ -36,6 +36,7 @@ import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.ActivityMainBinding
+import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.ui.fragment.NowPlayingFragment
 import com.maxrave.simpmusic.utils.Resource
@@ -50,6 +51,11 @@ import kotlinx.coroutines.launch
 class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongChangeListener {
     private lateinit var binding: ActivityMainBinding
     private val viewModel by viewModels<SharedViewModel>()
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.getCurrentMediaItem()
+    }
 
     @UnstableApi
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -67,22 +73,6 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
         binding = ActivityMainBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
-//        ViewCompat.setOnApplyWindowInsetsListener(binding.root) { v , windowInsets ->
-//            val insets = windowInsets.getInsets(WindowInsetsCompat.Type.systemBars())
-//            // Apply the insets as a margin to the view. Here the system is setting
-//            // only the bottom, left, and right dimensions, but apply whichever insets are
-//            // appropriate to your layout. You can also update the view padding
-//            // if that's more appropriate.
-//            v.updateLayoutParams<MarginLayoutParams>() {
-//                bottomMargin = insets.bottom
-//            }
-//
-//            // Return CONSUMED if you don't want want the window insets to keep being
-//            // passed down to descendant views.
-//            WindowInsetsCompat.CONSUMED
-//        }
-//        window.statusBarColor = getColor(R.color.colorPrimaryDark)
-//        window.setFlags(WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS, WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS)
         binding.card.visibility = View.GONE
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.fragment_container_view)
         val navController = navHostFragment?.findNavController()
@@ -188,17 +178,33 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
                     binding.progressBar.progress = (it * 100).toInt()
                 }
             }
+
+            val job6 = launch {
+                viewModel.liked.collect{ liked ->
+                    binding.cbFavorite.isChecked = liked
+                }
+            }
             //job1.join()
             job2.join()
             //job3.join()
             job5.join()
+            job6.join()
         }
         binding.card.animation = AnimationUtils.loadAnimation(this, R.anim.bottom_to_top)
-
+        binding.cbFavorite.setOnCheckedChangeListener{ _, isChecked ->
+            if (!isChecked){
+                Log.d("cbFavorite", "onCheckedChanged: $isChecked")
+                viewModel.nowPlayingMediaItem.value?.let { nowPlayingSong -> viewModel.updateLikeStatus(nowPlayingSong.mediaId, false) }
+            }
+            else {
+                Log.d("cbFavorite", "onCheckedChanged: $isChecked")
+                viewModel.nowPlayingMediaItem.value?.let { nowPlayingSong -> viewModel.updateLikeStatus(nowPlayingSong.mediaId, true) }
+            }
+        }
     }
     override fun onDestroy() {
         Queue.clear()
-        stopService(Intent(this, SimpleMediaService::class.java))
+        stopService()
         viewModel.isServiceRunning.postValue(false)
         super.onDestroy()
         Log.d("Service", "Service destroyed")
@@ -231,7 +237,7 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
                         for (artist in it.data.artists) {
                             tempArtist.add(artist.name)
                         }
-                        val artistName = connectArtists(tempArtist)
+                        val artistName = tempArtist.connectArtists()
                         binding.songArtist.text = artistName
                     }
                     binding.songArtist.isSelected = true
@@ -258,37 +264,7 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
     override fun onUpdateProgressBar(progress: Float) {
 
     }
-    fun connectArtists(artists: List<String>): String {
-        val stringBuilder = StringBuilder()
 
-        for ((index, artist) in artists.withIndex()) {
-            stringBuilder.append(artist)
-
-            if (index < artists.size - 1) {
-                stringBuilder.append(", ")
-            }
-        }
-
-        return stringBuilder.toString()
-    }
-
-    private fun removeTrailingComma(sentence: String): String {
-        val trimmed = sentence.trimEnd()
-        return if (trimmed.endsWith(", ")) {
-            trimmed.dropLast(2)
-        } else {
-            trimmed
-        }
-    }
-
-
-    private fun removeComma(string: String): String {
-        return if (string.endsWith(',')) {
-            string.substring(0, string.length - 1)
-        } else {
-            string
-        }
-    }
     fun hideBottomNav(){
         binding.bottomNavigationView.visibility = View.GONE
         binding.miniPlayerContainer.visibility = View.GONE

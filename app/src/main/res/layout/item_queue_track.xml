@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android">
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -19,13 +20,16 @@
             android:layout_alignParentStart="true">
 
         </TextView>
-        <ImageView
-            android:id="@+id/ivPlaying"
+        <com.airbnb.lottie.LottieAnimationView
             android:layout_width="40sp"
             android:layout_height="40sp"
-            android:layout_alignParentStart="true">
+            android:id="@+id/ivPlaying"
+            android:layout_alignParentStart="true"
+            app:lottie_rawRes="@raw/audio_playing_animation"
+            app:lottie_autoPlay="true"
+            app:lottie_loop="true">
 
-        </ImageView>
+        </com.airbnb.lottie.LottieAnimationView>
         <ImageButton
             android:id="@+id/btMore"
             android:layout_width="40sp"

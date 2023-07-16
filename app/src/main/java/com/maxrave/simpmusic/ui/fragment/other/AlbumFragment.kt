@@ -15,23 +15,25 @@ import androidx.core.graphics.ColorUtils
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.palette.graphics.Palette
 import androidx.recyclerview.widget.LinearLayoutManager
 import coil.load
+import coil.request.CachePolicy
 import coil.size.Size
 import coil.transform.Transformation
 import com.google.android.material.snackbar.Snackbar
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.adapter.album.TrackAdapter
 import com.maxrave.simpmusic.data.model.browse.album.Track
-import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
-import com.maxrave.simpmusic.data.model.searchResult.videos.toTrack
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.FragmentAlbumBinding
+import com.maxrave.simpmusic.extension.toAlbumEntity
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.AlbumViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.launch
 import kotlin.math.abs
 
 @AndroidEntryPoint
@@ -62,6 +64,11 @@ class AlbumFragment: Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        lifecycleScope.launch {
+            viewModel.liked.collect { liked ->
+                binding.cbLove.isChecked = liked
+            }
+        }
         if (viewModel.gradientDrawable.value != null){
             gradientDrawable = viewModel.gradientDrawable.value
             toolbarBackground = gradientDrawable?.colors?.get(0)
@@ -75,7 +82,15 @@ class AlbumFragment: Fragment() {
             adapter = songsAdapter
             layoutManager = LinearLayoutManager(requireContext())
         }
-        val browseId = requireArguments().getString("browseId")
+        var browseId = requireArguments().getString("browseId")
+        if (browseId == null){
+            browseId = viewModel.browseId.value
+            fetchDataFromViewModel()
+        }
+        if (browseId != null){
+            viewModel.updateBrowseId(browseId)
+            fetchData(browseId)
+        }
         fetchData(browseId.toString())
 
         binding.topAppBar.setNavigationOnClickListener {
@@ -87,6 +102,16 @@ class AlbumFragment: Fragment() {
                 val args = Bundle()
                 args.putString("channelId", viewModel.albumBrowse.value?.data?.artists?.get(0)?.id)
                 findNavController().navigate(R.id.action_global_artistFragment, args)
+            }
+        }
+        binding.cbLove.setOnCheckedChangeListener { cb, isChecked ->
+            if (!isChecked){
+                Log.d("cbFavorite", "onCheckedChanged: $isChecked")
+                viewModel.albumEntity.value?.let { album -> viewModel.updateAlbumLiked(false, album.browseId) }
+            }
+            else {
+                Log.d("cbFavorite", "onCheckedChanged: $isChecked")
+                viewModel.albumEntity.value?.let { album -> viewModel.updateAlbumLiked(true, album.browseId) }
             }
         }
         binding.btPlayPause.setOnClickListener {
@@ -113,7 +138,12 @@ class AlbumFragment: Fragment() {
                     args.putString("type", Config.ALBUM_CLICK)
                     args.putString("videoId", viewModel.albumBrowse.value?.data!!.tracks[0].videoId)
                     args.putString("from", "Album \"${viewModel.albumBrowse.value?.data!!.title}\"")
-                    args.putInt("index", position)
+//                    if (songsAdapter.getList().size == 1) {
+//                        args.putInt("index", -1)
+//                    }
+//                    else {
+//                        args.putInt("index", position)
+//                    }
                     Queue.clear()
                     Queue.setNowPlaying(viewModel.albumBrowse.value?.data!!.tracks[position])
                     Queue.addAll(viewModel.albumBrowse.value?.data!!.tracks as ArrayList<Track>)
@@ -135,7 +165,11 @@ class AlbumFragment: Fragment() {
             Log.d("ArtistFragment", "Offset: $verticalOffset" + "Total: ${it.totalScrollRange}")
             if(abs(it.totalScrollRange) == abs(verticalOffset)) {
                 binding.topAppBar.background = viewModel.gradientDrawable.value
-                requireActivity().window.statusBarColor = viewModel.gradientDrawable.value?.colors!!.first()
+                if (viewModel.gradientDrawable.value != null ){
+                    if (viewModel.gradientDrawable.value?.colors != null){
+                        requireActivity().window.statusBarColor = viewModel.gradientDrawable.value?.colors!!.first()
+                    }
+                }
             }
             else
             {
@@ -145,10 +179,8 @@ class AlbumFragment: Fragment() {
             }
         }
     }
-
-    private fun fetchData(browseId: String) {
-        viewModel.browseAlbum(browseId)
-        viewModel.albumBrowse.observe(viewLifecycleOwner, Observer { response ->
+    private fun fetchDataFromViewModel() {
+        viewModel.albumBrowse.observe(viewLifecycleOwner) { response ->
             when (response){
                 is Resource.Success -> {
                     response.data.let {
@@ -202,10 +234,73 @@ class AlbumFragment: Fragment() {
                     findNavController().popBackStack()
                 }
             }
-        })
+        }
+    }
+
+    private fun fetchData(browseId: String) {
+        viewModel.browseAlbum(browseId)
+        viewModel.albumBrowse.observe(viewLifecycleOwner) { response ->
+            when (response){
+                is Resource.Success -> {
+                    response.data.let {
+                        if (it != null){
+                            viewModel.insertAlbum(it.toAlbumEntity(browseId))
+                        }
+                        with(binding){
+                            topAppBar.title = it?.title
+                            btArtist.text = it?.artists?.get(0)?.name
+                            tvYearAndCategory.text= context?.getString(R.string.year_and_category, it?.year, it?.type)
+                            tvTrackCountAndDuration.text = context?.getString(R.string.album_length, it?.trackCount.toString(), it?.duration)
+                            tvDescription.originalText = it?.description.toString()
+                            if (it?.description == null){
+                                tvDescription.originalText = "No description"
+                            }
+                            else {
+                                tvDescription.originalText = it.description.toString()
+                            }
+//                            if (it?.thumbnails?.size!! > 3){
+//                                ivAlbumArt.load(it.thumbnails[4].url)
+//                                }
+//                            else {
+//                                ivAlbumArt.load(it.thumbnails[0].url)
+//                            }
+                            when (it?.thumbnails?.size!!){
+                                1 -> loadImage(it.thumbnails[0].url)
+                                2 -> loadImage(it.thumbnails[1].url)
+                                3 -> loadImage(it.thumbnails[2].url)
+                                4 -> loadImage(it.thumbnails[3].url)
+                                else -> {}
+                            }
+                            songsAdapter.updateList(it.tracks as ArrayList<Track>)
+                            if (viewModel.gradientDrawable.value == null){
+                                viewModel.gradientDrawable.observe(viewLifecycleOwner, Observer { gradient ->
+                                    binding.fullRootLayout.background = gradient
+                                    toolbarBackground = gradient.colors?.get(0)
+                                    Log.d("TAG", "fetchData: $toolbarBackground")
+                                    //binding.topAppBar.background = ColorDrawable(toolbarBackground!!)
+                                    binding.topAppBarLayout.background = ColorDrawable(toolbarBackground!!)
+                                })
+                            }
+                            else {
+                                binding.fullRootLayout.background = gradientDrawable
+                                //binding.topAppBar.background = ColorDrawable(toolbarBackground!!)
+                                binding.topAppBarLayout.background = ColorDrawable(toolbarBackground!!)
+                            }
+                        }
+                    }
+                    binding.rootLayout.visibility = View.VISIBLE
+                    binding.loadingLayout.visibility = View.GONE
+                }
+                is Resource.Error -> {
+                    Snackbar.make(binding.root, response.message.toString(), Snackbar.LENGTH_LONG).show()
+                    findNavController().popBackStack()
+                }
+            }
+        }
     }
     private fun loadImage(url: String){
         binding.ivAlbumArt.load(url) {
+            diskCachePolicy(CachePolicy.DISABLED)
             transformations(object : Transformation{
                 override val cacheKey: String
                     get() = "paletteTransformerForAlbumArt"

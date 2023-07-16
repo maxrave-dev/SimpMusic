@@ -73,10 +73,12 @@
                 android:orientation="vertical"
                 android:id="@+id/root_layout">
                 <com.google.android.material.card.MaterialCardView
+                    android:id="@+id/cardBelowAppBarLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     app:cardCornerRadius="0sp"
-                    app:strokeColor="@android:color/transparent">
+                    app:strokeColor="@android:color/transparent"
+                    app:cardBackgroundColor="@android:color/transparent">
                     <LinearLayout
                         android:id="@+id/belowAppBarLayoutContainer"
                         android:layout_width="match_parent"
@@ -124,25 +126,13 @@
 
                             <Button
                                 android:id="@+id/btFollow"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
+                                android:layout_width="120sp"
+                                android:layout_height="50sp"
                                 android:textColor="?attr/colorOnSecondaryContainer"
                                 style="?attr/materialButtonOutlinedStyle"
-                                android:text="Follow"
                                 android:layout_alignParentStart="true">
 
                             </Button>
-                            <ImageButton
-                                android:layout_width="wrap_content"
-                                android:id="@+id/btShuffle"
-                                android:layout_height="match_parent"
-                                android:background="@android:color/transparent"
-                                android:layout_centerVertical="true"
-                                android:src="@drawable/baseline_shuffle_24"
-                                android:layout_toStartOf="@+id/btMore"
-                                android:layout_marginEnd="30sp">
-
-                            </ImageButton>
                             <ImageButton
                                 android:layout_width="wrap_content"
                                 android:id="@+id/btMore"
@@ -158,15 +148,37 @@
                     </LinearLayout>
 
                 </com.google.android.material.card.MaterialCardView>
-                <TextView
-                    android:padding="15sp"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Popular"
-                    android:textSize="18sp"
-                    android:textStyle="bold">
 
-                </TextView>
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                    <TextView
+                        android:padding="15sp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Popular"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        android:layout_alignParentStart="true">
+
+                    </TextView>
+                    <Button
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_width="wrap_content"
+                        android:id="@+id/btShuffle"
+                        android:layout_height="wrap_content"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:text="More"
+                        android:textColor="?attr/colorOnSecondaryContainer"
+                        android:background="@android:color/transparent"
+                        android:src="@drawable/baseline_shuffle_24"
+                        android:focusable="true"
+                        android:clickable="true"
+                        android:foreground="?android:attr/selectableItemBackground">
+
+                    </Button>
+                </RelativeLayout>
                 <androidx.recyclerview.widget.RecyclerView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -266,6 +278,7 @@
                         android:orientation="vertical"
                         android:padding="15sp">
                         <TextView
+                            android:autoLink="web"
                             android:id="@+id/tvDescription"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"

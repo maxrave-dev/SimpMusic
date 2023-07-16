@@ -27,62 +27,62 @@ interface SearchService {
     suspend fun getThumbnails(@Query("songId") songId: String): Response<ArrayList<thumbnailUrl>>
     //search
     @GET("search")
-    suspend fun searchAll(@Query("q") query: String): Response<ArrayList<Any>>
+    suspend fun searchAll(@Query("q") query: String, @Query("r") region: String): Response<ArrayList<Any>>
     @GET("search")
-    suspend fun searchSongs(@Query("q") query: String, @Query("f") filter: String = "songs"): Response<ArrayList<SongsResult>>
+    suspend fun searchSongs(@Query("q") query: String, @Query("f") filter: String = "songs", @Query("r") region: String): Response<ArrayList<SongsResult>>
     @GET("search")
-    suspend fun searchArtists(@Query("q") query: String, @Query("f") filter: String = "artists"): Response<ArrayList<ArtistsResult>>
+    suspend fun searchArtists(@Query("q") query: String, @Query("f") filter: String = "artists", @Query("r") region: String): Response<ArrayList<ArtistsResult>>
     @GET("search")
-    suspend fun searchAlbums(@Query("q") query: String, @Query("f") filter: String = "albums"): Response<ArrayList<AlbumsResult>>
+    suspend fun searchAlbums(@Query("q") query: String, @Query("f") filter: String = "albums", @Query("r") region: String): Response<ArrayList<AlbumsResult>>
     @GET("search")
-    suspend fun searchPlaylists(@Query("q") query: String, @Query("f") filter: String = "playlists"): Response<ArrayList<PlaylistsResult>>
+    suspend fun searchPlaylists(@Query("q") query: String, @Query("f") filter: String = "playlists", @Query("r") region: String): Response<ArrayList<PlaylistsResult>>
     @GET("search")
-    suspend fun searchVideos(@Query("q") query: String, @Query("f") filter: String = "videos"): Response<ArrayList<VideosResult>>
+    suspend fun searchVideos(@Query("q") query: String, @Query("f") filter: String = "videos", @Query("r") region: String): Response<ArrayList<VideosResult>>
 
     //suggest query
     @GET("query")
     suspend fun suggestQuery(@Query("q") query: String): Response<ArrayList<String>>
     //songs related
     @GET("songs/related")
-    suspend fun songsRelated(@Query("videoId") videoId: String): Response<ArrayList<Track>>
+    suspend fun songsRelated(@Query("videoId") videoId: String, @Query("r") region: String): Response<ArrayList<Track>>
     @GET("videos/related")
-    suspend fun videosRelated(@Query("videoId") videoId: String): Response<ArrayList<VideosResult>>
+    suspend fun videosRelated(@Query("videoId") videoId: String, @Query("r") region: String): Response<ArrayList<VideosResult>>
 
     //getHome
     @GET("home")
-    suspend fun getHome(): Response<ArrayList<homeItem>>
+    suspend fun getHome(@Query("r") region: String): Response<ArrayList<homeItem>>
 
     //exploreMood
     @GET("explore/mood/title")
-    suspend fun exploreMood(): Response<Mood>
+    suspend fun exploreMood(@Query("r") region: String): Response<Mood>
     @GET("explore/mood")
-    suspend fun getMood(@Query("p") params: String): Response<MoodsMomentObject>
+    suspend fun getMood(@Query("p") params: String, @Query("r") region: String): Response<MoodsMomentObject>
     @GET("explore/genre")
-    suspend fun getGenre(@Query("p") params: String): Response<GenreObject>
+    suspend fun getGenre(@Query("p") params: String, @Query("r") region: String): Response<GenreObject>
 
     //Chart
     @GET("explore/charts")
-    suspend fun exploreChart(@Query("cc") regionCode: String): Response<Chart>
+    suspend fun exploreChart(@Query("cc") regionCode: String, @Query("r") region: String): Response<Chart>
 
     //browse
     //Artist
     @GET("browse/artists")
-    suspend fun browseArtist(@Query("channelId") channelId: String): Response<ArtistBrowse>
+    suspend fun browseArtist(@Query("channelId") channelId: String, @Query("r") region: String): Response<ArtistBrowse>
     //Artist Album
     @GET("browse/artists")
-    suspend fun browseArtistAlbum(@Query("channelId") channelId: String, @Query("params") params: String)
+    suspend fun browseArtistAlbum(@Query("channelId") channelId: String, @Query("params") params: String, @Query("r") region: String)
     //Album
     @GET("browse/albums")
-    suspend fun browseAlbum(@Query("browseId") browseId: String): Response<AlbumBrowse>
+    suspend fun browseAlbum(@Query("browseId") browseId: String, @Query("r") region: String): Response<AlbumBrowse>
     //Playlist
     @GET("playlists")
-    suspend fun browsePlaylist(@Query("id") id: String): Response<PlaylistBrowse>
+    suspend fun browsePlaylist(@Query("id") id: String, @Query("r") region: String): Response<PlaylistBrowse>
 
     //getMetadata
     @GET("/songs/metadata")
-    suspend fun getMetadata(@Query("videoId") videoId: String): Response<MetadataSong>
+    suspend fun getMetadata(@Query("videoId") videoId: String, @Query("r") region: String): Response<MetadataSong>
     //getOnlyLyrics
     @GET("/songs/lyrics")
-    suspend fun getLyrics(@Query("q") query: String): Response<Lyrics>
+    suspend fun getLyrics(@Query("q") query: String, @Query("r") region: String): Response<Lyrics>
 
 }

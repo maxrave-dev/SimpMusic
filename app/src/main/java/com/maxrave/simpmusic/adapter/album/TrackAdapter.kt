@@ -27,6 +27,9 @@ class TrackAdapter(private var trackList: ArrayList<Track>): RecyclerView.Adapte
         trackList.addAll(newList)
         notifyDataSetChanged()
     }
+    fun getList(): ArrayList<Track> {
+        return trackList
+    }
     inner class ViewHolder(val binding: ItemAlbumTrackBinding, rootListener: OnItemClickListener, mOptionListener: OnOptionClickListener): RecyclerView.ViewHolder(binding.root) {
         init {
             binding.rootLayout.setOnClickListener {

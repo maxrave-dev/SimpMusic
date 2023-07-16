@@ -14,6 +14,7 @@ import androidx.core.graphics.ColorUtils
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.palette.graphics.Palette
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -28,9 +29,12 @@ import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.browse.playlist.TrackPlaylist
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.FragmentPlaylistBinding
+import com.maxrave.simpmusic.extension.toPlaylistEntity
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.PlaylistViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import kotlin.math.abs
 
 @AndroidEntryPoint
@@ -60,6 +64,11 @@ class PlaylistFragment: Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        lifecycleScope.launch {
+            viewModel.liked.collect { liked ->
+                binding.cbLove.isChecked = liked
+            }
+        }
         if (viewModel.gradientDrawable.value != null){
             gradientDrawable = viewModel.gradientDrawable.value
             toolbarBackground = gradientDrawable?.colors?.get(0)
@@ -72,11 +81,28 @@ class PlaylistFragment: Fragment() {
             adapter = playlistItemAdapter
             layoutManager = LinearLayoutManager(requireContext())
         }
-        val id = requireArguments().getString("id")
-        fetchData(id.toString())
+        var id = requireArguments().getString("id")
+        if (id == null){
+            id = viewModel.id.value
+            fetchDataFromViewModel()
+        }
+        else {
+            viewModel.updateId(id)
+            fetchData(id)
+        }
 
         binding.topAppBar.setNavigationOnClickListener {
             findNavController().popBackStack()
+        }
+        binding.cbLove.setOnCheckedChangeListener { cb, isChecked ->
+            if (!isChecked){
+                Log.d("cbFavorite", "onCheckedChanged: $isChecked")
+                viewModel.playlistEntity.value?.let { playlist -> viewModel.updatePlaylistLiked(false, playlist.id) }
+            }
+            else {
+                Log.d("cbFavorite", "onCheckedChanged: $isChecked")
+                viewModel.playlistEntity.value?.let { playlist -> viewModel.updatePlaylistLiked(true, playlist.id) }
+            }
         }
 
         binding.btPlayPause.setOnClickListener {
@@ -124,7 +150,11 @@ class PlaylistFragment: Fragment() {
             Log.d("ArtistFragment", "Offset: $verticalOffset" + "Total: ${it.totalScrollRange}")
             if(abs(it.totalScrollRange) == abs(verticalOffset)) {
                 binding.topAppBar.background = viewModel.gradientDrawable.value
-                requireActivity().window.statusBarColor = viewModel.gradientDrawable.value?.colors!!.first()
+                if (viewModel.gradientDrawable.value != null ){
+                    if (viewModel.gradientDrawable.value?.colors != null){
+                        requireActivity().window.statusBarColor = viewModel.gradientDrawable.value?.colors!!.first()
+                    }
+                }
             }
             else
             {
@@ -134,6 +164,46 @@ class PlaylistFragment: Fragment() {
             }
         }
     }
+    private fun fetchDataFromViewModel(){
+        viewModel.playlistBrowse.observe(viewLifecycleOwner, Observer { response ->
+            when (response) {
+                is Resource.Success -> {
+                    response.data.let {
+                        with(binding){
+                            topAppBar.title = it?.title
+                            tvPlaylistAuthor.text = it?.author?.name
+                            tvYearAndCategory.text = requireContext().getString(R.string.year_and_category, it?.year.toString(), "Playlist")
+                            tvTrackCountAndDuration.text = requireContext().getString(R.string.album_length, it?.trackCount.toString(), it?.duration.toString())
+                            if (it?.description != null){
+                                tvDescription.originalText = it.description
+                            } else {
+                                tvDescription.originalText = "No description"
+                            }
+                            loadImage(it?.thumbnails?.last()?.url)
+                            playlistItemAdapter.updateList(it?.tracks as ArrayList<Track>)
+                            if (viewModel.gradientDrawable.value == null) {
+                                viewModel.gradientDrawable.observe(viewLifecycleOwner, Observer { gradient ->
+                                    fullRootLayout.background = gradient
+                                    toolbarBackground = gradient?.colors?.get(0)
+                                    topAppBarLayout.background = ColorDrawable(toolbarBackground!!)
+                                })
+                            }
+                            else {
+                                fullRootLayout.background = gradientDrawable
+                                topAppBarLayout.background = ColorDrawable(toolbarBackground!!)
+                            }
+                        }
+                    }
+                    binding.rootLayout.visibility = View.VISIBLE
+                    binding.loadingLayout.visibility = View.GONE
+                }
+                is Resource.Error -> {
+                    Snackbar.make(binding.root, response.message.toString(), Snackbar.LENGTH_LONG).show()
+                    findNavController().popBackStack()
+                }
+            }
+        })
+    }
 
     private fun fetchData(id: String) {
         viewModel.browsePlaylist(id)
@@ -142,6 +212,9 @@ class PlaylistFragment: Fragment() {
                 is Resource.Success -> {
                     response.data.let {
                         with(binding){
+                            if (it != null) {
+                                viewModel.insertPlaylist(it.toPlaylistEntity())
+                            }
                             topAppBar.title = it?.title
                             tvPlaylistAuthor.text = it?.author?.name
                             tvYearAndCategory.text = requireContext().getString(R.string.year_and_category, it?.year.toString(), "Playlist")

@@ -52,6 +52,6 @@ object SearchServiceModule {
 
     @Singleton
     @Provides
-    fun provideSearchService(retrofit: Retrofit) = retrofit.create(SearchService::class.java)
+    fun provideSearchService(retrofit: Retrofit): SearchService = retrofit.create(SearchService::class.java)
 
 }
