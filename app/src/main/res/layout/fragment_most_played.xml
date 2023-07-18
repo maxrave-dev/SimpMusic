@@ -2,9 +2,8 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".ui.fragment.other.FollowedFragment">
+    tools:context=".ui.fragment.other.MostPlayedFragment">
 
-    <!-- TODO: Update blank fragment layout -->
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
@@ -41,18 +40,16 @@
                 app:iconPadding	= "10sp">
 
             </Button>
-            <androidx.core.widget.NestedScrollView
-                android:padding="10sp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rvFavorite"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    tools:listitem="@layout/item_songs_search_result">
 
-                </androidx.recyclerview.widget.RecyclerView>
-            </androidx.core.widget.NestedScrollView>
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvFavorite"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                tools:listitem="@layout/item_songs_search_result"
+                android:paddingBottom="135sp"
+                android:clipToPadding="false">
+
+            </androidx.recyclerview.widget.RecyclerView>
         </LinearLayout>
     </RelativeLayout>
 </layout>

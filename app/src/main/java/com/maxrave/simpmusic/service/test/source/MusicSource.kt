@@ -108,53 +108,50 @@ class MusicSource @Inject constructor(val context: Context, val simpleMediaServi
     @UnstableApi
     private suspend fun updateCatalog(): ArrayList<MediaItem>? {
         state = STATE_INITIALIZING
-        if (Queue.getQueue() == null) return null
-        else {
-            val tempQueue = Queue.getQueue()
-            val tempCatalog = arrayListOf<MediaItem>()
-                for (i in 0 until tempQueue.size){
-                    val track = tempQueue[i]
-                    val yt = YTExtractor(con = context, CACHING = false, LOGGING = false)
-                    yt.extract(track.videoId)
-                    var retry_count = 0
-                    while (yt.state == State.ERROR && retry_count < 3){
-                        Log.e("Get URI", "Retry: ${retry_count}")
-                        yt.extract(track.videoId)
-                        retry_count++
+        val tempQueue = Queue.getQueue()
+        val tempCatalog = arrayListOf<MediaItem>()
+        for (i in 0 until tempQueue.size){
+            val track = tempQueue[i]
+            val yt = YTExtractor(con = context, CACHING = false, LOGGING = false)
+            yt.extract(track.videoId)
+            var retry_count = 0
+            while (yt.state == State.ERROR && retry_count < 3){
+                Log.e("Get URI", "Retry: ${retry_count}")
+                yt.extract(track.videoId)
+                retry_count++
+            }
+            if (yt.state == State.SUCCESS){
+                    val artistName: String = track.artists.toListName().connectArtists()
+                    var thumbUrl = track.thumbnails?.last()?.url ?: "http://i.ytimg.com/vi/${track.videoId}/maxresdefault.jpg"
+                    if (thumbUrl.contains("w120")){
+                        thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
                     }
-                    if (yt.state == State.SUCCESS){
-                            val artistName: String = track.artists.toListName().connectArtists()
-                            var thumbUrl = track.thumbnails?.last()?.url ?: "http://i.ytimg.com/vi/${track.videoId}/maxresdefault.jpg"
-                            if (thumbUrl.contains("w120")){
-                                thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
-                            }
-                            Log.d("Music Source URI", yt.getYTFiles()?.getAudioOnly()?.bestQuality()?.url.toString())
-                            if (yt.getYTFiles()?.getAudioOnly()?.bestQuality()?.url != null){
-                                val mediaItem = MediaItem.Builder()
-                                    .setUri(yt.getYTFiles()?.getAudioOnly()?.bestQuality()?.url)
-                                    .setMediaId(track.videoId)
-                                    .setMediaMetadata(
-                                        MediaMetadata.Builder()
-                                            .setArtworkUri(thumbUrl.toUri())
-                                            .setAlbumTitle(track.album?.name)
-                                            .setTitle(track.title)
-                                            .setArtist(artistName)
-                                            .build()
-                                    )
+                    Log.d("Music Source URI", yt.getYTFiles()?.getAudioOnly()?.bestQuality()?.url.toString())
+                    if (yt.getYTFiles()?.getAudioOnly()?.bestQuality()?.url != null){
+                        val mediaItem = MediaItem.Builder()
+                            .setUri(yt.getYTFiles()?.getAudioOnly()?.bestQuality()?.url)
+                            .setMediaId(track.videoId)
+                            .setMediaMetadata(
+                                MediaMetadata.Builder()
+                                    .setArtworkUri(thumbUrl.toUri())
+                                    .setAlbumTitle(track.album?.name)
+                                    .setTitle(track.title)
+                                    .setArtist(artistName)
                                     .build()
-                                simpleMediaServiceHandler.addMediaItemNotSet(mediaItem)
-                                tempCatalog.add(mediaItem)
-                                catalogMetadata.add(track)
-                                Log.d("MusicSource", "updateCatalog: ${track.title}, ${catalogMetadata.size}")
-                                downloadUrl.add(yt.getYTFiles()?.getAudioOnly()?.bestQuality()?.url.toString())
-                                added.value = true
-                                Log.d("MusicSource", "updateCatalog: ${track.title}")
-                            }
+                            )
+                            .build()
+                        simpleMediaServiceHandler.addMediaItemNotSet(mediaItem)
+                        tempCatalog.add(mediaItem)
+                        catalogMetadata.add(track)
+                        Log.d("MusicSource", "updateCatalog: ${track.title}, ${catalogMetadata.size}")
+                        downloadUrl.add(yt.getYTFiles()?.getAudioOnly()?.bestQuality()?.url.toString())
+                        added.value = true
+                        Log.d("MusicSource", "updateCatalog: ${track.title}")
                     }
-                }
-//            simpleMediaServiceHandler.addMediaItemList(tempCatalog)
-            return tempCatalog
+            }
         }
+//            simpleMediaServiceHandler.addMediaItemList(tempCatalog)
+        return tempCatalog
     }
     fun changeAddedState() {
         added.value = false

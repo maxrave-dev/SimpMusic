@@ -49,7 +49,15 @@
         android:id="@+id/bottom_navigation_item_home"
         android:name="com.maxrave.simpmusic.ui.fragment.HomeFragment"
         android:label="fragment_home"
-        tools:layout="@layout/fragment_home"/>
+        tools:layout="@layout/fragment_home">
+        <action
+            android:id="@+id/action_bottom_navigation_item_home_to_recentlySongsFragment"
+            app:destination="@id/recentlySongsFragment"
+            app:enterAnim="@anim/bottom_to_top"
+            app:exitAnim="@anim/top_to_bottom"
+            app:popEnterAnim="@anim/bottom_to_top"
+            app:popExitAnim="@anim/top_to_bottom" />
+    </fragment>
     <fragment
         android:id="@+id/artistFragment"
         android:name="com.maxrave.simpmusic.ui.fragment.other.ArtistFragment"
@@ -127,5 +135,10 @@
         android:id="@+id/mostPlayedFragment"
         android:name="com.maxrave.simpmusic.ui.fragment.other.MostPlayedFragment"
         android:label="MostPlayedFragment" />
+    <fragment
+        android:id="@+id/recentlySongsFragment"
+        android:name="com.maxrave.simpmusic.ui.fragment.other.RecentlySongsFragment"
+        android:label="fragment_recently_songs"
+        tools:layout="@layout/fragment_recently_songs" />
 
 </navigation>

@@ -1,5 +1,7 @@
 package com.maxrave.simpmusic.extension
 
+import android.view.View
+import android.view.ViewGroup
 import androidx.media3.common.MediaItem
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
@@ -15,6 +17,7 @@ import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
+
 
 fun SearchHistory.toQuery(): String {
     return this.query
@@ -267,5 +270,14 @@ fun PlaylistBrowse.toPlaylistEntity(): PlaylistEntity {
         tracks = this.tracks.toListVideoId(),
         year = this.year
     )
+}
+
+fun setEnabledAll(v: View, enabled: Boolean) {
+    v.isEnabled = enabled
+    v.isFocusable = enabled
+    if (v is ViewGroup) {
+        val vg = v
+        for (i in 0 until vg.childCount) setEnabledAll(vg.getChildAt(i), enabled)
+    }
 }
 

@@ -783,9 +783,10 @@ class NowPlayingFragment: Fragment() {
                         songChangeListener.onNowPlayingSongChange()
                     },
                 )
+                .diskCacheKey(thumbUrl)
                 .transformations(object : Transformation{
                     override val cacheKey: String
-                        get() = "paletteArtTransformer"
+                        get() = thumbUrl
 
                     override suspend fun transform(input: Bitmap, size: Size): Bitmap {
                         val p = Palette.from(input).generate()
@@ -880,6 +881,7 @@ class NowPlayingFragment: Fragment() {
                     songChangeListener.onNowPlayingSongChange()
                 },
             )
+            .diskCacheKey(mediaItem?.mediaMetadata?.artworkUri.toString())
             .transformations(object : Transformation{
                 override val cacheKey: String
                     get() = "paletteArtTransformer"
@@ -982,9 +984,10 @@ class NowPlayingFragment: Fragment() {
                     songChangeListener.onNowPlayingSongChange()
                 },
             )
+            .diskCacheKey(metadataCurSong?.thumbnails?.last()?.url.toString())
             .transformations(object : Transformation{
                 override val cacheKey: String
-                    get() = "paletteArtTransformer"
+                    get() = metadataCurSong?.thumbnails?.last()?.url.toString()
 
                 override suspend fun transform(input: Bitmap, size: Size): Bitmap {
                     val p = Palette.from(input).generate()

@@ -151,6 +151,10 @@ dependencies {
     def lottieVersion = "6.0.1"
     implementation "com.airbnb.android:lottie:$lottieVersion"
 
+    //Paging 3
+    def paging_version = "3.2.0-rc01"
+    implementation "androidx.paging:paging-runtime-ktx:$paging_version"
+
 //    def kotlinx_metadata_version = 0.6.0
 //    kapt "org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.6.0"
 }

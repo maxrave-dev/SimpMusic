@@ -2,7 +2,7 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".ui.fragment.other.FavoriteFragment">
+    tools:context=".ui.fragment.other.RecentlySongsFragment">
 
     <!-- TODO: Update blank fragment layout -->
     <RelativeLayout
@@ -18,7 +18,7 @@
                 android:id="@+id/topAppBar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
-                app:title="Favorite"
+                app:title="Recently Songs"
                 app:navigationIcon="@drawable/baseline_arrow_back_ios_new_24"
                 app:navigationIconTint="@android:color/white"
                 app:titleTextAppearance="@style/TextAppearance.Material3.TitleMedium"
@@ -30,23 +30,8 @@
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                style="@style/Widget.Material3.Button.IconButton"
-                android:text="Recently Added"
-                android:textColor="@android:color/white"
-                app:icon = "@drawable/baseline_sort_24"
-                app:iconTint = "@android:color/white"
-                app:iconPadding	= "10sp">
-
-            </Button>
-            <androidx.core.widget.NestedScrollView
-                android:padding="10sp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
                 <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rvFavorite"
+                    android:id="@+id/rvRecentlySongs"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     tools:listitem="@layout/item_songs_search_result"
@@ -54,7 +39,6 @@
                     android:clipToPadding="false">
 
                 </androidx.recyclerview.widget.RecyclerView>
-            </androidx.core.widget.NestedScrollView>
         </LinearLayout>
     </RelativeLayout>
 </layout>

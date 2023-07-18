@@ -58,10 +58,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:layout_centerInParent="true"
-                        android:background="@drawable/background_image_view"
-                        android:elevation="10sp"
-                        android:outlineProvider="bounds"
-                        android:scaleType="centerCrop">
+                        android:scaleType="fitCenter">
 
                     </ImageView>
                     <com.google.android.material.progressindicator.CircularProgressIndicator

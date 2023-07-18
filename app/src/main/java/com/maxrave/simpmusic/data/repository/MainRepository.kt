@@ -1,5 +1,9 @@
 package com.maxrave.simpmusic.data.repository
 
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.PagingData
+import androidx.paging.cachedIn
 import com.maxrave.simpmusic.data.model.home.chart.Chart
 import com.maxrave.simpmusic.data.api.BaseApiResponse
 import com.maxrave.simpmusic.data.api.search.RemoteDataSource
@@ -25,10 +29,12 @@ import com.maxrave.simpmusic.data.model.metadata.Lyrics
 import com.maxrave.simpmusic.data.model.metadata.MetadataSong
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
 import com.maxrave.simpmusic.data.model.thumbnailUrl
+import com.maxrave.simpmusic.pagination.RecentPagingSource
 import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.scopes.ActivityRetainedScoped
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.asFlow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
@@ -114,4 +120,14 @@ class MainRepository @Inject constructor(private val remoteDataSource: RemoteDat
     suspend fun updatePlaylistInLibrary(inLibrary: LocalDateTime, playlistId: String) = withContext(Dispatchers.Main) { localDataSource.updatePlaylistInLibrary(inLibrary, playlistId) }
     suspend fun updatePlaylistDownloadState(playlistId: String, downloadState: Int) = withContext(Dispatchers.Main) { localDataSource.updatePlaylistDownloadState(downloadState, playlistId) }
 
+    suspend fun getAllRecentData(): Flow<List<Any>> = flow { emit(localDataSource.getAllRecentData()) }.flowOn(Dispatchers.IO)
+    suspend fun getRecentSong(limit: Int, offset: Int) = localDataSource.getRecentSongs(limit, offset)
+//    fun getAllRecentData(): Flow<PagingData<Any>> {
+//        return Pager(
+//            config = PagingConfig(
+//                pageSize = 10
+//            ),
+//            pagingSourceFactory = { RecentPagingSource(localDataSource)}
+//        ).flow
+//    }
 }

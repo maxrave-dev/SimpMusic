@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.maxrave.simpmusic.R
@@ -18,18 +19,17 @@ import com.maxrave.simpmusic.data.db.entities.ArtistEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
-import com.maxrave.simpmusic.data.model.searchResult.albums.AlbumsResult
-import com.maxrave.simpmusic.data.model.searchResult.artists.ArtistsResult
-import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
-import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
-import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.FragmentLibraryBinding
 import com.maxrave.simpmusic.extension.toTrack
+import com.maxrave.simpmusic.pagination.RecentPagingAdapter
 import com.maxrave.simpmusic.viewModel.LibraryViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
-import java.time.LocalDateTime
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @AndroidEntryPoint
 class LibraryFragment : Fragment() {
@@ -41,6 +41,8 @@ class LibraryFragment : Fragment() {
 
     private lateinit var adapterItem: SearchItemAdapter
     private lateinit var listRecentlyAdded: ArrayList<Any>
+
+    //private lateinit var pagingAdapter: RecentPagingAdapter
 
     private lateinit var adapterPlaylist: FavoritePlaylistAdapter
     private lateinit var listPlaylist: ArrayList<Any>
@@ -63,6 +65,7 @@ class LibraryFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         listRecentlyAdded = ArrayList()
         adapterItem = SearchItemAdapter(arrayListOf(), requireContext())
+        //pagingAdapter = RecentPagingAdapter(requireContext())
         listPlaylist = ArrayList()
         adapterPlaylist = FavoritePlaylistAdapter(arrayListOf())
         binding.rvRecentlyAdded.apply {
@@ -84,6 +87,13 @@ class LibraryFragment : Fragment() {
             listPlaylist.addAll(temp)
             adapterPlaylist.updateList(listPlaylist)
         }
+//        lifecycleScope.launch {
+//            withContext(Dispatchers.IO) {
+//                viewModel.recentlyAdded.collectLatest { pagingData ->
+//                    pagingAdapter.submitData(pagingData)
+//                }
+//            }
+//        }
         viewModel.listRecentlyAdded.observe(viewLifecycleOwner){list ->
             Log.d("LibraryFragment", "onViewCreated: $list")
             val temp = ArrayList<Any>()
@@ -116,7 +126,7 @@ class LibraryFragment : Fragment() {
                 }
                 if (type == Config.SONG_CLICK){
                     val songClicked = adapterItem.getCurrentList()[position] as SongEntity
-                    val videoId = (adapterItem.getCurrentList()[position] as SongEntity).videoId
+                    val videoId = songClicked.videoId
                     Queue.clear()
                     val firstQueue: Track = songClicked.toTrack()
                     Queue.setNowPlaying(firstQueue)

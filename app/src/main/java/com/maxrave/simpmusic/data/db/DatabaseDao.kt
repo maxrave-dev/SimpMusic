@@ -1,9 +1,11 @@
 package com.maxrave.simpmusic.data.db
 
+import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
@@ -14,6 +16,36 @@ import java.time.LocalDateTime
 @Dao
 interface DatabaseDao {
 
+    //Transaction request with multiple queries
+    @Transaction
+    suspend fun getAllRecentData(): List<Any> {
+        val a = mutableListOf<Any>()
+        a.addAll(getAllSongs())
+        a.addAll(getAllArtists())
+        a.addAll(getAllAlbums())
+        a.addAll(getAllPlaylists())
+        val sortedList = a.sortedWith<Any>(Comparator { p0, p1 ->
+            val timeP0: LocalDateTime? = when (p0) {
+                is SongEntity -> p0.inLibrary
+                is ArtistEntity -> p0.inLibrary
+                is AlbumEntity -> p0.inLibrary
+                is PlaylistEntity -> p0.inLibrary
+                else -> null
+            }
+            val timeP1: LocalDateTime? = when (p1) {
+                is SongEntity -> p1.inLibrary
+                is ArtistEntity -> p1.inLibrary
+                is AlbumEntity -> p1.inLibrary
+                is PlaylistEntity -> p1.inLibrary
+                else -> null
+            }
+            if (timeP0 == null || timeP1 == null) {
+                return@Comparator if (timeP0 == null && timeP1 == null) 0 else if (timeP0 == null) -1 else 1
+            }
+            timeP0.compareTo(timeP1) // Sort in descending order by inLibrary time
+        })
+        return sortedList.takeLast(20)
+    }
     // Get search history
     @Query("SELECT * FROM search_history")
     suspend fun getSearchHistory(): List<SearchHistory>
@@ -25,7 +57,10 @@ interface DatabaseDao {
     suspend fun insertSearchHistory(searchHistory: SearchHistory)
 
     //Song
-    @Query("SELECT * FROM song ORDER BY inLibrary ASC")
+    @Query("SELECT * FROM song ORDER BY inLibrary DESC LIMIT :limit OFFSET :offset")
+    suspend fun getRecentSongs(limit: Int, offset: Int): List<SongEntity>
+
+    @Query("SELECT * FROM song")
     suspend fun getAllSongs(): List<SongEntity>
 
     @Query("SELECT * FROM song WHERE liked = 1")

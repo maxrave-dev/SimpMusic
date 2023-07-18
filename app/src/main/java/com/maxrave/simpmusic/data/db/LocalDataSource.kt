@@ -9,6 +9,7 @@ import java.time.LocalDateTime
 import javax.inject.Inject
 
 class LocalDataSource @Inject constructor(private val databaseDao: DatabaseDao) {
+    suspend fun getAllRecentData() = databaseDao.getAllRecentData()
 
     suspend fun getSearchHistory() = databaseDao.getSearchHistory()
 
@@ -17,6 +18,7 @@ class LocalDataSource @Inject constructor(private val databaseDao: DatabaseDao) 
     suspend fun insertSearchHistory(searchHistory: SearchHistory) = databaseDao.insertSearchHistory(searchHistory)
 
     suspend fun getAllSongs() = databaseDao.getAllSongs()
+    suspend fun getRecentSongs(limit: Int, offset: Int) = databaseDao.getRecentSongs(limit, offset)
     suspend fun getSongByListVideoId(primaryKeyList: List<String>) = databaseDao.getSongByListVideoId(primaryKeyList)
     suspend fun getLikedSongs() = databaseDao.getLikedSongs()
     suspend fun getLibrarySongs() = databaseDao.getLibrarySongs()

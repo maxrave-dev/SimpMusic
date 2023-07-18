@@ -255,6 +255,8 @@ class HomeFragment : Fragment() {
             artistChart = chart?.artists?.itemArtists as ArrayList<ItemArtist>
             trackChartAdapter.updateData(viewModel.chart.value?.data?.videos?.items!! as ArrayList<ItemVideo>)
             artistChartAdapter.updateData(viewModel.chart.value?.data?.artists?.itemArtists!! as ArrayList<ItemArtist>)
+            binding.chartResultLayout.visibility = View.VISIBLE
+            binding.chartLoadingLayout.visibility = View.GONE
             homeItemList?.addAll(viewModel.homeItemList.value?.data!!)
             Log.d("Data", "onViewCreated: $homeItemList")
             if (homeItemList!![0].title == "Quick picks")
@@ -434,6 +436,15 @@ class HomeFragment : Fragment() {
         }
         binding.btRegionCode.setOnClickListener {
             listPopup.show()
+        }
+        binding.topAppBar.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.home_fragment_menu_item_recently_played -> {
+                    findNavController().navigate(R.id.action_bottom_navigation_item_home_to_recentlySongsFragment)
+                    true
+                }
+                else -> false
+            }
         }
     }
 

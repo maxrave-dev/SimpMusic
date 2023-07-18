@@ -229,6 +229,7 @@
                                android:layout_width="match_parent"
                                android:layout_height="200sp"
                                android:id="@+id/chartLoadingLayout">
+
                                <com.google.android.material.progressindicator.CircularProgressIndicator
                                    android:layout_width="match_parent"
                                    android:layout_height="wrap_content"

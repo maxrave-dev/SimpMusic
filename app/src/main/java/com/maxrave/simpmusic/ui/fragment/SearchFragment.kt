@@ -11,6 +11,7 @@ import androidx.appcompat.widget.SearchView
 import androidx.core.os.trace
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
@@ -27,12 +28,14 @@ import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.FragmentSearchBinding
+import com.maxrave.simpmusic.extension.setEnabledAll
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.test.source.MusicSource
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.SearchViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -96,6 +99,7 @@ class SearchFragment : Fragment() {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 if (query != null) {
 //                    fetchSearchAll(query)
+                    setEnabledAll(binding.chipGroupTypeSearch, false)
                     binding.svSearch.clearFocus()
                     binding.suggestList.visibility = View.GONE
                     binding.recentlyQueryView.visibility = View.GONE
@@ -123,6 +127,7 @@ class SearchFragment : Fragment() {
                             resultList.clear()
                             resultAdapter.updateList(resultList)
                             fetchSearchVideos(query)
+                            binding.chipGroupTypeSearch.isClickable = true
                             Log.d("Check Video", "Video is checked")
                         }
                         "songs" -> {
@@ -130,24 +135,28 @@ class SearchFragment : Fragment() {
                             Log.d("Check ResultList", resultList.toString())
                             resultAdapter.updateList(resultList)
                             fetchSearchSongs(query)
+                            binding.chipGroupTypeSearch.isClickable = true
                             Log.d("Check Song", "Song is checked")
                         }
                         "albums" -> {
                             resultList.clear()
                             resultAdapter.updateList(resultList)
                             fetchSearchAlbums(query)
+                            binding.chipGroupTypeSearch.isClickable = true
                             Log.d("Check Album", "Album is checked")
                         }
                         "artists" -> {
                             resultList.clear()
                             resultAdapter.updateList(resultList)
                             fetchSearchArtists(query)
+                            binding.chipGroupTypeSearch.isClickable = true
                             Log.d("Check Artist", "Artist is checked")
                         }
                         "playlists" -> {
                             resultList.clear()
                             resultAdapter.updateList(resultList)
                             fetchSearchPlaylists(query)
+                            binding.chipGroupTypeSearch.isClickable = true
                             Log.d("Check Playlist", "Playlist is checked")
                         }
                     }
@@ -406,6 +415,7 @@ class SearchFragment : Fragment() {
     }
 
     private fun fetchSearchVideos(query: String) {
+        setEnabledAll(binding.chipGroupTypeSearch, false)
         binding.refreshSearch.isRefreshing = true
         binding.shimmerLayout.startShimmer()
         binding.shimmerLayout.visibility = View.VISIBLE
@@ -425,6 +435,7 @@ class SearchFragment : Fragment() {
                             binding.refreshSearch.isRefreshing = false
                             binding.shimmerLayout.stopShimmer()
                             binding.shimmerLayout.visibility = View.GONE
+                            setEnabledAll(binding.chipGroupTypeSearch, true)
                         }
                     }
                     is Resource.Error -> {
@@ -438,12 +449,14 @@ class SearchFragment : Fragment() {
                         }
                         binding.shimmerLayout.stopShimmer()
                         binding.shimmerLayout.visibility = View.GONE
+                        setEnabledAll(binding.chipGroupTypeSearch, true)
                     }
                 }
             }
         }
     }
     private fun fetchSearchAlbums(query: String) {
+        setEnabledAll(binding.chipGroupTypeSearch, false)
         binding.refreshSearch.isRefreshing = true
         binding.shimmerLayout.startShimmer()
         binding.shimmerLayout.visibility = View.VISIBLE
@@ -464,6 +477,7 @@ class SearchFragment : Fragment() {
                             binding.refreshSearch.isRefreshing = false
                             binding.shimmerLayout.stopShimmer()
                             binding.shimmerLayout.visibility = View.GONE
+                            setEnabledAll(binding.chipGroupTypeSearch, true)
                         }
                     }
                     is Resource.Error -> {
@@ -477,12 +491,14 @@ class SearchFragment : Fragment() {
                         }
                         binding.shimmerLayout.stopShimmer()
                         binding.shimmerLayout.visibility = View.GONE
+                        setEnabledAll(binding.chipGroupTypeSearch, true)
                     }
                 }
             }
         }
     }
     private fun fetchSearchPlaylists(query: String) {
+        setEnabledAll(binding.chipGroupTypeSearch, false)
         binding.refreshSearch.isRefreshing = true
         binding.shimmerLayout.startShimmer()
         binding.shimmerLayout.visibility = View.VISIBLE
@@ -504,6 +520,7 @@ class SearchFragment : Fragment() {
                                 binding.shimmerLayout.stopShimmer()
                                 binding.shimmerLayout.visibility = View.GONE
                                 binding.refreshSearch.isRefreshing = false
+                                setEnabledAll(binding.chipGroupTypeSearch, true)
                             }
                         }
                         is Resource.Error -> {
@@ -517,6 +534,7 @@ class SearchFragment : Fragment() {
                             }
                             binding.shimmerLayout.stopShimmer()
                             binding.shimmerLayout.visibility = View.GONE
+                            setEnabledAll(binding.chipGroupTypeSearch, true)
                         }
                     }
                 }
@@ -524,6 +542,7 @@ class SearchFragment : Fragment() {
         }
     }
     private fun fetchSearchArtists(query: String) {
+        setEnabledAll(binding.chipGroupTypeSearch, false)
         binding.shimmerLayout.startShimmer()
         binding.shimmerLayout.visibility = View.VISIBLE
         binding.refreshSearch.isRefreshing = true
@@ -545,6 +564,7 @@ class SearchFragment : Fragment() {
                                 binding.shimmerLayout.stopShimmer()
                                 binding.shimmerLayout.visibility = View.GONE
                                 binding.refreshSearch.isRefreshing = false
+                                setEnabledAll(binding.chipGroupTypeSearch, true)
                             }
                         }
                         is Resource.Error -> {
@@ -558,6 +578,7 @@ class SearchFragment : Fragment() {
                             }
                             binding.shimmerLayout.stopShimmer()
                             binding.shimmerLayout.visibility = View.GONE
+                            setEnabledAll(binding.chipGroupTypeSearch, true)
                         }
                     }
                 }
@@ -565,6 +586,7 @@ class SearchFragment : Fragment() {
         }
     }
     private fun fetchSearchSongs(query: String) {
+        setEnabledAll(binding.chipGroupTypeSearch, false)
         binding.shimmerLayout.startShimmer()
         binding.shimmerLayout.visibility = View.VISIBLE
         binding.refreshSearch.isRefreshing = true
@@ -586,6 +608,7 @@ class SearchFragment : Fragment() {
                                 binding.shimmerLayout.stopShimmer()
                                 binding.shimmerLayout.visibility = View.GONE
                                 binding.refreshSearch.isRefreshing = false
+                                setEnabledAll(binding.chipGroupTypeSearch, true)
                             }
                         }
                         is Resource.Error -> {
@@ -600,6 +623,7 @@ class SearchFragment : Fragment() {
                             binding.shimmerLayout.stopShimmer()
                             binding.shimmerLayout.visibility = View.GONE
                             binding.refreshSearch.isRefreshing = false
+                            setEnabledAll(binding.chipGroupTypeSearch, true)
                         }
                     }
                 }
@@ -607,6 +631,7 @@ class SearchFragment : Fragment() {
         }
     }
     private fun fetchSearchAll(query: String) {
+        setEnabledAll(binding.chipGroupTypeSearch, false)
         binding.shimmerLayout.startShimmer()
         binding.shimmerLayout.visibility = View.VISIBLE
         binding.refreshSearch.isRefreshing = true
@@ -616,7 +641,7 @@ class SearchFragment : Fragment() {
         var album = ArrayList<AlbumsResult>()
         var artist = ArrayList<ArtistsResult>()
         var playlist = ArrayList<PlaylistsResult>()
-        var temp: ArrayList<Any> = ArrayList()
+        val temp: ArrayList<Any> = ArrayList()
         viewModel.loading.observe(viewLifecycleOwner){ it ->
             if (it == false){
                 viewModel.songsSearchResult.observe(viewLifecycleOwner) { response ->
@@ -806,6 +831,7 @@ class SearchFragment : Fragment() {
                         binding.shimmerLayout.stopShimmer()
                         binding.shimmerLayout.visibility = View.GONE
                         binding.refreshSearch.isRefreshing = false
+                        setEnabledAll(binding.chipGroupTypeSearch, true)
                     }
                 }
             }
