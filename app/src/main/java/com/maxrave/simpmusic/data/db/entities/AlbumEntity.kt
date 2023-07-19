@@ -8,7 +8,7 @@ import java.time.LocalDateTime
 @Entity(tableName = "album")
 data class AlbumEntity (
     @PrimaryKey(autoGenerate = false) val browseId: String = "",
-    val artistId: List<String>? = null,
+    val artistId: List<String?>? = null,
     val artistName: List<String>? = null,
     val audioPlaylistId: String,
     val description: String,

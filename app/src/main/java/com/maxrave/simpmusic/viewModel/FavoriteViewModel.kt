@@ -24,4 +24,9 @@ class FavoriteViewModel @Inject constructor(application: Application, private va
             }
         }
     }
+    fun updateLikeStatus(videoId: String, likeStatus: Int) {
+        viewModelScope.launch {
+            mainRepository.updateLikeStatus(likeStatus = likeStatus, videoId = videoId)
+        }
+    }
 }

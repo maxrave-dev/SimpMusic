@@ -38,13 +38,12 @@ class SimpleMediaNotificationAdapter(
         callback: PlayerNotificationManager.BitmapCallback
     ): Bitmap? {
         val request = ImageRequest.Builder(context)
+            .diskCacheKey(player.mediaMetadata.artworkUri.toString())
             .data(player.mediaMetadata.artworkUri)
             .target(
                 onStart = {
-//                    Log.d("SimpleMediaNotificationAdapter", "onStart: ")
                 },
                 onSuccess = { result ->
-                    Log.d("SimpleMediaNotificationAdapter", "onSuccess: ")
                     callback.onBitmap(result.toBitmap())
                 },
                 onError = { error ->

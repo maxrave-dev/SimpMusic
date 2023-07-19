@@ -37,7 +37,9 @@ import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.ActivityMainBinding
 import com.maxrave.simpmusic.extension.connectArtists
+import com.maxrave.simpmusic.extension.isMyServiceRunning
 import com.maxrave.simpmusic.service.SimpleMediaService
+import com.maxrave.simpmusic.service.test.source.FetchQueue
 import com.maxrave.simpmusic.ui.fragment.NowPlayingFragment
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -119,7 +121,7 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
                             )
                             .transformations(object : Transformation {
                                 override val cacheKey: String
-                                    get() = "paletteArtTransformer"
+                                    get() = it.mediaMetadata.artworkUri.toString()
 
                                 override suspend fun transform(input: Bitmap, size: Size): Bitmap {
                                     val p = Palette.from(input).generate()
@@ -203,10 +205,11 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
         }
     }
     override fun onDestroy() {
+        super.onDestroy()
         Queue.clear()
         stopService()
         viewModel.isServiceRunning.postValue(false)
-        super.onDestroy()
+
         Log.d("Service", "Service destroyed")
     }
     private fun startService() {
@@ -223,6 +226,9 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
             stopService(intent)
             viewModel.isServiceRunning.postValue(false)
             Log.d("Service", "Service stopped")
+            if (this.isMyServiceRunning(FetchQueue:: class.java)){
+                this.stopService(Intent(this, FetchQueue::class.java))
+            }
         }
     }
 

@@ -13,15 +13,15 @@ data class Track(
     @SerializedName("artists")
     val artists: List<Artist>?,
     @SerializedName("duration")
-    val duration: String,
+    val duration: String?,
     @SerializedName("duration_seconds")
-    val durationSeconds: Int,
+    val durationSeconds: Int?,
     @SerializedName("isAvailable")
     val isAvailable: Boolean,
     @SerializedName("isExplicit")
     val isExplicit: Boolean,
     @SerializedName("likeStatus")
-    val likeStatus: String,
+    val likeStatus: String?,
     @SerializedName("thumbnails")
     val thumbnails: List<Thumbnail>?,
     @SerializedName("title")
@@ -29,7 +29,7 @@ data class Track(
     @SerializedName("videoId")
     val videoId: String,
     @SerializedName("videoType")
-    val videoType: String,
+    val videoType: String?,
     @SerializedName("category")
     val category: String?,
     @SerializedName("feedbackTokens")

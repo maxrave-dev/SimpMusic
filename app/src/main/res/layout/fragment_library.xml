@@ -155,7 +155,7 @@
                                 android:layout_width="30sp"
                                 android:layout_height="30sp"
                                 android:layout_margin="10sp"
-                                android:src="@drawable/baseline_downloaded">
+                                android:src="@drawable/baseline_downloading_24">
 
                             </ImageView>
                             <TextView

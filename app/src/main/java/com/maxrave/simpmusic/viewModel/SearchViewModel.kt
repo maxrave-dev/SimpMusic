@@ -9,6 +9,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.gson.Gson
 import com.maxrave.simpmusic.data.db.entities.SearchHistory
+import com.maxrave.simpmusic.data.db.entities.SongEntity
+import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.searchResult.albums.AlbumsResult
 import com.maxrave.simpmusic.data.model.searchResult.artists.ArtistsResult
 import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
@@ -16,6 +18,8 @@ import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.extension.toQueryList
+import com.maxrave.simpmusic.extension.toSongEntity
+import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
@@ -52,6 +56,9 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
     val suggestQuery : LiveData<Resource<ArrayList<String>>> = _suggestQuery
 
     var errorMessage = MutableLiveData<String>()
+
+    private val _songEntity: MutableLiveData<SongEntity> = MutableLiveData()
+    val songEntity: LiveData<SongEntity> = _songEntity
 
     fun getSearchHistory() {
         viewModelScope.launch {
@@ -222,6 +229,26 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
                         loading.value = false
                     }
                 }
+            }
+        }
+    }
+
+    fun updateLikeStatus(videoId: String, b: Boolean) {
+        viewModelScope.launch {
+            if (b){
+                mainRepository.updateLikeStatus(videoId, 1)
+            }
+            else {
+                mainRepository.updateLikeStatus(videoId, 0)
+            }
+        }
+    }
+
+    fun getSongEntity(track: Track) {
+        viewModelScope.launch {
+            mainRepository.insertSong(track.toSongEntity())
+            mainRepository.getSongById(track.videoId).collect { values ->
+                _songEntity.value = values
             }
         }
     }

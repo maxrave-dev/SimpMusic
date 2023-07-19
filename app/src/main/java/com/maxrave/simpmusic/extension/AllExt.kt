@@ -1,5 +1,8 @@
 package com.maxrave.simpmusic.extension
 
+import android.app.ActivityManager
+import android.app.Service
+import android.content.Context
 import android.view.View
 import android.view.ViewGroup
 import androidx.media3.common.MediaItem
@@ -18,6 +21,13 @@ import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
 
+fun Context.isMyServiceRunning(serviceClass: Class<out Service>) = try {
+    (getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager)
+        .getRunningServices(Int.MAX_VALUE)
+        .any { it.service.className == serviceClass.name }
+} catch (e: Exception) {
+    false
+}
 
 fun SearchHistory.toQuery(): String {
     return this.query
@@ -77,11 +87,11 @@ fun List<Artist>?.toListName(): List<String> {
     }
     return list
 }
-fun List<Artist>.toListId(): List<String> {
+fun List<Artist>?.toListId(): List<String> {
     val list = mutableListOf<String>()
-    for (item in this) {
-        if (item.id != null) {
-            list.add(item.id)
+    if (this != null){
+        for (item in this) {
+            list.add(item.id ?: "")
         }
     }
     return list
@@ -106,14 +116,14 @@ fun Track.toSongEntity(): SongEntity {
         albumName = this.album?.name,
         artistId = this.artists?.toListId(),
         artistName = this.artists?.toListName(),
-        duration = this.duration,
-        durationSeconds = this.durationSeconds,
+        duration = this.duration ?: "",
+        durationSeconds = this.durationSeconds ?: 0,
         isAvailable = this.isAvailable,
         isExplicit = this.isExplicit,
-        likeStatus = this.likeStatus,
+        likeStatus = this.likeStatus ?: "",
         thumbnails = this.thumbnails?.last()?.url,
         title = this.title,
-        videoType = this.videoType,
+        videoType = this.videoType ?: "",
         category = this.category,
         resultType = this.resultType,
         liked = false,

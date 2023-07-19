@@ -167,15 +167,17 @@ class SharedViewModel @Inject constructor(private val musicSource: MusicSource, 
                         }
                         Log.d("Change Track in ViewModel", "Change Track")
                         val song = getCurrentMediaItem()
-                        if (song != null) {
-                            mainRepository.insertSong(song.toSongEntity()!!)
-                            mainRepository.getSongById(song.mediaId)
+                        if (song != null && getCurrentMediaItemIndex() > 0) {
+                            val tempSong = musicSource.catalogMetadata[getCurrentMediaItemIndex()]
+                            Log.d("Check tempSong", tempSong.toString())
+                            mainRepository.insertSong(tempSong.toSongEntity())
+                            mainRepository.getSongById(tempSong.videoId)
                                 .collect { songEntity ->
                                     _songDB.value = songEntity
                                     _liked.value = songEntity.liked
                                 }
-                            mainRepository.updateSongInLibrary(LocalDateTime.now(), song.mediaId)
-                            mainRepository.updateListenCount(song.mediaId)
+                            mainRepository.updateSongInLibrary(LocalDateTime.now(), tempSong.videoId)
+                            mainRepository.updateListenCount(tempSong.videoId)
                         }
                     }
                 }
@@ -276,14 +278,11 @@ class SharedViewModel @Inject constructor(private val musicSource: MusicSource, 
             _firstTrackAdded.value = false
             simpleMediaServiceHandler.clearMediaItems()
             var uri = ""
-            val yt = YTExtractor(con = context, CACHING = false, LOGGING = true)
+            mainRepository.insertSong(track.toSongEntity())
+            mainRepository.updateSongInLibrary(LocalDateTime.now(), track.videoId)
+            mainRepository.updateListenCount(track.videoId)
+            val yt = YTExtractor(con = context, CACHING = false, LOGGING = true, retryCount = 3)
             yt.extract(track.videoId)
-            var retry_count = 0
-            while (yt.state == State.ERROR && retry_count < 3){
-                Log.e("Get URI", "Retry: ${retry_count}")
-                yt.extract(track.videoId)
-                retry_count++
-            }
             if (yt.state == State.SUCCESS) {
                 if (yt.getYTFiles()?.getAudioOnly()?.bestQuality()?.url != null) {
                     yt.getYTFiles()?.getAudioOnly()?.bestQuality()?.url?.let {
@@ -314,9 +313,6 @@ class SharedViewModel @Inject constructor(private val musicSource: MusicSource, 
                     }
                     _firstTrackAdded.value = true
                     musicSource.addFirstMetadata(track)
-                    mainRepository.insertSong(track.toSongEntity())
-                    mainRepository.updateSongInLibrary(LocalDateTime.now(), track.videoId)
-                    mainRepository.updateListenCount(track.videoId)
                 }
             }
             else {
@@ -325,77 +321,6 @@ class SharedViewModel @Inject constructor(private val musicSource: MusicSource, 
             }
         }
     }
-    @UnstableApi
-    fun loadMediaItems(videoId: String){
-        Log.w("Check loadMediaItems", "Load Media Items")
-        val title = metadata.value?.data?.title
-        viewModelScope.launch {
-            var uri = ""
-            val yt = YTExtractor(context)
-            yt.extract(videoId)
-            if (yt.state == State.SUCCESS){
-                val ytFiles = yt.getYTFiles()
-                if (ytFiles != null){
-                    if (ytFiles[251] != null) {
-                        ytFiles[251].url.let {
-                            if (it != null) {
-                                uri = it
-                            }
-                        }
-                    } else if (ytFiles[171] != null) {
-                        ytFiles[171].url.let {
-                            if (it != null) {
-                                uri = it
-                            }
-                        }
-                    } else if (ytFiles[250] != null) {
-                        ytFiles[250].url.let {
-                            if (it != null) {
-                                uri = it
-                            }
-                        }
-                    } else if (ytFiles[249] != null) {
-                        ytFiles[249].url.let {
-                            if (it != null) {
-                                uri = it
-                            }
-                        }
-                    }
-                }
-                else {
-                    Toast.makeText(
-                        context,
-                        "This track is not available in your country! Use VPN to fix this problem",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
-                if(uri != ""){
-                    Log.d("Itag", uri)
-                    val tempArtist = mutableListOf<String>()
-                    if (metadata.value?.data?.artists != null){
-                        for (artist in metadata.value?.data?.artists!!) {
-                            tempArtist.add(artist.name)
-                        }
-                    }
-                    val artistName: String = metadata.value?.data?.artists.toListName().connectArtists()
-                    Log.d("Check Title", title + " " + artistName)
-                    val mediaItem = MediaItem.Builder().setUri(uri)
-                        .setMediaId(videoId)
-                        .setMediaMetadata(
-                            MediaMetadata.Builder()
-                                .setTitle(metadata.value?.data?.title)
-                                .setArtist(artistName)
-                                .setArtworkUri(Uri.parse(metadata.value?.data?.thumbnails?.last()?.url))
-                                .build()
-                        )
-                        .build()
-                    simpleMediaServiceHandler.addMediaItem(mediaItem)
-                    simpleMediaServiceHandler.changeTrackToFalse()
-                }
-            }
-        }
-    }
-
 
 
     @UnstableApi

@@ -114,12 +114,6 @@ class MusicSource @Inject constructor(val context: Context, val simpleMediaServi
             val track = tempQueue[i]
             val yt = YTExtractor(con = context, CACHING = false, LOGGING = false)
             yt.extract(track.videoId)
-            var retry_count = 0
-            while (yt.state == State.ERROR && retry_count < 3){
-                Log.e("Get URI", "Retry: ${retry_count}")
-                yt.extract(track.videoId)
-                retry_count++
-            }
             if (yt.state == State.SUCCESS){
                     val artistName: String = track.artists.toListName().connectArtists()
                     var thumbUrl = track.thumbnails?.last()?.url ?: "http://i.ytimg.com/vi/${track.videoId}/maxresdefault.jpg"

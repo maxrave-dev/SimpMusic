@@ -27,18 +27,27 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
 import androidx.palette.graphics.Palette
+import androidx.recyclerview.widget.LinearLayoutManager
 import coil.ImageLoader
+import coil.load
 import coil.request.ImageRequest
 import coil.size.Size
 import coil.transform.Transformation
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.card.MaterialCardView
 import com.google.android.material.slider.Slider
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.adapter.artist.SeeArtistOfNowPlayingAdapter
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.data.model.metadata.MetadataSong
 import com.maxrave.simpmusic.data.queue.Queue
+import com.maxrave.simpmusic.databinding.BottomSheetNowPlayingBinding
+import com.maxrave.simpmusic.databinding.BottomSheetSeeArtistOfNowPlayingBinding
 import com.maxrave.simpmusic.databinding.FragmentNowPlayingBinding
+import com.maxrave.simpmusic.extension.connectArtists
+import com.maxrave.simpmusic.extension.isMyServiceRunning
+import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toListTrack
 import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.service.RepeatState
@@ -86,8 +95,9 @@ class NowPlayingFragment: Fragment() {
     }
 
     override fun onResume() {
-        super.onResume()
+        Log.d("NowPlayingFragment", "onResume")
         updateUIfromCurrentMediaItem(viewModel.getCurrentMediaItem())
+        super.onResume()
     }
 
     override fun onCreateView(
@@ -145,6 +155,9 @@ class NowPlayingFragment: Fragment() {
                     binding.tvSongArtist.visibility = View.GONE
                     Queue.getNowPlaying()?.let {
                         musicSource.reset()
+                        if (requireContext().isMyServiceRunning(FetchQueue:: class.java)) {
+                            requireActivity().stopService(Intent(requireContext(), FetchQueue::class.java))
+                        }
                         viewModel.loadMediaItemFromTrack(it)
                         viewModel.videoId.postValue(it.videoId)
                         viewModel.from.postValue(from)
@@ -187,6 +200,9 @@ class NowPlayingFragment: Fragment() {
                     binding.tvSongArtist.visibility = View.GONE
                     Queue.getNowPlaying()?.let {
                         musicSource.reset()
+                        if (requireContext().isMyServiceRunning(FetchQueue:: class.java)) {
+                            requireActivity().stopService(Intent(requireContext(), FetchQueue::class.java))
+                        }
                         viewModel.loadMediaItemFromTrack(it)
                         viewModel.videoId.postValue(it.videoId)
                         viewModel.from.postValue(from)
@@ -226,11 +242,10 @@ class NowPlayingFragment: Fragment() {
                     binding.tvSongArtist.visibility = View.GONE
                     Queue.getNowPlaying()?.let {
                         musicSource.reset()
-//                        viewModel.onUIEvent(UIEvent.Stop)
+                        if (requireContext().isMyServiceRunning(FetchQueue:: class.java)) {
+                            requireActivity().stopService(Intent(requireContext(), FetchQueue::class.java))
+                        }
                         viewModel.loadMediaItemFromTrack(it)
-
-//                        viewModel.getMetadata(it.videoId)
-//                        observerMetadata()
                         viewModel.videoId.postValue(it.videoId)
                         viewModel.from.postValue(from)
                         viewModel.resetLyrics()
@@ -275,7 +290,9 @@ class NowPlayingFragment: Fragment() {
                     binding.tvSongArtist.visibility = View.GONE
                     Queue.getNowPlaying()?.let {
                         musicSource.reset()
-//                        viewModel.onUIEvent(UIEvent.Stop)
+                        if (requireContext().isMyServiceRunning(FetchQueue:: class.java)) {
+                            requireActivity().stopService(Intent(requireContext(), FetchQueue::class.java))
+                        }
                         viewModel.loadMediaItemFromTrack(it)
 
 //                        viewModel.getMetadata(it.videoId)
@@ -325,8 +342,6 @@ class NowPlayingFragment: Fragment() {
                             binding.ivArt.visibility = View.GONE
                             binding.loadingArt.visibility = View.VISIBLE
                             val track = viewModel.nowPlayingMediaItem.value
-//                        viewModel.getMetadata(videoId!!)
-//                        observerMetadata()
                             if (track != null) {
                                 viewModel.resetLyrics()
                                 viewModel.getLyrics(track.mediaMetadata.title.toString() + " " + track.mediaMetadata.artist)
@@ -554,6 +569,87 @@ class NowPlayingFragment: Fragment() {
                 viewModel.getCurrentMediaItem()?.let { nowPlayingSong -> viewModel.updateLikeStatus(nowPlayingSong.mediaId, true) }
             }
         }
+        binding.topAppBar.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.now_playing_dialog_menu_item_more -> {
+                    if (musicSource.catalogMetadata.isNotEmpty()){
+                        val dialog = BottomSheetDialog(requireContext())
+                        val bottomSheetView = BottomSheetNowPlayingBinding.inflate(layoutInflater)
+                        with(bottomSheetView) {
+                            if (viewModel.liked.value){
+                                tvFavorite.text = "Liked"
+                                cbFavorite.isChecked = true
+                            }
+                            else {
+                                tvFavorite.text = "Like"
+                                cbFavorite.isChecked = false
+                            }
+                            val song = musicSource.catalogMetadata[viewModel.getCurrentMediaItemIndex()]
+                            tvSongTitle.text = song.title
+                            tvSongTitle.isSelected = true
+                            tvSongArtist.text = song.artists.toListName().connectArtists()
+                            tvSongArtist.isSelected = true
+                            ivThumbnail.load(song.thumbnails?.last()?.url)
+
+                            btLike.setOnClickListener {
+                                if (cbFavorite.isChecked){
+                                    cbFavorite.isChecked = false
+                                    tvFavorite.text = "Like"
+                                    viewModel.updateLikeStatus(song.videoId, false)
+                                }
+                                else {
+                                    cbFavorite.isChecked = true
+                                    tvFavorite.text = "Liked"
+                                    viewModel.updateLikeStatus(song.videoId, true)
+                                }
+                            }
+
+                            btSeeArtists.setOnClickListener {
+                                val subDialog = BottomSheetDialog(requireContext())
+                                val subBottomSheetView = BottomSheetSeeArtistOfNowPlayingBinding.inflate(layoutInflater)
+                                if (song.artists != null) {
+                                    val artistAdapter = SeeArtistOfNowPlayingAdapter(song.artists)
+                                    subBottomSheetView.rvArtists.apply {
+                                        adapter = artistAdapter
+                                        layoutManager = LinearLayoutManager(requireContext())
+                                    }
+                                    artistAdapter.setOnClickListener(object : SeeArtistOfNowPlayingAdapter.OnItemClickListener {
+                                        override fun onItemClick(position: Int) {
+                                            val artist = song.artists[position]
+                                            if (artist.id != null) {
+                                                findNavController().navigate(R.id.action_global_artistFragment, Bundle().apply {
+                                                    putString("channelId", artist.id)
+                                                })
+                                                subDialog.dismiss()
+                                                dialog.dismiss()
+                                            }
+                                        }
+
+                                    })
+                                }
+
+                                subDialog.setCancelable(true)
+                                subDialog.setContentView(subBottomSheetView.root)
+                                subDialog.show()
+                            }
+                            btShare.setOnClickListener {
+                                val shareIntent = Intent(Intent.ACTION_SEND)
+                                shareIntent.type = "text/plain"
+                                val url = "https://youtube.com/watch?v=${song.videoId}"
+                                shareIntent.putExtra(Intent.EXTRA_TEXT, url)
+                                val chooserIntent = Intent.createChooser(shareIntent, "Chia sẻ URL")
+                                startActivity(chooserIntent)
+                            }
+                        }
+                        dialog.setCancelable(true)
+                        dialog.setContentView(bottomSheetView.root)
+                        dialog.show()
+                    }
+                    true
+                }
+                else -> false
+            }
+        }
     }
 
     private fun fetchSourceFromQueue(index: Int? = null) {
@@ -686,13 +782,7 @@ class NowPlayingFragment: Fragment() {
 //            dismiss()
 //        }
 //    }
-    fun Context.isMyServiceRunning(serviceClass: Class<out Service>) = try {
-        (getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager)
-            .getRunningServices(Int.MAX_VALUE)
-            .any { it.service.className == serviceClass.name }
-    } catch (e: Exception) {
-        false
-    }
+
     private fun getVideosRelated(videoId: String){
         viewModel.getVideoRelated(videoId)
         viewModel.videoRelated.observe(viewLifecycleOwner){ response ->

@@ -11,7 +11,9 @@ import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
+import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.repository.MainRepository
+import com.maxrave.simpmusic.extension.toSongEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
@@ -29,6 +31,9 @@ class LibraryViewModel @Inject constructor(private val mainRepository: MainRepos
 
     private var _listPlaylistFavorite: MutableLiveData<List<Any>> = MutableLiveData()
     val listPlaylistFavorite: LiveData<List<Any>> = _listPlaylistFavorite
+
+    private var _songEntity: MutableLiveData<SongEntity> = MutableLiveData()
+    val songEntity: LiveData<SongEntity> = _songEntity
 
 //    val recentlyAdded = mainRepository.getAllRecentData().map { pagingData ->
 //        pagingData.map { it }
@@ -122,6 +127,20 @@ class LibraryViewModel @Inject constructor(private val mainRepository: MainRepos
                     _listPlaylistFavorite.postValue(sortedList)
                 }
             }
+        }
+    }
+
+    fun getSongEntity(videoId: String) {
+        viewModelScope.launch {
+            mainRepository.getSongById(videoId).collect { values ->
+                _songEntity.value = values
+            }
+        }
+    }
+
+    fun updateLikeStatus(videoId: String, likeStatus: Int) {
+        viewModelScope.launch {
+            mainRepository.updateLikeStatus(likeStatus = likeStatus, videoId = videoId)
         }
     }
 }

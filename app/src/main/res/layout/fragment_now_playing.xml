@@ -1,14 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools">
-<!--    <data>-->
-<!--        <variable-->
-<!--            name="viewModel"-->
-<!--            type="com.maxrave.simpmusic.viewModel.SharedViewModel">-->
-
-<!--        </variable>-->
-<!--    </data>-->
+    xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <androidx.core.widget.NestedScrollView
         android:layout_height="match_parent"
@@ -89,9 +81,11 @@
                             android:layout_width="match_parent"
                             android:orientation="vertical"
                             android:id="@+id/meta_data_layout"
-                            android:layout_weight="1">
+                            android:layout_weight="1"
+                            android:layout_marginStart="10sp">
 
                             <TextView
+                                android:textColor="@android:color/white"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:fontFamily="@font/roboto_bold"
@@ -101,7 +95,7 @@
                                 android:focusable="true"
                                 android:focusableInTouchMode="true"
                                 android:scrollHorizontally="true"
-                                android:text="People Change"
+                                android:text=""
                                 android:textSize="20sp"
                                 android:textStyle="bold"
                                 android:id="@+id/tvSongTitle" />
@@ -116,7 +110,8 @@
                                 android:focusableInTouchMode="true"
                                 android:scrollHorizontally="true"
                                 android:fontFamily="@font/roboto"
-                                android:text="Hoang, RUNN"
+                                android:text=""
+                                android:textColor="@android:color/white"
                                 android:textSize="13sp"
                                 android:textStyle="normal"
                                 android:id="@+id/tvSongArtist" />
@@ -370,18 +365,20 @@
                                         android:lineSpacingExtra="5sp"
                                         android:gravity="bottom">
                                     </TextView>
-                                    <TextView
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content"
-                                        android:textStyle="bold"
-                                        android:textSize="22sp"
-                                        android:id="@+id/tvNowLyrics"
-                                        android:maxLines="6"
-                                        android:layout_centerInParent="true"
-                                        android:layout_marginTop="3sp"
-                                        android:layout_marginBottom="3sp">
 
-                                    </TextView>
+                                <TextView
+                                    android:id="@+id/tvNowLyrics"
+                                    android:textColor="@android:color/white"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:layout_centerInParent="true"
+                                    android:layout_marginTop="3sp"
+                                    android:layout_marginBottom="3sp"
+                                    android:maxLines="6"
+                                    android:textSize="22sp"
+                                    android:textStyle="bold">
+
+                                </TextView>
                                     <TextView
                                         android:layout_width="match_parent"
                                         android:layout_height="wrap_content"

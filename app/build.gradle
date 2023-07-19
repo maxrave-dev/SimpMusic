@@ -49,7 +49,7 @@ android {
 dependencies {
     //implementation project(':youtubeExtractor')
 
-    def youtube_extractor_version = '0.0.5'
+    def youtube_extractor_version = '0.0.6'
     implementation ("com.github.maxrave-dev:kotlin-youtubeExtractor:$youtube_extractor_version") {changing = true}
 
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.1'
@@ -57,8 +57,6 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
     //material design 3
     implementation 'com.google.android.material:material:1.9.0'
-    //rive animation
-    implementation 'app.rive:rive-android:5.0.1'
     //runtime
     implementation "androidx.startup:startup-runtime:1.1.1"
     //ExoPlayer
@@ -128,16 +126,16 @@ dependencies {
     //fragment ktx
     implementation 'androidx.fragment:fragment-ktx:1.6.0'
     //Hilt
-    implementation 'com.google.dagger:hilt-android:2.46.1'
-    kapt 'com.google.dagger:hilt-compiler:2.46.1'
+    implementation 'com.google.dagger:hilt-android:2.47'
+    kapt 'com.google.dagger:hilt-compiler:2.47'
 
     // For instrumentation tests
-    androidTestImplementation 'com.google.dagger:hilt-android-testing:2.46.1'
-    kaptAndroidTest 'com.google.dagger:hilt-compiler:2.46.1'
+    androidTestImplementation 'com.google.dagger:hilt-android-testing:2.47'
+    kaptAndroidTest 'com.google.dagger:hilt-compiler:2.47'
 
     // For local unit tests
-    testImplementation 'com.google.dagger:hilt-android-testing:2.46.1'
-    kaptTest 'com.google.dagger:hilt-compiler:2.46.1'
+    testImplementation 'com.google.dagger:hilt-android-testing:2.47'
+    kaptTest 'com.google.dagger:hilt-compiler:2.47'
     //Swipe To Refresh
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.2.0-alpha01"
     //Insetter
@@ -148,7 +146,7 @@ dependencies {
     implementation 'com.facebook.shimmer:shimmer:0.5.0'
 
     //Lottie
-    def lottieVersion = "6.0.1"
+    def lottieVersion = '6.1.0'
     implementation "com.airbnb.android:lottie:$lottieVersion"
 
     //Paging 3

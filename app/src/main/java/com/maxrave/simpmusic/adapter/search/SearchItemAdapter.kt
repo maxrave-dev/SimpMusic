@@ -32,10 +32,10 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
 
     interface onItemClickListener{
         fun onItemClick(position: Int, type: String)
+        fun onOptionsClick(position: Int, type: String)
     }
     fun setOnClickListener(listener: onItemClickListener){
         mListener = listener
-
     }
     fun getCurrentList(): ArrayList<Any> = searchResultList
 
@@ -45,6 +45,9 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
         init {
             binding.root.setOnClickListener {
                 listener.onItemClick(bindingAdapterPosition, SONG_CLICK)
+            }
+            binding.btOptions.setOnClickListener {
+                listener.onOptionsClick(bindingAdapterPosition, SONG_CLICK)
             }
         }
         fun bind(song: SongsResult){
@@ -70,6 +73,9 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
             binding.root.setOnClickListener {
                 listener.onItemClick(bindingAdapterPosition, SONG_CLICK)
             }
+            binding.btOptions.setOnClickListener {
+                listener.onOptionsClick(bindingAdapterPosition, SONG_CLICK)
+            }
         }
         fun bind(song: SongEntity){
             with(binding){
@@ -87,6 +93,9 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
         init {
             binding.root.setOnClickListener {
                 listener.onItemClick(bindingAdapterPosition, VIDEO_CLICK)
+            }
+            binding.btOptions.setOnClickListener {
+                listener.onOptionsClick(bindingAdapterPosition, VIDEO_CLICK)
             }
         }
         fun bind(video: VideosResult){

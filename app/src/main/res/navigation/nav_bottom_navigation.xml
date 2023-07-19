@@ -12,7 +12,11 @@
         tools:layout="@layout/fragment_search" >
         <action
             android:id="@+id/action_bottom_navigation_item_search_to_artistFragment"
-            app:destination="@id/artistFragment" >
+            app:destination="@id/artistFragment"
+            app:enterAnim="@anim/bottom_to_top"
+            app:exitAnim="@anim/top_to_bottom"
+            app:popEnterAnim="@anim/bottom_to_top"
+            app:popExitAnim="@anim/top_to_bottom">
             <argument
                 android:name="channelId"
                 app:argType="string" />
@@ -65,21 +69,32 @@
     <action
         android:id="@+id/action_global_artistFragment"
         app:destination="@id/artistFragment"
-        app:enterAnim="@anim/bottom_to_top" />
+        app:enterAnim="@anim/bottom_to_top"
+        app:exitAnim="@anim/top_to_bottom"
+        app:popEnterAnim="@anim/bottom_to_top"
+        app:popExitAnim="@anim/top_to_bottom" />
     <fragment
         android:id="@+id/albumFragment"
         android:name="com.maxrave.simpmusic.ui.fragment.other.AlbumFragment"
         android:label="AlbumFragment" />
     <action
         android:id="@+id/action_global_albumFragment"
-        app:destination="@id/albumFragment" />
+        app:destination="@id/albumFragment"
+        app:enterAnim="@anim/bottom_to_top"
+        app:exitAnim="@anim/top_to_bottom"
+        app:popEnterAnim="@anim/bottom_to_top"
+        app:popExitAnim="@anim/top_to_bottom" />
     <fragment
         android:id="@+id/playlistFragment"
         android:name="com.maxrave.simpmusic.ui.fragment.other.PlaylistFragment"
         android:label="PlaylistFragment" />
     <action
         android:id="@+id/action_global_playlistFragment"
-        app:destination="@id/playlistFragment" />
+        app:destination="@id/playlistFragment"
+        app:enterAnim="@anim/bottom_to_top"
+        app:exitAnim="@anim/top_to_bottom"
+        app:popEnterAnim="@anim/bottom_to_top"
+        app:popExitAnim="@anim/top_to_bottom" />
 
     <fragment
         android:id="@+id/moodFragment"

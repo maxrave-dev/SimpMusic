@@ -78,6 +78,10 @@ class MostPlayedFragment: Fragment() {
                 }
             }
 
+            override fun onOptionsClick(position: Int, type: String) {
+
+            }
+
         })
 
         binding.topAppBar.setNavigationOnClickListener {

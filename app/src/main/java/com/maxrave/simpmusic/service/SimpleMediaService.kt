@@ -31,11 +31,12 @@ class SimpleMediaService : MediaSessionService() {
 
     @UnstableApi
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        super.onStartCommand(intent, flags, startId)
         notificationManager.startNotificationService(
             mediaSessionService = this,
             mediaSession = mediaSession
         )
-        return super.onStartCommand(intent, flags, startId)
+        return START_STICKY_COMPATIBILITY
     }
 
     override fun onDestroy() {
