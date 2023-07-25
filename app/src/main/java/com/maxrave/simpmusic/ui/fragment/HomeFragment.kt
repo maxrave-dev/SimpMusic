@@ -1,6 +1,7 @@
 package com.maxrave.simpmusic.ui.fragment
 
 import android.os.Bundle
+import android.text.Html
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
@@ -50,8 +51,8 @@ import java.util.Calendar
 
 @AndroidEntryPoint
 class HomeFragment : Fragment() {
-    var _binding: FragmentHomeBinding? = null
-    val binding get() = _binding!!
+    private var _binding: FragmentHomeBinding? = null
+    private val binding get() = _binding!!
 
     private val viewModel by viewModels<HomeViewModel>()
 
@@ -105,12 +106,11 @@ class HomeFragment : Fragment() {
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
+        viewModel.getLocation()
         binding.shimmerLayout.stopShimmer()
         binding.shimmerLayout.visibility = View.GONE
         val items = arrayOf("US", "ZZ", "AR", "AU", "AT", "BE", "BO", "BR", "CA", "CL", "CO", "CR", "CZ", "DK", "DO", "EC", "EG", "SV", "EE", "FI", "FR", "DE", "GT", "HN", "HU", "IS", "IN", "ID", "IE", "IL", "IT", "JP", "KE", "LU", "MX", "NL", "NZ", "NI", "NG", "NO", "PA", "PY", "PE", "PL", "PT", "RO", "RU", "SA", "RS", "ZA", "KR", "ES", "SE", "CH", "TZ", "TR", "UG", "UA", "AE", "GB", "UY", "ZW")
         val itemsData = arrayOf("United States", "Global", "Argentina", "Australia", "Austria", "Belgium", "Bolivia", "Brazil", "Canada", "Chile", "Colombia", "Costa Rica", "Czech Republic", "Denmark", "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Estonia", "Finland", "France", "Germany", "Guatemala", "Honduras", "Hungary", "Iceland", "India", "Indonesia", "Ireland", "Israel", "Italy", "Japan", "Kenya", "Luxembourg", "Mexico", "Netherlands", "New Zealand", "Nicaragua", "Nigeria", "Norway", "Panama", "Paraguay", "Peru", "Poland", "Portugal", "Romania", "Russia", "Saudi Arabia", "Serbia", "South Africa", "South Korea", "Spain", "Sweden", "Switzerland", "Tanzania", "Turkey", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "Uruguay", "Zimbabwe")
-
 
         val date = Calendar.getInstance().time
         val formatter = SimpleDateFormat("HH")
@@ -133,8 +133,6 @@ class HomeFragment : Fragment() {
         }
         Log.d("Check",formatter.format(date))
         Log.d("Date", "onCreateView: $date")
-//        binding.tvTitleMoodsMoment.visibility = View.GONE
-//        binding.tvTitleGenre.visibility = View.GONE
         binding.fullLayout.visibility = View.GONE
         mAdapter = HomeItemAdapter(arrayListOf(), requireContext(), findNavController())
         moodsMomentAdapter = MoodsMomentAdapter(arrayListOf())
@@ -174,24 +172,9 @@ class HomeFragment : Fragment() {
         }
         if (viewModel.homeItemList.value == null || viewModel.homeItemList.value?.data == null || viewModel.homeItemList.value?.data!!.isEmpty()){
             fetchHomeData()
-            viewModel.loading.observe(viewLifecycleOwner, Observer { loading ->
+            viewModel.loading.observe(viewLifecycleOwner) { loading ->
                 if (!loading)
                 {
-//                viewModel.homeItemList.observe(viewLifecycleOwner, Observer { result ->
-//                    result?.let {
-//                        Log.d("Data from Result", "onViewCreated: $result")
-//                        if (homeItemList == null) {
-//                            homeItemList = ArrayList()
-//                        }
-//                        else
-//                        {
-//                            homeItemList?.clear()
-//                        }
-////                        homeItemList?.addAll(result)
-//                        Log.d("Data", "onViewCreated: $homeItemList")
-//                        mAdapter.updateData(homeItemList!!)
-//                    }
-//                })
                     observerChart()
                     if (viewModel.regionCodeChart.value != null)
                     {
@@ -205,27 +188,28 @@ class HomeFragment : Fragment() {
                         }
                         Log.d("Region Code", "onViewCreated: ${viewModel.regionCodeChart.value}")
                     }
-                    viewModel.exploreMoodItem.observe(viewLifecycleOwner, Observer { result ->
-                        result?.let {
-                            exploreMoodItem = result.data as Mood
-                            moodsMoment = exploreMoodItem?.moodsMoments as ArrayList<MoodsMoment>
-                            genre = exploreMoodItem?.genres as ArrayList<Genre>
-                            Log.d("Moods & Moment", "onViewCreated: $moodsMoment")
-                            Log.d("Genre", "onViewCreated: $genre")
-                            moodsMomentAdapter.updateData(moodsMoment!!)
-                            genreAdapter.updateData(genre!!)
+                    viewModel.exploreMoodItem.observe(viewLifecycleOwner) { result ->
+                        when (result) {
+                            is Resource.Success -> {
+                                result.let {
+                                    exploreMoodItem = result.data as Mood
+                                    moodsMoment = exploreMoodItem?.moodsMoments as ArrayList<MoodsMoment>
+                                    genre = exploreMoodItem?.genres as ArrayList<Genre>
+                                    Log.d("Moods & Moment", "onViewCreated: $moodsMoment")
+                                    Log.d("Genre", "onViewCreated: $genre")
+                                    moodsMomentAdapter.updateData(moodsMoment!!)
+                                    genreAdapter.updateData(genre!!)
+                                }
+                            }
+                            is Resource.Error -> {}
                         }
-                    })
-//                    binding.tvTitleMoodsMoment.visibility = View.VISIBLE
-//                    binding.tvTitleGenre.visibility = View.VISIBLE
-//                    binding.fullLayout.visibility = View.VISIBLE
-//                    binding.swipeRefreshLayout.isRefreshing = false
+                    }
                 }
                 else {
                     binding.fullLayout.visibility = View.GONE
                     binding.swipeRefreshLayout.isRefreshing = true
                 }
-            })
+            }
         }
         else {
             if (viewModel.regionCodeChart.value != null)
@@ -264,8 +248,8 @@ class HomeFragment : Fragment() {
             if (homeItemList!![0].title == "Quick picks")
             {
                 val temp = homeItemList!![0].contents as ArrayList<Content>
-                quickPicksAdapter.updateData(temp as ArrayList<Content>)
-                for (i in 1..homeItemList!!.size - 1){
+                quickPicksAdapter.updateData(temp)
+                for (i in 1 until homeItemList!!.size){
                     homeItemListWithoutQuickPicks?.add(homeItemList!![i])
                 }
             }
@@ -423,7 +407,7 @@ class HomeFragment : Fragment() {
         listPopup.anchorView = binding.btRegionCode
         val codeAdapter = ArrayAdapter(requireContext(), R.layout.item_list_popup, itemsData)
         listPopup.setAdapter(codeAdapter)
-        listPopup.setOnItemClickListener { adapterView, view, position, id ->
+        listPopup.setOnItemClickListener { _, _, position, _ ->
             binding.btRegionCode.text = itemsData[position]
             binding.chartResultLayout.visibility = View.GONE
             binding.chartLoadingLayout.visibility = View.VISIBLE
@@ -443,6 +427,10 @@ class HomeFragment : Fragment() {
             when (menuItem.itemId) {
                 R.id.home_fragment_menu_item_recently_played -> {
                     findNavController().navigate(R.id.action_bottom_navigation_item_home_to_recentlySongsFragment)
+                    true
+                }
+                R.id.home_fragment_menu_item_settings -> {
+                    findNavController().navigate(R.id.action_bottom_navigation_item_home_to_settingsFragment)
                     true
                 }
                 else -> false
@@ -471,8 +459,8 @@ class HomeFragment : Fragment() {
                         if (homeItemList!![0].title == "Quick picks")
                         {
                             val temp = homeItemList!![0].contents as ArrayList<Content>
-                            quickPicksAdapter.updateData(temp as ArrayList<Content>)
-                            for (i in 1..homeItemList!!.size - 1){
+                            quickPicksAdapter.updateData(temp)
+                            for (i in 1 until homeItemList!!.size){
                                 homeItemListWithoutQuickPicks?.add(homeItemList!![i])
                             }
                         }
@@ -510,13 +498,13 @@ class HomeFragment : Fragment() {
             }
 
         })
-        viewModel.exploreMoodItem.observe(viewLifecycleOwner, Observer {response ->
+        viewModel.exploreMoodItem.observe(viewLifecycleOwner) {response ->
             when (response) {
                 is Resource.Success -> {
                     response.data.let {
                         exploreMoodItem = response.data as Mood
-                        moodsMoment = response.data.moodsMoments as ArrayList<MoodsMoment>
-                        genre = response.data.genres as ArrayList<Genre>
+                        moodsMoment = response.data.moodsMoments
+                        genre = response.data.genres
                         Log.d("Moods & Moment", "onViewCreated: $moodsMoment")
                         Log.d("Genre", "onViewCreated: $genre")
                         moodsMomentAdapter.updateData(moodsMoment!!)
@@ -536,7 +524,7 @@ class HomeFragment : Fragment() {
                     }
                 }
             }
-        })
+        }
         observerChart()
     }
 
@@ -544,7 +532,7 @@ class HomeFragment : Fragment() {
         viewModel.getHomeItemList()
     }
     private fun observerChart(){
-        viewModel.chart.observe(viewLifecycleOwner, Observer {response ->
+        viewModel.chart.observe(viewLifecycleOwner) { response ->
             when (response) {
                 is Resource.Success -> {
                     response.data.let {
@@ -570,6 +558,6 @@ class HomeFragment : Fragment() {
                     binding.chartLoadingLayout.visibility = View.GONE
                 }
             }
-        })
+        }
     }
 }

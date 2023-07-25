@@ -272,6 +272,7 @@ class ArtistFragment: Fragment(){
     private fun loadImage(url: String) {
         binding.ivArtistImage.load(url) {
             memoryCachePolicy(CachePolicy.DISABLED)
+            placeholder(R.drawable.holder)
             transformations(object: Transformation {
                 override val cacheKey: String
                     get() = "paletteTransformer"

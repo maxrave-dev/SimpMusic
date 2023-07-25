@@ -11,10 +11,15 @@ import android.view.animation.Animation
 import android.view.animation.AnimationUtils
 import android.widget.Toast
 import androidx.appcompat.widget.SearchView
+import androidx.core.net.toUri
 import androidx.core.os.trace
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.offline.Download
+import androidx.media3.exoplayer.offline.DownloadRequest
+import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import coil.load
@@ -22,10 +27,13 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.snackbar.Snackbar
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.adapter.artist.SeeArtistOfNowPlayingAdapter
+import com.maxrave.simpmusic.adapter.playlist.AddToAPlaylistAdapter
 import com.maxrave.simpmusic.adapter.search.SearchHistoryItemAdapter
 import com.maxrave.simpmusic.adapter.search.SearchItemAdapter
 import com.maxrave.simpmusic.adapter.search.SuggestQueryAdapter
 import com.maxrave.simpmusic.common.Config
+import com.maxrave.simpmusic.common.DownloadState
+import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.searchResult.albums.AlbumsResult
 import com.maxrave.simpmusic.data.model.searchResult.artists.ArtistsResult
@@ -33,13 +41,16 @@ import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
 import com.maxrave.simpmusic.data.queue.Queue
+import com.maxrave.simpmusic.databinding.BottomSheetAddToAPlaylistBinding
 import com.maxrave.simpmusic.databinding.BottomSheetNowPlayingBinding
 import com.maxrave.simpmusic.databinding.BottomSheetSeeArtistOfNowPlayingBinding
 import com.maxrave.simpmusic.databinding.FragmentSearchBinding
 import com.maxrave.simpmusic.extension.connectArtists
+import com.maxrave.simpmusic.extension.removeConflicts
 import com.maxrave.simpmusic.extension.setEnabledAll
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toTrack
+import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.service.test.source.MusicSource
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.SearchViewModel
@@ -308,6 +319,7 @@ class SearchFragment : Fragment() {
                 }
             }
 
+            @UnstableApi
             override fun onOptionsClick(position: Int, type: String) {
                     val song = if (type == Config.SONG_CLICK) {
                         resultAdapter.getCurrentList()[position] as SongsResult
@@ -321,12 +333,33 @@ class SearchFragment : Fragment() {
                     with(bottomSheetView) {
                         viewModel.songEntity.observe(viewLifecycleOwner) { songEntity ->
                             if (songEntity.liked){
-                                tvFavorite.text = "Liked"
+                                tvFavorite.text = getString(R.string.liked)
                                 cbFavorite.isChecked = true
                             }
                             else {
-                                tvFavorite.text = "Like"
+                                tvFavorite.text = getString(R.string.like)
                                 cbFavorite.isChecked = false
+                            }
+
+                            if (songEntity.downloadState == DownloadState.STATE_NOT_DOWNLOADED) {
+                                tvDownload.text = getString(R.string.download)
+                                ivDownload.setImageResource(R.drawable.outline_download_for_offline_24)
+                                setEnabledAll(btDownload, true)
+                            }
+                            else if (songEntity.downloadState == DownloadState.STATE_DOWNLOADING) {
+                                tvDownload.text = getString(R.string.downloading)
+                                ivDownload.setImageResource(R.drawable.baseline_downloading_white)
+                                setEnabledAll(btDownload, false)
+                            }
+                            else if (songEntity.downloadState == DownloadState.STATE_DOWNLOADED) {
+                                tvDownload.text = getString(R.string.downloaded)
+                                ivDownload.setImageResource(R.drawable.baseline_downloaded)
+                                setEnabledAll(btDownload, true)
+                            }
+                            else if (songEntity.downloadState == DownloadState.STATE_PREPARING) {
+                                tvDownload.text = getString(R.string.preparing)
+                                ivDownload.setImageResource(R.drawable.baseline_downloading_white)
+                                setEnabledAll(btDownload, false)
                             }
                         }
                         tvSongTitle.text = track.title
@@ -338,12 +371,12 @@ class SearchFragment : Fragment() {
                         btLike.setOnClickListener {
                             if (cbFavorite.isChecked){
                                 cbFavorite.isChecked = false
-                                tvFavorite.text = "Like"
+                                tvFavorite.text = getString(R.string.like)
                                 viewModel.updateLikeStatus(track.videoId, false)
                             }
                             else {
                                 cbFavorite.isChecked = true
-                                tvFavorite.text = "Liked"
+                                tvFavorite.text = getString(R.string.liked)
                                 viewModel.updateLikeStatus(track.videoId, true)
                             }
                         }
@@ -371,7 +404,6 @@ class SearchFragment : Fragment() {
 
                                 })
                             }
-
                             subDialog.setCancelable(true)
                             subDialog.setContentView(subBottomSheetView.root)
                             subDialog.show()
@@ -383,6 +415,132 @@ class SearchFragment : Fragment() {
                             shareIntent.putExtra(Intent.EXTRA_TEXT, url)
                             val chooserIntent = Intent.createChooser(shareIntent, "Chia sẻ URL")
                             startActivity(chooserIntent)
+                        }
+                        btAddPlaylist.setOnClickListener {
+                            viewModel.getAllLocalPlaylist()
+                            val listLocalPlaylist: ArrayList<LocalPlaylistEntity> = arrayListOf()
+                            val addPlaylistDialog = BottomSheetDialog(requireContext())
+                            val viewAddPlaylist = BottomSheetAddToAPlaylistBinding.inflate(layoutInflater)
+                            val addToAPlaylistAdapter = AddToAPlaylistAdapter(arrayListOf())
+                            viewAddPlaylist.rvLocalPlaylists.apply {
+                                adapter = addToAPlaylistAdapter
+                                layoutManager = LinearLayoutManager(requireContext())
+                            }
+                            viewModel.localPlaylist.observe(viewLifecycleOwner) {list ->
+                                Log.d("Check Local Playlist", list.toString())
+                                listLocalPlaylist.clear()
+                                listLocalPlaylist.addAll(list)
+                                addToAPlaylistAdapter.updateList(listLocalPlaylist)
+                            }
+                            addToAPlaylistAdapter.setOnItemClickListener(object : AddToAPlaylistAdapter.OnItemClickListener{
+                                override fun onItemClick(position: Int) {
+                                    val playlist = listLocalPlaylist[position]
+                                    val tempTrack = ArrayList<String>()
+                                    if (playlist.tracks != null) {
+                                        tempTrack.addAll(playlist.tracks)
+                                    }
+                                    tempTrack.add(track.videoId)
+                                    tempTrack.removeConflicts()
+                                    viewModel.updateLocalPlaylistTracks(tempTrack, playlist.id)
+                                    addPlaylistDialog.dismiss()
+                                    dialog.dismiss()
+                                }
+                            })
+                            addPlaylistDialog.setContentView(viewAddPlaylist.root)
+                            addPlaylistDialog.setCancelable(true)
+                            addPlaylistDialog.show()
+                        }
+                        btDownload.setOnClickListener {
+                            if (tvDownload.text == getString(R.string.download)){
+                                Log.d("Download", "onClick: ${track.videoId}")
+                                viewModel.updateDownloadState(
+                                    track.videoId,
+                                    DownloadState.STATE_PREPARING
+                                )
+                                val downloadRequest =
+                                    DownloadRequest.Builder(track.videoId, track.videoId.toUri())
+                                        .setData(track.title.toByteArray())
+                                        .setCustomCacheKey(track.videoId)
+                                        .build()
+                                viewModel.updateDownloadState(
+                                    track.videoId,
+                                    DownloadState.STATE_DOWNLOADING
+                                )
+                                viewModel.getDownloadStateFromService(track.videoId)
+                                DownloadService.sendAddDownload(
+                                    requireContext(),
+                                    MusicDownloadService::class.java,
+                                    downloadRequest,
+                                    false
+                                )
+                                lifecycleScope.launch {
+                                    viewModel.downloadState.collect { download ->
+                                        if (download != null) {
+                                            when (download.state) {
+                                                Download.STATE_DOWNLOADING -> {
+                                                    viewModel.updateDownloadState(
+                                                        track.videoId,
+                                                        DownloadState.STATE_DOWNLOADING
+                                                    )
+                                                    tvDownload.text = getString(R.string.downloading)
+                                                    ivDownload.setImageResource(R.drawable.baseline_downloading_white)
+                                                    setEnabledAll(btDownload, false)
+                                                }
+
+                                                Download.STATE_FAILED -> {
+                                                    viewModel.updateDownloadState(
+                                                        track.videoId,
+                                                        DownloadState.STATE_NOT_DOWNLOADED
+                                                    )
+                                                    tvDownload.text = getString(R.string.download)
+                                                    ivDownload.setImageResource(R.drawable.outline_download_for_offline_24)
+                                                    setEnabledAll(btDownload, true)
+                                                    Toast.makeText(
+                                                        requireContext(),
+                                                        "Download failed",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                }
+
+                                                Download.STATE_COMPLETED -> {
+                                                    viewModel.updateDownloadState(
+                                                        track.videoId,
+                                                        DownloadState.STATE_DOWNLOADED
+                                                    )
+                                                    Toast.makeText(
+                                                        requireContext(),
+                                                        "Download completed",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                    tvDownload.text = getString(R.string.downloaded)
+                                                    ivDownload.setImageResource(R.drawable.baseline_downloaded)
+                                                    setEnabledAll(btDownload, true)
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            else if (tvDownload.text == getString(R.string.downloaded)){
+                                DownloadService.sendRemoveDownload(
+                                    requireContext(),
+                                    MusicDownloadService::class.java,
+                                    track.videoId,
+                                    false
+                                )
+                                viewModel.updateDownloadState(
+                                    track.videoId,
+                                    DownloadState.STATE_NOT_DOWNLOADED
+                                )
+                                tvDownload.text = getString(R.string.download)
+                                ivDownload.setImageResource(R.drawable.outline_download_for_offline_24)
+                                setEnabledAll(btDownload, true)
+                                Toast.makeText(
+                                    requireContext(),
+                                    "Removed download",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
                         }
                     }
                     dialog.setCancelable(true)

@@ -30,8 +30,8 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 private const val NOTIFICATION_ID = 200
-private const val NOTIFICATION_CHANNEL_NAME = "notification channel 1"
-private const val NOTIFICATION_CHANNEL_ID = "notification channel id 1"
+private const val NOTIFICATION_CHANNEL_NAME = "SimpMusic Playback Notification"
+private const val NOTIFICATION_CHANNEL_ID = "SimpMusic Playback Notification ID"
 
 class SimpleMediaNotificationManager @Inject constructor(
     @ApplicationContext private val context: Context,

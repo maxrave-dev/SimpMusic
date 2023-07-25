@@ -6,16 +6,19 @@ import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.util.Log
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.graphics.drawable.toBitmap
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.PlayerNotificationManager
 import coil.ImageLoader
+import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.Transition
+import com.maxrave.simpmusic.R
 
 @UnstableApi
 class SimpleMediaNotificationAdapter(
@@ -38,7 +41,9 @@ class SimpleMediaNotificationAdapter(
         callback: PlayerNotificationManager.BitmapCallback
     ): Bitmap? {
         val request = ImageRequest.Builder(context)
-            .diskCacheKey(player.mediaMetadata.artworkUri.toString())
+            .placeholder(R.drawable.holder)
+            .diskCacheKey(player.currentMediaItem?.mediaId)
+            .diskCachePolicy(CachePolicy.ENABLED)
             .data(player.mediaMetadata.artworkUri)
             .target(
                 onStart = {
@@ -48,6 +53,7 @@ class SimpleMediaNotificationAdapter(
                 },
                 onError = { error ->
                     Log.d("SimpleMediaNotificationAdapter", "onError: $error")
+                    callback.onBitmap((AppCompatResources.getDrawable(context, R.drawable.holder) as BitmapDrawable).bitmap)
                 }
             )
             .build()

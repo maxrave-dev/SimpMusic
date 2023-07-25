@@ -188,8 +188,26 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
                     android:layout_marginBottom="10sp"
-                    android:clipToPadding="false"
-                    tools:listitem="@layout/item_your_playlist"/>
+                    android:clipToPadding="false" />
+                <TextView
+                    android:id="@+id/tvDownloadedPlaylists"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="20sp"
+                    android:textStyle="bold"
+                    android:fontFamily="@font/roboto"
+                    android:text="Downloaded Playlists"
+                    android:layout_marginBottom="10sp"
+                    android:layout_marginTop="25sp">
+
+                </TextView>
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvDownloadedPlaylists"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="10sp"
+                    android:clipToPadding="false" />
                 <TextView
                     android:id="@+id/tvYourPlaylists"
                     android:layout_width="match_parent"

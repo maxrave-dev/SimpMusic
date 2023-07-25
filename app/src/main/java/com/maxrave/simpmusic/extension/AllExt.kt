@@ -282,6 +282,26 @@ fun PlaylistBrowse.toPlaylistEntity(): PlaylistEntity {
     )
 }
 
+fun Track.addThumbnails(): Track {
+    return Track(
+        album = this.album,
+        artists = this.artists,
+        duration = this.duration,
+        durationSeconds = this.durationSeconds,
+        isAvailable = this.isAvailable,
+        isExplicit = this.isExplicit,
+        likeStatus = this.likeStatus,
+        thumbnails = listOf(Thumbnail(720, "https://i.ytimg.com/vi/${this.videoId}/maxresdefault.jpg", 1280)),
+        title = this.title,
+        videoId = this.videoId,
+        videoType = this.videoType,
+        category = this.category,
+        feedbackTokens = this.feedbackTokens,
+        resultType = this.resultType,
+        year = this.year
+    )
+}
+
 fun setEnabledAll(v: View, enabled: Boolean) {
     v.isEnabled = enabled
     v.isFocusable = enabled
@@ -289,5 +309,18 @@ fun setEnabledAll(v: View, enabled: Boolean) {
         val vg = v
         for (i in 0 until vg.childCount) setEnabledAll(vg.getChildAt(i), enabled)
     }
+}
+
+fun ArrayList<String>.removeConflicts(): ArrayList<String> {
+    val nonConflictingSet = HashSet<String>()
+    val nonConflictingList = ArrayList<String>()
+
+    for (item in this) {
+        if (nonConflictingSet.add(item)) {
+            nonConflictingList.add(item)
+        }
+    }
+
+    return nonConflictingList
 }
 

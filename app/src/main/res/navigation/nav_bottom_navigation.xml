@@ -48,6 +48,20 @@
             app:exitAnim="@anim/top_to_bottom"
             app:popEnterAnim="@anim/bottom_to_top"
             app:popExitAnim="@anim/top_to_bottom" />
+        <action
+            android:id="@+id/action_bottom_navigation_item_library_to_downloadedFragment"
+            app:destination="@id/downloadedFragment"
+            app:enterAnim="@anim/bottom_to_top"
+            app:exitAnim="@anim/top_to_bottom"
+            app:popEnterAnim="@anim/bottom_to_top"
+            app:popExitAnim="@anim/top_to_bottom" />
+        <action
+            android:id="@+id/action_bottom_navigation_item_library_to_localPlaylistFragment"
+            app:destination="@id/localPlaylistFragment"
+            app:enterAnim="@anim/bottom_to_top"
+            app:exitAnim="@anim/top_to_bottom"
+            app:popEnterAnim="@anim/bottom_to_top"
+            app:popExitAnim="@anim/top_to_bottom" />
     </fragment>
     <fragment
         android:id="@+id/bottom_navigation_item_home"
@@ -57,6 +71,13 @@
         <action
             android:id="@+id/action_bottom_navigation_item_home_to_recentlySongsFragment"
             app:destination="@id/recentlySongsFragment"
+            app:enterAnim="@anim/bottom_to_top"
+            app:exitAnim="@anim/top_to_bottom"
+            app:popEnterAnim="@anim/bottom_to_top"
+            app:popExitAnim="@anim/top_to_bottom" />
+        <action
+            android:id="@+id/action_bottom_navigation_item_home_to_settingsFragment"
+            app:destination="@id/settingsFragment"
             app:enterAnim="@anim/bottom_to_top"
             app:exitAnim="@anim/top_to_bottom"
             app:popEnterAnim="@anim/bottom_to_top"
@@ -155,5 +176,18 @@
         android:name="com.maxrave.simpmusic.ui.fragment.other.RecentlySongsFragment"
         android:label="fragment_recently_songs"
         tools:layout="@layout/fragment_recently_songs" />
+    <fragment
+        android:id="@+id/downloadedFragment"
+        android:name="com.maxrave.simpmusic.ui.fragment.other.DownloadedFragment"
+        android:label="fragment_downloaded"
+        tools:layout="@layout/fragment_downloaded" />
+    <fragment
+        android:id="@+id/localPlaylistFragment"
+        android:name="com.maxrave.simpmusic.ui.fragment.other.LocalPlaylistFragment"
+        android:label="LocalPlaylistFragment" />
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.maxrave.simpmusic.ui.fragment.other.SettingsFragment"
+        android:label="SettingsFragment" />
 
 </navigation>

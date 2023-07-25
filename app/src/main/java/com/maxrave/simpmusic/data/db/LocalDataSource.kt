@@ -2,6 +2,7 @@ package com.maxrave.simpmusic.data.db
 
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
+import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SearchHistory
 import com.maxrave.simpmusic.data.db.entities.SongEntity
@@ -10,6 +11,7 @@ import javax.inject.Inject
 
 class LocalDataSource @Inject constructor(private val databaseDao: DatabaseDao) {
     suspend fun getAllRecentData() = databaseDao.getAllRecentData()
+    suspend fun getAllDownloadedPlaylist() = databaseDao.getAllDownloadedPlaylist()
 
     suspend fun getSearchHistory() = databaseDao.getSearchHistory()
 
@@ -20,6 +22,7 @@ class LocalDataSource @Inject constructor(private val databaseDao: DatabaseDao) 
     suspend fun getAllSongs() = databaseDao.getAllSongs()
     suspend fun getRecentSongs(limit: Int, offset: Int) = databaseDao.getRecentSongs(limit, offset)
     suspend fun getSongByListVideoId(primaryKeyList: List<String>) = databaseDao.getSongByListVideoId(primaryKeyList)
+    suspend fun getDownloadedSongs() = databaseDao.getDownloadedSongs()
     suspend fun getLikedSongs() = databaseDao.getLikedSongs()
     suspend fun getLibrarySongs() = databaseDao.getLibrarySongs()
     suspend fun getSong(videoId: String) = databaseDao.getSong(videoId)
@@ -53,4 +56,14 @@ class LocalDataSource @Inject constructor(private val databaseDao: DatabaseDao) 
     suspend fun updatePlaylistInLibrary(inLibrary: LocalDateTime, playlistId: String) = databaseDao.updatePlaylistInLibrary(inLibrary, playlistId)
     suspend fun updatePlaylistDownloadState(downloadState: Int, playlistId: String) = databaseDao.updatePlaylistDownloadState(downloadState, playlistId)
 
+    suspend fun getAllLocalPlaylists() = databaseDao.getAllLocalPlaylists()
+    suspend fun getLocalPlaylist(id: Long) = databaseDao.getLocalPlaylist(id)
+    suspend fun insertLocalPlaylist(localPlaylist: LocalPlaylistEntity) = databaseDao.insertLocalPlaylist(localPlaylist)
+    suspend fun deleteLocalPlaylist(id: Long) = databaseDao.deleteLocalPlaylist(id)
+    suspend fun updateLocalPlaylistTitle(title: String, id: Long) = databaseDao.updateLocalPlaylistTitle(title, id)
+    suspend fun updateLocalPlaylistThumbnail(thumbnail: String, id: Long) = databaseDao.updateLocalPlaylistThumbnail(thumbnail, id)
+    suspend fun updateLocalPlaylistTracks(tracks: List<String>, id: Long) = databaseDao.updateLocalPlaylistTracks(tracks, id)
+    suspend fun updateLocalPlaylistInLibrary(inLibrary: LocalDateTime, id: Long) = databaseDao.updateLocalPlaylistInLibrary(inLibrary, id)
+    suspend fun updateLocalPlaylistDownloadState(downloadState: Int, id: Long) = databaseDao.updateLocalPlaylistDownloadState(downloadState, id)
+    suspend fun getDownloadedLocalPlaylists() = databaseDao.getDownloadedLocalPlaylists()
 }

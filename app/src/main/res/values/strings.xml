@@ -10,6 +10,19 @@
     <string name="view_count">%1$s views</string>
     <string name="lyrics_provider">Lyrics provided by akashrchandran/spotify-lyrics-api</string>
     <string name="clear_search_history">Clear search history</string>
-    <!-- TODO: Remove or change this placeholder text -->
+    <string name="liked">Liked</string>
+    <string name="like">Like</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="download">Download</string>
+    <string name="downloaded">Downloaded</string>
+    <string name="downloading">Downloading</string>
+    <string name="preparing">Preparing</string>
+    <string name="hide">Hide</string>
+    <string name="show">Show</string>
+    <string name="na_na">NA:NA</string>
+    <string name="cache_size">%1$s MB</string>
+    <plurals name="n_song">
+        <item quantity="one">%d song</item>
+        <item quantity="other">%d songs</item>
+    </plurals>
 </resources>

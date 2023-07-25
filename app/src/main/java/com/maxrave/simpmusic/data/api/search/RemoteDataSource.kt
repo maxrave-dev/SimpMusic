@@ -2,6 +2,7 @@ package com.maxrave.simpmusic.data.api.search
 
 import android.provider.MediaStore.Video
 import com.maxrave.simpmusic.common.Config
+import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.model.home.chart.Chart
 import com.maxrave.simpmusic.data.model.browse.album.AlbumBrowse
 import com.maxrave.simpmusic.data.model.browse.album.Track
@@ -22,55 +23,60 @@ import com.maxrave.simpmusic.data.model.thumbnailUrl
 import retrofit2.Response
 import javax.inject.Inject
 
-class RemoteDataSource @Inject constructor(private val searchService: SearchService) {
+class RemoteDataSource @Inject constructor(private val searchService: SearchService, private val dataStoreManager: DataStoreManager) {
     suspend fun getThumbnails(songId: String): Response<ArrayList<thumbnailUrl>> = searchService.getThumbnails(songId)
-    suspend fun searchAll(query: String): Response<ArrayList<Any>> = searchService.searchAll(query, Config.VN)
+    suspend fun searchAll(query: String, regionCode: String): Response<ArrayList<Any>> = searchService.searchAll(query, regionCode)
 
     suspend fun searchSongs(
         query: String,
-        filter: String = "songs"
-    ): Response<ArrayList<SongsResult>> = searchService.searchSongs(query, filter, Config.VN)
+        filter: String = "songs",
+        regionCode: String
+    ): Response<ArrayList<SongsResult>> = searchService.searchSongs(query, filter, regionCode)
 
     suspend fun searchArtists(
         query: String,
         filter: String = "artists",
-    ): Response<ArrayList<ArtistsResult>> = searchService.searchArtists(query, filter, Config.VN)
+        regionCode: String
+    ): Response<ArrayList<ArtistsResult>> = searchService.searchArtists(query, filter, regionCode)
 
     suspend fun searchAlbums(
         query: String,
         filter: String = "albums",
-    ): Response<ArrayList<AlbumsResult>> = searchService.searchAlbums(query, filter, Config.VN)
+        regionCode: String
+    ): Response<ArrayList<AlbumsResult>> = searchService.searchAlbums(query, filter, regionCode)
 
     suspend fun searchPlaylists(
         query: String,
         filter: String = "playlists",
-    ): Response<ArrayList<PlaylistsResult>> = searchService.searchPlaylists(query, filter, Config.VN)
+        regionCode: String
+    ): Response<ArrayList<PlaylistsResult>> = searchService.searchPlaylists(query, filter, regionCode)
 
     suspend fun searchVideos(
         query: String,
         filter: String = "videos",
-    ): Response<ArrayList<VideosResult>> = searchService.searchVideos(query, filter, Config.VN)
+        regionCode: String
+    ): Response<ArrayList<VideosResult>> = searchService.searchVideos(query, filter, regionCode)
 
     suspend fun suggestQuery(query: String): Response<ArrayList<String>> = searchService.suggestQuery(query)
 
-    suspend fun getHome(): Response<ArrayList<homeItem>> = searchService.getHome(Config.VN)
+    suspend fun getHome(regionCode: String): Response<ArrayList<homeItem>> = searchService.getHome(regionCode)
 
-    suspend fun exploreMood(): Response<Mood> = searchService.exploreMood(Config.VN)
-    suspend fun getMood(params: String): Response<MoodsMomentObject> = searchService.getMood(params, Config.VN)
-    suspend fun getGenre(params: String): Response<GenreObject> = searchService.getGenre(params, Config.VN)
+    suspend fun exploreMood(regionCode: String): Response<Mood> = searchService.exploreMood(regionCode)
+    suspend fun getMood(params: String, regionCode: String): Response<MoodsMomentObject> = searchService.getMood(params, regionCode)
+    suspend fun getGenre(params: String, regionCode: String): Response<GenreObject> = searchService.getGenre(params, regionCode)
 
-    suspend fun browseArtist(channelId: String): Response<ArtistBrowse> = searchService.browseArtist(channelId, Config.VN)
+    suspend fun browseArtist(channelId: String, regionCode: String): Response<ArtistBrowse> = searchService.browseArtist(channelId, regionCode)
 
-    suspend fun browseAlbum(browseId: String): Response<AlbumBrowse> = searchService.browseAlbum(browseId, Config.VN)
+    suspend fun browseAlbum(browseId: String, regionCode: String): Response<AlbumBrowse> = searchService.browseAlbum(browseId, regionCode)
 
-    suspend fun browsePlaylist(id: String): Response<PlaylistBrowse> = searchService.browsePlaylist(id, Config.VN)
+    suspend fun browsePlaylist(id: String, regionCode: String): Response<PlaylistBrowse> = searchService.browsePlaylist(id, regionCode)
 
-    suspend fun exploreChart(regionCode: String): Response<Chart> = searchService.exploreChart(regionCode, Config.VN)
+    suspend fun exploreChart(regionCode: String): Response<Chart> = searchService.exploreChart(regionCode)
 
-    suspend fun getMetadata(videoId: String): Response<MetadataSong> = searchService.getMetadata(videoId, Config.VN)
-    suspend fun getLyrics(query: String): Response<Lyrics> = searchService.getLyrics(query, Config.VN)
+    suspend fun getMetadata(videoId: String, regionCode: String): Response<MetadataSong> = searchService.getMetadata(videoId, regionCode)
+    suspend fun getLyrics(query: String, regionCode: String = Config.VN): Response<Lyrics> = searchService.getLyrics(query, regionCode)
 
-    suspend fun getRelated(videoId: String): Response<ArrayList<Track>> = searchService.songsRelated(videoId, Config.VN)
-    suspend fun getVideoRelated(videoId: String): Response<ArrayList<VideosResult>> = searchService.videosRelated(videoId, Config.VN)
+    suspend fun getRelated(videoId: String, regionCode: String): Response<ArrayList<Track>> = searchService.songsRelated(videoId, regionCode)
+    suspend fun getVideoRelated(videoId: String, regionCode: String): Response<ArrayList<VideosResult>> = searchService.videosRelated(videoId, regionCode)
 
 }

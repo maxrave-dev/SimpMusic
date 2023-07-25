@@ -65,4 +65,5 @@
     <color name="back_button_color">#197E7E7E</color>
 
     <color name="shimmerBackground">#7E878383</color>
+    <color name="shimmerLine">#FFFFFF</color>
 </resources>

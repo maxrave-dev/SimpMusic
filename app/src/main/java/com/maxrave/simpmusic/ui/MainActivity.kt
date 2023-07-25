@@ -32,6 +32,8 @@ import coil.load
 import coil.request.ImageRequest
 import coil.size.Size
 import coil.transform.Transformation
+import android.Manifest
+import androidx.annotation.RequiresApi
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.data.queue.Queue
@@ -47,6 +49,7 @@ import com.maxrave.simpmusic.viewModel.UIEvent
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import pub.devrel.easypermissions.EasyPermissions
 
 @UnstableApi
 @AndroidEntryPoint
@@ -57,6 +60,15 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
     override fun onResume() {
         super.onResume()
         viewModel.getCurrentMediaItem()
+    }
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
     }
 
     @UnstableApi
@@ -70,6 +82,11 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
             window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
         }
 
+        if (!EasyPermissions.hasPermissions(this, Manifest.permission.POST_NOTIFICATIONS)){
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                EasyPermissions.requestPermissions(this, "This app needs to access your notification", 1, Manifest.permission.POST_NOTIFICATIONS)
+            }
+        }
 
 
         binding = ActivityMainBinding.inflate(layoutInflater)

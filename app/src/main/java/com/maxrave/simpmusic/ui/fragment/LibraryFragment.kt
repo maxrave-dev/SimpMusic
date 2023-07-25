@@ -18,19 +18,24 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.adapter.artist.SeeArtistOfNowPlayingAdapter
 import com.maxrave.simpmusic.adapter.library.FavoritePlaylistAdapter
+import com.maxrave.simpmusic.adapter.playlist.AddToAPlaylistAdapter
 import com.maxrave.simpmusic.adapter.search.SearchItemAdapter
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
+import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.data.queue.Queue
+import com.maxrave.simpmusic.databinding.BottomSheetAddPlaylistBinding
+import com.maxrave.simpmusic.databinding.BottomSheetAddToAPlaylistBinding
 import com.maxrave.simpmusic.databinding.BottomSheetNowPlayingBinding
 import com.maxrave.simpmusic.databinding.BottomSheetSeeArtistOfNowPlayingBinding
 import com.maxrave.simpmusic.databinding.FragmentLibraryBinding
 import com.maxrave.simpmusic.extension.connectArtists
+import com.maxrave.simpmusic.extension.removeConflicts
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.pagination.RecentPagingAdapter
 import com.maxrave.simpmusic.viewModel.LibraryViewModel
@@ -57,6 +62,12 @@ class LibraryFragment : Fragment() {
     private lateinit var adapterPlaylist: FavoritePlaylistAdapter
     private lateinit var listPlaylist: ArrayList<Any>
 
+    private lateinit var adapterDownloaded: FavoritePlaylistAdapter
+    private lateinit var listDownloaded: ArrayList<Any>
+
+    private lateinit var listLocalPlaylist: ArrayList<Any>
+    private lateinit var adapterLocalPlaylist: FavoritePlaylistAdapter
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
@@ -78,16 +89,36 @@ class LibraryFragment : Fragment() {
         //pagingAdapter = RecentPagingAdapter(requireContext())
         listPlaylist = ArrayList()
         adapterPlaylist = FavoritePlaylistAdapter(arrayListOf())
+
+        listDownloaded = ArrayList()
+        adapterDownloaded = FavoritePlaylistAdapter(arrayListOf())
+
+        listLocalPlaylist = ArrayList()
+        adapterLocalPlaylist = FavoritePlaylistAdapter(arrayListOf())
+
         binding.rvRecentlyAdded.apply {
             adapter = adapterItem
             layoutManager = LinearLayoutManager(requireContext())
         }
+
         binding.rvFavoritePlaylists.apply {
             adapter = adapterPlaylist
             layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         }
+
+        binding.rvDownloadedPlaylists.apply {
+            adapter = adapterDownloaded
+            layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        }
+
+        binding.rvYourPlaylists.apply {
+            adapter = adapterLocalPlaylist
+            layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        }
         viewModel.getRecentlyAdded()
         viewModel.getPlaylistFavorite()
+        viewModel.getLocalPlaylist()
+        viewModel.getDownloadedPlaylist()
         viewModel.listPlaylistFavorite.observe(viewLifecycleOwner) { listFavorite ->
             val temp = ArrayList<Any>()
             for (i in listFavorite.size - 1 downTo 0) {
@@ -97,13 +128,6 @@ class LibraryFragment : Fragment() {
             listPlaylist.addAll(temp)
             adapterPlaylist.updateList(listPlaylist)
         }
-//        lifecycleScope.launch {
-//            withContext(Dispatchers.IO) {
-//                viewModel.recentlyAdded.collectLatest { pagingData ->
-//                    pagingAdapter.submitData(pagingData)
-//                }
-//            }
-//        }
         viewModel.listRecentlyAdded.observe(viewLifecycleOwner){list ->
             Log.d("LibraryFragment", "onViewCreated: $list")
             val temp = ArrayList<Any>()
@@ -113,6 +137,24 @@ class LibraryFragment : Fragment() {
             listRecentlyAdded.clear()
             listRecentlyAdded.addAll(temp)
             adapterItem.updateList(listRecentlyAdded)
+        }
+        viewModel.listLocalPlaylist.observe(viewLifecycleOwner) { list ->
+            val temp = ArrayList<Any>()
+            for (i in list.size - 1 downTo 0) {
+                temp.add(list[i])
+            }
+            listLocalPlaylist.clear()
+            listLocalPlaylist.addAll(temp)
+            adapterLocalPlaylist.updateList(listLocalPlaylist)
+        }
+        viewModel.listDownloadedPlaylist.observe(viewLifecycleOwner) { list ->
+            val temp = ArrayList<Any>()
+            for (i in list.size - 1 downTo 0) {
+                temp.add(list[i])
+            }
+            listDownloaded.clear()
+            listDownloaded.addAll(temp)
+            adapterDownloaded.updateList(listDownloaded)
         }
         adapterItem.setOnClickListener(object : SearchItemAdapter.onItemClickListener {
             override fun onItemClick(position: Int, type: String) {
@@ -156,11 +198,11 @@ class LibraryFragment : Fragment() {
                 with(bottomSheetView) {
                     viewModel.songEntity.observe(viewLifecycleOwner) { songEntity ->
                         if (songEntity.liked) {
-                            tvFavorite.text = "Liked"
+                            tvFavorite.text = getString(R.string.liked)
                             cbFavorite.isChecked = true
                         }
                         else {
-                            tvFavorite.text = "Like"
+                            tvFavorite.text = getString(R.string.like)
                             cbFavorite.isChecked = false
                         }
                     }
@@ -173,7 +215,7 @@ class LibraryFragment : Fragment() {
                     btLike.setOnClickListener {
                         if (cbFavorite.isChecked){
                             cbFavorite.isChecked = false
-                            tvFavorite.text = "Like"
+                            tvFavorite.text = getString(R.string.like)
                             viewModel.updateLikeStatus(song.videoId, 0)
                             viewModel.getRecentlyAdded()
                             viewModel.listRecentlyAdded.observe(viewLifecycleOwner){list ->
@@ -189,7 +231,7 @@ class LibraryFragment : Fragment() {
                         }
                         else {
                             cbFavorite.isChecked = true
-                            tvFavorite.text = "Liked"
+                            tvFavorite.text = getString(R.string.liked)
                             viewModel.updateLikeStatus(song.videoId, 1)
                             viewModel.getRecentlyAdded()
                             viewModel.listRecentlyAdded.observe(viewLifecycleOwner){list ->
@@ -239,6 +281,41 @@ class LibraryFragment : Fragment() {
                         subDialog.setContentView(subBottomSheetView.root)
                         subDialog.show()
                     }
+                    btDownload.visibility = View.GONE
+                    btAddPlaylist.setOnClickListener {
+                        viewModel.getLocalPlaylist()
+                        val listLocalPlaylist: ArrayList<LocalPlaylistEntity> = arrayListOf()
+                        val addPlaylistDialog = BottomSheetDialog(requireContext())
+                        val viewAddPlaylist = BottomSheetAddToAPlaylistBinding.inflate(layoutInflater)
+                        val addToAPlaylistAdapter = AddToAPlaylistAdapter(arrayListOf())
+                        viewAddPlaylist.rvLocalPlaylists.apply {
+                            adapter = addToAPlaylistAdapter
+                            layoutManager = LinearLayoutManager(requireContext())
+                        }
+                        viewModel.listLocalPlaylist.observe(viewLifecycleOwner) {list ->
+                            Log.d("Check Local Playlist", list.toString())
+                            listLocalPlaylist.clear()
+                            listLocalPlaylist.addAll(list)
+                            addToAPlaylistAdapter.updateList(listLocalPlaylist)
+                        }
+                        addToAPlaylistAdapter.setOnItemClickListener(object : AddToAPlaylistAdapter.OnItemClickListener{
+                            override fun onItemClick(position: Int) {
+                                val playlist = listLocalPlaylist[position]
+                                val tempTrack = ArrayList<String>()
+                                if (playlist.tracks != null) {
+                                    tempTrack.addAll(playlist.tracks)
+                                }
+                                tempTrack.add(song.videoId)
+                                tempTrack.removeConflicts()
+                                viewModel.updateLocalPlaylistTracks(tempTrack, playlist.id)
+                                addPlaylistDialog.dismiss()
+                                dialog.dismiss()
+                            }
+                        })
+                        addPlaylistDialog.setContentView(viewAddPlaylist.root)
+                        addPlaylistDialog.setCancelable(true)
+                        addPlaylistDialog.show()
+                    }
                     btShare.setOnClickListener {
                         val shareIntent = Intent(Intent.ACTION_SEND)
                         shareIntent.type = "text/plain"
@@ -272,6 +349,34 @@ class LibraryFragment : Fragment() {
             }
 
         })
+        adapterDownloaded.setOnClickListener(object : FavoritePlaylistAdapter.OnItemClickListener {
+            override fun onItemClick(position: Int, type: String) {
+                when (type) {
+                    "playlist" -> {
+                        val id = (listDownloaded[position] as PlaylistEntity).id
+                        val args = Bundle()
+                        args.putString("id", id)
+                        args.putInt("downloaded", 1)
+                        findNavController().navigate(R.id.action_global_playlistFragment, args)
+                    }
+                    "album" -> {
+                        val browseId = (listDownloaded[position] as AlbumEntity).browseId
+                        val args = Bundle()
+                        args.putString("browseId", browseId)
+                        args.putInt("downloaded", 1)
+                        findNavController().navigate(R.id.action_global_albumFragment, args)
+                    }
+                }
+            }
+        })
+        adapterLocalPlaylist.setOnClickListener(object : FavoritePlaylistAdapter.OnItemClickListener {
+            override fun onItemClick(position: Int, type: String) {
+                val playlist = listLocalPlaylist[position] as LocalPlaylistEntity
+                val args = Bundle()
+                args.putLong("id", playlist.id)
+                findNavController().navigate(R.id.action_bottom_navigation_item_library_to_localPlaylistFragment, args)
+            }
+        })
         binding.btFavorite.setOnClickListener{
             findNavController().navigate(R.id.action_bottom_navigation_item_library_to_favoriteFragment)
         }
@@ -280,6 +385,41 @@ class LibraryFragment : Fragment() {
         }
         binding.btTrending.setOnClickListener {
             findNavController().navigate(R.id.action_bottom_navigation_item_library_to_mostPlayedFragment)
+        }
+        binding.btDownloaded.setOnClickListener {
+            findNavController().navigate(R.id.action_bottom_navigation_item_library_to_downloadedFragment)
+        }
+        binding.topAppBar.setOnMenuItemClickListener { menuItem ->
+            when (menuItem.itemId) {
+                R.id.library_fragment_menu_item_add -> {
+                    val dialog = BottomSheetDialog(requireContext())
+                    val viewDialog = BottomSheetAddPlaylistBinding.inflate(layoutInflater)
+                    viewDialog.btCreatePlaylist.setOnClickListener {
+                        val title = viewDialog.etPlaylistName.editText?.text.toString()
+                        if (title.isNotEmpty()){
+                            viewModel.createPlaylist(title)
+                            viewModel.getLocalPlaylist()
+                            viewModel.listLocalPlaylist.observe(viewLifecycleOwner) { list ->
+                                val temp: ArrayList<Any> = arrayListOf()
+                                for (i in list.size - 1 downTo 0) {
+                                    temp.add(list[i])
+                                }
+                                listLocalPlaylist.clear()
+                                listLocalPlaylist.addAll(temp)
+                                adapterLocalPlaylist.updateList(temp)
+                            }
+                            dialog.dismiss()
+                        }
+                    }
+                    dialog.setCancelable(true)
+                    dialog.setContentView(viewDialog.root)
+                    dialog.show()
+                    true
+                }
+                else -> {
+                    false
+                }
+            }
         }
     }
 

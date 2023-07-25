@@ -20,7 +20,7 @@ object SearchServiceModule {
     @Provides
     @Singleton
     fun provideHttpLoggingInterceptor(): HttpLoggingInterceptor {
-        val httpLoggingInterceptor: HttpLoggingInterceptor = HttpLoggingInterceptor()
+        val httpLoggingInterceptor = HttpLoggingInterceptor()
         httpLoggingInterceptor.level = HttpLoggingInterceptor.Level.BODY
         return httpLoggingInterceptor
     }

@@ -1,14 +1,18 @@
 package com.maxrave.simpmusic.adapter.playlist
 
+import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
+import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
-import com.maxrave.simpmusic.data.model.browse.playlist.TrackPlaylist
 import com.maxrave.simpmusic.databinding.ItemPopularSongBinding
+import com.maxrave.simpmusic.extension.connectArtists
+import com.maxrave.simpmusic.extension.toListName
 
-class PlaylistItemAdapter(private var playlistItemList: ArrayList<Track>): RecyclerView.Adapter<PlaylistItemAdapter.ViewHolder>() {
+class PlaylistItemAdapter(private var playlistItemList: ArrayList<Any>): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     private lateinit var mListener: OnItemClickListener
     private lateinit var optionListener: OnOptionClickListener
     interface OnItemClickListener{
@@ -23,7 +27,7 @@ class PlaylistItemAdapter(private var playlistItemList: ArrayList<Track>): Recyc
     fun setOnOptionClickListener(listener: OnOptionClickListener){
         optionListener = listener
     }
-    inner class ViewHolder(val binding: ItemPopularSongBinding, rootListener: OnItemClickListener, mOptionListener: OnOptionClickListener): RecyclerView.ViewHolder(binding.root) {
+    inner class TrackViewHolder(val binding: ItemPopularSongBinding, rootListener: OnItemClickListener, mOptionListener: OnOptionClickListener): RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
                 rootListener.onItemClick(bindingAdapterPosition)
@@ -32,53 +36,76 @@ class PlaylistItemAdapter(private var playlistItemList: ArrayList<Track>): Recyc
                 mOptionListener.onOptionClick(bindingAdapterPosition)
             }
         }
+
+        fun bind (track: Track) {
+            binding.tvSongTitle.text = track.title
+            binding.tvSongArtist.text = track.artists.toListName().connectArtists()
+            binding.ivThumbnail.load(track.thumbnails?.last()?.url)
+            binding.btMore.visibility = View.GONE
+        }
     }
-    fun updateList(newList: ArrayList<Track>){
+    inner class LocalPlaylistTrackViewHolder(val binding: ItemPopularSongBinding, rootListener: OnItemClickListener, mOptionListener: OnOptionClickListener): RecyclerView.ViewHolder(binding.root) {
+        init {
+            binding.root.setOnClickListener {
+                rootListener.onItemClick(bindingAdapterPosition)
+            }
+            binding.btMore.setOnClickListener {
+                mOptionListener.onOptionClick(bindingAdapterPosition)
+            }
+        }
+        fun bind (song: SongEntity){
+            binding.tvSongTitle.text = song.title
+            binding.tvSongArtist.text = song.artistName?.connectArtists()
+            binding.ivThumbnail.load(song.thumbnails)
+        }
+    }
+    fun updateList(newList: ArrayList<Any>){
+        Log.d("PlaylistItemAdapter", "updateList: ${newList.toString()}")
         playlistItemList.clear()
-        playlistItemList.addAll(newList)
+        newList.forEach {
+            playlistItemList.add(it)
+        }
+        Log.d("PlaylistItemAdapter", "updateList: ${playlistItemList.toString()}")
         notifyDataSetChanged()
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder = ViewHolder(
-        ItemPopularSongBinding.inflate(LayoutInflater.from(parent.context), parent, false), mListener, optionListener)
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        return when (viewType) {
+            VIEW_TYPE_TRACK -> TrackViewHolder(ItemPopularSongBinding.inflate(LayoutInflater.from(parent.context), parent, false), mListener, optionListener)
+            VIEW_TYPE_LOCAL_PLAYLIST_TRACK -> LocalPlaylistTrackViewHolder(ItemPopularSongBinding.inflate(LayoutInflater.from(parent.context), parent, false), mListener, optionListener)
+            else -> throw IllegalArgumentException("Invalid type of data $viewType")
+        }
+    }
 
     override fun getItemCount(): Int = playlistItemList.size
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val track = playlistItemList[position]
-        with(holder){
-            binding.tvSongTitle.text = track.title
-            var artistName = ""
-            if (track.artists != null) {
-                for (artist in track.artists) {
-                    artistName += artist.name + ", "
-                }
+    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+        when (holder) {
+            is TrackViewHolder -> holder.bind(playlistItemList[position] as Track)
+            is LocalPlaylistTrackViewHolder -> holder.bind(playlistItemList[position] as SongEntity)
+        }
+    }
+
+    override fun getItemViewType(position: Int): Int {
+        return when (playlistItemList[position]) {
+            is Track -> VIEW_TYPE_TRACK
+            is SongEntity -> VIEW_TYPE_LOCAL_PLAYLIST_TRACK
+            else -> throw IllegalArgumentException("Invalid type of data $position")
+        }
+    }
+
+    fun getListTrack(): ArrayList<Track> {
+        val tempList: ArrayList<Track> = ArrayList()
+        playlistItemList.forEach {
+            if (it is Track) {
+                tempList.add(it)
             }
-            artistName = removeTrailingComma(artistName)
-            artistName = removeComma(artistName)
-            binding.tvSongArtist.text = artistName
-            binding.ivThumbnail.load(track.thumbnails?.last()?.url)
         }
-    }
-    private fun removeTrailingComma(sentence: String): String {
-        val trimmed = sentence.trimEnd()
-        return if (trimmed.endsWith(", ")) {
-            trimmed.dropLast(2)
-        } else {
-            trimmed
-        }
+        return tempList
     }
 
-
-    private fun removeComma(string: String): String {
-        return if (string.endsWith(',')) {
-            string.substring(0, string.length - 1)
-        } else {
-            string
-        }
-    }
-
-    fun getItem(position: Int): Track {
-        return playlistItemList[position]
+    companion object {
+        private const val VIEW_TYPE_TRACK = 0
+        private const val VIEW_TYPE_LOCAL_PLAYLIST_TRACK = 1
     }
 }

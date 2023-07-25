@@ -18,11 +18,15 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.offline.Download
 import com.maxrave.kotlinyoutubeextractor.State
 import com.maxrave.kotlinyoutubeextractor.YTExtractor
 import com.maxrave.kotlinyoutubeextractor.bestQuality
 import com.maxrave.kotlinyoutubeextractor.getAudioOnly
 import com.maxrave.simpmusic.common.Config
+import com.maxrave.simpmusic.common.DownloadState
+import com.maxrave.simpmusic.data.dataStore.DataStoreManager
+import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.mediaService.Song
@@ -39,6 +43,7 @@ import com.maxrave.simpmusic.service.PlayerEvent
 import com.maxrave.simpmusic.service.RepeatState
 import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
 import com.maxrave.simpmusic.service.SimpleMediaState
+import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.service.test.source.MusicSource
 import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -49,7 +54,10 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
@@ -57,7 +65,10 @@ import javax.inject.Inject
 
 @HiltViewModel
 @UnstableApi
-class SharedViewModel @Inject constructor(private val musicSource: MusicSource, private val mainRepository: MainRepository, private val simpleMediaServiceHandler: SimpleMediaServiceHandler, application: Application) : AndroidViewModel(application){
+class SharedViewModel @Inject constructor(private var dataStoreManager: DataStoreManager, private val musicSource: MusicSource, private val mainRepository: MainRepository, private val simpleMediaServiceHandler: SimpleMediaServiceHandler, application: Application) : AndroidViewModel(application){
+    @Inject
+    lateinit var downloadUtils: DownloadUtils
+
     private var _allSongsDB: MutableLiveData<List<SongEntity>> = MutableLiveData()
     val allSongsDB: LiveData<List<SongEntity>> = _allSongsDB
 
@@ -124,7 +135,10 @@ class SharedViewModel @Inject constructor(private val musicSource: MusicSource, 
     private var _repeatMode = MutableStateFlow<RepeatState>(RepeatState.None)
     val repeatMode: StateFlow<RepeatState> = _repeatMode
 
+    private var regionCode: String? = null
+
     init {
+        regionCode = runBlocking { dataStoreManager.location.first() }
         viewModelScope.launch {
             val job1 = launch {
                 simpleMediaServiceHandler.simpleMediaState.collect { mediaState ->
@@ -174,10 +188,14 @@ class SharedViewModel @Inject constructor(private val musicSource: MusicSource, 
                             mainRepository.getSongById(tempSong.videoId)
                                 .collect { songEntity ->
                                     _songDB.value = songEntity
-                                    _liked.value = songEntity.liked
+                                    if (songEntity != null) {
+                                        _liked.value = songEntity.liked
+                                    }
                                 }
                             mainRepository.updateSongInLibrary(LocalDateTime.now(), tempSong.videoId)
                             mainRepository.updateListenCount(tempSong.videoId)
+                            resetLyrics()
+                            getLyrics(song.mediaMetadata.title.toString() + " " + song.mediaMetadata.artist)
                         }
                     }
                 }
@@ -199,6 +217,46 @@ class SharedViewModel @Inject constructor(private val musicSource: MusicSource, 
             job4.join()
         }
     }
+
+    private var _downloadState: MutableStateFlow<Download?> = MutableStateFlow(null)
+    var downloadState: StateFlow<Download?> = _downloadState.asStateFlow()
+
+    fun getDownloadStateFromService(videoId: String) {
+        viewModelScope.launch {
+            downloadState = downloadUtils.getDownload(videoId).stateIn(viewModelScope)
+            downloadState.collect { down ->
+                if (down != null) {
+                    when (down.state) {
+                        Download.STATE_COMPLETED -> {
+                            mainRepository.getSongById(videoId).collect{ song ->
+                                if (song?.downloadState != DownloadState.STATE_DOWNLOADED) {
+                                    mainRepository.updateDownloadState(videoId, DownloadState.STATE_DOWNLOADED)
+                                }
+                            }
+                            Log.d("Check Downloaded", "Downloaded")
+                        }
+                        Download.STATE_FAILED -> {
+                            mainRepository.getSongById(videoId).collect{ song ->
+                                if (song?.downloadState != DownloadState.STATE_NOT_DOWNLOADED) {
+                                    mainRepository.updateDownloadState(videoId, DownloadState.STATE_NOT_DOWNLOADED)
+                                }
+                            }
+                            Log.d("Check Downloaded", "Failed")
+                        }
+                        Download.STATE_DOWNLOADING -> {
+                            mainRepository.getSongById(videoId).collect{ song ->
+                                if (song?.downloadState != DownloadState.STATE_DOWNLOADING) {
+                                    mainRepository.updateDownloadState(videoId, DownloadState.STATE_DOWNLOADING)
+                                }
+                            }
+                            Log.d("Check Downloaded", "Downloading ${down.percentDownloaded}")
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     fun getLyrics(query: String) {
         viewModelScope.launch {
             mainRepository.getLyrics(query).collect { response ->
@@ -222,7 +280,7 @@ class SharedViewModel @Inject constructor(private val musicSource: MusicSource, 
     fun getRelated(videoId: String){
         Queue.clear()
         viewModelScope.launch {
-            mainRepository.getRelated(videoId).collect{ response ->
+            mainRepository.getRelated(videoId, regionCode!!).collect{ response ->
                 _related.value = response
             }
         }
@@ -230,7 +288,7 @@ class SharedViewModel @Inject constructor(private val musicSource: MusicSource, 
     fun getVideoRelated(videoId: String){
         Queue.clear()
         viewModelScope.launch {
-            mainRepository.getVideoRelated(videoId).collect{ response ->
+            mainRepository.getVideoRelated(videoId, regionCode!!).collect{ response ->
                 _videoRelated.value = response
             }
         }
@@ -246,20 +304,6 @@ class SharedViewModel @Inject constructor(private val musicSource: MusicSource, 
     fun getMediaListSize(): Int {
         return simpleMediaServiceHandler.mediaListSize()
     }
-
-//    fun getMetadata(videoId: String) {
-//        viewModelScope.launch {
-//            mainRepository.getMetadata(videoId).collect{response ->
-//                _metadata.value = response
-//                if (simpleMediaServiceHandler.getCurrentMediaItem()?.mediaId == videoId){
-//
-//                }
-//                _lyrics.value = response.data?.lyrics
-////                Log.d("Check lại Lyrics", _lyrics.value.toString())
-//                parseLyrics(_lyrics.value)
-//            }
-//        }
-//    }
     @UnstableApi
     fun playMediaItemInMediaSource(index: Int){
         simpleMediaServiceHandler.playMediaItemInMediaSource(index)
@@ -279,45 +323,79 @@ class SharedViewModel @Inject constructor(private val musicSource: MusicSource, 
             simpleMediaServiceHandler.clearMediaItems()
             var uri = ""
             mainRepository.insertSong(track.toSongEntity())
+            mainRepository.getSongById(track.videoId)
+                .collect { songEntity ->
+                    _songDB.value = songEntity
+                    if (songEntity != null) {
+                        _liked.value = songEntity.liked
+                    }
+                }
             mainRepository.updateSongInLibrary(LocalDateTime.now(), track.videoId)
             mainRepository.updateListenCount(track.videoId)
-            val yt = YTExtractor(con = context, CACHING = false, LOGGING = true, retryCount = 3)
-            yt.extract(track.videoId)
-            if (yt.state == State.SUCCESS) {
-                if (yt.getYTFiles()?.getAudioOnly()?.bestQuality()?.url != null) {
-                    yt.getYTFiles()?.getAudioOnly()?.bestQuality()?.url?.let {
-                        uri = it
-                        val artistName: String = track.artists.toListName().connectArtists()
-                        var thumbUrl = track.thumbnails?.last()?.url!!
-                        if (thumbUrl.contains("w120")){
-                            thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
-                        }
-                        Log.d("Check URI", uri)
-                        musicSource.downloadUrl.add(0, uri)
-                        simpleMediaServiceHandler.addMediaItem(
-                            MediaItem.Builder().setUri(uri)
-                                .setMediaId(track.videoId)
-                                .setMediaMetadata(
-                                    MediaMetadata.Builder()
-                                        .setTitle(track.title)
-                                        .setArtist(artistName)
-                                        .setArtworkUri(thumbUrl.toUri())
-                                        .setAlbumTitle(track.album?.name)
-                                        .build()
-                                )
-                                .build()
-                        )
-                        _nowPlayingMediaItem.value = getCurrentMediaItem()
-                        Log.d("Check MediaItem Thumbnail", getCurrentMediaItem()?.mediaMetadata?.artworkUri.toString())
-                        simpleMediaServiceHandler.changeTrackToFalse()
-                    }
-                    _firstTrackAdded.value = true
-                    musicSource.addFirstMetadata(track)
+            if (songDB.value?.downloadState == DownloadState.STATE_DOWNLOADED){
+                Log.d("Check Downloaded", "Downloaded")
+                musicSource.downloadUrl.add(0, "")
+                var thumbUrl = track.thumbnails?.last()?.url!!
+                if (thumbUrl.contains("w120")){
+                    thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
                 }
-            }
-            else {
-                Toast.makeText(context, "Error: ${yt.state}, use VPN to fix this problem", Toast.LENGTH_SHORT).show()
-                _firstTrackAdded.value = false
+                simpleMediaServiceHandler.addMediaItem(MediaItem.Builder()
+                    .setUri(track.videoId.toUri())
+                    .setMediaId(track.videoId)
+                    .setMediaMetadata(
+                        MediaMetadata.Builder()
+                            .setTitle(track.title)
+                            .setArtist(track.artists.toListName().connectArtists())
+                            .setArtworkUri(thumbUrl.toUri())
+                            .setAlbumTitle(track.album?.name)
+                            .build()
+                    )
+                    .build()
+                )
+                _nowPlayingMediaItem.value = getCurrentMediaItem()
+                Log.d("Check MediaItem Thumbnail", getCurrentMediaItem()?.mediaMetadata?.artworkUri.toString())
+                simpleMediaServiceHandler.changeTrackToFalse()
+                _firstTrackAdded.value = true
+                musicSource.addFirstMetadata(track)
+            } else {
+                val yt = YTExtractor(con = context, CACHING = false, LOGGING = true, retryCount = 3)
+                yt.extract(track.videoId)
+                if (yt.state == State.SUCCESS) {
+                    if (yt.getYTFiles()?.getAudioOnly()?.bestQuality()?.url != null) {
+                        yt.getYTFiles()?.getAudioOnly()?.bestQuality()?.url?.let {
+                            uri = it
+                            val artistName: String = track.artists.toListName().connectArtists()
+                            var thumbUrl = track.thumbnails?.last()?.url!!
+                            if (thumbUrl.contains("w120")){
+                                thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
+                            }
+                            Log.d("Check URI", uri)
+                            musicSource.downloadUrl.add(0, uri)
+                            simpleMediaServiceHandler.addMediaItem(
+                                MediaItem.Builder().setUri(uri)
+                                    .setMediaId(track.videoId)
+                                    .setMediaMetadata(
+                                        MediaMetadata.Builder()
+                                            .setTitle(track.title)
+                                            .setArtist(artistName)
+                                            .setArtworkUri(thumbUrl.toUri())
+                                            .setAlbumTitle(track.album?.name)
+                                            .build()
+                                    )
+                                    .build()
+                            )
+                            _nowPlayingMediaItem.value = getCurrentMediaItem()
+                            Log.d("Check MediaItem Thumbnail", getCurrentMediaItem()?.mediaMetadata?.artworkUri.toString())
+                            simpleMediaServiceHandler.changeTrackToFalse()
+                        }
+                        _firstTrackAdded.value = true
+                        musicSource.addFirstMetadata(track)
+                    }
+                }
+                else {
+                    Toast.makeText(context, "Error: ${yt.state}, use VPN to fix this problem", Toast.LENGTH_SHORT).show()
+                    _firstTrackAdded.value = false
+                }
             }
         }
     }
@@ -353,6 +431,36 @@ class SharedViewModel @Inject constructor(private val musicSource: MusicSource, 
     private fun calculateProgressValues(currentProgress: Long) {
         _progress.value = if (currentProgress > 0) (currentProgress.toFloat() / duration.value) else 0f
         progressString.value = formatDuration(currentProgress)
+    }
+
+    private var _listLocalPlaylist: MutableLiveData<List<LocalPlaylistEntity>> = MutableLiveData()
+    val localPlaylist: LiveData<List<LocalPlaylistEntity>> = _listLocalPlaylist
+    fun getAllLocalPlaylist() {
+        viewModelScope.launch {
+            mainRepository.getAllLocalPlaylists().collect { values ->
+                _listLocalPlaylist.postValue(values)
+            }
+        }
+    }
+    fun updateLocalPlaylistTracks(list: List<String>, id: Long) {
+        viewModelScope.launch {
+            mainRepository.getSongsByListVideoId(list).collect { values ->
+                var count = 0
+                values.forEach { song ->
+                    if (song.downloadState == DownloadState.STATE_DOWNLOADED){
+                        count++
+                    }
+                }
+                mainRepository.updateLocalPlaylistTracks(list, id)
+                Toast.makeText(getApplication(), "Added to playlist", Toast.LENGTH_SHORT).show()
+                if (count == values.size) {
+                    mainRepository.updateLocalPlaylistDownloadState(DownloadState.STATE_DOWNLOADED, id)
+                }
+                else {
+                    mainRepository.updateLocalPlaylistDownloadState(DownloadState.STATE_NOT_DOWNLOADED, id)
+                }
+            }
+        }
     }
 
     fun parseLyrics(lyrics: Lyrics?){
@@ -506,6 +614,29 @@ class SharedViewModel @Inject constructor(private val musicSource: MusicSource, 
 
     fun setLiked(liked: Boolean) {
         _liked.value = liked
+    }
+
+    fun updateDownloadState(videoId: String, state: Int) {
+        viewModelScope.launch {
+            mainRepository.getSongById(videoId).collect { songEntity ->
+                _songDB.value = songEntity
+                if (songEntity != null) {
+                    _liked.value = songEntity.liked
+                }
+            }
+            mainRepository.updateDownloadState(videoId, state)
+        }
+    }
+
+    fun refreshSongDB() {
+        viewModelScope.launch {
+            mainRepository.getSongById(videoId.value!!).collect { songEntity ->
+                _songDB.value = songEntity
+                if (songEntity != null) {
+                    _liked.value = songEntity.liked
+                }
+            }
+        }
     }
 }
 sealed class UIEvent {

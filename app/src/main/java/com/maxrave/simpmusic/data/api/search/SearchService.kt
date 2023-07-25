@@ -62,7 +62,7 @@ interface SearchService {
 
     //Chart
     @GET("explore/charts")
-    suspend fun exploreChart(@Query("cc") regionCode: String, @Query("r") region: String): Response<Chart>
+    suspend fun exploreChart(@Query("cc") regionCode: String): Response<Chart>
 
     //browse
     //Artist

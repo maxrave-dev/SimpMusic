@@ -47,9 +47,8 @@ android {
 }
 
 dependencies {
-    //implementation project(':youtubeExtractor')
 
-    def youtube_extractor_version = '0.0.6'
+    def youtube_extractor_version = '0.0.7'
     implementation ("com.github.maxrave-dev:kotlin-youtubeExtractor:$youtube_extractor_version") {changing = true}
 
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.1'
@@ -113,8 +112,8 @@ dependencies {
     implementation 'io.coil-kt:coil:2.4.0'
     //Glide
     implementation 'com.github.bumptech.glide:glide:4.15.1'
-
-
+    //Easy Permissions
+    implementation 'pub.devrel:easypermissions:3.0.0'
     //Palette Color
     implementation 'androidx.palette:palette:1.0.0'
     implementation 'androidx.palette:palette-ktx:1.0.0'
@@ -128,7 +127,10 @@ dependencies {
     //Hilt
     implementation 'com.google.dagger:hilt-android:2.47'
     kapt 'com.google.dagger:hilt-compiler:2.47'
-
+    //Preference ktx
+    implementation 'androidx.preference:preference-ktx:1.2.0'
+    //DataStore
+    implementation "androidx.datastore:datastore-preferences:1.0.0"
     // For instrumentation tests
     androidTestImplementation 'com.google.dagger:hilt-android-testing:2.47'
     kaptAndroidTest 'com.google.dagger:hilt-compiler:2.47'

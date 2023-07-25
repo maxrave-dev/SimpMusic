@@ -66,17 +66,6 @@
                 </TextView>
             </LinearLayout>
 
-            <ImageButton
-                android:id="@+id/btMore"
-                android:layout_width="50sp"
-                android:layout_height="50sp"
-                android:src="@drawable/baseline_more_vert_24"
-                android:background="@android:color/transparent"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true">
-
-            </ImageButton>
-
         </RelativeLayout>
     </LinearLayout>
 </layout>

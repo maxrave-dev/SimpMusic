@@ -64,16 +64,6 @@
                 </TextView>
             </LinearLayout>
 
-            <com.google.android.material.checkbox.MaterialCheckBox
-                android:id="@+id/cbLove"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:button="@drawable/selector_favorite_check_box"
-                app:useMaterialThemeColors="false"
-                android:layout_toStartOf="@+id/btMore">
-
-            </com.google.android.material.checkbox.MaterialCheckBox>
-
 
             <ImageButton
                 android:id="@+id/btMore"

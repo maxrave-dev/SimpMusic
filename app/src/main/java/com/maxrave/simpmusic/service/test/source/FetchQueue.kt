@@ -33,10 +33,16 @@ class FetchQueue: Service() {
     @UnstableApi
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val index = intent?.extras?.getInt("index")
+        val downloaded = intent?.extras?.getInt("downloaded")
         Log.d("Check Index inside Service", "$index")
         Log.d("Check Queue", "getRelated: ${Queue.getQueue().toString()}")
         scope.launch {
-            musicSource.load()
+            if (downloaded == 1){
+                musicSource.load(1)
+            }
+            else {
+                musicSource.load()
+            }
             Log.d("CHECK SOURCE", "${musicSource.catalog.size}")
             musicSource.stateFlow.collect{ state ->
                 if (state == StateSource.STATE_INITIALIZED) {
@@ -53,9 +59,11 @@ class FetchQueue: Service() {
                                 if (song != null) {
                                     musicSource.catalogMetadata.removeAt(0)
                                     musicSource.catalogMetadata.add(index, song)
-                                    val tempUrl = musicSource.downloadUrl[0]
-                                    musicSource.downloadUrl.removeAt(0)
-                                    musicSource.downloadUrl.add(index, tempUrl)
+                                    if (downloaded != 1){
+                                        val tempUrl = musicSource.downloadUrl[0]
+                                        musicSource.downloadUrl.removeAt(0)
+                                        musicSource.downloadUrl.add(index, tempUrl)
+                                    }
                                 }
                             }
                         }

@@ -131,21 +131,20 @@
             android:clickable="true"
             android:foreground="?android:attr/selectableItemBackground"
             android:paddingHorizontal="20sp">
-            <com.google.android.material.checkbox.MaterialCheckBox
+            <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentStart="true"
-                android:button="@drawable/selector_download"
-                app:buttonTint="@color/selector_download"
-                app:buttonIconTint="@color/selector_download"
-                android:id="@+id/cbDownload">
+                android:id="@+id/ivDownload"
+                android:padding="12sp"
+                android:src="@drawable/baseline_playlist_add_24">
 
-            </com.google.android.material.checkbox.MaterialCheckBox>
+            </ImageView>
             <TextView
                 android:id="@+id/tvDownload"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_toEndOf="@+id/cbDownload"
+                android:layout_toEndOf="@+id/ivDownload"
                 android:text="Download"
                 android:layout_centerVertical="true"
                 android:layout_marginStart="10sp"

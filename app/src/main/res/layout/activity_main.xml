@@ -76,7 +76,7 @@
                             android:focusable="true"
                             android:focusableInTouchMode="true"
                             android:scrollHorizontally="true"
-                            android:textColor="?android:textColorPrimary"
+                            android:textColor="@android:color/white"
                             android:textSize="15sp"
                             android:textStyle="bold"
                             android:text="" />
@@ -91,8 +91,8 @@
                             android:focusable="true"
                             android:focusableInTouchMode="true"
                             android:scrollHorizontally="true"
-                            android:text="Hoang &amp; RUNN"
-                            android:textColor="?android:textColorSecondary"
+                            android:text=""
+                            android:textColor="@android:color/white"
                             android:textSize="10sp" />
                     </LinearLayout>
                     <com.google.android.material.checkbox.MaterialCheckBox

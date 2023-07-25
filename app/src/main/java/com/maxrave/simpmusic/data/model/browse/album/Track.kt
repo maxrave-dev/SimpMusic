@@ -37,5 +37,5 @@ data class Track(
     @SerializedName("resultType")
     val resultType: String?,
     @SerializedName("year")
-    val year: Any
+    val year: Any?
 )

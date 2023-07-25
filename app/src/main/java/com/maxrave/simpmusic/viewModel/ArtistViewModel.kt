@@ -9,6 +9,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
 import com.maxrave.simpmusic.data.model.browse.artist.ArtistBrowse
 import com.maxrave.simpmusic.data.repository.MainRepository
@@ -18,13 +19,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 import javax.inject.Inject
 
 @HiltViewModel
-class ArtistViewModel @Inject constructor(application: Application, private val mainRepository: MainRepository): AndroidViewModel(application){
+class ArtistViewModel @Inject constructor(application: Application, private val mainRepository: MainRepository, private var dataStoreManager: DataStoreManager): AndroidViewModel(application){
     var gradientDrawable: MutableLiveData<GradientDrawable> = MutableLiveData()
     private val _artistBrowse: MutableLiveData<Resource<ArtistBrowse>> = MutableLiveData()
     var artistBrowse: LiveData<Resource<ArtistBrowse>> = _artistBrowse
@@ -34,10 +37,16 @@ class ArtistViewModel @Inject constructor(application: Application, private val 
     private var _followed: MutableStateFlow<Boolean> = MutableStateFlow(false)
     var followed: StateFlow<Boolean> = _followed
 
+
+    private var regionCode: String? = null
+    init {
+        regionCode = runBlocking { dataStoreManager.location.first() }
+    }
+
     fun browseArtist(channelId: String){
         loading.value = true
-        var job = viewModelScope.launch {
-            mainRepository.browseArtist(channelId).collect { values ->
+        viewModelScope.launch {
+            mainRepository.browseArtist(channelId, regionCode!!).collect { values ->
                 _artistBrowse.value = values
             }
             withContext(Dispatchers.Main){

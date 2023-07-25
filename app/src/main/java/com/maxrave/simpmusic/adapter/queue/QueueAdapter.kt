@@ -59,21 +59,9 @@ class QueueAdapter(private val listTrack: ArrayList<Track>, val context: Context
             if (position == currentPlaying){
                 binding.tvPosition.visibility = View.VISIBLE
                 binding.ivPlaying.visibility = View.VISIBLE
-//                val drawable = AnimatedVectorDrawableCompat.create(context, R.drawable.playing_anim)
-//                drawable?.registerAnimationCallback(object : Animatable2Compat.AnimationCallback(){
-//                    override fun onAnimationEnd(d: Drawable?) {
-//                        binding.ivPlaying.post { drawable.start() }
-//                    }
-//                })
-//                binding.ivPlaying.setImageDrawable(drawable)
-//                drawable?.start()
                 binding.tvPosition.text = null
                 binding.tvSongName.text = track.title
                 binding.tvSongName.isSelected = true
-//            var artist = ""
-//            for (i in track.artists!!.indices){
-//                artist += if (i == track.artists.size - 1) track.artists[i].name else "${track.artists[i].name}, "
-//            }
                 binding.tvArtistName.text = track.artists.toListName().connectArtists()
                 binding.tvArtistName.isSelected = true
             }
@@ -83,10 +71,6 @@ class QueueAdapter(private val listTrack: ArrayList<Track>, val context: Context
                 binding.tvPosition.text = (position + 1).toString()
                 binding.tvSongName.text = track.title
                 binding.tvSongName.isSelected = true
-//            var artist = ""
-//            for (i in track.artists!!.indices){
-//                artist += if (i == track.artists.size - 1) track.artists[i].name else "${track.artists[i].name}, "
-//            }
                 binding.tvArtistName.text = track.artists.toListName().connectArtists()
                 binding.tvArtistName.isSelected = true
             }
