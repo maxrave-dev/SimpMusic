@@ -30,17 +30,6 @@
             app:lottie_loop="true">
 
         </com.airbnb.lottie.LottieAnimationView>
-        <ImageButton
-            android:id="@+id/btMore"
-            android:layout_width="40sp"
-            android:layout_height="40sp"
-            android:src="@drawable/baseline_more_vert_24"
-            android:background="@android:color/transparent"
-            android:layout_alignParentEnd="true"
-            android:layout_centerVertical="true"
-            android:layout_marginEnd="5sp">
-
-        </ImageButton>
         <LinearLayout
             android:id="@+id/rootLayout"
             android:layout_width="match_parent"

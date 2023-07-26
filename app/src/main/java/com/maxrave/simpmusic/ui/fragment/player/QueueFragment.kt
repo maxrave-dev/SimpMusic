@@ -159,17 +159,6 @@ class QueueFragment: BottomSheetDialogFragment() {
         })
     }
     private fun updateNowPlaying(){
-//        when (viewModel.metadata.value){
-//            is Resource.Success -> {
-//                binding.ivThumbnail.load((viewModel.metadata.value as Resource.Success<MetadataSong>).data?.thumbnails?.last()?.url)
-//                binding.tvSongTitle.text = (viewModel.metadata.value as Resource.Success<MetadataSong>).data?.title
-//                binding.tvSongTitle.isSelected = true
-//                binding.tvSongArtist.text = (viewModel.metadata.value as Resource.Success<MetadataSong>).data?.artists?.first()?.name
-//                binding.tvSongArtist.isSelected = true
-//            }
-//            is Resource.Error -> {}
-//            else -> {}
-//        }
         viewModel.nowPlayingMediaItem.observe(viewLifecycleOwner) {
             if (it != null){
                 binding.ivThumbnail.load(it.mediaMetadata.artworkUri)
