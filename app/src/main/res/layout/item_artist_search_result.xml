@@ -11,7 +11,6 @@
     <com.google.android.material.imageview.ShapeableImageView
         android:layout_width="55sp"
         android:layout_height="55sp"
-        app:srcCompat="@drawable/test_thumbnail"
         android:scaleType="centerCrop"
         app:shapeAppearance="@style/circle"
         android:layout_alignParentStart="true"

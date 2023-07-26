@@ -14,8 +14,7 @@
                 android:layout_width="160sp"
                 android:layout_height="160sp"
                 android:scaleType="centerCrop"
-                app:shapeAppearanceOverlay="@style/rounded_corner"
-                android:src="@drawable/album_art_placeholder" />
+                app:shapeAppearanceOverlay="@style/rounded_corner" />
             <TextView
                 android:id="@+id/tvSongName"
                 android:layout_width="160sp"

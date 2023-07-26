@@ -17,7 +17,6 @@
             <com.google.android.material.imageview.ShapeableImageView
                 android:layout_width="60sp"
                 android:layout_height="60sp"
-                android:src="@drawable/demo_list_song_thumbnail"
                 android:id="@+id/ivThumbnail"
                 android:scaleType="centerCrop"
                 app:shapeAppearanceOverlay="@style/rounded_corner_for_quick_pick"

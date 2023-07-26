@@ -11,7 +11,6 @@
         android:id="@+id/ivThumbnail"
         android:layout_width="55sp"
         android:layout_height="55sp"
-        android:src="@drawable/test_thumbnail"
         android:layout_alignParentStart="true"
         android:layout_centerVertical="true">
 

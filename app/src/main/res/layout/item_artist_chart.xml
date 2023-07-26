@@ -26,7 +26,6 @@
             android:layout_height="60sp"
             android:scaleType="centerCrop"
             app:shapeAppearanceOverlay="@style/circle"
-            android:src="@drawable/album_art_placeholder"
             android:layout_toEndOf="@+id/tvRank"
             android:layout_centerVertical="true"/>
         <LinearLayout

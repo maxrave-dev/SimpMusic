@@ -46,8 +46,7 @@
                         android:id="@+id/ivPlaylistArt"
                         android:layout_width="250sp"
                         android:layout_height="250sp"
-                        android:layout_gravity="center_horizontal"
-                        android:src="@drawable/album_art_demo">
+                        android:layout_gravity="center_horizontal">
 
                     </ImageView>
                     <com.google.android.material.appbar.MaterialToolbar
