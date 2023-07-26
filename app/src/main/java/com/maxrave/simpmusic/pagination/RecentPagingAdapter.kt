@@ -3,6 +3,7 @@ package com.maxrave.simpmusic.pagination
 import android.annotation.SuppressLint
 import android.content.Context
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
@@ -169,16 +170,12 @@ class RecentPagingAdapter(private val context: Context): PagingDataAdapter<Any, 
                 tvSongTitle.isSelected = true
                 tvSongArtist.isSelected = true
                 tvSongAlbum.isSelected = true
+                btOptions.visibility = View.GONE
             }
         }
     }
 
     object VIEW_TYPE {
-//        const val VIEW_TYPE_SONG = 0
-//        const val VIEW_TYPE_ARTIST = 1
-//        const val VIEW_TYPE_PLAYLIST = 2
-//        const val VIEW_TYPE_ALBUM = 3
-//        const val VIEW_TYPE_VIDEO = 4
         const val VIEW_TYPE_SONG_ENTITY = 5
         const val VIEW_TYPE_ARTIST_ENTITY = 6
         const val VIEW_TYPE_PLAYLIST_ENTITY = 7

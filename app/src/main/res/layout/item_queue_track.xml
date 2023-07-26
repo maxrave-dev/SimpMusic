@@ -36,7 +36,6 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:layout_marginStart="10sp"
-            android:layout_toStartOf="@+id/btMore"
             android:layout_toEndOf="@+id/tvPosition"
             android:layout_marginEnd="10sp">
             <TextView
