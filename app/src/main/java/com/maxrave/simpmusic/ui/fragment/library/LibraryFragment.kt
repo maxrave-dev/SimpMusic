@@ -1,4 +1,4 @@
-package com.maxrave.simpmusic.ui.fragment
+package com.maxrave.simpmusic.ui.fragment.library
 
 import android.content.Intent
 import android.os.Bundle
@@ -6,11 +6,8 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.Animation
-import android.view.animation.AnimationUtils
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import coil.load
@@ -37,14 +34,9 @@ import com.maxrave.simpmusic.databinding.FragmentLibraryBinding
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.removeConflicts
 import com.maxrave.simpmusic.extension.toTrack
-import com.maxrave.simpmusic.pagination.RecentPagingAdapter
 import com.maxrave.simpmusic.viewModel.LibraryViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @AndroidEntryPoint
 class LibraryFragment : Fragment() {
@@ -127,6 +119,12 @@ class LibraryFragment : Fragment() {
             listPlaylist.clear()
             listPlaylist.addAll(temp)
             adapterPlaylist.updateList(listPlaylist)
+            if (listPlaylist.isEmpty()) {
+                binding.tvFavoritePlaylistsStatus.visibility = View.VISIBLE
+            }
+            else {
+                binding.tvFavoritePlaylistsStatus.visibility = View.GONE
+            }
         }
         viewModel.listRecentlyAdded.observe(viewLifecycleOwner){list ->
             Log.d("LibraryFragment", "onViewCreated: $list")
@@ -137,6 +135,12 @@ class LibraryFragment : Fragment() {
             listRecentlyAdded.clear()
             listRecentlyAdded.addAll(temp)
             adapterItem.updateList(listRecentlyAdded)
+            if (listRecentlyAdded.isEmpty()) {
+                binding.tvRecentlyAdded.visibility = View.GONE
+            }
+            else {
+                binding.tvRecentlyAdded.visibility = View.VISIBLE
+            }
         }
         viewModel.listLocalPlaylist.observe(viewLifecycleOwner) { list ->
             val temp = ArrayList<Any>()
@@ -146,6 +150,12 @@ class LibraryFragment : Fragment() {
             listLocalPlaylist.clear()
             listLocalPlaylist.addAll(temp)
             adapterLocalPlaylist.updateList(listLocalPlaylist)
+            if (listLocalPlaylist.isEmpty()) {
+                binding.tvYourPlaylistsStatus.visibility = View.VISIBLE
+            }
+            else {
+                binding.tvYourPlaylistsStatus.visibility = View.GONE
+            }
         }
         viewModel.listDownloadedPlaylist.observe(viewLifecycleOwner) { list ->
             val temp = ArrayList<Any>()
@@ -155,6 +165,12 @@ class LibraryFragment : Fragment() {
             listDownloaded.clear()
             listDownloaded.addAll(temp)
             adapterDownloaded.updateList(listDownloaded)
+            if (listDownloaded.isEmpty()) {
+                binding.tvDownloadedPlaylistsStatus.visibility = View.VISIBLE
+            }
+            else {
+                binding.tvDownloadedPlaylistsStatus.visibility = View.GONE
+            }
         }
         adapterItem.setOnClickListener(object : SearchItemAdapter.onItemClickListener {
             override fun onItemClick(position: Int, type: String) {
@@ -407,6 +423,12 @@ class LibraryFragment : Fragment() {
                                 listLocalPlaylist.clear()
                                 listLocalPlaylist.addAll(temp)
                                 adapterLocalPlaylist.updateList(temp)
+                                if (listLocalPlaylist.isEmpty()) {
+                                    binding.tvYourPlaylistsStatus.visibility = View.VISIBLE
+                                }
+                                else {
+                                    binding.tvYourPlaylistsStatus.visibility = View.GONE
+                                }
                             }
                             dialog.dismiss()
                         }

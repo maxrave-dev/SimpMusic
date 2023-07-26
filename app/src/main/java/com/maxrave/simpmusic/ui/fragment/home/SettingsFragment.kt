@@ -1,4 +1,4 @@
-package com.maxrave.simpmusic.ui.fragment.other
+package com.maxrave.simpmusic.ui.fragment.home
 
 import android.content.DialogInterface
 import android.content.Intent

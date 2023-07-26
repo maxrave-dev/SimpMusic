@@ -2,25 +2,16 @@ package com.maxrave.simpmusic.ui
 
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.view.ViewGroup
-import android.view.ViewGroup.MarginLayoutParams
 import android.view.animation.AnimationUtils
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.DrawableUtils
 import androidx.core.graphics.ColorUtils
-import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
@@ -33,7 +24,6 @@ import coil.request.ImageRequest
 import coil.size.Size
 import coil.transform.Transformation
 import android.Manifest
-import androidx.annotation.RequiresApi
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.data.queue.Queue
@@ -42,12 +32,11 @@ import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.isMyServiceRunning
 import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.service.test.source.FetchQueue
-import com.maxrave.simpmusic.ui.fragment.NowPlayingFragment
+import com.maxrave.simpmusic.ui.fragment.player.NowPlayingFragment
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import pub.devrel.easypermissions.EasyPermissions
 

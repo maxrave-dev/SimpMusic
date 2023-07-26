@@ -1,7 +1,5 @@
-package com.maxrave.simpmusic.ui.fragment
+package com.maxrave.simpmusic.ui.fragment.player
 
-import android.app.ActivityManager
-import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -19,10 +17,8 @@ import android.view.animation.AnimationUtils
 import android.widget.Toast
 import androidx.core.graphics.ColorUtils
 import androidx.core.net.toUri
-import androidx.customview.widget.ViewDragHelper
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
@@ -60,7 +56,6 @@ import com.maxrave.simpmusic.extension.removeConflicts
 import com.maxrave.simpmusic.extension.setEnabledAll
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toListTrack
-import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.service.RepeatState
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.service.test.source.FetchQueue
@@ -536,6 +531,24 @@ class NowPlayingFragment : Fragment() {
                     binding.cbFavorite.isChecked = liked
                 }
             }
+            val job11 = launch {
+                viewModel.nextTrackAvailable.collect { nextTrackAvailable ->
+                    if (nextTrackAvailable) {
+                        setEnabledAll(binding.btNext, true)
+                    } else {
+                        setEnabledAll(binding.btNext, false)
+                    }
+                }
+            }
+            val job12 = launch {
+                viewModel.previousTrackAvailable.collect { previousTrackAvailable ->
+                    if (previousTrackAvailable) {
+                        setEnabledAll(binding.btPrevious, true)
+                    } else {
+                        setEnabledAll(binding.btPrevious, false)
+                    }
+                }
+            }
 
             job1.join()
             job2.join()
@@ -547,7 +560,8 @@ class NowPlayingFragment : Fragment() {
             job8.join()
             job9.join()
             job10.join()
-            //job11.join()
+            job11.join()
+            job12.join()
         }
         binding.btFull.setOnClickListener {
             if (binding.btFull.text == "Show") {
@@ -594,7 +608,7 @@ class NowPlayingFragment : Fragment() {
             findNavController().navigate(R.id.action_nowPlayingFragment_to_queueFragment)
         }
         binding.btSongInfo.setOnClickListener {
-            findNavController().navigate(R.id.action_global_infoFragment)
+            findNavController().navigate(R.id.action_nowPlayingFragment_to_infoFragment)
         }
         binding.cbFavorite.setOnCheckedChangeListener { cb, isChecked ->
             if (!isChecked) {
@@ -812,6 +826,22 @@ class NowPlayingFragment : Fragment() {
                                                         tvDownload.text = getString(R.string.downloaded)
                                                         ivDownload.setImageResource(R.drawable.baseline_downloaded)
                                                         setEnabledAll(btDownload, true)
+                                                    }
+
+                                                    Download.STATE_QUEUED -> {
+                                                        TODO()
+                                                    }
+
+                                                    Download.STATE_REMOVING -> {
+                                                        TODO()
+                                                    }
+
+                                                    Download.STATE_RESTARTING -> {
+                                                        TODO()
+                                                    }
+
+                                                    Download.STATE_STOPPED -> {
+                                                        TODO()
                                                     }
                                                 }
                                             }

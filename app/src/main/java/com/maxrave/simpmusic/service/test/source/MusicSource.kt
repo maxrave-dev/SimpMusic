@@ -1,15 +1,11 @@
 package com.maxrave.simpmusic.service.test.source
 
-import android.app.Application
 import android.content.Context
 import android.util.Log
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
-import androidx.media3.common.MimeTypes
 import androidx.media3.common.util.UnstableApi
-import coil.ImageLoader
-import coil.request.ImageRequest
 import com.maxrave.kotlinyoutubeextractor.State
 import com.maxrave.kotlinyoutubeextractor.YTExtractor
 import com.maxrave.kotlinyoutubeextractor.bestQuality
@@ -19,18 +15,16 @@ import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
-import com.maxrave.simpmusic.service.test.source.StateSource.*
-import kotlinx.coroutines.GlobalScope
+import com.maxrave.simpmusic.service.test.source.StateSource.STATE_CREATED
+import com.maxrave.simpmusic.service.test.source.StateSource.STATE_ERROR
+import com.maxrave.simpmusic.service.test.source.StateSource.STATE_INITIALIZED
+import com.maxrave.simpmusic.service.test.source.StateSource.STATE_INITIALIZING
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class MusicSource @Inject constructor(val context: Context, val simpleMediaServiceHandler: SimpleMediaServiceHandler) {
 
-    var catalog: ArrayList<MediaItem> = arrayListOf()
     var catalogMetadata: ArrayList<Track> = (arrayListOf())
     var downloadUrl: ArrayList<String> = arrayListOf()
 
@@ -59,32 +53,20 @@ class MusicSource @Inject constructor(val context: Context, val simpleMediaServi
             }
         }
 
-    fun whenReady(action: (Boolean) -> Unit): Boolean {
-        return if(state == STATE_CREATED || state == STATE_INITIALIZING) {
-            onReadyListeners += action
-            false
-        } else {
-            action(state == STATE_INITIALIZED)
-            true
-        }
-    }
     fun addFirstMediaItem(mediaItem: MediaItem?) {
         if (mediaItem != null){
             Log.d("MusicSource", "addFirstMediaItem: ${mediaItem.mediaId}")
-            catalog.add(0, mediaItem)
         }
     }
     @UnstableApi
     fun addFirstMediaItemToIndex(mediaItem: MediaItem?, index: Int) {
         if (mediaItem != null){
             Log.d("MusicSource", "addFirstMediaItem: ${mediaItem.mediaId}")
-            catalog.add(index, mediaItem)
             simpleMediaServiceHandler.moveMediaItem(0, index)
         }
     }
     fun reset() {
         _currentSongIndex.value = 0
-        catalog.clear()
         catalogMetadata.clear()
         downloadUrl.clear()
         state = STATE_CREATED
@@ -95,21 +77,15 @@ class MusicSource @Inject constructor(val context: Context, val simpleMediaServi
 
     @UnstableApi
     suspend fun load(downloaded: Int = 0) {
-        updateCatalog(downloaded)?.let { updatedCatalog ->
-            catalog.addAll(updatedCatalog)
-            Log.d("MusicSource", "load: ${catalog.size}")
+        updateCatalog(downloaded).let {
             state = STATE_INITIALIZED
-        } ?: run {
-//            catalog = emptyList()
-            state = STATE_ERROR
         }
     }
 
     @UnstableApi
-    private suspend fun updateCatalog(downloaded: Int = 0): ArrayList<MediaItem>? {
+    private suspend fun updateCatalog(downloaded: Int = 0): Boolean {
         state = STATE_INITIALIZING
         val tempQueue = Queue.getQueue()
-        val tempCatalog = arrayListOf<MediaItem>()
         for (i in 0 until tempQueue.size){
             val track = tempQueue[i]
             var thumbUrl = track.thumbnails?.last()?.url ?: "http://i.ytimg.com/vi/${track.videoId}/maxresdefault.jpg"
@@ -130,7 +106,6 @@ class MusicSource @Inject constructor(val context: Context, val simpleMediaServi
                     )
                     .build()
                 simpleMediaServiceHandler.addMediaItemNotSet(mediaItem)
-                tempCatalog.add(mediaItem)
                 catalogMetadata.add(track)
                 Log.d("MusicSource", "updateCatalog: ${track.title}, ${catalogMetadata.size}")
                 downloadUrl.add(" ")
@@ -156,7 +131,6 @@ class MusicSource @Inject constructor(val context: Context, val simpleMediaServi
                             )
                             .build()
                         simpleMediaServiceHandler.addMediaItemNotSet(mediaItem)
-                        tempCatalog.add(mediaItem)
                         catalogMetadata.add(track)
                         Log.d("MusicSource", "updateCatalog: ${track.title}, ${catalogMetadata.size}")
                         downloadUrl.add(yt.getYTFiles()?.getAudioOnly()?.bestQuality()?.url.toString())
@@ -166,8 +140,7 @@ class MusicSource @Inject constructor(val context: Context, val simpleMediaServi
                 }
             }
         }
-//            simpleMediaServiceHandler.addMediaItemList(tempCatalog)
-        return tempCatalog
+        return true
     }
     fun changeAddedState() {
         added.value = false

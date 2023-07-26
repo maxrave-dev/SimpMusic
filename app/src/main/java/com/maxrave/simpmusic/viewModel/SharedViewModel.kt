@@ -129,6 +129,12 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     private var _songTransitions = MutableStateFlow<Boolean>(false)
     val songTransitions: StateFlow<Boolean> = _songTransitions
 
+    private var _nextTrackAvailable = MutableStateFlow<Boolean>(false)
+    val nextTrackAvailable: StateFlow<Boolean> = _nextTrackAvailable
+
+    private var _previousTrackAvailable = MutableStateFlow<Boolean>(false)
+    val previousTrackAvailable: StateFlow<Boolean> = _previousTrackAvailable
+
     private var _shuffleModeEnabled = MutableStateFlow<Boolean>(false)
     val shuffleModeEnabled: StateFlow<Boolean> = _shuffleModeEnabled
 
@@ -210,11 +216,23 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                     _repeatMode.value = repeat
                 }
             }
+            val job5 = launch {
+                simpleMediaServiceHandler.nextTrackAvailable.collect {  available ->
+                    _nextTrackAvailable.value = available
+                }
+            }
+            val job6 = launch {
+                simpleMediaServiceHandler.previousTrackAvailable.collect { available ->
+                    _previousTrackAvailable.value = available
+                }
+            }
 
             job1.join()
             job2.join()
             job3.join()
             job4.join()
+            job5.join()
+            job6.join()
         }
     }
 

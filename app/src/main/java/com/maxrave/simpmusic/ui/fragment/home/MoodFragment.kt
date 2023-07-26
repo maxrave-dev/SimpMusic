@@ -1,4 +1,4 @@
-package com.maxrave.simpmusic.ui.fragment.other
+package com.maxrave.simpmusic.ui.fragment.home
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,22 +10,22 @@ import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.google.android.material.snackbar.Snackbar
-import com.maxrave.simpmusic.adapter.moodandgenre.genre.GenreItemAdapter
-import com.maxrave.simpmusic.data.model.explore.mood.genre.ItemsPlaylist
+import com.maxrave.simpmusic.adapter.moodandgenre.mood.MoodItemAdapter
+import com.maxrave.simpmusic.data.model.explore.mood.moodmoments.Item
 import com.maxrave.simpmusic.databinding.MoodMomentDialogBinding
 import com.maxrave.simpmusic.utils.Resource
-import com.maxrave.simpmusic.viewModel.GenreViewModel
+import com.maxrave.simpmusic.viewModel.MoodViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 
 @AndroidEntryPoint
-class GenreFragment: Fragment(){
-    private val viewModel by viewModels<GenreViewModel>()
+class MoodFragment: Fragment() {
+    private val viewModel by viewModels<MoodViewModel>()
     private var _binding: MoodMomentDialogBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var genreList: ArrayList<ItemsPlaylist>
-    private lateinit var genreItemAdapter: GenreItemAdapter
+    private lateinit var moodItemAdapter: MoodItemAdapter
+    private lateinit var moodList: ArrayList<Item>
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -50,23 +50,24 @@ class GenreFragment: Fragment(){
         super.onViewCreated(view, savedInstanceState)
         binding.contentLayout.visibility = View.GONE
         binding.loadingLayout.visibility = View.VISIBLE
-        genreList = ArrayList()
-        genreItemAdapter = GenreItemAdapter(arrayListOf(), requireContext(), findNavController())
+        moodList = ArrayList()
+        moodItemAdapter = MoodItemAdapter(arrayListOf(), requireContext(), findNavController())
         val linearLayoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
         binding.rvListPlaylist.apply {
-            adapter = genreItemAdapter
+            adapter = moodItemAdapter
             layoutManager = linearLayoutManager
         }
         val params = requireArguments().getString("params")
-        if (viewModel.genreObject.value != null){
+        if (viewModel.moodsMomentObject.value != null){
             binding.contentLayout.visibility = View.VISIBLE
             binding.loadingLayout.visibility = View.GONE
-            genreList.addAll(viewModel.genreObject.value?.data?.itemsPlaylist as ArrayList<ItemsPlaylist>)
-            genreItemAdapter.updateData(genreList)
+            moodList.addAll(viewModel.moodsMomentObject.value?.data?.items as ArrayList<Item>)
+            moodItemAdapter.updateData(moodList)
         }
         else{
             fetchData(params)
         }
+
         binding.topAppBar.setNavigationOnClickListener {
             findNavController().popBackStack()
         }
@@ -74,25 +75,23 @@ class GenreFragment: Fragment(){
 
     private fun fetchData(params: String?) {
         if (params != null) {
-            viewModel.getGenre(params)
+            viewModel.getMood(params)
         }
-        viewModel.genreObject.observe(viewLifecycleOwner, Observer { response ->
-            when(response){
-                is Resource.Success -> {
+        viewModel.moodsMomentObject.observe(viewLifecycleOwner, Observer { response ->
+            when (response){
+                is Resource.Success ->
                     response.data.let {
                         binding.topAppBar.title = it?.header
-                        genreList.addAll(it?.itemsPlaylist as ArrayList<ItemsPlaylist>)
-                        genreItemAdapter.updateData(genreList)
+                        moodList.addAll(it?.items as ArrayList<Item>)
+                        moodItemAdapter.updateData(moodList)
                         binding.contentLayout.visibility = View.VISIBLE
                         binding.loadingLayout.visibility = View.GONE
                     }
-                }
                 is Resource.Error -> {
-                    binding.contentLayout.visibility = View.VISIBLE
+                    binding.contentLayout.visibility = View.GONE
                     binding.loadingLayout.visibility = View.GONE
-                    response.message?.let { message ->
-                        Snackbar.make(binding.root, "An error occured: $message", Snackbar.LENGTH_LONG).show()
-                    }
+                    Snackbar.make(binding.root, response.message.toString(), Snackbar.LENGTH_LONG).show()
+                    findNavController().popBackStack()
                 }
             }
         })

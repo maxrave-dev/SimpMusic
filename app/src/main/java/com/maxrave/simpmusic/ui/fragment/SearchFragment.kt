@@ -7,12 +7,9 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.Animation
-import android.view.animation.AnimationUtils
 import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.core.net.toUri
-import androidx.core.os.trace
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
@@ -87,8 +84,6 @@ class SearchFragment : Fragment() {
     ): View {
         Log.d("SearchFragment", "onCreateView")
         _binding = FragmentSearchBinding.inflate(inflater, container, false)
-//        binding.svSearch.setQuery("", false)
-//        binding.svSearch.clearFocus()
         binding.svSearch.applyInsetter {
             type(statusBars = true) {
                 margin()
@@ -274,7 +269,6 @@ class SearchFragment : Fragment() {
 
         resultAdapter.setOnClickListener(object : SearchItemAdapter.onItemClickListener{
             override fun onItemClick(position: Int, type: String) {
-                Toast.makeText(context, resultAdapter.getCurrentList()[position].toString(), Toast.LENGTH_SHORT).show()
                 if (type == "artist"){
                     val channelId = (resultAdapter.getCurrentList()[position] as ArtistsResult).browseId
                     val args = Bundle()
@@ -341,25 +335,27 @@ class SearchFragment : Fragment() {
                                 cbFavorite.isChecked = false
                             }
 
-                            if (songEntity.downloadState == DownloadState.STATE_NOT_DOWNLOADED) {
-                                tvDownload.text = getString(R.string.download)
-                                ivDownload.setImageResource(R.drawable.outline_download_for_offline_24)
-                                setEnabledAll(btDownload, true)
-                            }
-                            else if (songEntity.downloadState == DownloadState.STATE_DOWNLOADING) {
-                                tvDownload.text = getString(R.string.downloading)
-                                ivDownload.setImageResource(R.drawable.baseline_downloading_white)
-                                setEnabledAll(btDownload, false)
-                            }
-                            else if (songEntity.downloadState == DownloadState.STATE_DOWNLOADED) {
-                                tvDownload.text = getString(R.string.downloaded)
-                                ivDownload.setImageResource(R.drawable.baseline_downloaded)
-                                setEnabledAll(btDownload, true)
-                            }
-                            else if (songEntity.downloadState == DownloadState.STATE_PREPARING) {
-                                tvDownload.text = getString(R.string.preparing)
-                                ivDownload.setImageResource(R.drawable.baseline_downloading_white)
-                                setEnabledAll(btDownload, false)
+                            when (songEntity.downloadState) {
+                                DownloadState.STATE_NOT_DOWNLOADED -> {
+                                    tvDownload.text = getString(R.string.download)
+                                    ivDownload.setImageResource(R.drawable.outline_download_for_offline_24)
+                                    setEnabledAll(btDownload, true)
+                                }
+                                DownloadState.STATE_DOWNLOADING -> {
+                                    tvDownload.text = getString(R.string.downloading)
+                                    ivDownload.setImageResource(R.drawable.baseline_downloading_white)
+                                    setEnabledAll(btDownload, false)
+                                }
+                                DownloadState.STATE_DOWNLOADED -> {
+                                    tvDownload.text = getString(R.string.downloaded)
+                                    ivDownload.setImageResource(R.drawable.baseline_downloaded)
+                                    setEnabledAll(btDownload, true)
+                                }
+                                DownloadState.STATE_PREPARING -> {
+                                    tvDownload.text = getString(R.string.preparing)
+                                    ivDownload.setImageResource(R.drawable.baseline_downloading_white)
+                                    setEnabledAll(btDownload, false)
+                                }
                             }
                         }
                         tvSongTitle.text = track.title
@@ -515,6 +511,22 @@ class SearchFragment : Fragment() {
                                                     tvDownload.text = getString(R.string.downloaded)
                                                     ivDownload.setImageResource(R.drawable.baseline_downloaded)
                                                     setEnabledAll(btDownload, true)
+                                                }
+
+                                                Download.STATE_QUEUED -> {
+                                                    TODO()
+                                                }
+
+                                                Download.STATE_REMOVING -> {
+                                                    TODO()
+                                                }
+
+                                                Download.STATE_RESTARTING -> {
+                                                    TODO()
+                                                }
+
+                                                Download.STATE_STOPPED -> {
+                                                    TODO()
                                                 }
                                             }
                                         }

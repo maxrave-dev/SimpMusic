@@ -1,6 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="280sp"
@@ -8,7 +6,9 @@
         android:orientation="vertical"
         android:focusable="true"
         android:clickable="true"
-        android:foreground="?android:attr/selectableItemBackground">
+        android:foreground="?android:attr/selectableItemBackground"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/ivArt"
             android:layout_width="300sp"
@@ -73,5 +73,3 @@
             </LinearLayout>
         </RelativeLayout>
     </LinearLayout>
-
-</layout>

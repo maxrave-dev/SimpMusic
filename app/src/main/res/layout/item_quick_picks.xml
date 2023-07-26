@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
-
     <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_height="wrap_content"
         android:layout_width="match_parent"
         android:orientation="vertical"
@@ -32,7 +31,6 @@
                 android:layout_toEndOf="@+id/ivThumbnail"
                 android:layout_marginStart="20sp"
                 android:layout_centerVertical="true"
-                android:layout_toStartOf="@+id/btMore"
                 android:orientation="vertical">
 
                 <TextView
@@ -68,4 +66,3 @@
 
         </RelativeLayout>
     </LinearLayout>
-</layout>

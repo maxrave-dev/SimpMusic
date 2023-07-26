@@ -39,4 +39,14 @@ class DownloadedViewModel @Inject constructor(application: Application, private 
             mainRepository.updateLikeStatus(likeStatus = likeStatus, videoId = videoId)
         }
     }
+
+    fun updateDownloadState(videoId: String, state: Int) {
+        viewModelScope.launch {
+            mainRepository.getSongById(videoId).collect { songEntity ->
+                _songEntity.value = songEntity
+            }
+            mainRepository.updateDownloadState(videoId, state)
+            getListDownloadedSong()
+        }
+    }
 }

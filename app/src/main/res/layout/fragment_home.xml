@@ -1,15 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".ui.fragment.HomeFragment">
-    <data>
-        <variable
-            name="homeViewModel"
-            type="com.maxrave.simpmusic.viewModel.HomeViewModel" />
-    </data>
-
     <RelativeLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        tools:context=".ui.fragment.home.HomeFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/root_layout">
@@ -312,5 +306,3 @@
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
     </RelativeLayout>
-
-</layout>

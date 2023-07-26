@@ -123,7 +123,6 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
     fun searchAll(query: String) {
         searchAllResult.value?.clear()
         loading.value = true
-        val temp = ArrayList<Any>()
         viewModelScope.launch {
             val job1 = launch {
                 mainRepository.searchSongs(query, "songs", regionCode!!).collect {values ->
@@ -172,18 +171,10 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
             }
         }
     }
-    fun updateSearchHistory(searchHistoryList: ArrayList<String>) {
-        searchHistory.postValue(searchHistoryList)
-    }
-
 
 
     override fun onCleared() {
         super.onCleared()
-    }
-    private fun onError(message: String) {
-        errorMessage.value = message
-        loading.value = false
     }
 
     fun searchAlbums(query: String) {

@@ -15,7 +15,7 @@ android {
         minSdk 26
         targetSdk 34
         versionCode 1
-        versionName "1.0"
+        versionName "0.0.1-alpha"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
@@ -34,15 +34,14 @@ android {
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_1_8.toString()
     }
-
-
-    //enable data binding
-    dataBinding {
-        enabled = true
-    }
     //enable view binding
     viewBinding {
         enabled = true
+    }
+    packagingOptions {
+        jniLibs {
+            useLegacyPackaging true
+        }
     }
 }
 
@@ -78,7 +77,7 @@ dependencies {
     implementation "androidx.media3:media3-datasource-rtmp:$media3_version"
 
     //palette color
-    implementation 'androidx.palette:palette:1.0.0'
+    implementation 'androidx.palette:palette-ktx:1.0.0'
     //expandable text view
     implementation 'com.github.giangpham96:expandable-text:2.0.0'
 
@@ -89,8 +88,8 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
 
     implementation 'androidx.room:room-runtime:2.5.2'
-    kapt "androidx.room:room-compiler:2.5.2"
     implementation 'androidx.room:room-ktx:2.5.2'
+    kapt "androidx.room:room-compiler:2.5.2"
     //Legacy Support
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     //Coroutines
@@ -115,11 +114,9 @@ dependencies {
     //Easy Permissions
     implementation 'pub.devrel:easypermissions:3.0.0'
     //Palette Color
-    implementation 'androidx.palette:palette:1.0.0'
     implementation 'androidx.palette:palette-ktx:1.0.0'
 
     //Preference
-    implementation 'androidx.preference:preference:1.2.0'
     implementation 'androidx.preference:preference-ktx:1.2.0'
 
     //fragment ktx
@@ -131,13 +128,6 @@ dependencies {
     implementation 'androidx.preference:preference-ktx:1.2.0'
     //DataStore
     implementation "androidx.datastore:datastore-preferences:1.0.0"
-    // For instrumentation tests
-    androidTestImplementation 'com.google.dagger:hilt-android-testing:2.47'
-    kaptAndroidTest 'com.google.dagger:hilt-compiler:2.47'
-
-    // For local unit tests
-    testImplementation 'com.google.dagger:hilt-android-testing:2.47'
-    kaptTest 'com.google.dagger:hilt-compiler:2.47'
     //Swipe To Refresh
     implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.2.0-alpha01"
     //Insetter
@@ -155,8 +145,7 @@ dependencies {
     def paging_version = "3.2.0-rc01"
     implementation "androidx.paging:paging-runtime-ktx:$paging_version"
 
-//    def kotlinx_metadata_version = 0.6.0
-//    kapt "org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.6.0"
+
 }
 // Allow references to generated code
 kapt {

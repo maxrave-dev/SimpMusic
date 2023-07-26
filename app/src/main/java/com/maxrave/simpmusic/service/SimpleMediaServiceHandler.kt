@@ -32,6 +32,12 @@ class SimpleMediaServiceHandler @Inject constructor(
     private val _changeTrack = MutableStateFlow<Boolean>(false)
     val changeTrack = _changeTrack.asStateFlow()
 
+    private val _nextTrackAvailable = MutableStateFlow<Boolean>(false)
+    val nextTrackAvailable = _nextTrackAvailable.asStateFlow()
+
+    private val _previousTrackAvailable = MutableStateFlow<Boolean>(false)
+    val previousTrackAvailable = _previousTrackAvailable.asStateFlow()
+
     private val _shuffle = MutableStateFlow<Boolean>(false)
     val shuffle = _shuffle.asStateFlow()
 
@@ -45,14 +51,6 @@ class SimpleMediaServiceHandler @Inject constructor(
         player.shuffleModeEnabled = false
         player.repeatMode = Player.REPEAT_MODE_OFF
         job = Job()
-    }
-    fun addMediaSource(mediaSource: MediaSource) {
-        player.setMediaSource(mediaSource)
-        player.prepare()
-    }
-    fun addMediaSourceList(mediaSourceList: List<MediaSource>) {
-        player.setMediaSources(mediaSourceList)
-        player.prepare()
     }
     fun changeTrackToFalse() {
         _changeTrack.value = false
@@ -89,16 +87,9 @@ class SimpleMediaServiceHandler @Inject constructor(
     }
 
     fun playMediaItemInMediaSource(index: Int){
-//        player.moveMediaItems(index, player.mediaItemCount - 1, 0)
-//        player.prepare()
-//        player.playWhenReady = true
         player.seekTo(index, 0)
         player.prepare()
         player.playWhenReady = true
-    }
-
-    fun moveMediaItemsToFirst(fromIndex: Int, toIndex: Int) {
-        player.moveMediaItems(fromIndex, toIndex, 0)
     }
 
     fun moveMediaItem(fromIndex: Int, newIndex: Int) {
@@ -195,6 +186,8 @@ class SimpleMediaServiceHandler @Inject constructor(
         if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO || reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT || reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK || reason == Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED){
             if (!_changeTrack.value) {
                 _changeTrack.value = true
+                _nextTrackAvailable.value = player.hasNextMediaItem()
+                _previousTrackAvailable.value = player.hasPreviousMediaItem()
                 Log.d("Change Track", "onMediaItemTransition: ${changeTrack.value}")
                 Log.d("Media Item Transition", "Media Item: ${mediaItem?.mediaMetadata?.title}")
                 Log.d("Media Item Transition", "Reason: $reason")
@@ -205,6 +198,8 @@ class SimpleMediaServiceHandler @Inject constructor(
                 Log.d("Media Item Transition", "Media Item: ${mediaItem?.mediaMetadata?.title}")
                 Log.d("Media Item Transition", "Reason: $reason")
                 _changeTrack.value = true
+                _nextTrackAvailable.value = player.hasNextMediaItem()
+                _previousTrackAvailable.value = player.hasPreviousMediaItem()
             }
         }
     }

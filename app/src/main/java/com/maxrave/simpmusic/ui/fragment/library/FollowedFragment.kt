@@ -1,4 +1,4 @@
-package com.maxrave.simpmusic.ui.fragment.other
+package com.maxrave.simpmusic.ui.fragment.library
 
 import android.os.Bundle
 import android.view.LayoutInflater

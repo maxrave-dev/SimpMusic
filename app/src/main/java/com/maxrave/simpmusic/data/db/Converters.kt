@@ -10,12 +10,6 @@ import java.time.ZoneOffset
 
 
 class Converters {
-//    @TypeConverter
-//    fun listToJson(value: List<String>?) = Gson().toJson(value)
-//
-//    @TypeConverter
-//    fun jsonToList(value: String) = Gson().fromJson(value, Array<String>::class.java).toList()
-
     @TypeConverter
     fun fromString(value: String?): List<String?>? {
         val listType: Type = object : TypeToken<ArrayList<String?>?>() {}.type

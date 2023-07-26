@@ -1,20 +1,14 @@
-package com.maxrave.simpmusic.ui.fragment
+package com.maxrave.simpmusic.ui.fragment.home
 
 import android.os.Bundle
-import android.text.Html
 import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.Animation
-import android.view.animation.AnimationUtils
 import android.widget.ArrayAdapter
 import android.widget.Toast
-import androidx.annotation.MenuRes
 import androidx.appcompat.widget.ListPopupWindow
-import androidx.appcompat.widget.PopupMenu
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
@@ -310,7 +304,6 @@ class HomeFragment : Fragment() {
 //        })
         moodsMomentAdapter.setOnMoodsMomentClickListener(object : MoodsMomentAdapter.onMoodsMomentItemClickListener {
             override fun onMoodsMomentItemClick(position: Int) {
-                Toast.makeText( requireContext(),"${moodsMoment?.get(position)}", Toast.LENGTH_SHORT).show()
                 val args = Bundle()
                 args.putString("params", moodsMoment?.get(position)?.params.toString())
                 findNavController().navigate(R.id.action_global_moodFragment, args)
@@ -318,7 +311,6 @@ class HomeFragment : Fragment() {
         })
         genreAdapter.setOnGenreClickListener(object : GenreAdapter.onGenreItemClickListener {
             override fun onGenreItemClick(position: Int) {
-                Toast.makeText( requireContext(),"${genre?.get(position)}", Toast.LENGTH_SHORT).show()
                 val args = Bundle()
                 args.putString("params", genre?.get(position)?.params.toString())
                 findNavController().navigate(R.id.action_global_moodFragment, args)
@@ -326,7 +318,6 @@ class HomeFragment : Fragment() {
         })
         artistChartAdapter.setOnArtistClickListener(object : ArtistChartAdapter.onArtistItemClickListener {
             override fun onArtistItemClick(position: Int) {
-                Toast.makeText( requireContext(),"${artistChart?.get(position)}", Toast.LENGTH_SHORT).show()
                 val args = Bundle()
                 args.putString("channelId", artistChart?.get(position)?.browseId.toString())
                 findNavController().navigate(R.id.action_global_artistFragment, args)
@@ -335,7 +326,6 @@ class HomeFragment : Fragment() {
         quickPicksAdapter.setOnClickListener(object : QuickPicksAdapter.OnClickListener {
             override fun onClick(position: Int) {
                 val song = quickPicksAdapter.getData()[position]
-                Toast.makeText( requireContext(),"${quickPicksAdapter.getData()[position]}", Toast.LENGTH_SHORT).show()
                 if (song.videoId != null){
                     Queue.clear()
                     val firstQueue: Track = song.toTrack()
@@ -369,39 +359,6 @@ class HomeFragment : Fragment() {
         })
         binding.swipeRefreshLayout.setOnRefreshListener {
             fetchHomeData()
-//            viewModel.loading.observe(viewLifecycleOwner, Observer { loading ->
-//                if (!loading)
-//                {
-//                    viewModel.homeItemList.observe(viewLifecycleOwner, Observer { result ->
-//                        result?.let {
-//                            Log.d("Data from Result", "onViewCreated: $result")
-//                            if (homeItemList == null) {
-//                                homeItemList = ArrayList()
-//                            }
-//                            else
-//                            {
-//                                homeItemList?.clear()
-//                            }
-////                            homeItemList?.addAll(result)
-//                            Log.d("Data", "onViewCreated: $homeItemList")
-//                            mAdapter.updateData(homeItemList!!)
-//                            binding.swipeRefreshLayout.isRefreshing = false
-//                        }
-//                    })
-//                    viewModel.exploreMoodItem.observe(viewLifecycleOwner, Observer { result ->
-//                        result?.let {
-//                            exploreMoodItem = result as Mood
-//                            moodsMoment = result.moodsMoments as ArrayList<MoodsMoment>
-//                            genre = result.genres as ArrayList<Genre>
-//                            Log.d("Moods & Moment", "onViewCreated: $moodsMoment")
-//                            Log.d("Genre", "onViewCreated: $genre")
-//                            moodsMomentAdapter.updateData(moodsMoment!!)
-//                            genreAdapter.updateData(genre!!)
-//                            binding.swipeRefreshLayout.isRefreshing = false
-//                        }
-//                    })
-//                }
-//            })
         }
         val listPopup = ListPopupWindow(requireContext(), null, com.google.android.material.R.attr.listPopupWindowStyle)
         listPopup.anchorView = binding.btRegionCode
@@ -412,12 +369,12 @@ class HomeFragment : Fragment() {
             binding.chartResultLayout.visibility = View.GONE
             binding.chartLoadingLayout.visibility = View.VISIBLE
             viewModel.exploreChart(items[position])
-            viewModel.loadingChart.observe(viewLifecycleOwner, Observer { loading ->
+            viewModel.loadingChart.observe(viewLifecycleOwner) { loading ->
                 if (!loading)
                 {
                     observerChart()
                 }
-            })
+            }
             listPopup.dismiss()
         }
         binding.btRegionCode.setOnClickListener {
@@ -441,7 +398,7 @@ class HomeFragment : Fragment() {
     private fun fetchHomeData() {
         binding.shimmerLayout.startShimmer()
         fetchResponse()
-        viewModel.homeItemList.observe(viewLifecycleOwner, Observer { response ->
+        viewModel.homeItemList.observe(viewLifecycleOwner) { response ->
             when (response) {
                 is Resource.Success -> {
                     response.data.let {
@@ -473,8 +430,6 @@ class HomeFragment : Fragment() {
                         binding.shimmerLayout.stopShimmer()
                         binding.shimmerLayout.visibility = View.GONE
                         binding.fullLayout.visibility = View.VISIBLE
-//                        binding.tvTitleMoodsMoment.visibility = View.VISIBLE
-//                        binding.tvTitleGenre.visibility = View.VISIBLE
                         binding.swipeRefreshLayout.isRefreshing = false
 
                     }
@@ -483,21 +438,19 @@ class HomeFragment : Fragment() {
                     binding.shimmerLayout.stopShimmer()
                     binding.shimmerLayout.visibility = View.GONE
                     binding.fullLayout.visibility = View.VISIBLE
-//                    binding.tvTitleMoodsMoment.visibility = View.VISIBLE
-//                    binding.tvTitleGenre.visibility = View.VISIBLE
                     binding.swipeRefreshLayout.isRefreshing = false
                     response.message?.let { message ->
                         Snackbar.make(binding.root, "Home Data Error "+message, Snackbar.LENGTH_LONG)
                             .setAction("Retry") {
                                 fetchHomeData()
                             }
-                            .setDuration(5000)
+                            .setDuration(3000)
                             .show()
                     }
                 }
             }
 
-        })
+        }
         viewModel.exploreMoodItem.observe(viewLifecycleOwner) {response ->
             when (response) {
                 is Resource.Success -> {

@@ -1,4 +1,4 @@
-package com.maxrave.simpmusic.ui.fragment.other
+package com.maxrave.simpmusic.ui.fragment.player
 
 import android.app.Dialog
 import android.os.Bundle
@@ -7,11 +7,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
-import android.widget.Toast
-import androidx.customview.widget.ViewDragHelper
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
-import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.LinearLayoutManager
 import coil.load
@@ -20,16 +17,11 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.adapter.queue.QueueAdapter
-import com.maxrave.simpmusic.data.model.browse.album.Track
-import com.maxrave.simpmusic.data.model.metadata.MetadataSong
-import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.QueueBottomSheetBinding
 import com.maxrave.simpmusic.service.test.source.MusicSource
 import com.maxrave.simpmusic.service.test.source.StateSource
-import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -117,10 +109,6 @@ class QueueFragment: BottomSheetDialogFragment() {
                             binding.rvQueue.visibility = View.VISIBLE
                         }
                         StateSource.STATE_INITIALIZED -> {
-//                            val tempList = arrayListOf<MediaItem>()
-//                            for (i in 1 until musicSource.catalog.size){
-//                                tempList.add(musicSource.catalog[i])
-//                            }
                             binding.loadingQueue.visibility = View.GONE
                             binding.rvQueue.visibility = View.VISIBLE
                             queueAdapter.updateList(musicSource.catalogMetadata)

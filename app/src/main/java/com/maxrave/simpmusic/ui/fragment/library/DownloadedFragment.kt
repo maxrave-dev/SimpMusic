@@ -1,4 +1,4 @@
-package com.maxrave.simpmusic.ui.fragment.other
+package com.maxrave.simpmusic.ui.fragment.library
 
 import android.content.Intent
 import android.os.Bundle
@@ -7,7 +7,10 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.viewModels
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import coil.load
@@ -16,6 +19,7 @@ import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.adapter.artist.SeeArtistOfNowPlayingAdapter
 import com.maxrave.simpmusic.adapter.search.SearchItemAdapter
 import com.maxrave.simpmusic.common.Config
+import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
@@ -24,7 +28,9 @@ import com.maxrave.simpmusic.databinding.BottomSheetNowPlayingBinding
 import com.maxrave.simpmusic.databinding.BottomSheetSeeArtistOfNowPlayingBinding
 import com.maxrave.simpmusic.databinding.FragmentDownloadedBinding
 import com.maxrave.simpmusic.extension.connectArtists
+import com.maxrave.simpmusic.extension.setEnabledAll
 import com.maxrave.simpmusic.extension.toTrack
+import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.viewModel.DownloadedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
@@ -88,6 +94,7 @@ class DownloadedFragment : Fragment() {
                 findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
             }
 
+            @UnstableApi
             override fun onOptionsClick(position: Int, type: String) {
                 val song = listDownloaded[position] as SongEntity
                 viewModel.getSongEntity(song.videoId)
@@ -96,12 +103,37 @@ class DownloadedFragment : Fragment() {
                 with(bottomSheetView) {
                     viewModel.songEntity.observe(viewLifecycleOwner) { songEntity ->
                         if (songEntity.liked) {
-                            tvFavorite.text = "Liked"
+                            tvFavorite.text = getString(R.string.liked)
                             cbFavorite.isChecked = true
                         }
                         else {
-                            tvFavorite.text = "Like"
+                            tvFavorite.text = getString(R.string.like)
                             cbFavorite.isChecked = false
+                        }
+                        when (song.downloadState) {
+                            DownloadState.STATE_PREPARING -> {
+                                tvDownload.text = getString(R.string.preparing)
+                                ivDownload.setImageResource(R.drawable.outline_download_for_offline_24)
+                                setEnabledAll(btDownload, true)
+                            }
+
+                            DownloadState.STATE_NOT_DOWNLOADED -> {
+                                tvDownload.text = getString(R.string.download)
+                                ivDownload.setImageResource(R.drawable.outline_download_for_offline_24)
+                                setEnabledAll(btDownload, true)
+                            }
+
+                            DownloadState.STATE_DOWNLOADING -> {
+                                tvDownload.text = getString(R.string.downloading)
+                                ivDownload.setImageResource(R.drawable.baseline_downloading_white)
+                                setEnabledAll(btDownload, false)
+                            }
+
+                            DownloadState.STATE_DOWNLOADED -> {
+                                tvDownload.text = getString(R.string.downloaded)
+                                ivDownload.setImageResource(R.drawable.baseline_downloaded)
+                                setEnabledAll(btDownload, true)
+                            }
                         }
                     }
                     tvSongTitle.text = song.title
@@ -113,7 +145,7 @@ class DownloadedFragment : Fragment() {
                     btLike.setOnClickListener {
                         if (cbFavorite.isChecked){
                             cbFavorite.isChecked = false
-                            tvFavorite.text = "Like"
+                            tvFavorite.text = getString(R.string.like)
                             viewModel.updateLikeStatus(song.videoId, 0)
                             viewModel.listDownloadedSong.observe(viewLifecycleOwner){ downloaded ->
                                 listDownloaded.clear()
@@ -127,8 +159,39 @@ class DownloadedFragment : Fragment() {
                         }
                         else {
                             cbFavorite.isChecked = true
-                            tvFavorite.text = "Liked"
+                            tvFavorite.text = getString(R.string.liked)
                             viewModel.updateLikeStatus(song.videoId, 1)
+                            viewModel.listDownloadedSong.observe(viewLifecycleOwner){ downloaded ->
+                                listDownloaded.clear()
+                                val tempDownloaded = mutableListOf<SongEntity>()
+                                for (i in downloaded.size - 1 downTo 0) {
+                                    tempDownloaded.add(downloaded[i])
+                                }
+                                listDownloaded.addAll(tempDownloaded)
+                                downloadedAdapter.updateList(listDownloaded)
+                            }
+                        }
+                    }
+                    btDownload.setOnClickListener {
+                        if (tvDownload.text == getString(R.string.downloaded)){
+                            DownloadService.sendRemoveDownload(
+                                requireContext(),
+                                MusicDownloadService::class.java,
+                                song.videoId,
+                                false
+                            )
+                            viewModel.updateDownloadState(
+                                song.videoId,
+                                DownloadState.STATE_NOT_DOWNLOADED
+                            )
+                            tvDownload.text = getString(R.string.download)
+                            ivDownload.setImageResource(R.drawable.outline_download_for_offline_24)
+                            setEnabledAll(btDownload, true)
+                            Toast.makeText(
+                                requireContext(),
+                                "Removed download",
+                                Toast.LENGTH_SHORT
+                            ).show()
                             viewModel.listDownloadedSong.observe(viewLifecycleOwner){ downloaded ->
                                 listDownloaded.clear()
                                 val tempDownloaded = mutableListOf<SongEntity>()

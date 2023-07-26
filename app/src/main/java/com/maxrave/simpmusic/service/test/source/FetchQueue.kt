@@ -43,7 +43,6 @@ class FetchQueue: Service() {
             else {
                 musicSource.load()
             }
-            Log.d("CHECK SOURCE", "${musicSource.catalog.size}")
             musicSource.stateFlow.collect{ state ->
                 if (state == StateSource.STATE_INITIALIZED) {
                     when (index) {
@@ -68,7 +67,6 @@ class FetchQueue: Service() {
                             }
                         }
                     }
-//                    simpleMediaServiceHandler.addMediaItemList(musicSource.catalog)
                 }
             }
         }
