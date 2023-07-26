@@ -1,0 +1,5 @@
+<br><b>New</b>
+* Create local playlists yourself
+* Download playlist
+* Add "Clear cache and download" feature
+* Added Fastlane structure

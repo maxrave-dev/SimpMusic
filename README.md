@@ -19,7 +19,7 @@ A simple music app using YouTube Music for backend
 <p float="left">
   <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/z4388612795073_be57c0b10070ded437ddf59f546b9002.jpg" width="200" />
   <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/z4388612796301_2d08789c04eb2e7b995474d7d69719e7.jpg" width="200" />
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/z4388612801883_4cfd6fa5ed680fb8d7cf4004116d51c7.jpg" width="210" />
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/z4388612801883_4cfd6fa5ed680fb8d7cf4004116d51c7.jpg" width="200" />
 </p>
 
 More [screenshot](https://photos.app.goo.gl/AbieoXG5ctDrpwzp7) here.
