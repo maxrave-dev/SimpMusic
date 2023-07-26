@@ -14,8 +14,7 @@
             android:layout_width="160sp"
             android:layout_height="160sp"
             android:scaleType="centerCrop"
-            app:shapeAppearanceOverlay="@style/circle"
-            android:src="@drawable/related_artist_demo" />
+            app:shapeAppearanceOverlay="@style/circle"/>
         <TextView
             android:id="@+id/tvArtistName"
             android:layout_width="160sp"
