@@ -317,20 +317,8 @@ class MostPlayedFragment: Fragment() {
                                                 setEnabledAll(btDownload, true)
                                             }
 
-                                            Download.STATE_QUEUED -> {
-                                                TODO()
-                                            }
-
-                                            Download.STATE_REMOVING -> {
-                                                TODO()
-                                            }
-
-                                            Download.STATE_RESTARTING -> {
-                                                TODO()
-                                            }
-
-                                            Download.STATE_STOPPED -> {
-                                                TODO()
+                                            else -> {
+                                                Log.d("Download", "onOptionsClick: ${download.state}")
                                             }
                                         }
                                     }

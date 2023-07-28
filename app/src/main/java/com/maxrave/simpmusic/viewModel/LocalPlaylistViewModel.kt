@@ -178,6 +178,9 @@ class LocalPlaylistViewModel @Inject constructor(private val mainRepository: Mai
                             }
                             Log.d("Check Downloaded", "Queued")
                         }
+                        else -> {
+                            Log.d("Check Downloaded", "Not Downloaded")
+                        }
                     }
                 }
             }

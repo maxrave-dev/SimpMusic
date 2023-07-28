@@ -270,16 +270,8 @@ class PlaylistViewModel @Inject constructor(private val mainRepository: MainRepo
                                 }
                             }
                         }
-                        Download.STATE_REMOVING -> {
-                            TODO()
-                        }
-
-                        Download.STATE_RESTARTING -> {
-                            TODO()
-                        }
-
-                        Download.STATE_STOPPED -> {
-                            TODO()
+                        else -> {
+                            Log.d("Check Downloaded", "Not Downloaded")
                         }
                     }
                 }

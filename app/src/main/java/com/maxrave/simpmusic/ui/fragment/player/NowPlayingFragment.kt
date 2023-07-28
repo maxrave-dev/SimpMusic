@@ -827,21 +827,8 @@ class NowPlayingFragment : Fragment() {
                                                         ivDownload.setImageResource(R.drawable.baseline_downloaded)
                                                         setEnabledAll(btDownload, true)
                                                     }
-
-                                                    Download.STATE_QUEUED -> {
-                                                        TODO()
-                                                    }
-
-                                                    Download.STATE_REMOVING -> {
-                                                        TODO()
-                                                    }
-
-                                                    Download.STATE_RESTARTING -> {
-                                                        TODO()
-                                                    }
-
-                                                    Download.STATE_STOPPED -> {
-                                                        TODO()
+                                                    else -> {
+                                                        Log.d("Download", "onCreate: ${download.state}")
                                                     }
                                                 }
                                             }

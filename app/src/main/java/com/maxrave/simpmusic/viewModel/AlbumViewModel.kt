@@ -277,16 +277,8 @@ class AlbumViewModel @Inject constructor(private var dataStoreManager: DataStore
                             Log.d("Check Downloaded", "Queued")
                         }
 
-                        Download.STATE_REMOVING -> {
-                            TODO()
-                        }
-
-                        Download.STATE_RESTARTING -> {
-                            TODO()
-                        }
-
-                        Download.STATE_STOPPED -> {
-                            TODO()
+                        else -> {
+                            Log.d("Check Downloaded", "Not Downloaded")
                         }
                     }
                 }
