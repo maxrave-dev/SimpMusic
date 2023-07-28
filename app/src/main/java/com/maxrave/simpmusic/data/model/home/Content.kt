@@ -18,6 +18,8 @@ data class Content(
     val isExplicit: Boolean?,
     @SerializedName("playlistId")
     val playlistId: String?,
+    @SerializedName("browseId")
+    val browseId: String?,
     @SerializedName("thumbnails")
     val thumbnails: List<Thumbnail>,
     @SerializedName("title")

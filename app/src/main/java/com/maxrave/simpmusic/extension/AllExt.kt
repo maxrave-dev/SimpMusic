@@ -224,7 +224,7 @@ fun ArrayList<VideosResult>.toListTrack(): ArrayList<Track> {
 fun Content.toTrack(): Track {
     return Track(
         album = album,
-        artists = artists,
+        artists = artists ?: listOf(Artist("", "")),
         duration = "",
         durationSeconds = 0,
         isAvailable = false,

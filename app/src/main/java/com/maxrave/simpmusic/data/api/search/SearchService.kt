@@ -16,6 +16,7 @@ import com.maxrave.simpmusic.data.model.searchResult.artists.ArtistsResult
 import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
+import com.maxrave.simpmusic.data.model.streams.Streams
 import com.maxrave.simpmusic.data.model.thumbnailUrl
 import retrofit2.Response
 import retrofit2.http.GET
@@ -25,6 +26,9 @@ interface SearchService {
     //get_thumbnails
     @GET("thumbnails")
     suspend fun getThumbnails(@Query("songId") songId: String): Response<ArrayList<thumbnailUrl>>
+    //song
+    @GET("song")
+    suspend fun getSong(@Query("videoId") videoId: String): Response<ArrayList<Streams>>
     //search
     @GET("search")
     suspend fun searchAll(@Query("q") query: String, @Query("r") region: String): Response<ArrayList<Any>>

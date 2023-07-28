@@ -1,40 +1,29 @@
 package com.maxrave.simpmusic.service.test.download
 
 import android.content.Context
-import android.net.ConnectivityManager
 import android.util.Log
-import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.database.DatabaseProvider
+import androidx.media3.datasource.DataSpec
 import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.ResolvingDataSource
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.SimpleCache
-import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.offline.DownloadNotificationHelper
-import com.maxrave.kotlinyoutubeextractor.State
-import com.maxrave.kotlinyoutubeextractor.YTExtractor
-import com.maxrave.kotlinyoutubeextractor.bestQuality
-import com.maxrave.kotlinyoutubeextractor.getAudioOnly
-import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.di.DownloadCache
 import com.maxrave.simpmusic.di.PlayerCache
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService.Companion.CHANNEL_ID
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import okhttp3.OkHttpClient
 import java.util.concurrent.Executor
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -45,6 +34,7 @@ class DownloadUtils @Inject constructor(
     @ApplicationContext context: Context,
     @PlayerCache private val playerCache: SimpleCache,
     @DownloadCache private val downloadCache: SimpleCache,
+    private val mainRepository: MainRepository,
     private val databaseProvider: DatabaseProvider) {
 
 
@@ -67,19 +57,30 @@ class DownloadUtils @Inject constructor(
             return@Factory dataSpec
         }
 
-        val yt = YTExtractor(context, CACHING = false, LOGGING = false, retryCount = 3)
-        val extract = runBlocking(Dispatchers.Main) {
-            yt.extract(mediaId)
-            (if (yt.state == State.SUCCESS) {
-                val url = yt.getYTFiles()?.getAudioOnly()?.bestQuality()?.url ?: ""
-                Log.d("DownloadUtils", "url: $url")
-                dataSpec.withUri((url).toUri())
-            } else {
-                null
-            })!!
+//        val yt = YTExtractor(context, CACHING = false, LOGGING = false, retryCount = 3)
+//        val extract = runBlocking(Dispatchers.Main) {
+//            yt.extract(mediaId)
+//            (if (yt.state == State.SUCCESS) {
+//                val url = yt.getYTFiles()?.getAudioOnly()?.bestQuality()?.url ?: ""
+//                Log.d("DownloadUtils", "url: $url")
+//                dataSpec.withUri((url).toUri())
+//            } else {
+//                null
+//            })!!
+//        }
+        var extract: DataSpec? = null
+        runBlocking(Dispatchers.Main) {mainRepository.getSong(mediaId).collect {values ->
+                values.data?.forEach { song ->
+                    if (song.itag == 251) {
+                        val url = song.url
+                        Log.d("DownloadUtils", "url: $url")
+                        extract = dataSpec.withUri((url).toUri())
+                    }
+                }
+            }
         }
         Log.d("DownloadUtils", "extract: ${extract.toString()}")
-        return@Factory extract
+        return@Factory extract!!
     }
     val downloadNotificationHelper = DownloadNotificationHelper(context, CHANNEL_ID)
     val downloadManager: DownloadManager = DownloadManager(context, databaseProvider, downloadCache, dataSourceFactory, Executor(Runnable::run)).apply {

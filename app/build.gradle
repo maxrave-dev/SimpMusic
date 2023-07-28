@@ -47,8 +47,8 @@ android {
 
 dependencies {
 
-    def youtube_extractor_version = '0.0.7'
-    implementation ("com.github.maxrave-dev:kotlin-youtubeExtractor:$youtube_extractor_version") {changing = true}
+//    def youtube_extractor_version = '0.0.7'
+//    implementation ("com.github.maxrave-dev:kotlin-youtubeExtractor:$youtube_extractor_version") {changing = true}
 
     implementation 'androidx.lifecycle:lifecycle-runtime-ktx:2.6.1'
     implementation 'androidx.core:core-ktx:1.10.1'

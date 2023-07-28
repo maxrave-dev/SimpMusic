@@ -169,7 +169,7 @@
                         android:layout_height="wrap_content"
                         android:textSize="16sp"
                         android:id="@+id/tvVersion"
-                        android:text="v0.0.1-alpha-test">
+                        android:text="v0.0.1-beta">
 
                     </TextView>
                 </LinearLayout>

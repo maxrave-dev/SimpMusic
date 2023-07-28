@@ -6,11 +6,14 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
+import okhttp3.Request
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
+import javax.inject.Named
 import javax.inject.Singleton
 
 @Module
@@ -19,16 +22,28 @@ object SearchServiceModule {
 
     @Provides
     @Singleton
+    @Named("LoggingInterceptor")
     fun provideHttpLoggingInterceptor(): HttpLoggingInterceptor {
         val httpLoggingInterceptor = HttpLoggingInterceptor()
         httpLoggingInterceptor.level = HttpLoggingInterceptor.Level.BODY
         return httpLoggingInterceptor
     }
+    @Provides
+    @Singleton
+    @Named("NetworkInterceptor")
+    fun provideNetworkInterceptor(): Interceptor {
+        val interceptor = Interceptor { chain ->
+            val requestBuilder: Request.Builder = chain.request().newBuilder()
+            requestBuilder.header("Content-Type", "application/json")
+            chain.proceed(requestBuilder.build())
+        }
+        return interceptor
+    }
 
     @Provides
     @Singleton
-    fun provideOkHttpClient(httpLoggingInterceptor: HttpLoggingInterceptor): OkHttpClient {
-        val okHttpClient = OkHttpClient.Builder().addInterceptor(httpLoggingInterceptor).readTimeout(15, TimeUnit.SECONDS).connectTimeout(15, TimeUnit.SECONDS)
+    fun provideOkHttpClient(@Named("LoggingInterceptor") httpLoggingInterceptor: HttpLoggingInterceptor, @Named("NetworkInterceptor") networkInterceptor: Interceptor): OkHttpClient {
+        val okHttpClient = OkHttpClient.Builder().addInterceptor(httpLoggingInterceptor).addNetworkInterceptor(networkInterceptor).readTimeout(15, TimeUnit.SECONDS).connectTimeout(15, TimeUnit.SECONDS)
         return okHttpClient.build()
     }
 
@@ -39,11 +54,13 @@ object SearchServiceModule {
     }
     @Singleton
     @Provides
+    @Named("baseSearchUrl")
     fun provideBaseUrl() = Config.BASE_URL
 
     @Singleton
     @Provides
-    fun provideRetrofit(okHttpClient: OkHttpClient, gsonConverterFactory: GsonConverterFactory, baseUrl: String) : Retrofit
+    @Named("SearchRetrofit")
+    fun provideSearchRetrofit(okHttpClient: OkHttpClient, gsonConverterFactory: GsonConverterFactory, @Named("baseSearchUrl") baseUrl: String) : Retrofit
         = Retrofit.Builder()
         .baseUrl(baseUrl)
         .addConverterFactory(gsonConverterFactory)
@@ -52,6 +69,5 @@ object SearchServiceModule {
 
     @Singleton
     @Provides
-    fun provideSearchService(retrofit: Retrofit): SearchService = retrofit.create(SearchService::class.java)
-
+    fun provideSearchService(@Named("SearchRetrofit") retrofit: Retrofit): SearchService = retrofit.create(SearchService::class.java)
 }

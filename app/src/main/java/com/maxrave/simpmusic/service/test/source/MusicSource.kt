@@ -1,17 +1,13 @@
 package com.maxrave.simpmusic.service.test.source
 
-import android.content.Context
 import android.util.Log
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
-import com.maxrave.kotlinyoutubeextractor.State
-import com.maxrave.kotlinyoutubeextractor.YTExtractor
-import com.maxrave.kotlinyoutubeextractor.bestQuality
-import com.maxrave.kotlinyoutubeextractor.getAudioOnly
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.queue.Queue
+import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
@@ -19,11 +15,12 @@ import com.maxrave.simpmusic.service.test.source.StateSource.STATE_CREATED
 import com.maxrave.simpmusic.service.test.source.StateSource.STATE_ERROR
 import com.maxrave.simpmusic.service.test.source.StateSource.STATE_INITIALIZED
 import com.maxrave.simpmusic.service.test.source.StateSource.STATE_INITIALIZING
+import com.maxrave.simpmusic.utils.Resource
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 
-class MusicSource @Inject constructor(val context: Context, val simpleMediaServiceHandler: SimpleMediaServiceHandler) {
+class MusicSource @Inject constructor(val simpleMediaServiceHandler: SimpleMediaServiceHandler, private val mainRepository: MainRepository) {
 
     var catalogMetadata: ArrayList<Track> = (arrayListOf())
     var downloadUrl: ArrayList<String> = arrayListOf()
@@ -112,30 +109,42 @@ class MusicSource @Inject constructor(val context: Context, val simpleMediaServi
                 added.value = true
             }
             else {
-                val yt = YTExtractor(con = context, CACHING = false, LOGGING = false)
-                yt.extract(track.videoId)
-                if (yt.state == State.SUCCESS){
-                    val artistName: String = track.artists.toListName().connectArtists()
-                    Log.d("Music Source URI", yt.getYTFiles()?.getAudioOnly()?.bestQuality()?.url.toString())
-                    if (yt.getYTFiles()?.getAudioOnly()?.bestQuality()?.url != null){
-                        val mediaItem = MediaItem.Builder()
-                            .setUri(yt.getYTFiles()?.getAudioOnly()?.bestQuality()?.url)
-                            .setMediaId(track.videoId)
-                            .setMediaMetadata(
-                                MediaMetadata.Builder()
-                                    .setArtworkUri(thumbUrl.toUri())
-                                    .setAlbumTitle(track.album?.name)
-                                    .setTitle(track.title)
-                                    .setArtist(artistName)
-                                    .build()
-                            )
-                            .build()
-                        simpleMediaServiceHandler.addMediaItemNotSet(mediaItem)
-                        catalogMetadata.add(track)
-                        Log.d("MusicSource", "updateCatalog: ${track.title}, ${catalogMetadata.size}")
-                        downloadUrl.add(yt.getYTFiles()?.getAudioOnly()?.bestQuality()?.url.toString())
-                        added.value = true
-                        Log.d("MusicSource", "updateCatalog: ${track.title}")
+                mainRepository.getSong(track.videoId).collect { values ->
+                    Log.d("MusicSource", "updateCatalog: $values")
+                    when (values) {
+                        is Resource.Success -> {
+                            val listAudioStream = values.data
+                            listAudioStream?.forEach {
+                                if (it.itag == 251) {
+                                    val uri = it.url
+                                    val artistName: String =
+                                        track.artists.toListName().connectArtists()
+                                    Log.d("Check URI", uri)
+                                    simpleMediaServiceHandler.addMediaItemNotSet(MediaItem.Builder().setUri(uri)
+                                        .setMediaId(track.videoId)
+                                        .setMediaMetadata(
+                                            MediaMetadata.Builder()
+                                                .setTitle(track.title)
+                                                .setArtist(artistName)
+                                                .setArtworkUri(thumbUrl.toUri())
+                                                .setAlbumTitle(track.album?.name)
+                                                .build()
+                                        )
+                                        .build())
+                                    catalogMetadata.add(track)
+                                    Log.d(
+                                        "MusicSource",
+                                        "updateCatalog: ${track.title}, ${catalogMetadata.size}"
+                                    )
+                                    downloadUrl.add(uri)
+                                    added.value = true
+                                    Log.d("MusicSource", "updateCatalog: ${track.title}")
+                                }
+                            }
+                        }
+                        is Resource.Error -> {
+                            Log.d("MusicSource", "updateCatalog: ${values.message}")
+                        }
                     }
                 }
             }

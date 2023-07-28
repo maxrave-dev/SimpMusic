@@ -2,16 +2,22 @@ package com.maxrave.simpmusic.adapter.home
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.navigation.NavController
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.common.Config
+import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.home.Content
 import com.maxrave.simpmusic.data.model.home.homeItem
+import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.ItemHomeBinding
+import com.maxrave.simpmusic.extension.toTrack
 
 class HomeItemAdapter(private var homeItemList: ArrayList<homeItem>, var context: Context, val navController: NavController): RecyclerView.Adapter<HomeItemAdapter.ViewHolder>() {
     inner class ViewHolder(var binding: ItemHomeBinding) : RecyclerView.ViewHolder(binding.root) {
@@ -45,19 +51,29 @@ class HomeItemAdapter(private var homeItemList: ArrayList<homeItem>, var context
         }
         itemAdapter.setOnSongClickListener(object : HomeItemContentAdapter.onSongItemClickListener{
             override fun onSongItemClick(position: Int) {
-                Toast.makeText(context, homeItemList[holder.bindingAdapterPosition].contents[position].toString(), Toast.LENGTH_SHORT).show()
                 val args = Bundle()
                 args.putString("videoId", homeItemList[holder.bindingAdapterPosition].contents[position]?.videoId)
                 args.putString("from", homeItem.title)
+                Queue.clear()
+                Log.d("HomeItemAdapter", "onSongItemClick: ${homeItemList[holder.bindingAdapterPosition].contents[position]}")
+                val firstQueue: Track = homeItemList[holder.bindingAdapterPosition].contents[position]!!.toTrack()
+                Queue.setNowPlaying(firstQueue)
+                args.putString("type", Config.SONG_CLICK)
                 navController.navigate(R.id.action_global_nowPlayingFragment, args)
             }
         })
         itemAdapter.setOnPlaylistClickListener(object : HomeItemContentAdapter.onPlaylistItemClickListener{
             override fun onPlaylistItemClick(position: Int) {
-                Toast.makeText(context, homeItemList[position].toString(), Toast.LENGTH_SHORT).show()
                 val args = Bundle()
                 args.putString("id", homeItemList[holder.bindingAdapterPosition].contents[position]?.playlistId)
                 navController.navigate(R.id.action_global_playlistFragment, args)
+            }
+        })
+        itemAdapter.setOnAlbumClickListener(object : HomeItemContentAdapter.onAlbumItemClickListener{
+            override fun onAlbumItemClick(position: Int) {
+                val args = Bundle()
+                args.putString("browseId", homeItemList[holder.bindingAdapterPosition].contents[position]?.browseId)
+                navController.navigate(R.id.action_global_albumFragment, args)
             }
         })
     }

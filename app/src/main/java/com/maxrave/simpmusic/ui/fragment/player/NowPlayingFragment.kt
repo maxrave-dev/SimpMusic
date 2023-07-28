@@ -286,8 +286,6 @@ class NowPlayingFragment : Fragment() {
                             }
                         }
                     }
-                    //}
-//                viewModel.loadMediaItems(videoId!!)
                 }
             }
 
@@ -298,7 +296,6 @@ class NowPlayingFragment : Fragment() {
                     metadataCurSong = viewModel.metadata.value?.data
                     updateUIfromCurrentMediaItem(viewModel.getCurrentMediaItem())
                 } else {
-//                if (!viewModel.songTransitions.value){
                     Log.i("Now Playing Fragment", "Bên trên")
                     binding.ivArt.visibility = View.GONE
                     binding.loadingArt.visibility = View.VISIBLE
@@ -317,9 +314,6 @@ class NowPlayingFragment : Fragment() {
                             )
                         }
                         viewModel.loadMediaItemFromTrack(it)
-
-//                        viewModel.getMetadata(it.videoId)
-//                        observerMetadata()
                         viewModel.videoId.postValue(it.videoId)
                         viewModel.from.postValue(from)
                         viewModel.resetLyrics()
@@ -339,8 +333,6 @@ class NowPlayingFragment : Fragment() {
                             }
                         }
                     }
-                    //}
-//                viewModel.loadMediaItems(videoId!!)
                 }
             }
 
@@ -364,11 +356,6 @@ class NowPlayingFragment : Fragment() {
                             videoId = viewModel.videoId.value
                             binding.ivArt.visibility = View.GONE
                             binding.loadingArt.visibility = View.VISIBLE
-//                            val track = viewModel.nowPlayingMediaItem.value
-//                            if (track != null) {
-//                                viewModel.resetLyrics()
-//                                viewModel.getLyrics(track.mediaMetadata.title.toString() + " " + track.mediaMetadata.artist)
-//                            }
                             Log.d("Check Lyrics", viewModel._lyrics.value?.data.toString())
                             updateUIfromCurrentMediaItem(viewModel.nowPlayingMediaItem.value)
                             musicSource.setCurrentSongIndex(viewModel.getCurrentMediaItemIndex())
@@ -413,7 +400,6 @@ class NowPlayingFragment : Fragment() {
                 viewModel.isPlaying.observe(viewLifecycleOwner) {
                     Log.d("Check Song Transistion", "${viewModel.songTransitions.value}")
                     if (it) {
-                        //updateUIfromCurrentMediaItem(viewModel.getCurrentMediaItem())
                         binding.btPlayPause.setImageResource(R.drawable.baseline_pause_circle_24)
                         songChangeListener.onIsPlayingChange()
                     } else {
@@ -531,24 +517,24 @@ class NowPlayingFragment : Fragment() {
                     binding.cbFavorite.isChecked = liked
                 }
             }
-            val job11 = launch {
-                viewModel.nextTrackAvailable.collect { nextTrackAvailable ->
-                    if (nextTrackAvailable) {
-                        setEnabledAll(binding.btNext, true)
-                    } else {
-                        setEnabledAll(binding.btNext, false)
-                    }
-                }
-            }
-            val job12 = launch {
-                viewModel.previousTrackAvailable.collect { previousTrackAvailable ->
-                    if (previousTrackAvailable) {
-                        setEnabledAll(binding.btPrevious, true)
-                    } else {
-                        setEnabledAll(binding.btPrevious, false)
-                    }
-                }
-            }
+//            val job11 = launch {
+//                viewModel.nextTrackAvailable.collect { nextTrackAvailable ->
+//                    if (nextTrackAvailable) {
+//                        setEnabledAll(binding.btNext, true)
+//                    } else {
+//                        setEnabledAll(binding.btNext, false)
+//                    }
+//                }
+//            }
+//            val job12 = launch {
+//                viewModel.previousTrackAvailable.collect { previousTrackAvailable ->
+//                    if (previousTrackAvailable) {
+//                        setEnabledAll(binding.btPrevious, true)
+//                    } else {
+//                        setEnabledAll(binding.btPrevious, false)
+//                    }
+//                }
+//            }
 
             job1.join()
             job2.join()
@@ -560,8 +546,8 @@ class NowPlayingFragment : Fragment() {
             job8.join()
             job9.join()
             job10.join()
-            job11.join()
-            job12.join()
+//            job11.join()
+//            job12.join()
         }
         binding.btFull.setOnClickListener {
             if (binding.btFull.text == "Show") {

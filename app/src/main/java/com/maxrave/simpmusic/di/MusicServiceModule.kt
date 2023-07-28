@@ -19,6 +19,7 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.MediaLibraryService.MediaLibrarySession
 import androidx.media3.session.MediaSession
+import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.service.SimpleMediaNotificationManager
 import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
@@ -166,8 +167,7 @@ object MusicServiceModule {
     @Provides
     @Singleton
     fun provideMusicSource(
-        @ApplicationContext context: Context,
-        simpleMediaServiceHandler: SimpleMediaServiceHandler
+        simpleMediaServiceHandler: SimpleMediaServiceHandler, mainRepository: MainRepository
     ): MusicSource =
-        MusicSource(context, simpleMediaServiceHandler)
+        MusicSource(simpleMediaServiceHandler, mainRepository)
 }

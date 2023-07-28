@@ -1,35 +1,25 @@
 package com.maxrave.simpmusic.viewModel
 
 
-import android.annotation.SuppressLint
 import android.app.Application
 import android.graphics.drawable.GradientDrawable
-import android.net.Uri
 import android.util.Log
-import android.util.SparseArray
 import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
-import androidx.media3.common.MimeTypes
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.Download
-import com.maxrave.kotlinyoutubeextractor.State
-import com.maxrave.kotlinyoutubeextractor.YTExtractor
-import com.maxrave.kotlinyoutubeextractor.bestQuality
-import com.maxrave.kotlinyoutubeextractor.getAudioOnly
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
-import com.maxrave.simpmusic.data.model.mediaService.Song
 import com.maxrave.simpmusic.data.model.metadata.Line
 import com.maxrave.simpmusic.data.model.metadata.Lyrics
 import com.maxrave.simpmusic.data.model.metadata.MetadataSong
@@ -48,8 +38,6 @@ import com.maxrave.simpmusic.service.test.source.MusicSource
 import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -269,6 +257,9 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                             }
                             Log.d("Check Downloaded", "Downloading ${down.percentDownloaded}")
                         }
+                        else -> {
+                            Log.d("Check Downloaded", "${down.state}")
+                        }
                     }
                 }
             }
@@ -376,44 +367,84 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                 _firstTrackAdded.value = true
                 musicSource.addFirstMetadata(track)
             } else {
-                val yt = YTExtractor(con = context, CACHING = false, LOGGING = true, retryCount = 3)
-                yt.extract(track.videoId)
-                if (yt.state == State.SUCCESS) {
-                    if (yt.getYTFiles()?.getAudioOnly()?.bestQuality()?.url != null) {
-                        yt.getYTFiles()?.getAudioOnly()?.bestQuality()?.url?.let {
-                            uri = it
-                            val artistName: String = track.artists.toListName().connectArtists()
-                            var thumbUrl = track.thumbnails?.last()?.url!!
-                            if (thumbUrl.contains("w120")){
-                                thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
-                            }
-                            Log.d("Check URI", uri)
-                            musicSource.downloadUrl.add(0, uri)
-                            simpleMediaServiceHandler.addMediaItem(
-                                MediaItem.Builder().setUri(uri)
-                                    .setMediaId(track.videoId)
-                                    .setMediaMetadata(
-                                        MediaMetadata.Builder()
-                                            .setTitle(track.title)
-                                            .setArtist(artistName)
-                                            .setArtworkUri(thumbUrl.toUri())
-                                            .setAlbumTitle(track.album?.name)
+                mainRepository.getSong(track.videoId).collect { values ->
+                    when (values) {
+                        is Resource.Success -> {
+                            val listAudioStream = values.data
+                            listAudioStream?.forEach {
+                                if (it.itag == 251){
+                                    uri = it.url
+                                    val artistName: String = track.artists.toListName().connectArtists()
+                                    var thumbUrl = track.thumbnails?.last()?.url!!
+                                    if (thumbUrl.contains("w120")){
+                                        thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
+                                    }
+                                    Log.d("Check URI", uri)
+                                    musicSource.downloadUrl.add(0, uri)
+                                    simpleMediaServiceHandler.addMediaItem(
+                                        MediaItem.Builder().setUri(uri)
+                                            .setMediaId(track.videoId)
+                                            .setMediaMetadata(
+                                                MediaMetadata.Builder()
+                                                    .setTitle(track.title)
+                                                    .setArtist(artistName)
+                                                    .setArtworkUri(thumbUrl.toUri())
+                                                    .setAlbumTitle(track.album?.name)
+                                                    .build()
+                                            )
                                             .build()
                                     )
-                                    .build()
-                            )
-                            _nowPlayingMediaItem.value = getCurrentMediaItem()
-                            Log.d("Check MediaItem Thumbnail", getCurrentMediaItem()?.mediaMetadata?.artworkUri.toString())
-                            simpleMediaServiceHandler.changeTrackToFalse()
+                                    _nowPlayingMediaItem.value = getCurrentMediaItem()
+                                    Log.d("Check MediaItem Thumbnail", getCurrentMediaItem()?.mediaMetadata?.artworkUri.toString())
+                                    simpleMediaServiceHandler.changeTrackToFalse()
+                                    _firstTrackAdded.value = true
+                                    musicSource.addFirstMetadata(track)
+                                }
+                            }
                         }
-                        _firstTrackAdded.value = true
-                        musicSource.addFirstMetadata(track)
+                        is Resource.Error -> {
+                            Log.d("Check Error", values.message.toString())
+                        }
                     }
                 }
-                else {
-                    Toast.makeText(context, "Error: ${yt.state}, use VPN to fix this problem", Toast.LENGTH_SHORT).show()
-                    _firstTrackAdded.value = false
-                }
+//                val yt = YTExtractor(con = context, CACHING = false, LOGGING = true, retryCount = 3)
+////                yt.extract(track.videoId)
+////                if (yt.state == State.SUCCESS) {
+////                    if (yt.getYTFiles()?.getAudioOnly()?.bestQuality()?.url != null) {
+////                        yt.getYTFiles()?.getAudioOnly()?.bestQuality()?.url?.let {
+////                            uri = it
+////                            val artistName: String = track.artists.toListName().connectArtists()
+////                            var thumbUrl = track.thumbnails?.last()?.url!!
+////                            if (thumbUrl.contains("w120")){
+////                                thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
+////                            }
+////                            Log.d("Check URI", uri)
+////                            musicSource.downloadUrl.add(0, uri)
+////                            simpleMediaServiceHandler.addMediaItem(
+////                                MediaItem.Builder().setUri(uri)
+////                                    .setMediaId(track.videoId)
+////                                    .setMediaMetadata(
+////                                        MediaMetadata.Builder()
+////                                            .setTitle(track.title)
+////                                            .setArtist(artistName)
+////                                            .setArtworkUri(thumbUrl.toUri())
+////                                            .setAlbumTitle(track.album?.name)
+////                                            .build()
+////                                    )
+////                                    .build()
+////                            )
+////                            _nowPlayingMediaItem.value = getCurrentMediaItem()
+////                            Log.d("Check MediaItem Thumbnail", getCurrentMediaItem()?.mediaMetadata?.artworkUri.toString())
+////                            simpleMediaServiceHandler.changeTrackToFalse()
+////                        }
+////                        _firstTrackAdded.value = true
+////                        musicSource.addFirstMetadata(track)
+////                    }
+////                }
+////                else {
+////                    Toast.makeText(context, "Error: ${yt.state}, use VPN to fix this problem", Toast.LENGTH_SHORT).show()
+////                    _firstTrackAdded.value = false
+////                }
             }
         }
     }

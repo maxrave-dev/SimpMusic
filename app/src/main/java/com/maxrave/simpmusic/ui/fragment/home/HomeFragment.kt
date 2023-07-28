@@ -264,44 +264,6 @@ class HomeFragment : Fragment() {
             binding.fullLayout.visibility = View.VISIBLE
             binding.swipeRefreshLayout.isRefreshing = false
         }
-//        fetchHomeData()
-//        viewModel.loading.observe(viewLifecycleOwner, Observer { loading ->
-//            if (!loading)
-//            {
-////                viewModel.homeItemList.observe(viewLifecycleOwner, Observer { result ->
-////                    result?.let {
-////                        Log.d("Data from Result", "onViewCreated: $result")
-////                        if (homeItemList == null) {
-////                            homeItemList = ArrayList()
-////                        }
-////                        else
-////                        {
-////                            homeItemList?.clear()
-////                        }
-//////                        homeItemList?.addAll(result)
-////                        Log.d("Data", "onViewCreated: $homeItemList")
-////                        mAdapter.updateData(homeItemList!!)
-////                    }
-////                })
-//                viewModel.exploreMoodItem.observe(viewLifecycleOwner, Observer { result ->
-//                    result?.let {
-//                        exploreMoodItem = result.data as Mood
-//                        moodsMoment = exploreMoodItem?.moodsMoments as ArrayList<MoodsMoment>
-//                        genre = exploreMoodItem?.genres as ArrayList<Genre>
-//                        Log.d("Moods & Moment", "onViewCreated: $moodsMoment")
-//                        Log.d("Genre", "onViewCreated: $genre")
-//                        moodsMomentAdapter.updateData(moodsMoment!!)
-//                        genreAdapter.updateData(genre!!)
-//                    }
-//                })
-//                binding.tvTitleMoodsMoment.visibility = View.VISIBLE
-//                binding.tvTitleGenre.visibility = View.VISIBLE
-//                binding.swipeRefreshLayout.isRefreshing = false
-//                }
-//            else {
-//                binding.swipeRefreshLayout.isRefreshing = true
-//            }
-//        })
         moodsMomentAdapter.setOnMoodsMomentClickListener(object : MoodsMomentAdapter.onMoodsMomentItemClickListener {
             override fun onMoodsMomentItemClick(position: Int) {
                 val args = Bundle()
