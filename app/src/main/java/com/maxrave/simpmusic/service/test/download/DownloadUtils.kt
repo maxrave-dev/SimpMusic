@@ -56,18 +56,6 @@ class DownloadUtils @Inject constructor(
         if (playerCache.isCached(mediaId, dataSpec.position, length)) {
             return@Factory dataSpec
         }
-
-//        val yt = YTExtractor(context, CACHING = false, LOGGING = false, retryCount = 3)
-//        val extract = runBlocking(Dispatchers.Main) {
-//            yt.extract(mediaId)
-//            (if (yt.state == State.SUCCESS) {
-//                val url = yt.getYTFiles()?.getAudioOnly()?.bestQuality()?.url ?: ""
-//                Log.d("DownloadUtils", "url: $url")
-//                dataSpec.withUri((url).toUri())
-//            } else {
-//                null
-//            })!!
-//        }
         var extract: DataSpec? = null
         runBlocking(Dispatchers.Main) {mainRepository.getSong(mediaId).collect {values ->
                 values.data?.forEach { song ->
