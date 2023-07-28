@@ -28,17 +28,6 @@
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                style="@style/Widget.Material3.Button.IconButton"
-                android:text="Recently Added"
-                android:textColor="@android:color/white"
-                app:icon = "@drawable/baseline_sort_24"
-                app:iconTint = "@android:color/white"
-                app:iconPadding	= "10sp">
-
-            </Button>
             <androidx.core.widget.NestedScrollView
                 android:padding="10sp"
                 android:layout_width="match_parent"
