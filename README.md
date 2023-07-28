@@ -25,8 +25,7 @@ A simple music app using YouTube Music for backend
 More [screenshot](https://photos.app.goo.gl/AbieoXG5ctDrpwzp7) here.
 ## Backend
 - This project is using Heroku to run a scraping YouTube Music server.
-- Special thanks [@ytmusicapi](https://github.com/sigma67/ytmusicapi), [@spotipy](https://github.com/spotipy-dev/spotipy)
-- Using my own library [kotlin-youtubeExtractor](https://github.com/maxrave-dev/kotlin-youtubeExtractor/) to extract stream data
+- Special thanks [@ytmusicapi](https://github.com/sigma67/ytmusicapi), [@spotipy](https://github.com/spotipy-dev/spotipy), [@spotify-lyrics-api](https://github.com/akashrchandran/spotify-lyrics-api), [@Piped](https://github.com/TeamPiped/Piped)
 ## Donate
 |   ![Paypal](https://upload.wikimedia.org/wikipedia/commons/archive/b/b5/20230314142950%21PayPal.svg)         | paypal.me/maxraveofficial |
 |-------|---------|
