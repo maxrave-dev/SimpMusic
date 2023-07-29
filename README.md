@@ -3,6 +3,10 @@
 <img src="https://raw.githubusercontent.com/maxrave-dev/SimpMusic/main/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.webp" height="72">
 A simple music app using YouTube Music for backend
 
+[<img src="https://gitlab.com/IzzyOnDroid/repo/-/raw/master/assets/IzzyOnDroid.png" height="80">](https://apt.izzysoft.de/packages/com.maxrave.simpmusic/)
+
+[![Latest release](https://img.shields.io/github/v/release/maxrave-dev/SimpMusic)](https://github.com/maxrave-dev/SimpMusic/releases) 
+[![Downloads](https://img.shields.io/github/downloads/maxrave-dev/SimpMusic/total)](https://github.com/maxrave-dev/SimpMusic/releases)
 ## Features
 - Play music from YouTube Music or YouTube free without ads in the background
 - Browsing Home, Charts, Moods & Genre with YouTube Music data
@@ -27,5 +31,6 @@ More [screenshot](https://photos.app.goo.gl/AbieoXG5ctDrpwzp7) here.
 - This project is using Heroku to run a scraping YouTube Music server.
 - Special thanks [@ytmusicapi](https://github.com/sigma67/ytmusicapi), [@spotipy](https://github.com/spotipy-dev/spotipy), [@spotify-lyrics-api](https://github.com/akashrchandran/spotify-lyrics-api), [@Piped](https://github.com/TeamPiped/Piped)
 ## Donate
-|   ![Paypal](https://upload.wikimedia.org/wikipedia/commons/archive/b/b5/20230314142950%21PayPal.svg)         | paypal.me/maxraveofficial |
+|   [<img src="https://upload.wikimedia.org/wikipedia/commons/archive/b/b5/20230314142950%21PayPal.svg" height="40">]()         | [Paypal](paypal.me/maxraveofficial) |
 |-------|---------|
+|   [<img src="https://upload.wikimedia.org/wikipedia/en/5/5c/Buy_Me_a_Coffee_Logo.png" height="40">]()         | [Buy Me A Coffee](https://www.buymeacoffee.com/maxrave) |
