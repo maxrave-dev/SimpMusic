@@ -2,6 +2,7 @@ package com.maxrave.simpmusic.viewModel
 
 
 import android.app.Application
+import android.content.Intent
 import android.graphics.drawable.GradientDrawable
 import android.util.Log
 import android.widget.Toast
@@ -13,21 +14,30 @@ import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.exoplayer.offline.Download
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.DownloadState
+import com.maxrave.simpmusic.common.QUALITY
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
+import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.TRUE
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
+import com.maxrave.simpmusic.data.model.browse.artist.ChannelId
 import com.maxrave.simpmusic.data.model.metadata.Line
 import com.maxrave.simpmusic.data.model.metadata.Lyrics
 import com.maxrave.simpmusic.data.model.metadata.MetadataSong
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
+import com.maxrave.simpmusic.data.model.songfull.SongFull
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.data.repository.MainRepository
+import com.maxrave.simpmusic.di.DownloadCache
+import com.maxrave.simpmusic.di.PlayerCache
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.toListName
+import com.maxrave.simpmusic.extension.toLyrics
+import com.maxrave.simpmusic.extension.toLyricsEntity
 import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.service.PlayerEvent
 import com.maxrave.simpmusic.service.RepeatState
@@ -42,6 +52,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -53,7 +64,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 @UnstableApi
-class SharedViewModel @Inject constructor(private var dataStoreManager: DataStoreManager, private val musicSource: MusicSource, private val mainRepository: MainRepository, private val simpleMediaServiceHandler: SimpleMediaServiceHandler, application: Application) : AndroidViewModel(application){
+class SharedViewModel @Inject constructor(private var dataStoreManager: DataStoreManager, @DownloadCache private val downloadedCache: SimpleCache, private val musicSource: MusicSource, private val mainRepository: MainRepository, private val simpleMediaServiceHandler: SimpleMediaServiceHandler, application: Application) : AndroidViewModel(application){
     @Inject
     lateinit var downloadUtils: DownloadUtils
 
@@ -130,9 +141,14 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     val repeatMode: StateFlow<RepeatState> = _repeatMode
 
     private var regionCode: String? = null
+    private var quality: String? = null
+    private var isRestoring = MutableStateFlow(false)
+
+    val intent: MutableStateFlow<Intent?> = MutableStateFlow(null)
 
     init {
         regionCode = runBlocking { dataStoreManager.location.first() }
+        quality = runBlocking { dataStoreManager.quality.first() }
         viewModelScope.launch {
             val job1 = launch {
                 simpleMediaServiceHandler.simpleMediaState.collect { mediaState ->
@@ -165,7 +181,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                 }
             }
             val job2 = launch {
-                simpleMediaServiceHandler.changeTrack.collect { isChanged ->
+                simpleMediaServiceHandler.changeTrack.collectLatest { isChanged ->
                     Log.d("Check Change Track", "Change Track: $isChanged")
                     if (isChanged){
                         if (simpleMediaServiceHandler.getCurrentMediaItem()?.mediaId != videoId.value && simpleMediaServiceHandler.getCurrentMediaItem() != null){
@@ -189,7 +205,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                             mainRepository.updateSongInLibrary(LocalDateTime.now(), tempSong.videoId)
                             mainRepository.updateListenCount(tempSong.videoId)
                             resetLyrics()
-                            getLyrics(song.mediaMetadata.title.toString() + " " + song.mediaMetadata.artist)
+                            getLyrics(song.mediaMetadata.title.toString() + " " + song.mediaMetadata.artist, song.mediaId)
                         }
                     }
                 }
@@ -266,20 +282,62 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
         }
     }
 
-    fun getLyrics(query: String) {
+    fun checkIsRestoring() {
+        viewModelScope.launch {
+            dataStoreManager.isRestoringDatabase.first().let { restoring ->
+                isRestoring.value = restoring == TRUE
+                isRestoring.collect() { it ->
+                    if (it) {
+                        mainRepository.getDownloadedSongs().collect { songs ->
+                            songs.forEach { song ->
+                                if (!downloadedCache.keys.contains(song.videoId)) {
+                                    mainRepository.updateDownloadState(song.videoId, DownloadState.STATE_NOT_DOWNLOADED)
+                                }
+                            }
+                            withContext(Dispatchers.Main) {
+                                dataStoreManager.restore(false)
+                                isRestoring.value = false
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    fun getLyrics(query: String, videoId: String) {
         viewModelScope.launch {
             mainRepository.getLyrics(query).collect { response ->
                 _lyrics.value = response
                 withContext(Dispatchers.Main){
-                    when(_lyrics.value) {
-                        is Resource.Success -> {
-                            parseLyrics(_lyrics.value?.data)
-                            Log.d("Check Lyrics", _lyrics.value?.data.toString())
+                    if (_lyrics.value != null) {
+                        Log.d("Check Lyrics", _lyrics.value.toString())
+                        when(_lyrics.value) {
+                            is Resource.Success -> {
+                                mainRepository.insertLyrics(_lyrics.value?.data!!.toLyricsEntity(videoId))
+                                parseLyrics(_lyrics.value?.data)
+                                Log.d("Check Lyrics", _lyrics.value?.data.toString())
+                            }
+                            else -> {
+                                Log.d("Check Lyrics", "Get from DB")
+                                mainRepository.getSavedLyrics(videoId).collect { lyrics ->
+                                    Log.d("Check Lyrics In DB", lyrics.toString())
+                                    if (lyrics != null) {
+                                        _lyrics.value = Resource.Success(lyrics.toLyrics())
+                                        val lyricsData = lyrics.toLyrics()
+                                        Log.d("Check Lyrics In DB", lyricsData.toString())
+                                        parseLyrics(lyricsData)
+                                    }
+                                }
+                            }
                         }
-                        is Resource.Error -> {
-
+                    }
+                    else {
+                        Log.d("Check Lyrics", "null")
+                        mainRepository.getSavedLyrics(videoId).collect { lyrics ->
+                            if (lyrics != null) {
+                                parseLyrics(lyrics.toLyrics())
+                            }
                         }
-                        else -> {}
                     }
                 }
             }
@@ -327,6 +385,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     }
     @UnstableApi
     fun loadMediaItemFromTrack(track: Track){
+        quality = runBlocking { dataStoreManager.quality.first() }
         viewModelScope.launch {
             _firstTrackAdded.value = false
             simpleMediaServiceHandler.clearMediaItems()
@@ -371,8 +430,18 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                     when (values) {
                         is Resource.Success -> {
                             val listAudioStream = values.data
+                            var itag = 0
+                            when (quality){
+                                QUALITY.items[0].toString() -> {
+                                    itag = QUALITY.itags[0]
+                                }
+                                QUALITY.items[1].toString() -> {
+                                    itag = QUALITY.itags[1]
+                                }
+                            }
                             listAudioStream?.forEach {
-                                if (it.itag == 251){
+                                if (it.itag == itag){
+                                    Log.d("ITAG", it.itag.toString())
                                     uri = it.url
                                     val artistName: String = track.artists.toListName().connectArtists()
                                     var thumbUrl = track.thumbnails?.last()?.url!!
@@ -512,7 +581,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
         }
     }
 
-    fun parseLyrics(lyrics: Lyrics?){
+    private fun parseLyrics(lyrics: Lyrics?){
         if (lyrics != null){
             if (!lyrics.error){
                 if (lyrics.syncType == "LINE_SYNCED")
@@ -568,19 +637,6 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
 
 
     fun getLyricsString(current: Long): LyricDict? {
-//        viewModelScope.launch {
-//            while (isPlaying.value == true){
-//                val lyric = lyricsFormat.value?.firstOrNull { it.startTimeMs.toLong() <= progressMillis.value!! }
-//                lyricsString.postValue(lyric?.words ?: "")
-//                delay(100)
-//            }
-//        }
-//        return if (lyricsFormat.value != null){
-//            val lyric = lyricsFormat.value?.firstOrNull { it.startTimeMs.toLong() <= current }
-//            (lyric?.words ?: "")
-//        } else {
-//            ""
-//        }
         var listLyricDict: LyricDict? = null
         for (i in 0 until lyricsFormat.value?.size!!) {
             val sentence = lyricsFormat.value!![i]
@@ -684,6 +740,36 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                 if (songEntity != null) {
                     _liked.value = songEntity.liked
                 }
+            }
+        }
+    }
+
+    fun changeAllDownloadingToError() {
+        viewModelScope.launch {
+            mainRepository.getDownloadingSongs().collect {songs ->
+                songs.forEach { song ->
+                    mainRepository.updateDownloadState(song.videoId, DownloadState.STATE_NOT_DOWNLOADED)
+                }
+            }
+        }
+    }
+    private val _songFull: MutableLiveData<Resource<SongFull>> = MutableLiveData()
+    var songFull: LiveData<Resource<SongFull>> = _songFull
+
+    fun getSongFull(videoId: String) {
+        viewModelScope.launch {
+            mainRepository.getSongFull(videoId).collect {
+                _songFull.postValue(it)
+            }
+        }
+    }
+
+    val _artistId: MutableLiveData<Resource<ChannelId>> = MutableLiveData()
+    var artistId: LiveData<Resource<ChannelId>> = _artistId
+    fun convertNameToId(artistId: String) {
+        viewModelScope.launch {
+            mainRepository.convertNameToId(artistId).collect {
+                _artistId.postValue(it)
             }
         }
     }

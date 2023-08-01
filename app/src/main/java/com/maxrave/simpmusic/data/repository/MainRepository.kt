@@ -6,12 +6,14 @@ import com.maxrave.simpmusic.data.db.LocalDataSource
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
+import com.maxrave.simpmusic.data.db.entities.LyricsEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SearchHistory
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.AlbumBrowse
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.browse.artist.ArtistBrowse
+import com.maxrave.simpmusic.data.model.browse.artist.ChannelId
 import com.maxrave.simpmusic.data.model.browse.playlist.PlaylistBrowse
 import com.maxrave.simpmusic.data.model.explore.mood.Mood
 import com.maxrave.simpmusic.data.model.explore.mood.genre.GenreObject
@@ -25,6 +27,7 @@ import com.maxrave.simpmusic.data.model.searchResult.artists.ArtistsResult
 import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
+import com.maxrave.simpmusic.data.model.songfull.SongFull
 import com.maxrave.simpmusic.data.model.streams.Streams
 import com.maxrave.simpmusic.data.model.thumbnailUrl
 import com.maxrave.simpmusic.utils.Resource
@@ -40,6 +43,7 @@ import javax.inject.Inject
 //@ActivityRetainedScoped
 class MainRepository @Inject constructor(private val remoteDataSource: RemoteDataSource, private val localDataSource: LocalDataSource): BaseApiResponse() {
     suspend fun getSong(videoId: String): Flow<Resource<ArrayList<Streams>>> = flow { emit(safeApiCall { remoteDataSource.getSong(videoId) }) }.flowOn(Dispatchers.IO)
+    suspend fun getSongFull(videoId: String): Flow<Resource<SongFull>> = flow { emit(safeApiCall { remoteDataSource.getSongFull(videoId) }) }.flowOn(Dispatchers.IO)
     suspend fun getThumbnails(songId: String): Flow<Resource<ArrayList<thumbnailUrl>>> = flow { emit(safeApiCall { remoteDataSource.getThumbnails(songId) }) }.flowOn(Dispatchers.IO)
     //search
     suspend fun searchAll(query: String, regionCode: String) = remoteDataSource.searchAll(query, regionCode)
@@ -76,6 +80,7 @@ class MainRepository @Inject constructor(private val remoteDataSource: RemoteDat
     suspend fun getRelated(videoId: String, regionCode: String): Flow<Resource<ArrayList<Track>>> = flow<Resource<ArrayList<Track>>> { emit(safeApiCall { remoteDataSource.getRelated(videoId, regionCode) }) }.flowOn(Dispatchers.IO)
     suspend fun getVideoRelated(videoId: String, regionCode: String): Flow<Resource<ArrayList<VideosResult>>> = flow<Resource<ArrayList<VideosResult>>> { emit(safeApiCall { remoteDataSource.getVideoRelated(videoId, regionCode) }) }.flowOn(Dispatchers.IO)
 
+    suspend fun convertNameToId(name: String): Flow<Resource<ChannelId>> = flow<Resource<ChannelId>> { emit(safeApiCall { remoteDataSource.convertNameToId(name) }) }.flowOn(Dispatchers.IO)
 
     //Database
     suspend fun getSearchHistory(): Flow<List<SearchHistory>> = flow { emit(localDataSource.getSearchHistory()) }.flowOn(Dispatchers.IO)
@@ -85,6 +90,7 @@ class MainRepository @Inject constructor(private val remoteDataSource: RemoteDat
     suspend fun getAllSongs(): Flow<List<SongEntity>> = flow { emit(localDataSource.getAllSongs()) }.flowOn(Dispatchers.IO)
     suspend fun getSongsByListVideoId(listVideoId: List<String>): Flow<List<SongEntity>> = flow { emit(localDataSource.getSongByListVideoId(listVideoId)) }.flowOn(Dispatchers.IO)
     suspend fun getDownloadedSongs(): Flow<List<SongEntity>> = flow { emit(localDataSource.getDownloadedSongs()) }.flowOn(Dispatchers.IO)
+    suspend fun getDownloadingSongs(): Flow<List<SongEntity>> = flow { emit(localDataSource.getDownloadingSongs()) }.flowOn(Dispatchers.IO)
     suspend fun getLikedSongs(): Flow<List<SongEntity>> = flow { emit(localDataSource.getLikedSongs()) }.flowOn(Dispatchers.IO)
     suspend fun getLibrarySongs(): Flow<List<SongEntity>> = flow { emit(localDataSource.getLibrarySongs()) }.flowOn(Dispatchers.IO)
     suspend fun getSongById(id: String): Flow<SongEntity?> = flow { emit(localDataSource.getSong(id)) }.flowOn(Dispatchers.IO)
@@ -132,4 +138,7 @@ class MainRepository @Inject constructor(private val remoteDataSource: RemoteDat
     suspend fun getAllRecentData(): Flow<List<Any>> = flow { emit(localDataSource.getAllRecentData()) }.flowOn(Dispatchers.IO)
     suspend fun getAllDownloadedPlaylist(): Flow<List<Any>> = flow { emit(localDataSource.getAllDownloadedPlaylist()) }.flowOn(Dispatchers.IO)
     suspend fun getRecentSong(limit: Int, offset: Int) = localDataSource.getRecentSongs(limit, offset)
+
+    suspend fun getSavedLyrics(videoId: String): Flow<LyricsEntity?> = flow { emit(localDataSource.getSavedLyrics(videoId)) }.flowOn(Dispatchers.IO)
+    suspend fun insertLyrics(lyricsEntity: LyricsEntity) = withContext(Dispatchers.IO) { localDataSource.insertLyrics(lyricsEntity) }
 }

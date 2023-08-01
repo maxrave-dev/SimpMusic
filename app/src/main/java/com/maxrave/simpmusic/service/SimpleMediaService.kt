@@ -5,9 +5,11 @@ import android.app.Application
 import android.content.Intent
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
+import com.maxrave.simpmusic.di.PlayerCache
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -39,6 +41,7 @@ class SimpleMediaService : MediaSessionService() {
         return START_STICKY_COMPATIBILITY
     }
 
+    @UnstableApi
     override fun onDestroy() {
         super.onDestroy()
         mediaSession.run {
@@ -60,6 +63,4 @@ class SimpleMediaService : MediaSessionService() {
     }
 
 }
-const val NEXT = "next"
-const val PREVIOUS = "previous"
 

@@ -16,21 +16,31 @@ import com.maxrave.simpmusic.extension.toListName
 
 class QueueAdapter(private val listTrack: ArrayList<Track>, val context: Context, private var currentPlaying: Int): RecyclerView.Adapter<QueueAdapter.QueueViewHolder>() {
     private lateinit var mListener: OnItemClickListener
+    private lateinit var mOptionListener: OnOptionClickListener
     interface OnItemClickListener{
         fun onItemClick(position: Int)
     }
     fun setOnClickListener(listener: OnItemClickListener){
         mListener = listener
     }
+    interface OnOptionClickListener{
+        fun onOptionClick(position: Int)
+    }
+    fun setOnOptionClickListener(listener: OnOptionClickListener){
+        mOptionListener = listener
+    }
     fun setCurrentPlaying(position: Int) {
         currentPlaying = position
         notifyDataSetChanged()
     }
 
-     inner class QueueViewHolder(val binding: ItemQueueTrackBinding, listener: OnItemClickListener): RecyclerView.ViewHolder(binding.root) {
+     inner class QueueViewHolder(val binding: ItemQueueTrackBinding, listener: OnItemClickListener, optionClickListener: OnOptionClickListener): RecyclerView.ViewHolder(binding.root) {
          init {
              binding.root.setOnClickListener {
                  listener.onItemClick(bindingAdapterPosition)
+             }
+             binding.btMore.setOnClickListener {
+                 optionClickListener.onOptionClick(bindingAdapterPosition)
              }
          }
     }
@@ -46,7 +56,7 @@ class QueueAdapter(private val listTrack: ArrayList<Track>, val context: Context
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): QueueViewHolder {
-        return QueueViewHolder(ItemQueueTrackBinding.inflate(LayoutInflater.from(parent.context), parent, false), mListener)
+        return QueueViewHolder(ItemQueueTrackBinding.inflate(LayoutInflater.from(parent.context), parent, false), mListener, mOptionListener)
     }
 
     override fun getItemCount(): Int {

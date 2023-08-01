@@ -1,16 +1,16 @@
 package com.maxrave.simpmusic.data.api.search
 
-import android.provider.MediaStore.Video
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
-import com.maxrave.simpmusic.data.model.home.chart.Chart
 import com.maxrave.simpmusic.data.model.browse.album.AlbumBrowse
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.browse.artist.ArtistBrowse
+import com.maxrave.simpmusic.data.model.browse.artist.ChannelId
 import com.maxrave.simpmusic.data.model.browse.playlist.PlaylistBrowse
 import com.maxrave.simpmusic.data.model.explore.mood.Mood
 import com.maxrave.simpmusic.data.model.explore.mood.genre.GenreObject
 import com.maxrave.simpmusic.data.model.explore.mood.moodmoments.MoodsMomentObject
+import com.maxrave.simpmusic.data.model.home.chart.Chart
 import com.maxrave.simpmusic.data.model.home.homeItem
 import com.maxrave.simpmusic.data.model.metadata.Lyrics
 import com.maxrave.simpmusic.data.model.metadata.MetadataSong
@@ -19,6 +19,7 @@ import com.maxrave.simpmusic.data.model.searchResult.artists.ArtistsResult
 import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
+import com.maxrave.simpmusic.data.model.songfull.SongFull
 import com.maxrave.simpmusic.data.model.streams.Streams
 import com.maxrave.simpmusic.data.model.thumbnailUrl
 import retrofit2.Response
@@ -26,6 +27,7 @@ import javax.inject.Inject
 
 class RemoteDataSource @Inject constructor(private val searchService: SearchService, private val dataStoreManager: DataStoreManager) {
     suspend fun getSong(videoId: String): Response<ArrayList<Streams>> = searchService.getSong(videoId)
+    suspend fun getSongFull(videoId: String): Response<SongFull> = searchService.getSongFull(videoId)
 
     suspend fun getThumbnails(songId: String): Response<ArrayList<thumbnailUrl>> = searchService.getThumbnails(songId)
     suspend fun searchAll(query: String, regionCode: String): Response<ArrayList<Any>> = searchService.searchAll(query, regionCode)
@@ -82,4 +84,5 @@ class RemoteDataSource @Inject constructor(private val searchService: SearchServ
     suspend fun getRelated(videoId: String, regionCode: String): Response<ArrayList<Track>> = searchService.songsRelated(videoId, regionCode)
     suspend fun getVideoRelated(videoId: String, regionCode: String): Response<ArrayList<VideosResult>> = searchService.videosRelated(videoId, regionCode)
 
+    suspend fun convertNameToId(name: String): Response<ChannelId> = searchService.convertNameToId(name)
 }

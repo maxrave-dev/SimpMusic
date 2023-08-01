@@ -24,7 +24,6 @@
                 app:subtitleCentered="true"
                 app:titleCentered="true"
                 app:subtitleTextAppearance="@style/SubTitleToolBar"
-                app:menu="@menu/top_app_bar_now_playing"
                 app:navigationIcon="@drawable/baseline_keyboard_arrow_down_24" />
         </com.google.android.material.appbar.AppBarLayout>
 
@@ -110,9 +109,6 @@
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:textColor="@android:color/white" />
-                <androidx.core.widget.NestedScrollView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
                     <LinearLayout
                         android:orientation="vertical"
                         android:layout_width="match_parent"
@@ -134,7 +130,6 @@
 
                         </com.google.android.material.progressindicator.CircularProgressIndicator>
                     </LinearLayout>
-                </androidx.core.widget.NestedScrollView>
             </LinearLayout>
         </LinearLayout>
 </RelativeLayout>

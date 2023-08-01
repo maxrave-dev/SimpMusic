@@ -60,6 +60,10 @@ class SimpleMediaServiceHandler @Inject constructor(
         return player.getMediaItemAt(index)
     }
 
+    fun removeMediaItem(position: Int) {
+        player.removeMediaItem(position)
+    }
+
     fun addMediaItem(mediaItem: MediaItem) {
         player.clearMediaItems()
         player.setMediaItem(mediaItem)

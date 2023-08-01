@@ -6,6 +6,8 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.PendingIntent.FLAG_IMMUTABLE
+import android.app.PendingIntent.FLAG_MUTABLE
+import android.app.PendingIntent.FLAG_UPDATE_CURRENT
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -78,21 +80,18 @@ class SimpleMediaNotificationManager @Inject constructor(
             .setMediaDescriptionAdapter(
                 SimpleMediaNotificationAdapter(
                     context = context,
-//                    pendingIntent = mediaSession.sessionActivity
-                    pendingIntent = PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java).apply {
-                        action = "show_now_playing"
-                    }, FLAG_IMMUTABLE)
+                    pendingIntent = PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java), FLAG_IMMUTABLE)
                 )
             )
             .setNotificationListener(notificationListener)
-            .setSmallIconResourceId(R.drawable.ic_microphone)
+            .setSmallIconResourceId(R.drawable.logo_simpmusic_01_removebg_preview)
             .build()
             .also {
                 it.setMediaSessionToken(mediaSession.sessionCompatToken)
                 it.setUseFastForwardActionInCompactView(true)
                 it.setUseRewindActionInCompactView(true)
                 it.setUseNextActionInCompactView(false)
-                it.setPriority(NotificationCompat.PRIORITY_HIGH)
+                it.setPriority(NotificationCompat.PRIORITY_LOW)
                 it.setPlayer(player)
             }
     }

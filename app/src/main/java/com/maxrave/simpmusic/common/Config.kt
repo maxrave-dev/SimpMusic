@@ -40,3 +40,11 @@ object SUPPORTED_LOCATION {
         "PL", "PR", "PT", "PY", "QA", "RO", "RS", "RU", "SA", "SE", "SG", "SI", "SK", "SN", "SV", "TH",
         "TN", "TR", "TW", "TZ", "UA", "UG", "US", "UY", "VE", "VN", "YE", "ZA", "ZW")
 }
+object QUALITY {
+    val items: Array<CharSequence> = arrayOf("Low - 66kps", "High - 129kps")
+    val itags: Array<Int> = arrayOf(250, 251)
+}
+
+const val SETTINGS_FILENAME = "settings"
+
+const val DB_NAME = "Music Database"

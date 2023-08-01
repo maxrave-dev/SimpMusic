@@ -34,6 +34,15 @@
     <string name="recently_added">Recently Added</string>
     <string name="search_for_songs_artists_albums_playlists_and_more">Search for songs, artists, albums, playlists, and more</string>
     <string name="everything_you_need">Everything you need</string>
+    <string name="restore_failed">Restore Failed</string>
+    <string name="restore_success">Restore Success</string>
+    <string name="search">Search</string>
+    <string name="songs">Songs</string>
+    <string name="albums">Albums</string>
+    <string name="playlists">Playlists</string>
+    <string name="artists">Artists</string>
+    <string name="library">Library</string>
+    <string name="home">Home</string>
     <plurals name="n_song">
         <item quantity="one">%d song</item>
         <item quantity="other">%d songs</item>

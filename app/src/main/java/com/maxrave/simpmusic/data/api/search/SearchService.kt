@@ -4,6 +4,7 @@ import com.maxrave.simpmusic.data.model.home.chart.Chart
 import com.maxrave.simpmusic.data.model.browse.album.AlbumBrowse
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.browse.artist.ArtistBrowse
+import com.maxrave.simpmusic.data.model.browse.artist.ChannelId
 import com.maxrave.simpmusic.data.model.browse.playlist.PlaylistBrowse
 import com.maxrave.simpmusic.data.model.explore.mood.Mood
 import com.maxrave.simpmusic.data.model.explore.mood.genre.GenreObject
@@ -16,6 +17,7 @@ import com.maxrave.simpmusic.data.model.searchResult.artists.ArtistsResult
 import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
+import com.maxrave.simpmusic.data.model.songfull.SongFull
 import com.maxrave.simpmusic.data.model.streams.Streams
 import com.maxrave.simpmusic.data.model.thumbnailUrl
 import retrofit2.Response
@@ -29,6 +31,9 @@ interface SearchService {
     //song
     @GET("song")
     suspend fun getSong(@Query("videoId") videoId: String): Response<ArrayList<Streams>>
+
+    @GET("song/full/")
+    suspend fun getSongFull(@Query("videoId") videoId: String): Response<SongFull>
     //search
     @GET("search")
     suspend fun searchAll(@Query("q") query: String, @Query("r") region: String): Response<ArrayList<Any>>
@@ -88,5 +93,9 @@ interface SearchService {
     //getOnlyLyrics
     @GET("/songs/lyrics")
     suspend fun getLyrics(@Query("q") query: String, @Query("r") region: String): Response<Lyrics>
+
+    //Convert name to id
+    @GET("/name/")
+    suspend fun convertNameToId(@Query("n") query: String): Response<ChannelId>
 
 }

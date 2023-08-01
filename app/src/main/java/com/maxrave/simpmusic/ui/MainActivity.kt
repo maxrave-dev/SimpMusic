@@ -24,12 +24,18 @@ import coil.request.ImageRequest
 import coil.size.Size
 import coil.transform.Transformation
 import android.Manifest
+import android.net.Uri
+import android.widget.Toast
+import androidx.core.net.toUri
+import androidx.media3.exoplayer.offline.DownloadService
+import com.daimajia.swipe.SwipeLayout
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.ActivityMainBinding
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.isMyServiceRunning
+import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.service.test.source.FetchQueue
 import com.maxrave.simpmusic.ui.fragment.player.NowPlayingFragment
@@ -37,6 +43,7 @@ import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import pub.devrel.easypermissions.EasyPermissions
 
@@ -45,10 +52,20 @@ import pub.devrel.easypermissions.EasyPermissions
 class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongChangeListener {
     private lateinit var binding: ActivityMainBinding
     private val viewModel by viewModels<SharedViewModel>()
+    private var action: String? = null
+    private var data: Uri? = null
 
     override fun onResume() {
         super.onResume()
         viewModel.getCurrentMediaItem()
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        action = intent?.action
+        data = intent?.data ?: intent?.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
+        Log.d("MainActivity", "onNewIntent: $data")
+        viewModel.intent.value = intent
     }
 
     override fun onRequestPermissionsResult(
@@ -63,7 +80,8 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
     @UnstableApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
+        action = intent.action
+        viewModel.checkIsRestoring()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             WindowCompat.setDecorFitsSystemWindows(window, false)
@@ -81,10 +99,61 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
         binding = ActivityMainBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
-        binding.card.visibility = View.GONE
+        binding.miniplayer.visibility = View.GONE
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.fragment_container_view)
         val navController = navHostFragment?.findNavController()
         binding.bottomNavigationView.setupWithNavController(navController!!)
+        when (action) {
+            "com.maxrave.simpmusic.action.HOME" -> {
+                binding.bottomNavigationView.selectedItemId = R.id.bottom_navigation_item_home
+            }
+            "com.maxrave.simpmusic.action.SEARCH" -> {
+                binding.bottomNavigationView.selectedItemId = R.id.bottom_navigation_item_search
+            }
+            "com.maxrave.simpmusic.action.LIBRARY" -> {
+                binding.bottomNavigationView.selectedItemId = R.id.bottom_navigation_item_library
+            }
+            else -> {}
+        }
+
+        binding.miniplayer.showMode = SwipeLayout.ShowMode.PullOut
+        binding.miniplayer.addDrag(SwipeLayout.DragEdge.Right, binding.llBottom)
+        binding.miniplayer.addSwipeListener(object : SwipeLayout.SwipeListener {
+            override fun onStartOpen(layout: SwipeLayout?) {
+                binding.card.radius = 0f
+            }
+
+            override fun onOpen(layout: SwipeLayout?) {
+                binding.card.radius = 0f
+            }
+
+            override fun onStartClose(layout: SwipeLayout?) {
+            }
+
+            override fun onClose(layout: SwipeLayout?) {
+                binding.card.radius = 8f
+            }
+
+            override fun onUpdate(layout: SwipeLayout?, leftOffset: Int, topOffset: Int) {
+            }
+
+            override fun onHandRelease(layout: SwipeLayout?, xvel: Float, yvel: Float) {
+            }
+
+        })
+        binding.btRemoveMiniPlayer.setOnClickListener {
+            if (viewModel.isServiceRunning.value == true){
+                stopService(Intent(this, SimpleMediaService::class.java))
+                Log.d("Service", "Service stopped")
+                if (this.isMyServiceRunning(FetchQueue:: class.java)){
+                    stopService(Intent(this, FetchQueue::class.java))
+                    Log.d("Service", "FetchQueue stopped")
+                }
+                viewModel.isServiceRunning.postValue(false)
+            }
+            viewModel.videoId.postValue(null)
+            binding.miniplayer.visibility = View.GONE
+        }
 
         binding.card.setOnClickListener {
             val bundle = Bundle()
@@ -95,18 +164,85 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
             viewModel.onUIEvent(UIEvent.PlayPause)
         }
         lifecycleScope.launch {
-//            val job3 = launch {
-//                viewModel.videoId.observe(this@MainActivity){
-//                    if (it != null){
-//                        if (viewModel.songTransitions.value){
-//                            Log.i("Now Playing Fragment", "Ở Activity")
-//                            Log.d("Song Transition", "Song Transition")
-//                            viewModel.getMetadata(it)
-//                            viewModel.changeSongTransitionToFalse()
-//                        }
-//                    }
-//                }
-//            }
+            val job1 = launch {
+                viewModel.intent.collectLatest { intent ->
+                    if (intent != null){
+                        data = intent.data ?: intent.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
+                        Log.d("MainActivity", "onCreate: $data")
+                        if (data != null) {
+                            when (val path = data!!.pathSegments.firstOrNull()) {
+                                "playlist" -> data!!.getQueryParameter("list")?.let { playlistId ->
+                                    if (playlistId.startsWith("OLAK5uy_")) {
+                                        viewModel.intent.value = null
+                                        navController.navigate(R.id.action_global_albumFragment, Bundle().apply {
+                                            putString("browseId", playlistId)
+                                        })
+                                    } else {
+                                        viewModel.intent.value = null
+                                        navController.navigate(R.id.action_global_playlistFragment, Bundle().apply {
+                                            putString("id", playlistId)
+                                        })
+                                    }
+                                }
+
+                                "channel", "c" -> data!!.lastPathSegment?.let { artistId ->
+                                    if (artistId.startsWith("UC")) {
+                                        viewModel.intent.value = null
+                                        navController.navigate(R.id.action_global_artistFragment, Bundle().apply {
+                                            putString("channelId", artistId)
+                                        })
+                                    }
+                                    else {
+                                        viewModel.convertNameToId(artistId)
+                                        viewModel.artistId.observe(this@MainActivity) {channelId ->
+                                            when (channelId) {
+                                                is Resource.Success -> {
+                                                    viewModel.intent.value = null
+                                                    navController.navigate(R.id.action_global_artistFragment, Bundle().apply {
+                                                        putString("channelId", channelId.data?.id)
+                                                    })
+                                                }
+                                                is Resource.Error -> {
+                                                    viewModel.intent.value = null
+                                                    Toast.makeText(this@MainActivity, channelId.message, Toast.LENGTH_SHORT).show()
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+                                else -> when {
+                                    path == "watch" -> data!!.getQueryParameter("v")
+                                    data!!.host == "youtu.be" -> path
+                                    else -> null
+                                }?.let { videoId ->
+                                    viewModel.getSongFull(videoId)
+                                    viewModel.songFull.observe(this@MainActivity) {
+                                        when (it) {
+                                            is Resource.Success -> {
+                                                val song = it.data!!
+                                                val track = song.toTrack(videoId)
+                                                Queue.clear()
+                                                Queue.setNowPlaying(track)
+                                                val args = Bundle()
+                                                args.putString("videoId", videoId)
+                                                args.putString("from", "Shared")
+                                                args.putString("type", Config.SONG_CLICK)
+                                                viewModel.intent.value = null
+                                                navController.navigate(R.id.action_global_nowPlayingFragment, args)
+                                            }
+                                            is Resource.Error -> {
+                                                viewModel.intent.value = null
+                                                Toast.makeText(this@MainActivity, it.message, Toast.LENGTH_SHORT).show()
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             val job5 = launch {
                 viewModel.nowPlayingMediaItem.observe(this@MainActivity){
                     if (it != null){
@@ -150,7 +286,6 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
                                         }
                                         Log.d("Check Start Color", "transform: $startColor")
                                     }
-//                    val centerColor = 0x6C6C6C
                                     val endColor = 0x1b1a1f
                                     val gd = GradientDrawable(
                                         GradientDrawable.Orientation.TOP_BOTTOM,
@@ -162,6 +297,7 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
                                     gd.alpha = 150
                                     val bg = ColorUtils.setAlphaComponent(startColor, 230)
                                     binding.card.setCardBackgroundColor(bg)
+                                    binding.cardBottom.setCardBackgroundColor(bg)
                                     return input
                                 }
 
@@ -171,16 +307,6 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
                     }
                 }
             }
-//            val job1 = launch {
-//                viewModel.metadata.observe(this@MainActivity){
-//                    if (it is Resource.Success){
-//                        if (viewModel.isServiceRunning.value == false){
-//                            startService()
-//                            viewModel.isServiceRunning.postValue(true)
-//                        }
-//                    }
-//                }
-//            }
             val job2 = launch {
                 viewModel.progress.collect{
                     binding.progressBar.progress = (it * 100).toInt()
@@ -192,7 +318,7 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
                     binding.cbFavorite.isChecked = liked
                 }
             }
-            //job1.join()
+            job1.join()
             job2.join()
             //job3.join()
             job5.join()
@@ -228,18 +354,23 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
     }
     private fun stopService(){
         if (viewModel.isServiceRunning.value == true){
-            val intent = Intent(this, SimpleMediaService::class.java)
-            stopService(intent)
-            viewModel.isServiceRunning.postValue(false)
+            stopService(Intent(this, SimpleMediaService::class.java))
             Log.d("Service", "Service stopped")
             if (this.isMyServiceRunning(FetchQueue:: class.java)){
-                this.stopService(Intent(this, FetchQueue::class.java))
+                stopService(Intent(this, FetchQueue::class.java))
+                Log.d("Service", "FetchQueue stopped")
             }
+            if (this.isMyServiceRunning(DownloadService:: class.java)){
+                this.stopService(Intent(this, DownloadService::class.java))
+                viewModel.changeAllDownloadingToError()
+                Log.d("Service", "DownloadService stopped")
+            }
+            viewModel.isServiceRunning.postValue(false)
         }
     }
 
     override fun onNowPlayingSongChange() {
-        viewModel.metadata.observe(this, Observer {
+        viewModel.metadata.observe(this) {
             when(it){
                 is Resource.Success -> {
                     binding.songTitle.text = it.data?.title
@@ -260,7 +391,7 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
 
                 }
             }
-        })
+        }
     }
 
     override fun onIsPlayingChange() {

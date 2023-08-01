@@ -39,15 +39,16 @@
                 android:layout_below="@+id/topAppBarLayout">
 
                 <RelativeLayout
-                    android:layout_width="350sp"
+                    android:layout_width="wrap_content"
                     android:layout_height="350sp"
+                    android:layout_marginHorizontal="30sp"
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="80sp">
 
                     <ImageView
                         android:id="@+id/ivArt"
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
+                        android:layout_height="350sp"
                         android:layout_centerInParent="true"
                         android:scaleType="fitCenter">
 

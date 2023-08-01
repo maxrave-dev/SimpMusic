@@ -20,6 +20,7 @@ import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import coil.load
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.snackbar.Snackbar
 import com.maxrave.simpmusic.R
@@ -690,11 +691,12 @@ class SearchFragment : Fragment() {
                     }
                     is Resource.Error -> {
                         response.message?.let { message ->
-                            Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
+                            Snackbar.make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
                                 .setAction("Retry") {
                                     fetchSearchVideos(query)
                                 }
-                                .setDuration(5000)
+                                .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
+                                .setDuration(3000)
                                 .show()
                         }
                         binding.shimmerLayout.stopShimmer()
@@ -732,11 +734,12 @@ class SearchFragment : Fragment() {
                     }
                     is Resource.Error -> {
                         response.message?.let { message ->
-                            Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
+                            Snackbar.make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
                                 .setAction("Retry") {
                                     fetchSearchAlbums(query)
                                 }
-                                .setDuration(5000)
+                                .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
+                                .setDuration(3000)
                                 .show()
                         }
                         binding.shimmerLayout.stopShimmer()
@@ -775,11 +778,12 @@ class SearchFragment : Fragment() {
                         }
                         is Resource.Error -> {
                             response.message?.let { message ->
-                                Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
+                                Snackbar.make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
                                     .setAction("Retry") {
                                         fetchSearchPlaylists(query)
                                     }
-                                    .setDuration(5000)
+                                    .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
+                                    .setDuration(3000)
                                     .show()
                             }
                             binding.shimmerLayout.stopShimmer()
@@ -819,11 +823,12 @@ class SearchFragment : Fragment() {
                         }
                         is Resource.Error -> {
                             response.message?.let { message ->
-                                Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
+                                Snackbar.make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
                                     .setAction("Retry") {
                                         fetchSearchArtists(query)
                                     }
-                                    .setDuration(5000)
+                                    .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
+                                    .setDuration(3000)
                                     .show()
                             }
                             binding.shimmerLayout.stopShimmer()
@@ -863,10 +868,11 @@ class SearchFragment : Fragment() {
                         }
                         is Resource.Error -> {
                             response.message?.let { message ->
-                                Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
+                                Snackbar.make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
                                     .setAction("Retry") {
                                         fetchSearchSongs(query)
                                     }
+                                    .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
                                     .setDuration(5000)
                                     .show()
                             }
@@ -905,11 +911,12 @@ class SearchFragment : Fragment() {
 
                         is Resource.Error -> {
                             response.message?.let { message ->
-                                Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
+                                Snackbar.make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
                                     .setAction("Retry") {
                                         fetchSearchAll(query)
                                     }
-                                    .setDuration(5000)
+                                    .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
+                                    .setDuration(3000)
                                     .show()
                             }
                         }
@@ -927,11 +934,12 @@ class SearchFragment : Fragment() {
                         }
                         is Resource.Error -> {
                             response.message?.let { message ->
-                                Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
+                                Snackbar.make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
                                     .setAction("Retry") {
                                         fetchSearchAll(query)
                                     }
-                                    .setDuration(5000)
+                                    .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
+                                    .setDuration(3000)
                                     .show()
                             }
                         }
@@ -947,11 +955,12 @@ class SearchFragment : Fragment() {
                         }
                         is Resource.Error -> {
                             response.message?.let { message ->
-                                Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
+                                Snackbar.make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
                                     .setAction("Retry") {
                                         fetchSearchAll(query)
                                     }
-                                    .setDuration(5000)
+                                    .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
+                                    .setDuration(3000)
                                     .show()
                             }
                         }
@@ -967,11 +976,12 @@ class SearchFragment : Fragment() {
                         }
                         is Resource.Error -> {
                             response.message?.let { message ->
-                                Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
+                                Snackbar.make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
                                     .setAction("Retry") {
                                         fetchSearchAll(query)
                                     }
-                                    .setDuration(5000)
+                                    .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
+                                    .setDuration(3000)
                                     .show()
                             }
                         }
@@ -987,11 +997,12 @@ class SearchFragment : Fragment() {
                         }
                         is Resource.Error -> {
                             response.message?.let { message ->
-                                Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
+                                Snackbar.make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
                                     .setAction("Retry") {
                                         fetchSearchAll(query)
                                     }
-                                    .setDuration(5000)
+                                    .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
+                                    .setDuration(3000)
                                     .show()
                             }
                         }
@@ -1033,11 +1044,12 @@ class SearchFragment : Fragment() {
                             }
                         }
                         catch (e: Exception){
-                            Snackbar.make(binding.root, e.message.toString(), Snackbar.LENGTH_LONG)
+                            Snackbar.make(requireActivity().findViewById(R.id.mini_player_container), e.message.toString(), Snackbar.LENGTH_LONG)
                                 .setAction("Retry") {
                                     fetchSearchAll(query)
                                 }
-                                .setDuration(5000)
+                                .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
+                                .setDuration(3000)
                                 .show()
                         }
 //                        val sortedList = temp.sortedWith(compareByDescending<Any>

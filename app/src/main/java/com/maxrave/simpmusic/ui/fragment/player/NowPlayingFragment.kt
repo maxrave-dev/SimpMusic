@@ -34,9 +34,9 @@ import coil.request.CachePolicy
 import coil.request.ImageRequest
 import coil.size.Size
 import coil.transform.Transformation
+import com.daimajia.swipe.SwipeLayout
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.card.MaterialCardView
 import com.google.android.material.slider.Slider
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.adapter.artist.SeeArtistOfNowPlayingAdapter
@@ -44,6 +44,7 @@ import com.maxrave.simpmusic.adapter.playlist.AddToAPlaylistAdapter
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
+import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.metadata.MetadataSong
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.BottomSheetAddToAPlaylistBinding
@@ -130,9 +131,9 @@ class NowPlayingFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val activity = requireActivity()
         val bottom = activity.findViewById<BottomNavigationView>(R.id.bottom_navigation_view)
-        val card = activity.findViewById<MaterialCardView>(R.id.card)
+        val miniplayer = activity.findViewById<SwipeLayout>(R.id.miniplayer)
         bottom.visibility = View.GONE
-        card.visibility = View.GONE
+        miniplayer.visibility = View.GONE
         binding.lyricsFullLayout.visibility = View.GONE
         binding.buffered.max = 100
         Log.d("check Video ID in ViewModel", viewModel.videoId.value.toString())
@@ -176,9 +177,9 @@ class NowPlayingFragment : Fragment() {
                                 viewModel.from.postValue(from)
                                 viewModel.resetLyrics()
                                 if (it.artists.isNullOrEmpty()) {
-                                    viewModel.getLyrics(it.title)
+                                    viewModel.getLyrics(it.title, it.videoId)
                                 } else {
-                                    viewModel.getLyrics(it.title + " " + it.artists.first().name)
+                                    viewModel.getLyrics(it.title + " " + it.artists.first().name, it.videoId)
                                 }
                                 updateUIfromQueueNowPlaying()
                                 lifecycleScope.launch {
@@ -225,7 +226,7 @@ class NowPlayingFragment : Fragment() {
                         viewModel.videoId.postValue(it.videoId)
                         viewModel.from.postValue(from)
                         viewModel.resetLyrics()
-                        viewModel.getLyrics(it.title + " " + it.artists?.first()?.name)
+                        viewModel.getLyrics(it.title + " " + it.artists?.first()?.name, it.videoId)
                         updateUIfromQueueNowPlaying()
                         lifecycleScope.launch {
                             viewModel.firstTrackAdded.collect { added ->
@@ -270,7 +271,7 @@ class NowPlayingFragment : Fragment() {
                         viewModel.videoId.postValue(it.videoId)
                         viewModel.from.postValue(from)
                         viewModel.resetLyrics()
-                        viewModel.getLyrics(it.title + " " + it.artists?.first()?.name)
+                        viewModel.getLyrics(it.title + " " + it.artists?.first()?.name, it.videoId)
                         updateUIfromQueueNowPlaying()
                         Log.d("check index", index.toString())
                         lifecycleScope.launch {
@@ -317,7 +318,7 @@ class NowPlayingFragment : Fragment() {
                         viewModel.videoId.postValue(it.videoId)
                         viewModel.from.postValue(from)
                         viewModel.resetLyrics()
-                        viewModel.getLyrics(it.title + " " + it.artists?.first()?.name)
+                        viewModel.getLyrics(it.title + " " + it.artists?.first()?.name, it.videoId)
                         updateUIfromQueueNowPlaying()
                         Log.d("check index", index.toString())
                         lifecycleScope.launch {
@@ -517,24 +518,6 @@ class NowPlayingFragment : Fragment() {
                     binding.cbFavorite.isChecked = liked
                 }
             }
-//            val job11 = launch {
-//                viewModel.nextTrackAvailable.collect { nextTrackAvailable ->
-//                    if (nextTrackAvailable) {
-//                        setEnabledAll(binding.btNext, true)
-//                    } else {
-//                        setEnabledAll(binding.btNext, false)
-//                    }
-//                }
-//            }
-//            val job12 = launch {
-//                viewModel.previousTrackAvailable.collect { previousTrackAvailable ->
-//                    if (previousTrackAvailable) {
-//                        setEnabledAll(binding.btPrevious, true)
-//                    } else {
-//                        setEnabledAll(binding.btPrevious, false)
-//                    }
-//                }
-//            }
 
             job1.join()
             job2.join()
@@ -886,7 +869,16 @@ class NowPlayingFragment : Fragment() {
                 is Resource.Success -> {
                     val data = response.data!!
                     val queue = data.toListTrack()
-                    Queue.addAll(queue)
+                    queue.add(Queue.getNowPlaying()!!)
+                    val listWithoutDuplicateElements: ArrayList<Track> = ArrayList()
+                    for (element in queue) {
+                        // Check if element not exist in list, perform add element to list
+                        if (!listWithoutDuplicateElements.contains(element)) {
+                            listWithoutDuplicateElements.add(element)
+                        }
+                    }
+                    Log.d("Queue", "getVideosRelated: ${listWithoutDuplicateElements.size}")
+                    Queue.addAll(listWithoutDuplicateElements)
                     if (!requireContext().isMyServiceRunning(FetchQueue::class.java)) {
                         requireActivity().startService(
                             Intent(
@@ -923,7 +915,17 @@ class NowPlayingFragment : Fragment() {
         viewModel.related.observe(viewLifecycleOwner) { response ->
             when (response) {
                 is Resource.Success -> {
-                    Queue.addAll(response.data!!)
+                    val data = response.data!!
+                    data.add(Queue.getNowPlaying()!!)
+                    val listWithoutDuplicateElements: ArrayList<Track> = ArrayList()
+                    for (element in data) {
+                        // Check if element not exist in list, perform add element to list
+                        if (!listWithoutDuplicateElements.contains(element)) {
+                            listWithoutDuplicateElements.add(element)
+                        }
+                    }
+                    Log.d("Queue", "getRelated: ${listWithoutDuplicateElements.size}")
+                    Queue.addAll(listWithoutDuplicateElements)
                     if (!requireContext().isMyServiceRunning(FetchQueue::class.java)) {
                         requireActivity().startService(
                             Intent(
@@ -1189,12 +1191,11 @@ class NowPlayingFragment : Fragment() {
         super.onDestroyView()
         val activity = requireActivity()
         val bottom = activity.findViewById<BottomNavigationView>(R.id.bottom_navigation_view)
-        val card = activity.findViewById<MaterialCardView>(R.id.card)
+        val miniplayer = activity.findViewById<SwipeLayout>(R.id.miniplayer)
         bottom.animation = AnimationUtils.loadAnimation(requireContext(), R.anim.bottom_to_top)
         bottom.visibility = View.VISIBLE
-        card.animation = AnimationUtils.loadAnimation(requireContext(), R.anim.bottom_to_top)
-        card.visibility = View.VISIBLE
+        miniplayer.animation = AnimationUtils.loadAnimation(requireContext(), R.anim.bottom_to_top)
+        miniplayer.visibility = View.VISIBLE
     }
-
 
 }

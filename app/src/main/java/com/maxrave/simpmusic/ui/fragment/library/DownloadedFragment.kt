@@ -17,17 +17,21 @@ import coil.load
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.adapter.artist.SeeArtistOfNowPlayingAdapter
+import com.maxrave.simpmusic.adapter.playlist.AddToAPlaylistAdapter
 import com.maxrave.simpmusic.adapter.search.SearchItemAdapter
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.DownloadState
+import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.data.queue.Queue
+import com.maxrave.simpmusic.databinding.BottomSheetAddToAPlaylistBinding
 import com.maxrave.simpmusic.databinding.BottomSheetNowPlayingBinding
 import com.maxrave.simpmusic.databinding.BottomSheetSeeArtistOfNowPlayingBinding
 import com.maxrave.simpmusic.databinding.FragmentDownloadedBinding
 import com.maxrave.simpmusic.extension.connectArtists
+import com.maxrave.simpmusic.extension.removeConflicts
 import com.maxrave.simpmusic.extension.setEnabledAll
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService
@@ -171,6 +175,40 @@ class DownloadedFragment : Fragment() {
                                 downloadedAdapter.updateList(listDownloaded)
                             }
                         }
+                    }
+                    btAddPlaylist.setOnClickListener {
+                        viewModel.getAllLocalPlaylist()
+                        val listLocalPlaylist: ArrayList<LocalPlaylistEntity> = arrayListOf()
+                        val addPlaylistDialog = BottomSheetDialog(requireContext())
+                        val viewAddPlaylist = BottomSheetAddToAPlaylistBinding.inflate(layoutInflater)
+                        val addToAPlaylistAdapter = AddToAPlaylistAdapter(arrayListOf())
+                        viewAddPlaylist.rvLocalPlaylists.apply {
+                            adapter = addToAPlaylistAdapter
+                            layoutManager = LinearLayoutManager(requireContext())
+                        }
+                        viewModel.localPlaylist.observe(viewLifecycleOwner) {list ->
+                            Log.d("Check Local Playlist", list.toString())
+                            listLocalPlaylist.clear()
+                            listLocalPlaylist.addAll(list)
+                            addToAPlaylistAdapter.updateList(listLocalPlaylist)
+                        }
+                        addToAPlaylistAdapter.setOnItemClickListener(object : AddToAPlaylistAdapter.OnItemClickListener{
+                            override fun onItemClick(position: Int) {
+                                val playlist = listLocalPlaylist[position]
+                                val tempTrack = ArrayList<String>()
+                                if (playlist.tracks != null) {
+                                    tempTrack.addAll(playlist.tracks)
+                                }
+                                tempTrack.add(song.videoId)
+                                tempTrack.removeConflicts()
+                                viewModel.updateLocalPlaylistTracks(tempTrack, playlist.id)
+                                addPlaylistDialog.dismiss()
+                                dialog.dismiss()
+                            }
+                        })
+                        addPlaylistDialog.setContentView(viewAddPlaylist.root)
+                        addPlaylistDialog.setCancelable(true)
+                        addPlaylistDialog.show()
                     }
                     btDownload.setOnClickListener {
                         if (tvDownload.text == getString(R.string.downloaded)){

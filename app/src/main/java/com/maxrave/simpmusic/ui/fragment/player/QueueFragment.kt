@@ -17,7 +17,9 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.adapter.queue.QueueAdapter
+import com.maxrave.simpmusic.databinding.BottomSheetQueueTrackOptionBinding
 import com.maxrave.simpmusic.databinding.QueueBottomSheetBinding
+import com.maxrave.simpmusic.extension.setEnabledAll
 import com.maxrave.simpmusic.service.test.source.MusicSource
 import com.maxrave.simpmusic.service.test.source.StateSource
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -155,6 +157,47 @@ class QueueFragment: BottomSheetDialogFragment() {
             override fun onItemClick(position: Int) {
                 viewModel.playMediaItemInMediaSource(position)
                 dismiss()
+            }
+        })
+        queueAdapter.setOnOptionClickListener(object : QueueAdapter.OnOptionClickListener {
+            override fun onOptionClick(position: Int) {
+                val dialog = BottomSheetDialog(requireContext())
+                val dialogView = BottomSheetQueueTrackOptionBinding.inflate(layoutInflater)
+                with(dialogView) {
+                    btMoveUp.setOnClickListener { musicSource.moveItemUp(position)
+                        queueAdapter.updateList(musicSource.catalogMetadata)
+                        dialog.dismiss() }
+                    btMoveDown.setOnClickListener { musicSource.moveItemDown(position)
+                        queueAdapter.updateList(musicSource.catalogMetadata)
+                        dialog.dismiss() }
+                    btDelete.setOnClickListener { musicSource.removeMediaItem(position)
+                        queueAdapter.updateList(musicSource.catalogMetadata)
+                        dialog.dismiss() }
+                }
+                if (musicSource.catalogMetadata.size > 1) {
+                    when (position) {
+                        0 -> {
+                            setEnabledAll(dialogView.btMoveUp, false)
+                            setEnabledAll(dialogView.btMoveDown, true)
+                        }
+                        musicSource.catalogMetadata.size - 1 -> {
+                            setEnabledAll(dialogView.btMoveUp, true)
+                            setEnabledAll(dialogView.btMoveDown, false)
+                        }
+                        else -> {
+                            setEnabledAll(dialogView.btMoveUp, true)
+                            setEnabledAll(dialogView.btMoveDown, true)
+                        }
+                    }
+                }
+                else {
+                    setEnabledAll(dialogView.btMoveUp, false)
+                    setEnabledAll(dialogView.btMoveDown, false)
+                    setEnabledAll(dialogView.btDelete, false)
+                }
+                dialog.setCancelable(true)
+                dialog.setContentView(dialogView.root)
+                dialog.show()
             }
         })
     }

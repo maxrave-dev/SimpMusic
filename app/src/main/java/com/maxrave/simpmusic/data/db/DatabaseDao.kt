@@ -5,13 +5,17 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.RawQuery
 import androidx.room.Transaction
+import androidx.sqlite.db.SupportSQLiteQuery
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
+import com.maxrave.simpmusic.data.db.entities.LyricsEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SearchHistory
 import com.maxrave.simpmusic.data.db.entities.SongEntity
+import com.maxrave.simpmusic.extension.toSQLiteQuery
 import java.time.LocalDateTime
 
 @Dao
@@ -121,6 +125,9 @@ interface DatabaseDao {
     @Query("SELECT * FROM song WHERE downloadState = 3")
     suspend fun getDownloadedSongs(): List<SongEntity>
 
+    @Query("SELECT * FROM song WHERE downloadState = 1 OR downloadState = 2")
+    suspend fun getDownloadingSongs(): List<SongEntity>
+
     @Query("SELECT * FROM song WHERE videoId IN (:primaryKeyList)")
     fun getSongByListVideoId(primaryKeyList: List<String>): List<SongEntity>
 
@@ -224,4 +231,16 @@ interface DatabaseDao {
     @Query("SELECT * FROM local_playlist WHERE downloadState = 3")
     suspend fun getDownloadedLocalPlaylists(): List<LocalPlaylistEntity>
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertLyrics(lyrics: LyricsEntity)
+
+    @Query("SELECT * FROM lyrics WHERE videoId = :videoId")
+    suspend fun getLyrics(videoId: String): LyricsEntity?
+
+    @RawQuery
+    fun raw(supportSQLiteQuery: SupportSQLiteQuery): Int
+
+    fun checkpoint() {
+        raw("pragma wal_checkpoint(full)".toSQLiteQuery())
+    }
 }

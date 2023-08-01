@@ -13,7 +13,7 @@
             android:id="@+id/tvPosition"
             android:layout_width="40sp"
             android:layout_height="40sp"
-            android:text="1"
+            android:text=""
             android:gravity="center"
             android:fontFamily="@font/roboto"
             android:textStyle="bold"
@@ -30,6 +30,20 @@
             app:lottie_loop="true">
 
         </com.airbnb.lottie.LottieAnimationView>
+        <ImageButton
+            android:id="@+id/btMore"
+            android:layout_width="40sp"
+            android:layout_height="40sp"
+            android:src="@drawable/baseline_more_vert_24"
+            android:background="@android:color/transparent"
+            android:layout_alignParentEnd="true"
+            android:layout_centerVertical="true"
+            android:layout_marginEnd="5sp"
+            android:focusable="true"
+            android:clickable="true"
+            android:foreground="?android:attr/selectableItemBackground">
+
+        </ImageButton>
         <LinearLayout
             android:id="@+id/rootLayout"
             android:layout_width="match_parent"
@@ -37,7 +51,7 @@
             android:orientation="vertical"
             android:layout_marginStart="10sp"
             android:layout_toEndOf="@+id/tvPosition"
-            android:layout_marginEnd="10sp">
+            android:layout_toStartOf="@+id/btMore">
             <TextView
                 android:id="@+id/tvSongName"
                 android:layout_width="match_parent"

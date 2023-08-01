@@ -14,6 +14,7 @@ import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.snackbar.Snackbar
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.adapter.home.GenreAdapter
@@ -402,10 +403,11 @@ class HomeFragment : Fragment() {
                     binding.fullLayout.visibility = View.VISIBLE
                     binding.swipeRefreshLayout.isRefreshing = false
                     response.message?.let { message ->
-                        Snackbar.make(binding.root, "Home Data Error "+message, Snackbar.LENGTH_LONG)
+                        Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
                             .setAction("Retry") {
                                 fetchHomeData()
                             }
+                            .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
                             .setDuration(3000)
                             .show()
                     }
@@ -430,10 +432,11 @@ class HomeFragment : Fragment() {
                 is Resource.Error -> {
                     binding.swipeRefreshLayout.isRefreshing = false
                     response.message?.let { message ->
-                        Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
+                        Snackbar.make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
                             .setAction("Retry") {
                                 fetchHomeData()
                             }
+                            .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
                             .setDuration(5000)
                             .show()
                     }
@@ -462,10 +465,11 @@ class HomeFragment : Fragment() {
                 }
                 is Resource.Error -> {
                     response.message?.let { message ->
-                        Snackbar.make(binding.root, "Chart Load Error "+ message, Snackbar.LENGTH_LONG)
+                        Snackbar.make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
                             .setAction("Retry") {
                                 fetchHomeData()
                             }
+                            .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
                             .setDuration(5000)
                             .show()
                     }

@@ -1,10 +1,13 @@
 package com.maxrave.simpmusic.viewModel
 
 import android.app.Application
+import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.maxrave.simpmusic.common.DownloadState
+import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.repository.MainRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,6 +18,9 @@ import javax.inject.Inject
 class DownloadedViewModel @Inject constructor(application: Application, private val mainRepository: MainRepository): AndroidViewModel(application) {
     private var _listDownloadedSong: MutableLiveData<ArrayList<SongEntity>> = MutableLiveData()
     val listDownloadedSong: LiveData<ArrayList<SongEntity>> get() = _listDownloadedSong
+
+    private var _listLocalPlaylist: MutableLiveData<List<LocalPlaylistEntity>> = MutableLiveData()
+    val localPlaylist: LiveData<List<LocalPlaylistEntity>> = _listLocalPlaylist
 
     private var _songEntity: MutableLiveData<SongEntity> = MutableLiveData()
     val songEntity: LiveData<SongEntity> = _songEntity
@@ -47,6 +53,35 @@ class DownloadedViewModel @Inject constructor(application: Application, private 
             }
             mainRepository.updateDownloadState(videoId, state)
             getListDownloadedSong()
+        }
+    }
+
+    fun getAllLocalPlaylist() {
+        viewModelScope.launch {
+            mainRepository.getAllLocalPlaylists().collect { values ->
+                _listLocalPlaylist.postValue(values)
+            }
+        }
+    }
+
+    fun updateLocalPlaylistTracks(list: List<String>, id: Long) {
+        viewModelScope.launch {
+            mainRepository.getSongsByListVideoId(list).collect { values ->
+                var count = 0
+                values.forEach { song ->
+                    if (song.downloadState == DownloadState.STATE_DOWNLOADED){
+                        count++
+                    }
+                }
+                mainRepository.updateLocalPlaylistTracks(list, id)
+                Toast.makeText(getApplication(), "Added to playlist", Toast.LENGTH_SHORT).show()
+                if (count == values.size) {
+                    mainRepository.updateLocalPlaylistDownloadState(DownloadState.STATE_DOWNLOADED, id)
+                }
+                else {
+                    mainRepository.updateLocalPlaylistDownloadState(DownloadState.STATE_NOT_DOWNLOADED, id)
+                }
+            }
         }
     }
 }

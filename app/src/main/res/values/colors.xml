@@ -66,4 +66,6 @@
 
     <color name="shimmerBackground">#7E878383</color>
     <color name="shimmerLine">#FFFFFF</color>
+
+    <color name="test">#00FFFFFF</color>
 </resources>

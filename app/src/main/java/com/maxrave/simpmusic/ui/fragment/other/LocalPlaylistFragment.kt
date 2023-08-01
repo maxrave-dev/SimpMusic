@@ -108,7 +108,6 @@ class LocalPlaylistFragment : Fragment() {
 
         if (id == null) {
             id = viewModel.id.value
-//            fetchDataFromViewModel()
             fetchDataFromDatabase()
             binding.loadingLayout.visibility = View.GONE
             binding.rootLayout.visibility = View.VISIBLE
@@ -299,7 +298,8 @@ class LocalPlaylistFragment : Fragment() {
             if (localPlaylist != null) {
                 binding.topAppBar.title = localPlaylist.title
             }
-            binding.tvTrackCountAndTimeCreated.text = getString(R.string.album_length, localPlaylist?.tracks?.size.toString(), localPlaylist?.inLibrary?.format(
+            binding.tvTrackCountAndTimeCreated.text = getString(R.string.album_length,
+                localPlaylist?.tracks?.size?.toString() ?: "0", localPlaylist?.inLibrary?.format(
                 DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy")
             ))
             loadImage(localPlaylist?.thumbnail)

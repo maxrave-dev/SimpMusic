@@ -6,7 +6,9 @@ import android.content.Context
 import android.view.View
 import android.view.ViewGroup
 import androidx.media3.common.MediaItem
+import androidx.sqlite.db.SimpleSQLiteQuery
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
+import com.maxrave.simpmusic.data.db.entities.LyricsEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SearchHistory
 import com.maxrave.simpmusic.data.db.entities.SongEntity
@@ -15,11 +17,18 @@ import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.browse.artist.ResultSong
 import com.maxrave.simpmusic.data.model.browse.playlist.PlaylistBrowse
 import com.maxrave.simpmusic.data.model.home.Content
+import com.maxrave.simpmusic.data.model.metadata.Lyrics
 import com.maxrave.simpmusic.data.model.searchResult.songs.Album
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
+import com.maxrave.simpmusic.data.model.songfull.SongFull
+import java.io.File
+import java.io.InputStream
+import java.io.OutputStream
+import java.util.zip.ZipInputStream
+import java.util.zip.ZipOutputStream
 
 fun Context.isMyServiceRunning(serviceClass: Class<out Service>) = try {
     (getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager)
@@ -240,6 +249,26 @@ fun Content.toTrack(): Track {
         year = ""
     )
 }
+
+fun SongFull.toTrack(videoId: String): Track {
+    return Track(
+        album = null,
+        artists = this.artist,
+        duration = "",
+        durationSeconds = 0,
+        isAvailable = false,
+        isExplicit = false,
+        likeStatus = "INDIFFERENT",
+        thumbnails = this.thumbnails,
+        title = this.title,
+        videoId = videoId,
+        videoType = "Song",
+        category = "",
+        feedbackTokens = null,
+        resultType = null,
+        year = ""
+    )
+}
 fun List<Track>.toListVideoId(): List<String> {
     val list = mutableListOf<String>()
     for (item in this) {
@@ -302,6 +331,18 @@ fun Track.addThumbnails(): Track {
     )
 }
 
+fun LyricsEntity.toLyrics(): Lyrics {
+    return Lyrics(
+        error = this.error, lines = this.lines, syncType = this.syncType
+    )
+}
+
+fun Lyrics.toLyricsEntity(videoId: String): LyricsEntity {
+    return LyricsEntity(
+        videoId = videoId, error = this.error, lines = this.lines, syncType = this.syncType
+    )
+}
+
 fun setEnabledAll(v: View, enabled: Boolean) {
     v.isEnabled = enabled
     v.isFocusable = enabled
@@ -323,4 +364,8 @@ fun ArrayList<String>.removeConflicts(): ArrayList<String> {
 
     return nonConflictingList
 }
+operator fun File.div(child: String): File = File(this, child)
+fun String.toSQLiteQuery(): SimpleSQLiteQuery = SimpleSQLiteQuery(this)
+fun InputStream.zipInputStream(): ZipInputStream = ZipInputStream(this)
+fun OutputStream.zipOutputStream(): ZipOutputStream = ZipOutputStream(this)
 

@@ -122,6 +122,7 @@ class LibraryViewModel @Inject constructor(private val mainRepository: MainRepos
         viewModelScope.launch {
             val localPlaylistEntity = LocalPlaylistEntity(title = title)
             mainRepository.insertLocalPlaylist(localPlaylistEntity)
+            getLocalPlaylist()
         }
     }
 

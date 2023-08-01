@@ -4,6 +4,7 @@ A simple music app using YouTube Music for backend
 
 - Play music from YouTube Music or YouTube free without ads in the background
 - Browsing Home, Charts, Moods & Genre with YouTube Music data
+- Browse and play all contents blocked in your country without VPN or Proxy
 - Search everything on YouTube
 - Analyze your playing data and create custom playlists ...
 - Caching and can save data for offline playback

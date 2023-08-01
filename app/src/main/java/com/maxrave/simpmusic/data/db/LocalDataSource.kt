@@ -3,6 +3,7 @@ package com.maxrave.simpmusic.data.db
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
+import com.maxrave.simpmusic.data.db.entities.LyricsEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SearchHistory
 import com.maxrave.simpmusic.data.db.entities.SongEntity
@@ -23,6 +24,7 @@ class LocalDataSource @Inject constructor(private val databaseDao: DatabaseDao) 
     suspend fun getRecentSongs(limit: Int, offset: Int) = databaseDao.getRecentSongs(limit, offset)
     suspend fun getSongByListVideoId(primaryKeyList: List<String>) = databaseDao.getSongByListVideoId(primaryKeyList)
     suspend fun getDownloadedSongs() = databaseDao.getDownloadedSongs()
+    suspend fun getDownloadingSongs() = databaseDao.getDownloadingSongs()
     suspend fun getLikedSongs() = databaseDao.getLikedSongs()
     suspend fun getLibrarySongs() = databaseDao.getLibrarySongs()
     suspend fun getSong(videoId: String) = databaseDao.getSong(videoId)
@@ -66,4 +68,7 @@ class LocalDataSource @Inject constructor(private val databaseDao: DatabaseDao) 
     suspend fun updateLocalPlaylistInLibrary(inLibrary: LocalDateTime, id: Long) = databaseDao.updateLocalPlaylistInLibrary(inLibrary, id)
     suspend fun updateLocalPlaylistDownloadState(downloadState: Int, id: Long) = databaseDao.updateLocalPlaylistDownloadState(downloadState, id)
     suspend fun getDownloadedLocalPlaylists() = databaseDao.getDownloadedLocalPlaylists()
+
+    suspend fun getSavedLyrics(videoId: String) = databaseDao.getLyrics(videoId)
+    suspend fun insertLyrics(lyrics: LyricsEntity) = databaseDao.insertLyrics(lyrics)
 }

@@ -1,0 +1,17 @@
+Fixes:
+
+- Fixed maxrave-dev/SimpMusic#4
+- Fixed bugs
+- Migrate Gradle to Kotlin KTS
+
+New Feature:
+
+- Remove Thumbnail Cache
+- Move or remove Queue Track
+- Backup and restore data (maxrave-dev/SimpMusic#2)
+- Add swipe to remove miniplayer
+- Add SimpMusic to YouTube, YouTube Music's share menu (maxrave-dev/SimpMusic#9)
+- Open YouTube link by default
+- Add static shortcuts
+- Auto save lyrics for offline playback
+- Change Quality

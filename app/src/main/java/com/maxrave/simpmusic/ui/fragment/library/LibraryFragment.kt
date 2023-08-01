@@ -414,7 +414,6 @@ class LibraryFragment : Fragment() {
                         val title = viewDialog.etPlaylistName.editText?.text.toString()
                         if (title.isNotEmpty()){
                             viewModel.createPlaylist(title)
-                            viewModel.getLocalPlaylist()
                             viewModel.listLocalPlaylist.observe(viewLifecycleOwner) { list ->
                                 val temp: ArrayList<Any> = arrayListOf()
                                 for (i in list.size - 1 downTo 0) {
