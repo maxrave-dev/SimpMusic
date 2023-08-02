@@ -250,9 +250,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     }
 
     fun putString(key: String, value: String) {
-        viewModelScope.launch {
-            dataStoreManager.putString(key, value)
-        }
+        runBlocking { dataStoreManager.putString(key, value) }
     }
 
     private var _downloadState: MutableStateFlow<Download?> = MutableStateFlow(null)

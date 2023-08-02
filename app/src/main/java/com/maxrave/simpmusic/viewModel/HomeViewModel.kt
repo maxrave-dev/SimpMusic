@@ -46,6 +46,7 @@ class HomeViewModel @Inject constructor(private val mainRepository: MainReposito
 
     fun getHomeItemList() {
         loading.value = true
+        Log.d("HomeViewModel", "lang: $language")
         viewModelScope.launch {
             val job1 = viewModelScope.launch {
                 mainRepository.getHome(regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect {values->
@@ -97,10 +98,7 @@ class HomeViewModel @Inject constructor(private val mainRepository: MainReposito
     }
 
     fun getLocation() {
-        viewModelScope.launch {
-            dataStoreManager.location.collect { location ->
-                regionCode = location
-            }
-        }
+        regionCode = runBlocking { dataStoreManager.location.first() }
+        language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
     }
 }

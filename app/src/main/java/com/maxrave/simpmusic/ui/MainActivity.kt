@@ -92,6 +92,8 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
 
         // Check if the migration has already been done or not
         if (getString(FIRST_TIME_MIGRATION) != STATUS_DONE) {
+            putString(SELECTED_LANGUAGE, Locale.getDefault().toLanguageTag())
+            Log.d("Locale Key", "onCreate: ${Locale.getDefault().toLanguageTag()}")
             // Fetch the selected language from wherever it was stored. In this case its SharedPref
             getString(SELECTED_LANGUAGE)?.let {
                 Log.d("Locale Key", "getString: $it")
