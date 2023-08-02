@@ -116,6 +116,8 @@ class SearchFragment : Fragment() {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 if (query != null) {
 //                    fetchSearchAll(query)
+                    resultList.clear()
+                    resultAdapter.updateList(resultList)
                     setEnabledAll(binding.chipGroupTypeSearch, false)
                     binding.svSearch.clearFocus()
                     binding.suggestList.visibility = View.GONE
@@ -296,7 +298,7 @@ class SearchFragment : Fragment() {
                     Queue.setNowPlaying(firstQueue)
                     val args = Bundle()
                     args.putString("videoId", videoId)
-                    args.putString("from", "\"${binding.svSearch.query}\" in Search")
+                    args.putString("from", "\"${binding.svSearch.query}\" ${getString(R.string.in_search)}")
                     args.putString("type", Config.SONG_CLICK)
                     findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
                 }
@@ -308,7 +310,7 @@ class SearchFragment : Fragment() {
                     Queue.setNowPlaying(firstQueue)
                     val args = Bundle()
                     args.putString("videoId", videoId)
-                    args.putString("from", "\"${binding.svSearch.query}\" in Search")
+                    args.putString("from", "\"${binding.svSearch.query}\" ${getString(R.string.in_search)}")
                     args.putString("type", Config.VIDEO_CLICK)
                     findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
                 }
@@ -410,7 +412,7 @@ class SearchFragment : Fragment() {
                             shareIntent.type = "text/plain"
                             val url = "https://youtube.com/watch?v=${track.videoId}"
                             shareIntent.putExtra(Intent.EXTRA_TEXT, url)
-                            val chooserIntent = Intent.createChooser(shareIntent, "Chia sẻ URL")
+                            val chooserIntent = Intent.createChooser(shareIntent, getString(R.string.share_url))
                             startActivity(chooserIntent)
                         }
                         btAddPlaylist.setOnClickListener {
@@ -494,7 +496,7 @@ class SearchFragment : Fragment() {
                                                     setEnabledAll(btDownload, true)
                                                     Toast.makeText(
                                                         requireContext(),
-                                                        "Download failed",
+                                                        getString(androidx.media3.exoplayer.R.string.exo_download_failed),
                                                         Toast.LENGTH_SHORT
                                                     ).show()
                                                 }
@@ -506,7 +508,7 @@ class SearchFragment : Fragment() {
                                                     )
                                                     Toast.makeText(
                                                         requireContext(),
-                                                        "Download completed",
+                                                        getString(R.string.downloaded),
                                                         Toast.LENGTH_SHORT
                                                     ).show()
                                                     tvDownload.text = getString(R.string.downloaded)
@@ -538,7 +540,7 @@ class SearchFragment : Fragment() {
                                 setEnabledAll(btDownload, true)
                                 Toast.makeText(
                                     requireContext(),
-                                    "Removed download",
+                                    getString(R.string.removed_download),
                                     Toast.LENGTH_SHORT
                                 ).show()
                             }
@@ -735,7 +737,7 @@ class SearchFragment : Fragment() {
                     is Resource.Error -> {
                         response.message?.let { message ->
                             Snackbar.make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
-                                .setAction("Retry") {
+                                .setAction(getString(R.string.retry)) {
                                     fetchSearchAlbums(query)
                                 }
                                 .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
@@ -779,7 +781,7 @@ class SearchFragment : Fragment() {
                         is Resource.Error -> {
                             response.message?.let { message ->
                                 Snackbar.make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
-                                    .setAction("Retry") {
+                                    .setAction(R.string.retry) {
                                         fetchSearchPlaylists(query)
                                     }
                                     .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
@@ -824,7 +826,7 @@ class SearchFragment : Fragment() {
                         is Resource.Error -> {
                             response.message?.let { message ->
                                 Snackbar.make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
-                                    .setAction("Retry") {
+                                    .setAction(R.string.retry) {
                                         fetchSearchArtists(query)
                                     }
                                     .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
@@ -869,7 +871,7 @@ class SearchFragment : Fragment() {
                         is Resource.Error -> {
                             response.message?.let { message ->
                                 Snackbar.make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
-                                    .setAction("Retry") {
+                                    .setAction(getString(R.string.retry)) {
                                         fetchSearchSongs(query)
                                     }
                                     .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
@@ -912,7 +914,7 @@ class SearchFragment : Fragment() {
                         is Resource.Error -> {
                             response.message?.let { message ->
                                 Snackbar.make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
-                                    .setAction("Retry") {
+                                    .setAction(getString(R.string.retry)) {
                                         fetchSearchAll(query)
                                     }
                                     .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
@@ -935,7 +937,7 @@ class SearchFragment : Fragment() {
                         is Resource.Error -> {
                             response.message?.let { message ->
                                 Snackbar.make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
-                                    .setAction("Retry") {
+                                    .setAction(getString(R.string.retry)) {
                                         fetchSearchAll(query)
                                     }
                                     .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
@@ -956,7 +958,7 @@ class SearchFragment : Fragment() {
                         is Resource.Error -> {
                             response.message?.let { message ->
                                 Snackbar.make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
-                                    .setAction("Retry") {
+                                    .setAction(getString(R.string.retry)) {
                                         fetchSearchAll(query)
                                     }
                                     .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
@@ -977,7 +979,7 @@ class SearchFragment : Fragment() {
                         is Resource.Error -> {
                             response.message?.let { message ->
                                 Snackbar.make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
-                                    .setAction("Retry") {
+                                    .setAction(getString(R.string.retry)) {
                                         fetchSearchAll(query)
                                     }
                                     .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
@@ -998,7 +1000,7 @@ class SearchFragment : Fragment() {
                         is Resource.Error -> {
                             response.message?.let { message ->
                                 Snackbar.make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
-                                    .setAction("Retry") {
+                                    .setAction(getString(R.string.retry)) {
                                         fetchSearchAll(query)
                                     }
                                     .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
@@ -1045,7 +1047,7 @@ class SearchFragment : Fragment() {
                         }
                         catch (e: Exception){
                             Snackbar.make(requireActivity().findViewById(R.id.mini_player_container), e.message.toString(), Snackbar.LENGTH_LONG)
-                                .setAction("Retry") {
+                                .setAction(getString(R.string.retry)) {
                                     fetchSearchAll(query)
                                 }
                                 .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))

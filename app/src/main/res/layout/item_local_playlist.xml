@@ -22,7 +22,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_toEndOf="@+id/ivLocalPlaylist"
-        android:text="Your Playlist"
+        android:text="@string/your_playlist"
         android:layout_centerVertical="true"
         android:layout_marginStart="10sp"
         android:textSize="16sp">

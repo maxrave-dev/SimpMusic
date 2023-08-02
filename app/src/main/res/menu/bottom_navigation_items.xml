@@ -3,14 +3,14 @@
     <item
         android:id="@+id/bottom_navigation_item_home"
         android:icon="@drawable/round_home_24"
-        android:title="Home" />
+        android:title="@string/home" />
     <item
         android:id="@+id/bottom_navigation_item_search"
         android:icon="@drawable/round_search_24"
-        android:title="Search" />
+        android:title="@string/search" />
     <item
         android:id="@+id/bottom_navigation_item_library"
         android:icon="@drawable/round_library_music_24"
-        android:title="Library" />
+        android:title="@string/library" />
 
 </menu>

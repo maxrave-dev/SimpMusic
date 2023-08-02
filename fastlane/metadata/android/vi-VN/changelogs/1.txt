@@ -1,0 +1,5 @@
+<br><b>Mới</b>
+* Tạo playlist cá nhân
+* Tải xuống playlist
+* Thêm chức năng xoá cache và dữ liệu
+* Thêm cấu trúc Fastlane

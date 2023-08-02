@@ -57,6 +57,7 @@ import com.maxrave.simpmusic.extension.removeConflicts
 import com.maxrave.simpmusic.extension.setEnabledAll
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toListTrack
+import com.maxrave.simpmusic.extension.toLyricsEntity
 import com.maxrave.simpmusic.service.RepeatState
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.service.test.source.FetchQueue
@@ -177,11 +178,24 @@ class NowPlayingFragment : Fragment() {
                                 viewModel.from.postValue(from)
                                 viewModel.resetLyrics()
                                 if (it.artists.isNullOrEmpty()) {
-                                    viewModel.getLyrics(it.title, it.videoId)
+                                    viewModel.getLyrics(it.title)
                                 } else {
-                                    viewModel.getLyrics(it.title + " " + it.artists.first().name, it.videoId)
+                                    viewModel.getLyrics(it.title + " " + it.artists.first().name)
                                 }
                                 updateUIfromQueueNowPlaying()
+                                viewModel._lyrics.observe(viewLifecycleOwner){ resourceLyrics ->
+                                    when(resourceLyrics){
+                                        is Resource.Success -> {
+                                            if (resourceLyrics.data != null) {
+                                                viewModel.insertLyrics(resourceLyrics.data.toLyricsEntity(it.videoId))
+                                                viewModel.parseLyrics(resourceLyrics.data)
+                                            }
+                                        }
+                                        is Resource.Error -> {
+                                            viewModel.getSavedLyrics(it.videoId)
+                                        }
+                                    }
+                                }
                                 lifecycleScope.launch {
                                     viewModel.firstTrackAdded.collect { added ->
                                         if (added) {
@@ -226,8 +240,21 @@ class NowPlayingFragment : Fragment() {
                         viewModel.videoId.postValue(it.videoId)
                         viewModel.from.postValue(from)
                         viewModel.resetLyrics()
-                        viewModel.getLyrics(it.title + " " + it.artists?.first()?.name, it.videoId)
+                        viewModel.getLyrics(it.title + " " + it.artists?.first()?.name)
                         updateUIfromQueueNowPlaying()
+                        viewModel._lyrics.observe(viewLifecycleOwner){ resourceLyrics ->
+                            when(resourceLyrics){
+                                is Resource.Success -> {
+                                    if (resourceLyrics.data != null) {
+                                        viewModel.insertLyrics(resourceLyrics.data.toLyricsEntity(it.videoId))
+                                        viewModel.parseLyrics(resourceLyrics.data)
+                                    }
+                                }
+                                is Resource.Error -> {
+                                    viewModel.getSavedLyrics(it.videoId)
+                                }
+                            }
+                        }
                         lifecycleScope.launch {
                             viewModel.firstTrackAdded.collect { added ->
                                 if (added) {
@@ -271,8 +298,21 @@ class NowPlayingFragment : Fragment() {
                         viewModel.videoId.postValue(it.videoId)
                         viewModel.from.postValue(from)
                         viewModel.resetLyrics()
-                        viewModel.getLyrics(it.title + " " + it.artists?.first()?.name, it.videoId)
+                        viewModel.getLyrics(it.title + " " + it.artists?.first()?.name)
                         updateUIfromQueueNowPlaying()
+                        viewModel._lyrics.observe(viewLifecycleOwner){ resourceLyrics ->
+                            when(resourceLyrics){
+                                is Resource.Success -> {
+                                    if (resourceLyrics.data != null) {
+                                        viewModel.insertLyrics(resourceLyrics.data.toLyricsEntity(it.videoId))
+                                        viewModel.parseLyrics(resourceLyrics.data)
+                                    }
+                                }
+                                is Resource.Error -> {
+                                    viewModel.getSavedLyrics(it.videoId)
+                                }
+                            }
+                        }
                         Log.d("check index", index.toString())
                         lifecycleScope.launch {
                             viewModel.firstTrackAdded.collect { added ->
@@ -318,8 +358,21 @@ class NowPlayingFragment : Fragment() {
                         viewModel.videoId.postValue(it.videoId)
                         viewModel.from.postValue(from)
                         viewModel.resetLyrics()
-                        viewModel.getLyrics(it.title + " " + it.artists?.first()?.name, it.videoId)
+                        viewModel.getLyrics(it.title + " " + it.artists?.first()?.name)
                         updateUIfromQueueNowPlaying()
+                        viewModel._lyrics.observe(viewLifecycleOwner){ resourceLyrics ->
+                            when(resourceLyrics){
+                                is Resource.Success -> {
+                                    if (resourceLyrics.data != null) {
+                                        viewModel.insertLyrics(resourceLyrics.data.toLyricsEntity(it.videoId))
+                                        viewModel.parseLyrics(resourceLyrics.data)
+                                    }
+                                }
+                                is Resource.Error -> {
+                                    viewModel.getSavedLyrics(it.videoId)
+                                }
+                            }
+                        }
                         Log.d("check index", index.toString())
                         lifecycleScope.launch {
                             viewModel.firstTrackAdded.collect { added ->
@@ -351,16 +404,32 @@ class NowPlayingFragment : Fragment() {
             val job7 = launch {
                 viewModel.songTransitions.collect { isChanged ->
                     if (isChanged) {
-                        if (viewModel.getCurrentMediaItem() != null) {
+                        val song = viewModel.getCurrentMediaItem()
+                        if (song != null) {
                             Log.i("Now Playing Fragment", "Bên dưới")
                             Log.d("Song Transition", "Song Transition")
                             videoId = viewModel.videoId.value
                             binding.ivArt.visibility = View.GONE
                             binding.loadingArt.visibility = View.VISIBLE
                             Log.d("Check Lyrics", viewModel._lyrics.value?.data.toString())
-                            updateUIfromCurrentMediaItem(viewModel.nowPlayingMediaItem.value)
+                            updateUIfromCurrentMediaItem(song)
                             musicSource.setCurrentSongIndex(viewModel.getCurrentMediaItemIndex())
                             viewModel.changeSongTransitionToFalse()
+                            viewModel.resetLyrics()
+                            viewModel.getLyrics(song.mediaMetadata.title.toString() + " " + song.mediaMetadata.artist)
+                            viewModel._lyrics.observe(viewLifecycleOwner){ resourceLyrics ->
+                                when(resourceLyrics){
+                                    is Resource.Success -> {
+                                        if (resourceLyrics.data != null) {
+                                            viewModel.insertLyrics(resourceLyrics.data.toLyricsEntity(song.mediaId))
+                                            viewModel.parseLyrics(resourceLyrics.data)
+                                        }
+                                    }
+                                    is Resource.Error -> {
+                                        viewModel.getSavedLyrics(song.mediaId)
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -428,15 +497,15 @@ class NowPlayingFragment : Fragment() {
                         val temp = viewModel.getLyricsString(it)
                         binding.tvSyncState.text = when (viewModel.getLyricsSyncState()) {
                             Config.SyncState.NOT_FOUND -> null
-                            Config.SyncState.LINE_SYNCED -> "Line Synced"
-                            Config.SyncState.UNSYNCED -> "Unsynced"
+                            Config.SyncState.LINE_SYNCED -> getString(R.string.line_synced)
+                            Config.SyncState.UNSYNCED -> getString(R.string.unsynced)
                         }
                         if (temp != null) {
                             if (temp.nowLyric == "Lyrics not found") {
                                 binding.lyricsLayout.visibility = View.GONE
                                 binding.lyricsTextLayout.visibility = View.GONE
                             } else {
-                                if (binding.btFull.text == "Show") {
+                                if (binding.btFull.text == getString(R.string.show)) {
                                     binding.lyricsTextLayout.visibility = View.VISIBLE
                                 }
                                 binding.lyricsLayout.visibility = View.VISIBLE
@@ -533,7 +602,7 @@ class NowPlayingFragment : Fragment() {
 //            job12.join()
         }
         binding.btFull.setOnClickListener {
-            if (binding.btFull.text == "Show") {
+            if (binding.btFull.text == getString(R.string.show)) {
                 binding.btFull.text = getString(R.string.hide)
                 binding.lyricsTextLayout.visibility = View.GONE
                 binding.lyricsFullLayout.visibility = View.VISIBLE
@@ -727,7 +796,7 @@ class NowPlayingFragment : Fragment() {
                                 shareIntent.type = "text/plain"
                                 val url = "https://youtube.com/watch?v=${song.videoId}"
                                 shareIntent.putExtra(Intent.EXTRA_TEXT, url)
-                                val chooserIntent = Intent.createChooser(shareIntent, "Chia sẻ URL")
+                                val chooserIntent = Intent.createChooser(shareIntent, getString(R.string.share_url))
                                 startActivity(chooserIntent)
                             }
                             btDownload.setOnClickListener {
@@ -777,7 +846,7 @@ class NowPlayingFragment : Fragment() {
                                                         setEnabledAll(btDownload, true)
                                                         Toast.makeText(
                                                             requireContext(),
-                                                            "Download failed",
+                                                            getString(androidx.media3.exoplayer.R.string.exo_download_failed),
                                                             Toast.LENGTH_SHORT
                                                         ).show()
                                                     }
@@ -789,7 +858,7 @@ class NowPlayingFragment : Fragment() {
                                                         )
                                                         Toast.makeText(
                                                             requireContext(),
-                                                            "Download completed",
+                                                            getString(androidx.media3.exoplayer.R.string.exo_download_completed),
                                                             Toast.LENGTH_SHORT
                                                         ).show()
                                                         tvDownload.text = getString(R.string.downloaded)
@@ -820,7 +889,7 @@ class NowPlayingFragment : Fragment() {
                                     setEnabledAll(btDownload, true)
                                     Toast.makeText(
                                         requireContext(),
-                                        "Removed download",
+                                        getString(R.string.removed_download),
                                         Toast.LENGTH_SHORT
                                     ).show()
                                 }

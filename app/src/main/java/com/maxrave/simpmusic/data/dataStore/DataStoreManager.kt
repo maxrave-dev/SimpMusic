@@ -44,6 +44,18 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
         }
     }
 
+    suspend fun getString(key: String): Flow<String?> {
+        return settingsDataStore.data.map { preferences ->
+            preferences[stringPreferencesKey(key)]
+        }
+    }
+
+    suspend fun putString(key: String, value: String) {
+        settingsDataStore.edit { settings ->
+            settings[stringPreferencesKey(key)] = value
+        }
+    }
+
     val isRestoringDatabase: Flow<String> = settingsDataStore.data.map { preferences ->
         preferences[IS_RESTORING_DATABASE] ?: FALSE
     }

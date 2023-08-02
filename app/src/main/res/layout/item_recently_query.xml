@@ -22,7 +22,7 @@
                 android:layout_marginBottom="15sp"
                 android:gravity="start"
                 android:maxLines="1"
-                android:text="Recently Query"
+                android:text=""
                 android:textSize="15sp" />
         </RelativeLayout>
         <ImageButton

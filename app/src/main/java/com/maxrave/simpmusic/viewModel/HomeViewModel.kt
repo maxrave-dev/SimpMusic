@@ -3,6 +3,8 @@ package com.maxrave.simpmusic.viewModel
 import android.app.Application
 import android.util.Log
 import androidx.lifecycle.*
+import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
+import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.model.home.chart.Chart
 import com.maxrave.simpmusic.data.model.explore.mood.Genre
@@ -31,12 +33,14 @@ class HomeViewModel @Inject constructor(private val mainRepository: MainReposito
     var loadingChart = MutableLiveData<Boolean>()
     var errorMessage = MutableLiveData<String>()
     private var regionCode: String? = null
+    private var language: String? = null
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         onError("Exception handled: ${throwable.localizedMessage}")
     }
     init {
         regionCode = runBlocking { dataStoreManager.location.first() }
+        language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
     }
 
 
@@ -44,20 +48,20 @@ class HomeViewModel @Inject constructor(private val mainRepository: MainReposito
         loading.value = true
         viewModelScope.launch {
             val job1 = viewModelScope.launch {
-                mainRepository.getHome(regionCode!!).collect {values->
+                mainRepository.getHome(regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect {values->
                     _homeItemList.value = values
                     Log.d("HomeViewModel", "getHomeItemList: ${homeItemList.value?.data}")
                 }
             }
             val job2 = viewModelScope.launch {
-                mainRepository.exploreMood(regionCode!!).collect{values ->
+                mainRepository.exploreMood(regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect{values ->
                     _exploreMoodItem.value = values
                     Log.d("HomeViewModel", "getHomeItemList: ${exploreMoodItem.value?.data}")
                     loading.value = false
                 }
             }
             val job3 = viewModelScope.launch {
-                mainRepository.exploreChart("ZZ").collect{values ->
+                mainRepository.exploreChart("ZZ", SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect{values ->
                     regionCodeChart.value = "ZZ"
                     _chart.value = values
                     Log.d("HomeViewModel", "getHomeItemList: ${chart.value?.data}")
@@ -75,7 +79,7 @@ class HomeViewModel @Inject constructor(private val mainRepository: MainReposito
     fun exploreChart(region: String){
         loadingChart.value = true
         viewModelScope.launch {
-            mainRepository.exploreChart(region).collect{values ->
+            mainRepository.exploreChart(region, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect{ values ->
                 regionCodeChart.value = region
                 _chart.value = values
                 Log.d("HomeViewModel", "getHomeItemList: ${chart.value?.data}")

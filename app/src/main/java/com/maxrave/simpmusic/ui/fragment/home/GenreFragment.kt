@@ -91,7 +91,7 @@ class GenreFragment: Fragment(){
                     binding.contentLayout.visibility = View.VISIBLE
                     binding.loadingLayout.visibility = View.GONE
                     response.message?.let { message ->
-                        Snackbar.make(binding.root, "An error occured: $message", Snackbar.LENGTH_LONG).show()
+                        Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
                     }
                 }
             }

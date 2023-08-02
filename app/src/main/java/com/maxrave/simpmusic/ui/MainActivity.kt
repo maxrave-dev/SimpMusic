@@ -25,12 +25,18 @@ import coil.size.Size
 import coil.transform.Transformation
 import android.Manifest
 import android.net.Uri
+import android.provider.Settings.Global.putString
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.net.toUri
+import androidx.core.os.LocaleListCompat
 import androidx.media3.exoplayer.offline.DownloadService
 import com.daimajia.swipe.SwipeLayout
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
+import com.maxrave.simpmusic.common.FIRST_TIME_MIGRATION
+import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
+import com.maxrave.simpmusic.common.STATUS_DONE
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.ActivityMainBinding
 import com.maxrave.simpmusic.extension.connectArtists
@@ -46,6 +52,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import pub.devrel.easypermissions.EasyPermissions
+import java.util.Locale
 
 @UnstableApi
 @AndroidEntryPoint
@@ -83,6 +90,30 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
         action = intent.action
         viewModel.checkIsRestoring()
 
+        // Check if the migration has already been done or not
+        if (getString(FIRST_TIME_MIGRATION) != STATUS_DONE) {
+            // Fetch the selected language from wherever it was stored. In this case its SharedPref
+            getString(SELECTED_LANGUAGE)?.let {
+                Log.d("Locale Key", "getString: $it")
+                // Set this locale using the AndroidX library that will handle the storage itself
+                val localeList = LocaleListCompat.forLanguageTags(it)
+                AppCompatDelegate.setApplicationLocales(localeList)
+                // Set the migration flag to ensure that this is executed only once
+                putString(FIRST_TIME_MIGRATION, STATUS_DONE)
+            }
+        }
+        val currentLocaleName = if (!AppCompatDelegate.getApplicationLocales().isEmpty) {
+            // Fetches the current Application Locale from the list
+            AppCompatDelegate.getApplicationLocales()[0]?.toLanguageTag()
+        } else {
+            // Fetches the default System Locale
+            Locale.getDefault().toLanguageTag()
+        }
+        if (currentLocaleName != null) {
+            putString(SELECTED_LANGUAGE, currentLocaleName)
+        }
+        Log.d("Locale Key", "onCreate: $currentLocaleName")
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             WindowCompat.setDecorFitsSystemWindows(window, false)
         } else {
@@ -91,7 +122,8 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
 
         if (!EasyPermissions.hasPermissions(this, Manifest.permission.POST_NOTIFICATIONS)){
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                EasyPermissions.requestPermissions(this, "This app needs to access your notification", 1, Manifest.permission.POST_NOTIFICATIONS)
+                EasyPermissions.requestPermissions(this,
+                    getString(R.string.this_app_needs_to_access_your_notification), 1, Manifest.permission.POST_NOTIFICATIONS)
             }
         }
 
@@ -226,7 +258,7 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
                                                 Queue.setNowPlaying(track)
                                                 val args = Bundle()
                                                 args.putString("videoId", videoId)
-                                                args.putString("from", "Shared")
+                                                args.putString("from", getString(R.string.shared))
                                                 args.putString("type", Config.SONG_CLICK)
                                                 viewModel.intent.value = null
                                                 navController.navigate(R.id.action_global_nowPlayingFragment, args)
@@ -415,6 +447,14 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
     fun showBottomNav(){
         binding.bottomNavigationView.visibility = View.VISIBLE
         binding.miniPlayerContainer.visibility = View.VISIBLE
+    }
+
+    private fun putString(key: String, value: String) {
+        viewModel.putString(key, value)
+    }
+
+    private fun getString(key: String): String? {
+        return viewModel.getString(key)
     }
 
 }

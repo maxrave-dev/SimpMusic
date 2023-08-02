@@ -95,7 +95,7 @@ class MostPlayedFragment: Fragment() {
                     Queue.setNowPlaying(firstQueue)
                     val args = Bundle()
                     args.putString("videoId", videoId)
-                    args.putString("from", "Most Played")
+                    args.putString("from", getString(R.string.most_played))
                     args.putString("type", Config.SONG_CLICK)
                     findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
                 }
@@ -297,7 +297,7 @@ class MostPlayedFragment: Fragment() {
                                                 setEnabledAll(btDownload, true)
                                                 Toast.makeText(
                                                     requireContext(),
-                                                    "Download failed",
+                                                    getString(androidx.media3.exoplayer.R.string.exo_download_failed),
                                                     Toast.LENGTH_SHORT
                                                 ).show()
                                             }
@@ -309,7 +309,7 @@ class MostPlayedFragment: Fragment() {
                                                 )
                                                 Toast.makeText(
                                                     requireContext(),
-                                                    "Download completed",
+                                                    getString(androidx.media3.exoplayer.R.string.exo_download_completed),
                                                     Toast.LENGTH_SHORT
                                                 ).show()
                                                 tvDownload.text = getString(R.string.downloaded)
@@ -341,7 +341,7 @@ class MostPlayedFragment: Fragment() {
                             setEnabledAll(btDownload, true)
                             Toast.makeText(
                                 requireContext(),
-                                "Removed download",
+                                getString(R.string.removed_download),
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
@@ -351,7 +351,7 @@ class MostPlayedFragment: Fragment() {
                         shareIntent.type = "text/plain"
                         val url = "https://youtube.com/watch?v=${song.videoId}"
                         shareIntent.putExtra(Intent.EXTRA_TEXT, url)
-                        val chooserIntent = Intent.createChooser(shareIntent, "Chia sẻ URL")
+                        val chooserIntent = Intent.createChooser(shareIntent, getString(R.string.share_url))
                         startActivity(chooserIntent)
                     }
                 }

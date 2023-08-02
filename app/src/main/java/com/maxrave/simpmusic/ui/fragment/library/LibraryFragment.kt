@@ -80,13 +80,13 @@ class LibraryFragment : Fragment() {
         adapterItem = SearchItemAdapter(arrayListOf(), requireContext())
         //pagingAdapter = RecentPagingAdapter(requireContext())
         listPlaylist = ArrayList()
-        adapterPlaylist = FavoritePlaylistAdapter(arrayListOf())
+        adapterPlaylist = FavoritePlaylistAdapter(arrayListOf(), requireContext())
 
         listDownloaded = ArrayList()
-        adapterDownloaded = FavoritePlaylistAdapter(arrayListOf())
+        adapterDownloaded = FavoritePlaylistAdapter(arrayListOf(), requireContext())
 
         listLocalPlaylist = ArrayList()
-        adapterLocalPlaylist = FavoritePlaylistAdapter(arrayListOf())
+        adapterLocalPlaylist = FavoritePlaylistAdapter(arrayListOf(), requireContext())
 
         binding.rvRecentlyAdded.apply {
             adapter = adapterItem
@@ -200,7 +200,7 @@ class LibraryFragment : Fragment() {
                     Queue.setNowPlaying(firstQueue)
                     val args = Bundle()
                     args.putString("videoId", videoId)
-                    args.putString("from", "Recently Added")
+                    args.putString("from", getString(R.string.recently_added))
                     args.putString("type", Config.SONG_CLICK)
                     findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
                 }
@@ -337,7 +337,7 @@ class LibraryFragment : Fragment() {
                         shareIntent.type = "text/plain"
                         val url = "https://youtube.com/watch?v=${song.videoId}"
                         shareIntent.putExtra(Intent.EXTRA_TEXT, url)
-                        val chooserIntent = Intent.createChooser(shareIntent, "Chia sẻ URL")
+                        val chooserIntent = Intent.createChooser(shareIntent, getString(R.string.share_url))
                         startActivity(chooserIntent)
                     }
                 }

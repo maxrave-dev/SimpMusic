@@ -14,6 +14,8 @@ import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import com.maxrave.simpmusic.common.DownloadState
+import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
+import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
@@ -57,8 +59,10 @@ class PlaylistViewModel @Inject constructor(private val mainRepository: MainRepo
     var liked: MutableStateFlow<Boolean> = _liked
 
     private var regionCode: String? = null
+    private var language: String? = null
     init {
         regionCode = runBlocking { dataStoreManager.location.first() }
+        language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
     }
 
     fun updateId(id: String){
@@ -68,7 +72,7 @@ class PlaylistViewModel @Inject constructor(private val mainRepository: MainRepo
     fun browsePlaylist(id: String) {
         loading.value = true
         viewModelScope.launch {
-            mainRepository.browsePlaylist(id, regionCode!!).collect{values ->
+            mainRepository.browsePlaylist(id, regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect{ values ->
                 _playlistBrowse.value = values
             }
             withContext(Dispatchers.Main){
@@ -310,5 +314,6 @@ class PlaylistViewModel @Inject constructor(private val mainRepository: MainRepo
 
     fun getLocation() {
         regionCode = runBlocking { dataStoreManager.location.first() }
+        language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
     }
 }

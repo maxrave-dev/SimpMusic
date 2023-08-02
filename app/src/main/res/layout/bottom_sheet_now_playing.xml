@@ -48,7 +48,7 @@
                     android:orientation="vertical">
 
                     <TextView
-                        android:text="Nghe Như Tình Yêu"
+                        android:text=""
                         android:id="@+id/tvSongTitle"
                         android:fontFamily="@font/roboto"
                         android:textStyle="bold"
@@ -65,7 +65,7 @@
                     </TextView>
 
                     <TextView
-                        android:text="HIEUTHUHAI"
+                        android:text=""
                         android:id="@+id/tvSongArtist"
                         android:fontFamily="@font/roboto"
                         android:textStyle="normal"
@@ -115,7 +115,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_toEndOf="@+id/cbFavorite"
-                android:text="Like"
+                android:text="@string/like"
                 android:layout_centerVertical="true"
                 android:layout_marginStart="10sp"
                 android:textSize="16sp">
@@ -144,7 +144,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_toEndOf="@+id/ivDownload"
-                android:text="Download"
+                android:text="@string/download"
                 android:layout_centerVertical="true"
                 android:layout_marginStart="10sp"
                 android:textSize="16sp">
@@ -173,7 +173,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_toEndOf="@+id/ivAddPlaylist"
-                android:text="Add to a playlist"
+                android:text="@string/add_to_a_playlist"
                 android:layout_centerVertical="true"
                 android:layout_marginStart="10sp"
                 android:textSize="16sp">
@@ -202,7 +202,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_toEndOf="@+id/ivSeeArtists"
-                android:text="Artists"
+                android:text="@string/artists"
                 android:layout_centerVertical="true"
                 android:layout_marginStart="10sp"
                 android:textSize="16sp">
@@ -231,7 +231,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_toEndOf="@+id/ivShare"
-                android:text="Share"
+                android:text="@string/share"
                 android:layout_centerVertical="true"
                 android:layout_marginStart="10sp"
                 android:textSize="16sp">

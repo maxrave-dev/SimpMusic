@@ -48,7 +48,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_toEndOf="@+id/ivMoveUp"
-                    android:text="Move up"
+                    android:text="@string/move_up"
                     android:layout_centerVertical="true"
                     android:layout_marginStart="10sp"
                     android:textSize="16sp">
@@ -77,7 +77,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_toEndOf="@+id/ivMoveDown"
-                    android:text="Move down"
+                    android:text="@string/move_down"
                     android:layout_centerVertical="true"
                     android:layout_marginStart="10sp"
                     android:textSize="16sp">
@@ -106,7 +106,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_toEndOf="@+id/ivDelete"
-                    android:text="Delete from queue"
+                    android:text="@string/delete_from_queue"
                     android:layout_centerVertical="true"
                     android:layout_marginStart="10sp"
                     android:textSize="16sp">

@@ -96,7 +96,7 @@
                         android:minWidth="0sp"
                         android:minHeight="0sp"
                         android:padding="0sp"
-                        android:text="ILLENIUM"
+                        android:text=""
                         android:textColor="?attr/colorOnSurface"
                         android:textSize="15sp"
                         android:textStyle="bold" />

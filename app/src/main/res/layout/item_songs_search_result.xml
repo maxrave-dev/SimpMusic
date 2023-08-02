@@ -26,7 +26,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="People Change"
+            android:text=""
             android:singleLine="true"
             android:ellipsize="marquee"
             android:marqueeRepeatLimit="marquee_forever"
@@ -56,7 +56,7 @@
 
         </TextView>
         <TextView
-            android:text="Ophelia Presents: Advent Volume 6"
+            android:text=""
             android:id="@+id/tvSongAlbum"
             android:fontFamily="@font/roboto"
             android:textStyle="normal"

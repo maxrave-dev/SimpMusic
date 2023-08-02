@@ -9,6 +9,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import androidx.fragment.app.viewModels
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
@@ -19,8 +21,10 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.QUALITY
+import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.common.SUPPORTED_LOCATION
 import com.maxrave.simpmusic.databinding.FragmentSettingsBinding
+import com.maxrave.simpmusic.ui.MainActivity
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
@@ -65,6 +69,7 @@ class SettingsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         viewModel.getLocation()
+        viewModel.getLanguage()
         viewModel.getQuality()
         viewModel.getPlayerCacheSize()
         viewModel.getDownloadedCacheSize()
@@ -73,6 +78,12 @@ class SettingsFragment : Fragment() {
 
         viewModel.location.observe(viewLifecycleOwner) {
             binding.tvContentCountry.text = it
+        }
+        viewModel.language.observe(viewLifecycleOwner) {
+            if (it != null) {
+                val temp = SUPPORTED_LANGUAGE.items[SUPPORTED_LANGUAGE.codes.indexOf(it)]
+                binding.tvLanguage.text = temp
+            }
         }
         viewModel.quality.observe(viewLifecycleOwner) {
             binding.tvQuality.text = it
@@ -113,11 +124,11 @@ class SettingsFragment : Fragment() {
         }
         binding.btStoragePlayerCache.setOnClickListener {
             val dialog = MaterialAlertDialogBuilder(requireContext())
-                .setTitle("Clear Player Cache")
-                .setNegativeButton("Cancel") { dialog, _ ->
+                .setTitle(getString(R.string.clear_player_cache))
+                .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
                     dialog.dismiss()
                 }
-                .setPositiveButton("Clear") { dialog, _ ->
+                .setPositiveButton(getString(R.string.clear)) { dialog, _ ->
                     viewModel.clearPlayerCache()
                     viewModel.cacheSize.observe(viewLifecycleOwner) {
                         binding.tvPlayerCache.text = getString(R.string.cache_size, bytesToMB(it).toString())
@@ -132,15 +143,41 @@ class SettingsFragment : Fragment() {
                 .setSingleChoiceItems(SUPPORTED_LOCATION.items, -1) { _, which ->
                     checkedIndex = which
                 }
-                .setTitle("Content Country")
-                .setNegativeButton("Cancel") { dialog, _ ->
+                .setTitle(getString(R.string.content_country))
+                .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
                     dialog.dismiss()
                 }
-                .setPositiveButton("Change") { dialog, _ ->
+                .setPositiveButton(getString(R.string.change)) { dialog, _ ->
                     if (checkedIndex != -1) {
                         viewModel.changeLocation(SUPPORTED_LOCATION.items[checkedIndex].toString())
                         viewModel.location.observe(viewLifecycleOwner) {
                             binding.tvContentCountry.text = it
+                        }
+                    }
+                    dialog.dismiss()
+                }
+            dialog.show()
+        }
+        binding.btLanguage.setOnClickListener {
+            var checkedIndex = -1
+            val dialog = MaterialAlertDialogBuilder(requireContext())
+                .setSingleChoiceItems(SUPPORTED_LANGUAGE.items, -1) { _, which ->
+                    checkedIndex = which
+                }
+                .setTitle(getString(R.string.language))
+                .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                    dialog.dismiss()
+                }
+                .setPositiveButton(getString(R.string.change)) { dialog, _ ->
+                    if (checkedIndex != -1) {
+                        viewModel.changeLanguage(SUPPORTED_LANGUAGE.codes[checkedIndex])
+                        viewModel.language.observe(viewLifecycleOwner) {
+                            if (it != null) {
+                                val temp = SUPPORTED_LANGUAGE.items[SUPPORTED_LANGUAGE.codes.indexOf(it)]
+                                binding.tvLanguage.text = temp
+                                val localeList = LocaleListCompat.forLanguageTags(it)
+                                AppCompatDelegate.setApplicationLocales(localeList)
+                            }
                         }
                     }
                     dialog.dismiss()
@@ -153,11 +190,11 @@ class SettingsFragment : Fragment() {
                 .setSingleChoiceItems(QUALITY.items, -1) { _, which ->
                     checkedIndex = which
                 }
-                .setTitle("Quality")
-                .setNegativeButton("Cancel") { dialog, _ ->
+                .setTitle(getString(R.string.quality))
+                .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
                     dialog.dismiss()
                 }
-                .setPositiveButton("Change") { dialog, _ ->
+                .setPositiveButton(getString(R.string.change)) { dialog, _ ->
                     if (checkedIndex != -1) {
                         viewModel.changeQuality(checkedIndex)
                         viewModel.quality.observe(viewLifecycleOwner) {
@@ -172,11 +209,11 @@ class SettingsFragment : Fragment() {
 
         binding.btStorageDownloadedCache.setOnClickListener {
             val dialog = MaterialAlertDialogBuilder(requireContext())
-                .setTitle("Clear Downloaded Cache")
-                .setNegativeButton("Cancel") { dialog, _ ->
+                .setTitle(getString(R.string.clear_downloaded_cache))
+                .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
                     dialog.dismiss()
                 }
-                .setPositiveButton("Clear") { dialog, _ ->
+                .setPositiveButton(getString(R.string.clear)) { dialog, _ ->
                     viewModel.clearDownloadedCache()
                     viewModel.downloadedCacheSize.observe(viewLifecycleOwner) {
                         binding.tvPlayerCache.text = getString(R.string.cache_size, bytesToMB(it).toString())
@@ -188,11 +225,11 @@ class SettingsFragment : Fragment() {
 
         binding.btStorageThumbnailCache.setOnClickListener {
             val dialog = MaterialAlertDialogBuilder(requireContext())
-                .setTitle("Clear Thumbnail Cache")
-                .setNegativeButton("Cancel") { dialog, _ ->
+                .setTitle(getString(R.string.clear_thumbnail_cache))
+                .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
                     dialog.dismiss()
                 }
-                .setPositiveButton("Clear") { dialog, _ ->
+                .setPositiveButton(getString(R.string.clear)) { dialog, _ ->
                     diskCache?.clear()
                     binding.tvThumbnailCache.text = getString(R.string.cache_size, if (diskCache?.size != null) {
                         bytesToMB(diskCache.size)

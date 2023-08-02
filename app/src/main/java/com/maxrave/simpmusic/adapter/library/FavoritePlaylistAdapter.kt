@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.adapter.library
 
+import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
@@ -13,7 +14,7 @@ import com.maxrave.simpmusic.data.model.thumbnailUrl
 import com.maxrave.simpmusic.databinding.ItemYourPlaylistBinding
 import com.maxrave.simpmusic.extension.connectArtists
 
-class FavoritePlaylistAdapter(private var listPlaylist: ArrayList<Any>) : RecyclerView.Adapter<RecyclerView.ViewHolder>(){
+class FavoritePlaylistAdapter(private var listPlaylist: ArrayList<Any>, private val context: Context) : RecyclerView.Adapter<RecyclerView.ViewHolder>(){
     private lateinit var mListener: OnItemClickListener
     interface OnItemClickListener{
         fun onItemClick(position: Int, type: String)
@@ -36,11 +37,13 @@ class FavoritePlaylistAdapter(private var listPlaylist: ArrayList<Any>) : Recycl
                 tvArtistName.text = album.artistName?.connectArtists()
                 tvArtistName.isSelected = true
                 tvStatus.text =
-                    if (album.downloadState == DownloadState.STATE_NOT_DOWNLOADED) "Available online"
-                    else if (album.downloadState == DownloadState.STATE_DOWNLOADING) "Downloading"
-                    else if (album.downloadState == DownloadState.STATE_PREPARING) "Preparing"
-                    else if (album.downloadState == DownloadState.STATE_DOWNLOADED) "Downloaded"
-                    else "Unavailable"
+                    if (album.downloadState == DownloadState.STATE_NOT_DOWNLOADED) context.getString(
+                        R.string.available_online
+                    )
+                    else if (album.downloadState == DownloadState.STATE_DOWNLOADING) context.getString(R.string.downloading)
+                    else if (album.downloadState == DownloadState.STATE_PREPARING) context.getString(R.string.preparing)
+                    else if (album.downloadState == DownloadState.STATE_DOWNLOADED) context.getString(R.string.downloaded)
+                    else context.getString(R.string.unavailable)
                 tvStatus.isSelected = true
             }
         }
@@ -59,11 +62,13 @@ class FavoritePlaylistAdapter(private var listPlaylist: ArrayList<Any>) : Recycl
                 tvArtistName.text = playlist.author
                 tvArtistName.isSelected = true
                 tvStatus.text =
-                    if (playlist.downloadState == DownloadState.STATE_NOT_DOWNLOADED) "Available online"
-                    else if (playlist.downloadState == DownloadState.STATE_DOWNLOADING) "Downloading"
-                    else if (playlist.downloadState == DownloadState.STATE_PREPARING) "Preparing"
-                    else if (playlist.downloadState == DownloadState.STATE_DOWNLOADED) "Downloaded"
-                    else "Unavailable"
+                    if (playlist.downloadState == DownloadState.STATE_NOT_DOWNLOADED) context.getString(
+                        R.string.available_online
+                    )
+                    else if (playlist.downloadState == DownloadState.STATE_DOWNLOADING) context.getString(R.string.downloading)
+                    else if (playlist.downloadState == DownloadState.STATE_PREPARING) context.getString(R.string.preparing)
+                    else if (playlist.downloadState == DownloadState.STATE_DOWNLOADED) context.getString(R.string.downloaded)
+                    else context.getString(R.string.unavailable)
                 tvStatus.isSelected = true
             }
         }
@@ -84,14 +89,16 @@ class FavoritePlaylistAdapter(private var listPlaylist: ArrayList<Any>) : Recycl
                 }
                 tvPlaylistName.text = localPlaylist.title
                 tvPlaylistName.isSelected = true
-                tvArtistName.text = "You"
+                tvArtistName.text = context.getString(R.string.you)
                 tvArtistName.isSelected = true
                 tvStatus.text =
-                    if (localPlaylist.downloadState == DownloadState.STATE_NOT_DOWNLOADED) "Available online"
-                    else if (localPlaylist.downloadState == DownloadState.STATE_DOWNLOADING) "Downloading"
-                    else if (localPlaylist.downloadState == DownloadState.STATE_PREPARING) "Preparing"
-                    else if (localPlaylist.downloadState == DownloadState.STATE_DOWNLOADED) "Downloaded"
-                    else "Unavailable"
+                    if (localPlaylist.downloadState == DownloadState.STATE_NOT_DOWNLOADED) context.getString(
+                        R.string.available_online
+                    )
+                    else if (localPlaylist.downloadState == DownloadState.STATE_DOWNLOADING) context.getString(R.string.downloading)
+                    else if (localPlaylist.downloadState == DownloadState.STATE_PREPARING) context.getString(R.string.preparing)
+                    else if (localPlaylist.downloadState == DownloadState.STATE_DOWNLOADED) context.getString(R.string.downloaded)
+                    else context.getString(R.string.unavailable)
                 tvStatus.isSelected = true
             }
         }

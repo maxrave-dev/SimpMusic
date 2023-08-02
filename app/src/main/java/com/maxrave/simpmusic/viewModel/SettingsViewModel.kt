@@ -4,7 +4,6 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -16,14 +15,13 @@ import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DB_NAME
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.QUALITY
-import com.maxrave.simpmusic.common.SETTINGS_FILENAME
+import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.DatabaseDao
 import com.maxrave.simpmusic.data.db.MusicDatabase
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.di.DownloadCache
 import com.maxrave.simpmusic.di.PlayerCache
-import com.maxrave.simpmusic.extension.div
 import com.maxrave.simpmusic.extension.zipInputStream
 import com.maxrave.simpmusic.extension.zipOutputStream
 import com.maxrave.simpmusic.service.SimpleMediaService
@@ -196,6 +194,23 @@ class SettingsViewModel @Inject constructor(
         }.onFailure {
             it.printStackTrace()
             Toast.makeText(context, context.getString(R.string.restore_failed), Toast.LENGTH_SHORT).show()
+        }
+    }
+    private var _language: MutableLiveData<String> = MutableLiveData()
+    val language: LiveData<String> = _language
+    fun getLanguage() {
+        viewModelScope.launch {
+            dataStoreManager.getString(SELECTED_LANGUAGE).collect { language ->
+                _language.postValue(language)
+            }
+        }
+    }
+
+    @UnstableApi
+    fun changeLanguage(code: String) {
+        viewModelScope.launch {
+            dataStoreManager.putString(SELECTED_LANGUAGE, code)
+            getLanguage()
         }
     }
 }

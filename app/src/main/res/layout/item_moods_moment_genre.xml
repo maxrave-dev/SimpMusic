@@ -35,7 +35,7 @@
                     android:layout_toEndOf="@+id/colorBackground"
                     android:fontFamily="@font/roboto_bold"
                     android:gravity="center_horizontal"
-                    android:text="Dance &amp; Electronic"
+                    android:text=""
                     android:textSize="15sp"
                     android:textStyle="bold">
 

@@ -9,6 +9,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
+import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
 import com.maxrave.simpmusic.data.model.browse.artist.ArtistBrowse
@@ -39,14 +41,17 @@ class ArtistViewModel @Inject constructor(application: Application, private val 
 
 
     private var regionCode: String? = null
+    private var language: String? = null
     init {
         regionCode = runBlocking { dataStoreManager.location.first() }
+        language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
     }
 
     fun browseArtist(channelId: String){
         loading.value = true
         viewModelScope.launch {
-            mainRepository.browseArtist(channelId, regionCode!!).collect { values ->
+            Log.d("ArtistViewModel", "lang: $language")
+            mainRepository.browseArtist(channelId, regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect { values ->
                 _artistBrowse.value = values
             }
             withContext(Dispatchers.Main){
@@ -74,8 +79,9 @@ class ArtistViewModel @Inject constructor(application: Application, private val 
             Log.d("ArtistViewModel", "updateFollowed: ${_followed.value}")
         }
     }
-
-    override fun onCleared() {
+    fun getLocation() {
+        regionCode = runBlocking { dataStoreManager.location.first() }
+        language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
     }
 
 }

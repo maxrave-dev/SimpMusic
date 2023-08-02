@@ -1,0 +1,7 @@
+Fix:
+
+- Fix lyrics not appearing when playing a new song
+
+New features:
+
+- Add multi-language support (English, Vietnamese)

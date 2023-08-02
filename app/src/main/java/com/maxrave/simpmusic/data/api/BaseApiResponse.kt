@@ -20,6 +20,6 @@ abstract class BaseApiResponse {
         }
     }
     private fun <T> onError(message: String): Resource<T> {
-        return Resource.Error("Network call has failed for a following reason: $message", null)
+        return Resource.Error(message, null)
     }
 }

@@ -112,19 +112,19 @@ class HomeFragment : Fragment() {
         val check = formatter.format(date).toInt()
         if (check in 6..12)
         {
-            binding.topAppBar.subtitle = "Good Morning"
+            binding.topAppBar.subtitle = getString(R.string.good_morning)
         }
         else if (check in 13..17)
         {
-            binding.topAppBar.subtitle = "Good Afternoon"
+            binding.topAppBar.subtitle = getString(R.string.good_afternoon)
         }
         else if (check in 18..23)
         {
-            binding.topAppBar.subtitle = "Good Evening"
+            binding.topAppBar.subtitle = getString(R.string.good_evening)
         }
         else
         {
-            binding.topAppBar.subtitle = "Good Night"
+            binding.topAppBar.subtitle = getString(R.string.good_night)
         }
         Log.d("Check",formatter.format(date))
         Log.d("Date", "onCreateView: $date")
@@ -240,7 +240,7 @@ class HomeFragment : Fragment() {
             binding.chartLoadingLayout.visibility = View.GONE
             homeItemList?.addAll(viewModel.homeItemList.value?.data!!)
             Log.d("Data", "onViewCreated: $homeItemList")
-            if (homeItemList!![0].title == "Quick picks")
+            if (homeItemList!![0].title == getString(R.string.quick_picks))
             {
                 val temp = homeItemList!![0].contents as ArrayList<Content>
                 quickPicksAdapter.updateData(temp)
@@ -301,7 +301,8 @@ class HomeFragment : Fragment() {
                 }
                 else
                 {
-                    Toast.makeText( requireContext(),"This song is not available", Toast.LENGTH_SHORT).show()
+                    Toast.makeText( requireContext(),
+                        getString(R.string.this_song_is_not_available), Toast.LENGTH_SHORT).show()
                 }
             }
         })
@@ -314,7 +315,7 @@ class HomeFragment : Fragment() {
                     Queue.setNowPlaying(firstQueue)
                     val args = Bundle()
                     args.putString("videoId", song.videoId)
-                    args.putString("from", "\"${song.title}\" in Charts")
+                    args.putString("from", "\"${song.title}\" ${getString(R.string.in_charts)}")
                     args.putString("type", Config.SONG_CLICK)
                     findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
                 }
@@ -376,7 +377,7 @@ class HomeFragment : Fragment() {
                             homeItemListWithoutQuickPicks?.clear()
                         }
                         homeItemList?.addAll(it!!)
-                        if (homeItemList!![0].title == "Quick picks")
+                        if (homeItemList!![0].title == getString(R.string.quick_picks))
                         {
                             val temp = homeItemList!![0].contents as ArrayList<Content>
                             quickPicksAdapter.updateData(temp)
@@ -404,7 +405,7 @@ class HomeFragment : Fragment() {
                     binding.swipeRefreshLayout.isRefreshing = false
                     response.message?.let { message ->
                         Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG)
-                            .setAction("Retry") {
+                            .setAction(getString(R.string.retry)) {
                                 fetchHomeData()
                             }
                             .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
@@ -433,7 +434,7 @@ class HomeFragment : Fragment() {
                     binding.swipeRefreshLayout.isRefreshing = false
                     response.message?.let { message ->
                         Snackbar.make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
-                            .setAction("Retry") {
+                            .setAction(getString(R.string.retry)) {
                                 fetchHomeData()
                             }
                             .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
@@ -466,7 +467,7 @@ class HomeFragment : Fragment() {
                 is Resource.Error -> {
                     response.message?.let { message ->
                         Snackbar.make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
-                            .setAction("Retry") {
+                            .setAction(getString(R.string.retry)) {
                                 fetchHomeData()
                             }
                             .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))

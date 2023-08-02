@@ -46,39 +46,39 @@ class MainRepository @Inject constructor(private val remoteDataSource: RemoteDat
     suspend fun getSongFull(videoId: String): Flow<Resource<SongFull>> = flow { emit(safeApiCall { remoteDataSource.getSongFull(videoId) }) }.flowOn(Dispatchers.IO)
     suspend fun getThumbnails(songId: String): Flow<Resource<ArrayList<thumbnailUrl>>> = flow { emit(safeApiCall { remoteDataSource.getThumbnails(songId) }) }.flowOn(Dispatchers.IO)
     //search
-    suspend fun searchAll(query: String, regionCode: String) = remoteDataSource.searchAll(query, regionCode)
-    suspend fun searchSongs(query: String, filter: String = "songs", regionCode: String): Flow<Resource<ArrayList<SongsResult>>> = flow<Resource<ArrayList<SongsResult>>> { emit(safeApiCall { remoteDataSource.searchSongs(query, filter, regionCode) }) }.flowOn(Dispatchers.IO)
-    suspend fun searchArtists(query: String, filter: String = "artists", regionCode: String): Flow<Resource<ArrayList<ArtistsResult>>> = flow<Resource<ArrayList<ArtistsResult>>> { emit(safeApiCall { remoteDataSource.searchArtists(query, filter, regionCode) }) }.flowOn(Dispatchers.IO)
-    suspend fun searchAlbums(query: String, filter: String = "albums", regionCode: String): Flow<Resource<ArrayList<AlbumsResult>>> = flow<Resource<ArrayList<AlbumsResult>>> { emit(safeApiCall { remoteDataSource.searchAlbums(query, filter, regionCode) }) }.flowOn(Dispatchers.IO)
-    suspend fun searchPlaylists(query: String, filter: String = "playlists", regionCode: String): Flow<Resource<ArrayList<PlaylistsResult>>> = flow<Resource<ArrayList<PlaylistsResult>>> { emit(safeApiCall { remoteDataSource.searchPlaylists(query, filter, regionCode) }) }.flowOn(Dispatchers.IO)
-    suspend fun searchVideos(query: String, filter: String = "videos", regionCode: String): Flow<Resource<ArrayList<VideosResult>>> = flow<Resource<ArrayList<VideosResult>>> { emit(safeApiCall { remoteDataSource.searchVideos(query, filter, regionCode) }) }.flowOn(Dispatchers.IO)
+    suspend fun searchAll(query: String, regionCode: String, language: String) = remoteDataSource.searchAll(query, regionCode, language)
+    suspend fun searchSongs(query: String, filter: String = "songs", regionCode: String, language: String): Flow<Resource<ArrayList<SongsResult>>> = flow<Resource<ArrayList<SongsResult>>> { emit(safeApiCall { remoteDataSource.searchSongs(query, filter, regionCode, language) }) }.flowOn(Dispatchers.IO)
+    suspend fun searchArtists(query: String, filter: String = "artists", regionCode: String, language: String): Flow<Resource<ArrayList<ArtistsResult>>> = flow<Resource<ArrayList<ArtistsResult>>> { emit(safeApiCall { remoteDataSource.searchArtists(query, filter, regionCode, language) }) }.flowOn(Dispatchers.IO)
+    suspend fun searchAlbums(query: String, filter: String = "albums", regionCode: String, language: String): Flow<Resource<ArrayList<AlbumsResult>>> = flow<Resource<ArrayList<AlbumsResult>>> { emit(safeApiCall { remoteDataSource.searchAlbums(query, filter, regionCode, language) }) }.flowOn(Dispatchers.IO)
+    suspend fun searchPlaylists(query: String, filter: String = "playlists", regionCode: String, language: String): Flow<Resource<ArrayList<PlaylistsResult>>> = flow<Resource<ArrayList<PlaylistsResult>>> { emit(safeApiCall { remoteDataSource.searchPlaylists(query, filter, regionCode, language) }) }.flowOn(Dispatchers.IO)
+    suspend fun searchVideos(query: String, filter: String = "videos", regionCode: String, language: String): Flow<Resource<ArrayList<VideosResult>>> = flow<Resource<ArrayList<VideosResult>>> { emit(safeApiCall { remoteDataSource.searchVideos(query, filter, regionCode, language) }) }.flowOn(Dispatchers.IO)
 
     //suggest query
     suspend fun suggestQuery(query: String): Flow<Resource<ArrayList<String>>> = flow<Resource<ArrayList<String>>> { emit(safeApiCall { remoteDataSource.suggestQuery(query) }) }.flowOn(Dispatchers.IO)
 
     //getHome
-    suspend fun getHome(regionCode: String) : Flow<Resource<ArrayList<homeItem>>> =  flow<Resource<ArrayList<homeItem>>>{emit(safeApiCall { remoteDataSource.getHome(regionCode) })  }.flowOn(Dispatchers.IO)
+    suspend fun getHome(regionCode: String, language: String) : Flow<Resource<ArrayList<homeItem>>> =  flow<Resource<ArrayList<homeItem>>>{emit(safeApiCall { remoteDataSource.getHome(regionCode, language) })  }.flowOn(Dispatchers.IO)
 
     //exploreMood
-    suspend fun exploreMood(regionCode: String): Flow<Resource<Mood>> = flow<Resource<Mood>> { emit(safeApiCall { remoteDataSource.exploreMood(regionCode) }) }.flowOn(Dispatchers.IO)
-    suspend fun getMood(params: String, regionCode: String): Flow<Resource<MoodsMomentObject>> = flow<Resource<MoodsMomentObject>> { emit(safeApiCall { remoteDataSource.getMood(params, regionCode) }) }.flowOn(Dispatchers.IO)
-    suspend fun getGenre(params: String, regionCode: String): Flow<Resource<GenreObject>> = flow<Resource<GenreObject>> { emit(safeApiCall { remoteDataSource.getGenre(params, regionCode) }) }.flowOn(Dispatchers.IO)
+    suspend fun exploreMood(regionCode: String, language: String): Flow<Resource<Mood>> = flow<Resource<Mood>> { emit(safeApiCall { remoteDataSource.exploreMood(regionCode, language) }) }.flowOn(Dispatchers.IO)
+    suspend fun getMood(params: String, regionCode: String, language: String): Flow<Resource<MoodsMomentObject>> = flow<Resource<MoodsMomentObject>> { emit(safeApiCall { remoteDataSource.getMood(params, regionCode, language) }) }.flowOn(Dispatchers.IO)
+    suspend fun getGenre(params: String, regionCode: String, language: String): Flow<Resource<GenreObject>> = flow<Resource<GenreObject>> { emit(safeApiCall { remoteDataSource.getGenre(params, regionCode, language) }) }.flowOn(Dispatchers.IO)
 
     //browse
     //artist
-    suspend fun browseArtist(channelId: String, regionCode: String): Flow<Resource<ArtistBrowse>> = flow<Resource<ArtistBrowse>> { emit(safeApiCall { remoteDataSource.browseArtist(channelId, regionCode) }) }.flowOn(Dispatchers.IO)
+    suspend fun browseArtist(channelId: String, regionCode: String, language: String): Flow<Resource<ArtistBrowse>> = flow<Resource<ArtistBrowse>> { emit(safeApiCall { remoteDataSource.browseArtist(channelId, regionCode, language) }) }.flowOn(Dispatchers.IO)
     //album
-    suspend fun browseAlbum(browseId: String, regionCode: String): Flow<Resource<AlbumBrowse>> = flow<Resource<AlbumBrowse>> { emit(safeApiCall { remoteDataSource.browseAlbum(browseId, regionCode) }) }.flowOn(Dispatchers.IO)
+    suspend fun browseAlbum(browseId: String, regionCode: String, language: String): Flow<Resource<AlbumBrowse>> = flow<Resource<AlbumBrowse>> { emit(safeApiCall { remoteDataSource.browseAlbum(browseId, regionCode, language) }) }.flowOn(Dispatchers.IO)
     //playlist
-    suspend fun browsePlaylist(id: String, regionCode: String): Flow<Resource<PlaylistBrowse>> = flow<Resource<PlaylistBrowse>> { emit(safeApiCall { remoteDataSource.browsePlaylist(id, regionCode) }) }.flowOn(Dispatchers.IO)
+    suspend fun browsePlaylist(id: String, regionCode: String, language: String): Flow<Resource<PlaylistBrowse>> = flow<Resource<PlaylistBrowse>> { emit(safeApiCall { remoteDataSource.browsePlaylist(id, regionCode, language) }) }.flowOn(Dispatchers.IO)
     //chart
-    suspend fun exploreChart(regionCode: String): Flow<Resource<Chart>> = flow<Resource<Chart>> { emit(safeApiCall { remoteDataSource.exploreChart(regionCode) }) }.flowOn(Dispatchers.IO)
+    suspend fun exploreChart(regionCode: String, language: String): Flow<Resource<Chart>> = flow<Resource<Chart>> { emit(safeApiCall { remoteDataSource.exploreChart(regionCode, language) }) }.flowOn(Dispatchers.IO)
     //metadata
-    suspend fun getMetadata(videoId: String, regionCode: String): Flow<Resource<MetadataSong>> = flow<Resource<MetadataSong>> { emit(safeApiCall { remoteDataSource.getMetadata(videoId, regionCode) }) }.flowOn(Dispatchers.IO)
+    suspend fun getMetadata(videoId: String, regionCode: String, language: String): Flow<Resource<MetadataSong>> = flow<Resource<MetadataSong>> { emit(safeApiCall { remoteDataSource.getMetadata(videoId, regionCode, language) }) }.flowOn(Dispatchers.IO)
     suspend fun getLyrics(query: String): Flow<Resource<Lyrics>> = flow<Resource<Lyrics>> { emit(safeApiCall { remoteDataSource.getLyrics(query) }) }.flowOn(Dispatchers.IO)
     //related
-    suspend fun getRelated(videoId: String, regionCode: String): Flow<Resource<ArrayList<Track>>> = flow<Resource<ArrayList<Track>>> { emit(safeApiCall { remoteDataSource.getRelated(videoId, regionCode) }) }.flowOn(Dispatchers.IO)
-    suspend fun getVideoRelated(videoId: String, regionCode: String): Flow<Resource<ArrayList<VideosResult>>> = flow<Resource<ArrayList<VideosResult>>> { emit(safeApiCall { remoteDataSource.getVideoRelated(videoId, regionCode) }) }.flowOn(Dispatchers.IO)
+    suspend fun getRelated(videoId: String, regionCode: String, language: String): Flow<Resource<ArrayList<Track>>> = flow<Resource<ArrayList<Track>>> { emit(safeApiCall { remoteDataSource.getRelated(videoId, regionCode, language) }) }.flowOn(Dispatchers.IO)
+    suspend fun getVideoRelated(videoId: String, regionCode: String, language: String): Flow<Resource<ArrayList<VideosResult>>> = flow<Resource<ArrayList<VideosResult>>> { emit(safeApiCall { remoteDataSource.getVideoRelated(videoId, regionCode, language) }) }.flowOn(Dispatchers.IO)
 
     suspend fun convertNameToId(name: String): Flow<Resource<ChannelId>> = flow<Resource<ChannelId>> { emit(safeApiCall { remoteDataSource.convertNameToId(name) }) }.flowOn(Dispatchers.IO)
 

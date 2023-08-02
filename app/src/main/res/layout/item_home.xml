@@ -16,7 +16,7 @@
             android:textSize="25sp"
             android:textStyle="bold"
             android:fontFamily="@font/roboto"
-            android:text="Quick picks"
+            android:text="@string/quick_picks"
             android:layout_marginBottom="8sp"
             android:layout_marginTop="8sp">
         </TextView>

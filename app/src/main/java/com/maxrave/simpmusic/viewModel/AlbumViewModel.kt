@@ -15,7 +15,10 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
+import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
+import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
+import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
@@ -63,9 +66,11 @@ class AlbumViewModel @Inject constructor(private var dataStoreManager: DataStore
     private var _liked: MutableStateFlow<Boolean> = MutableStateFlow(false)
     var liked: MutableStateFlow<Boolean> = _liked
     private var regionCode: String? = null
+    private var language: String? = null
 
     init {
         regionCode = runBlocking { dataStoreManager.location.first() }
+        language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
     }
 
     fun updateBrowseId(browseId: String){
@@ -74,7 +79,7 @@ class AlbumViewModel @Inject constructor(private var dataStoreManager: DataStore
     fun browseAlbum(channelId: String){
         loading.value = true
         viewModelScope.launch {
-            mainRepository.browseAlbum(channelId, regionCode!!).collect{ values ->
+            mainRepository.browseAlbum(channelId, regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect{ values ->
                 _albumBrowse.value = values
             }
             withContext(Dispatchers.Main){
@@ -222,7 +227,6 @@ class AlbumViewModel @Inject constructor(private var dataStoreManager: DataStore
                                 }
                             }
                         }
-                        Log.d("Check Downloaded", "Downloaded")
                         updateAlbumDownloadState(browseId, DownloadState.STATE_DOWNLOADED)
                         Toast.makeText(getApplication(), "Download Completed", Toast.LENGTH_SHORT).show()
                     }
@@ -250,7 +254,6 @@ class AlbumViewModel @Inject constructor(private var dataStoreManager: DataStore
                                     mainRepository.updateDownloadState(videoId, DownloadState.STATE_DOWNLOADED)
                                 }
                             }
-                            Log.d("Check Downloaded", "Downloaded")
                         }
                         Download.STATE_FAILED -> {
                             mainRepository.getSongById(videoId).collect{ song ->
@@ -258,7 +261,6 @@ class AlbumViewModel @Inject constructor(private var dataStoreManager: DataStore
                                     mainRepository.updateDownloadState(videoId, DownloadState.STATE_NOT_DOWNLOADED)
                                 }
                             }
-                            Log.d("Check Downloaded", "Failed")
                         }
                         Download.STATE_DOWNLOADING -> {
                             mainRepository.getSongById(videoId).collect{ song ->
@@ -266,7 +268,6 @@ class AlbumViewModel @Inject constructor(private var dataStoreManager: DataStore
                                     mainRepository.updateDownloadState(videoId, DownloadState.STATE_DOWNLOADING)
                                 }
                             }
-                            Log.d("Check Downloaded", "Downloading ${down.percentDownloaded}")
                         }
                         Download.STATE_QUEUED -> {
                             mainRepository.getSongById(videoId).collect{ song ->
@@ -274,7 +275,6 @@ class AlbumViewModel @Inject constructor(private var dataStoreManager: DataStore
                                     mainRepository.updateDownloadState(videoId, DownloadState.STATE_PREPARING)
                                 }
                             }
-                            Log.d("Check Downloaded", "Queued")
                         }
 
                         else -> {
@@ -327,5 +327,6 @@ class AlbumViewModel @Inject constructor(private var dataStoreManager: DataStore
 
     fun getLocation() {
         regionCode = runBlocking { dataStoreManager.location.first() }
+        language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
     }
 }

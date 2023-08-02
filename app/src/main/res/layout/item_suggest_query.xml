@@ -11,7 +11,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="15sp"
-            android:text="Suggest Query"
+            android:text=""
             android:textSize="15sp"
             android:maxLines="1"
             android:gravity="start"/>

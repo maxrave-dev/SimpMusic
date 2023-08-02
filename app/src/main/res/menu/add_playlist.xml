@@ -4,7 +4,7 @@
     <item
         android:id="@+id/library_fragment_menu_item_add"
         android:icon="@drawable/baseline_add_24"
-        android:title="Add"
+        android:title="@string/add"
         app:showAsAction="ifRoom"/>
 
 </menu>

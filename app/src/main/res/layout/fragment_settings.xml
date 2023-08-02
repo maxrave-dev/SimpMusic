@@ -17,7 +17,7 @@
                 android:id="@+id/topAppBar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
-                app:title="Settings"
+                app:title="@string/settings"
                 app:titleTextAppearance="@style/TextAppearance.Material3.TitleMedium"
                 app:navigationIcon="@drawable/baseline_arrow_back_ios_new_24"
                 app:navigationIconTint="@android:color/white"
@@ -36,13 +36,41 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Content"
+                    android:text="@string/content"
                     android:textColor="@android:color/white"
                     android:textStyle="bold"
                     android:textSize="16sp"
                     android:layout_marginVertical="15sp">
 
                 </TextView>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginVertical="5sp"
+                    android:layout_marginStart="15sp"
+                    android:id="@+id/btLanguage"
+                    android:focusable="true"
+                    android:clickable="true"
+                    android:foreground="?android:attr/selectableItemBackground">
+                    <TextView
+                        android:textSize = "16sp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@android:color/white"
+                        android:text = "@string/language">
+
+                    </TextView>
+                    <TextView
+                        android:id="@+id/tvLanguage"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:text="">
+
+                    </TextView>
+
+                </LinearLayout>
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -58,7 +86,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textColor="@android:color/white"
-                        android:text = "Content country">
+                        android:text = "@string/content_country">
 
                     </TextView>
                     <TextView
@@ -86,7 +114,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textColor="@android:color/white"
-                        android:text = "Quality">
+                        android:text = "@string/quality">
 
                     </TextView>
                     <TextView
@@ -102,7 +130,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Storage"
+                    android:text="@string/storage"
                     android:textColor="@android:color/white"
                     android:textStyle="bold"
                     android:textSize="16sp"
@@ -124,7 +152,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textColor="@android:color/white"
-                        android:text = "Player Cache">
+                        android:text = "@string/player_cache">
 
                     </TextView>
                     <TextView
@@ -152,7 +180,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textColor="@android:color/white"
-                        android:text = "Downloaded Cache">
+                        android:text = "@string/downloaded_cache">
 
                     </TextView>
                     <TextView
@@ -180,7 +208,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textColor="@android:color/white"
-                        android:text = "Thumbnail Cache">
+                        android:text = "@string/thumbnail_cache">
 
                     </TextView>
                     <TextView
@@ -196,7 +224,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Backup"
+                    android:text="@string/backup"
                     android:textColor="@android:color/white"
                     android:textStyle="bold"
                     android:textSize="16sp"
@@ -218,7 +246,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textColor="@android:color/white"
-                        android:text = "Backup Your Data">
+                        android:text = "@string/backup_your_data">
 
                     </TextView>
                     <TextView
@@ -226,7 +254,7 @@
                         android:layout_height="wrap_content"
                         android:textSize="16sp"
                         android:id="@+id/tvBackup"
-                        android:text="Save all your playlist data">
+                        android:text="@string/save_all_your_playlist_data">
 
                     </TextView>
                 </LinearLayout>
@@ -245,7 +273,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textColor="@android:color/white"
-                        android:text = "Restore Your Data">
+                        android:text = "@string/restore_your_data">
 
                     </TextView>
                     <TextView
@@ -253,14 +281,14 @@
                         android:layout_height="wrap_content"
                         android:textSize="16sp"
                         android:id="@+id/tvRestore"
-                        android:text="Restore your saved data">
+                        android:text="@string/restore_your_saved_data">
 
                     </TextView>
                 </LinearLayout>
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="About us"
+                    android:text="@string/about_us"
                     android:textColor="@android:color/white"
                     android:textStyle="bold"
                     android:textSize="16sp"
@@ -282,7 +310,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textColor="@android:color/white"
-                        android:text = "Version">
+                        android:text = "@string/version">
 
                     </TextView>
                     <TextView
@@ -309,7 +337,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textColor="@android:color/white"
-                        android:text = "Github">
+                        android:text = "@string/github">
 
                     </TextView>
                     <TextView
@@ -317,7 +345,7 @@
                         android:layout_height="wrap_content"
                         android:textSize="16sp"
                         android:id="@+id/tvAuthor"
-                        android:text="maxrave-dev">
+                        android:text="@string/maxrave_dev">
 
                     </TextView>
 
@@ -337,7 +365,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textColor="@android:color/white"
-                        android:text = "Buy me a coffee">
+                        android:text = "@string/buy_me_a_coffee">
 
                     </TextView>
                     <TextView
@@ -345,7 +373,7 @@
                         android:layout_height="wrap_content"
                         android:textSize="16sp"
                         android:id="@+id/tvPaypal"
-                        android:text="PayPal">
+                        android:text="@string/paypal">
 
                     </TextView>
 

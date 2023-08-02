@@ -22,7 +22,7 @@
                     android:id="@+id/topAppBar"
                     android:layout_width="match_parent"
                     android:layout_height="?attr/actionBarSize"
-                    app:title="NOW PLAYING"
+                    app:title="@string/now_playing_upper"
                     app:titleTextAppearance="@style/TitleToolBar"
                     app:subtitle=""
                     app:subtitleCentered="true"
@@ -329,7 +329,7 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="Lyrics"
+                                    android:text="@string/lyrics"
                                     android:gravity="start"
                                     android:layout_weight="1"
                                     style="@style/SubTitleToolBar">
@@ -344,7 +344,7 @@
                                     android:padding="0sp"
                                     android:textColor="?attr/colorOnSecondaryContainer"
                                     style="@style/Widget.Material3.Button.TextButton"
-                                    android:text="Show"
+                                    android:text="@string/show"
                                     android:textSize="13sp"
                                     android:layout_weight="0">
 
@@ -419,7 +419,7 @@
                                 android:orientation="vertical">
                                 <TextView
                                     android:id="@+id/tvSyncState"
-                                    android:text="SYNCED"
+                                    android:text="@string/line_synced"
                                     android:gravity="end"
                                     android:layout_marginTop="10sp"
                                     android:textSize="10sp"

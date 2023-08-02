@@ -19,7 +19,7 @@
             android:id="@+id/tvAlbumName"
             android:layout_width="160sp"
             android:layout_height="wrap_content"
-            android:text="Nó Vầ Tôi"
+            android:text=""
             android:maxLines="2"
             android:textStyle="bold"
             android:textSize="15sp"
@@ -31,7 +31,7 @@
             android:id="@+id/tvAlbumYear"
             android:layout_width="160sp"
             android:layout_height="wrap_content"
-            android:text="2022"
+            android:text=""
             android:textStyle="normal"
             android:textSize="13sp"
             android:layout_marginTop="0sp">

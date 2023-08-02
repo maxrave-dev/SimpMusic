@@ -88,7 +88,7 @@ class DownloadedFragment : Fragment() {
                 val args = Bundle()
                 args.putString("type", Config.ALBUM_CLICK)
                 args.putString("videoId", song.videoId)
-                args.putString("from", "Downloaded")
+                args.putString("from", getString(R.string.downloaded))
                 args.putInt("index", position)
                 args.putInt("downloaded", 1)
                 Queue.clear()
@@ -227,7 +227,7 @@ class DownloadedFragment : Fragment() {
                             setEnabledAll(btDownload, true)
                             Toast.makeText(
                                 requireContext(),
-                                "Removed download",
+                                getString(R.string.removed_download),
                                 Toast.LENGTH_SHORT
                             ).show()
                             viewModel.listDownloadedSong.observe(viewLifecycleOwner){ downloaded ->
@@ -281,7 +281,7 @@ class DownloadedFragment : Fragment() {
                         shareIntent.type = "text/plain"
                         val url = "https://youtube.com/watch?v=${song.videoId}"
                         shareIntent.putExtra(Intent.EXTRA_TEXT, url)
-                        val chooserIntent = Intent.createChooser(shareIntent, "Chia sẻ URL")
+                        val chooserIntent = Intent.createChooser(shareIntent, getString(R.string.share_url))
                         startActivity(chooserIntent)
                     }
                 }

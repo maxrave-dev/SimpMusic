@@ -5,6 +5,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
+import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.model.explore.mood.moodmoments.MoodsMomentObject
 import com.maxrave.simpmusic.data.repository.MainRepository
@@ -24,14 +26,16 @@ class MoodViewModel @Inject constructor(private val mainRepository: MainReposito
     var loading = MutableLiveData<Boolean>()
 
     private var regionCode: String? = null
+    private var language: String? = null
     init {
         regionCode = runBlocking { dataStoreManager.location.first() }
+        language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
     }
 
     fun getMood(params: String){
         loading.value = true
         viewModelScope.launch {
-            mainRepository.getMood(params, regionCode!!).collect{values ->
+            mainRepository.getMood(params, regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect{ values ->
                 _moodsMomentObject.value = values
             }
             withContext(Dispatchers.Main){

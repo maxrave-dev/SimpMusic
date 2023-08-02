@@ -127,7 +127,8 @@ class PlaylistFragment: Fragment() {
                 findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
             }
             else {
-                Snackbar.make(requireView(), "Playlist is empty", Snackbar.LENGTH_SHORT).show()
+                Snackbar.make(requireView(),
+                    getString(R.string.playlist_is_empty), Snackbar.LENGTH_SHORT).show()
             }
         }
 
@@ -151,13 +152,13 @@ class PlaylistFragment: Fragment() {
                     findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
                 }
                 else {
-                    Snackbar.make(requireView(), "Error", Snackbar.LENGTH_SHORT).show()
+                    Snackbar.make(requireView(), getString(R.string.error), Snackbar.LENGTH_SHORT).show()
                 }
             }
         })
         playlistItemAdapter.setOnOptionClickListener(object: PlaylistItemAdapter.OnOptionClickListener{
             override fun onOptionClick(position: Int) {
-                Toast.makeText(requireContext(), "Option", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), getString(R.string.option), Toast.LENGTH_SHORT).show()
             }
         })
         binding.topAppBarLayout.addOnOffsetChangedListener { it, verticalOffset ->
@@ -226,7 +227,7 @@ class PlaylistFragment: Fragment() {
                             if (it?.description != null){
                                 tvDescription.originalText = it.description
                             } else {
-                                tvDescription.originalText = "No description"
+                                tvDescription.originalText = getString(R.string.no_description)
                             }
                             loadImage(it?.thumbnails?.last()?.url)
                             val list: ArrayList<Any> = arrayListOf()
@@ -300,7 +301,7 @@ class PlaylistFragment: Fragment() {
                                 if (it?.description != null){
                                     tvDescription.originalText = it.description
                                 } else {
-                                    tvDescription.originalText = "No description"
+                                    tvDescription.originalText = getString(R.string.no_description)
                                 }
                                 loadImage(it?.thumbnails?.last()?.url)
                                 val list: ArrayList<Any> = arrayListOf()

@@ -39,7 +39,7 @@
                 android:id="@+id/tvArtistName"
                 android:layout_width="160sp"
                 android:layout_height="wrap_content"
-                android:text="HIEUTHUHAI"
+                android:text=""
                 android:textStyle="bold"
                 android:textSize="18sp">
 

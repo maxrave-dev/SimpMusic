@@ -19,9 +19,12 @@ import androidx.media3.exoplayer.offline.Download
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.QUALITY
+import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
+import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.TRUE
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
+import com.maxrave.simpmusic.data.db.entities.LyricsEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.browse.artist.ChannelId
@@ -141,6 +144,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     val repeatMode: StateFlow<RepeatState> = _repeatMode
 
     private var regionCode: String? = null
+    private var language: String? = null
     private var quality: String? = null
     private var isRestoring = MutableStateFlow(false)
 
@@ -149,6 +153,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     init {
         regionCode = runBlocking { dataStoreManager.location.first() }
         quality = runBlocking { dataStoreManager.quality.first() }
+        language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
         viewModelScope.launch {
             val job1 = launch {
                 simpleMediaServiceHandler.simpleMediaState.collect { mediaState ->
@@ -204,8 +209,8 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                                 }
                             mainRepository.updateSongInLibrary(LocalDateTime.now(), tempSong.videoId)
                             mainRepository.updateListenCount(tempSong.videoId)
-                            resetLyrics()
-                            getLyrics(song.mediaMetadata.title.toString() + " " + song.mediaMetadata.artist, song.mediaId)
+//                            resetLyrics()
+//                            getLyrics(song.mediaMetadata.title.toString() + " " + song.mediaMetadata.artist, song.mediaId)
                         }
                     }
                 }
@@ -237,6 +242,16 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
             job4.join()
             job5.join()
             job6.join()
+        }
+    }
+
+    fun getString(key: String): String? {
+        return runBlocking { dataStoreManager.getString(key).first() }
+    }
+
+    fun putString(key: String, value: String) {
+        viewModelScope.launch {
+            dataStoreManager.putString(key, value)
         }
     }
 
@@ -304,42 +319,60 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
             }
         }
     }
-    fun getLyrics(query: String, videoId: String) {
+    fun insertLyrics(lyrics: LyricsEntity) {
+        viewModelScope.launch {
+            mainRepository.insertLyrics(lyrics)
+        }
+    }
+    fun getSavedLyrics(videoId: String) {
+        viewModelScope.launch {
+            mainRepository.getSavedLyrics(videoId).collect { lyrics ->
+                if (lyrics != null) {
+                    _lyrics.value = Resource.Success(lyrics.toLyrics())
+                    val lyricsData = lyrics.toLyrics()
+                    Log.d("Check Lyrics In DB", lyricsData.toString())
+                    parseLyrics(lyricsData)
+                }
+            }
+        }
+    }
+    fun getLyrics(query: String) {
         viewModelScope.launch {
             mainRepository.getLyrics(query).collect { response ->
                 _lyrics.value = response
-                withContext(Dispatchers.Main){
-                    if (_lyrics.value != null) {
-                        Log.d("Check Lyrics", _lyrics.value.toString())
-                        when(_lyrics.value) {
-                            is Resource.Success -> {
-                                mainRepository.insertLyrics(_lyrics.value?.data!!.toLyricsEntity(videoId))
-                                parseLyrics(_lyrics.value?.data)
-                                Log.d("Check Lyrics", _lyrics.value?.data.toString())
-                            }
-                            else -> {
-                                Log.d("Check Lyrics", "Get from DB")
-                                mainRepository.getSavedLyrics(videoId).collect { lyrics ->
-                                    Log.d("Check Lyrics In DB", lyrics.toString())
-                                    if (lyrics != null) {
-                                        _lyrics.value = Resource.Success(lyrics.toLyrics())
-                                        val lyricsData = lyrics.toLyrics()
-                                        Log.d("Check Lyrics In DB", lyricsData.toString())
-                                        parseLyrics(lyricsData)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    else {
-                        Log.d("Check Lyrics", "null")
-                        mainRepository.getSavedLyrics(videoId).collect { lyrics ->
-                            if (lyrics != null) {
-                                parseLyrics(lyrics.toLyrics())
-                            }
-                        }
-                    }
-                }
+//                withContext(Dispatchers.Main){
+//                    if (_lyrics.value != null) {
+//                        Log.d("Check Lyrics", _lyrics.value.toString())
+//                        when(_lyrics.value) {
+//                            is Resource.Success -> {
+//                                mainRepository.insertLyrics(_lyrics.value?.data!!.toLyricsEntity(videoId))
+//                                parseLyrics(_lyrics.value?.data)
+//                                Log.d("Check Lyrics", _lyrics.value?.data.toString())
+//                            }
+//                            is Resource.Error -> {
+//                                Log.d("Check Lyrics", "Get from DB")
+//                                mainRepository.getSavedLyrics(videoId).collect { lyrics ->
+//                                    Log.d("Check Lyrics In DB", lyrics.toString())
+//                                    if (lyrics != null) {
+//                                        _lyrics.value = Resource.Success(lyrics.toLyrics())
+//                                        val lyricsData = lyrics.toLyrics()
+//                                        Log.d("Check Lyrics In DB", lyricsData.toString())
+//                                        parseLyrics(lyricsData)
+//                                    }
+//                                }
+//                            }
+//                            else -> {}
+//                        }
+//                    }
+//                    else {
+//                        Log.d("Check Lyrics", "null")
+//                        mainRepository.getSavedLyrics(videoId).collect { lyrics ->
+//                            if (lyrics != null) {
+//                                parseLyrics(lyrics.toLyrics())
+//                            }
+//                        }
+//                    }
+//                }
             }
         }
     }
@@ -347,7 +380,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     fun getRelated(videoId: String){
         Queue.clear()
         viewModelScope.launch {
-            mainRepository.getRelated(videoId, regionCode!!).collect{ response ->
+            mainRepository.getRelated(videoId, regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect{ response ->
                 _related.value = response
             }
         }
@@ -355,7 +388,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     fun getVideoRelated(videoId: String){
         Queue.clear()
         viewModelScope.launch {
-            mainRepository.getVideoRelated(videoId, regionCode!!).collect{ response ->
+            mainRepository.getVideoRelated(videoId, regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect{ response ->
                 _videoRelated.value = response
             }
         }
@@ -368,20 +401,9 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     fun getCurrentMediaItemIndex(): Int {
         return simpleMediaServiceHandler.currentIndex()
     }
-    fun getMediaListSize(): Int {
-        return simpleMediaServiceHandler.mediaListSize()
-    }
     @UnstableApi
     fun playMediaItemInMediaSource(index: Int){
         simpleMediaServiceHandler.playMediaItemInMediaSource(index)
-    }
-    @UnstableApi
-    fun moveMediaItem(fromIndex: Int, newIndex: Int) {
-        simpleMediaServiceHandler.moveMediaItem(fromIndex, newIndex)
-    }
-    @UnstableApi
-    fun addMediaItemList(song: List<MediaItem>){
-        simpleMediaServiceHandler.addMediaItemList(song)
     }
     @UnstableApi
     fun loadMediaItemFromTrack(track: Track){
@@ -472,7 +494,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                             }
                         }
                         is Resource.Error -> {
-                            Log.d("Check Error", values.message.toString())
+                            Toast.makeText(context, values.message, Toast.LENGTH_SHORT).show()
                         }
                     }
                 }
@@ -581,7 +603,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
         }
     }
 
-    private fun parseLyrics(lyrics: Lyrics?){
+    fun parseLyrics(lyrics: Lyrics?){
         if (lyrics != null){
             if (!lyrics.error){
                 if (lyrics.syncType == "LINE_SYNCED")

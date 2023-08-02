@@ -1,0 +1,7 @@
+Sửa lỗi:
+
+- Sửa lỗi không tải lời bài hát khi chuyển bài
+
+New features:
+
+- Thêm hỗ trợ đa ngôn ngữ (Tiếng Anh, Tiếng Việt)

@@ -154,7 +154,7 @@
                         android:padding="15sp"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Popular"
+                        android:text="@string/popular"
                         android:textSize="18sp"
                         android:textStyle="bold"
                         android:layout_alignParentStart="true">
@@ -167,7 +167,7 @@
                         android:id="@+id/btShuffle"
                         android:layout_height="wrap_content"
                         style="?attr/materialButtonOutlinedStyle"
-                        android:text="More"
+                        android:text="@string/more"
                         android:textColor="?attr/colorOnSecondaryContainer"
                         android:background="@android:color/transparent"
                         android:src="@drawable/baseline_shuffle_24"
@@ -191,7 +191,7 @@
                     android:padding="15sp"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Singles"
+                    android:text="@string/singles"
                     android:textSize="18sp"
                     android:textStyle="bold">
 
@@ -213,7 +213,7 @@
                     android:padding="15sp"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Albums"
+                    android:text="@string/albums"
                     android:textSize="18sp"
                     android:textStyle="bold">
 
@@ -236,7 +236,7 @@
                     android:padding="15sp"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Related Artists"
+                    android:text="@string/related_artists"
                     android:textSize="18sp"
                     android:textStyle="bold">
 
@@ -258,7 +258,7 @@
                     android:padding="15sp"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="About"
+                    android:text="@string/about"
                     android:textSize="18sp"
                     android:textStyle="bold">
 

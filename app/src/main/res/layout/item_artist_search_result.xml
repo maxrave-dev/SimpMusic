@@ -28,7 +28,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Hoang"
+            android:text=""
             android:maxLines="1"
             android:fontFamily="@font/roboto"
             android:textStyle="bold"
@@ -38,7 +38,7 @@
         </TextView>
         <TextView
             android:layout_marginTop="4sp"
-            android:text="Artist"
+            android:text="@string/artists"
             android:fontFamily="@font/roboto"
             android:textStyle="normal"
             android:textSize="11sp"

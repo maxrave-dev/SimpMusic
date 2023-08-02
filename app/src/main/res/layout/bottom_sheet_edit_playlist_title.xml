@@ -27,7 +27,7 @@
             android:id="@+id/etPlaylistName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Playlist Name"
+            android:hint="@string/playlist_name"
             android:layout_marginVertical="10sp"
             android:layout_marginHorizontal="5sp">
             <com.google.android.material.textfield.TextInputEditText
@@ -40,7 +40,7 @@
             android:id="@+id/btEdit"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Edit"
+            android:text="@string/edit"
             style="@style/Widget.Material3.Button.TextButton"
             android:layout_marginBottom="10sp">
 

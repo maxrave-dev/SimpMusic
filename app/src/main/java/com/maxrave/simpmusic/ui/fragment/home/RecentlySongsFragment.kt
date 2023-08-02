@@ -101,7 +101,7 @@ class RecentlySongsFragment: Fragment() {
                     Queue.setNowPlaying(firstQueue)
                     val args = Bundle()
                     args.putString("videoId", videoId)
-                    args.putString("from", "Recently Added")
+                    args.putString("from", getString(R.string.recently_added))
                     args.putString("type", Config.SONG_CLICK)
                     findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
                 }

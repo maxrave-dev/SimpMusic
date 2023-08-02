@@ -19,7 +19,7 @@
             android:id="@+id/tvArtistName"
             android:layout_width="160sp"
             android:layout_height="wrap_content"
-            android:text="GERDNANG"
+            android:text=""
             android:textStyle="bold"
             android:textSize="15sp"
             android:layout_marginTop="10sp"

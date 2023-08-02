@@ -7,7 +7,6 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.fragment.app.Fragment
@@ -73,6 +72,7 @@ class ArtistFragment: Fragment(){
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        viewModel.getLocation()
         if (viewModel.gradientDrawable.value != null){
             gradientDrawable = viewModel.gradientDrawable.value
         }
@@ -112,7 +112,7 @@ class ArtistFragment: Fragment(){
                 findNavController().navigate(R.id.action_global_playlistFragment, args)
             }
             else {
-                Snackbar.make(binding.root, "Error", Snackbar.LENGTH_LONG).show()
+                Snackbar.make(binding.root, getString(R.string.error), Snackbar.LENGTH_LONG).show()
             }
         }
         relatedArtistsAdapter.setOnClickListener(object: RelatedArtistsAdapter.OnItemClickListener{
@@ -124,7 +124,6 @@ class ArtistFragment: Fragment(){
         })
         singlesAdapter.setOnClickListener(object: SinglesAdapter.OnItemClickListener{
             override fun onItemClick(position: Int, type: String) {
-                Toast.makeText(context, "$type ${singlesAdapter.getItem(position)}", Toast.LENGTH_LONG).show()
                 val args = Bundle()
                 args.putString("browseId", singlesAdapter.getItem(position).browseId)
                 findNavController().navigate(R.id.action_global_albumFragment, args)
@@ -132,7 +131,6 @@ class ArtistFragment: Fragment(){
         })
         albumsAdapter.setOnClickListener(object: AlbumsAdapter.OnItemClickListener{
             override fun onItemClick(position: Int, type: String) {
-                Toast.makeText(context, "$type ${albumsAdapter.getItem(position)}", Toast.LENGTH_LONG).show()
                 val args = Bundle()
                 args.putString("browseId", albumsAdapter.getItem(position).browseId)
                 findNavController().navigate(R.id.action_global_albumFragment, args)
@@ -140,7 +138,6 @@ class ArtistFragment: Fragment(){
         })
         popularAdapter.setOnClickListener(object: PopularAdapter.OnItemClickListener{
             override fun onItemClick(position: Int, type: String) {
-                Toast.makeText(context, "$type ${popularAdapter.getItem(position)}", Toast.LENGTH_LONG).show()
                 val songClicked = popularAdapter.getCurrentList()[position]
                 val videoId = songClicked.videoId
                 Queue.clear()
@@ -148,7 +145,7 @@ class ArtistFragment: Fragment(){
                 Queue.setNowPlaying(firstQueue)
                 val args = Bundle()
                 args.putString("videoId", videoId)
-                args.putString("from", "\"${viewModel.artistBrowse.value?.data?.name}\" Popular")
+                args.putString("from", "\"${viewModel.artistBrowse.value?.data?.name}\" ${getString(R.string.popular)}")
                 args.putString("type", Config.SONG_CLICK)
                 findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
             }
@@ -174,13 +171,13 @@ class ArtistFragment: Fragment(){
             val id = viewModel.artistEntity.value?.channelId
             if (id  != null) {
                 Log.d("ChannelId", id)
-                if (binding.btFollow.text == "Follow"){
+                if (binding.btFollow.text == getString(R.string.follow)){
                     viewModel.updateFollowed(1, id)
-                    binding.btFollow.text = "Followed"
+                    binding.btFollow.text = getString(R.string.followed)
                 }
                 else {
                     viewModel.updateFollowed(0, id)
-                    binding.btFollow.text = "Follow"
+                    binding.btFollow.text =  getString(R.string.follow)
                 }
             }
         }
@@ -200,10 +197,10 @@ class ArtistFragment: Fragment(){
                                 lifecycleScope.launch {
                                     viewModel.followed.collect { followed ->
                                         if (followed) {
-                                            binding.btFollow.text = "Followed"
+                                            binding.btFollow.text =  getString(R.string.followed)
                                         }
                                         else {
-                                            binding.btFollow.text = "Follow"
+                                            binding.btFollow.text =  getString(R.string.follow)
                                         }
                                     }
                                 }
@@ -258,8 +255,8 @@ class ArtistFragment: Fragment(){
                 }
                 is Resource.Error -> {
                     binding.loadingLayout.visibility = View.GONE
-                    Snackbar.make(binding.root, "Can't get artist data because: ${response.message}", Snackbar.LENGTH_LONG)
-                        .setAction("Retry") {
+                    Snackbar.make(binding.root, "${response.message}", Snackbar.LENGTH_LONG)
+                        .setAction(getString(R.string.retry)) {
                             fetchData(channelId)
                         }
                         .show()

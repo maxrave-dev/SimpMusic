@@ -38,7 +38,7 @@
                     android:layout_height="wrap_content"
                     android:paddingVertical="5sp"
                     android:singleLine="true"
-                    android:text="Now Playing"
+                    android:text="@string/now_playing"
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:textColor="@android:color/white" />
@@ -69,7 +69,7 @@
                             android:orientation="vertical">
 
                             <TextView
-                                android:text="Nghe Như Tình Yêu"
+                                android:text=""
                                 android:id="@+id/tvSongTitle"
                                 android:fontFamily="@font/roboto"
                                 android:textStyle="bold"
@@ -84,7 +84,7 @@
                             </TextView>
 
                             <TextView
-                                android:text="HIEUTHUHAI"
+                                android:text=""
                                 android:id="@+id/tvSongArtist"
                                 android:fontFamily="@font/roboto"
                                 android:textStyle="normal"
@@ -105,7 +105,7 @@
                     android:layout_height="wrap_content"
                     android:singleLine="true"
                     android:paddingVertical="5sp"
-                    android:text="Queue"
+                    android:text="@string/queue"
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:textColor="@android:color/white" />

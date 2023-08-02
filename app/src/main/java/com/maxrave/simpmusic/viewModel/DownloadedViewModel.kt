@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class DownloadedViewModel @Inject constructor(application: Application, private val mainRepository: MainRepository): AndroidViewModel(application) {
+class DownloadedViewModel @Inject constructor(private val application: Application, private val mainRepository: MainRepository): AndroidViewModel(application) {
     private var _listDownloadedSong: MutableLiveData<ArrayList<SongEntity>> = MutableLiveData()
     val listDownloadedSong: LiveData<ArrayList<SongEntity>> get() = _listDownloadedSong
 
@@ -74,7 +74,7 @@ class DownloadedViewModel @Inject constructor(application: Application, private 
                     }
                 }
                 mainRepository.updateLocalPlaylistTracks(list, id)
-                Toast.makeText(getApplication(), "Added to playlist", Toast.LENGTH_SHORT).show()
+                Toast.makeText(application, "Added to playlist", Toast.LENGTH_SHORT).show()
                 if (count == values.size) {
                     mainRepository.updateLocalPlaylistDownloadState(DownloadState.STATE_DOWNLOADED, id)
                 }

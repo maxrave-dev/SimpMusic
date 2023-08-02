@@ -33,7 +33,7 @@
                 android:orientation="vertical">
 
                 <TextView
-                    android:text="Nghe Như Tình Yêu"
+                    android:text=""
                     android:id="@+id/tvSongTitle"
                     android:fontFamily="@font/roboto"
                     android:textStyle="bold"
@@ -48,7 +48,7 @@
                 </TextView>
 
                 <TextView
-                    android:text="HIEUTHUHAI"
+                    android:text=""
                     android:id="@+id/tvSongArtist"
                     android:fontFamily="@font/roboto"
                     android:textStyle="normal"

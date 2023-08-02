@@ -4,7 +4,7 @@
     <item
         android:id="@+id/now_playing_dialog_menu_item_more"
         android:icon="@drawable/baseline_more_vert_24"
-        android:title="More"
+        android:title="@string/more"
         app:showAsAction="ifRoom"/>
 
 </menu>

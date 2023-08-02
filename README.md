@@ -31,6 +31,9 @@ More [screenshot](https://photos.app.goo.gl/AbieoXG5ctDrpwzp7) here.
 ## Backend
 - This project is using Heroku to run a scraping YouTube Music server.
 - Special thanks [@ytmusicapi](https://github.com/sigma67/ytmusicapi), [@spotipy](https://github.com/spotipy-dev/spotipy), [@spotify-lyrics-api](https://github.com/akashrchandran/spotify-lyrics-api), [@Piped](https://github.com/TeamPiped/Piped)
+## Translation
+You can help me to translate this app to your language by clone this repo and use Android Studio Translations Editor to translate "string.xml" file in "values" folder. Then create a pull request to me.
+More info [here](https://developer.android.com/studio/write/translations-editor)
 ## Donate
 |   [<img src="https://upload.wikimedia.org/wikipedia/commons/archive/b/b5/20230314142950%21PayPal.svg" height="40">]()         | [Paypal](paypal.me/maxraveofficial) |
 |-------|---------|

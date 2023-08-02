@@ -43,7 +43,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_toEndOf="@+id/ivEditTitle"
-                android:text="Edit title"
+                android:text="@string/edit_title"
                 android:layout_centerVertical="true"
                 android:layout_marginStart="10sp"
                 android:textSize="16sp">
@@ -72,7 +72,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_toEndOf="@+id/ivEditThumbnail"
-                android:text="Edit thumbnail"
+                android:text="@string/edit_thumbnail"
                 android:layout_centerVertical="true"
                 android:layout_marginStart="10sp"
                 android:textSize="16sp">
@@ -101,7 +101,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_toEndOf="@+id/ivDelete"
-                android:text="Delete playlist"
+                android:text="@string/delete_playlist"
                 android:layout_centerVertical="true"
                 android:layout_marginStart="10sp"
                 android:textSize="16sp">

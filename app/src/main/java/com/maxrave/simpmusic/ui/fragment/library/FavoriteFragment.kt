@@ -97,7 +97,7 @@ class FavoriteFragment : Fragment() {
                 val args = Bundle()
                 args.putString("type", Config.ALBUM_CLICK)
                 args.putString("videoId", song.videoId)
-                args.putString("from", "Favorite")
+                args.putString("from", getString(R.string.favorite))
                 args.putInt("index", position)
                 Queue.clear()
                 Queue.setNowPlaying(song.toTrack())
@@ -284,7 +284,7 @@ class FavoriteFragment : Fragment() {
                                                 setEnabledAll(btDownload, true)
                                                 Toast.makeText(
                                                     requireContext(),
-                                                    "Download failed",
+                                                    getString(androidx.media3.exoplayer.R.string.exo_download_failed),
                                                     Toast.LENGTH_SHORT
                                                 ).show()
                                             }
@@ -296,7 +296,7 @@ class FavoriteFragment : Fragment() {
                                                 )
                                                 Toast.makeText(
                                                     requireContext(),
-                                                    "Download completed",
+                                                    androidx.media3.exoplayer.R.string.exo_download_completed,
                                                     Toast.LENGTH_SHORT
                                                 ).show()
                                                 tvDownload.text = getString(R.string.downloaded)
@@ -328,7 +328,7 @@ class FavoriteFragment : Fragment() {
                             setEnabledAll(btDownload, true)
                             Toast.makeText(
                                 requireContext(),
-                                "Removed download",
+                                getString(R.string.removed_download),
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
@@ -338,7 +338,7 @@ class FavoriteFragment : Fragment() {
                         shareIntent.type = "text/plain"
                         val url = "https://youtube.com/watch?v=${song.videoId}"
                         shareIntent.putExtra(Intent.EXTRA_TEXT, url)
-                        val chooserIntent = Intent.createChooser(shareIntent, "Chia sẻ URL")
+                        val chooserIntent = Intent.createChooser(shareIntent, getString(R.string.share_url))
                         startActivity(chooserIntent)
                     }
                 }

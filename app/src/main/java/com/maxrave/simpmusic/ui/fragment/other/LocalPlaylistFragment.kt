@@ -195,10 +195,10 @@ class LocalPlaylistFragment : Fragment() {
                 viewModel.downloadPlaylist(tempList, id!!)
             }
             else if (viewModel.localPlaylist.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
-                Toast.makeText(requireContext(), "Downloaded", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), getString(R.string.downloaded), Toast.LENGTH_SHORT).show()
             }
             else if (viewModel.localPlaylist.value?.downloadState == DownloadState.STATE_DOWNLOADING) {
-                Toast.makeText(requireContext(), "Downloading", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), getString(R.string.downloading), Toast.LENGTH_SHORT).show()
             }
         }
         binding.btMore.setOnClickListener {
@@ -210,7 +210,8 @@ class LocalPlaylistFragment : Fragment() {
                 editDialogView.etPlaylistName.editText?.setText(viewModel.localPlaylist.value?.title)
                 editDialogView.btEdit.setOnClickListener {
                     if (editDialogView.etPlaylistName.editText?.text.isNullOrEmpty()) {
-                        Toast.makeText(requireContext(), "Playlist name cannot be empty", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(requireContext(),
+                            getString(R.string.playlist_name_cannot_be_empty), Toast.LENGTH_SHORT).show()
                     }
                     else {
                         viewModel.updatePlaylistTitle(editDialogView.etPlaylistName.editText?.text.toString(), id!!)

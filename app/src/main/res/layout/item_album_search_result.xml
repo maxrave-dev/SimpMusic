@@ -25,7 +25,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="ASCEND"
+            android:text=""
             android:singleLine="true"
             android:ellipsize="marquee"
             android:marqueeRepeatLimit="marquee_forever"
@@ -55,7 +55,7 @@
 
         </TextView>
         <TextView
-            android:text="2019"
+            android:text=""
             android:id="@+id/tvAlbumYear"
             android:fontFamily="@font/roboto"
             android:textStyle="normal"
