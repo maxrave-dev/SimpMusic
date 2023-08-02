@@ -129,6 +129,7 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
             }
         }
 
+        viewModel.getLocation()
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         val view = binding.root

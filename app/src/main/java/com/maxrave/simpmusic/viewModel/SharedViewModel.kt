@@ -793,6 +793,12 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
             }
         }
     }
+
+    fun getLocation() {
+        regionCode = runBlocking { dataStoreManager.location.first() }
+        quality = runBlocking { dataStoreManager.quality.first() }
+        language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
+    }
 }
 sealed class UIEvent {
     object PlayPause : UIEvent()
