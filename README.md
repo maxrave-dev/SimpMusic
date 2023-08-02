@@ -35,6 +35,6 @@ More [screenshot](https://photos.app.goo.gl/AbieoXG5ctDrpwzp7) here.
 You can help me to translate this app to your language by clone this repo and use Android Studio Translations Editor to translate "string.xml" file in "values" folder. Then create a pull request to me.
 More info [here](https://developer.android.com/studio/write/translations-editor)
 ## Donate
-|   [<img src="https://upload.wikimedia.org/wikipedia/commons/archive/b/b5/20230314142950%21PayPal.svg" height="40">]()         | [Paypal](paypal.me/maxraveofficial) |
-|-------|---------|
+|   [<img src="https://upload.wikimedia.org/wikipedia/commons/archive/b/b5/20230314142950%21PayPal.svg" height="40">]()         | [Paypal](https://paypal.me/maxraveofficial) |
+|---------|---------|
 |   [<img src="https://upload.wikimedia.org/wikipedia/en/5/5c/Buy_Me_a_Coffee_Logo.png" height="40">]()         | [Buy Me A Coffee](https://www.buymeacoffee.com/maxrave) |
