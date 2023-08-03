@@ -5,25 +5,22 @@ import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.navigation.NavController
-import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.home.Content
-import com.maxrave.simpmusic.data.model.home.homeItem
+import com.maxrave.simpmusic.data.model.home.HomeItem
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.ItemHomeBinding
 import com.maxrave.simpmusic.extension.toTrack
 
-class HomeItemAdapter(private var homeItemList: ArrayList<homeItem>, var context: Context, val navController: NavController): RecyclerView.Adapter<HomeItemAdapter.ViewHolder>() {
-    inner class ViewHolder(var binding: ItemHomeBinding) : RecyclerView.ViewHolder(binding.root) {
+class HomeItemAdapter(private var homeItemList: ArrayList<HomeItem>, var context: Context, val navController: NavController): RecyclerView.Adapter<HomeItemAdapter.ViewHolder>() {
+    inner class ViewHolder(var binding: ItemHomeBinding) : RecyclerView.ViewHolder(binding.root)
 
-    }
-    fun updateData(newData: ArrayList<homeItem>){
+    fun updateData(newData: ArrayList<HomeItem>){
         homeItemList.clear()
         homeItemList.addAll(newData)
         notifyDataSetChanged()
@@ -42,7 +39,7 @@ class HomeItemAdapter(private var homeItemList: ArrayList<homeItem>, var context
         val homeItem = homeItemList[position]
         holder.binding.tvTitle.text = homeItem.title
         val layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
-        var tempContentList = homeItem.contents.toCollection(ArrayList<Content?>())
+        val tempContentList = homeItem.contents.toCollection(ArrayList())
         tempContentList.removeIf { it == null }
         val itemAdapter = HomeItemContentAdapter(tempContentList as ArrayList<Content>)
         holder.binding.childRecyclerview.apply {

@@ -11,7 +11,7 @@ import com.maxrave.simpmusic.data.model.explore.mood.Mood
 import com.maxrave.simpmusic.data.model.explore.mood.genre.GenreObject
 import com.maxrave.simpmusic.data.model.explore.mood.moodmoments.MoodsMomentObject
 import com.maxrave.simpmusic.data.model.home.chart.Chart
-import com.maxrave.simpmusic.data.model.home.homeItem
+import com.maxrave.simpmusic.data.model.home.HomeItem
 import com.maxrave.simpmusic.data.model.metadata.Lyrics
 import com.maxrave.simpmusic.data.model.metadata.MetadataSong
 import com.maxrave.simpmusic.data.model.searchResult.albums.AlbumsResult
@@ -69,7 +69,7 @@ class RemoteDataSource @Inject constructor(private val searchService: SearchServ
 
     suspend fun suggestQuery(query: String): Response<ArrayList<String>> = searchService.suggestQuery(query)
 
-    suspend fun getHome(regionCode: String, language: String): Response<ArrayList<homeItem>> = searchService.getHome(regionCode, language)
+    suspend fun getHome(regionCode: String, language: String): Response<ArrayList<HomeItem>> = searchService.getHome(regionCode, language)
 
     suspend fun exploreMood(regionCode: String, language: String): Response<Mood> = searchService.exploreMood(regionCode, language)
     suspend fun getMood(params: String, regionCode: String, language: String): Response<MoodsMomentObject> = searchService.getMood(params, regionCode, language)

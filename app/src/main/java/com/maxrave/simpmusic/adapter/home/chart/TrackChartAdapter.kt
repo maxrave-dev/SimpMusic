@@ -6,26 +6,25 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.home.chart.ItemVideo
 import com.maxrave.simpmusic.databinding.ItemTrackChartBinding
 
-class TrackChartAdapter(private var trackList: ArrayList<ItemVideo>, val context: Context): RecyclerView.Adapter<TrackChartAdapter.ViewHolder>() {
-    inner class ViewHolder(val binding: ItemTrackChartBinding, listener: setOnItemClickListener): RecyclerView.ViewHolder(binding.root) {
+class TrackChartAdapter( var trackList: ArrayList<ItemVideo>, val context: Context): RecyclerView.Adapter<TrackChartAdapter.ViewHolder>() {
+    inner class ViewHolder(val binding: ItemTrackChartBinding, listener: SetOnItemClickListener): RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {listener.onItemClick(bindingAdapterPosition)}
         }
     }
-    fun updateData(newData: ArrayList<ItemVideo>){
+    fun updateData(newData: List<ItemVideo>){
         trackList.clear()
         trackList.addAll(newData)
         notifyDataSetChanged()
     }
-    interface setOnItemClickListener {
+    interface SetOnItemClickListener {
         fun onItemClick(position: Int)
     }
-    private lateinit var mTrackListener: setOnItemClickListener
-    fun setOnItemClickListener(listener: setOnItemClickListener){
+    private lateinit var mTrackListener: SetOnItemClickListener
+    fun setOnItemClickListener(listener: SetOnItemClickListener){
         mTrackListener = listener
     }
 

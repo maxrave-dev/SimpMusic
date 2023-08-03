@@ -27,7 +27,7 @@ class QuickPicksAdapter(val contentList: ArrayList<Content>, val context: Contex
     fun setOnClickListener(listener: OnClickListener){
         mListener = listener
     }
-    fun updateData(newData: ArrayList<Content>) {
+    fun updateData(newData: List<Content>) {
         contentList.clear()
         contentList.addAll(newData)
         notifyDataSetChanged()

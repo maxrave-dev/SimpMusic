@@ -44,7 +44,7 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
         }
     }
 
-    suspend fun getString(key: String): Flow<String?> {
+    fun getString(key: String): Flow<String?> {
         return settingsDataStore.data.map { preferences ->
             preferences[stringPreferencesKey(key)]
         }
