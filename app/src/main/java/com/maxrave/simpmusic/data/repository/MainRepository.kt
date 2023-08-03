@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.data.repository
 
+import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.data.api.BaseApiResponse
 import com.maxrave.simpmusic.data.api.search.RemoteDataSource
 import com.maxrave.simpmusic.data.db.LocalDataSource
@@ -19,7 +20,8 @@ import com.maxrave.simpmusic.data.model.explore.mood.Mood
 import com.maxrave.simpmusic.data.model.explore.mood.genre.GenreObject
 import com.maxrave.simpmusic.data.model.explore.mood.moodmoments.MoodsMomentObject
 import com.maxrave.simpmusic.data.model.home.chart.Chart
-import com.maxrave.simpmusic.data.model.home.homeItem
+import com.maxrave.simpmusic.data.model.home.HomeItem
+import com.maxrave.simpmusic.data.model.home.HomeResponse
 import com.maxrave.simpmusic.data.model.metadata.Lyrics
 import com.maxrave.simpmusic.data.model.metadata.MetadataSong
 import com.maxrave.simpmusic.data.model.searchResult.albums.AlbumsResult
@@ -31,9 +33,9 @@ import com.maxrave.simpmusic.data.model.songfull.SongFull
 import com.maxrave.simpmusic.data.model.streams.Streams
 import com.maxrave.simpmusic.data.model.thumbnailUrl
 import com.maxrave.simpmusic.utils.Resource
-import dagger.hilt.android.scopes.ActivityRetainedScoped
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
@@ -57,10 +59,17 @@ class MainRepository @Inject constructor(private val remoteDataSource: RemoteDat
     suspend fun suggestQuery(query: String): Flow<Resource<ArrayList<String>>> = flow<Resource<ArrayList<String>>> { emit(safeApiCall { remoteDataSource.suggestQuery(query) }) }.flowOn(Dispatchers.IO)
 
     //getHome
-    suspend fun getHome(regionCode: String, language: String) : Flow<Resource<ArrayList<homeItem>>> =  flow<Resource<ArrayList<homeItem>>>{emit(safeApiCall { remoteDataSource.getHome(regionCode, language) })  }.flowOn(Dispatchers.IO)
+    fun getHomeData(regionCode: String, language: String)  : Flow<HomeResponse> = combine(
+        getHome(regionCode, language),
+        exploreMood(regionCode,language),
+        exploreChart("ZZ", language)
+    ) { home, exploreMood, exploreChart ->
+        HomeResponse(home, exploreMood, exploreChart)
+    }
+    fun getHome(regionCode: String, language: String) : Flow<Resource<ArrayList<HomeItem>>> =  flow<Resource<ArrayList<HomeItem>>>{emit(safeApiCall { remoteDataSource.getHome(regionCode, language) })  }.flowOn(Dispatchers.IO)
 
     //exploreMood
-    suspend fun exploreMood(regionCode: String, language: String): Flow<Resource<Mood>> = flow<Resource<Mood>> { emit(safeApiCall { remoteDataSource.exploreMood(regionCode, language) }) }.flowOn(Dispatchers.IO)
+    fun exploreMood(regionCode: String, language: String): Flow<Resource<Mood>> = flow<Resource<Mood>> { emit(safeApiCall { remoteDataSource.exploreMood(regionCode, language) }) }.flowOn(Dispatchers.IO)
     suspend fun getMood(params: String, regionCode: String, language: String): Flow<Resource<MoodsMomentObject>> = flow<Resource<MoodsMomentObject>> { emit(safeApiCall { remoteDataSource.getMood(params, regionCode, language) }) }.flowOn(Dispatchers.IO)
     suspend fun getGenre(params: String, regionCode: String, language: String): Flow<Resource<GenreObject>> = flow<Resource<GenreObject>> { emit(safeApiCall { remoteDataSource.getGenre(params, regionCode, language) }) }.flowOn(Dispatchers.IO)
 
@@ -72,7 +81,7 @@ class MainRepository @Inject constructor(private val remoteDataSource: RemoteDat
     //playlist
     suspend fun browsePlaylist(id: String, regionCode: String, language: String): Flow<Resource<PlaylistBrowse>> = flow<Resource<PlaylistBrowse>> { emit(safeApiCall { remoteDataSource.browsePlaylist(id, regionCode, language) }) }.flowOn(Dispatchers.IO)
     //chart
-    suspend fun exploreChart(regionCode: String, language: String): Flow<Resource<Chart>> = flow<Resource<Chart>> { emit(safeApiCall { remoteDataSource.exploreChart(regionCode, language) }) }.flowOn(Dispatchers.IO)
+    fun exploreChart(regionCode: String, language: String): Flow<Resource<Chart>> = flow<Resource<Chart>> { emit(safeApiCall { remoteDataSource.exploreChart(regionCode, language) }) }.flowOn(Dispatchers.IO)
     //metadata
     suspend fun getMetadata(videoId: String, regionCode: String, language: String): Flow<Resource<MetadataSong>> = flow<Resource<MetadataSong>> { emit(safeApiCall { remoteDataSource.getMetadata(videoId, regionCode, language) }) }.flowOn(Dispatchers.IO)
     suspend fun getLyrics(query: String): Flow<Resource<Lyrics>> = flow<Resource<Lyrics>> { emit(safeApiCall { remoteDataSource.getLyrics(query) }) }.flowOn(Dispatchers.IO)

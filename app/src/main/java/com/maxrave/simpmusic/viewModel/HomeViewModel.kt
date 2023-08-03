@@ -1,92 +1,119 @@
 package com.maxrave.simpmusic.viewModel
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.util.Log
+import androidx.constraintlayout.motion.widget.Debug.getLocation
 import androidx.lifecycle.*
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.model.home.chart.Chart
-import com.maxrave.simpmusic.data.model.explore.mood.Genre
 import com.maxrave.simpmusic.data.model.explore.mood.Mood
-import com.maxrave.simpmusic.data.model.home.homeItem
+import com.maxrave.simpmusic.data.model.home.HomeItem
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.*
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 @HiltViewModel
-class HomeViewModel @Inject constructor(private val mainRepository: MainRepository, application: Application, private var dataStoreManager: DataStoreManager) : AndroidViewModel(application) {
-    private val _homeItemList: MutableLiveData<Resource<ArrayList<homeItem>>> = MutableLiveData()
-    val homeItemList: LiveData<Resource<ArrayList<homeItem>>> = _homeItemList
+class HomeViewModel @Inject constructor(
+    private val mainRepository: MainRepository,
+    application: Application,
+    private var dataStoreManager: DataStoreManager
+) : AndroidViewModel(application) {
+    private val _homeItemList: MutableLiveData<Resource<ArrayList<HomeItem>>> = MutableLiveData()
+    val homeItemList: LiveData<Resource<ArrayList<HomeItem>>> = _homeItemList
     private val _exploreMoodItem: MutableLiveData<Resource<Mood>> = MutableLiveData()
     val exploreMoodItem: LiveData<Resource<Mood>> = _exploreMoodItem
+
+    val showSnackBarErrorState = MutableSharedFlow<String>()
 
     private val _chart: MutableLiveData<Resource<Chart>> = MutableLiveData()
     val chart: LiveData<Resource<Chart>> = _chart
     var regionCodeChart: MutableLiveData<String> = MutableLiveData()
 
-    var loading = MutableLiveData<Boolean>()
-    var loadingChart = MutableLiveData<Boolean>()
-    var errorMessage = MutableLiveData<String>()
-    private var regionCode: String? = null
-    private var language: String? = null
+    val loading = MutableLiveData<Boolean>()
+    val loadingChart = MutableLiveData<Boolean>()
+    val errorMessage = MutableLiveData<String>()
+    private var regionCode: String = ""
+    private var language: String = ""
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         onError("Exception handled: ${throwable.localizedMessage}")
     }
+
     init {
-        regionCode = runBlocking { dataStoreManager.location.first() }
-        language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
+        viewModelScope.launch {
+            language = dataStoreManager.getString(SELECTED_LANGUAGE).first()
+                ?: SUPPORTED_LANGUAGE.codes.first()
+            //  refresh when region change
+            dataStoreManager.location.distinctUntilChanged().collect {
+                regionCode = it
+                getHomeItemList()
+            }
+        }
+
     }
 
 
     fun getHomeItemList() {
+        Log.d("HomeViewModel", "getHomeItemList")
         loading.value = true
-        Log.d("HomeViewModel", "lang: $language")
         viewModelScope.launch {
-            val job1 = viewModelScope.launch {
-                mainRepository.getHome(regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect {values->
-                    _homeItemList.value = values
-                    Log.d("HomeViewModel", "getHomeItemList: ${homeItemList.value?.data}")
+            combine(
+                mainRepository.getHome(
+                    regionCode,
+                    SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language)]
+                ),
+                mainRepository.exploreMood(
+                    regionCode,
+                    SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language)]
+                ),
+                mainRepository.exploreChart(
+                    "ZZ",
+                    SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language)]
+                )
+            ) { home, exploreMood, exploreChart ->
+                Triple(home, exploreMood, exploreChart)
+            }.collect { result ->
+                val home = result.first
+                val exploreMoodItem = result.second
+                val chart = result.third
+                _homeItemList.value = home
+                _exploreMoodItem.value = exploreMoodItem
+                regionCodeChart.value = "ZZ"
+                _chart.value = chart
+                Log.d("HomeViewModel", "getHomeItemList: $result")
+                when {
+                    home is Resource.Error -> home.message
+                    exploreMoodItem is Resource.Error -> exploreMoodItem.message
+                    chart is Resource.Error -> chart.message
+                    else -> null
+                }?.let {
+                    showSnackBarErrorState.emit(it)
                 }
-            }
-            val job2 = viewModelScope.launch {
-                mainRepository.exploreMood(regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect{values ->
-                    _exploreMoodItem.value = values
-                    Log.d("HomeViewModel", "getHomeItemList: ${exploreMoodItem.value?.data}")
-                    loading.value = false
-                }
-            }
-            val job3 = viewModelScope.launch {
-                mainRepository.exploreChart("ZZ", SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect{values ->
-                    regionCodeChart.value = "ZZ"
-                    _chart.value = values
-                    Log.d("HomeViewModel", "getHomeItemList: ${chart.value?.data}")
-                    loading.value = false
-                }
-            }
-            job1.join()
-            job2.join()
-            job3.join()
-            withContext(Dispatchers.Main) {
                 loading.value = false
             }
         }
     }
-    fun exploreChart(region: String){
-        loadingChart.value = true
+
+    fun exploreChart(region: String) {
         viewModelScope.launch {
-            mainRepository.exploreChart(region, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect{ values ->
+            loadingChart.value = true
+            mainRepository.exploreChart(
+                region,
+                SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language)]
+            ).collect { values ->
                 regionCodeChart.value = region
                 _chart.value = values
                 Log.d("HomeViewModel", "getHomeItemList: ${chart.value?.data}")
-                loadingChart.value = false
-            }
-            withContext(Dispatchers.Main) {
                 loadingChart.value = false
             }
         }
@@ -97,8 +124,4 @@ class HomeViewModel @Inject constructor(private val mainRepository: MainReposito
         loading.value = false
     }
 
-    fun getLocation() {
-        regionCode = runBlocking { dataStoreManager.location.first() }
-        language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
-    }
 }

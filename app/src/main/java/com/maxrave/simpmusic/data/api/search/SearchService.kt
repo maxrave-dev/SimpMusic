@@ -9,7 +9,7 @@ import com.maxrave.simpmusic.data.model.browse.playlist.PlaylistBrowse
 import com.maxrave.simpmusic.data.model.explore.mood.Mood
 import com.maxrave.simpmusic.data.model.explore.mood.genre.GenreObject
 import com.maxrave.simpmusic.data.model.explore.mood.moodmoments.MoodsMomentObject
-import com.maxrave.simpmusic.data.model.home.homeItem
+import com.maxrave.simpmusic.data.model.home.HomeItem
 import com.maxrave.simpmusic.data.model.metadata.Lyrics
 import com.maxrave.simpmusic.data.model.metadata.MetadataSong
 import com.maxrave.simpmusic.data.model.searchResult.albums.AlbumsResult
@@ -59,7 +59,7 @@ interface SearchService {
 
     //getHome
     @GET("home")
-    suspend fun getHome(@Query("r") region: String, @Query("l") language: String): Response<ArrayList<homeItem>>
+    suspend fun getHome(@Query("r") region: String, @Query("l") language: String): Response<ArrayList<HomeItem>>
 
     //exploreMood
     @GET("explore/mood/title")

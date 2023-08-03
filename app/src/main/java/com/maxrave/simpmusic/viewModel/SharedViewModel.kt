@@ -654,36 +654,41 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
         }
     }
 
-
-
     fun getLyricsString(current: Long): LyricDict? {
-        var listLyricDict: LyricDict? = null
-        for (i in 0 until lyricsFormat.value?.size!!) {
-            val sentence = lyricsFormat.value!![i]
-            val next = if (i > 1) listOf(lyricsFormat.value!![i - 2].words, lyricsFormat.value!![i - 1].words) else if (i > 0) listOf(lyricsFormat.value!![0].words) else null
-            val prev = if (i < lyricsFormat.value!!.size - 2) listOf(lyricsFormat.value!![i + 1].words, lyricsFormat.value!![i + 2].words) else if (i < lyricsFormat.value!!.size - 1) listOf(lyricsFormat.value!![i + 1].words) else null
+        val lyricsFormat = lyricsFormat.value
+        lyricsFormat?.indices?.forEach { i ->
+            val sentence = lyricsFormat[i]
+            val next = if (i > 1) listOf(
+                lyricsFormat[i - 2].words,
+                lyricsFormat[i - 1].words
+            ) else if (i > 0)
+                listOf(lyricsFormat[0].words) else null
+            val prev = if (i < lyricsFormat.size - 2) listOf(
+                lyricsFormat[i + 1].words,
+                lyricsFormat[i + 2].words
+            ) else if (i < lyricsFormat.size - 1)
+                listOf(lyricsFormat[i + 1].words)
+            else
+                null
             // get the start time of the current sentence
             val startTimeMs = sentence.startTimeMs.toLong()
 
             // estimate the end time of the current sentence based on the start time of the next sentence
-            val endTimeMs = if (i < lyricsFormat.value!!.size - 1) {
-                lyricsFormat.value!![i + 1].startTimeMs.toLong()
+            val endTimeMs = if (i < lyricsFormat.size - 1) {
+                lyricsFormat[i + 1].startTimeMs.toLong()
             } else {
                 // if this is the last sentence, set the end time to be some default value (e.g., 1 minute after the start time)
                 startTimeMs + 60000
             }
             if (current in startTimeMs..endTimeMs) {
                 val lyric = if (sentence.words != "") sentence.words else null
-                listLyricDict = LyricDict(lyric, prev, next)
+                return LyricDict(lyric, prev, next)
 //                Log.d("Check Lyric", listLyricDict.toString())
-                break
-            }
-            else {
-                continue
             }
         }
-        return listLyricDict
+        return null
     }
+
 
 
 

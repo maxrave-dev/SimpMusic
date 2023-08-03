@@ -8,15 +8,15 @@ import com.maxrave.simpmusic.data.model.explore.mood.MoodsMoment
 import com.maxrave.simpmusic.databinding.ItemMoodsMomentGenreBinding
 import kotlin.random.Random
 
-class MoodsMomentAdapter(private val moodsMomentList: ArrayList<MoodsMoment>): RecyclerView.Adapter<MoodsMomentAdapter.ViewHolder>() {
-    private lateinit var mMoodsMomentListener: onMoodsMomentItemClickListener
-    interface onMoodsMomentItemClickListener{
+class MoodsMomentAdapter(val moodsMomentList: ArrayList<MoodsMoment>): RecyclerView.Adapter<MoodsMomentAdapter.ViewHolder>() {
+    private lateinit var mMoodsMomentListener: OnMoodsMomentItemClickListener
+    interface OnMoodsMomentItemClickListener{
         fun onMoodsMomentItemClick(position: Int)
     }
-    fun setOnMoodsMomentClickListener(listener: onMoodsMomentItemClickListener){
+    fun setOnMoodsMomentClickListener(listener: OnMoodsMomentItemClickListener){
         mMoodsMomentListener = listener
     }
-    inner class ViewHolder(val binding: ItemMoodsMomentGenreBinding, var listener: onMoodsMomentItemClickListener): RecyclerView.ViewHolder(binding.root){
+    inner class ViewHolder(val binding: ItemMoodsMomentGenreBinding, var listener: OnMoodsMomentItemClickListener): RecyclerView.ViewHolder(binding.root){
         init {
             binding.root.setOnClickListener {listener.onMoodsMomentItemClick(bindingAdapterPosition)}
         }
