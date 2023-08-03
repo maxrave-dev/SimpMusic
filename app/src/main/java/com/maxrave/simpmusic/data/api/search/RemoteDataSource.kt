@@ -19,16 +19,11 @@ import com.maxrave.simpmusic.data.model.searchResult.artists.ArtistsResult
 import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
-import com.maxrave.simpmusic.data.model.songfull.SongFull
-import com.maxrave.simpmusic.data.model.streams.Streams
 import com.maxrave.simpmusic.data.model.thumbnailUrl
 import retrofit2.Response
 import javax.inject.Inject
 
 class RemoteDataSource @Inject constructor(private val searchService: SearchService, private val dataStoreManager: DataStoreManager) {
-    suspend fun getSong(videoId: String): Response<ArrayList<Streams>> = searchService.getSong(videoId)
-    suspend fun getSongFull(videoId: String): Response<SongFull> = searchService.getSongFull(videoId)
-
     suspend fun getThumbnails(songId: String): Response<ArrayList<thumbnailUrl>> = searchService.getThumbnails(songId)
     suspend fun searchAll(query: String, regionCode: String, language: String): Response<ArrayList<Any>> = searchService.searchAll(query, regionCode, language)
 

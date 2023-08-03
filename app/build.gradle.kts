@@ -14,8 +14,8 @@ android {
         applicationId = "com.maxrave.simpmusic"
         minSdk = 26
         targetSdk = 34
-        versionCode = 3
-        versionName = "0.0.3-beta"
+        versionCode = 4
+        versionName = "0.0.4-beta"
 
         resourceConfigurations += listOf("en", "vi")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -109,7 +109,7 @@ dependencies {
     implementation("androidx.preference:preference-ktx:1.2.0")
 
     //fragment ktx
-    implementation("androidx.fragment:fragment-ktx:1.6.0")
+    implementation("androidx.fragment:fragment-ktx:1.6.1")
     //Hilt
     implementation("com.google.dagger:hilt-android:2.47")
     kapt ("com.google.dagger:hilt-compiler:2.47")
@@ -131,11 +131,19 @@ dependencies {
     implementation("com.airbnb.android:lottie:$lottieVersion")
 
     //Paging 3
-    val paging_version= "3.2.0-rc01"
+    val paging_version= "3.2.0"
     implementation("androidx.paging:paging-runtime-ktx:$paging_version")
 
     implementation("androidx.legacy:legacy-support-v4:1.0.0")
     implementation("com.daimajia.swipelayout:library:1.2.0@aar")
+
+    //ktor
+    val ktor_version = "2.3.3"
+    implementation("io.ktor:ktor-client-core:$ktor_version")
+    implementation("io.ktor:ktor-client-cio:$ktor_version")
+    implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
+    implementation("io.ktor:ktor-serialization-gson:$ktor_version")
 
 }
 // Allow references to generated code

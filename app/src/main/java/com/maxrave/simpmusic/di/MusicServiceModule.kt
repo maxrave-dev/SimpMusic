@@ -33,6 +33,7 @@ import dagger.hilt.android.components.ServiceComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.android.scopes.ServiceScoped
 import dagger.hilt.components.SingletonComponent
+import io.ktor.client.HttpClient
 import javax.inject.Qualifier
 import javax.inject.Singleton
 
@@ -168,7 +169,7 @@ object MusicServiceModule {
     @Provides
     @Singleton
     fun provideMusicSource(
-        simpleMediaServiceHandler: SimpleMediaServiceHandler, mainRepository: MainRepository, dataStoreManager: DataStoreManager
+        simpleMediaServiceHandler: SimpleMediaServiceHandler, mainRepository: MainRepository, dataStoreManager: DataStoreManager, ktorClient: HttpClient
     ): MusicSource =
-        MusicSource(simpleMediaServiceHandler, mainRepository, dataStoreManager)
+        MusicSource(simpleMediaServiceHandler, mainRepository, dataStoreManager, ktorClient)
 }

@@ -1,25 +1,27 @@
 package com.maxrave.simpmusic.viewModel
 
-import android.annotation.SuppressLint
 import android.app.Application
 import android.util.Log
-import androidx.constraintlayout.motion.widget.Debug.getLocation
-import androidx.lifecycle.*
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.viewModelScope
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
-import com.maxrave.simpmusic.data.model.home.chart.Chart
 import com.maxrave.simpmusic.data.model.explore.mood.Mood
 import com.maxrave.simpmusic.data.model.home.HomeItem
+import com.maxrave.simpmusic.data.model.home.chart.Chart
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 @HiltViewModel
@@ -58,12 +60,17 @@ class HomeViewModel @Inject constructor(
                 regionCode = it
                 getHomeItemList()
             }
+            dataStoreManager.language.distinctUntilChanged().collect {
+                language = it
+                getHomeItemList()
+            }
         }
 
     }
 
-
     fun getHomeItemList() {
+        language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() ?: SUPPORTED_LANGUAGE.codes.first() }
+        regionCode = runBlocking { dataStoreManager.location.first() }
         Log.d("HomeViewModel", "getHomeItemList")
         loading.value = true
         viewModelScope.launch {

@@ -7,6 +7,11 @@ A simple music app using YouTube Music for backend
 
 [![Latest release](https://img.shields.io/github/v/release/maxrave-dev/SimpMusic)](https://github.com/maxrave-dev/SimpMusic/releases) 
 [![Downloads](https://img.shields.io/github/downloads/maxrave-dev/SimpMusic/total)](https://github.com/maxrave-dev/SimpMusic/releases)
+
+> **Warning**
+>
+>This app is in beta stage, so it may have many bugs and make it crash. If you find any bug, please create an issue or contact me via email.
+
 ## Features
 - Play music from YouTube Music or YouTube free without ads in the background
 - Browsing Home, Charts, Moods & Genre with YouTube Music data

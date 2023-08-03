@@ -118,15 +118,15 @@ class SettingsViewModel @Inject constructor(
     @UnstableApi
     fun clearDownloadedCache() {
         viewModelScope.launch {
-            playerCache.keys.forEach { key ->
-                playerCache.removeResource(key)
+            downloadCache.keys.forEach { key ->
+                downloadCache.removeResource(key)
             }
             mainRepository.getDownloadedSongs().collect {songs ->
                 songs.forEach { song ->
                     mainRepository.updateDownloadState(song.videoId, DownloadState.STATE_NOT_DOWNLOADED)
                 }
             }
-            Toast.makeText(getApplication(), "Player cache cleared", Toast.LENGTH_SHORT).show()
+            Toast.makeText(getApplication(), "Download cache cleared", Toast.LENGTH_SHORT).show()
             _cacheSize.value = playerCache.cacheSpace
         }
     }

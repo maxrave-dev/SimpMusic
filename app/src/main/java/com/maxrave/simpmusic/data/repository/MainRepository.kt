@@ -29,8 +29,6 @@ import com.maxrave.simpmusic.data.model.searchResult.artists.ArtistsResult
 import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
-import com.maxrave.simpmusic.data.model.songfull.SongFull
-import com.maxrave.simpmusic.data.model.streams.Streams
 import com.maxrave.simpmusic.data.model.thumbnailUrl
 import com.maxrave.simpmusic.utils.Resource
 import kotlinx.coroutines.Dispatchers
@@ -44,8 +42,6 @@ import javax.inject.Inject
 
 //@ActivityRetainedScoped
 class MainRepository @Inject constructor(private val remoteDataSource: RemoteDataSource, private val localDataSource: LocalDataSource): BaseApiResponse() {
-    suspend fun getSong(videoId: String): Flow<Resource<ArrayList<Streams>>> = flow { emit(safeApiCall { remoteDataSource.getSong(videoId) }) }.flowOn(Dispatchers.IO)
-    suspend fun getSongFull(videoId: String): Flow<Resource<SongFull>> = flow { emit(safeApiCall { remoteDataSource.getSongFull(videoId) }) }.flowOn(Dispatchers.IO)
     suspend fun getThumbnails(songId: String): Flow<Resource<ArrayList<thumbnailUrl>>> = flow { emit(safeApiCall { remoteDataSource.getThumbnails(songId) }) }.flowOn(Dispatchers.IO)
     //search
     suspend fun searchAll(query: String, regionCode: String, language: String) = remoteDataSource.searchAll(query, regionCode, language)

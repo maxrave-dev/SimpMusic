@@ -253,23 +253,16 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
                                 }?.let { videoId ->
                                     viewModel.getSongFull(videoId)
                                     viewModel.songFull.observe(this@MainActivity) {
-                                        when (it) {
-                                            is Resource.Success -> {
-                                                val song = it.data!!
-                                                val track = song.toTrack(videoId)
-                                                Queue.clear()
-                                                Queue.setNowPlaying(track)
-                                                val args = Bundle()
-                                                args.putString("videoId", videoId)
-                                                args.putString("from", getString(R.string.shared))
-                                                args.putString("type", Config.SONG_CLICK)
-                                                viewModel.intent.value = null
-                                                navController.navigate(R.id.action_global_nowPlayingFragment, args)
-                                            }
-                                            is Resource.Error -> {
-                                                viewModel.intent.value = null
-                                                Toast.makeText(this@MainActivity, it.message, Toast.LENGTH_SHORT).show()
-                                            }
+                                        if (it != null){
+                                            val track = it.toTrack(videoId)
+                                            Queue.clear()
+                                            Queue.setNowPlaying(track)
+                                            val args = Bundle()
+                                            args.putString("videoId", videoId)
+                                            args.putString("from", getString(R.string.shared))
+                                            args.putString("type", Config.SONG_CLICK)
+                                            viewModel.intent.value = null
+                                            navController.navigate(R.id.action_global_nowPlayingFragment, args)
                                         }
                                     }
                                 }

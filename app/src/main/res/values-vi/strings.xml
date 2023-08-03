@@ -133,4 +133,8 @@
     <string name="now_playing_upper">ĐANG PHÁT</string>
     <string name="language">Ngôn ngữ</string>
     <string name="what_do_you_want_to_listen_to">Bạn đang muốn nghe gì?</string>
+    <plurals name="n_song">
+        <item quantity="one">%d bài hát</item>
+        <item quantity="other">%d bài hát</item>
+    </plurals>
 </resources>

@@ -32,15 +32,13 @@ import com.maxrave.simpmusic.data.model.metadata.Line
 import com.maxrave.simpmusic.data.model.metadata.Lyrics
 import com.maxrave.simpmusic.data.model.metadata.MetadataSong
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
-import com.maxrave.simpmusic.data.model.songfull.SongFull
+import com.maxrave.simpmusic.data.model.streams.StreamData
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.di.DownloadCache
-import com.maxrave.simpmusic.di.PlayerCache
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toLyrics
-import com.maxrave.simpmusic.extension.toLyricsEntity
 import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.service.PlayerEvent
 import com.maxrave.simpmusic.service.RepeatState
@@ -50,6 +48,17 @@ import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.service.test.source.MusicSource
 import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import io.ktor.client.HttpClient
+import io.ktor.client.call.body
+import io.ktor.client.plugins.HttpRequestTimeoutException
+import io.ktor.client.request.get
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
+import io.ktor.http.headers
+import io.ktor.utils.io.core.EOFException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -61,13 +70,14 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import java.net.ConnectException
 import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @HiltViewModel
 @UnstableApi
-class SharedViewModel @Inject constructor(private var dataStoreManager: DataStoreManager, @DownloadCache private val downloadedCache: SimpleCache, private val musicSource: MusicSource, private val mainRepository: MainRepository, private val simpleMediaServiceHandler: SimpleMediaServiceHandler, application: Application) : AndroidViewModel(application){
+class SharedViewModel @Inject constructor(private var dataStoreManager: DataStoreManager, @DownloadCache private val downloadedCache: SimpleCache, private val musicSource: MusicSource, private val mainRepository: MainRepository, private val simpleMediaServiceHandler: SimpleMediaServiceHandler, private val ktorClient: HttpClient, application: Application) : AndroidViewModel(application){
     @Inject
     lateinit var downloadUtils: DownloadUtils
 
@@ -446,23 +456,31 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                 _firstTrackAdded.value = true
                 musicSource.addFirstMetadata(track)
             } else {
-                mainRepository.getSong(track.videoId).collect { values ->
-                    when (values) {
-                        is Resource.Success -> {
-                            val listAudioStream = values.data
-                            var itag = 0
-                            when (quality){
-                                QUALITY.items[0].toString() -> {
-                                    itag = QUALITY.itags[0]
-                                }
-                                QUALITY.items[1].toString() -> {
-                                    itag = QUALITY.itags[1]
-                                }
+                try {
+                    val response = ktorClient.get("${Config.BASE_STREAM_URL}${track.videoId}") {
+                        method = HttpMethod.Get
+                        headers {
+                            append(HttpHeaders.UserAgent, Config.USER_AGENT)
+                            append(HttpHeaders.Accept, "application/json")
+                        }
+                        contentType(ContentType.Application.Json)
+                    }
+                    if (response.status == HttpStatusCode.OK) {
+                        var itag = 0
+                        when (quality){
+                            QUALITY.items[0].toString() -> {
+                                itag = QUALITY.itags[0]
                             }
-                            listAudioStream?.forEach {
-                                if (it.itag == itag){
-                                    Log.d("ITAG", it.itag.toString())
-                                    uri = it.url
+                            QUALITY.items[1].toString() -> {
+                                itag = QUALITY.itags[1]
+                            }
+                        }
+                        val data: StreamData = response.body()
+                        val audioStream = data.audioStreams
+                        audioStream?.forEach { stream ->
+                            if (stream.itag == itag){
+                                if (stream.url != null){
+                                    uri = stream.url
                                     val artistName: String = track.artists.toListName().connectArtists()
                                     var thumbUrl = track.thumbnails?.last()?.url!!
                                     if (thumbUrl.contains("w120")){
@@ -491,49 +509,74 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                                 }
                             }
                         }
-                        is Resource.Error -> {
-                            Toast.makeText(context, values.message, Toast.LENGTH_SHORT).show()
-                        }
+                    }
+                    else {
+                        Toast.makeText(context, "Error: ${response.status}", Toast.LENGTH_SHORT).show()
                     }
                 }
-//                val yt = YTExtractor(con = context, CACHING = false, LOGGING = true, retryCount = 3)
-////                yt.extract(track.videoId)
-////                if (yt.state == State.SUCCESS) {
-////                    if (yt.getYTFiles()?.getAudioOnly()?.bestQuality()?.url != null) {
-////                        yt.getYTFiles()?.getAudioOnly()?.bestQuality()?.url?.let {
-////                            uri = it
-////                            val artistName: String = track.artists.toListName().connectArtists()
-////                            var thumbUrl = track.thumbnails?.last()?.url!!
-////                            if (thumbUrl.contains("w120")){
-////                                thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
-////                            }
-////                            Log.d("Check URI", uri)
-////                            musicSource.downloadUrl.add(0, uri)
-////                            simpleMediaServiceHandler.addMediaItem(
-////                                MediaItem.Builder().setUri(uri)
-////                                    .setMediaId(track.videoId)
-////                                    .setMediaMetadata(
-////                                        MediaMetadata.Builder()
-////                                            .setTitle(track.title)
-////                                            .setArtist(artistName)
-////                                            .setArtworkUri(thumbUrl.toUri())
-////                                            .setAlbumTitle(track.album?.name)
-////                                            .build()
-////                                    )
-////                                    .build()
-////                            )
-////                            _nowPlayingMediaItem.value = getCurrentMediaItem()
-////                            Log.d("Check MediaItem Thumbnail", getCurrentMediaItem()?.mediaMetadata?.artworkUri.toString())
-////                            simpleMediaServiceHandler.changeTrackToFalse()
-////                        }
-////                        _firstTrackAdded.value = true
-////                        musicSource.addFirstMetadata(track)
-////                    }
-////                }
-////                else {
-////                    Toast.makeText(context, "Error: ${yt.state}, use VPN to fix this problem", Toast.LENGTH_SHORT).show()
-////                    _firstTrackAdded.value = false
-////                }
+                catch (e: HttpRequestTimeoutException) {
+                    Toast.makeText(context, "Error: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+                catch (e: EOFException){
+                    Log.d("DownloadUtils", "Exception: ${e.message}")
+                }
+                catch (e: ConnectException){
+                    Log.d("DownloadUtils", "Exception: ${e.message}")
+                }
+                catch (e: Exception){
+                    Log.d("DownloadUtils", "Exception: ${e.message}")
+                }
+
+//                mainRepository.getSong(track.videoId).collect { values ->
+//                    when (values) {
+//                        is Resource.Success -> {
+//                            val listAudioStream = values.data
+//                            var itag = 0
+//                            when (quality){
+//                                QUALITY.items[0].toString() -> {
+//                                    itag = QUALITY.itags[0]
+//                                }
+//                                QUALITY.items[1].toString() -> {
+//                                    itag = QUALITY.itags[1]
+//                                }
+//                            }
+//                            listAudioStream?.forEach {
+//                                if (it.itag == itag){
+//                                    Log.d("ITAG", it.itag.toString())
+//                                    uri = it.url
+//                                    val artistName: String = track.artists.toListName().connectArtists()
+//                                    var thumbUrl = track.thumbnails?.last()?.url!!
+//                                    if (thumbUrl.contains("w120")){
+//                                        thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
+//                                    }
+//                                    Log.d("Check URI", uri)
+//                                    musicSource.downloadUrl.add(0, uri)
+//                                    simpleMediaServiceHandler.addMediaItem(
+//                                        MediaItem.Builder().setUri(uri)
+//                                            .setMediaId(track.videoId)
+//                                            .setMediaMetadata(
+//                                                MediaMetadata.Builder()
+//                                                    .setTitle(track.title)
+//                                                    .setArtist(artistName)
+//                                                    .setArtworkUri(thumbUrl.toUri())
+//                                                    .setAlbumTitle(track.album?.name)
+//                                                    .build()
+//                                            )
+//                                            .build()
+//                                    )
+//                                    _nowPlayingMediaItem.value = getCurrentMediaItem()
+//                                    Log.d("Check MediaItem Thumbnail", getCurrentMediaItem()?.mediaMetadata?.artworkUri.toString())
+//                                    simpleMediaServiceHandler.changeTrackToFalse()
+//                                    _firstTrackAdded.value = true
+//                                    musicSource.addFirstMetadata(track)
+//                                }
+//                            }
+//                        }
+//                        is Resource.Error -> {
+//                            Toast.makeText(context, values.message, Toast.LENGTH_SHORT).show()
+//                        }
+//                    }
+//                }
             }
         }
     }
@@ -778,13 +821,36 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
             }
         }
     }
-    private val _songFull: MutableLiveData<Resource<SongFull>> = MutableLiveData()
-    var songFull: LiveData<Resource<SongFull>> = _songFull
+    private val _songFull: MutableLiveData<StreamData> = MutableLiveData()
+    var songFull: LiveData<StreamData> = _songFull
 
     fun getSongFull(videoId: String) {
         viewModelScope.launch {
-            mainRepository.getSongFull(videoId).collect {
-                _songFull.postValue(it)
+            try {
+                val response = ktorClient.get("${Config.BASE_STREAM_URL}${videoId}") {
+                    method = HttpMethod.Get
+                    headers {
+                        append(HttpHeaders.UserAgent, Config.USER_AGENT)
+                        append(HttpHeaders.Accept, "application/json")
+                    }
+                    contentType(ContentType.Application.Json)
+                }
+                if (response.status == HttpStatusCode.OK){
+                    val streamData: StreamData = response.body()
+                    _songFull.postValue(streamData)
+                }
+            }
+            catch (e: HttpRequestTimeoutException){
+                Log.d("Check Timeout", e.toString())
+            }
+            catch (e: EOFException){
+                Log.d("DownloadUtils", "Exception: ${e.message}")
+            }
+            catch (e: ConnectException){
+                Log.d("DownloadUtils", "Exception: ${e.message}")
+            }
+            catch (e: Exception){
+                Log.d("DownloadUtils", "Exception: ${e.message}")
             }
         }
     }

@@ -4,8 +4,10 @@ import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.common.QUALITY as COMMON_QUALITY
 import com.maxrave.simpmusic.common.SETTINGS_FILENAME
+import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -42,6 +44,10 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
         settingsDataStore.edit { settings ->
             settings[QUALITY] = quality
         }
+    }
+
+    val language: Flow<String> = settingsDataStore.data.map { preferences ->
+        preferences[stringPreferencesKey(SELECTED_LANGUAGE)] ?: SUPPORTED_LANGUAGE.codes.first()
     }
 
     fun getString(key: String): Flow<String?> {

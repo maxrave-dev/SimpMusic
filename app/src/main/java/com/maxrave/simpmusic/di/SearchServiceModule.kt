@@ -6,6 +6,10 @@ import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.cio.CIO
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.serialization.gson.gson
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -70,4 +74,15 @@ object SearchServiceModule {
     @Singleton
     @Provides
     fun provideSearchService(@Named("SearchRetrofit") retrofit: Retrofit): SearchService = retrofit.create(SearchService::class.java)
+
+    @Singleton
+    @Provides
+    fun provideKtorClient(): HttpClient = HttpClient(CIO) {
+        engine {
+            requestTimeout = 0
+        }
+        install(ContentNegotiation) {
+            gson()
+        }
+    }
 }

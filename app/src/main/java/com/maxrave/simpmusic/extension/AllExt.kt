@@ -23,7 +23,7 @@ import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
-import com.maxrave.simpmusic.data.model.songfull.SongFull
+import com.maxrave.simpmusic.data.model.streams.StreamData
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -250,17 +250,17 @@ fun Content.toTrack(): Track {
     )
 }
 
-fun SongFull.toTrack(videoId: String): Track {
+fun StreamData.toTrack(videoId: String): Track {
     return Track(
         album = null,
-        artists = this.artist,
+        artists = listOf(Artist(this.uploaderUrl?.replace("/channel/", ""), this.uploader.toString())),
         duration = "",
         durationSeconds = 0,
         isAvailable = false,
         isExplicit = false,
         likeStatus = "INDIFFERENT",
-        thumbnails = this.thumbnails,
-        title = this.title,
+        thumbnails = listOf(Thumbnail(720,  this.thumbnailUrl ?: "https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg", 1080)),
+        title = this.title ?: " ",
         videoId = videoId,
         videoType = "Song",
         category = "",
