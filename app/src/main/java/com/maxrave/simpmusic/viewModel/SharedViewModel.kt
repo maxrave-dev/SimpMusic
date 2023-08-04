@@ -196,34 +196,27 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                 }
             }
             val job2 = launch {
-                simpleMediaServiceHandler.changeTrack.collect { isChanged ->
-                    Log.d("Check Change Track", "Change Track: $isChanged")
-                    if (isChanged){
-                        if (simpleMediaServiceHandler.getCurrentMediaItem()?.mediaId != videoId.value && simpleMediaServiceHandler.getCurrentMediaItem() != null){
-                            videoId.postValue(simpleMediaServiceHandler.getCurrentMediaItem()?.mediaId)
-                            _nowPlayingMediaItem.value = getCurrentMediaItem()
-                            _songTransitions.value = true
-                        }
-                        Log.d("Change Track in ViewModel", "Change Track")
-                        val song = getCurrentMediaItem()
-                        if (song != null && getCurrentMediaItemIndex() > 0) {
-                            val tempSong = musicSource.catalogMetadata[getCurrentMediaItemIndex()]
-                            Log.d("Check tempSong", tempSong.toString())
-                            mainRepository.insertSong(tempSong.toSongEntity())
-                            mainRepository.getSongById(tempSong.videoId)
-                                .collect { songEntity ->
-                                    _songDB.value = songEntity
-                                    if (songEntity != null) {
-                                        _liked.value = songEntity.liked
-                                        Log.d("Check like", songEntity.toString())
-                                    }
+                simpleMediaServiceHandler.changeTrack.collectLatest { isChanged ->
+                    val song = getCurrentMediaItem()
+                    if (song != null && getCurrentMediaItemIndex() > 0) {
+                        val tempSong = musicSource.catalogMetadata[getCurrentMediaItemIndex()]
+                        Log.d("Check tempSong", tempSong.toString())
+                        mainRepository.insertSong(tempSong.toSongEntity())
+                        mainRepository.getSongById(tempSong.videoId)
+                            .collectLatest { songEntity ->
+                                _songDB.value = songEntity
+                                if (songEntity != null) {
+                                    _liked.value = songEntity.liked
+                                    Log.d("Check like", songEntity.toString())
                                 }
-                            mainRepository.updateSongInLibrary(LocalDateTime.now(), tempSong.videoId)
-                            mainRepository.updateListenCount(tempSong.videoId)
-//                            resetLyrics()
-//                            getLyrics(song.mediaMetadata.title.toString() + " " + song.mediaMetadata.artist, song.mediaId)
-                        }
+                            }
+                        mainRepository.updateSongInLibrary(LocalDateTime.now(), tempSong.videoId)
+                        mainRepository.updateListenCount(tempSong.videoId)
+                        videoId.postValue(tempSong.videoId)
+                        _nowPlayingMediaItem.value = song
+                        _songTransitions.value = true
                     }
+                    Log.d("Check Change Track", "Change Track: $isChanged")
                 }
             }
             val job3 = launch {
@@ -419,6 +412,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
         quality = runBlocking { dataStoreManager.quality.first() }
         viewModelScope.launch {
             _firstTrackAdded.value = false
+            Queue.clear()
             simpleMediaServiceHandler.clearMediaItems()
             var uri = ""
             mainRepository.insertSong(track.toSongEntity())

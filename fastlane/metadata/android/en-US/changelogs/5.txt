@@ -1,0 +1,1 @@
+Fixed crash caused locale default

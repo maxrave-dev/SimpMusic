@@ -37,6 +37,7 @@ import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.FIRST_TIME_MIGRATION
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.common.STATUS_DONE
+import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.ActivityMainBinding
 import com.maxrave.simpmusic.extension.connectArtists
@@ -92,8 +93,13 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
 
         // Check if the migration has already been done or not
         if (getString(FIRST_TIME_MIGRATION) != STATUS_DONE) {
-            putString(SELECTED_LANGUAGE, Locale.getDefault().toLanguageTag())
             Log.d("Locale Key", "onCreate: ${Locale.getDefault().toLanguageTag()}")
+            if (SUPPORTED_LANGUAGE.codes.contains(Locale.getDefault().toLanguageTag())) {
+                Log.d("Contains", "onCreate: ${SUPPORTED_LANGUAGE.codes.contains(Locale.getDefault().toLanguageTag())}")
+                putString(SELECTED_LANGUAGE, Locale.getDefault().toLanguageTag())
+            } else {
+                putString(SELECTED_LANGUAGE, "en-US")
+            }
             // Fetch the selected language from wherever it was stored. In this case its SharedPref
             getString(SELECTED_LANGUAGE)?.let {
                 Log.d("Locale Key", "getString: $it")
@@ -104,17 +110,6 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
                 putString(FIRST_TIME_MIGRATION, STATUS_DONE)
             }
         }
-        val currentLocaleName = if (!AppCompatDelegate.getApplicationLocales().isEmpty) {
-            // Fetches the current Application Locale from the list
-            AppCompatDelegate.getApplicationLocales()[0]?.toLanguageTag()
-        } else {
-            // Fetches the default System Locale
-            Locale.getDefault().toLanguageTag()
-        }
-        if (currentLocaleName != null) {
-            putString(SELECTED_LANGUAGE, currentLocaleName)
-        }
-        Log.d("Locale Key", "onCreate: $currentLocaleName")
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             WindowCompat.setDecorFitsSystemWindows(window, false)

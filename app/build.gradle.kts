@@ -14,8 +14,8 @@ android {
         applicationId = "com.maxrave.simpmusic"
         minSdk = 26
         targetSdk = 34
-        versionCode = 4
-        versionName = "0.0.4-beta"
+        versionCode = 5
+        versionName = "0.0.5-beta"
 
         resourceConfigurations += listOf("en", "vi")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
