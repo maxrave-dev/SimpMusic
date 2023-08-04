@@ -196,7 +196,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                 }
             }
             val job2 = launch {
-                simpleMediaServiceHandler.changeTrack.collectLatest { isChanged ->
+                simpleMediaServiceHandler.changeTrack.collect { isChanged ->
                     Log.d("Check Change Track", "Change Track: $isChanged")
                     if (isChanged){
                         if (simpleMediaServiceHandler.getCurrentMediaItem()?.mediaId != videoId.value && simpleMediaServiceHandler.getCurrentMediaItem() != null){
@@ -215,6 +215,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                                     _songDB.value = songEntity
                                     if (songEntity != null) {
                                         _liked.value = songEntity.liked
+                                        Log.d("Check like", songEntity.toString())
                                     }
                                 }
                             mainRepository.updateSongInLibrary(LocalDateTime.now(), tempSong.videoId)
