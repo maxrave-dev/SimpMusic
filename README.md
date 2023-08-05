@@ -36,11 +36,16 @@ More [screenshot](https://photos.app.goo.gl/AbieoXG5ctDrpwzp7) here.
 ## Backend
 - This project uses a hosting server to run a scraping YouTube Music server.
 - Special thanks [@ytmusicapi](https://github.com/sigma67/ytmusicapi), [@spotipy](https://github.com/spotipy-dev/spotipy), [@spotify-lyrics-api](https://github.com/akashrchandran/spotify-lyrics-api), [@Piped](https://github.com/TeamPiped/Piped)
-- Fork [this](https://github.com/maxrave-dev/ytmusicapi-simpmusic) repo if you want to build own backend like my app
+- Fork [this](https://github.com/maxrave-dev/ytmusicapi-simpmusic) repo if you want to build your own backend like my app
 ## Translation
-You can help me to translate this app to your language by clone this repo and use Android Studio Translations Editor to translate "string.xml" file in "values" folder. Then create a pull request to me.
+You can help me to translate this app to your language by cloning this repo and using Android Studio Translations Editor to translate "string.xml" file in "values" folder. Then create a pull request for me.
 More info [here](https://developer.android.com/studio/write/translations-editor)
+## Support
+Join my Discord server to update the newest features, tips and report bugs
+|   [<img src="https://upload.wikimedia.org/wikipedia/vi/7/72/Discord_logo.svg.png" height="40">]()         | [Discord](https://discord.gg/Rq5tWVM9Hg) |
+|---------|---------|
 ## Donate
+Support me to maintain SimpMusic server. Thanks for using <3
 |   [<img src="https://upload.wikimedia.org/wikipedia/commons/archive/b/b5/20230314142950%21PayPal.svg" height="40">]()         | [Paypal](https://paypal.me/maxraveofficial) |
 |---------|---------|
-|   [<img src="https://upload.wikimedia.org/wikipedia/en/5/5c/Buy_Me_a_Coffee_Logo.png" height="40">]()         | [Buy Me A Coffee](https://www.buymeacoffee.com/maxrave) |
+|   [<img src="https://ucbcd975be5592f4047c73e2240d.previews.dropboxusercontent.com/p/thumb/AB9o8x62hcEshT5d7tJNtLQnWMCTUVcaVUagN-gpUhtPzK6fUmFjGbap39yjEUHl2XdTUR0-VyvB-gmpPLIodk_DuZrqI_cgJZJ7Xp7e9icqm2kkz-I_LR9eWsEX-fHi8eEm-oKXAgYsEljob-R_atzeXNWQRdHMJRXT4WObK4hICakqBP76drrO7qPX9yOl4BJnEey_RopvMIAr3vG17PLeKB5OPwPq16tCT4TE3cJeq_Sn9h-wNS0oYSFY9KcChWctBVwE9COnUbJz-DtVCjLNlyOA1f7m3TdYqQr0Qgysw8Xl3Asmh8PGiMPrCwVntpKD5IMs5UybLJtkzvw_dFe-/p.png" height="40">]()         | [Buy Me A Coffee](https://www.buymeacoffee.com/maxrave) |
