@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.data.db
 
+import androidx.room.ProvidedTypeConverter
 import androidx.room.TypeConverter
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
@@ -9,28 +10,52 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
-
+@ProvidedTypeConverter
 class Converters {
     @TypeConverter
-    fun fromString(value: String?): List<String?>? {
+    fun fromString(value: String?): List<String>? {
         val listType: Type = object : TypeToken<ArrayList<String?>?>() {}.type
         return Gson().fromJson(value, listType)
     }
 
     @TypeConverter
-    fun fromArrayList(list: List<String?>?): String? {
+    fun fromArrayList(list: List<String>?): String? {
         val gson = Gson()
         return gson.toJson(list)
     }
 
     @TypeConverter
-    fun fromListLineToString(list: List<Line?>?): String? {
+    fun fromListLineToString(list: List<Line>?): String? {
         val gson = Gson()
         return gson.toJson(list)
     }
 
     @TypeConverter
-    fun fromStringToListLine(value: String?): List<Line?>? {
+    fun fromStringToListLine(value: String?): List<Line>? {
+        val listType: Type = object : TypeToken<ArrayList<Line?>?>() {}.type
+        return Gson().fromJson(value, listType)
+    }
+
+    @TypeConverter
+    fun fromStringNull(value: String?): List<String?>? {
+        val listType: Type = object : TypeToken<ArrayList<String?>?>() {}.type
+        return Gson().fromJson(value, listType)
+    }
+
+    @TypeConverter
+    fun fromArrayListNull(list: List<String?>?): String? {
+        val gson = Gson()
+        return gson.toJson(list)
+    }
+
+    @TypeConverter
+    fun fromListLineNullToString(list: List<Line?>?): String? {
+        val gson = Gson()
+        return gson.toJson(list)
+    }
+
+    @TypeConverter
+    fun fromStringNullToListLine(value: String?): List<Line?>? {
         val listType: Type = object : TypeToken<ArrayList<Line?>?>() {}.type
         return Gson().fromJson(value, listType)
     }

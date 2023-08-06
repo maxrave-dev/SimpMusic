@@ -1,7 +1,7 @@
 package com.maxrave.simpmusic.data.repository
 
+import android.util.Log
 import com.maxrave.kotlinytmusicscraper.YouTube
-import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.data.api.BaseApiResponse
 import com.maxrave.simpmusic.data.api.search.RemoteDataSource
 import com.maxrave.simpmusic.data.db.LocalDataSource
@@ -20,9 +20,9 @@ import com.maxrave.simpmusic.data.model.browse.playlist.PlaylistBrowse
 import com.maxrave.simpmusic.data.model.explore.mood.Mood
 import com.maxrave.simpmusic.data.model.explore.mood.genre.GenreObject
 import com.maxrave.simpmusic.data.model.explore.mood.moodmoments.MoodsMomentObject
-import com.maxrave.simpmusic.data.model.home.chart.Chart
 import com.maxrave.simpmusic.data.model.home.HomeItem
 import com.maxrave.simpmusic.data.model.home.HomeResponse
+import com.maxrave.simpmusic.data.model.home.chart.Chart
 import com.maxrave.simpmusic.data.model.metadata.Lyrics
 import com.maxrave.simpmusic.data.model.metadata.MetadataSong
 import com.maxrave.simpmusic.data.model.searchResult.albums.AlbumsResult
@@ -31,6 +31,7 @@ import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
 import com.maxrave.simpmusic.data.model.thumbnailUrl
+import com.maxrave.simpmusic.data.parser.parseMixedContent
 import com.maxrave.simpmusic.utils.Resource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -147,4 +148,32 @@ class MainRepository @Inject constructor(private val remoteDataSource: RemoteDat
 
     suspend fun getSavedLyrics(videoId: String): Flow<LyricsEntity?> = flow { emit(localDataSource.getSavedLyrics(videoId)) }.flowOn(Dispatchers.IO)
     suspend fun insertLyrics(lyricsEntity: LyricsEntity) = withContext(Dispatchers.IO) { localDataSource.insertLyrics(lyricsEntity) }
+
+    suspend fun getHomeData(): Flow<Resource<ArrayList<HomeItem>>> = flow {
+        kotlin.runCatching {
+            YouTube.customQuery("FEmusic_home").onSuccess { result ->
+                val list: ArrayList<HomeItem> = arrayListOf()
+                var continueParam = result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(0)?.tabRenderer?.content?.sectionListRenderer?.continuations?.get(0)?.nextContinuationData?.continuation
+                val data = result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(0)?.tabRenderer?.content?.sectionListRenderer?.contents
+                list.addAll(parseMixedContent(data))
+                var count = 0
+                while (count < 5 && continueParam != null){
+                    YouTube.customQuery("", continueParam).onSuccess { response ->
+                        continueParam = response.continuationContents?.sectionListContinuation?.continuations?.get(0)?.nextContinuationData?.continuation
+                        val dataContinue = response.continuationContents?.sectionListContinuation?.contents
+                        list.addAll(parseMixedContent(dataContinue))
+                        Log.d("Repository", "Count: $count")
+                        Log.d("Repository", "continueParam: $continueParam")
+                        count++
+                    }.onFailure {
+                        Log.e("Repository", "Error: ${it.message}")
+                        count++
+                    }
+                }
+                emit(Resource.Success<ArrayList<HomeItem>>(list))
+            }.onFailure { error ->
+                emit(Resource.Error<ArrayList<HomeItem>>(error.message.toString()))
+            }
+        }
+    }
 }

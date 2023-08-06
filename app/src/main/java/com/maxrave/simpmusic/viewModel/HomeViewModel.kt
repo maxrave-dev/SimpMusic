@@ -77,10 +77,11 @@ class HomeViewModel @Inject constructor(
         loading.value = true
         viewModelScope.launch {
             combine(
-                mainRepository.getHome(
-                    regionCode,
-                    SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language)]
-                ),
+//                mainRepository.getHome(
+//                    regionCode,
+//                    SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language)]
+//                ),
+                mainRepository.getHomeData(),
                 mainRepository.exploreMood(
                     regionCode,
                     SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language)]
@@ -93,6 +94,7 @@ class HomeViewModel @Inject constructor(
                 Triple(home, exploreMood, exploreChart)
             }.collect { result ->
                 val home = result.first
+                Log.d("home size", "${home.data?.size}")
                 val exploreMoodItem = result.second
                 val chart = result.third
                 _homeItemList.value = home
@@ -107,6 +109,7 @@ class HomeViewModel @Inject constructor(
                     else -> null
                 }?.let {
                     showSnackBarErrorState.emit(it)
+                    Log.w("Error", "getHomeItemList: ${home.message}")
                 }
                 loading.value = false
             }
