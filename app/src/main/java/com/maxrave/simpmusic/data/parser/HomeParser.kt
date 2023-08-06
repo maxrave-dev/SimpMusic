@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.data.parser
 
+import android.util.Log
 import com.maxrave.kotlinytmusicscraper.models.MusicResponsiveListItemRenderer
 import com.maxrave.kotlinytmusicscraper.models.MusicTwoRowItemRenderer
 import com.maxrave.kotlinytmusicscraper.models.Run
@@ -149,33 +150,28 @@ fun getFlexColumnItem(data: MusicResponsiveListItemRenderer, index: Int): MusicR
 
 fun parsePlaylist(data: MusicTwoRowItemRenderer): Content {
     val subtitle = data.subtitle
-    val playlist = mapOf(
-        "title" to data.title.runs?.get(0)?.text,
-        "playlistId" to data.title.runs?.get(0)?.navigationEndpoint?.browseEndpoint?.browseId
-    )
+    var description = ""
+    var count = ""
+    val author: MutableList<Artist> = mutableListOf()
     val thumbnails = data.thumbnailRenderer.musicThumbnailRenderer?.thumbnail?.thumbnails
     if (subtitle?.runs != null) {
-        val descripton = ""
         for (run in subtitle.runs!!) {
-            descripton.plus(run.text)
+            description += run.text
         }
-        playlist.plus("description" to descripton)
         if (subtitle.runs!!.size == 3) {
-            val count = data.subtitle!!.runs?.get(2)?.text?.split(" ")?.get(0)
-            playlist.plus("count" to count)
-            val author = parseSongArtistsRuns(subtitle.runs!!.take(1))
-            playlist.plus("author" to author)
+            count += data.subtitle!!.runs?.get(2)?.text?.split(" ")?.get(0)
+            author.addAll(parseSongArtistsRuns(subtitle.runs!!.take(1)))
         }
     }
     return Content(
         album = null,
-        artists = listOf(),
-        description = playlist["description"].toString(),
+        artists = author,
+        description = description,
         isExplicit = false,
-        playlistId = playlist["playlistId"].toString(),
+        playlistId = data.title.runs?.get(0)?.navigationEndpoint?.browseEndpoint?.browseId,
         browseId = null,
         thumbnails = thumbnails?.toListThumbnail() ?: listOf(),
-        title = playlist["title"].toString(),
+        title = data.title.runs?.get(0)?.text ?: "",
         videoId = null,
         views = null
     )
@@ -186,6 +182,7 @@ fun parseSongArtistsRuns(runs: List<Run>): List<Artist> {
     for (i in 0..(runs.size/2)) {
         artists.add(Artist(name = runs[i * 2].text, id = runs[i * 2].navigationEndpoint?.browseEndpoint?.browseId))
     }
+    Log.d("artists_log", artists.toString())
     return artists
 }
 
@@ -228,15 +225,41 @@ fun parseSong(data: MusicTwoRowItemRenderer): Content {
     val videoId = data.navigationEndpoint.watchEndpoint?.videoId
     val thumbnails = data.thumbnailRenderer.musicThumbnailRenderer?.thumbnail?.thumbnails
     val runs = data.subtitle?.runs
-    val parsed = parseSongRuns(runs)
+    var name = ""
+    var id = ""
+    var view = ""
+    val listArtist : MutableList<Artist> = mutableListOf()
+    val listAlbum : MutableList<Album> = mutableListOf()
+    Log.d("parse_runs", runs.toString())
+    if (runs != null) {
+        for (i in runs.indices) {
+            if (i.rem(2) == 0) {
+                if (i == runs.size -1) {
+                    view += runs[i].text
+                }
+                else {
+                    name += runs[i].text
+                    id += runs[i].navigationEndpoint?.browseEndpoint?.browseId
+                    if (id.startsWith("MPRE")) {
+                         listAlbum.add(Album(id = id, name = name))
+                    }
+                    else {
+                        listArtist.add(Artist(name = name, id = id))
+                    }
+                }
+            }
+        }
+    }
+    Log.d("parse_songArtist", listArtist.toString())
+    Log.d("parse_songAlbum", listAlbum.toString())
     return Content(
-        album = parsed.first,
-        artists = parsed.second,
+        album = listAlbum.firstOrNull(),
+        artists = listArtist,
         isExplicit = false,
         thumbnails = thumbnails?.toListThumbnail() ?: listOf(),
         title = title ?: "",
         videoId = videoId!!,
-        views = parsed.third["views"] ?: "",
+        views = view,
         browseId = "",
         playlistId = "",
         description = ""

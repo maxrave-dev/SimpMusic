@@ -12,6 +12,7 @@ import com.maxrave.kotlinytmusicscraper.models.body.PlayerBody
 import com.maxrave.kotlinytmusicscraper.models.body.SearchBody
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
+import com.maxrave.kotlinytmusicscraper.models.body.FormData
 import com.maxrave.kotlinytmusicscraper.utils.parseCookieString
 import com.maxrave.kotlinytmusicscraper.utils.sha1
 import io.ktor.client.*
@@ -156,20 +157,35 @@ class Ytmusic {
         browseId: String? = null,
         params: String? = null,
         continuation: String? = null,
+        countryCode: String? = null,
         setLogin: Boolean = false,
     ) = httpClient.post("browse") {
         ytClient(client, setLogin)
-        setBody(
-            BrowseBody(
-                context = client.toContext(locale, visitorData),
-                browseId = browseId,
-                params = params
+
+        if (countryCode != null) {
+            setBody(
+                BrowseBody(
+                    context = client.toContext(locale, visitorData),
+                    browseId = browseId,
+                    params = params,
+                    formData = FormData(listOf(countryCode))
+                )
             )
-        )
+        }
+        else {
+            setBody(
+                BrowseBody(
+                    context = client.toContext(locale, visitorData),
+                    browseId = browseId,
+                    params = params
+                )
+            )
+
+        }
         parameter("alt", "json")
-        parameter("ctoken", continuation)
-        parameter("continuation", continuation)
         if (continuation != null) {
+            parameter("ctoken", continuation)
+            parameter("continuation", continuation)
             parameter("type", "next")
         }
     }

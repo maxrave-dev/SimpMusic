@@ -49,6 +49,7 @@ class HomeItemContentAdapter(private var listContent: ArrayList<Content>): Recyc
                 tvSongName.text = content.title
                 tvSongName.isSelected = true
                 tvArtistName.text = content.artists.toListName().connectArtists()
+                tvArtistName.maxLines = 2
                 tvArtistName.isSelected = true
                 tvAlbumName.text = content.album?.name
                 tvAlbumName.isSelected = true

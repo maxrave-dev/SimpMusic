@@ -286,25 +286,10 @@ object YouTube {
             continuation = response.continuationContents.musicPlaylistShelfContinuation.continuations?.getContinuation()
         )
     }
-    suspend fun customQuery(browseId: String, continuation: String? = null) = runCatching {
-        ytMusic.browse(WEB_REMIX, browseId = browseId, continuation= continuation).body<BrowseResponse>()
+    suspend fun customQuery(browseId: String, continuation: String? = null, country: String? = null) = runCatching {
+        ytMusic.browse(WEB_REMIX, browseId, null, continuation, country, false).body<BrowseResponse>()
     }
 
-    suspend fun getHome() = runCatching {
-        customQuery(browseId = "FEmusic_home").onSuccess { result ->
-            var continueParam = result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(0)?.tabRenderer?.content?.sectionListRenderer?.continuations?.get(0)?.nextContinuationData?.continuation
-            parseMixedContent(result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(0)?.tabRenderer?.content?.sectionListRenderer?.contents)
-            var count = 0
-            while (count < 5 && continueParam != null){
-                customQuery("", continueParam).onSuccess {
-                    parseMixedContent(it.continuationContents?.sectionListContinuation?.contents)
-                    continueParam = it.continuationContents?.sectionListContinuation?.continuations?.get(0)?.nextContinuationData?.continuation
-                    count++
-                    println(count)
-                }
-            }
-        }
-    }
     suspend fun explore(): Result<ExplorePage> = runCatching {
         val response = ytMusic.browse(WEB_REMIX, browseId = "FEmusic_explore").body<BrowseResponse>()
         ExplorePage(

@@ -73,7 +73,6 @@ class HomeViewModel @Inject constructor(
     fun getHomeItemList() {
         language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() ?: SUPPORTED_LANGUAGE.codes.first() }
         regionCode = runBlocking { dataStoreManager.location.first() }
-        Log.d("HomeViewModel", "getHomeItemList")
         loading.value = true
         viewModelScope.launch {
             combine(
@@ -82,14 +81,8 @@ class HomeViewModel @Inject constructor(
 //                    SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language)]
 //                ),
                 mainRepository.getHomeData(),
-                mainRepository.exploreMood(
-                    regionCode,
-                    SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language)]
-                ),
-                mainRepository.exploreChart(
-                    "ZZ",
-                    SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language)]
-                )
+                mainRepository.getMoodAndMomentsData(),
+                mainRepository.getChartData("ZZ")
             ) { home, exploreMood, exploreChart ->
                 Triple(home, exploreMood, exploreChart)
             }.collect { result ->
@@ -102,6 +95,7 @@ class HomeViewModel @Inject constructor(
                 regionCodeChart.value = "ZZ"
                 _chart.value = chart
                 Log.d("HomeViewModel", "getHomeItemList: $result")
+                loading.value = false
                 when {
                     home is Resource.Error -> home.message
                     exploreMoodItem is Resource.Error -> exploreMoodItem.message
@@ -110,8 +104,9 @@ class HomeViewModel @Inject constructor(
                 }?.let {
                     showSnackBarErrorState.emit(it)
                     Log.w("Error", "getHomeItemList: ${home.message}")
+                    Log.w("Error", "getHomeItemList: ${exploreMoodItem.message}")
+                    Log.w("Error", "getHomeItemList: ${chart.message}")
                 }
-                loading.value = false
             }
         }
     }
@@ -119,10 +114,8 @@ class HomeViewModel @Inject constructor(
     fun exploreChart(region: String) {
         viewModelScope.launch {
             loadingChart.value = true
-            mainRepository.exploreChart(
-                region,
-                SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language)]
-            ).collect { values ->
+            mainRepository.getChartData(
+                region).collect { values ->
                 regionCodeChart.value = region
                 _chart.value = values
                 Log.d("HomeViewModel", "getHomeItemList: ${chart.value?.data}")

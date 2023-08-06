@@ -17,7 +17,9 @@ import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.browse.artist.ArtistBrowse
 import com.maxrave.simpmusic.data.model.browse.artist.ChannelId
 import com.maxrave.simpmusic.data.model.browse.playlist.PlaylistBrowse
+import com.maxrave.simpmusic.data.model.explore.mood.Genre
 import com.maxrave.simpmusic.data.model.explore.mood.Mood
+import com.maxrave.simpmusic.data.model.explore.mood.MoodsMoment
 import com.maxrave.simpmusic.data.model.explore.mood.genre.GenreObject
 import com.maxrave.simpmusic.data.model.explore.mood.moodmoments.MoodsMomentObject
 import com.maxrave.simpmusic.data.model.home.HomeItem
@@ -31,6 +33,7 @@ import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
 import com.maxrave.simpmusic.data.model.thumbnailUrl
+import com.maxrave.simpmusic.data.parser.parseChart
 import com.maxrave.simpmusic.data.parser.parseMixedContent
 import com.maxrave.simpmusic.utils.Resource
 import kotlinx.coroutines.Dispatchers
@@ -157,12 +160,11 @@ class MainRepository @Inject constructor(private val remoteDataSource: RemoteDat
                 val data = result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(0)?.tabRenderer?.content?.sectionListRenderer?.contents
                 list.addAll(parseMixedContent(data))
                 var count = 0
-                while (count < 5 && continueParam != null){
+                while (count < 3 && continueParam != null){
                     YouTube.customQuery("", continueParam).onSuccess { response ->
                         continueParam = response.continuationContents?.sectionListContinuation?.continuations?.get(0)?.nextContinuationData?.continuation
                         val dataContinue = response.continuationContents?.sectionListContinuation?.contents
                         list.addAll(parseMixedContent(dataContinue))
-                        Log.d("Repository", "Count: $count")
                         Log.d("Repository", "continueParam: $continueParam")
                         count++
                     }.onFailure {
@@ -170,10 +172,56 @@ class MainRepository @Inject constructor(private val remoteDataSource: RemoteDat
                         count++
                     }
                 }
+                Log.d("Repository", "List size: ${list.size}")
                 emit(Resource.Success<ArrayList<HomeItem>>(list))
             }.onFailure { error ->
                 emit(Resource.Error<ArrayList<HomeItem>>(error.message.toString()))
             }
+        }
+    }
+
+    suspend fun getChartData(countryCode: String = "KR"): Flow<Resource<Chart>> = flow {
+            YouTube.customQuery("FEmusic_charts", country = countryCode).onSuccess { result ->
+                val data = result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(0)?.tabRenderer?.content?.sectionListRenderer
+                val chart = parseChart(data)
+                if (chart != null) {
+                    emit(Resource.Success<Chart>(chart))
+                }
+                else {
+                    emit(Resource.Error<Chart>("Error"))
+                }
+            }.onFailure { error ->
+                emit(Resource.Error<Chart>(error.message.toString()))
+            }
+    }
+    suspend fun getMoodAndMomentsData(): Flow<Resource<Mood>> = flow {
+        YouTube.moodAndGenres().onSuccess { result ->
+            val listMoodMoments: ArrayList<MoodsMoment> = arrayListOf()
+            val listGenre: ArrayList<Genre> = arrayListOf()
+            result[0]?.let {moodsmoment ->
+                for (item in moodsmoment.items) {
+                    listMoodMoments.add(
+                        MoodsMoment(
+                            params = item.endpoint.params ?: "",
+                            title = item.title
+                        )
+                    )
+                }
+            }
+            result[1]?.let { genres ->
+                for (item in genres.items) {
+                    listGenre.add(
+                        Genre(
+                            params = item.endpoint.params ?: "",
+                            title = item.title
+                        )
+                    )
+                }
+            }
+            emit(Resource.Success<Mood>(Mood(listGenre, listMoodMoments)))
+
+        }.onFailure { e ->
+            emit(Resource.Error<Mood>(e.message.toString()))
         }
     }
 }

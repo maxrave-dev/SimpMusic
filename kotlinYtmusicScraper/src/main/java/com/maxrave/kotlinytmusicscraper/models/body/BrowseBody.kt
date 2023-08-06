@@ -8,4 +8,5 @@ data class BrowseBody(
     val context: Context,
     val browseId: String?,
     val params: String?,
+    val formData: FormData? = null
 )

@@ -1,13 +1,11 @@
 package com.maxrave.kotlinytmusicscraper.test
 
-import android.util.Log
-import com.google.gson.Gson
 import com.maxrave.kotlinytmusicscraper.YouTube
-import com.maxrave.kotlinytmusicscraper.models.*
+import com.maxrave.kotlinytmusicscraper.models.MusicResponsiveListItemRenderer
+import com.maxrave.kotlinytmusicscraper.models.MusicTwoRowItemRenderer
+import com.maxrave.kotlinytmusicscraper.models.Run
+import com.maxrave.kotlinytmusicscraper.models.SectionListRenderer
 import kotlinx.coroutines.runBlocking
-import java.io.File
-import java.text.SimpleDateFormat
-import java.util.*
 
 fun main() {
     runBlocking {
