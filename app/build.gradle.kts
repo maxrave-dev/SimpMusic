@@ -53,6 +53,7 @@ dependencies {
     implementation("com.google.android.material:material:1.9.0")
     //runtime
     implementation("androidx.startup:startup-runtime:1.1.1")
+    implementation(project(mapOf("path" to ":kotlinYtmusicScraper")))
     //ExoPlayer
     val media3_version= "1.1.0"
 
