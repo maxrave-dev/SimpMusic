@@ -50,9 +50,9 @@ fun parseAlbumData(data: AlbumPage): AlbumBrowse {
         durationSeconds = 0,
         thumbnails = data.thumbnails?.thumbnails?.toListThumbnail() ?: listOf(),
         title = data.album.title,
-        trackCount = 0,
+        trackCount = songs.size,
         tracks = songs,
-        type = "album",
+        type = "Album",
         year = data.album.year.toString()
     )
 }

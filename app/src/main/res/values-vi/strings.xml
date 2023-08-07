@@ -137,4 +137,8 @@
         <item quantity="one">%d bài hát</item>
         <item quantity="other">%d bài hát</item>
     </plurals>
+    <string name="songs_inArtist">Bài hát</string>
+    <string name="albums_inArtist">Đĩa nhạc</string>
+    <string name="singles_inArtist">Đĩa đơn</string>
+    <string name="fans_might_also_like_inArtist">Người hâm mộ có thể cũng thích</string>
 </resources>

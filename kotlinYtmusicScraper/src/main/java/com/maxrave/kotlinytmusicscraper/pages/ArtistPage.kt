@@ -25,6 +25,8 @@ data class ArtistPage(
     val artist: ArtistItem,
     val sections: List<ArtistSection>,
     val description: String?,
+    val subscribers: String? = null,
+    val view: String? = null,
 ) {
     companion object {
         fun fromSectionListRendererContent(content: SectionListRenderer.Content): ArtistSection? {
@@ -155,6 +157,7 @@ data class ArtistPage(
                         radioEndpoint = renderer.menu.menuRenderer.items.find {
                             it.menuNavigationItemRenderer?.icon?.iconType == "MIX"
                         }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint ?: return null,
+                        subscribers = renderer.subtitle?.runs?.firstOrNull()?.text ?: return null,
                     )
                 }
 

@@ -1,5 +1,6 @@
 package com.maxrave.kotlinytmusicscraper
 
+import android.util.Log
 import com.maxrave.kotlinytmusicscraper.models.AccountInfo
 import com.maxrave.kotlinytmusicscraper.models.AlbumItem
 import com.maxrave.kotlinytmusicscraper.models.Artist
@@ -8,6 +9,7 @@ import com.maxrave.kotlinytmusicscraper.models.BrowseEndpoint
 import com.maxrave.kotlinytmusicscraper.models.GridRenderer
 import com.maxrave.kotlinytmusicscraper.models.MusicCarouselShelfRenderer
 import com.maxrave.kotlinytmusicscraper.models.PlaylistItem
+import com.maxrave.kotlinytmusicscraper.models.Run
 import com.maxrave.kotlinytmusicscraper.models.SearchSuggestions
 import com.maxrave.kotlinytmusicscraper.models.SongItem
 import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
@@ -163,10 +165,20 @@ object YouTube {
                 thumbnail = response.header.musicDetailHeaderRenderer.thumbnail.croppedSquareThumbnailRenderer?.getThumbnailUrl()!!
             ),
             songs = if (withSongs) albumSongs(playlistId).getOrThrow() else emptyList(),
-            description = response.header.musicDetailHeaderRenderer.description?.runs?.joinToString(separator = "") { it.text } ?: "",
+            description = getDescriptionAlbum(response.header.musicDetailHeaderRenderer.description?.runs),
             duration = response.header.musicDetailHeaderRenderer.secondSubtitle.runs?.get(2)?.text ?: "",
             thumbnails = response.header.musicDetailHeaderRenderer.thumbnail.croppedSquareThumbnailRenderer.thumbnail,
         )
+    }
+    private fun getDescriptionAlbum(runs: List<Run>?): String {
+        var description = ""
+        if (!runs.isNullOrEmpty()) {
+            for (run in runs) {
+                description += run.text
+            }
+        }
+        Log.d("description", description)
+        return description
     }
 
     suspend fun albumSongs(playlistId: String): Result<List<SongItem>> = runCatching {
@@ -194,7 +206,9 @@ object YouTube {
             sections = response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()
                 ?.tabRenderer?.content?.sectionListRenderer?.contents
                 ?.mapNotNull(ArtistPage::fromSectionListRendererContent)!!,
-            description = response.header?.musicImmersiveHeaderRenderer?.description?.runs?.firstOrNull()?.text
+            description = response.header?.musicImmersiveHeaderRenderer?.description?.runs?.firstOrNull()?.text,
+            subscribers = response.header?.musicImmersiveHeaderRenderer?.subscriptionButton?.subscribeButtonRenderer?.longSubscriberCountText?.runs?.get(0)?.text,
+            view = response.contents.singleColumnBrowseResultsRenderer.tabs[0].tabRenderer.content?.sectionListRenderer?.contents?.lastOrNull()?.musicDescriptionShelfRenderer?.subheader?.runs?.firstOrNull()?.text
         )
     }
 

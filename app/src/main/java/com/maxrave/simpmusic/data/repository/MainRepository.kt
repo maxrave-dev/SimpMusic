@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.data.repository
 
+import android.content.Context
 import android.util.Log
 import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.models.MusicShelfRenderer
@@ -35,12 +36,14 @@ import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
 import com.maxrave.simpmusic.data.model.thumbnailUrl
 import com.maxrave.simpmusic.data.parser.parseAlbumData
+import com.maxrave.simpmusic.data.parser.parseArtistData
 import com.maxrave.simpmusic.data.parser.parseChart
 import com.maxrave.simpmusic.data.parser.parseGenreObject
 import com.maxrave.simpmusic.data.parser.parseMixedContent
 import com.maxrave.simpmusic.data.parser.parseMoodsMomentObject
 import com.maxrave.simpmusic.data.parser.parsePlaylistData
 import com.maxrave.simpmusic.utils.Resource
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
@@ -51,7 +54,7 @@ import java.time.LocalDateTime
 import javax.inject.Inject
 
 //@ActivityRetainedScoped
-class MainRepository @Inject constructor(private val remoteDataSource: RemoteDataSource, private val localDataSource: LocalDataSource): BaseApiResponse() {
+class MainRepository @Inject constructor(private val remoteDataSource: RemoteDataSource, private val localDataSource: LocalDataSource, @ApplicationContext private val context: Context): BaseApiResponse() {
     suspend fun getThumbnails(songId: String): Flow<Resource<ArrayList<thumbnailUrl>>> =
         flow { emit(safeApiCall { remoteDataSource.getThumbnails(songId) }) }.flowOn(Dispatchers.IO)
 
@@ -676,6 +679,16 @@ class MainRepository @Inject constructor(private val remoteDataSource: RemoteDat
             }.onFailure { e ->
                 Log.d("Album", "Error: ${e.message}")
                 emit(Resource.Error<AlbumBrowse>(e.message.toString()))
+            }
+        }
+    }
+    suspend fun getArtistData(channelId: String): Flow<Resource<ArtistBrowse>> = flow {
+        runCatching {
+            YouTube.artist(channelId).onSuccess { result ->
+                emit(Resource.Success<ArtistBrowse>(parseArtistData(result, context)))
+            }.onFailure { e ->
+                Log.d("Artist", "Error: ${e.message}")
+                emit(Resource.Error<ArtistBrowse>(e.message.toString()))
             }
         }
     }

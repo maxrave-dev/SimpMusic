@@ -32,12 +32,15 @@ import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
 import androidx.media3.exoplayer.offline.DownloadService
 import com.daimajia.swipe.SwipeLayout
+import com.maxrave.kotlinytmusicscraper.YouTube
+import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.FIRST_TIME_MIGRATION
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.common.STATUS_DONE
 import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
+import com.maxrave.simpmusic.common.SUPPORTED_LOCATION
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.ActivityMainBinding
 import com.maxrave.simpmusic.extension.connectArtists
@@ -97,8 +100,22 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
             if (SUPPORTED_LANGUAGE.codes.contains(Locale.getDefault().toLanguageTag())) {
                 Log.d("Contains", "onCreate: ${SUPPORTED_LANGUAGE.codes.contains(Locale.getDefault().toLanguageTag())}")
                 putString(SELECTED_LANGUAGE, Locale.getDefault().toLanguageTag())
+                if (SUPPORTED_LOCATION.items.contains(Locale.getDefault().country)) {
+                    putString("location", Locale.getDefault().country)
+                }
+                else {
+                    putString("location", "US")
+                }
+                YouTube.locale = YouTubeLocale(
+                    gl = getString("location") ?: "US",
+                    hl = Locale.getDefault().toLanguageTag()
+                )
             } else {
                 putString(SELECTED_LANGUAGE, "en-US")
+                YouTube.locale = YouTubeLocale(
+                    gl = getString("location") ?: "US",
+                    hl = "en-US"
+                )
             }
             // Fetch the selected language from wherever it was stored. In this case its SharedPref
             getString(SELECTED_LANGUAGE)?.let {

@@ -224,9 +224,7 @@ class ArtistFragment: Fragment(){
                                 binding.cardBelowAppBarLayout.background = gradientDrawable
                                 binding.aboutContainer.background = gradientDrawable
                             }
-                            tvSubscribers.text = context?.getString(R.string.subscribers,
-                                it.subscribers
-                            )
+                            tvSubscribers.text = it.subscribers
                             if (it.views == null){
                                 tvViews.text = ""
                             }

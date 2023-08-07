@@ -69,6 +69,7 @@ data class ArtistItem(
     override val thumbnail: String,
     val shuffleEndpoint: WatchEndpoint?,
     val radioEndpoint: WatchEndpoint?,
+    val subscribers: String? = null,
 ) : YTItem() {
     override val explicit: Boolean
         get() = false

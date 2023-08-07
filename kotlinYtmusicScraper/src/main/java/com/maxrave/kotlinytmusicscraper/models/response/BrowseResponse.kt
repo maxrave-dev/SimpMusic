@@ -7,9 +7,11 @@ import com.maxrave.kotlinytmusicscraper.models.MusicShelfRenderer
 import com.maxrave.kotlinytmusicscraper.models.ResponseContext
 import com.maxrave.kotlinytmusicscraper.models.Runs
 import com.maxrave.kotlinytmusicscraper.models.SectionListRenderer
+import com.maxrave.kotlinytmusicscraper.models.SubscriptionButton
 import com.maxrave.kotlinytmusicscraper.models.Tabs
 import com.maxrave.kotlinytmusicscraper.models.ThumbnailRenderer
 import kotlinx.serialization.Serializable
+import java.util.concurrent.Flow.Subscription
 
 @Serializable
 data class BrowseResponse(
@@ -58,6 +60,7 @@ data class BrowseResponse(
             val thumbnail: ThumbnailRenderer?,
             val playButton: Button?,
             val startRadioButton: Button?,
+            val subscriptionButton: SubscriptionButton?,
             val menu: Menu,
         )
 

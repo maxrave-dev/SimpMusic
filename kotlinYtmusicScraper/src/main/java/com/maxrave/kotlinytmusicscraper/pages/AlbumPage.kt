@@ -8,7 +8,6 @@ import com.maxrave.kotlinytmusicscraper.models.SongItem
 import com.maxrave.kotlinytmusicscraper.models.Thumbnails
 import com.maxrave.kotlinytmusicscraper.models.oddElements
 import com.maxrave.kotlinytmusicscraper.utils.parseTime
-import kotlin.time.Duration
 
 data class AlbumPage(
     val album: AlbumItem,

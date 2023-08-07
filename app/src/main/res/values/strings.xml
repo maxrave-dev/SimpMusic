@@ -132,6 +132,10 @@
     <string name="now_playing_upper">NOW PLAYING</string>
     <string name="language">Language</string>
     <string name="what_do_you_want_to_listen_to">What do you want to listen to?</string>
+    <string name="songs_inArtist">Songs</string>
+    <string name="albums_inArtist">Albums</string>
+    <string name="singles_inArtist">Singles</string>
+    <string name="fans_might_also_like_inArtist">Fans might also like</string>
     <plurals name="n_song">
         <item quantity="one">%d song</item>
         <item quantity="other">%d songs</item>

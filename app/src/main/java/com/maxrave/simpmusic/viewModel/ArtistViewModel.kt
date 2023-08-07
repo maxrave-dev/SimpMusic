@@ -51,8 +51,11 @@ class ArtistViewModel @Inject constructor(application: Application, private val 
         loading.value = true
         viewModelScope.launch {
             Log.d("ArtistViewModel", "lang: $language")
-            mainRepository.browseArtist(channelId, regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect { values ->
-                _artistBrowse.value = values
+//            mainRepository.browseArtist(channelId, regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect { values ->
+//                _artistBrowse.value = values
+//            }
+            mainRepository.getArtistData(channelId).collect {
+                _artistBrowse.value = it
             }
             withContext(Dispatchers.Main){
                 loading.value = false

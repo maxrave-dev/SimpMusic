@@ -38,7 +38,7 @@ class RelatedArtistsAdapter(private var relatedArtistsList: ArrayList<ResultRela
         val relatedArtist = relatedArtistsList[position]
         with(holder){
             binding.tvArtistName.text = relatedArtist.title
-            binding.tvArtistSubscribers.text = context.getString(R.string.subscribers, relatedArtist.subscribers.toString())
+            binding.tvArtistSubscribers.text = relatedArtist.subscribers
             binding.ivArtistArt.load(if (relatedArtist.thumbnails.size > 1) relatedArtist.thumbnails[1].url else relatedArtist.thumbnails[0].url)
         }
     }
