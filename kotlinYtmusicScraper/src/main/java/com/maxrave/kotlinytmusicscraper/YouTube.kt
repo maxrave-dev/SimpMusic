@@ -286,8 +286,8 @@ object YouTube {
             continuation = response.continuationContents.musicPlaylistShelfContinuation.continuations?.getContinuation()
         )
     }
-    suspend fun customQuery(browseId: String, continuation: String? = null, country: String? = null) = runCatching {
-        ytMusic.browse(WEB_REMIX, browseId, null, continuation, country, false).body<BrowseResponse>()
+    suspend fun customQuery(browseId: String, params: String? = null, continuation: String? = null, country: String? = null) = runCatching {
+        ytMusic.browse(WEB_REMIX, browseId, params, continuation, country, false).body<BrowseResponse>()
     }
 
     suspend fun explore(): Result<ExplorePage> = runCatching {
