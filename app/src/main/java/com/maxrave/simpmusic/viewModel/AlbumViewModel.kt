@@ -76,10 +76,10 @@ class AlbumViewModel @Inject constructor(private var dataStoreManager: DataStore
     fun updateBrowseId(browseId: String){
         _browseId.value = browseId
     }
-    fun browseAlbum(channelId: String){
+    fun browseAlbum(browseId: String){
         loading.value = true
         viewModelScope.launch {
-            mainRepository.browseAlbum(channelId, regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect{ values ->
+            mainRepository.getAlbumData(browseId).collect { values ->
                 _albumBrowse.value = values
             }
             withContext(Dispatchers.Main){

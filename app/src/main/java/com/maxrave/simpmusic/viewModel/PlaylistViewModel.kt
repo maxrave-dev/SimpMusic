@@ -72,8 +72,11 @@ class PlaylistViewModel @Inject constructor(private val mainRepository: MainRepo
     fun browsePlaylist(id: String) {
         loading.value = true
         viewModelScope.launch {
-            mainRepository.browsePlaylist(id, regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect{ values ->
-                _playlistBrowse.value = values
+//            mainRepository.browsePlaylist(id, regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect{ values ->
+//                _playlistBrowse.value = values
+//            }
+            mainRepository.getPlaylistData(id).collect {
+                _playlistBrowse.value = it
             }
             withContext(Dispatchers.Main){
                 loading.value = false

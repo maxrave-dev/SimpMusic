@@ -207,10 +207,17 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
                                         navController.navigate(R.id.action_global_albumFragment, Bundle().apply {
                                             putString("browseId", playlistId)
                                         })
-                                    } else {
+                                    }
+                                    else if (playlistId.startsWith("VL")) {
                                         viewModel.intent.value = null
                                         navController.navigate(R.id.action_global_playlistFragment, Bundle().apply {
                                             putString("id", playlistId)
+                                        })
+                                    }
+                                    else {
+                                        viewModel.intent.value = null
+                                        navController.navigate(R.id.action_global_playlistFragment, Bundle().apply {
+                                            putString("id", "VL$playlistId")
                                         })
                                     }
                                 }

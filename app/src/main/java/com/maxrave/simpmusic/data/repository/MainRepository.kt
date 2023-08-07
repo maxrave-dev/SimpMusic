@@ -2,6 +2,7 @@ package com.maxrave.simpmusic.data.repository
 
 import android.util.Log
 import com.maxrave.kotlinytmusicscraper.YouTube
+import com.maxrave.kotlinytmusicscraper.models.MusicShelfRenderer
 import com.maxrave.simpmusic.data.api.BaseApiResponse
 import com.maxrave.simpmusic.data.api.search.RemoteDataSource
 import com.maxrave.simpmusic.data.db.LocalDataSource
@@ -33,10 +34,12 @@ import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
 import com.maxrave.simpmusic.data.model.thumbnailUrl
+import com.maxrave.simpmusic.data.parser.parseAlbumData
 import com.maxrave.simpmusic.data.parser.parseChart
 import com.maxrave.simpmusic.data.parser.parseGenreObject
 import com.maxrave.simpmusic.data.parser.parseMixedContent
 import com.maxrave.simpmusic.data.parser.parseMoodsMomentObject
+import com.maxrave.simpmusic.data.parser.parsePlaylistData
 import com.maxrave.simpmusic.utils.Resource
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -616,6 +619,64 @@ class MainRepository @Inject constructor(private val remoteDataSource: RemoteDat
                 .onFailure { e ->
                     emit(Resource.Error<GenreObject>(e.message.toString()))
                 }
+        }
+    }
+    suspend fun getPlaylistData(playlistId: String): Flow<Resource<PlaylistBrowse>> = flow {
+        runCatching {
+            var id: String = ""
+            if (!playlistId.startsWith("VL")) {
+                id += "VL$playlistId"
+            }
+            else {
+                id += playlistId
+            }
+            Log.d("Repository", "playlist id: $id")
+            YouTube.customQuery(browseId = id, setLogin = true).onSuccess { result ->
+                val listContent: ArrayList<MusicShelfRenderer.Content> = arrayListOf()
+                val data: List<MusicShelfRenderer.Content>? = result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(0)?.tabRenderer?.content?.sectionListRenderer?.contents?.get(0)?.musicPlaylistShelfRenderer?.contents
+                if (data != null) {
+                    Log.d("Data", "data: $data")
+                    Log.d("Data", "data size: ${data.size}")
+                    listContent.addAll(data)
+                }
+                val header = result.header?.musicDetailHeaderRenderer
+                Log.d("Header", "header: $header")
+                var continueParam = result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(0)?.tabRenderer?.content?.sectionListRenderer?.contents?.get(0)?.musicPlaylistShelfRenderer?.continuations?.get(0)?.nextContinuationData?.continuation
+                var count = 0
+                Log.d("Repository", "playlist data: ${listContent.size}")
+                Log.d("Repository", "continueParam: $continueParam")
+                while (continueParam != null) {
+                    YouTube.customQuery(browseId = "", continuation = continueParam, setLogin = true).onSuccess { values ->
+                        Log.d("Continue", "continue: $continueParam")
+                        val dataMore: List<MusicShelfRenderer.Content>? = values.continuationContents?.musicPlaylistShelfContinuation?.contents
+                        if (dataMore != null) {
+                            listContent.addAll(dataMore)
+                        }
+                        continueParam = values.continuationContents?.musicPlaylistShelfContinuation?.continuations?.get(0)?.nextContinuationData?.continuation
+                        count++
+                    }.onFailure {
+                        Log.e("Continue", "Error: ${it.message}")
+                        continueParam = null
+                        count++
+                    }
+                }
+                Log.d("Repository", "playlist final data: ${listContent.size}")
+                parsePlaylistData(header, listContent, playlistId)?.let { playlist ->
+                    emit(Resource.Success<PlaylistBrowse>(playlist))
+                } ?: emit(Resource.Error<PlaylistBrowse>("Error"))
+            }.onFailure { e ->
+                emit(Resource.Error<PlaylistBrowse>(e.message.toString()))
+            }
+        }
+    }
+    suspend fun getAlbumData(browseId: String): Flow<Resource<AlbumBrowse>> = flow {
+        runCatching {
+            YouTube.album(browseId, withSongs = true).onSuccess { result ->
+                emit(Resource.Success<AlbumBrowse>(parseAlbumData(result)))
+            }.onFailure { e ->
+                Log.d("Album", "Error: ${e.message}")
+                emit(Resource.Error<AlbumBrowse>(e.message.toString()))
+            }
         }
     }
 }

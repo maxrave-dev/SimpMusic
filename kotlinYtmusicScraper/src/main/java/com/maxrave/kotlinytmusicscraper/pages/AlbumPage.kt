@@ -5,12 +5,17 @@ import com.maxrave.kotlinytmusicscraper.models.AlbumItem
 import com.maxrave.kotlinytmusicscraper.models.Artist
 import com.maxrave.kotlinytmusicscraper.models.MusicResponsiveListItemRenderer
 import com.maxrave.kotlinytmusicscraper.models.SongItem
+import com.maxrave.kotlinytmusicscraper.models.Thumbnails
 import com.maxrave.kotlinytmusicscraper.models.oddElements
 import com.maxrave.kotlinytmusicscraper.utils.parseTime
+import kotlin.time.Duration
 
 data class AlbumPage(
     val album: AlbumItem,
     val songs: List<SongItem>,
+    val description: String?,
+    val thumbnails: Thumbnails?,
+    val duration: String?,
 ) {
     companion object {
         fun fromMusicResponsiveListItemRenderer(renderer: MusicResponsiveListItemRenderer): SongItem? {
@@ -35,6 +40,7 @@ data class AlbumPage(
                     ?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()
                     ?.text?.parseTime() ?: return null,
                 thumbnail = renderer.thumbnail?.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
+                thumbnails = renderer.thumbnail.musicThumbnailRenderer.thumbnail,
                 explicit = renderer.badges?.find {
                     it.musicInlineBadgeRenderer.icon.iconType == "MUSIC_EXPLICIT_BADGE"
                 } != null

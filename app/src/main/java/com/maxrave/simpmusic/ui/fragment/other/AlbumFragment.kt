@@ -94,7 +94,7 @@ class AlbumFragment: Fragment() {
         }
         var browseId = requireArguments().getString("browseId")
         val downloaded = arguments?.getInt("downloaded")
-        if (browseId == null){
+        if (browseId == null || browseId == viewModel.browseId.value){
             browseId = viewModel.browseId.value
             fetchDataFromViewModel()
         }
@@ -228,7 +228,7 @@ class AlbumFragment: Fragment() {
         }
     }
     private fun fetchDataFromViewModel() {
-        viewModel.albumBrowse.observe(viewLifecycleOwner) { response ->
+        val response = viewModel.albumBrowse.value
             when (response){
                 is Resource.Success -> {
                     response.data.let {
@@ -289,7 +289,6 @@ class AlbumFragment: Fragment() {
                 }
 
                 else -> {}
-            }
         }
     }
 

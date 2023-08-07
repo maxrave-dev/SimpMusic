@@ -162,7 +162,10 @@ object YouTube {
                 year = response.header.musicDetailHeaderRenderer.subtitle.runs.lastOrNull()?.text?.toIntOrNull(),
                 thumbnail = response.header.musicDetailHeaderRenderer.thumbnail.croppedSquareThumbnailRenderer?.getThumbnailUrl()!!
             ),
-            songs = if (withSongs) albumSongs(playlistId).getOrThrow() else emptyList()
+            songs = if (withSongs) albumSongs(playlistId).getOrThrow() else emptyList(),
+            description = response.header.musicDetailHeaderRenderer.description?.runs?.joinToString(separator = "") { it.text } ?: "",
+            duration = response.header.musicDetailHeaderRenderer.secondSubtitle.runs?.get(2)?.text ?: "",
+            thumbnails = response.header.musicDetailHeaderRenderer.thumbnail.croppedSquareThumbnailRenderer.thumbnail,
         )
     }
 
@@ -286,8 +289,8 @@ object YouTube {
             continuation = response.continuationContents.musicPlaylistShelfContinuation.continuations?.getContinuation()
         )
     }
-    suspend fun customQuery(browseId: String, params: String? = null, continuation: String? = null, country: String? = null) = runCatching {
-        ytMusic.browse(WEB_REMIX, browseId, params, continuation, country, false).body<BrowseResponse>()
+    suspend fun customQuery(browseId: String, params: String? = null, continuation: String? = null, country: String? = null, setLogin: Boolean = false) = runCatching {
+        ytMusic.browse(WEB_REMIX, browseId, params, continuation, country, setLogin).body<BrowseResponse>()
     }
 
     suspend fun explore(): Result<ExplorePage> = runCatching {

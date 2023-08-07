@@ -83,7 +83,7 @@ class PlaylistFragment: Fragment() {
         }
         var id = requireArguments().getString("id")
         val downloaded = arguments?.getInt("downloaded")
-        if (id == null){
+        if (id == null || id == viewModel.id.value){
             id = viewModel.id.value
             fetchDataFromViewModel()
         }
@@ -215,7 +215,7 @@ class PlaylistFragment: Fragment() {
         }
     }
     private fun fetchDataFromViewModel(){
-        viewModel.playlistBrowse.observe(viewLifecycleOwner) { response ->
+        val response = viewModel.playlistBrowse.value
             when (response) {
                 is Resource.Success -> {
                     response.data.let {
@@ -278,7 +278,6 @@ class PlaylistFragment: Fragment() {
 
                 else -> {}
             }
-        }
 
     }
 
