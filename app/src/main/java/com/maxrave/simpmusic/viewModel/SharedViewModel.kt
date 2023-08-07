@@ -412,7 +412,6 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
         quality = runBlocking { dataStoreManager.quality.first() }
         viewModelScope.launch {
             _firstTrackAdded.value = false
-            Queue.clear()
             simpleMediaServiceHandler.clearMediaItems()
             var uri = ""
             mainRepository.insertSong(track.toSongEntity())
