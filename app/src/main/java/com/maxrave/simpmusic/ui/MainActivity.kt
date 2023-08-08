@@ -1,20 +1,26 @@
 package com.maxrave.simpmusic.ui
 
+import android.Manifest
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.GradientDrawable
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.animation.AnimationUtils
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.graphics.ColorUtils
+import androidx.core.net.toUri
+import androidx.core.os.LocaleListCompat
 import androidx.core.view.WindowCompat
-import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.setupWithNavController
 import androidx.palette.graphics.Palette
@@ -23,14 +29,6 @@ import coil.load
 import coil.request.ImageRequest
 import coil.size.Size
 import coil.transform.Transformation
-import android.Manifest
-import android.net.Uri
-import android.provider.Settings.Global.putString
-import android.widget.Toast
-import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.net.toUri
-import androidx.core.os.LocaleListCompat
-import androidx.media3.exoplayer.offline.DownloadService
 import com.daimajia.swipe.SwipeLayout
 import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
@@ -246,23 +244,23 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
                                             putString("channelId", artistId)
                                         })
                                     }
-                                    else {
-                                        viewModel.convertNameToId(artistId)
-                                        viewModel.artistId.observe(this@MainActivity) {channelId ->
-                                            when (channelId) {
-                                                is Resource.Success -> {
-                                                    viewModel.intent.value = null
-                                                    navController.navigate(R.id.action_global_artistFragment, Bundle().apply {
-                                                        putString("channelId", channelId.data?.id)
-                                                    })
-                                                }
-                                                is Resource.Error -> {
-                                                    viewModel.intent.value = null
-                                                    Toast.makeText(this@MainActivity, channelId.message, Toast.LENGTH_SHORT).show()
-                                                }
-                                            }
-                                        }
-                                    }
+//                                    else {
+//                                        viewModel.convertNameToId(artistId)
+//                                        viewModel.artistId.observe(this@MainActivity) {channelId ->
+//                                            when (channelId) {
+//                                                is Resource.Success -> {
+//                                                    viewModel.intent.value = null
+//                                                    navController.navigate(R.id.action_global_artistFragment, Bundle().apply {
+//                                                        putString("channelId", channelId.data?.id)
+//                                                    })
+//                                                }
+//                                                is Resource.Error -> {
+//                                                    viewModel.intent.value = null
+//                                                    Toast.makeText(this@MainActivity, channelId.message, Toast.LENGTH_SHORT).show()
+//                                                }
+//                                            }
+//                                        }
+//                                    }
                                 }
 
                                 else -> when {

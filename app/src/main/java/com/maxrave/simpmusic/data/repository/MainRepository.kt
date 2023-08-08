@@ -4,8 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.models.MusicShelfRenderer
-import com.maxrave.simpmusic.data.api.BaseApiResponse
-import com.maxrave.simpmusic.data.api.search.RemoteDataSource
+import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
 import com.maxrave.simpmusic.data.db.LocalDataSource
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
@@ -17,7 +16,6 @@ import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.AlbumBrowse
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.browse.artist.ArtistBrowse
-import com.maxrave.simpmusic.data.model.browse.artist.ChannelId
 import com.maxrave.simpmusic.data.model.browse.playlist.PlaylistBrowse
 import com.maxrave.simpmusic.data.model.explore.mood.Genre
 import com.maxrave.simpmusic.data.model.explore.mood.Mood
@@ -25,16 +23,13 @@ import com.maxrave.simpmusic.data.model.explore.mood.MoodsMoment
 import com.maxrave.simpmusic.data.model.explore.mood.genre.GenreObject
 import com.maxrave.simpmusic.data.model.explore.mood.moodmoments.MoodsMomentObject
 import com.maxrave.simpmusic.data.model.home.HomeItem
-import com.maxrave.simpmusic.data.model.home.HomeResponse
 import com.maxrave.simpmusic.data.model.home.chart.Chart
 import com.maxrave.simpmusic.data.model.metadata.Lyrics
-import com.maxrave.simpmusic.data.model.metadata.MetadataSong
 import com.maxrave.simpmusic.data.model.searchResult.albums.AlbumsResult
 import com.maxrave.simpmusic.data.model.searchResult.artists.ArtistsResult
 import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
-import com.maxrave.simpmusic.data.model.thumbnailUrl
 import com.maxrave.simpmusic.data.parser.parseAlbumData
 import com.maxrave.simpmusic.data.parser.parseArtistData
 import com.maxrave.simpmusic.data.parser.parseChart
@@ -42,281 +37,27 @@ import com.maxrave.simpmusic.data.parser.parseGenreObject
 import com.maxrave.simpmusic.data.parser.parseMixedContent
 import com.maxrave.simpmusic.data.parser.parseMoodsMomentObject
 import com.maxrave.simpmusic.data.parser.parsePlaylistData
+import com.maxrave.simpmusic.data.parser.parseRelated
+import com.maxrave.simpmusic.data.parser.search.parseSearchAlbum
+import com.maxrave.simpmusic.data.parser.search.parseSearchArtist
+import com.maxrave.simpmusic.data.parser.search.parseSearchPlaylist
+import com.maxrave.simpmusic.data.parser.search.parseSearchSong
+import com.maxrave.simpmusic.data.parser.search.parseSearchVideo
+import com.maxrave.simpmusic.extension.toLyrics
 import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 import javax.inject.Inject
+import javax.inject.Singleton
 
 //@ActivityRetainedScoped
-class MainRepository @Inject constructor(private val remoteDataSource: RemoteDataSource, private val localDataSource: LocalDataSource, @ApplicationContext private val context: Context): BaseApiResponse() {
-    suspend fun getThumbnails(songId: String): Flow<Resource<ArrayList<thumbnailUrl>>> =
-        flow { emit(safeApiCall { remoteDataSource.getThumbnails(songId) }) }.flowOn(Dispatchers.IO)
-
-    //search
-    suspend fun searchAll(query: String, regionCode: String, language: String) =
-        remoteDataSource.searchAll(query, regionCode, language)
-
-    suspend fun searchSongs(
-        query: String,
-        filter: String = "songs",
-        regionCode: String,
-        language: String
-    ): Flow<Resource<ArrayList<SongsResult>>> = flow<Resource<ArrayList<SongsResult>>> {
-        emit(safeApiCall {
-            remoteDataSource.searchSongs(
-                query,
-                filter,
-                regionCode,
-                language
-            )
-        })
-    }.flowOn(Dispatchers.IO)
-
-    suspend fun searchArtists(
-        query: String,
-        filter: String = "artists",
-        regionCode: String,
-        language: String
-    ): Flow<Resource<ArrayList<ArtistsResult>>> = flow<Resource<ArrayList<ArtistsResult>>> {
-        emit(safeApiCall {
-            remoteDataSource.searchArtists(
-                query,
-                filter,
-                regionCode,
-                language
-            )
-        })
-    }.flowOn(Dispatchers.IO)
-
-    suspend fun searchAlbums(
-        query: String,
-        filter: String = "albums",
-        regionCode: String,
-        language: String
-    ): Flow<Resource<ArrayList<AlbumsResult>>> = flow<Resource<ArrayList<AlbumsResult>>> {
-        emit(safeApiCall {
-            remoteDataSource.searchAlbums(
-                query,
-                filter,
-                regionCode,
-                language
-            )
-        })
-    }.flowOn(Dispatchers.IO)
-
-    suspend fun searchPlaylists(
-        query: String,
-        filter: String = "playlists",
-        regionCode: String,
-        language: String
-    ): Flow<Resource<ArrayList<PlaylistsResult>>> = flow<Resource<ArrayList<PlaylistsResult>>> {
-        emit(safeApiCall {
-            remoteDataSource.searchPlaylists(
-                query,
-                filter,
-                regionCode,
-                language
-            )
-        })
-    }.flowOn(Dispatchers.IO)
-
-    suspend fun searchVideos(
-        query: String,
-        filter: String = "videos",
-        regionCode: String,
-        language: String
-    ): Flow<Resource<ArrayList<VideosResult>>> = flow<Resource<ArrayList<VideosResult>>> {
-        emit(safeApiCall {
-            remoteDataSource.searchVideos(
-                query,
-                filter,
-                regionCode,
-                language
-            )
-        })
-    }.flowOn(Dispatchers.IO)
-
-    //suggest query
-    suspend fun suggestQuery(query: String): Flow<Resource<ArrayList<String>>> =
-        flow<Resource<ArrayList<String>>> { emit(safeApiCall { remoteDataSource.suggestQuery(query) }) }.flowOn(
-            Dispatchers.IO
-        )
-
-    //getHome
-    fun getHomeData(regionCode: String, language: String): Flow<HomeResponse> = combine(
-        getHome(regionCode, language),
-        exploreMood(regionCode, language),
-        exploreChart("ZZ", language)
-    ) { home, exploreMood, exploreChart ->
-        HomeResponse(home, exploreMood, exploreChart)
-    }
-
-    fun getHome(regionCode: String, language: String): Flow<Resource<ArrayList<HomeItem>>> =
-        flow<Resource<ArrayList<HomeItem>>> {
-            emit(safeApiCall {
-                remoteDataSource.getHome(
-                    regionCode,
-                    language
-                )
-            })
-        }.flowOn(Dispatchers.IO)
-
-    //exploreMood
-    fun exploreMood(regionCode: String, language: String): Flow<Resource<Mood>> =
-        flow<Resource<Mood>> {
-            emit(safeApiCall {
-                remoteDataSource.exploreMood(
-                    regionCode,
-                    language
-                )
-            })
-        }.flowOn(Dispatchers.IO)
-
-    suspend fun getMood(
-        params: String,
-        regionCode: String,
-        language: String
-    ): Flow<Resource<MoodsMomentObject>> = flow<Resource<MoodsMomentObject>> {
-        emit(safeApiCall {
-            remoteDataSource.getMood(
-                params,
-                regionCode,
-                language
-            )
-        })
-    }.flowOn(Dispatchers.IO)
-
-    suspend fun getGenre(
-        params: String,
-        regionCode: String,
-        language: String
-    ): Flow<Resource<GenreObject>> = flow<Resource<GenreObject>> {
-        emit(safeApiCall {
-            remoteDataSource.getGenre(
-                params,
-                regionCode,
-                language
-            )
-        })
-    }.flowOn(Dispatchers.IO)
-
-    //browse
-    //artist
-    suspend fun browseArtist(
-        channelId: String,
-        regionCode: String,
-        language: String
-    ): Flow<Resource<ArtistBrowse>> = flow<Resource<ArtistBrowse>> {
-        emit(safeApiCall {
-            remoteDataSource.browseArtist(
-                channelId,
-                regionCode,
-                language
-            )
-        })
-    }.flowOn(Dispatchers.IO)
-
-    //album
-    suspend fun browseAlbum(
-        browseId: String,
-        regionCode: String,
-        language: String
-    ): Flow<Resource<AlbumBrowse>> = flow<Resource<AlbumBrowse>> {
-        emit(safeApiCall {
-            remoteDataSource.browseAlbum(
-                browseId,
-                regionCode,
-                language
-            )
-        })
-    }.flowOn(Dispatchers.IO)
-
-    //playlist
-    suspend fun browsePlaylist(
-        id: String,
-        regionCode: String,
-        language: String
-    ): Flow<Resource<PlaylistBrowse>> = flow<Resource<PlaylistBrowse>> {
-        emit(safeApiCall {
-            remoteDataSource.browsePlaylist(
-                id,
-                regionCode,
-                language
-            )
-        })
-    }.flowOn(Dispatchers.IO)
-
-    //chart
-    fun exploreChart(regionCode: String, language: String): Flow<Resource<Chart>> =
-        flow<Resource<Chart>> {
-            emit(safeApiCall {
-                remoteDataSource.exploreChart(
-                    regionCode,
-                    language
-                )
-            })
-        }.flowOn(Dispatchers.IO)
-
-    //metadata
-    suspend fun getMetadata(
-        videoId: String,
-        regionCode: String,
-        language: String
-    ): Flow<Resource<MetadataSong>> = flow<Resource<MetadataSong>> {
-        emit(safeApiCall {
-            remoteDataSource.getMetadata(
-                videoId,
-                regionCode,
-                language
-            )
-        })
-    }.flowOn(Dispatchers.IO)
-
-    suspend fun getLyrics(query: String): Flow<Resource<Lyrics>> =
-        flow<Resource<Lyrics>> { emit(safeApiCall { remoteDataSource.getLyrics(query) }) }.flowOn(
-            Dispatchers.IO
-        )
-
-    //related
-    suspend fun getRelated(
-        videoId: String,
-        regionCode: String,
-        language: String
-    ): Flow<Resource<ArrayList<Track>>> = flow<Resource<ArrayList<Track>>> {
-        emit(safeApiCall {
-            remoteDataSource.getRelated(
-                videoId,
-                regionCode,
-                language
-            )
-        })
-    }.flowOn(Dispatchers.IO)
-
-    suspend fun getVideoRelated(
-        videoId: String,
-        regionCode: String,
-        language: String
-    ): Flow<Resource<ArrayList<VideosResult>>> = flow<Resource<ArrayList<VideosResult>>> {
-        emit(safeApiCall {
-            remoteDataSource.getVideoRelated(
-                videoId,
-                regionCode,
-                language
-            )
-        })
-    }.flowOn(Dispatchers.IO)
-
-    suspend fun convertNameToId(name: String): Flow<Resource<ChannelId>> =
-        flow<Resource<ChannelId>> { emit(safeApiCall { remoteDataSource.convertNameToId(name) }) }.flowOn(
-            Dispatchers.IO
-        )
-
+@Singleton
+class MainRepository @Inject constructor(private val localDataSource: LocalDataSource, @ApplicationContext private val context: Context) {
     //Database
     suspend fun getSearchHistory(): Flow<List<SearchHistory>> =
         flow { emit(localDataSource.getSearchHistory()) }.flowOn(Dispatchers.IO)
@@ -690,6 +431,221 @@ class MainRepository @Inject constructor(private val remoteDataSource: RemoteDat
                 Log.d("Artist", "Error: ${e.message}")
                 emit(Resource.Error<ArtistBrowse>(e.message.toString()))
             }
+        }
+    }
+    suspend fun getSearchDataSong(query: String): Flow<Resource<ArrayList<SongsResult>>> = flow {
+        runCatching {
+            YouTube.search(query, YouTube.SearchFilter.FILTER_SONG).onSuccess { result ->
+                val listSongs: ArrayList<SongsResult> = arrayListOf()
+                var countinueParam = result.continuation
+                parseSearchSong(result).let { list ->
+                    listSongs.addAll(list)
+                }
+                var count = 0
+                while (count < 2 && countinueParam != null) {
+                    YouTube.searchContinuation(countinueParam).onSuccess { values ->
+                        parseSearchSong(values).let { list ->
+                            listSongs.addAll(list)
+                        }
+                        count++
+                        countinueParam = values.continuation
+                    }.onFailure {
+                        Log.e("Continue", "Error: ${it.message}")
+                        countinueParam = null
+                        count++
+                    }
+                }
+
+                emit(Resource.Success<ArrayList<SongsResult>>(listSongs))
+            }.onFailure { e ->
+                Log.d("Search", "Error: ${e.message}")
+                emit(Resource.Error<ArrayList<SongsResult>>(e.message.toString()))
+            }
+        }
+    }
+    suspend fun getSearchDataVideo(query: String): Flow<Resource<ArrayList<VideosResult>>> = flow {
+        runCatching {
+            YouTube.search(query, YouTube.SearchFilter.FILTER_VIDEO).onSuccess { result ->
+                val listSongs: ArrayList<VideosResult> = arrayListOf()
+                var countinueParam = result.continuation
+                parseSearchVideo(result).let { list ->
+                    listSongs.addAll(list)
+                }
+                var count = 0
+                while (count < 2 && countinueParam != null) {
+                    YouTube.searchContinuation(countinueParam).onSuccess { values ->
+                        parseSearchVideo(values).let { list ->
+                            listSongs.addAll(list)
+                        }
+                        count++
+                        countinueParam = values.continuation
+                    }.onFailure {
+                        Log.e("Continue", "Error: ${it.message}")
+                        countinueParam = null
+                        count++
+                    }
+                }
+
+                emit(Resource.Success<ArrayList<VideosResult>>(listSongs))
+            }.onFailure { e ->
+                Log.d("Search", "Error: ${e.message}")
+                emit(Resource.Error<ArrayList<VideosResult>>(e.message.toString()))
+            }
+        }
+    }
+    suspend fun getSearchDataArtist(query: String): Flow<Resource<ArrayList<ArtistsResult>>> = flow {
+        runCatching {
+            YouTube.search(query, YouTube.SearchFilter.FILTER_ARTIST).onSuccess { result ->
+                val listArtist: ArrayList<ArtistsResult> = arrayListOf()
+                var countinueParam = result.continuation
+                parseSearchArtist(result).let { list ->
+                    listArtist.addAll(list)
+                }
+                var count = 0
+                while (count < 2 && countinueParam != null) {
+                    YouTube.searchContinuation(countinueParam).onSuccess { values ->
+                        parseSearchArtist(values).let { list ->
+                            listArtist.addAll(list)
+                        }
+                        count++
+                        countinueParam = values.continuation
+                    }.onFailure {
+                        Log.e("Continue", "Error: ${it.message}")
+                        countinueParam = null
+                        count++
+                    }
+                }
+                emit(Resource.Success<ArrayList<ArtistsResult>>(listArtist))
+            }.onFailure { e ->
+                Log.d("Search", "Error: ${e.message}")
+                emit(Resource.Error<ArrayList<ArtistsResult>>(e.message.toString()))
+            }
+        }
+    }
+    suspend fun getSearchDataAlbum(query: String): Flow<Resource<ArrayList<AlbumsResult>>> = flow {
+        runCatching {
+            YouTube.search(query, YouTube.SearchFilter.FILTER_ALBUM).onSuccess { result ->
+                val listAlbum: ArrayList<AlbumsResult> = arrayListOf()
+                var countinueParam = result.continuation
+                parseSearchAlbum(result).let { list ->
+                    listAlbum.addAll(list)
+                }
+                var count = 0
+                while (count < 2 && countinueParam != null) {
+                    YouTube.searchContinuation(countinueParam).onSuccess { values ->
+                        parseSearchAlbum(values).let { list ->
+                            listAlbum.addAll(list)
+                        }
+                        count++
+                        countinueParam = values.continuation
+                    }.onFailure {
+                        Log.e("Continue", "Error: ${it.message}")
+                        countinueParam = null
+                        count++
+                    }
+                }
+                emit(Resource.Success<ArrayList<AlbumsResult>>(listAlbum))
+            }.onFailure { e ->
+                Log.d("Search", "Error: ${e.message}")
+                emit(Resource.Error<ArrayList<AlbumsResult>>(e.message.toString()))
+            }
+        }
+    }
+    suspend fun getSearchDataPlaylist(query: String): Flow<Resource<ArrayList<PlaylistsResult>>> = flow {
+        runCatching {
+            YouTube.search(query, YouTube.SearchFilter.FILTER_COMMUNITY_PLAYLIST).onSuccess { result ->
+                val listPlaylist: ArrayList<PlaylistsResult> = arrayListOf()
+                var countinueParam = result.continuation
+                parseSearchPlaylist(result).let { list ->
+                    listPlaylist.addAll(list)
+                }
+                var count = 0
+                while (count < 2 && countinueParam != null) {
+                    YouTube.searchContinuation(countinueParam).onSuccess { values ->
+                        parseSearchPlaylist(values).let { list ->
+                            listPlaylist.addAll(list)
+                        }
+                        count++
+                        countinueParam = values.continuation
+                    }.onFailure {
+                        Log.e("Continue", "Error: ${it.message}")
+                        countinueParam = null
+                        count++
+                    }
+                }
+                emit(Resource.Success<ArrayList<PlaylistsResult>>(listPlaylist))
+            }.onFailure { e ->
+                Log.d("Search", "Error: ${e.message}")
+                emit(Resource.Error<ArrayList<PlaylistsResult>>(e.message.toString()))
+            }
+        }
+    }
+    suspend fun getSuggestQuery(query: String): Flow<Resource<ArrayList<String>>> = flow {
+        runCatching {
+            YouTube.getSuggestQuery(query).onSuccess {
+                emit(Resource.Success<ArrayList<String>>(it))
+            }.onFailure { e ->
+                Log.d("Suggest", "Error: ${e.message}")
+                emit(Resource.Error<ArrayList<String>>(e.message.toString()))
+            }
+        }
+    }
+    suspend fun getRelatedData(videoId: String): Flow<Resource<ArrayList<Track>>> = flow {
+        runCatching {
+            YouTube.nextCustom(videoId).onSuccess { result ->
+                val listSongs: ArrayList<Track> = arrayListOf()
+                val data = result.contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer.tabs[0].tabRenderer.content?.musicQueueRenderer?.content?.playlistPanelRenderer?.contents
+                parseRelated(data)?.let { list ->
+                    listSongs.addAll(list)
+                }
+                emit(Resource.Success<ArrayList<Track>>(listSongs))
+            }.onFailure { e ->
+                Log.d("Related", "Error: ${e.message}")
+                emit(Resource.Error<ArrayList<Track>>(e.message.toString()))
+            }
+        }
+    }
+    suspend fun getLyricsData(query: String): Flow<Resource<Lyrics>> = flow {
+        runCatching {
+            Log.d("Lyrics", "query: $query")
+            YouTube.authencation().onSuccess {token ->
+                if (token.accessToken != null) {
+                    YouTube.getSongId(token.accessToken!!, query).onSuccess { spotifyResult ->
+                        Log.d("SongId", "id: ${spotifyResult.tracks?.items?.get(0)?.id}")
+                        spotifyResult.tracks?.items?.get(0)?.let {
+                            it.id?.let { it1 ->
+                                Log.d("Lyrics", "id: $it1")
+                                YouTube.getLyrics(it1).onSuccess { lyrics ->
+                                    emit(Resource.Success<Lyrics>(lyrics.toLyrics()))
+                                }.onFailure {
+                                    Log.d("Lyrics", "Error: ${it.message}")
+                                    emit(Resource.Error<Lyrics>("Not found"))
+                                }
+                            }
+                        }
+                    }.onFailure {
+                        Log.d("SongId", "Error: ${it.message}")
+                        emit(Resource.Error<Lyrics>("Not found"))
+                    }
+                }
+
+            }
+            }.onFailure {
+                Log.d("Lyrics", "Error: ${it.message}")
+                emit(Resource.Error<Lyrics>(it.message.toString()))
+            }
+        }
+    suspend fun getStream(videoId: String, itag: Int): Flow<String?> = flow{
+            YouTube.getStream(videoId, itag).onSuccess {
+                emit(it)
+            }.onFailure {
+                emit(null)
+            }
+    }
+
+    fun getSongFull(videoId: String): Flow<PipedResponse> = flow {
+        YouTube.pipeStream(videoId).onSuccess {
+            emit(it)
         }
     }
 }

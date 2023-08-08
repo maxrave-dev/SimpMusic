@@ -13,23 +13,11 @@ import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.offline.DownloadNotificationHelper
-import com.maxrave.simpmusic.common.Config
-import com.maxrave.simpmusic.data.model.streams.StreamData
+import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.di.DownloadCache
 import com.maxrave.simpmusic.di.PlayerCache
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService.Companion.CHANNEL_ID
 import dagger.hilt.android.qualifiers.ApplicationContext
-import io.ktor.client.HttpClient
-import io.ktor.client.call.body
-import io.ktor.client.plugins.HttpRequestTimeoutException
-import io.ktor.client.request.get
-import io.ktor.http.ContentType
-import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.contentType
-import io.ktor.http.headers
-import io.ktor.utils.io.core.EOFException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,7 +34,7 @@ class DownloadUtils @Inject constructor(
     @ApplicationContext context: Context,
     @PlayerCache private val playerCache: SimpleCache,
     @DownloadCache private val downloadCache: SimpleCache,
-    private val ktorClient: HttpClient,
+    private val mainRepository: MainRepository,
     private val databaseProvider: DatabaseProvider) {
 
 
@@ -79,37 +67,37 @@ class DownloadUtils @Inject constructor(
 //                    }
 //                }
 //            }
-            try {
-                val response = ktorClient.get("${Config.BASE_STREAM_URL}${mediaId}") {
-                    method = HttpMethod.Get
-                    headers {
-                        append(HttpHeaders.UserAgent, Config.USER_AGENT)
-                        append(HttpHeaders.Accept, "application/json")
-                    }
-                    contentType(ContentType.Application.Json)
+            mainRepository.getStream(mediaId, 251).collect{values ->
+                if (values != null){
+                    extract = dataSpec.withUri((values).toUri())
                 }
-                if (response.status == HttpStatusCode.OK) {
-                    val streamData: StreamData = response.body()
-                    streamData.audioStreams?.forEach { stream ->
-                        if (stream.itag == 251) {
-                            val url = stream.url
-                            Log.d("DownloadUtils", "url: $url")
-                            if (url != null) {
-                                extract = dataSpec.withUri((url).toUri())
-                            }
-                        }
-                    }
-                }
-                else {
-                    Log.d("DownloadUtils", "response: ${response.status}")
-                }
-            }
-            catch (e: HttpRequestTimeoutException) {
-                Log.d("DownloadUtils", "Exception: ${e.message}")
-            }
-            catch (e: EOFException){
-                Log.d("DownloadUtils", "Exception: ${e.message}")
-            }
+        }
+//            try {
+//                val response = ktorClient.get("${Config.BASE_STREAM_URL}${mediaId}") {
+//                    contentType(ContentType.Application.Json)
+//                }
+//                if (response.status == HttpStatusCode.OK) {
+//                    val streamData: StreamData = response.body()
+//                    streamData.audioStreams?.forEach { stream ->
+//                        if (stream.itag == 251) {
+//                            val url = stream.url
+//                            Log.d("DownloadUtils", "url: $url")
+//                            if (url != null) {
+//                                extract = dataSpec.withUri((url).toUri())
+//                            }
+//                        }
+//                    }
+//                }
+//                else {
+//                    Log.d("DownloadUtils", "response: ${response.status}")
+//                }
+//            }
+//            catch (e: HttpRequestTimeoutException) {
+//                Log.d("DownloadUtils", "Exception: ${e.message}")
+//            }
+//            catch (e: EOFException){
+//                Log.d("DownloadUtils", "Exception: ${e.message}")
+//            }
         }
         Log.d("DownloadUtils", "extract: ${extract.toString()}")
         return@Factory extract!!

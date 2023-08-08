@@ -1,14 +1,6 @@
 package com.maxrave.simpmusic.common
 
 object Config {
-    var BASE_URL = "https://ytmusicapi.onrender.com/"
-
-    var BASE_STREAM_URL = "https://pipedapi.kavin.rocks/streams/"
-
-    var NETWORK_ERROR = "NETWORK_ERROR"
-
-    var USER_AGENT = "Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36"
-
     enum class SyncState {
         LINE_SYNCED,
         UNSYNCED,

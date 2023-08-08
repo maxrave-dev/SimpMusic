@@ -259,7 +259,7 @@ class NowPlayingFragment : Fragment() {
                             viewModel.firstTrackAdded.collect { added ->
                                 if (added) {
                                     viewModel.changeFirstTrackAddedToFalse()
-                                    getVideosRelated(it.videoId)
+                                    getRelated(it.videoId)
                                 }
                             }
                         }
@@ -426,7 +426,9 @@ class NowPlayingFragment : Fragment() {
                                         }
                                     }
                                     is Resource.Error -> {
-                                        viewModel.getSavedLyrics(song.mediaId)
+                                        if (resourceLyrics.message != "reset") {
+                                            viewModel.getSavedLyrics(song.mediaId)
+                                        }
                                     }
                                 }
                             }
@@ -927,54 +929,6 @@ class NowPlayingFragment : Fragment() {
             } else {
                 requireActivity().stopService(Intent(requireContext(), FetchQueue::class.java))
                 requireActivity().startService(mIntent)
-            }
-        }
-    }
-
-    private fun getVideosRelated(videoId: String) {
-        viewModel.getVideoRelated(videoId)
-        viewModel.videoRelated.observe(viewLifecycleOwner) { response ->
-            when (response) {
-                is Resource.Success -> {
-                    val data = response.data!!
-                    val queue = data.toListTrack()
-                    queue.add(Queue.getNowPlaying()!!)
-                    val listWithoutDuplicateElements: ArrayList<Track> = ArrayList()
-                    for (element in queue) {
-                        // Check if element not exist in list, perform add element to list
-                        if (!listWithoutDuplicateElements.contains(element)) {
-                            listWithoutDuplicateElements.add(element)
-                        }
-                    }
-                    Log.d("Queue", "getVideosRelated: ${listWithoutDuplicateElements.size}")
-                    Queue.addAll(listWithoutDuplicateElements)
-                    if (!requireContext().isMyServiceRunning(FetchQueue::class.java)) {
-                        requireActivity().startService(
-                            Intent(
-                                requireContext(),
-                                FetchQueue::class.java
-                            )
-                        )
-                    } else {
-                        requireActivity().stopService(
-                            Intent(
-                                requireContext(),
-                                FetchQueue::class.java
-                            )
-                        )
-                        requireActivity().startService(
-                            Intent(
-                                requireContext(),
-                                FetchQueue::class.java
-                            )
-                        )
-                    }
-                }
-
-                is Resource.Error -> {
-                    Toast.makeText(requireContext(), response.message, Toast.LENGTH_SHORT).show()
-                    Log.d("Error", "${response.message}")
-                }
             }
         }
     }

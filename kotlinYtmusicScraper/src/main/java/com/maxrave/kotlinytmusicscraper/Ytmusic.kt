@@ -1,29 +1,33 @@
 package com.maxrave.kotlinytmusicscraper
 
-import com.maxrave.kotlinytmusicscraper.models.body.AccountMenuBody
+import android.util.Log
 import com.maxrave.kotlinytmusicscraper.encoder.brotli
-import com.maxrave.kotlinytmusicscraper.models.body.BrowseBody
 import com.maxrave.kotlinytmusicscraper.models.Context
+import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
+import com.maxrave.kotlinytmusicscraper.models.YouTubeClient
+import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
+import com.maxrave.kotlinytmusicscraper.models.body.AccountMenuBody
+import com.maxrave.kotlinytmusicscraper.models.body.BrowseBody
+import com.maxrave.kotlinytmusicscraper.models.body.FormData
 import com.maxrave.kotlinytmusicscraper.models.body.GetQueueBody
 import com.maxrave.kotlinytmusicscraper.models.body.GetSearchSuggestionsBody
-import com.maxrave.kotlinytmusicscraper.models.body.GetTranscriptBody
 import com.maxrave.kotlinytmusicscraper.models.body.NextBody
 import com.maxrave.kotlinytmusicscraper.models.body.PlayerBody
 import com.maxrave.kotlinytmusicscraper.models.body.SearchBody
-import com.maxrave.kotlinytmusicscraper.models.YouTubeClient
-import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
-import com.maxrave.kotlinytmusicscraper.models.body.FormData
+import com.maxrave.kotlinytmusicscraper.models.spotify.SpotifyResult
+import com.maxrave.kotlinytmusicscraper.models.spotify.Token
 import com.maxrave.kotlinytmusicscraper.utils.parseCookieString
 import com.maxrave.kotlinytmusicscraper.utils.sha1
 import io.ktor.client.*
+import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.compression.*
 import io.ktor.client.plugins.contentnegotiation.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.HttpResponse
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
-import io.ktor.util.encodeBase64
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import java.net.Proxy
@@ -151,6 +155,36 @@ class Ytmusic {
         httpClient.get("https://pipedapi.kavin.rocks/streams/${videoId}") {
             contentType(ContentType.Application.Json)
         }
+    suspend fun authorizationSpotify(): HttpResponse {
+        val authHeaderValue = "721d6f670f074b1497e74fc59125a6f3:efddc083fa974d39bc6369a892c07ced"
+        val authHeaderBase64 = Base64.getEncoder().encodeToString(authHeaderValue.toByteArray())
+        val authorization = "Basic $authHeaderBase64"
+        return httpClient.post("https://accounts.spotify.com/api/token") {
+            header(HttpHeaders.Authorization, authorization)
+            header(HttpHeaders.ContentType, ContentType.Application.FormUrlEncoded)
+            setBody(
+                listOf("grant_type" to "client_credentials").formUrlEncode()
+            )
+        }
+    }
+    suspend fun searchSongId(authorization: String, query: String) = httpClient.get("https://api.spotify.com/v1/search") {
+        contentType(ContentType.Application.Json)
+        header(HttpHeaders.Authorization, "Bearer $authorization")
+        parameter("type", "track")
+        parameter("q", query)
+    }
+    suspend fun getLyrics(trackId: String) = httpClient.get("https://spotify-lyric-api.herokuapp.com/") {
+                    contentType(ContentType.Application.Json)
+                    parameter("trackid", trackId)
+                    parameter("format", "id3")
+                }
+
+    suspend fun getSuggestQuery(query: String) = httpClient.get("http://suggestqueries.google.com/complete/search") {
+            contentType(ContentType.Application.Json)
+            parameter("client", "firefox")
+            parameter("ds", "yt")
+            parameter("q", query)
+        }
 
     suspend fun browse(
         client: YouTubeClient,
@@ -188,6 +222,26 @@ class Ytmusic {
             parameter("continuation", continuation)
             parameter("type", "next")
         }
+    }
+    suspend fun nextCustom(client: YouTubeClient, videoId: String) = httpClient.post("next") {
+        ytClient(client, setLogin = false)
+        setBody(
+            BrowseBody(
+                context = client.toContext(locale, visitorData),
+                browseId = null,
+                params = "wAEB",
+                enablePersistentPlaylistPanel = true,
+                isAudioOnly = true,
+                tunerSettingValue = "AUTOMIX_SETTING_NORMAL",
+                playlistId = "RDAMVM$videoId",
+                watchEndpointMusicSupportedConfigs = WatchEndpoint.WatchEndpointMusicSupportedConfigs(
+                    WatchEndpoint.WatchEndpointMusicSupportedConfigs.WatchEndpointMusicConfig(
+                        musicVideoType = "MUSIC_VIDEO_TYPE_ATV",
+                    )
+                )
+            )
+        )
+        parameter("alt", "json")
     }
 
     suspend fun next(
@@ -237,22 +291,6 @@ class Ytmusic {
                 context = client.toContext(locale, visitorData),
                 videoIds = videoIds,
                 playlistId = playlistId
-            )
-        )
-    }
-
-    suspend fun getTranscript(
-        client: YouTubeClient,
-        videoId: String,
-    ) = httpClient.post("https://music.youtube.com/youtubei/v1/get_transcript") {
-        parameter("key", "AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX3")
-        headers {
-            append("Content-Type", "application/json")
-        }
-        setBody(
-            GetTranscriptBody(
-                context = client.toContext(locale, null),
-                params = "\n${11.toChar()}$videoId".encodeBase64()
             )
         )
     }

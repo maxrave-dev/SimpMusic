@@ -228,6 +228,7 @@ fun parseSong(data: MusicTwoRowItemRenderer): Content {
     var name = ""
     var id = ""
     var view = ""
+    var radioString = ""
     val listArtist : MutableList<Artist> = mutableListOf()
     val listAlbum : MutableList<Album> = mutableListOf()
     Log.d("parse_runs", runs.toString())
