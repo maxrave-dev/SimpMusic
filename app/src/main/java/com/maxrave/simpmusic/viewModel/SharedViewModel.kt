@@ -730,6 +730,10 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
         quality = runBlocking { dataStoreManager.quality.first() }
         language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
     }
+
+    fun stopPlayer() {
+        simpleMediaServiceHandler.stopPlayer()
+    }
 }
 sealed class UIEvent {
     object PlayPause : UIEvent()

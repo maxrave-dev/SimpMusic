@@ -294,6 +294,10 @@ class SimpleMediaServiceHandler @Inject constructor(
             stopBufferedUpdate()
         }
     }
+
+    fun stopPlayer() {
+        player.stop()
+    }
 }
 
 sealed class RepeatState {

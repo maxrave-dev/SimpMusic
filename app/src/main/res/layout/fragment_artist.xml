@@ -137,6 +137,7 @@
                                 android:layout_height="match_parent"
                                 android:background="@android:color/transparent"
                                 android:layout_centerVertical="true"
+                                android:visibility="gone"
                                 android:src="@drawable/baseline_more_vert_24"
                                 android:layout_alignParentEnd="true">
 

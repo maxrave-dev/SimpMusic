@@ -7,7 +7,7 @@
     <string name="album_and_artist_name">Album • %1$s</string>
     <string name="subscribers">%1$s người đăng ký</string>
     <string name="year_and_category">%1$s • %2$s</string>
-    <string name="album_length">%1$s bài hát • %2$s</string>
+    <string name="album_length">%1$s bài hát  %2$s</string>
     <string name="view_count">%1$s lượt xem</string>
     <string name="lyrics_provider">Lời bát hát được cung cấp bởi akashrchandran/spotify-lyrics-api</string>
     <string name="clear_search_history">Xoá lịch sử tìm kiếm</string>

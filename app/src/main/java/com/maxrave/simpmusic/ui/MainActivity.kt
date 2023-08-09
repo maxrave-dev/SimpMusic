@@ -188,16 +188,11 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
         })
         binding.btRemoveMiniPlayer.setOnClickListener {
             if (viewModel.isServiceRunning.value == true){
-                stopService(Intent(this, SimpleMediaService::class.java))
-                Log.d("Service", "Service stopped")
-                if (this.isMyServiceRunning(FetchQueue:: class.java)){
-                    stopService(Intent(this, FetchQueue::class.java))
-                    Log.d("Service", "FetchQueue stopped")
-                }
-                viewModel.isServiceRunning.postValue(false)
+                viewModel.stopPlayer()
             }
             viewModel.videoId.postValue(null)
             binding.miniplayer.visibility = View.GONE
+            binding.card.radius = 8f
         }
 
         binding.card.setOnClickListener {

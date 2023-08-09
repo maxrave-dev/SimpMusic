@@ -69,6 +69,7 @@
                 android:src="@drawable/baseline_more_vert_24"
                 android:background="@android:color/transparent"
                 android:layout_alignParentEnd="true"
+                android:visibility="gone"
                 android:layout_centerVertical="true">
 
             </ImageButton>

@@ -215,7 +215,7 @@ class PlaylistFragment: Fragment() {
         }
     }
     private fun fetchDataFromViewModel(){
-        val response = viewModel.playlistBrowse.value
+            val response = viewModel.playlistBrowse.value
             when (response) {
                 is Resource.Success -> {
                     response.data.let {
@@ -223,7 +223,7 @@ class PlaylistFragment: Fragment() {
                             topAppBar.title = it?.title
                             tvPlaylistAuthor.text = it?.author?.name
                             tvYearAndCategory.text = requireContext().getString(R.string.year_and_category, it?.year.toString(), "Playlist")
-                            tvTrackCountAndDuration.text = requireContext().getString(R.string.album_length, it?.trackCount.toString(), it?.duration.toString())
+                            tvTrackCountAndDuration.text = requireContext().getString(R.string.album_length, it?.trackCount.toString(), "")
                             if (it?.description != null){
                                 tvDescription.originalText = it.description
                             } else {
@@ -296,7 +296,7 @@ class PlaylistFragment: Fragment() {
                                 topAppBar.title = it?.title
                                 tvPlaylistAuthor.text = it?.author?.name
                                 tvYearAndCategory.text = requireContext().getString(R.string.year_and_category, it?.year.toString(), "Playlist")
-                                tvTrackCountAndDuration.text = requireContext().getString(R.string.album_length, it?.trackCount.toString(), it?.duration.toString())
+                                tvTrackCountAndDuration.text = requireContext().getString(R.string.album_length, it?.trackCount.toString(), "")
                                 if (it?.description != null){
                                     tvDescription.originalText = it.description
                                 } else {
@@ -379,7 +379,7 @@ class PlaylistFragment: Fragment() {
                         tvPlaylistAuthor.text = playlistEntity.author
                         tvYearAndCategory.text = requireContext().getString(R.string.year_and_category, playlistEntity.year.toString(), "Playlist")
                         tvTrackCountAndDuration.text = requireContext().getString(R.string.album_length, playlistEntity.trackCount.toString(),
-                            playlistEntity.duration
+                            ""
                         )
                         if (playlistEntity.description != ""){
                             tvDescription.originalText = playlistEntity.description

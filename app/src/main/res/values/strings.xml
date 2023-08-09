@@ -6,7 +6,7 @@
     <string name="album_and_artist_name">Album • %1$s</string>
     <string name="subscribers">%1$s subscribers</string>
     <string name="year_and_category">%1$s • %2$s</string>
-    <string name="album_length">%1$s tracks • %2$s</string>
+    <string name="album_length">%1$s tracks  %2$s</string>
     <string name="view_count">%1$s views</string>
     <string name="lyrics_provider">Lyrics provided by akashrchandran/spotify-lyrics-api</string>
     <string name="clear_search_history">Clear search history</string>

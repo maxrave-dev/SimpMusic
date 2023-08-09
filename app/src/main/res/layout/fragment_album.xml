@@ -183,6 +183,7 @@
                             android:src="@drawable/baseline_more_vert_24"
                             android:clickable="true"
                             android:focusable="true"
+                            android:visibility="gone"
                             android:foreground="?android:attr/selectableItemBackground">
 
                         </ImageButton>
