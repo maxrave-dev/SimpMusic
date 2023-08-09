@@ -281,7 +281,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                 emit(Resource.Error<ArrayList<HomeItem>>(error.message.toString()))
             }
         }
-    }
+    }.flowOn(Dispatchers.IO)
 
     suspend fun getChartData(countryCode: String = "KR"): Flow<Resource<Chart>> = flow {
         runCatching {
@@ -298,7 +298,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                 emit(Resource.Error<Chart>(error.message.toString()))
             }
         }
-    }
+    }.flowOn(Dispatchers.IO)
 
     suspend fun getMoodAndMomentsData(): Flow<Resource<Mood>> = flow {
         runCatching {
@@ -331,7 +331,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                 emit(Resource.Error<Mood>(e.message.toString()))
             }
         }
-    }
+    }.flowOn(Dispatchers.IO)
 
     suspend fun getMoodData(params: String): Flow<Resource<MoodsMomentObject>> = flow {
         runCatching {
@@ -348,7 +348,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                     emit(Resource.Error<MoodsMomentObject>(e.message.toString()))
                 }
         }
-    }
+    }.flowOn(Dispatchers.IO)
     suspend fun getGenreData(params: String): Flow<Resource<GenreObject>> = flow {
         kotlin.runCatching {
             YouTube.customQuery(browseId = "FEmusic_moods_and_genres_category", params = params)
@@ -364,7 +364,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                     emit(Resource.Error<GenreObject>(e.message.toString()))
                 }
         }
-    }
+    }.flowOn(Dispatchers.IO)
     suspend fun getPlaylistData(playlistId: String): Flow<Resource<PlaylistBrowse>> = flow {
         runCatching {
             var id: String = ""
@@ -412,7 +412,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                 emit(Resource.Error<PlaylistBrowse>(e.message.toString()))
             }
         }
-    }
+    }.flowOn(Dispatchers.IO)
     suspend fun getAlbumData(browseId: String): Flow<Resource<AlbumBrowse>> = flow {
         runCatching {
             YouTube.album(browseId, withSongs = true).onSuccess { result ->
@@ -422,7 +422,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                 emit(Resource.Error<AlbumBrowse>(e.message.toString()))
             }
         }
-    }
+    }.flowOn(Dispatchers.IO)
     suspend fun getArtistData(channelId: String): Flow<Resource<ArtistBrowse>> = flow {
         runCatching {
             YouTube.artist(channelId).onSuccess { result ->
@@ -432,7 +432,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                 emit(Resource.Error<ArtistBrowse>(e.message.toString()))
             }
         }
-    }
+    }.flowOn(Dispatchers.IO)
     suspend fun getSearchDataSong(query: String): Flow<Resource<ArrayList<SongsResult>>> = flow {
         runCatching {
             YouTube.search(query, YouTube.SearchFilter.FILTER_SONG).onSuccess { result ->
@@ -462,7 +462,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                 emit(Resource.Error<ArrayList<SongsResult>>(e.message.toString()))
             }
         }
-    }
+    }.flowOn(Dispatchers.IO)
     suspend fun getSearchDataVideo(query: String): Flow<Resource<ArrayList<VideosResult>>> = flow {
         runCatching {
             YouTube.search(query, YouTube.SearchFilter.FILTER_VIDEO).onSuccess { result ->
@@ -492,7 +492,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                 emit(Resource.Error<ArrayList<VideosResult>>(e.message.toString()))
             }
         }
-    }
+    }.flowOn(Dispatchers.IO)
     suspend fun getSearchDataArtist(query: String): Flow<Resource<ArrayList<ArtistsResult>>> = flow {
         runCatching {
             YouTube.search(query, YouTube.SearchFilter.FILTER_ARTIST).onSuccess { result ->
@@ -521,7 +521,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                 emit(Resource.Error<ArrayList<ArtistsResult>>(e.message.toString()))
             }
         }
-    }
+    }.flowOn(Dispatchers.IO)
     suspend fun getSearchDataAlbum(query: String): Flow<Resource<ArrayList<AlbumsResult>>> = flow {
         runCatching {
             YouTube.search(query, YouTube.SearchFilter.FILTER_ALBUM).onSuccess { result ->
@@ -550,7 +550,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                 emit(Resource.Error<ArrayList<AlbumsResult>>(e.message.toString()))
             }
         }
-    }
+    }.flowOn(Dispatchers.IO)
     suspend fun getSearchDataPlaylist(query: String): Flow<Resource<ArrayList<PlaylistsResult>>> = flow {
         runCatching {
             YouTube.search(query, YouTube.SearchFilter.FILTER_COMMUNITY_PLAYLIST).onSuccess { result ->
@@ -579,7 +579,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                 emit(Resource.Error<ArrayList<PlaylistsResult>>(e.message.toString()))
             }
         }
-    }
+    }.flowOn(Dispatchers.IO)
     suspend fun getSuggestQuery(query: String): Flow<Resource<ArrayList<String>>> = flow {
         runCatching {
             YouTube.getSuggestQuery(query).onSuccess {
@@ -589,7 +589,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                 emit(Resource.Error<ArrayList<String>>(e.message.toString()))
             }
         }
-    }
+    }.flowOn(Dispatchers.IO)
     suspend fun getRelatedData(videoId: String): Flow<Resource<ArrayList<Track>>> = flow {
         runCatching {
             YouTube.nextCustom(videoId).onSuccess { result ->
@@ -604,7 +604,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                 emit(Resource.Error<ArrayList<Track>>(e.message.toString()))
             }
         }
-    }
+    }.flowOn(Dispatchers.IO)
     suspend fun getLyricsData(query: String): Flow<Resource<Lyrics>> = flow {
         runCatching {
             Log.d("Lyrics", "query: $query")
@@ -634,18 +634,18 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                 Log.d("Lyrics", "Error: ${it.message}")
                 emit(Resource.Error<Lyrics>(it.message.toString()))
             }
-        }
+        }.flowOn(Dispatchers.IO)
     suspend fun getStream(videoId: String, itag: Int): Flow<String?> = flow{
             YouTube.getStream(videoId, itag).onSuccess {
                 emit(it)
             }.onFailure {
                 emit(null)
             }
-    }
+    }.flowOn(Dispatchers.IO)
 
     fun getSongFull(videoId: String): Flow<PipedResponse> = flow {
         YouTube.pipeStream(videoId).onSuccess {
             emit(it)
         }
-    }
+    }.flowOn(Dispatchers.IO)
 }

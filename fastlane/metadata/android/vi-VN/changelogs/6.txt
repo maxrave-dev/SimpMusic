@@ -1,0 +1,2 @@
+Sửa lỗi lagging với việc sử dụng self-scraping
+Thêm menu trong danh sách phát

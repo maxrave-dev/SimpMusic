@@ -9,10 +9,13 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
+import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
+import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.artist.ArtistBrowse
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.utils.Resource
@@ -38,6 +41,11 @@ class ArtistViewModel @Inject constructor(application: Application, private val 
     var artistEntity: LiveData<ArtistEntity> = _artistEntity
     private var _followed: MutableStateFlow<Boolean> = MutableStateFlow(false)
     var followed: StateFlow<Boolean> = _followed
+
+    private var _songEntity: MutableLiveData<SongEntity> = MutableLiveData()
+    val songEntity: LiveData<SongEntity> = _songEntity
+    private var _listLocalPlaylist: MutableLiveData<List<LocalPlaylistEntity>> = MutableLiveData()
+    val listLocalPlaylist: LiveData<List<LocalPlaylistEntity>> = _listLocalPlaylist
 
 
     private var regionCode: String? = null
@@ -85,6 +93,50 @@ class ArtistViewModel @Inject constructor(application: Application, private val 
     fun getLocation() {
         regionCode = runBlocking { dataStoreManager.location.first() }
         language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
+    }
+
+    fun getSongEntity(song: SongEntity) {
+        viewModelScope.launch {
+            mainRepository.insertSong(song)
+            mainRepository.getSongById(song.videoId).collect { values ->
+                _songEntity.value = values
+            }
+        }
+    }
+
+    fun updateLikeStatus(videoId: String, likeStatus: Int) {
+        viewModelScope.launch {
+            mainRepository.updateLikeStatus(likeStatus = likeStatus, videoId = videoId)
+        }
+    }
+
+    fun getLocalPlaylist() {
+        viewModelScope.launch {
+            mainRepository.getAllLocalPlaylists().collect { values ->
+                _listLocalPlaylist.postValue(values)
+            }
+        }
+    }
+
+    fun updateLocalPlaylistTracks(list: List<String>, id: Long) {
+        viewModelScope.launch {
+            mainRepository.getSongsByListVideoId(list).collect { values ->
+                var count = 0
+                values.forEach { song ->
+                    if (song.downloadState == DownloadState.STATE_DOWNLOADED){
+                        count++
+                    }
+                }
+                mainRepository.updateLocalPlaylistTracks(list, id)
+                Toast.makeText(getApplication(), "Added to playlist", Toast.LENGTH_SHORT).show()
+                if (count == values.size) {
+                    mainRepository.updateLocalPlaylistDownloadState(DownloadState.STATE_DOWNLOADED, id)
+                }
+                else {
+                    mainRepository.updateLocalPlaylistDownloadState(DownloadState.STATE_NOT_DOWNLOADED, id)
+                }
+            }
+        }
     }
 
 }

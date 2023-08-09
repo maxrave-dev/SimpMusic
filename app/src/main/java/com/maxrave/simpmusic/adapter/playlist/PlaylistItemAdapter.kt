@@ -41,7 +41,6 @@ class PlaylistItemAdapter(private var playlistItemList: ArrayList<Any>): Recycle
             binding.tvSongTitle.text = track.title
             binding.tvSongArtist.text = track.artists.toListName().connectArtists()
             binding.ivThumbnail.load(track.thumbnails?.last()?.url)
-            binding.btMore.visibility = View.GONE
         }
     }
     inner class LocalPlaylistTrackViewHolder(val binding: ItemPopularSongBinding, rootListener: OnItemClickListener, mOptionListener: OnOptionClickListener): RecyclerView.ViewHolder(binding.root) {

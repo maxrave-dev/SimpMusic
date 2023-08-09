@@ -1,0 +1,2 @@
+Fix lagging with using self-scraping data
+Add menu in playlist song

@@ -6,24 +6,36 @@ import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.maxrave.simpmusic.data.model.browse.artist.ResultSong
 import com.maxrave.simpmusic.databinding.ItemPopularSongBinding
+import com.maxrave.simpmusic.extension.connectArtists
+import com.maxrave.simpmusic.extension.toListName
 
 class PopularAdapter(private var popularList: ArrayList<ResultSong>): RecyclerView.Adapter<PopularAdapter.ViewHolder>() {
     private lateinit var mListener: OnItemClickListener
+    private lateinit var mOptionsListener: OnOptionsClickListener
     interface OnItemClickListener{
         fun onItemClick(position: Int, type: String = "song")
+    }
+    interface OnOptionsClickListener{
+        fun onOptionsClick(position: Int)
     }
 
     fun setOnClickListener(listener: OnItemClickListener){
         mListener = listener
     }
+    fun setOnOptionsClickListener(listener: OnOptionsClickListener){
+        mOptionsListener = listener
+    }
     fun getCurrentList(): ArrayList<ResultSong> {
         return popularList
     }
 
-    inner class ViewHolder(val binding: ItemPopularSongBinding, listener: OnItemClickListener): RecyclerView.ViewHolder(binding.root) {
+    inner class ViewHolder(val binding: ItemPopularSongBinding, listener: OnItemClickListener, optionListener: OnOptionsClickListener): RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
                 listener.onItemClick(bindingAdapterPosition)
+            }
+            binding.btMore.setOnClickListener {
+                optionListener.onOptionsClick(bindingAdapterPosition)
             }
         }
     }
@@ -34,7 +46,7 @@ class PopularAdapter(private var popularList: ArrayList<ResultSong>): RecyclerVi
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(ItemPopularSongBinding.inflate(LayoutInflater.from(parent.context), parent, false), mListener)
+        return ViewHolder(ItemPopularSongBinding.inflate(LayoutInflater.from(parent.context), parent, false), mListener, mOptionsListener)
     }
 
     override fun getItemCount(): Int {
@@ -45,36 +57,14 @@ class PopularAdapter(private var popularList: ArrayList<ResultSong>): RecyclerVi
         val song = popularList[position]
         with(holder.binding){
             tvSongTitle.text = song.title
-            var artistName = ""
-            if (song.artists != null) {
-                for (artist in song.artists) {
-                    artistName += artist.name + ", "
-                }
-            }
-            artistName = removeTrailingComma(artistName)
-            artistName = removeComma(artistName)
+            val artistName = song.artists.toListName().connectArtists()
             tvSongArtist.text = artistName
+            tvSongTitle.isSelected = true
+            tvSongArtist.isSelected = true
             if (song.thumbnails.size > 1){
                 ivThumbnail.load(song.thumbnails[1].url)}
             else{
                 ivThumbnail.load(song.thumbnails[0].url)}
-        }
-    }
-    private fun removeTrailingComma(sentence: String): String {
-        val trimmed = sentence.trimEnd()
-        return if (trimmed.endsWith(", ")) {
-            trimmed.dropLast(2)
-        } else {
-            trimmed
-        }
-    }
-
-
-    private fun removeComma(string: String): String {
-        return if (string.endsWith(',')) {
-            string.substring(0, string.length - 1)
-        } else {
-            string
         }
     }
 
