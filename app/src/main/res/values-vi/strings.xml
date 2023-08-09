@@ -141,4 +141,8 @@
     <string name="albums_inArtist">Đĩa nhạc</string>
     <string name="singles_inArtist">Đĩa đơn</string>
     <string name="fans_might_also_like_inArtist">Người hâm mộ có thể cũng thích</string>
+    <string name="crash_log">SimpMusic đã dừng đột ngột. Xin lỗi bạn vì sự bất tiện này. Gửi crash-log đến nhà phát trển</string>
+    <string name="crash">Lỗi</string>
+    <string name="send">Gửi</string>
+    <string name="mail_subject">Báo cáo</string>
 </resources>

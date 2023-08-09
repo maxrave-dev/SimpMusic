@@ -37,6 +37,7 @@ import com.maxrave.simpmusic.di.DownloadCache
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toLyrics
+import com.maxrave.simpmusic.extension.toLyricsEntity
 import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.service.PlayerEvent
 import com.maxrave.simpmusic.service.RepeatState
@@ -197,6 +198,27 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                         videoId.postValue(tempSong.videoId)
                         _nowPlayingMediaItem.value = song
                         _songTransitions.value = true
+                        resetLyrics()
+                        mainRepository.getLyricsData("${tempSong.title} ${tempSong.artists?.firstOrNull()?.name}").collect { response ->
+                            _lyrics.value = response
+                            when(_lyrics.value) {
+                                is Resource.Success -> {
+                                    if (_lyrics.value?.data != null) {
+                                        insertLyrics(_lyrics.value?.data!!.toLyricsEntity(song.mediaId))
+                                        parseLyrics(_lyrics.value?.data)
+                                    }
+                                }
+                                is Resource.Error -> {
+                                    if (_lyrics.value?.message != "reset") {
+                                        getSavedLyrics(tempSong.videoId)
+                                    }
+                                }
+
+                                else -> {
+                                    Log.d("Check lyrics", "Loading")
+                                }
+                            }
+                        }
                     }
                     Log.d("Check Change Track", "Change Track: $isChanged")
                 }
@@ -322,9 +344,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     }
     fun getLyrics(query: String) {
         viewModelScope.launch {
-            mainRepository.getLyricsData(query).collect { response ->
-                _lyrics.value = response
-            }
+
         }
     }
 
@@ -436,6 +456,27 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                         simpleMediaServiceHandler.changeTrackToFalse()
                         _firstTrackAdded.value = true
                         musicSource.addFirstMetadata(track)
+                    }
+                }
+            }
+            resetLyrics()
+            mainRepository.getLyricsData("${track.title} ${track.artists?.firstOrNull()?.name}").collect { response ->
+                _lyrics.value = response
+                when(_lyrics.value) {
+                    is Resource.Success -> {
+                        if (_lyrics.value?.data != null) {
+                            insertLyrics(_lyrics.value?.data!!.toLyricsEntity(track.videoId))
+                            parseLyrics(_lyrics.value?.data)
+                        }
+                    }
+                    is Resource.Error -> {
+                        if (_lyrics.value?.message != "reset") {
+                            getSavedLyrics(track.videoId)
+                        }
+                    }
+
+                    else -> {
+                        Log.d("Check lyrics", "Loading")
                     }
                 }
             }

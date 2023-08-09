@@ -135,6 +135,10 @@ dependencies {
     implementation("androidx.legacy:legacy-support-v4:1.0.0")
     implementation("com.daimajia.swipelayout:library:1.2.0@aar")
 
+    val acraVersion = "5.11.0"
+    implementation("ch.acra:acra-mail:$acraVersion")
+    implementation("ch.acra:acra-dialog:$acraVersion")
+
 }
 // Allow references to generated code
 kapt {

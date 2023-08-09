@@ -176,26 +176,26 @@ class NowPlayingFragment : Fragment() {
                             if (songDB.downloadState != DownloadState.STATE_DOWNLOADED) {
                                 viewModel.videoId.postValue(it.videoId)
                                 viewModel.from.postValue(from)
-                                viewModel.resetLyrics()
-                                if (it.artists.isNullOrEmpty()) {
-                                    viewModel.getLyrics(it.title)
-                                } else {
-                                    viewModel.getLyrics(it.title + " " + it.artists.first().name)
-                                }
+//                                viewModel.resetLyrics()
+//                                if (it.artists.isNullOrEmpty()) {
+//                                    viewModel.getLyrics(it.title)
+//                                } else {
+//                                    viewModel.getLyrics(it.title + " " + it.artists.first().name)
+//                                }
                                 updateUIfromQueueNowPlaying()
-                                viewModel._lyrics.observe(viewLifecycleOwner){ resourceLyrics ->
-                                    when(resourceLyrics){
-                                        is Resource.Success -> {
-                                            if (resourceLyrics.data != null) {
-                                                viewModel.insertLyrics(resourceLyrics.data.toLyricsEntity(it.videoId))
-                                                viewModel.parseLyrics(resourceLyrics.data)
-                                            }
-                                        }
-                                        is Resource.Error -> {
-                                            viewModel.getSavedLyrics(it.videoId)
-                                        }
-                                    }
-                                }
+//                                viewModel._lyrics.observe(viewLifecycleOwner){ resourceLyrics ->
+//                                    when(resourceLyrics){
+//                                        is Resource.Success -> {
+//                                            if (resourceLyrics.data != null) {
+//                                                viewModel.insertLyrics(resourceLyrics.data.toLyricsEntity(it.videoId))
+//                                                viewModel.parseLyrics(resourceLyrics.data)
+//                                            }
+//                                        }
+//                                        is Resource.Error -> {
+//                                            viewModel.getSavedLyrics(it.videoId)
+//                                        }
+//                                    }
+//                                }
                                 lifecycleScope.launch {
                                     viewModel.firstTrackAdded.collect { added ->
                                         if (added) {
@@ -239,22 +239,22 @@ class NowPlayingFragment : Fragment() {
                         viewModel.loadMediaItemFromTrack(it)
                         viewModel.videoId.postValue(it.videoId)
                         viewModel.from.postValue(from)
-                        viewModel.resetLyrics()
-                        viewModel.getLyrics(it.title + " " + it.artists?.first()?.name)
+//                        viewModel.resetLyrics()
+//                        viewModel.getLyrics(it.title + " " + it.artists?.first()?.name)
                         updateUIfromQueueNowPlaying()
-                        viewModel._lyrics.observe(viewLifecycleOwner){ resourceLyrics ->
-                            when(resourceLyrics){
-                                is Resource.Success -> {
-                                    if (resourceLyrics.data != null) {
-                                        viewModel.insertLyrics(resourceLyrics.data.toLyricsEntity(it.videoId))
-                                        viewModel.parseLyrics(resourceLyrics.data)
-                                    }
-                                }
-                                is Resource.Error -> {
-                                    viewModel.getSavedLyrics(it.videoId)
-                                }
-                            }
-                        }
+//                        viewModel._lyrics.observe(viewLifecycleOwner){ resourceLyrics ->
+//                            when(resourceLyrics){
+//                                is Resource.Success -> {
+//                                    if (resourceLyrics.data != null) {
+//                                        viewModel.insertLyrics(resourceLyrics.data.toLyricsEntity(it.videoId))
+//                                        viewModel.parseLyrics(resourceLyrics.data)
+//                                    }
+//                                }
+//                                is Resource.Error -> {
+//                                    viewModel.getSavedLyrics(it.videoId)
+//                                }
+//                            }
+//                        }
                         lifecycleScope.launch {
                             viewModel.firstTrackAdded.collect { added ->
                                 if (added) {
@@ -297,22 +297,22 @@ class NowPlayingFragment : Fragment() {
                         viewModel.loadMediaItemFromTrack(it)
                         viewModel.videoId.postValue(it.videoId)
                         viewModel.from.postValue(from)
-                        viewModel.resetLyrics()
-                        viewModel.getLyrics(it.title + " " + it.artists?.first()?.name)
+//                        viewModel.resetLyrics()
+//                        viewModel.getLyrics(it.title + " " + it.artists?.first()?.name)
                         updateUIfromQueueNowPlaying()
-                        viewModel._lyrics.observe(viewLifecycleOwner){ resourceLyrics ->
-                            when(resourceLyrics){
-                                is Resource.Success -> {
-                                    if (resourceLyrics.data != null) {
-                                        viewModel.insertLyrics(resourceLyrics.data.toLyricsEntity(it.videoId))
-                                        viewModel.parseLyrics(resourceLyrics.data)
-                                    }
-                                }
-                                is Resource.Error -> {
-                                    viewModel.getSavedLyrics(it.videoId)
-                                }
-                            }
-                        }
+//                        viewModel._lyrics.observe(viewLifecycleOwner){ resourceLyrics ->
+//                            when(resourceLyrics){
+//                                is Resource.Success -> {
+//                                    if (resourceLyrics.data != null) {
+//                                        viewModel.insertLyrics(resourceLyrics.data.toLyricsEntity(it.videoId))
+//                                        viewModel.parseLyrics(resourceLyrics.data)
+//                                    }
+//                                }
+//                                is Resource.Error -> {
+//                                    viewModel.getSavedLyrics(it.videoId)
+//                                }
+//                            }
+//                        }
                         Log.d("check index", index.toString())
                         lifecycleScope.launch {
                             viewModel.firstTrackAdded.collect { added ->
@@ -357,22 +357,22 @@ class NowPlayingFragment : Fragment() {
                         viewModel.loadMediaItemFromTrack(it)
                         viewModel.videoId.postValue(it.videoId)
                         viewModel.from.postValue(from)
-                        viewModel.resetLyrics()
-                        viewModel.getLyrics(it.title + " " + it.artists?.first()?.name)
+//                        viewModel.resetLyrics()
+//                        viewModel.getLyrics(it.title + " " + it.artists?.first()?.name)
                         updateUIfromQueueNowPlaying()
-                        viewModel._lyrics.observe(viewLifecycleOwner){ resourceLyrics ->
-                            when(resourceLyrics){
-                                is Resource.Success -> {
-                                    if (resourceLyrics.data != null) {
-                                        viewModel.insertLyrics(resourceLyrics.data.toLyricsEntity(it.videoId))
-                                        viewModel.parseLyrics(resourceLyrics.data)
-                                    }
-                                }
-                                is Resource.Error -> {
-                                    viewModel.getSavedLyrics(it.videoId)
-                                }
-                            }
-                        }
+//                        viewModel._lyrics.observe(viewLifecycleOwner){ resourceLyrics ->
+//                            when(resourceLyrics){
+//                                is Resource.Success -> {
+//                                    if (resourceLyrics.data != null) {
+//                                        viewModel.insertLyrics(resourceLyrics.data.toLyricsEntity(it.videoId))
+//                                        viewModel.parseLyrics(resourceLyrics.data)
+//                                    }
+//                                }
+//                                is Resource.Error -> {
+//                                    viewModel.getSavedLyrics(it.videoId)
+//                                }
+//                            }
+//                        }
                         Log.d("check index", index.toString())
                         lifecycleScope.launch {
                             viewModel.firstTrackAdded.collect { added ->
@@ -415,23 +415,23 @@ class NowPlayingFragment : Fragment() {
                             updateUIfromCurrentMediaItem(song)
                             musicSource.setCurrentSongIndex(viewModel.getCurrentMediaItemIndex())
                             viewModel.changeSongTransitionToFalse()
-                            viewModel.resetLyrics()
-                            viewModel.getLyrics(song.mediaMetadata.title.toString() + " " + song.mediaMetadata.artist)
-                            viewModel._lyrics.observe(viewLifecycleOwner){ resourceLyrics ->
-                                when(resourceLyrics){
-                                    is Resource.Success -> {
-                                        if (resourceLyrics.data != null) {
-                                            viewModel.insertLyrics(resourceLyrics.data.toLyricsEntity(song.mediaId))
-                                            viewModel.parseLyrics(resourceLyrics.data)
-                                        }
-                                    }
-                                    is Resource.Error -> {
-                                        if (resourceLyrics.message != "reset") {
-                                            viewModel.getSavedLyrics(song.mediaId)
-                                        }
-                                    }
-                                }
-                            }
+//                            viewModel.resetLyrics()
+//                            viewModel.getLyrics(song.mediaMetadata.title.toString() + " " + song.mediaMetadata.artist)
+//                            viewModel._lyrics.observe(viewLifecycleOwner){ resourceLyrics ->
+//                                when(resourceLyrics){
+//                                    is Resource.Success -> {
+//                                        if (resourceLyrics.data != null) {
+//                                            viewModel.insertLyrics(resourceLyrics.data.toLyricsEntity(song.mediaId))
+//                                            viewModel.parseLyrics(resourceLyrics.data)
+//                                        }
+//                                    }
+//                                    is Resource.Error -> {
+//                                        if (resourceLyrics.message != "reset") {
+//                                            viewModel.getSavedLyrics(song.mediaId)
+//                                        }
+//                                    }
+//                                }
+//                            }
                         }
                     }
                 }
