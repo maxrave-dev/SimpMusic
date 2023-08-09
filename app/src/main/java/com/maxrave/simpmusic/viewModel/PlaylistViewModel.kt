@@ -33,6 +33,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -251,7 +252,7 @@ class PlaylistViewModel @Inject constructor(private val mainRepository: MainRepo
     fun getDownloadStateFromService(videoId: String) {
         viewModelScope.launch {
             val downloadState = downloadUtils.getDownload(videoId).stateIn(viewModelScope)
-            downloadState.collect { down ->
+            downloadState.collectLatest { down ->
                 Log.d("Check Downloaded", "$videoId ${down?.state}")
                 if (down != null) {
                     when (down.state) {

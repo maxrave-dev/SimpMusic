@@ -132,7 +132,6 @@ dependencies {
     val paging_version= "3.2.0"
     implementation("androidx.paging:paging-runtime-ktx:$paging_version")
 
-    implementation("androidx.legacy:legacy-support-v4:1.0.0")
     implementation("com.daimajia.swipelayout:library:1.2.0@aar")
 
 

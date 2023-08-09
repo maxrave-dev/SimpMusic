@@ -79,6 +79,8 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
 
     suspend fun getDownloadingSongs(): Flow<List<SongEntity>> =
         flow { emit(localDataSource.getDownloadingSongs()) }.flowOn(Dispatchers.IO)
+    suspend fun getPreparingSongs(): Flow<List<SongEntity>> =
+        flow { emit(localDataSource.getPreparingSongs()) }.flowOn(Dispatchers.IO)
 
     suspend fun getLikedSongs(): Flow<List<SongEntity>> =
         flow { emit(localDataSource.getLikedSongs()) }.flowOn(Dispatchers.IO)

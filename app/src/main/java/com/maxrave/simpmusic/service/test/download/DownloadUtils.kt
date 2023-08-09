@@ -24,7 +24,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
-import java.util.concurrent.Executor
+import java.util.concurrent.Executors
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -56,55 +56,20 @@ class DownloadUtils @Inject constructor(
         if (playerCache.isCached(mediaId, dataSpec.position, length)) {
             return@Factory dataSpec
         }
-        var extract: DataSpec? = null
-        runBlocking(Dispatchers.Main) {
-//            mainRepository.getSong(mediaId).collect {values ->
-//                values.data?.forEach { song ->
-//                    if (song.itag == 251) {
-//                        val url = song.url
-//                        Log.d("DownloadUtils", "url: $url")
-//                        extract = dataSpec.withUri((url).toUri())
-//                    }
-//                }
-//            }
-            mainRepository.getStream(mediaId, 251).collect{values ->
+        runBlocking(Dispatchers.IO) {
+            var extract: DataSpec? = null
+            mainRepository.getStream(mediaId, 251).collect {values ->
                 if (values != null){
                     extract = dataSpec.withUri((values).toUri())
                 }
+            }
+            Log.d("DownloadUtils", "extract: ${extract.toString()}")
+            return@runBlocking extract!!
         }
-//            try {
-//                val response = ktorClient.get("${Config.BASE_STREAM_URL}${mediaId}") {
-//                    contentType(ContentType.Application.Json)
-//                }
-//                if (response.status == HttpStatusCode.OK) {
-//                    val streamData: StreamData = response.body()
-//                    streamData.audioStreams?.forEach { stream ->
-//                        if (stream.itag == 251) {
-//                            val url = stream.url
-//                            Log.d("DownloadUtils", "url: $url")
-//                            if (url != null) {
-//                                extract = dataSpec.withUri((url).toUri())
-//                            }
-//                        }
-//                    }
-//                }
-//                else {
-//                    Log.d("DownloadUtils", "response: ${response.status}")
-//                }
-//            }
-//            catch (e: HttpRequestTimeoutException) {
-//                Log.d("DownloadUtils", "Exception: ${e.message}")
-//            }
-//            catch (e: EOFException){
-//                Log.d("DownloadUtils", "Exception: ${e.message}")
-//            }
-        }
-        Log.d("DownloadUtils", "extract: ${extract.toString()}")
-        return@Factory extract!!
     }
     val downloadNotificationHelper = DownloadNotificationHelper(context, CHANNEL_ID)
-    val downloadManager: DownloadManager = DownloadManager(context, databaseProvider, downloadCache, dataSourceFactory, Executor(Runnable::run)).apply {
-        maxParallelDownloads = 3
+    val downloadManager: DownloadManager = DownloadManager(context, databaseProvider, downloadCache, dataSourceFactory, Executors.newFixedThreadPool(15)).apply {
+        maxParallelDownloads = 10
         minRetryCount = 5
         addListener(
             MusicDownloadService.TerminalStateNotificationHelper(

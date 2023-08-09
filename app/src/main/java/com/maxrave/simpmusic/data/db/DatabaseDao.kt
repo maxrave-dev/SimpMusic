@@ -242,4 +242,7 @@ interface DatabaseDao {
     fun checkpoint() {
         raw("pragma wal_checkpoint(full)".toSQLiteQuery())
     }
+
+    @Query("SELECT * FROM song WHERE downloadState = 1")
+    suspend fun getPreparingSongs(): List<SongEntity>
 }

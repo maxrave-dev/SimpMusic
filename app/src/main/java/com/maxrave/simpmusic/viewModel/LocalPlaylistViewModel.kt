@@ -25,7 +25,7 @@ import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -102,7 +102,7 @@ class LocalPlaylistViewModel @Inject constructor(private val mainRepository: Mai
         var downloadState: StateFlow<List<Download?>>
         viewModelScope.launch {
             downloadState = downloadUtils.getAllDownloads().stateIn(viewModelScope)
-            downloadState.collect { down ->
+            downloadState.collectLatest { down ->
                 if (down.isNotEmpty()){
                     var count = 0
                     down.forEach { downloadItem ->
@@ -143,7 +143,7 @@ class LocalPlaylistViewModel @Inject constructor(private val mainRepository: Mai
     fun getDownloadStateFromService(videoId: String) {
         viewModelScope.launch {
             val downloadState = downloadUtils.getDownload(videoId).stateIn(viewModelScope)
-            downloadState.collect { down ->
+            downloadState.collectLatest { down ->
                 if (down != null) {
                     when (down.state) {
                         Download.STATE_COMPLETED -> {

@@ -15,10 +15,8 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
-import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
@@ -188,7 +186,7 @@ class LocalPlaylistFragment : Fragment() {
 
         binding.btDownload.setOnClickListener {
             val tempList: ArrayList<Track> = arrayListOf()
-            for (i in 0 until listTrack.size -1) {
+            for (i in 0 until listTrack.size) {
                 tempList.add((listTrack[i] as SongEntity).toTrack())
             }
             if (viewModel.localPlaylist.value?.downloadState == DownloadState.STATE_NOT_DOWNLOADED) {

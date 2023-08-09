@@ -30,7 +30,6 @@ import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.metadata.Line
 import com.maxrave.simpmusic.data.model.metadata.Lyrics
 import com.maxrave.simpmusic.data.model.metadata.MetadataSong
-import com.maxrave.simpmusic.data.model.streams.StreamData
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.di.DownloadCache
@@ -733,6 +732,21 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
 
     fun stopPlayer() {
         simpleMediaServiceHandler.stopPlayer()
+    }
+
+    fun checkAllDownloadingSongs() {
+        viewModelScope.launch {
+            mainRepository.getDownloadingSongs().collect {songs ->
+                songs.forEach { song ->
+                    mainRepository.updateDownloadState(song.videoId, DownloadState.STATE_NOT_DOWNLOADED)
+                }
+            }
+            mainRepository.getPreparingSongs().collect {songs ->
+                songs.forEach { song ->
+                    mainRepository.updateDownloadState(song.videoId, DownloadState.STATE_NOT_DOWNLOADED)
+                }
+            }
+        }
     }
 }
 sealed class UIEvent {
