@@ -14,7 +14,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
@@ -35,11 +34,11 @@ import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.FragmentAlbumBinding
 import com.maxrave.simpmusic.extension.toAlbumEntity
+import com.maxrave.simpmusic.extension.toArrayListTrack
+import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.AlbumViewModel
-import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 
@@ -147,6 +146,22 @@ class AlbumFragment: Fragment() {
                 }
                 findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
             }
+            else if (viewModel.albumEntity.value != null && viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED){
+                val args = Bundle()
+                args.putString("type", Config.ALBUM_CLICK)
+                args.putString("videoId", viewModel.albumEntity.value?.tracks?.get(0))
+                args.putString("from", "Album \"${viewModel.albumEntity.value?.title}\"")
+                if (viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
+                    args.putInt("downloaded", 1)
+                }
+                Queue.clear()
+                Queue.setNowPlaying(viewModel.listTrack.value?.get(0)!!.toTrack())
+                Queue.addAll(viewModel.listTrack.value.toArrayListTrack())
+                if (Queue.getQueue().size > 1) {
+                    Queue.removeFirstTrackForPlaylistAndAlbum()
+                }
+                findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+            }
             else {
                 Snackbar.make(requireView(), "Error", Snackbar.LENGTH_SHORT).show()
             }
@@ -164,6 +179,22 @@ class AlbumFragment: Fragment() {
                     Queue.clear()
                     Queue.setNowPlaying(viewModel.albumBrowse.value?.data!!.tracks[position])
                     Queue.addAll(viewModel.albumBrowse.value?.data!!.tracks as ArrayList<Track>)
+                    if (Queue.getQueue().size > 1) {
+                        Queue.removeTrackWithIndex(position)
+                    }
+                    findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                }
+                else if (viewModel.albumEntity.value != null && viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED){
+                    val args = Bundle()
+                    args.putString("type", Config.ALBUM_CLICK)
+                    args.putString("videoId", viewModel.albumEntity.value?.tracks?.get(position))
+                    args.putString("from", "Album \"${viewModel.albumEntity.value?.title}\"")
+                    if (viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
+                        args.putInt("downloaded", 1)
+                    }
+                    Queue.clear()
+                    Queue.setNowPlaying(viewModel.listTrack.value?.get(position)!!.toTrack())
+                    Queue.addAll(viewModel.listTrack.value.toArrayListTrack())
                     if (Queue.getQueue().size > 1) {
                         Queue.removeTrackWithIndex(position)
                     }
@@ -228,7 +259,7 @@ class AlbumFragment: Fragment() {
         }
     }
     private fun fetchDataFromViewModel() {
-        val response = viewModel.albumBrowse.value
+            val response = viewModel.albumBrowse.value
             when (response){
                 is Resource.Success -> {
                     response.data.let {

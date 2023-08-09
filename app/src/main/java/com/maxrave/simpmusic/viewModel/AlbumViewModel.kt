@@ -4,29 +4,25 @@ import android.app.Application
 import android.graphics.drawable.GradientDrawable
 import android.util.Log
 import android.widget.Toast
-import androidx.annotation.IntDef
 import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
-import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
-import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.AlbumBrowse
 import com.maxrave.simpmusic.data.model.browse.album.Track
-import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
-import com.maxrave.simpmusic.data.model.thumbnailUrl
 import com.maxrave.simpmusic.data.repository.MainRepository
+import com.maxrave.simpmusic.di.DownloadCache
 import com.maxrave.simpmusic.extension.addThumbnails
 import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
@@ -34,11 +30,8 @@ import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -47,7 +40,7 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
-class AlbumViewModel @Inject constructor(private var dataStoreManager: DataStoreManager, private val mainRepository: MainRepository, application: Application): AndroidViewModel(application) {
+class AlbumViewModel @Inject constructor(private var dataStoreManager: DataStoreManager, private val mainRepository: MainRepository, @DownloadCache private val downloadCache: SimpleCache, application: Application): AndroidViewModel(application) {
     @Inject
     lateinit var downloadUtils: DownloadUtils
 
@@ -256,9 +249,22 @@ class AlbumViewModel @Inject constructor(private var dataStoreManager: DataStore
                             }
                         }
                         Download.STATE_FAILED -> {
-                            mainRepository.getSongById(videoId).collect{ song ->
-                                if (song?.downloadState != DownloadState.STATE_NOT_DOWNLOADED) {
-                                    mainRepository.updateDownloadState(videoId, DownloadState.STATE_NOT_DOWNLOADED)
+                            var status = false
+                            downloadCache.keys.forEach { keys ->
+                                if (keys == videoId) {
+                                    mainRepository.getSongById(videoId).collect{ song ->
+                                        if (song?.downloadState != DownloadState.STATE_DOWNLOADED) {
+                                            mainRepository.updateDownloadState(videoId, DownloadState.STATE_DOWNLOADED)
+                                        }
+                                    }
+                                    status = true
+                                }
+                            }
+                            if (!status) {
+                                mainRepository.getSongById(videoId).collect{ song ->
+                                    if (song?.downloadState != DownloadState.STATE_NOT_DOWNLOADED) {
+                                        mainRepository.updateDownloadState(videoId, DownloadState.STATE_NOT_DOWNLOADED)
+                                    }
                                 }
                             }
                         }
@@ -271,8 +277,8 @@ class AlbumViewModel @Inject constructor(private var dataStoreManager: DataStore
                         }
                         Download.STATE_QUEUED -> {
                             mainRepository.getSongById(videoId).collect{ song ->
-                                if (song?.downloadState != DownloadState.STATE_PREPARING) {
-                                    mainRepository.updateDownloadState(videoId, DownloadState.STATE_PREPARING)
+                                if (song?.downloadState != DownloadState.STATE_NOT_DOWNLOADED) {
+                                    mainRepository.updateDownloadState(videoId, DownloadState.STATE_NOT_DOWNLOADED)
                                 }
                             }
                         }

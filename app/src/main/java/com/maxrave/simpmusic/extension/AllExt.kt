@@ -25,8 +25,6 @@ import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
-import com.maxrave.simpmusic.data.model.streams.RelatedStream
-import com.maxrave.simpmusic.data.model.streams.StreamData
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -168,6 +166,15 @@ fun SongEntity.toTrack(): Track {
         resultType = null,
         year = ""
     )
+}
+fun List<SongEntity>?.toArrayListTrack(): ArrayList<Track> {
+    val listTrack: ArrayList<Track> = arrayListOf()
+    if (this != null) {
+        for (item in this) {
+            listTrack.add(item.toTrack())
+        }
+    }
+    return listTrack
 }
 
 fun MediaItem?.toSongEntity(): SongEntity? {

@@ -39,9 +39,11 @@ import com.maxrave.simpmusic.databinding.BottomSheetSeeArtistOfNowPlayingBinding
 import com.maxrave.simpmusic.databinding.FragmentPlaylistBinding
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.removeConflicts
+import com.maxrave.simpmusic.extension.toArrayListTrack
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toPlaylistEntity
 import com.maxrave.simpmusic.extension.toSongEntity
+import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.PlaylistViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -139,6 +141,22 @@ class PlaylistFragment: Fragment() {
                 }
                 findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
             }
+            else if (viewModel.playlistEntity.value != null && viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED){
+                val args = Bundle()
+                args.putString("type", Config.ALBUM_CLICK)
+                args.putString("videoId", viewModel.playlistEntity.value?.tracks?.get(0))
+                args.putString("from", "Album \"${viewModel.playlistEntity.value?.title}\"")
+                if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
+                    args.putInt("downloaded", 1)
+                }
+                Queue.clear()
+                Queue.setNowPlaying(viewModel.listTrack.value?.get(0)!!.toTrack())
+                Queue.addAll(viewModel.listTrack.value.toArrayListTrack())
+                if (Queue.getQueue().size > 1) {
+                    Queue.removeFirstTrackForPlaylistAndAlbum()
+                }
+                findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+            }
             else {
                 Snackbar.make(requireView(),
                     getString(R.string.playlist_is_empty), Snackbar.LENGTH_SHORT).show()
@@ -159,6 +177,22 @@ class PlaylistFragment: Fragment() {
                     Queue.clear()
                     Queue.setNowPlaying(viewModel.playlistBrowse.value?.data!!.tracks[position])
                     Queue.addAll(viewModel.playlistBrowse.value?.data!!.tracks as ArrayList<Track>)
+                    if (Queue.getQueue().size > 1) {
+                        Queue.removeTrackWithIndex(position)
+                    }
+                    findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                }
+                else if (viewModel.playlistEntity.value != null && viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED){
+                    val args = Bundle()
+                    args.putString("type", Config.ALBUM_CLICK)
+                    args.putString("videoId", viewModel.playlistEntity.value?.tracks?.get(position))
+                    args.putString("from", "Album \"${viewModel.playlistEntity.value?.title}\"")
+                    if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
+                        args.putInt("downloaded", 1)
+                    }
+                    Queue.clear()
+                    Queue.setNowPlaying(viewModel.listTrack.value?.get(position)!!.toTrack())
+                    Queue.addAll(viewModel.listTrack.value.toArrayListTrack())
                     if (Queue.getQueue().size > 1) {
                         Queue.removeTrackWithIndex(position)
                     }

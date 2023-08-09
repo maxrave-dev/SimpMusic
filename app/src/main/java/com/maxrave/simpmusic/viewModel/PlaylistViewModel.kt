@@ -10,12 +10,12 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
-import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
@@ -23,6 +23,7 @@ import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.browse.playlist.PlaylistBrowse
 import com.maxrave.simpmusic.data.repository.MainRepository
+import com.maxrave.simpmusic.di.DownloadCache
 import com.maxrave.simpmusic.extension.addThumbnails
 import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
@@ -40,7 +41,7 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
-class PlaylistViewModel @Inject constructor(private val mainRepository: MainRepository, application: Application, private var dataStoreManager: DataStoreManager): AndroidViewModel(application) {
+class PlaylistViewModel @Inject constructor(private val mainRepository: MainRepository, application: Application, private var dataStoreManager: DataStoreManager, @DownloadCache private val downloadCache: SimpleCache): AndroidViewModel(application) {
     @Inject
     lateinit var downloadUtils: DownloadUtils
 
@@ -262,9 +263,22 @@ class PlaylistViewModel @Inject constructor(private val mainRepository: MainRepo
                             }
                         }
                         Download.STATE_FAILED -> {
-                            mainRepository.getSongById(videoId).collect{ song ->
-                                if (song?.downloadState != DownloadState.STATE_NOT_DOWNLOADED) {
-                                    mainRepository.updateDownloadState(videoId, DownloadState.STATE_NOT_DOWNLOADED)
+                            var status = false
+                            downloadCache.keys.forEach { keys ->
+                                if (keys == videoId) {
+                                    mainRepository.getSongById(videoId).collect{ song ->
+                                        if (song?.downloadState != DownloadState.STATE_DOWNLOADED) {
+                                            mainRepository.updateDownloadState(videoId, DownloadState.STATE_DOWNLOADED)
+                                        }
+                                    }
+                                    status = true
+                                }
+                            }
+                            if (!status) {
+                                mainRepository.getSongById(videoId).collect{ song ->
+                                    if (song?.downloadState != DownloadState.STATE_NOT_DOWNLOADED) {
+                                        mainRepository.updateDownloadState(videoId, DownloadState.STATE_NOT_DOWNLOADED)
+                                    }
                                 }
                             }
                         }
@@ -279,8 +293,8 @@ class PlaylistViewModel @Inject constructor(private val mainRepository: MainRepo
                         }
                         Download.STATE_QUEUED -> {
                             mainRepository.getSongById(videoId).collect{ song ->
-                                if (song?.downloadState != DownloadState.STATE_PREPARING) {
-                                    mainRepository.updateDownloadState(videoId, DownloadState.STATE_PREPARING)
+                                if (song?.downloadState != DownloadState.STATE_NOT_DOWNLOADED) {
+                                    mainRepository.updateDownloadState(videoId, DownloadState.STATE_NOT_DOWNLOADED)
                                 }
                             }
                         }
