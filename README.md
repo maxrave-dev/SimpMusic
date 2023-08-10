@@ -15,9 +15,8 @@ A simple music app using YouTube Music for backend
 
 ## Features
 - Play music from YouTube Music or YouTube free without ads in the background
-- Browsing Home, Charts, Moods & Genre with YouTube Music data
+- Browsing Home, Charts, Moods & Genre with YouTube Music data with high speed
 - Search everything on YouTube
-- Browse and play all contents blocked in your country without VPN or Proxy
 - Analyze your playing data and create custom playlists ...
 - Caching and can save data for offline playback
 - Synced lyrics ( From [akashrchandran/spotify-lyrics-api](https://github.com/akashrchandran/spotify-lyrics-api) )
