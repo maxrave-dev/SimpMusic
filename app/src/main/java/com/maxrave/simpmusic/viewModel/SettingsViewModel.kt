@@ -11,6 +11,8 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.cache.SimpleCache
+import com.maxrave.kotlinytmusicscraper.YouTube
+import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DB_NAME
 import com.maxrave.simpmusic.common.DownloadState
@@ -50,6 +52,8 @@ class SettingsViewModel @Inject constructor(
 
     private var _location: MutableLiveData<String> = MutableLiveData()
     val location: LiveData<String> = _location
+    private var _language: MutableLiveData<String> = MutableLiveData()
+    val language: LiveData<String> = _language
     fun getLocation() {
         viewModelScope.launch {
             dataStoreManager.location.collect { location ->
@@ -61,6 +65,7 @@ class SettingsViewModel @Inject constructor(
     fun changeLocation(location: String) {
         viewModelScope.launch {
             dataStoreManager.setLocation(location)
+            YouTube.locale = YouTubeLocale(location, language.value!!)
             getLocation()
         }
     }
@@ -196,8 +201,7 @@ class SettingsViewModel @Inject constructor(
             Toast.makeText(context, context.getString(R.string.restore_failed), Toast.LENGTH_SHORT).show()
         }
     }
-    private var _language: MutableLiveData<String> = MutableLiveData()
-    val language: LiveData<String> = _language
+
     fun getLanguage() {
         viewModelScope.launch {
             dataStoreManager.getString(SELECTED_LANGUAGE).collect { language ->
@@ -210,6 +214,7 @@ class SettingsViewModel @Inject constructor(
     fun changeLanguage(code: String) {
         viewModelScope.launch {
             dataStoreManager.putString(SELECTED_LANGUAGE, code)
+            YouTube.locale = YouTubeLocale(location.value!!, code)
             getLanguage()
         }
     }

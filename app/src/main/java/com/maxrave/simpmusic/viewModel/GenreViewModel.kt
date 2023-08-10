@@ -33,7 +33,7 @@ class GenreViewModel @Inject constructor(private val mainRepository: MainReposit
     fun getGenre(params: String){
         loading.value = true
         viewModelScope.launch {
-            mainRepository.getGenre(params, regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect{ values ->
+            mainRepository.getGenreData(params).collect { values ->
                 _genreObject.value = values
             }
             withContext(Dispatchers.Main){

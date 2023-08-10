@@ -12,11 +12,15 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
+import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.offline.DownloadRequest
+import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.fragment.findNavController
 import androidx.palette.graphics.Palette
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -31,16 +35,23 @@ import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.adapter.album.TrackAdapter
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.DownloadState
+import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.FragmentAlbumBinding
 import com.maxrave.simpmusic.extension.toAlbumEntity
+import com.maxrave.simpmusic.extension.toArrayListTrack
+import com.maxrave.simpmusic.extension.toListVideoId
+import com.maxrave.simpmusic.extension.toSongEntity
+import com.maxrave.simpmusic.extension.toTrack
+import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.AlbumViewModel
-import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlin.math.abs
 
 @AndroidEntryPoint
@@ -94,7 +105,7 @@ class AlbumFragment: Fragment() {
         }
         var browseId = requireArguments().getString("browseId")
         val downloaded = arguments?.getInt("downloaded")
-        if (browseId == null){
+        if (browseId == null || browseId == viewModel.browseId.value){
             browseId = viewModel.browseId.value
             fetchDataFromViewModel()
         }
@@ -141,8 +152,24 @@ class AlbumFragment: Fragment() {
                 }
                 Queue.clear()
                 Queue.setNowPlaying(viewModel.albumBrowse.value?.data!!.tracks[0])
-                Queue.addAll(viewModel.albumBrowse.value?.data!!.tracks as ArrayList<Track>)
                 if (Queue.getQueue().size > 1) {
+                    Queue.addAll(viewModel.albumBrowse.value?.data!!.tracks as ArrayList<Track>)
+                    Queue.removeFirstTrackForPlaylistAndAlbum()
+                }
+                findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+            }
+            else if (viewModel.albumEntity.value != null && viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED){
+                val args = Bundle()
+                args.putString("type", Config.ALBUM_CLICK)
+                args.putString("videoId", viewModel.albumEntity.value?.tracks?.get(0))
+                args.putString("from", "Album \"${viewModel.albumEntity.value?.title}\"")
+                if (viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
+                    args.putInt("downloaded", 1)
+                }
+                Queue.clear()
+                Queue.setNowPlaying(viewModel.listTrack.value?.get(0)!!.toTrack())
+                if (Queue.getQueue().size > 1) {
+                    Queue.addAll(viewModel.listTrack.value.toArrayListTrack())
                     Queue.removeFirstTrackForPlaylistAndAlbum()
                 }
                 findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
@@ -163,8 +190,24 @@ class AlbumFragment: Fragment() {
                     }
                     Queue.clear()
                     Queue.setNowPlaying(viewModel.albumBrowse.value?.data!!.tracks[position])
-                    Queue.addAll(viewModel.albumBrowse.value?.data!!.tracks as ArrayList<Track>)
                     if (Queue.getQueue().size > 1) {
+                        Queue.addAll(viewModel.albumBrowse.value?.data!!.tracks as ArrayList<Track>)
+                        Queue.removeTrackWithIndex(position)
+                    }
+                    findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                }
+                else if (viewModel.albumEntity.value != null && viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED){
+                    val args = Bundle()
+                    args.putString("type", Config.ALBUM_CLICK)
+                    args.putString("videoId", viewModel.albumEntity.value?.tracks?.get(position))
+                    args.putString("from", "Album \"${viewModel.albumEntity.value?.title}\"")
+                    if (viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
+                        args.putInt("downloaded", 1)
+                    }
+                    Queue.clear()
+                    Queue.setNowPlaying(viewModel.listTrack.value?.get(position)!!.toTrack())
+                    if (Queue.getQueue().size > 1) {
+                        Queue.addAll(viewModel.listTrack.value.toArrayListTrack())
                         Queue.removeTrackWithIndex(position)
                     }
                     findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
@@ -178,13 +221,56 @@ class AlbumFragment: Fragment() {
 
         binding.btDownload.setOnClickListener {
             if (viewModel.albumEntity.value?.downloadState == DownloadState.STATE_NOT_DOWNLOADED) {
-                viewModel.downloadAlbum(songsAdapter.getList(), browseId.toString())
+                for (i in viewModel.albumBrowse.value?.data?.tracks!!){
+                    viewModel.insertSong(i.toSongEntity())
+                }
+                runBlocking {
+                    delay(1000)
+                    viewModel.listJob.emit(arrayListOf())
+                }
+                viewModel.getListTrack(viewModel.albumBrowse.value?.data?.tracks?.toListVideoId())
+                viewModel.listTrack.observe(viewLifecycleOwner) {listTrack->
+                    if (!listTrack.isNullOrEmpty()) {
+                        val listJob: ArrayList<SongEntity> = arrayListOf()
+                        for (song in listTrack){
+                            if (song.downloadState == DownloadState.STATE_NOT_DOWNLOADED) {
+                                listJob.add(song)
+                            }
+                        }
+                        viewModel.listJob.value = listJob
+                        Log.d("AlbumFragment", "ListJob: ${viewModel.listJob.value}")
+                        viewModel.updatePlaylistDownloadState(
+                            browseId!!,
+                            DownloadState.STATE_DOWNLOADING
+                        )
+                        listJob.forEach {job ->
+                            val downloadRequest =
+                                DownloadRequest.Builder(job.videoId, job.videoId.toUri())
+                                    .setData(job.title.toByteArray())
+                                    .setCustomCacheKey(job.videoId)
+                                    .build()
+                            viewModel.updateDownloadState(
+                                job.videoId,
+                                DownloadState.STATE_DOWNLOADING
+                            )
+                            DownloadService.sendAddDownload(
+                                requireContext(),
+                                MusicDownloadService::class.java,
+                                downloadRequest,
+                                false
+                            )
+                            viewModel.getDownloadStateFromService(job.videoId)
+                        }
+                        viewModel.downloadFullAlbumState(browseId)
+                    }
+                }
+
             }
             else if (viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
-                Toast.makeText(requireContext(), "Downloaded", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), getString(R.string.downloaded), Toast.LENGTH_SHORT).show()
             }
             else if (viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADING) {
-                Toast.makeText(requireContext(), "Downloading", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), getString(R.string.downloading), Toast.LENGTH_SHORT).show()
             }
         }
         binding.topAppBarLayout.addOnOffsetChangedListener { it, verticalOffset ->
@@ -203,32 +289,62 @@ class AlbumFragment: Fragment() {
             }
         }
         lifecycleScope.launch {
-            viewModel.albumDownloadState.collect { albumDownloadState ->
-                when (albumDownloadState) {
-                    DownloadState.STATE_PREPARING -> {
-                        binding.btDownload.visibility = View.GONE
-                        binding.animationDownloading.visibility = View.VISIBLE
-                    }
-                    DownloadState.STATE_DOWNLOADING -> {
-                        binding.btDownload.visibility = View.GONE
-                        binding.animationDownloading.visibility = View.VISIBLE
-                    }
-                    DownloadState.STATE_DOWNLOADED -> {
-                        binding.btDownload.visibility = View.VISIBLE
-                        binding.animationDownloading.visibility = View.GONE
-                        binding.btDownload.setImageResource(R.drawable.baseline_downloaded)
-                    }
-                    DownloadState.STATE_NOT_DOWNLOADED -> {
-                        binding.btDownload.visibility = View.VISIBLE
-                        binding.animationDownloading.visibility = View.GONE
-                        binding.btDownload.setImageResource(R.drawable.download_button)
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                launch {
+                    viewModel.albumDownloadState.collectLatest { albumDownloadState ->
+                        when (albumDownloadState) {
+                            DownloadState.STATE_PREPARING -> {
+                                binding.btDownload.visibility = View.GONE
+                                binding.animationDownloading.visibility = View.VISIBLE
+                            }
+                            DownloadState.STATE_DOWNLOADING -> {
+                                binding.btDownload.visibility = View.GONE
+                                binding.animationDownloading.visibility = View.VISIBLE
+                            }
+                            DownloadState.STATE_DOWNLOADED -> {
+                                binding.btDownload.visibility = View.VISIBLE
+                                binding.animationDownloading.visibility = View.GONE
+                                binding.btDownload.setImageResource(R.drawable.baseline_downloaded)
+                            }
+                            DownloadState.STATE_NOT_DOWNLOADED -> {
+                                binding.btDownload.visibility = View.VISIBLE
+                                binding.animationDownloading.visibility = View.GONE
+                                binding.btDownload.setImageResource(R.drawable.download_button)
+                            }
+                        }
                     }
                 }
+//                launch {
+//                    viewModel.listJob.collectLatest {jobs->
+//                        Log.d("AlbumFragment", "ListJob: $jobs")
+//                        if (jobs.isNotEmpty()){
+//                            var count = 0
+//                            jobs.forEach { job ->
+//                                if (job.downloadState == DownloadState.STATE_DOWNLOADED) {
+//                                    count++
+//                                }
+//                            }
+//                            Log.d("AlbumFragment", "Count: $count")
+//                            if (count == jobs.size) {
+//                                viewModel.updatePlaylistDownloadState(
+//                                    browseId!!,
+//                                    DownloadState.STATE_DOWNLOADED
+//                                )
+//                                Toast.makeText(
+//                                    requireContext(),
+//                                    getString(R.string.downloaded),
+//                                    Toast.LENGTH_SHORT
+//                                ).show()
+//                            }
+//                        }
+//                    }
+//                }
             }
+            //job2.join()
         }
     }
     private fun fetchDataFromViewModel() {
-        viewModel.albumBrowse.observe(viewLifecycleOwner) { response ->
+            val response = viewModel.albumBrowse.value
             when (response){
                 is Resource.Success -> {
                     response.data.let {
@@ -289,7 +405,6 @@ class AlbumFragment: Fragment() {
                 }
 
                 else -> {}
-            }
         }
     }
 

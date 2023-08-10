@@ -18,9 +18,12 @@ import androidx.core.graphics.ColorUtils
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.offline.DownloadRequest
+import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.fragment.findNavController
 import androidx.palette.graphics.Palette
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -39,10 +42,13 @@ import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.BottomSheetEditPlaylistTitleBinding
 import com.maxrave.simpmusic.databinding.BottomSheetLocalPlaylistBinding
+import com.maxrave.simpmusic.databinding.BottomSheetLocalPlaylistItemBinding
 import com.maxrave.simpmusic.databinding.FragmentLocalPlaylistBinding
 import com.maxrave.simpmusic.extension.toTrack
+import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.viewModel.LocalPlaylistViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
 import kotlin.math.abs
@@ -142,6 +148,20 @@ class LocalPlaylistFragment : Fragment() {
         })
         playlistAdapter.setOnOptionClickListener(object : PlaylistItemAdapter.OnOptionClickListener{
             override fun onOptionClick(position: Int) {
+                val dialog = BottomSheetDialog(requireContext())
+                val viewDialog = BottomSheetLocalPlaylistItemBinding.inflate(layoutInflater)
+                viewDialog.btDelete.setOnClickListener {
+                    viewModel.deleteItem(viewModel.listTrack.value?.get(position), id!!)
+                    viewModel.listTrack.observe(viewLifecycleOwner){
+                        listTrack.clear()
+                        listTrack.addAll(it)
+                        playlistAdapter.updateList(listTrack)
+                        dialog.dismiss()
+                    }
+                }
+                dialog.setContentView(viewDialog.root)
+                dialog.setCancelable(true)
+                dialog.show()
             }
         })
 
@@ -187,12 +207,36 @@ class LocalPlaylistFragment : Fragment() {
         }
 
         binding.btDownload.setOnClickListener {
-            val tempList: ArrayList<Track> = arrayListOf()
-            for (i in 0 until listTrack.size -1) {
-                tempList.add((listTrack[i] as SongEntity).toTrack())
-            }
             if (viewModel.localPlaylist.value?.downloadState == DownloadState.STATE_NOT_DOWNLOADED) {
-                viewModel.downloadPlaylist(tempList, id!!)
+                if (!viewModel.listTrack.value.isNullOrEmpty()) {
+                    val listJob: ArrayList<SongEntity> = arrayListOf()
+                    for (song in viewModel.listTrack.value!!){
+                        if (song.downloadState == DownloadState.STATE_NOT_DOWNLOADED) {
+                            listJob.add(song)
+                        }
+                    }
+                    viewModel.listJob.value = listJob
+                    Log.d("PlaylistFragment", "ListJob: ${viewModel.listJob.value}")
+                    listJob.forEach {job ->
+                        val downloadRequest =
+                            DownloadRequest.Builder(job.videoId, job.videoId.toUri())
+                                .setData(job.title.toByteArray())
+                                .setCustomCacheKey(job.videoId)
+                                .build()
+                        viewModel.updateDownloadState(
+                            job.videoId,
+                            DownloadState.STATE_DOWNLOADING
+                        )
+                        DownloadService.sendAddDownload(
+                            requireContext(),
+                            MusicDownloadService::class.java,
+                            downloadRequest,
+                            false
+                        )
+                        viewModel.getDownloadStateFromService(job.videoId)
+                    }
+                    viewModel.downloadFullPlaylistState(id!!)
+                }
             }
             else if (viewModel.localPlaylist.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                 Toast.makeText(requireContext(), getString(R.string.downloaded), Toast.LENGTH_SHORT).show()
@@ -249,25 +293,32 @@ class LocalPlaylistFragment : Fragment() {
         }
 
         lifecycleScope.launch {
-            viewModel.playlistDownloadState.collect { playlistDownloadState ->
-                when (playlistDownloadState) {
-                    DownloadState.STATE_PREPARING -> {
-                        binding.btDownload.visibility = View.GONE
-                        binding.animationDownloading.visibility = View.VISIBLE
-                    }
-                    DownloadState.STATE_DOWNLOADING -> {
-                        binding.btDownload.visibility = View.GONE
-                        binding.animationDownloading.visibility = View.VISIBLE
-                    }
-                    DownloadState.STATE_DOWNLOADED -> {
-                        binding.btDownload.visibility = View.VISIBLE
-                        binding.animationDownloading.visibility = View.GONE
-                        binding.btDownload.setImageResource(R.drawable.baseline_downloaded)
-                    }
-                    DownloadState.STATE_NOT_DOWNLOADED -> {
-                        binding.btDownload.visibility = View.VISIBLE
-                        binding.animationDownloading.visibility = View.GONE
-                        binding.btDownload.setImageResource(R.drawable.download_button)
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                launch {
+                    viewModel.playlistDownloadState.collectLatest { playlistDownloadState ->
+                        when (playlistDownloadState) {
+                            DownloadState.STATE_PREPARING -> {
+                                binding.btDownload.visibility = View.GONE
+                                binding.animationDownloading.visibility = View.VISIBLE
+                            }
+
+                            DownloadState.STATE_DOWNLOADING -> {
+                                binding.btDownload.visibility = View.GONE
+                                binding.animationDownloading.visibility = View.VISIBLE
+                            }
+
+                            DownloadState.STATE_DOWNLOADED -> {
+                                binding.btDownload.visibility = View.VISIBLE
+                                binding.animationDownloading.visibility = View.GONE
+                                binding.btDownload.setImageResource(R.drawable.baseline_downloaded)
+                            }
+
+                            DownloadState.STATE_NOT_DOWNLOADED -> {
+                                binding.btDownload.visibility = View.VISIBLE
+                                binding.animationDownloading.visibility = View.GONE
+                                binding.btDownload.setImageResource(R.drawable.download_button)
+                            }
+                        }
                     }
                 }
             }

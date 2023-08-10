@@ -7,7 +7,7 @@ data class Chart(
     @SerializedName("artists")
     val artists: Artists,
     @SerializedName("countries")
-    val countries: Countries,
+    val countries: Countries?,
     @SerializedName("videos")
     val videos: Videos
 )

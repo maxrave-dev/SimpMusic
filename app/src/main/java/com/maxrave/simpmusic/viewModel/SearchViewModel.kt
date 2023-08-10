@@ -6,14 +6,11 @@ import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.Download
-import com.google.gson.Gson
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
-import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SearchHistory
@@ -27,19 +24,18 @@ import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.extension.toQueryList
 import com.maxrave.simpmusic.extension.toSongEntity
-import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
-import retrofit2.Response
-import java.util.Collections
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -114,8 +110,15 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
         if (loading.value == false){
             loading.value = true
             viewModelScope.launch {
-                mainRepository.searchSongs(query, "songs", regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect { values ->
-                    _songSearchResult.value = values
+//                mainRepository.searchSongs(query, "songs", regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect { values ->
+//                    _songSearchResult.value = values
+//                    Log.d("SearchViewModel", "searchSongs: ${_songSearchResult.value}")
+//                    withContext(Dispatchers.Main) {
+//                        loading.value = false
+//                    }
+//                }
+                mainRepository.getSearchDataSong(query).collect {
+                    _songSearchResult.value = it
                     Log.d("SearchViewModel", "searchSongs: ${_songSearchResult.value}")
                     withContext(Dispatchers.Main) {
                         loading.value = false
@@ -129,31 +132,31 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
         loading.value = true
         viewModelScope.launch {
             val job1 = launch {
-                mainRepository.searchSongs(query, "songs", regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect {values ->
+                mainRepository.getSearchDataSong(query).collect {values ->
                     _songSearchResult.value = values
                     Log.d("SearchViewModel", "searchSongs: ${_songSearchResult.value}")
                 }
             }
             val job2 = launch {
-                mainRepository.searchArtists(query, "artists", regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect {values ->
+                mainRepository.getSearchDataArtist(query).collect {values ->
                     _artistSearchResult.value = values
                     Log.d("SearchViewModel", "searchArtists: ${_artistSearchResult.value}")
                 }
             }
             val job3 = launch {
-                mainRepository.searchAlbums(query, "albums", regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect {values ->
+                mainRepository.getSearchDataAlbum(query).collect {values ->
                     _albumSearchResult.value = values
                     Log.d("SearchViewModel", "searchAlbums: ${_albumSearchResult.value}")
                 }
             }
             val job4 = launch {
-                mainRepository.searchPlaylists(query, "playlists", regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect {values ->
+                mainRepository.getSearchDataPlaylist(query).collect {values ->
                     _playlistSearchResult.value = values
                     Log.d("SearchViewModel", "searchPlaylists: ${_playlistSearchResult.value}")
                 }
             }
             val job5 = launch {
-                mainRepository.searchVideos(query, "videos", regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect {values ->
+                mainRepository.getSearchDataVideo(query).collect {values ->
                     _videoSearchResult.value = values
                     Log.d("SearchViewModel", "searchVideos: ${_videoSearchResult.value}")
                 }
@@ -169,10 +172,11 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
         }
     }
     fun suggestQuery(query: String){
-            viewModelScope.launch { mainRepository.suggestQuery(query).collect {values ->
-                _suggestQuery.value = values
-                Log.d("SearchViewModel", "suggestQuery: ${_suggestQuery.value}")
-            }
+            viewModelScope.launch {
+                mainRepository.getSuggestQuery(query).collect{ values ->
+                    Log.d("SearchViewModel", "suggestQuery: $values")
+                    _suggestQuery.value = values
+                }
         }
     }
 
@@ -184,7 +188,7 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
     fun searchAlbums(query: String) {
         if (loading.value == false){
             loading.value = true
-            viewModelScope.launch { mainRepository.searchAlbums(query, "albums", regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect {values ->
+            viewModelScope.launch { mainRepository.getSearchDataAlbum(query).collect {values ->
                 _albumSearchResult.value = values
                 Log.d("SearchViewModel", "searchAlbums: ${_albumSearchResult.value}")
                 withContext(Dispatchers.Main) {
@@ -197,7 +201,7 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
     fun searchArtists(query: String) {
         if (loading.value == false){
             loading.value = true
-            viewModelScope.launch { mainRepository.searchArtists(query, "artists", regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect {values ->
+            viewModelScope.launch { mainRepository.getSearchDataArtist(query).collect {values ->
                 _artistSearchResult.value = values
                 Log.d("SearchViewModel", "searchArtists: ${_artistSearchResult.value}")
                 withContext(Dispatchers.Main) {
@@ -210,7 +214,7 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
     fun searchPlaylists(query: String) {
         if (loading.value == false){
             loading.value = true
-            viewModelScope.launch { mainRepository.searchPlaylists(query, "playlists", regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect {values ->
+            viewModelScope.launch { mainRepository.getSearchDataPlaylist(query).collect {values ->
                 _playlistSearchResult.value = values
                 Log.d("SearchViewModel", "searchPlaylists: ${_playlistSearchResult.value}")
                 withContext(Dispatchers.Main) {
@@ -223,7 +227,7 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
         if (loading.value == false) {
             loading.value = true
             viewModelScope.launch {
-                mainRepository.searchVideos(query, "videos", regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect { values ->
+                mainRepository.getSearchDataVideo(query).collect { values ->
                     _videoSearchResult.value = values
                     Log.d("SearchViewModel", "searchVideos: ${_videoSearchResult.value}")
                     withContext(Dispatchers.Main) {

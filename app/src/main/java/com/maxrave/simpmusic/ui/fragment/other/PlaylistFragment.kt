@@ -1,38 +1,64 @@
 package com.maxrave.simpmusic.ui.fragment.other
 
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
+import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.offline.DownloadRequest
+import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.fragment.findNavController
 import androidx.palette.graphics.Palette
 import androidx.recyclerview.widget.LinearLayoutManager
 import coil.load
 import coil.size.Size
 import coil.transform.Transformation
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.snackbar.Snackbar
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.adapter.artist.SeeArtistOfNowPlayingAdapter
+import com.maxrave.simpmusic.adapter.playlist.AddToAPlaylistAdapter
 import com.maxrave.simpmusic.adapter.playlist.PlaylistItemAdapter
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.DownloadState
+import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
+import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.queue.Queue
+import com.maxrave.simpmusic.databinding.BottomSheetAddToAPlaylistBinding
+import com.maxrave.simpmusic.databinding.BottomSheetNowPlayingBinding
+import com.maxrave.simpmusic.databinding.BottomSheetSeeArtistOfNowPlayingBinding
 import com.maxrave.simpmusic.databinding.FragmentPlaylistBinding
+import com.maxrave.simpmusic.extension.connectArtists
+import com.maxrave.simpmusic.extension.removeConflicts
+import com.maxrave.simpmusic.extension.toArrayListTrack
+import com.maxrave.simpmusic.extension.toListName
+import com.maxrave.simpmusic.extension.toListVideoId
 import com.maxrave.simpmusic.extension.toPlaylistEntity
+import com.maxrave.simpmusic.extension.toSongEntity
+import com.maxrave.simpmusic.extension.toTrack
+import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.PlaylistViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlin.math.abs
 
 @AndroidEntryPoint
@@ -83,7 +109,7 @@ class PlaylistFragment: Fragment() {
         }
         var id = requireArguments().getString("id")
         val downloaded = arguments?.getInt("downloaded")
-        if (id == null){
+        if (id == null || id == viewModel.id.value){
             id = viewModel.id.value
             fetchDataFromViewModel()
         }
@@ -120,8 +146,24 @@ class PlaylistFragment: Fragment() {
                 }
                 Queue.clear()
                 Queue.setNowPlaying(viewModel.playlistBrowse.value?.data!!.tracks[0])
-                Queue.addAll(viewModel.playlistBrowse.value?.data!!.tracks as ArrayList<Track>)
                 if (Queue.getQueue().size > 1) {
+                    Queue.addAll(viewModel.playlistBrowse.value?.data!!.tracks as ArrayList<Track>)
+                    Queue.removeFirstTrackForPlaylistAndAlbum()
+                }
+                findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+            }
+            else if (viewModel.playlistEntity.value != null && viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED){
+                val args = Bundle()
+                args.putString("type", Config.ALBUM_CLICK)
+                args.putString("videoId", viewModel.playlistEntity.value?.tracks?.get(0))
+                args.putString("from", "Album \"${viewModel.playlistEntity.value?.title}\"")
+                if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
+                    args.putInt("downloaded", 1)
+                }
+                Queue.clear()
+                Queue.setNowPlaying(viewModel.listTrack.value?.get(0)!!.toTrack())
+                if (Queue.getQueue().size > 1) {
+                    Queue.addAll(viewModel.listTrack.value.toArrayListTrack())
                     Queue.removeFirstTrackForPlaylistAndAlbum()
                 }
                 findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
@@ -137,7 +179,7 @@ class PlaylistFragment: Fragment() {
                 if (viewModel.playlistBrowse.value is Resource.Success && viewModel.playlistBrowse.value?.data != null){
                     val args = Bundle()
                     args.putString("type", Config.ALBUM_CLICK)
-                    args.putString("videoId", viewModel.playlistBrowse.value?.data!!.tracks[0].videoId)
+                    args.putString("videoId", viewModel.playlistBrowse.value?.data!!.tracks[position].videoId)
                     args.putString("from", "Album \"${viewModel.playlistBrowse.value?.data!!.title}\"")
                     args.putInt("index", position)
                     if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
@@ -145,8 +187,24 @@ class PlaylistFragment: Fragment() {
                     }
                     Queue.clear()
                     Queue.setNowPlaying(viewModel.playlistBrowse.value?.data!!.tracks[position])
-                    Queue.addAll(viewModel.playlistBrowse.value?.data!!.tracks as ArrayList<Track>)
                     if (Queue.getQueue().size > 1) {
+                        Queue.addAll(viewModel.playlistBrowse.value?.data!!.tracks as ArrayList<Track>)
+                        Queue.removeTrackWithIndex(position)
+                    }
+                    findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                }
+                else if (viewModel.playlistEntity.value != null && viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED){
+                    val args = Bundle()
+                    args.putString("type", Config.ALBUM_CLICK)
+                    args.putString("videoId", viewModel.playlistEntity.value?.tracks?.get(position))
+                    args.putString("from", "Album \"${viewModel.playlistEntity.value?.title}\"")
+                    if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
+                        args.putInt("downloaded", 1)
+                    }
+                    Queue.clear()
+                    Queue.setNowPlaying(viewModel.listTrack.value?.get(position)!!.toTrack())
+                    if (Queue.getQueue().size > 1) {
+                        Queue.addAll(viewModel.listTrack.value.toArrayListTrack())
                         Queue.removeTrackWithIndex(position)
                     }
                     findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
@@ -158,7 +216,119 @@ class PlaylistFragment: Fragment() {
         })
         playlistItemAdapter.setOnOptionClickListener(object: PlaylistItemAdapter.OnOptionClickListener{
             override fun onOptionClick(position: Int) {
-                Toast.makeText(requireContext(), getString(R.string.option), Toast.LENGTH_SHORT).show()
+                val song = viewModel.playlistBrowse.value?.data!!.tracks[position]
+                viewModel.getSongEntity(song.toSongEntity())
+                val dialog = BottomSheetDialog(requireContext())
+                val bottomSheetView = BottomSheetNowPlayingBinding.inflate(layoutInflater)
+                with(bottomSheetView) {
+                    viewModel.songEntity.observe(viewLifecycleOwner) { songEntity ->
+                        if (songEntity.liked) {
+                            tvFavorite.text = getString(R.string.liked)
+                            cbFavorite.isChecked = true
+                        } else {
+                            tvFavorite.text = getString(R.string.like)
+                            cbFavorite.isChecked = false
+                        }
+                    }
+                    tvSongTitle.text = song.title
+                    tvSongTitle.isSelected = true
+                    tvSongArtist.text = song.artists.toListName().connectArtists()
+                    tvSongArtist.isSelected = true
+                    ivThumbnail.load(song.thumbnails)
+
+                    btLike.setOnClickListener {
+                        if (cbFavorite.isChecked) {
+                            cbFavorite.isChecked = false
+                            tvFavorite.text = getString(R.string.like)
+                            viewModel.updateLikeStatus(song.videoId, 0)
+                        } else {
+                            cbFavorite.isChecked = true
+                            tvFavorite.text = getString(R.string.liked)
+                            viewModel.updateLikeStatus(song.videoId, 1)
+                        }
+                    }
+                    btSeeArtists.setOnClickListener {
+                        val subDialog = BottomSheetDialog(requireContext())
+                        val subBottomSheetView =
+                            BottomSheetSeeArtistOfNowPlayingBinding.inflate(layoutInflater)
+                        if (!song.artists.isNullOrEmpty()) {
+                            val artistAdapter = SeeArtistOfNowPlayingAdapter(song.artists)
+                            subBottomSheetView.rvArtists.apply {
+                                adapter = artistAdapter
+                                layoutManager = LinearLayoutManager(requireContext())
+                            }
+                            artistAdapter.setOnClickListener(object :
+                                SeeArtistOfNowPlayingAdapter.OnItemClickListener {
+                                override fun onItemClick(position: Int) {
+                                    val artist = song.artists[position]
+                                    if (artist.id != null) {
+                                        findNavController().navigate(
+                                            R.id.action_global_artistFragment,
+                                            Bundle().apply {
+                                                putString("channelId", artist.id)
+                                            })
+                                        subDialog.dismiss()
+                                        dialog.dismiss()
+                                    }
+                                }
+
+                            })
+                        }
+
+                        subDialog.setCancelable(true)
+                        subDialog.setContentView(subBottomSheetView.root)
+                        subDialog.show()
+                    }
+                    btDownload.visibility = View.GONE
+                    btAddPlaylist.setOnClickListener {
+                        viewModel.getLocalPlaylist()
+                        val listLocalPlaylist: ArrayList<LocalPlaylistEntity> = arrayListOf()
+                        val addPlaylistDialog = BottomSheetDialog(requireContext())
+                        val viewAddPlaylist =
+                            BottomSheetAddToAPlaylistBinding.inflate(layoutInflater)
+                        val addToAPlaylistAdapter = AddToAPlaylistAdapter(arrayListOf())
+                        viewAddPlaylist.rvLocalPlaylists.apply {
+                            adapter = addToAPlaylistAdapter
+                            layoutManager = LinearLayoutManager(requireContext())
+                        }
+                        viewModel.listLocalPlaylist.observe(viewLifecycleOwner) { list ->
+                            Log.d("Check Local Playlist", list.toString())
+                            listLocalPlaylist.clear()
+                            listLocalPlaylist.addAll(list)
+                            addToAPlaylistAdapter.updateList(listLocalPlaylist)
+                        }
+                        addToAPlaylistAdapter.setOnItemClickListener(object :
+                            AddToAPlaylistAdapter.OnItemClickListener {
+                            override fun onItemClick(position: Int) {
+                                val playlist = listLocalPlaylist[position]
+                                val tempTrack = ArrayList<String>()
+                                if (playlist.tracks != null) {
+                                    tempTrack.addAll(playlist.tracks)
+                                }
+                                tempTrack.add(song.videoId)
+                                tempTrack.removeConflicts()
+                                viewModel.updateLocalPlaylistTracks(tempTrack, playlist.id)
+                                addPlaylistDialog.dismiss()
+                                dialog.dismiss()
+                            }
+                        })
+                        addPlaylistDialog.setContentView(viewAddPlaylist.root)
+                        addPlaylistDialog.setCancelable(true)
+                        addPlaylistDialog.show()
+                    }
+                    btShare.setOnClickListener {
+                        val shareIntent = Intent(Intent.ACTION_SEND)
+                        shareIntent.type = "text/plain"
+                        val url = "https://youtube.com/watch?v=${song.videoId}"
+                        shareIntent.putExtra(Intent.EXTRA_TEXT, url)
+                        val chooserIntent =
+                            Intent.createChooser(shareIntent, getString(R.string.share_url))
+                        startActivity(chooserIntent)
+                    }
+                    dialog.setCancelable(true)
+                    dialog.setContentView(bottomSheetView.root)
+                    dialog.show()
+                }
             }
         })
         binding.topAppBarLayout.addOnOffsetChangedListener { it, verticalOffset ->
@@ -177,45 +347,98 @@ class PlaylistFragment: Fragment() {
             }
         }
         binding.btDownload.setOnClickListener {
-            when (viewModel.playlistEntity.value?.downloadState) {
-                DownloadState.STATE_NOT_DOWNLOADED -> {
-                    viewModel.downloadPlaylist(playlistItemAdapter.getListTrack(), id.toString())
-                }
-                DownloadState.STATE_DOWNLOADED -> {
-                    Toast.makeText(requireContext(), "Downloaded", Toast.LENGTH_SHORT).show()
-                }
-                DownloadState.STATE_DOWNLOADING -> {
-                    Toast.makeText(requireContext(), "Downloading", Toast.LENGTH_SHORT).show()
-                }
+        if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_NOT_DOWNLOADED) {
+//                if (!viewModel.prevPlaylistDownloading.value){
+//                    viewModel.downloading()
+                    for (i in viewModel.playlistBrowse.value?.data?.tracks!!){
+                        viewModel.insertSong(i.toSongEntity())
+                    }
+                    runBlocking {
+                        delay(1000)
+                        viewModel.listJob.emit(arrayListOf())
+                    }
+                    viewModel.getListTrack(viewModel.playlistBrowse.value?.data?.tracks?.toListVideoId())
+                    viewModel.listTrack.observe(viewLifecycleOwner) {listTrack->
+                        if (!listTrack.isNullOrEmpty()) {
+                            val listJob: ArrayList<SongEntity> = arrayListOf()
+                            for (song in viewModel.listTrack.value!!) {
+                                if (song.downloadState == DownloadState.STATE_NOT_DOWNLOADED) {
+                                    listJob.add(song)
+                                }
+                            }
+                            viewModel.listJob.value = listJob
+                            Log.d("PlaylistFragment", "ListJob: ${viewModel.listJob.value}")
+                            viewModel.updatePlaylistDownloadState(
+                                id!!,
+                                DownloadState.STATE_DOWNLOADING
+                            )
+                            listJob.forEach { job ->
+                                val downloadRequest =
+                                    DownloadRequest.Builder(job.videoId, job.videoId.toUri())
+                                        .setData(job.title.toByteArray())
+                                        .setCustomCacheKey(job.videoId)
+                                        .build()
+                                viewModel.updateDownloadState(
+                                    job.videoId,
+                                    DownloadState.STATE_DOWNLOADING
+                                )
+                                DownloadService.sendAddDownload(
+                                    requireContext(),
+                                    MusicDownloadService::class.java,
+                                    downloadRequest,
+                                    false
+                                )
+                                viewModel.getDownloadStateFromService(job.videoId)
+                            }
+                            viewModel.downloadFullPlaylistState(id)
+                        }
+                    }
+//                }
+//                else{
+//                    Toast.makeText(requireContext(), getString(R.string.please_wait_before_playlist_downloaded), Toast.LENGTH_SHORT).show()
+//                }
+            }
+            else if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
+                Toast.makeText(requireContext(), getString(R.string.downloaded), Toast.LENGTH_SHORT).show()
+            }
+            else if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADING) {
+                Toast.makeText(requireContext(), getString(R.string.downloading), Toast.LENGTH_SHORT).show()
             }
         }
         lifecycleScope.launch {
-            viewModel.playlistDownloadState.collect { playlistDownloadState ->
-                when (playlistDownloadState) {
-                    DownloadState.STATE_PREPARING -> {
-                        binding.btDownload.visibility = View.GONE
-                        binding.animationDownloading.visibility = View.VISIBLE
-                    }
-                    DownloadState.STATE_DOWNLOADING -> {
-                        binding.btDownload.visibility = View.GONE
-                        binding.animationDownloading.visibility = View.VISIBLE
-                    }
-                    DownloadState.STATE_DOWNLOADED -> {
-                        binding.btDownload.visibility = View.VISIBLE
-                        binding.animationDownloading.visibility = View.GONE
-                        binding.btDownload.setImageResource(R.drawable.baseline_downloaded)
-                    }
-                    DownloadState.STATE_NOT_DOWNLOADED -> {
-                        binding.btDownload.visibility = View.VISIBLE
-                        binding.animationDownloading.visibility = View.GONE
-                        binding.btDownload.setImageResource(R.drawable.download_button)
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.CREATED) {
+                launch {
+                    viewModel.playlistDownloadState.collectLatest { playlistDownloadState ->
+                        when (playlistDownloadState) {
+                            DownloadState.STATE_PREPARING -> {
+                                binding.btDownload.visibility = View.GONE
+                                binding.animationDownloading.visibility = View.VISIBLE
+                            }
+
+                            DownloadState.STATE_DOWNLOADING -> {
+                                binding.btDownload.visibility = View.GONE
+                                binding.animationDownloading.visibility = View.VISIBLE
+                            }
+
+                            DownloadState.STATE_DOWNLOADED -> {
+                                binding.btDownload.visibility = View.VISIBLE
+                                binding.animationDownloading.visibility = View.GONE
+                                binding.btDownload.setImageResource(R.drawable.baseline_downloaded)
+                            }
+
+                            DownloadState.STATE_NOT_DOWNLOADED -> {
+                                binding.btDownload.visibility = View.VISIBLE
+                                binding.animationDownloading.visibility = View.GONE
+                                binding.btDownload.setImageResource(R.drawable.download_button)
+                            }
+                        }
                     }
                 }
             }
         }
     }
     private fun fetchDataFromViewModel(){
-        viewModel.playlistBrowse.observe(viewLifecycleOwner) { response ->
+            val response = viewModel.playlistBrowse.value
             when (response) {
                 is Resource.Success -> {
                     response.data.let {
@@ -223,7 +446,7 @@ class PlaylistFragment: Fragment() {
                             topAppBar.title = it?.title
                             tvPlaylistAuthor.text = it?.author?.name
                             tvYearAndCategory.text = requireContext().getString(R.string.year_and_category, it?.year.toString(), "Playlist")
-                            tvTrackCountAndDuration.text = requireContext().getString(R.string.album_length, it?.trackCount.toString(), it?.duration.toString())
+                            tvTrackCountAndDuration.text = requireContext().getString(R.string.album_length, it?.trackCount.toString(), "")
                             if (it?.description != null){
                                 tvDescription.originalText = it.description
                             } else {
@@ -278,7 +501,6 @@ class PlaylistFragment: Fragment() {
 
                 else -> {}
             }
-        }
 
     }
 
@@ -297,7 +519,7 @@ class PlaylistFragment: Fragment() {
                                 topAppBar.title = it?.title
                                 tvPlaylistAuthor.text = it?.author?.name
                                 tvYearAndCategory.text = requireContext().getString(R.string.year_and_category, it?.year.toString(), "Playlist")
-                                tvTrackCountAndDuration.text = requireContext().getString(R.string.album_length, it?.trackCount.toString(), it?.duration.toString())
+                                tvTrackCountAndDuration.text = requireContext().getString(R.string.album_length, it?.trackCount.toString(), "")
                                 if (it?.description != null){
                                     tvDescription.originalText = it.description
                                 } else {
@@ -380,7 +602,7 @@ class PlaylistFragment: Fragment() {
                         tvPlaylistAuthor.text = playlistEntity.author
                         tvYearAndCategory.text = requireContext().getString(R.string.year_and_category, playlistEntity.year.toString(), "Playlist")
                         tvTrackCountAndDuration.text = requireContext().getString(R.string.album_length, playlistEntity.trackCount.toString(),
-                            playlistEntity.duration
+                            ""
                         )
                         if (playlistEntity.description != ""){
                             tvDescription.originalText = playlistEntity.description

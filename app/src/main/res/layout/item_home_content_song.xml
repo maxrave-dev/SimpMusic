@@ -22,6 +22,7 @@
                 android:text=""
                 android:textStyle="bold"
                 android:textSize="15sp"
+                android:maxLines="2"
                 android:layout_marginTop="10sp">
 
             </TextView>

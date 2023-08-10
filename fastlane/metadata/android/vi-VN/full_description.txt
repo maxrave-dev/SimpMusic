@@ -3,8 +3,7 @@
 <br><b>Tính năng:</b>
 
 - Nghe nhạc từ YouTube Music hoặc YouTube miễn phí không có quảng cáo trong nền
-- Duyệt tất cả các nội dung như bảng xếp hạng, thể loại, tâm trạng, ... từ YouTube Music
-- Duyệt và phát tất cả các nội dung bị chặn ở quốc gia của bạn mà không cần VPN hoặc Proxy
+- Duyệt tất cả các nội dung như bảng xếp hạng, thể loại, tâm trạng, ... từ YouTube Music với tốc độ cao
 - Tìm kiếm mọi thứ trên YouTube
 - Thống kê dữ liệu nghe nhạc của bạn và tạo danh sách phát tùy chỉnh
 - Lưu trữ dữ liệu ngoại tuyến

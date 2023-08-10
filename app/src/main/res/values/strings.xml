@@ -6,7 +6,7 @@
     <string name="album_and_artist_name">Album • %1$s</string>
     <string name="subscribers">%1$s subscribers</string>
     <string name="year_and_category">%1$s • %2$s</string>
-    <string name="album_length">%1$s tracks • %2$s</string>
+    <string name="album_length">%1$s tracks  %2$s</string>
     <string name="view_count">%1$s views</string>
     <string name="lyrics_provider">Lyrics provided by akashrchandran/spotify-lyrics-api</string>
     <string name="clear_search_history">Clear search history</string>
@@ -132,6 +132,15 @@
     <string name="now_playing_upper">NOW PLAYING</string>
     <string name="language">Language</string>
     <string name="what_do_you_want_to_listen_to">What do you want to listen to?</string>
+    <string name="songs_inArtist">Songs</string>
+    <string name="albums_inArtist">Albums</string>
+    <string name="singles_inArtist">Singles</string>
+    <string name="fans_might_also_like_inArtist">Fans might also like</string>
+    <string name="crash_log">SimpMusic crashed. Sorry for this problem.\nSend crash-log to developer</string>
+    <string name="crash">Crash</string>
+    <string name="send">Send</string>
+    <string name="mail_subject">Report Crash</string>
+    <string name="delete_song_from_playlist">Delete this song from playlist</string>
     <plurals name="n_song">
         <item quantity="one">%d song</item>
         <item quantity="other">%d songs</item>

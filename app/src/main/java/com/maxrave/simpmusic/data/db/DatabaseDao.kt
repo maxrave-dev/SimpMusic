@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.data.db
 
-import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
@@ -243,4 +242,7 @@ interface DatabaseDao {
     fun checkpoint() {
         raw("pragma wal_checkpoint(full)".toSQLiteQuery())
     }
+
+    @Query("SELECT * FROM song WHERE downloadState = 1")
+    suspend fun getPreparingSongs(): List<SongEntity>
 }

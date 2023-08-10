@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:cardCornerRadius="8sp"
+    app:cardBackgroundColor="#242424"
+    style="@style/Widget.Material3.CardView.Filled">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="60sp"
+            android:layout_height="4sp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="5sp"
+            app:cardBackgroundColor="#474545"
+            style="@style/Widget.Material3.CardView.Filled"
+            android:layout_marginBottom="5sp">
+
+        </com.google.android.material.card.MaterialCardView>
+        <RelativeLayout
+            android:id="@+id/btDelete"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:clickable="true"
+            android:foreground="?android:attr/selectableItemBackground"
+            android:paddingHorizontal="20sp"
+            android:layout_marginBottom="5sp">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:id="@+id/ivDelete"
+                android:padding="12sp"
+                android:src="@drawable/baseline_delete_24">
+
+            </ImageView>
+            <TextView
+                android:id="@+id/tvDelete"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toEndOf="@+id/ivDelete"
+                android:text="@string/delete_song_from_playlist"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="10sp"
+                android:textSize="16sp">
+
+            </TextView>
+        </RelativeLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

@@ -13,6 +13,7 @@ import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -35,7 +36,10 @@ class MoodViewModel @Inject constructor(private val mainRepository: MainReposito
     fun getMood(params: String){
         loading.value = true
         viewModelScope.launch {
-            mainRepository.getMood(params, regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect{ values ->
+//            mainRepository.getMood(params, regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect{ values ->
+//                _moodsMomentObject.value = values
+//            }
+            mainRepository.getMoodData(params).collect { values ->
                 _moodsMomentObject.value = values
             }
             withContext(Dispatchers.Main){

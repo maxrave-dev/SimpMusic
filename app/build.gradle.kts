@@ -4,6 +4,7 @@ plugins {
     id ("androidx.navigation.safeargs")
     id ("kotlin-kapt")
     id ("com.google.dagger.hilt.android")
+    id("com.google.devtools.ksp")
 }
 
 android {
@@ -14,8 +15,8 @@ android {
         applicationId = "com.maxrave.simpmusic"
         minSdk = 26
         targetSdk = 34
-        versionCode = 5
-        versionName = "0.0.5-beta"
+        versionCode = 6
+        versionName = "0.1.0-beta"
 
         resourceConfigurations += listOf("en", "vi")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -41,6 +42,7 @@ android {
     }
     packaging {
         jniLibs.useLegacyPackaging = true
+        jniLibs.excludes += listOf("META-INF/META-INF/DEPENDENCIES", "META-INF/LICENSE", "META-INF/LICENSE.txt", "META-INF/license.txt", "META-INF/NOTICE", "META-INF/NOTICE.txt", "META-INF/notice.txt", "META-INF/ASL2.0", "META-INF/asm-license.txt", "META-INF/notice.txt", "META-INF/NOTICE.txt", "META-INF/LICENSE.txt", "META-INF/license.txt", "META-INF/notice.txt", "META-INF/NOTICE", "META-INF/LICENSE", "META-INF/notice", "META-INF/notice.txt", "META-INF/NOTICE.txt", "META-INF/LICENSE.txt", "META-INF/license.txt", "META-INF/notice.txt", "META-INF/NOTICE", "META-INF/LICENSE", "META-INF/notice", "META-INF/notice.txt", "META-INF/NOTICE.txt", "META-INF/LICENSE.txt", "META-INF/license.txt", "META-INF/notice.txt", "META-INF/NOTICE", "META-INF/LICENSE", "META-INF/notice", "META-INF/notice.txt", "META-INF/NOTICE.txt", "META-INF/LICENSE.txt", "META-INF/license.txt", "META-INF/notice.txt", "META-INF/NOTICE", "META-INF/LICENSE", "META-INF/notice", "META-INF/notice.txt", "META-INF/NOTICE.txt", "META-INF/LICENSE.txt", "META-INF/license.txt", "META-INF/notice.txt", "META-INF/NOTICE", "META-INF/LICENSE", "META-INF/notice", "META-INF/notice.txt", "META-INF/NOTICE.txt", "META-INF/LICENSE.txt", "META-INF/license.txt", "META-INF/notice.txt", "META-INF/NOTICE", "META-INF/LICENSE", "META-INF/notice", "META-INF/notice.txt", "META-INF/NOTICE.txt", "META-INF/LICENSE.txt", "META-INF/license.txt", "META-INF/notice.txt", "META-INF/NOTICE", "META-INF/LICENSE", "META-INF/notice", "META-INF/notice.txt", "META-INF/NOTICE.txt", "META-INF/LICENSE.txt", "META-INF/license.txt", "META-INF/notice.txt", "META-INF/NOTICE", "META-INF/LICENSE", "META-INF/notice", "META-INF/notice.txt", "META-INF/NOTICE.txt", "META-INF/LICENSE.txt", "META-INF/license.txt", "META-INF/notice", "META-INF/ASL2.0", "META-INF/*.kotlin_module")
     }
 }
 
@@ -53,6 +55,7 @@ dependencies {
     implementation("com.google.android.material:material:1.9.0")
     //runtime
     implementation("androidx.startup:startup-runtime:1.1.1")
+    implementation(project(mapOf("path" to ":kotlinYtmusicScraper")))
     //ExoPlayer
     val media3_version= "1.1.0"
 
@@ -79,7 +82,7 @@ dependencies {
 
     implementation("androidx.room:room-runtime:2.5.2")
     implementation("androidx.room:room-ktx:2.5.2")
-    kapt ("androidx.room:room-compiler:2.5.2")
+    ksp("androidx.room:room-compiler:2.5.2")
     //Legacy Support
     implementation("androidx.legacy:legacy-support-v4:1.0.0")
     //Coroutines
@@ -88,13 +91,7 @@ dependencies {
     implementation("androidx.navigation:navigation-fragment-ktx:2.6.0")
     implementation("androidx.navigation:navigation-ui-ktx:2.6.0")
 
-    //Retrofit 2
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    //OkHttp
-    implementation("com.squareup.okhttp3:logging-interceptor:5.0.0-alpha.11")
-
-    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
+    implementation("com.google.code.gson:gson:2.10.1")
 
     //Coil
     implementation("io.coil-kt:coil:2.4.0")
@@ -112,7 +109,8 @@ dependencies {
     implementation("androidx.fragment:fragment-ktx:1.6.1")
     //Hilt
     implementation("com.google.dagger:hilt-android:2.47")
-    kapt ("com.google.dagger:hilt-compiler:2.47")
+    kapt("com.google.dagger:hilt-compiler:2.47")
+    ksp("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.7.0")
     //Preference ktx
     implementation("androidx.preference:preference-ktx:1.2.0")
     //DataStore
@@ -134,16 +132,12 @@ dependencies {
     val paging_version= "3.2.0"
     implementation("androidx.paging:paging-runtime-ktx:$paging_version")
 
-    implementation("androidx.legacy:legacy-support-v4:1.0.0")
     implementation("com.daimajia.swipelayout:library:1.2.0@aar")
 
-    //ktor
-    val ktor_version = "2.3.3"
-    implementation("io.ktor:ktor-client-core:$ktor_version")
-    implementation("io.ktor:ktor-client-cio:$ktor_version")
-    implementation("io.ktor:ktor-client-content-negotiation:$ktor_version")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktor_version")
-    implementation("io.ktor:ktor-serialization-gson:$ktor_version")
+    //arca
+    val acraVersion = "5.11.0"
+    implementation("ch.acra:acra-mail:$acraVersion")
+
 
 }
 // Allow references to generated code

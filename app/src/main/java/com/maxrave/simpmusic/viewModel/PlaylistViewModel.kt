@@ -1,36 +1,31 @@
 package com.maxrave.simpmusic.viewModel
 
 import android.app.Application
+import android.content.Context
 import android.graphics.drawable.GradientDrawable
 import android.util.Log
 import android.widget.Toast
-import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.Download
-import androidx.media3.exoplayer.offline.DownloadRequest
-import androidx.media3.exoplayer.offline.DownloadService
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
-import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
+import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.browse.playlist.PlaylistBrowse
 import com.maxrave.simpmusic.data.repository.MainRepository
-import com.maxrave.simpmusic.extension.addThumbnails
-import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
-import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -39,7 +34,12 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
-class PlaylistViewModel @Inject constructor(private val mainRepository: MainRepository, application: Application, private var dataStoreManager: DataStoreManager): AndroidViewModel(application) {
+class PlaylistViewModel @Inject constructor(
+    private val mainRepository: MainRepository,
+    @ApplicationContext private val context: Context,
+    application: Application,
+    private var dataStoreManager: DataStoreManager
+): AndroidViewModel(application) {
     @Inject
     lateinit var downloadUtils: DownloadUtils
 
@@ -58,6 +58,12 @@ class PlaylistViewModel @Inject constructor(private val mainRepository: MainRepo
     private var _liked: MutableStateFlow<Boolean> = MutableStateFlow(false)
     var liked: MutableStateFlow<Boolean> = _liked
 
+
+    private var _songEntity: MutableLiveData<SongEntity> = MutableLiveData()
+    val songEntity: LiveData<SongEntity> = _songEntity
+    private var _listLocalPlaylist: MutableLiveData<List<LocalPlaylistEntity>> = MutableLiveData()
+    val listLocalPlaylist: LiveData<List<LocalPlaylistEntity>> = _listLocalPlaylist
+
     private var regionCode: String? = null
     private var language: String? = null
     init {
@@ -72,8 +78,11 @@ class PlaylistViewModel @Inject constructor(private val mainRepository: MainRepo
     fun browsePlaylist(id: String) {
         loading.value = true
         viewModelScope.launch {
-            mainRepository.browsePlaylist(id, regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect{ values ->
-                _playlistBrowse.value = values
+//            mainRepository.browsePlaylist(id, regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect{ values ->
+//                _playlistBrowse.value = values
+//            }
+            mainRepository.getPlaylistData(id).collect {
+                _playlistBrowse.value = it
             }
             withContext(Dispatchers.Main){
                 loading.value = false
@@ -171,20 +180,11 @@ class PlaylistViewModel @Inject constructor(private val mainRepository: MainRepo
             }
         }
     }
+    val listJob: MutableStateFlow<ArrayList<SongEntity>> = MutableStateFlow(arrayListOf())
     val playlistDownloadState: MutableStateFlow<Int> = MutableStateFlow(DownloadState.STATE_NOT_DOWNLOADED)
 
 
-    private fun updateSongDownloadState(song: SongEntity, state: Int) {
-        viewModelScope.launch {
-            mainRepository.insertSong(song)
-            mainRepository.getSongById(song.videoId).collect {
-                mainRepository.updateDownloadState(song.videoId, state)
-            }
-        }
-    }
-
-
-    private fun updatePlaylistDownloadState(id: String, state: Int) {
+    fun updatePlaylistDownloadState(id: String, state: Int) {
         viewModelScope.launch {
             mainRepository.getPlaylist(id).collect { playlist ->
                 _playlistEntity.value = playlist
@@ -193,48 +193,40 @@ class PlaylistViewModel @Inject constructor(private val mainRepository: MainRepo
             }
         }
     }
-    @UnstableApi
-    fun getAllDownloadStateFromService(browseId: String) {
-        var downloadState: StateFlow<List<Download?>>
-        viewModelScope.launch {
-            downloadState = downloadUtils.getAllDownloads().stateIn(viewModelScope)
-            downloadState.collect { down ->
-                if (down.isNotEmpty()){
-                    var count = 0
-                    down.forEach { downloadItem ->
-                        if (downloadItem?.state == Download.STATE_COMPLETED) {
-                            count++
-                        }
-                        else if (downloadItem?.state == Download.STATE_FAILED) {
-                            updatePlaylistDownloadState(browseId, DownloadState.STATE_NOT_DOWNLOADED)
-                        }
-                    }
-                    if (count == down.size) {
-                        mainRepository.getPlaylist(browseId).collect{ playlist ->
-                            Log.d("Check Playlist", playlist.toString())
-                            mainRepository.getSongsByListVideoId(playlist?.tracks!!).collect{ tracks ->
-                                tracks.forEach { track ->
-                                    if (track.downloadState != DownloadState.STATE_DOWNLOADED) {
-                                        mainRepository.updateDownloadState(track.videoId, DownloadState.STATE_NOT_DOWNLOADED)
-                                        Toast.makeText(getApplication(), "Download Failed", Toast.LENGTH_SHORT).show()
-                                    }
-                                }
-                            }
-                        }
-                        Log.d("Check Downloaded", "Downloaded")
-                        updatePlaylistDownloadState(browseId, DownloadState.STATE_DOWNLOADED)
-                        Toast.makeText(getApplication(), "Download Completed", Toast.LENGTH_SHORT).show()
-                    }
-                    else {
-                        updatePlaylistDownloadState(browseId, DownloadState.STATE_DOWNLOADING)
-                    }
-                }
-                else {
-                    updatePlaylistDownloadState(browseId, DownloadState.STATE_NOT_DOWNLOADED)
-                }
-            }
-        }
-    }
+//    fun downloading() {
+//        _prevPlaylistDownloading.value = true
+//    }
+//    fun collectDownloadState(id: String) {
+//        viewModelScope.launch {
+//            listJob.collect { jobs->
+//                    Log.w("PlaylistFragment", "ListJob: $jobs")
+//                    if (jobs.isNotEmpty()){
+//                        var count = 0
+//                        jobs.forEach { job ->
+//                            if (job.downloadState == DownloadState.STATE_DOWNLOADED) {
+//                                count++
+//                            }
+//                            else if (job.downloadState == DownloadState.STATE_NOT_DOWNLOADED) {
+//                                updatePlaylistDownloadState(id, DownloadState.STATE_NOT_DOWNLOADED)
+//                                _prevPlaylistDownloading.value = false
+//                            }
+//                        }
+//                        if (count == jobs.size) {
+//                            updatePlaylistDownloadState(
+//                                id,
+//                                DownloadState.STATE_DOWNLOADED
+//                            )
+//                            _prevPlaylistDownloading.value = false
+//                            Toast.makeText(
+//                                context,
+//                                context.getString(R.string.downloaded),
+//                                Toast.LENGTH_SHORT
+//                            ).show()
+//                        }
+//                    }
+//            }
+//        }
+//    }
 
     @UnstableApi
     fun getDownloadStateFromService(videoId: String) {
@@ -269,8 +261,8 @@ class PlaylistViewModel @Inject constructor(private val mainRepository: MainRepo
                         }
                         Download.STATE_QUEUED -> {
                             mainRepository.getSongById(videoId).collect{ song ->
-                                if (song?.downloadState != DownloadState.STATE_PREPARING) {
-                                    mainRepository.updateDownloadState(videoId, DownloadState.STATE_PREPARING)
+                                if (song?.downloadState != DownloadState.STATE_NOT_DOWNLOADED) {
+                                    mainRepository.updateDownloadState(videoId, DownloadState.STATE_NOT_DOWNLOADED)
                                 }
                             }
                         }
@@ -283,31 +275,6 @@ class PlaylistViewModel @Inject constructor(private val mainRepository: MainRepo
         }
     }
 
-    @UnstableApi
-    fun downloadPlaylist(list: ArrayList<Track>, id: String) {
-        list.forEach { track ->
-            Log.d("Check Track Download", track.toString())
-            val trackWithThumbnail = track.addThumbnails()
-            updateSongDownloadState(trackWithThumbnail.toSongEntity(), DownloadState.STATE_PREPARING)
-            updatePlaylistDownloadState(id, DownloadState.STATE_PREPARING)
-        }
-        list.forEach { track ->
-            updatePlaylistDownloadState(id, DownloadState.STATE_DOWNLOADING)
-            val downloadRequest = DownloadRequest.Builder(track.videoId, track.videoId.toUri())
-                .setData(track.title.toByteArray())
-                .setCustomCacheKey(track.videoId)
-                .build()
-            DownloadService.sendAddDownload(
-                getApplication(),
-                MusicDownloadService::class.java,
-                downloadRequest,
-                false
-            )
-            getDownloadStateFromService(track.videoId)
-        }
-        getAllDownloadStateFromService(id)
-    }
-
     fun clearPlaylistBrowse() {
         _playlistBrowse.value = null
     }
@@ -315,5 +282,88 @@ class PlaylistViewModel @Inject constructor(private val mainRepository: MainRepo
     fun getLocation() {
         regionCode = runBlocking { dataStoreManager.location.first() }
         language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
+    }
+    fun getSongEntity(song: SongEntity) {
+        viewModelScope.launch {
+            mainRepository.insertSong(song)
+            mainRepository.getSongById(song.videoId).collect { values ->
+                _songEntity.value = values
+            }
+        }
+    }
+
+    fun updateLikeStatus(videoId: String, likeStatus: Int) {
+        viewModelScope.launch {
+            mainRepository.updateLikeStatus(likeStatus = likeStatus, videoId = videoId)
+        }
+    }
+
+    fun getLocalPlaylist() {
+        viewModelScope.launch {
+            mainRepository.getAllLocalPlaylists().collect { values ->
+                _listLocalPlaylist.postValue(values)
+            }
+        }
+    }
+
+    fun updateLocalPlaylistTracks(list: List<String>, id: Long) {
+        viewModelScope.launch {
+            mainRepository.getSongsByListVideoId(list).collect { values ->
+                var count = 0
+                values.forEach { song ->
+                    if (song.downloadState == DownloadState.STATE_DOWNLOADED){
+                        count++
+                    }
+                }
+                mainRepository.updateLocalPlaylistTracks(list, id)
+                Toast.makeText(getApplication(), "Added to playlist", Toast.LENGTH_SHORT).show()
+                if (count == values.size) {
+                    mainRepository.updateLocalPlaylistDownloadState(DownloadState.STATE_DOWNLOADED, id)
+                }
+                else {
+                    mainRepository.updateLocalPlaylistDownloadState(DownloadState.STATE_NOT_DOWNLOADED, id)
+                }
+            }
+        }
+    }
+    fun updateDownloadState(videoId: String, state: Int) {
+        viewModelScope.launch {
+            mainRepository.updateDownloadState(videoId, state)
+        }
+    }
+
+    fun insertSong(songEntity: SongEntity) {
+        viewModelScope.launch {
+            mainRepository.insertSong(songEntity)
+        }
+    }
+
+    @UnstableApi
+    fun downloadFullPlaylistState(id: String) {
+        viewModelScope.launch {
+            downloadUtils.downloads.collect { download ->
+                playlistDownloadState.value =
+                    if (listJob.value.all { download[it.videoId]?.state == Download.STATE_COMPLETED }) {
+                        mainRepository.updatePlaylistDownloadState(
+                            id,
+                            DownloadState.STATE_DOWNLOADED
+                        )
+                        DownloadState.STATE_DOWNLOADED
+                    } else if (listJob.value.all {
+                            download[it.videoId]?.state == Download.STATE_QUEUED
+                                    || download[it.videoId]?.state == Download.STATE_DOWNLOADING
+                                    || download[it.videoId]?.state == Download.STATE_COMPLETED
+                        }) {
+                        mainRepository.updatePlaylistDownloadState(
+                            id,
+                            DownloadState.STATE_DOWNLOADING
+                        )
+                        DownloadState.STATE_DOWNLOADING
+                    } else {
+                        mainRepository.updatePlaylistDownloadState(id, DownloadState.STATE_NOT_DOWNLOADED)
+                        DownloadState.STATE_NOT_DOWNLOADED
+                    }
+            }
+        }
     }
 }

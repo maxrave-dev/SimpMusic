@@ -3,6 +3,7 @@ package com.maxrave.simpmusic.di
 import android.content.Context
 import androidx.room.Room
 import com.maxrave.simpmusic.common.DB_NAME
+import com.maxrave.simpmusic.data.db.Converters
 import com.maxrave.simpmusic.data.db.DatabaseDao
 import com.maxrave.simpmusic.data.db.MusicDatabase
 import dagger.Module
@@ -18,7 +19,9 @@ object LocalServiceModule {
 
     @Provides
     @Singleton
-    fun provideMusicDatabase(@ApplicationContext context: Context): MusicDatabase = Room.databaseBuilder(context, MusicDatabase::class.java, DB_NAME).build()
+    fun provideMusicDatabase(@ApplicationContext context: Context): MusicDatabase = Room.databaseBuilder(context, MusicDatabase::class.java, DB_NAME)
+        .addTypeConverter(Converters())
+        .build()
 
     @Provides
     @Singleton

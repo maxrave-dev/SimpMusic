@@ -71,4 +71,5 @@ class LocalDataSource @Inject constructor(private val databaseDao: DatabaseDao) 
 
     suspend fun getSavedLyrics(videoId: String) = databaseDao.getLyrics(videoId)
     suspend fun insertLyrics(lyrics: LyricsEntity) = databaseDao.insertLyrics(lyrics)
+    suspend fun getPreparingSongs() = databaseDao.getPreparingSongs()
 }

@@ -6,34 +6,25 @@ import androidx.media3.common.C
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.database.DatabaseProvider
 import androidx.media3.database.StandaloneDatabaseProvider
-import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DefaultHttpDataSource
-import androidx.media3.datasource.ResolvingDataSource
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR
-import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor
 import androidx.media3.datasource.cache.NoOpCacheEvictor
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
-import androidx.media3.session.MediaLibraryService.MediaLibrarySession
 import androidx.media3.session.MediaSession
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.service.SimpleMediaNotificationManager
-import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
-import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.service.test.source.MusicSource
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
-import dagger.hilt.android.components.ServiceComponent
 import dagger.hilt.android.qualifiers.ApplicationContext
-import dagger.hilt.android.scopes.ServiceScoped
 import dagger.hilt.components.SingletonComponent
-import io.ktor.client.HttpClient
 import javax.inject.Qualifier
 import javax.inject.Singleton
 
@@ -169,7 +160,7 @@ object MusicServiceModule {
     @Provides
     @Singleton
     fun provideMusicSource(
-        simpleMediaServiceHandler: SimpleMediaServiceHandler, mainRepository: MainRepository, dataStoreManager: DataStoreManager, ktorClient: HttpClient
+        simpleMediaServiceHandler: SimpleMediaServiceHandler, dataStoreManager: DataStoreManager, mainRepository: MainRepository
     ): MusicSource =
-        MusicSource(simpleMediaServiceHandler, mainRepository, dataStoreManager, ktorClient)
+        MusicSource(simpleMediaServiceHandler, dataStoreManager, mainRepository)
 }

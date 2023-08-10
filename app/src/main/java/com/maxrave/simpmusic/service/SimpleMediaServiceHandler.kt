@@ -1,21 +1,13 @@
 package com.maxrave.simpmusic.service
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.util.Log
 import androidx.media3.common.MediaItem
-import androidx.media3.common.MediaMetadata
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
-import androidx.media3.common.Timeline
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.source.MediaSource
-import androidx.media3.exoplayer.source.ProgressiveMediaSource
-import com.maxrave.simpmusic.data.repository.MainRepository
-import com.maxrave.simpmusic.extension.toSongEntity
-import com.maxrave.simpmusic.service.test.source.MusicSource
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -293,6 +285,10 @@ class SimpleMediaServiceHandler @Inject constructor(
         } else {
             stopBufferedUpdate()
         }
+    }
+
+    fun stopPlayer() {
+        player.stop()
     }
 }
 

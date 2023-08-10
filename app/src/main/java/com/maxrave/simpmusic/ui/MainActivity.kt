@@ -1,20 +1,26 @@
 package com.maxrave.simpmusic.ui
 
+import android.Manifest
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.GradientDrawable
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.view.animation.AnimationUtils
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.graphics.ColorUtils
+import androidx.core.net.toUri
+import androidx.core.os.LocaleListCompat
 import androidx.core.view.WindowCompat
-import androidx.lifecycle.Observer
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.setupWithNavController
 import androidx.palette.graphics.Palette
@@ -23,21 +29,16 @@ import coil.load
 import coil.request.ImageRequest
 import coil.size.Size
 import coil.transform.Transformation
-import android.Manifest
-import android.net.Uri
-import android.provider.Settings.Global.putString
-import android.widget.Toast
-import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.net.toUri
-import androidx.core.os.LocaleListCompat
-import androidx.media3.exoplayer.offline.DownloadService
 import com.daimajia.swipe.SwipeLayout
+import com.maxrave.kotlinytmusicscraper.YouTube
+import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.FIRST_TIME_MIGRATION
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.common.STATUS_DONE
 import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
+import com.maxrave.simpmusic.common.SUPPORTED_LOCATION
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.ActivityMainBinding
 import com.maxrave.simpmusic.extension.connectArtists
@@ -97,8 +98,22 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
             if (SUPPORTED_LANGUAGE.codes.contains(Locale.getDefault().toLanguageTag())) {
                 Log.d("Contains", "onCreate: ${SUPPORTED_LANGUAGE.codes.contains(Locale.getDefault().toLanguageTag())}")
                 putString(SELECTED_LANGUAGE, Locale.getDefault().toLanguageTag())
+                if (SUPPORTED_LOCATION.items.contains(Locale.getDefault().country)) {
+                    putString("location", Locale.getDefault().country)
+                }
+                else {
+                    putString("location", "US")
+                }
+                YouTube.locale = YouTubeLocale(
+                    gl = getString("location") ?: "US",
+                    hl = Locale.getDefault().toLanguageTag()
+                )
             } else {
                 putString(SELECTED_LANGUAGE, "en-US")
+                YouTube.locale = YouTubeLocale(
+                    gl = getString("location") ?: "US",
+                    hl = "en-US"
+                )
             }
             // Fetch the selected language from wherever it was stored. In this case its SharedPref
             getString(SELECTED_LANGUAGE)?.let {
@@ -125,6 +140,7 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
         }
 
         viewModel.getLocation()
+        viewModel.checkAllDownloadingSongs()
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         val view = binding.root
@@ -173,16 +189,11 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
         })
         binding.btRemoveMiniPlayer.setOnClickListener {
             if (viewModel.isServiceRunning.value == true){
-                stopService(Intent(this, SimpleMediaService::class.java))
-                Log.d("Service", "Service stopped")
-                if (this.isMyServiceRunning(FetchQueue:: class.java)){
-                    stopService(Intent(this, FetchQueue::class.java))
-                    Log.d("Service", "FetchQueue stopped")
-                }
-                viewModel.isServiceRunning.postValue(false)
+                viewModel.stopPlayer()
             }
             viewModel.videoId.postValue(null)
             binding.miniplayer.visibility = View.GONE
+            binding.card.radius = 8f
         }
 
         binding.card.setOnClickListener {
@@ -207,10 +218,17 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
                                         navController.navigate(R.id.action_global_albumFragment, Bundle().apply {
                                             putString("browseId", playlistId)
                                         })
-                                    } else {
+                                    }
+                                    else if (playlistId.startsWith("VL")) {
                                         viewModel.intent.value = null
                                         navController.navigate(R.id.action_global_playlistFragment, Bundle().apply {
                                             putString("id", playlistId)
+                                        })
+                                    }
+                                    else {
+                                        viewModel.intent.value = null
+                                        navController.navigate(R.id.action_global_playlistFragment, Bundle().apply {
+                                            putString("id", "VL$playlistId")
                                         })
                                     }
                                 }
@@ -222,23 +240,23 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
                                             putString("channelId", artistId)
                                         })
                                     }
-                                    else {
-                                        viewModel.convertNameToId(artistId)
-                                        viewModel.artistId.observe(this@MainActivity) {channelId ->
-                                            when (channelId) {
-                                                is Resource.Success -> {
-                                                    viewModel.intent.value = null
-                                                    navController.navigate(R.id.action_global_artistFragment, Bundle().apply {
-                                                        putString("channelId", channelId.data?.id)
-                                                    })
-                                                }
-                                                is Resource.Error -> {
-                                                    viewModel.intent.value = null
-                                                    Toast.makeText(this@MainActivity, channelId.message, Toast.LENGTH_SHORT).show()
-                                                }
-                                            }
-                                        }
-                                    }
+//                                    else {
+//                                        viewModel.convertNameToId(artistId)
+//                                        viewModel.artistId.observe(this@MainActivity) {channelId ->
+//                                            when (channelId) {
+//                                                is Resource.Success -> {
+//                                                    viewModel.intent.value = null
+//                                                    navController.navigate(R.id.action_global_artistFragment, Bundle().apply {
+//                                                        putString("channelId", channelId.data?.id)
+//                                                    })
+//                                                }
+//                                                is Resource.Error -> {
+//                                                    viewModel.intent.value = null
+//                                                    Toast.makeText(this@MainActivity, channelId.message, Toast.LENGTH_SHORT).show()
+//                                                }
+//                                            }
+//                                        }
+//                                    }
                                 }
 
                                 else -> when {

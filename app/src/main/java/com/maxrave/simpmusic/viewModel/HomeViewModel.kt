@@ -6,12 +6,14 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.model.explore.mood.Mood
 import com.maxrave.simpmusic.data.model.home.HomeItem
 import com.maxrave.simpmusic.data.model.home.chart.Chart
+import com.maxrave.simpmusic.data.parser.parseMixedContent
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -71,26 +73,21 @@ class HomeViewModel @Inject constructor(
     fun getHomeItemList() {
         language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() ?: SUPPORTED_LANGUAGE.codes.first() }
         regionCode = runBlocking { dataStoreManager.location.first() }
-        Log.d("HomeViewModel", "getHomeItemList")
         loading.value = true
         viewModelScope.launch {
             combine(
-                mainRepository.getHome(
-                    regionCode,
-                    SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language)]
-                ),
-                mainRepository.exploreMood(
-                    regionCode,
-                    SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language)]
-                ),
-                mainRepository.exploreChart(
-                    "ZZ",
-                    SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language)]
-                )
+//                mainRepository.getHome(
+//                    regionCode,
+//                    SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language)]
+//                ),
+                mainRepository.getHomeData(),
+                mainRepository.getMoodAndMomentsData(),
+                mainRepository.getChartData("ZZ")
             ) { home, exploreMood, exploreChart ->
                 Triple(home, exploreMood, exploreChart)
             }.collect { result ->
                 val home = result.first
+                Log.d("home size", "${home.data?.size}")
                 val exploreMoodItem = result.second
                 val chart = result.third
                 _homeItemList.value = home
@@ -98,6 +95,7 @@ class HomeViewModel @Inject constructor(
                 regionCodeChart.value = "ZZ"
                 _chart.value = chart
                 Log.d("HomeViewModel", "getHomeItemList: $result")
+                loading.value = false
                 when {
                     home is Resource.Error -> home.message
                     exploreMoodItem is Resource.Error -> exploreMoodItem.message
@@ -105,8 +103,10 @@ class HomeViewModel @Inject constructor(
                     else -> null
                 }?.let {
                     showSnackBarErrorState.emit(it)
+                    Log.w("Error", "getHomeItemList: ${home.message}")
+                    Log.w("Error", "getHomeItemList: ${exploreMoodItem.message}")
+                    Log.w("Error", "getHomeItemList: ${chart.message}")
                 }
-                loading.value = false
             }
         }
     }
@@ -114,10 +114,8 @@ class HomeViewModel @Inject constructor(
     fun exploreChart(region: String) {
         viewModelScope.launch {
             loadingChart.value = true
-            mainRepository.exploreChart(
-                region,
-                SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language)]
-            ).collect { values ->
+            mainRepository.getChartData(
+                region).collect { values ->
                 regionCodeChart.value = region
                 _chart.value = values
                 Log.d("HomeViewModel", "getHomeItemList: ${chart.value?.data}")

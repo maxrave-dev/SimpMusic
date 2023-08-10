@@ -9,5 +9,5 @@ data class GenreObject(
     @SerializedName("itemsPlaylist")
     val itemsPlaylist: List<ItemsPlaylist>,
     @SerializedName("itemsSong")
-    val itemsSong: Any
+    val itemsSong: List<ItemsSong>?
 )

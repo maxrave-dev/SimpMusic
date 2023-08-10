@@ -7,6 +7,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.media3.common.MediaItem
 import androidx.sqlite.db.SimpleSQLiteQuery
+import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.LyricsEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
@@ -17,13 +18,13 @@ import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.browse.artist.ResultSong
 import com.maxrave.simpmusic.data.model.browse.playlist.PlaylistBrowse
 import com.maxrave.simpmusic.data.model.home.Content
+import com.maxrave.simpmusic.data.model.metadata.Line
 import com.maxrave.simpmusic.data.model.metadata.Lyrics
 import com.maxrave.simpmusic.data.model.searchResult.songs.Album
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
-import com.maxrave.simpmusic.data.model.streams.StreamData
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -166,6 +167,15 @@ fun SongEntity.toTrack(): Track {
         year = ""
     )
 }
+fun List<SongEntity>?.toArrayListTrack(): ArrayList<Track> {
+    val listTrack: ArrayList<Track> = arrayListOf()
+    if (this != null) {
+        for (item in this) {
+            listTrack.add(item.toTrack())
+        }
+    }
+    return listTrack
+}
 
 fun MediaItem?.toSongEntity(): SongEntity? {
     return if (this != null) SongEntity(
@@ -244,26 +254,6 @@ fun Content.toTrack(): Track {
         videoId = videoId!!,
         videoType = "",
         category = null,
-        feedbackTokens = null,
-        resultType = null,
-        year = ""
-    )
-}
-
-fun StreamData.toTrack(videoId: String): Track {
-    return Track(
-        album = null,
-        artists = listOf(Artist(this.uploaderUrl?.replace("/channel/", ""), this.uploader.toString())),
-        duration = "",
-        durationSeconds = 0,
-        isAvailable = false,
-        isExplicit = false,
-        likeStatus = "INDIFFERENT",
-        thumbnails = listOf(Thumbnail(720,  this.thumbnailUrl ?: "https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg", 1080)),
-        title = this.title ?: " ",
-        videoId = videoId,
-        videoType = "Song",
-        category = "",
         feedbackTokens = null,
         resultType = null,
         year = ""
@@ -363,6 +353,39 @@ fun ArrayList<String>.removeConflicts(): ArrayList<String> {
     }
 
     return nonConflictingList
+}
+
+fun com.maxrave.kotlinytmusicscraper.models.lyrics.Lyrics.toLyrics(): Lyrics {
+    val lines : ArrayList<Line> = arrayListOf()
+    this.lines?.forEach {
+        lines.add(Line(
+            endTimeMs = it.endTimeMs, startTimeMs = it.startTimeMs, syllables = it.syllables ?: listOf(), words = it.words
+        ))
+    }
+    return Lyrics(
+        error = this.error,
+        lines = lines,
+        syncType = this.syncType
+    )
+}
+fun PipedResponse.toTrack(videoId: String): Track {
+    return Track(
+        album = null,
+        artists = listOf(Artist(this.uploaderUrl?.replace("/channel/", ""), this.uploader.toString())),
+        duration = "",
+        durationSeconds = 0,
+        isAvailable = false,
+        isExplicit = false,
+        likeStatus = "INDIFFERENT",
+        thumbnails = listOf(Thumbnail(720,  this.thumbnailUrl ?: "https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg", 1080)),
+        title = this.title ?: " ",
+        videoId = videoId,
+        videoType = "Song",
+        category = "",
+        feedbackTokens = null,
+        resultType = null,
+        year = ""
+    )
 }
 operator fun File.div(child: String): File = File(this, child)
 fun String.toSQLiteQuery(): SimpleSQLiteQuery = SimpleSQLiteQuery(this)
