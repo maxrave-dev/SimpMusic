@@ -191,13 +191,6 @@ class AlbumViewModel @Inject constructor(
     fun updateDownloadState(videoId: String, state: Int) {
         viewModelScope.launch {
             mainRepository.updateDownloadState(videoId, state)
-            listJob.value.find { it.videoId == videoId }?.let {
-                mainRepository.getSongById(videoId).collect { song ->
-                    if (song != null) {
-                        listJob.value[listJob.value.indexOf(listJob.value.find { it.videoId == song.videoId })] = song
-                    }
-                }
-            }
         }
     }
 
@@ -212,13 +205,6 @@ class AlbumViewModel @Inject constructor(
                             mainRepository.getSongById(videoId).collect{ song ->
                                 if (song?.downloadState != DownloadState.STATE_DOWNLOADED) {
                                     mainRepository.updateDownloadState(videoId, DownloadState.STATE_DOWNLOADED)
-                                    listJob.value.find { it.videoId == videoId }?.let {
-                                        mainRepository.getSongById(videoId).collect { song ->
-                                            if (song != null) {
-                                                listJob.value[listJob.value.indexOf(listJob.value.find { it.videoId == song.videoId })] = song
-                                            }
-                                        }
-                                    }
                                 }
                             }
                         }
@@ -226,13 +212,6 @@ class AlbumViewModel @Inject constructor(
                             mainRepository.getSongById(videoId).collect {song ->
                                 if (song?.downloadState != DownloadState.STATE_NOT_DOWNLOADED) {
                                     mainRepository.updateDownloadState(videoId, DownloadState.STATE_NOT_DOWNLOADED)
-                                    listJob.value.find { it.videoId == videoId }?.let {
-                                        mainRepository.getSongById(videoId).collect { song ->
-                                            if (song != null) {
-                                                listJob.value[listJob.value.indexOf(listJob.value.find { it.videoId == song.videoId })] = song
-                                            }
-                                        }
-                                    }
                                 }
                             }
                         }
@@ -240,13 +219,6 @@ class AlbumViewModel @Inject constructor(
                             mainRepository.getSongById(videoId).collect{ song ->
                                 if (song?.downloadState != DownloadState.STATE_DOWNLOADING) {
                                     mainRepository.updateDownloadState(videoId, DownloadState.STATE_DOWNLOADING)
-                                    listJob.value.find { it.videoId == videoId }?.let {
-                                        mainRepository.getSongById(videoId).collect { song ->
-                                            if (song != null) {
-                                                listJob.value[listJob.value.indexOf(listJob.value.find { it.videoId == song.videoId })] = song
-                                            }
-                                        }
-                                    }
                                 }
                             }
                         }
@@ -254,13 +226,6 @@ class AlbumViewModel @Inject constructor(
                             mainRepository.getSongById(videoId).collect{ song ->
                                 if (song?.downloadState != DownloadState.STATE_NOT_DOWNLOADED) {
                                     mainRepository.updateDownloadState(videoId, DownloadState.STATE_NOT_DOWNLOADED)
-                                    listJob.value.find { it.videoId == videoId }?.let {
-                                        mainRepository.getSongById(videoId).collect { song ->
-                                            if (song != null) {
-                                                listJob.value[listJob.value.indexOf(listJob.value.find { it.videoId == song.videoId })] = song
-                                            }
-                                        }
-                                    }
                                 }
                             }
                         }
@@ -297,6 +262,35 @@ class AlbumViewModel @Inject constructor(
     fun insertSong(songEntity: SongEntity) {
         viewModelScope.launch {
             mainRepository.insertSong(songEntity)
+        }
+    }
+
+    @UnstableApi
+    fun downloadFullAlbumState(browseId: String) {
+        viewModelScope.launch {
+            downloadUtils.downloads.collect { download ->
+                albumDownloadState.value =
+                    if (listJob.value.all { download[it.videoId]?.state == Download.STATE_COMPLETED }) {
+                        mainRepository.updateAlbumDownloadState(
+                            browseId,
+                            DownloadState.STATE_DOWNLOADED
+                        )
+                        DownloadState.STATE_DOWNLOADED
+                    } else if (listJob.value.all {
+                            download[it.videoId]?.state == Download.STATE_QUEUED
+                                    || download[it.videoId]?.state == Download.STATE_DOWNLOADING
+                                    || download[it.videoId]?.state == Download.STATE_COMPLETED
+                        }) {
+                        mainRepository.updateAlbumDownloadState(
+                            browseId,
+                            DownloadState.STATE_DOWNLOADING
+                        )
+                        DownloadState.STATE_DOWNLOADING
+                    } else {
+                        mainRepository.updateAlbumDownloadState(browseId, DownloadState.STATE_NOT_DOWNLOADED)
+                        DownloadState.STATE_NOT_DOWNLOADED
+                    }
+            }
         }
     }
 }

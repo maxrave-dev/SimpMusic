@@ -261,6 +261,7 @@ class AlbumFragment: Fragment() {
                             )
                             viewModel.getDownloadStateFromService(job.videoId)
                         }
+                        viewModel.downloadFullAlbumState(browseId)
                     }
                 }
 
@@ -313,31 +314,31 @@ class AlbumFragment: Fragment() {
                         }
                     }
                 }
-                launch {
-                    viewModel.listJob.collectLatest {jobs->
-                        Log.d("AlbumFragment", "ListJob: $jobs")
-                        if (jobs.isNotEmpty()){
-                            var count = 0
-                            jobs.forEach { job ->
-                                if (job.downloadState == DownloadState.STATE_DOWNLOADED) {
-                                    count++
-                                }
-                            }
-                            Log.d("AlbumFragment", "Count: $count")
-                            if (count == jobs.size) {
-                                viewModel.updatePlaylistDownloadState(
-                                    browseId!!,
-                                    DownloadState.STATE_DOWNLOADED
-                                )
-                                Toast.makeText(
-                                    requireContext(),
-                                    getString(R.string.downloaded),
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-                        }
-                    }
-                }
+//                launch {
+//                    viewModel.listJob.collectLatest {jobs->
+//                        Log.d("AlbumFragment", "ListJob: $jobs")
+//                        if (jobs.isNotEmpty()){
+//                            var count = 0
+//                            jobs.forEach { job ->
+//                                if (job.downloadState == DownloadState.STATE_DOWNLOADED) {
+//                                    count++
+//                                }
+//                            }
+//                            Log.d("AlbumFragment", "Count: $count")
+//                            if (count == jobs.size) {
+//                                viewModel.updatePlaylistDownloadState(
+//                                    browseId!!,
+//                                    DownloadState.STATE_DOWNLOADED
+//                                )
+//                                Toast.makeText(
+//                                    requireContext(),
+//                                    getString(R.string.downloaded),
+//                                    Toast.LENGTH_SHORT
+//                                ).show()
+//                            }
+//                        }
+//                    }
+//                }
             }
             //job2.join()
         }

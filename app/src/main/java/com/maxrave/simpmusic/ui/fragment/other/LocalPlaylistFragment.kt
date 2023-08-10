@@ -235,6 +235,7 @@ class LocalPlaylistFragment : Fragment() {
                         )
                         viewModel.getDownloadStateFromService(job.videoId)
                     }
+                    viewModel.downloadFullPlaylistState(id!!)
                 }
             }
             else if (viewModel.localPlaylist.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
@@ -293,27 +294,6 @@ class LocalPlaylistFragment : Fragment() {
 
         lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                launch {
-                    viewModel.listJob.collectLatest {jobs->
-                        var count = 0
-                        jobs.forEach { job ->
-                            if (job.downloadState == DownloadState.STATE_DOWNLOADED) {
-                                count++
-                            }
-                        }
-                        if (count == jobs.size) {
-                            viewModel.updatePlaylistDownloadState(
-                                id!!,
-                                DownloadState.STATE_DOWNLOADED
-                            )
-                            Toast.makeText(
-                                requireContext(),
-                                getString(R.string.downloaded),
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    }
-                }
                 launch {
                     viewModel.playlistDownloadState.collectLatest { playlistDownloadState ->
                         when (playlistDownloadState) {

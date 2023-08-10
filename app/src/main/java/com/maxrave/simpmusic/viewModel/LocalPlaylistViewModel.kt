@@ -134,13 +134,6 @@ class LocalPlaylistViewModel @Inject constructor(
                             mainRepository.getSongById(videoId).collect{ song ->
                                 if (song?.downloadState != DownloadState.STATE_DOWNLOADED) {
                                     mainRepository.updateDownloadState(videoId, DownloadState.STATE_DOWNLOADED)
-                                    listJob.value.find { it.videoId == videoId }?.let {
-                                        mainRepository.getSongById(videoId).collect { song ->
-                                            if (song != null) {
-                                                listJob.value[listJob.value.indexOf(listJob.value.find { it.videoId == song.videoId })] = song
-                                            }
-                                        }
-                                    }
                                 }
                             }
                             Log.d("Check Downloaded", "Downloaded")
@@ -149,13 +142,6 @@ class LocalPlaylistViewModel @Inject constructor(
                             mainRepository.getSongById(videoId).collect{ song ->
                                 if (song?.downloadState != DownloadState.STATE_NOT_DOWNLOADED) {
                                     mainRepository.updateDownloadState(videoId, DownloadState.STATE_NOT_DOWNLOADED)
-                                    listJob.value.find { it.videoId == videoId }?.let {
-                                        mainRepository.getSongById(videoId).collect { song ->
-                                            if (song != null) {
-                                                listJob.value[listJob.value.indexOf(listJob.value.find { it.videoId == song.videoId })] = song
-                                            }
-                                        }
-                                    }
                                 }
                             }
                             Log.d("Check Downloaded", "Failed")
@@ -164,13 +150,6 @@ class LocalPlaylistViewModel @Inject constructor(
                             mainRepository.getSongById(videoId).collect{ song ->
                                 if (song?.downloadState != DownloadState.STATE_DOWNLOADING) {
                                     mainRepository.updateDownloadState(videoId, DownloadState.STATE_DOWNLOADING)
-                                    listJob.value.find { it.videoId == videoId }?.let {
-                                        mainRepository.getSongById(videoId).collect { song ->
-                                            if (song != null) {
-                                                listJob.value[listJob.value.indexOf(listJob.value.find { it.videoId == song.videoId })] = song
-                                            }
-                                        }
-                                    }
                                 }
                             }
                             Log.d("Check Downloaded", "Downloading ${down.percentDownloaded}")
@@ -179,13 +158,6 @@ class LocalPlaylistViewModel @Inject constructor(
                             mainRepository.getSongById(videoId).collect{ song ->
                                 if (song?.downloadState != DownloadState.STATE_PREPARING) {
                                     mainRepository.updateDownloadState(videoId, DownloadState.STATE_PREPARING)
-                                    listJob.value.find { it.videoId == videoId }?.let {
-                                        mainRepository.getSongById(videoId).collect { song ->
-                                            if (song != null) {
-                                                listJob.value[listJob.value.indexOf(listJob.value.find { it.videoId == song.videoId })] = song
-                                            }
-                                        }
-                                    }
                                 }
                             }
                             Log.d("Check Downloaded", "Queued")
@@ -224,13 +196,6 @@ class LocalPlaylistViewModel @Inject constructor(
     fun updateDownloadState(videoId: String, state: Int) {
         viewModelScope.launch {
             mainRepository.updateDownloadState(videoId, state)
-            listJob.value.find { it.videoId == videoId }?.let {
-                mainRepository.getSongById(videoId).collect { song ->
-                    if (song != null) {
-                        listJob.value[listJob.value.indexOf(listJob.value.find { it.videoId == song.videoId })] = song
-                    }
-                }
-            }
         }
     }
 
@@ -258,6 +223,35 @@ class LocalPlaylistViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    @UnstableApi
+    fun downloadFullPlaylistState(id: Long) {
+            viewModelScope.launch {
+                downloadUtils.downloads.collect { download ->
+                    playlistDownloadState.value =
+                        if (listJob.value.all { download[it.videoId]?.state == Download.STATE_COMPLETED }) {
+                            mainRepository.updateLocalPlaylistDownloadState(
+                                DownloadState.STATE_DOWNLOADED,
+                                id
+                            )
+                            DownloadState.STATE_DOWNLOADED
+                        } else if (listJob.value.all {
+                                download[it.videoId]?.state == Download.STATE_QUEUED
+                                        || download[it.videoId]?.state == Download.STATE_DOWNLOADING
+                                        || download[it.videoId]?.state == Download.STATE_COMPLETED
+                            }) {
+                            mainRepository.updateLocalPlaylistDownloadState(
+                                DownloadState.STATE_DOWNLOADING,
+                                id
+                            )
+                            DownloadState.STATE_DOWNLOADING
+                        } else {
+                            mainRepository.updateLocalPlaylistDownloadState(DownloadState.STATE_NOT_DOWNLOADED, id)
+                            DownloadState.STATE_NOT_DOWNLOADED
+                        }
+                }
+            }
     }
 
 }

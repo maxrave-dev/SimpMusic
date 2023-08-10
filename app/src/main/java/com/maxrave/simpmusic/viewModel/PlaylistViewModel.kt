@@ -26,7 +26,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -64,9 +63,6 @@ class PlaylistViewModel @Inject constructor(
     val songEntity: LiveData<SongEntity> = _songEntity
     private var _listLocalPlaylist: MutableLiveData<List<LocalPlaylistEntity>> = MutableLiveData()
     val listLocalPlaylist: LiveData<List<LocalPlaylistEntity>> = _listLocalPlaylist
-
-    private var _prevPlaylistDownloading: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val prevPlaylistDownloading: StateFlow<Boolean> = _prevPlaylistDownloading
 
     private var regionCode: String? = null
     private var language: String? = null
@@ -244,16 +240,6 @@ class PlaylistViewModel @Inject constructor(
                             mainRepository.getSongById(videoId).collect{ song ->
                                 if (song?.downloadState != DownloadState.STATE_DOWNLOADED) {
                                     mainRepository.updateDownloadState(videoId, DownloadState.STATE_DOWNLOADED)
-                                    listJob.value.find { it.videoId == videoId }?.let {
-                                        mainRepository.getSongById(videoId).collect { song ->
-                                            if (song != null) {
-                                                val temp: ArrayList<SongEntity> = arrayListOf()
-                                                temp.addAll(listJob.value)
-                                                temp[listJob.value.indexOf(listJob.value.find { it.videoId == song.videoId })] = song
-                                                listJob.value = temp
-                                            }
-                                        }
-                                    }
                                 }
                             }
                         }
@@ -261,16 +247,6 @@ class PlaylistViewModel @Inject constructor(
                             mainRepository.getSongById(videoId).collect{ song ->
                                 if (song?.downloadState != DownloadState.STATE_NOT_DOWNLOADED) {
                                     mainRepository.updateDownloadState(videoId, DownloadState.STATE_NOT_DOWNLOADED)
-                                    listJob.value.find { it.videoId == videoId }?.let {
-                                        mainRepository.getSongById(videoId).collect { song ->
-                                            if (song != null) {
-                                                val temp: ArrayList<SongEntity> = arrayListOf()
-                                                temp.addAll(listJob.value)
-                                                temp[listJob.value.indexOf(listJob.value.find { it.videoId == song.videoId })] = song
-                                                listJob.value = temp
-                                            }
-                                        }
-                                    }
                                 }
                             }
                         }
@@ -279,16 +255,6 @@ class PlaylistViewModel @Inject constructor(
                                 if (song != null) {
                                     if (song.downloadState != DownloadState.STATE_DOWNLOADING) {
                                         mainRepository.updateDownloadState(videoId, DownloadState.STATE_DOWNLOADING)
-                                        listJob.value.find { it.videoId == videoId }?.let {
-                                            mainRepository.getSongById(videoId).collect { song ->
-                                                if (song != null) {
-                                                    val temp: ArrayList<SongEntity> = arrayListOf()
-                                                    temp.addAll(listJob.value)
-                                                    temp[listJob.value.indexOf(listJob.value.find { it.videoId == song.videoId })] = song
-                                                    listJob.value = temp
-                                                }
-                                            }
-                                        }
                                     }
                                 }
                             }
@@ -297,16 +263,6 @@ class PlaylistViewModel @Inject constructor(
                             mainRepository.getSongById(videoId).collect{ song ->
                                 if (song?.downloadState != DownloadState.STATE_NOT_DOWNLOADED) {
                                     mainRepository.updateDownloadState(videoId, DownloadState.STATE_NOT_DOWNLOADED)
-                                    listJob.value.find { it.videoId == videoId }?.let {
-                                        mainRepository.getSongById(videoId).collect { song ->
-                                            if (song != null) {
-                                                val temp: ArrayList<SongEntity> = arrayListOf()
-                                                temp.addAll(listJob.value)
-                                                temp[listJob.value.indexOf(listJob.value.find { it.videoId == song.videoId })] = song
-                                                listJob.value = temp
-                                            }
-                                        }
-                                    }
                                 }
                             }
                         }
@@ -373,22 +329,41 @@ class PlaylistViewModel @Inject constructor(
     fun updateDownloadState(videoId: String, state: Int) {
         viewModelScope.launch {
             mainRepository.updateDownloadState(videoId, state)
-            listJob.value.find { it.videoId == videoId }?.let {
-                mainRepository.getSongById(videoId).collect { song ->
-                    if (song != null) {
-                        val temp: ArrayList<SongEntity> = arrayListOf()
-                        temp.addAll(listJob.value)
-                        temp[listJob.value.indexOf(listJob.value.find { it.videoId == song.videoId })] = song
-                        listJob.value = temp
-                    }
-                }
-            }
         }
     }
 
     fun insertSong(songEntity: SongEntity) {
         viewModelScope.launch {
             mainRepository.insertSong(songEntity)
+        }
+    }
+
+    @UnstableApi
+    fun downloadFullPlaylistState(id: String) {
+        viewModelScope.launch {
+            downloadUtils.downloads.collect { download ->
+                playlistDownloadState.value =
+                    if (listJob.value.all { download[it.videoId]?.state == Download.STATE_COMPLETED }) {
+                        mainRepository.updatePlaylistDownloadState(
+                            id,
+                            DownloadState.STATE_DOWNLOADED
+                        )
+                        DownloadState.STATE_DOWNLOADED
+                    } else if (listJob.value.all {
+                            download[it.videoId]?.state == Download.STATE_QUEUED
+                                    || download[it.videoId]?.state == Download.STATE_DOWNLOADING
+                                    || download[it.videoId]?.state == Download.STATE_COMPLETED
+                        }) {
+                        mainRepository.updatePlaylistDownloadState(
+                            id,
+                            DownloadState.STATE_DOWNLOADING
+                        )
+                        DownloadState.STATE_DOWNLOADING
+                    } else {
+                        mainRepository.updatePlaylistDownloadState(id, DownloadState.STATE_NOT_DOWNLOADED)
+                        DownloadState.STATE_NOT_DOWNLOADED
+                    }
+            }
         }
     }
 }
