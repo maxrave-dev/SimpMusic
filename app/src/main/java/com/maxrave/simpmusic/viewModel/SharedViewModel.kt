@@ -115,8 +115,6 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     private var lyricsFormat: MutableLiveData<ArrayList<Line>> = MutableLiveData()
     var lyricsFull = MutableLiveData<String>()
 
-    val playbackState = simpleMediaServiceHandler.simpleMediaState
-
     private var _nowPlayingMediaItem = MutableLiveData<MediaItem?>()
     val nowPlayingMediaItem: LiveData<MediaItem?> = _nowPlayingMediaItem
 
@@ -212,7 +210,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                                     }
                                     is Resource.Error -> {
                                         if (_lyrics.value?.message != "reset") {
-                                            getSavedLyrics(tempSong.videoId)
+                                            getSavedLyrics(tempSong.videoId, "${tempSong.title} ${tempSong.artists?.firstOrNull()?.name}")
                                         }
                                     }
 
@@ -223,7 +221,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                             }
                         }
                         else {
-                            getSavedLyrics(tempSong.videoId)
+                            getSavedLyrics(tempSong.videoId, "${tempSong.title} ${tempSong.artists?.firstOrNull()?.name}")
                         }
                     }
                     Log.d("Check Change Track", "Change Track: $isChanged")
@@ -336,14 +334,32 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
             mainRepository.insertLyrics(lyrics)
         }
     }
-    fun getSavedLyrics(videoId: String) {
+    fun getSavedLyrics(videoId: String, query: String) {
         viewModelScope.launch {
+            resetLyrics()
             mainRepository.getSavedLyrics(videoId).collect { lyrics ->
                 if (lyrics != null) {
                     _lyrics.value = Resource.Success(lyrics.toLyrics())
                     val lyricsData = lyrics.toLyrics()
                     Log.d("Check Lyrics In DB", lyricsData.toString())
                     parseLyrics(lyricsData)
+                }
+                else {
+                    resetLyrics()
+                    mainRepository.getLyricsData(query).collect { response ->
+                        _lyrics.value = response
+                        when(_lyrics.value) {
+                            is Resource.Success -> {
+                                if (_lyrics.value?.data != null) {
+                                    insertLyrics(_lyrics.value?.data!!.toLyricsEntity(videoId))
+                                    parseLyrics(_lyrics.value?.data)
+                                }
+                            }
+                            else -> {
+                                Log.d("Check lyrics", "Loading")
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -415,7 +431,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                 simpleMediaServiceHandler.changeTrackToFalse()
                 _firstTrackAdded.value = true
                 musicSource.addFirstMetadata(track)
-                getSavedLyrics(track.videoId)
+                getSavedLyrics(track.videoId, "${track.title} ${track.artists?.firstOrNull()?.name}")
             } else {
                 var itag = 0
                 when (quality) {
@@ -470,7 +486,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                                 }
                                 is Resource.Error -> {
                                     if (_lyrics.value?.message != "reset") {
-                                        getSavedLyrics(track.videoId)
+                                        getSavedLyrics(track.videoId, "${track.title} ${track.artists?.firstOrNull()?.name}")
                                     }
                                 }
 

@@ -18,7 +18,9 @@ import androidx.core.graphics.ColorUtils
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
@@ -46,6 +48,7 @@ import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.viewModel.LocalPlaylistViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
 import kotlin.math.abs
@@ -232,27 +235,6 @@ class LocalPlaylistFragment : Fragment() {
                         )
                         viewModel.getDownloadStateFromService(job.videoId)
                     }
-                    lifecycleScope.launch {
-                        viewModel.listJob.collect {jobs->
-                            var count = 0
-                            jobs.forEach { job ->
-                                if (job.downloadState == DownloadState.STATE_DOWNLOADED) {
-                                    count++
-                                }
-                            }
-                            if (count == jobs.size) {
-                                viewModel.updatePlaylistDownloadState(
-                                    id!!,
-                                    DownloadState.STATE_DOWNLOADED
-                                )
-                                Toast.makeText(
-                                    requireContext(),
-                                    getString(R.string.downloaded),
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
-                        }
-                    }
                 }
             }
             else if (viewModel.localPlaylist.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
@@ -310,25 +292,53 @@ class LocalPlaylistFragment : Fragment() {
         }
 
         lifecycleScope.launch {
-            viewModel.playlistDownloadState.collect { playlistDownloadState ->
-                when (playlistDownloadState) {
-                    DownloadState.STATE_PREPARING -> {
-                        binding.btDownload.visibility = View.GONE
-                        binding.animationDownloading.visibility = View.VISIBLE
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                launch {
+                    viewModel.listJob.collectLatest {jobs->
+                        var count = 0
+                        jobs.forEach { job ->
+                            if (job.downloadState == DownloadState.STATE_DOWNLOADED) {
+                                count++
+                            }
+                        }
+                        if (count == jobs.size) {
+                            viewModel.updatePlaylistDownloadState(
+                                id!!,
+                                DownloadState.STATE_DOWNLOADED
+                            )
+                            Toast.makeText(
+                                requireContext(),
+                                getString(R.string.downloaded),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
                     }
-                    DownloadState.STATE_DOWNLOADING -> {
-                        binding.btDownload.visibility = View.GONE
-                        binding.animationDownloading.visibility = View.VISIBLE
-                    }
-                    DownloadState.STATE_DOWNLOADED -> {
-                        binding.btDownload.visibility = View.VISIBLE
-                        binding.animationDownloading.visibility = View.GONE
-                        binding.btDownload.setImageResource(R.drawable.baseline_downloaded)
-                    }
-                    DownloadState.STATE_NOT_DOWNLOADED -> {
-                        binding.btDownload.visibility = View.VISIBLE
-                        binding.animationDownloading.visibility = View.GONE
-                        binding.btDownload.setImageResource(R.drawable.download_button)
+                }
+                launch {
+                    viewModel.playlistDownloadState.collectLatest { playlistDownloadState ->
+                        when (playlistDownloadState) {
+                            DownloadState.STATE_PREPARING -> {
+                                binding.btDownload.visibility = View.GONE
+                                binding.animationDownloading.visibility = View.VISIBLE
+                            }
+
+                            DownloadState.STATE_DOWNLOADING -> {
+                                binding.btDownload.visibility = View.GONE
+                                binding.animationDownloading.visibility = View.VISIBLE
+                            }
+
+                            DownloadState.STATE_DOWNLOADED -> {
+                                binding.btDownload.visibility = View.VISIBLE
+                                binding.animationDownloading.visibility = View.GONE
+                                binding.btDownload.setImageResource(R.drawable.baseline_downloaded)
+                            }
+
+                            DownloadState.STATE_NOT_DOWNLOADED -> {
+                                binding.btDownload.visibility = View.VISIBLE
+                                binding.animationDownloading.visibility = View.GONE
+                                binding.btDownload.setImageResource(R.drawable.download_button)
+                            }
+                        }
                     }
                 }
             }
