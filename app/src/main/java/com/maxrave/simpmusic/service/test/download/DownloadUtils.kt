@@ -35,7 +35,7 @@ class DownloadUtils @Inject constructor(
     @PlayerCache private val playerCache: SimpleCache,
     @DownloadCache private val downloadCache: SimpleCache,
     private val mainRepository: MainRepository,
-    private val databaseProvider: DatabaseProvider) {
+    databaseProvider: DatabaseProvider) {
 
 
     private val dataSourceFactory = ResolvingDataSource.Factory(
@@ -54,23 +54,27 @@ class DownloadUtils @Inject constructor(
         val length = if (dataSpec.length >= 0) dataSpec.length else 1
 
         if (playerCache.isCached(mediaId, dataSpec.position, length)) {
+            Log.w("DownloadUtils", "Cached: $mediaId")
             return@Factory dataSpec
         }
-        runBlocking(Dispatchers.IO) {
-            var extract: DataSpec? = null
-            mainRepository.getStream(mediaId, 251).collect {values ->
-                if (values != null){
-                    extract = dataSpec.withUri((values).toUri())
+        else {
+            runBlocking(Dispatchers.IO) {
+                Log.w("DownloadUtils", "Not cached: $mediaId")
+                var extract: DataSpec? = null
+                mainRepository.getStream(mediaId, 251).collect {values ->
+                    if (values != null){
+                        extract = dataSpec.withUri((values).toUri())
+                    }
                 }
+                Log.d("DownloadUtils", "extract: ${extract.toString()}")
+                return@runBlocking extract!!
             }
-            Log.d("DownloadUtils", "extract: ${extract.toString()}")
-            return@runBlocking extract!!
         }
     }
     val downloadNotificationHelper = DownloadNotificationHelper(context, CHANNEL_ID)
-    val downloadManager: DownloadManager = DownloadManager(context, databaseProvider, downloadCache, dataSourceFactory, Executors.newFixedThreadPool(15)).apply {
-        maxParallelDownloads = 10
-        minRetryCount = 5
+    val downloadManager: DownloadManager = DownloadManager(context, databaseProvider, downloadCache, dataSourceFactory, Executors.newFixedThreadPool(10)).apply {
+        maxParallelDownloads = 20
+        minRetryCount = 3
         addListener(
             MusicDownloadService.TerminalStateNotificationHelper(
                 context = context,

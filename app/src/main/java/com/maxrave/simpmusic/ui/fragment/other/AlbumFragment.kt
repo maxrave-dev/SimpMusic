@@ -12,10 +12,13 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
+import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.offline.DownloadRequest
+import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.fragment.findNavController
 import androidx.palette.graphics.Palette
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -30,16 +33,22 @@ import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.adapter.album.TrackAdapter
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.DownloadState
+import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.FragmentAlbumBinding
 import com.maxrave.simpmusic.extension.toAlbumEntity
 import com.maxrave.simpmusic.extension.toArrayListTrack
+import com.maxrave.simpmusic.extension.toListVideoId
+import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.extension.toTrack
+import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.AlbumViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlin.math.abs
 
 @AndroidEntryPoint
@@ -209,13 +218,73 @@ class AlbumFragment: Fragment() {
 
         binding.btDownload.setOnClickListener {
             if (viewModel.albumEntity.value?.downloadState == DownloadState.STATE_NOT_DOWNLOADED) {
-                viewModel.downloadAlbum(songsAdapter.getList(), browseId.toString())
+                for (i in viewModel.albumBrowse.value?.data?.tracks!!){
+                    viewModel.insertSong(i.toSongEntity())
+                }
+                runBlocking { delay(1000) }
+                viewModel.getListTrack(viewModel.albumBrowse.value?.data?.tracks?.toListVideoId())
+                viewModel.listTrack.observe(viewLifecycleOwner) {listTrack->
+                    if (!listTrack.isNullOrEmpty()) {
+                        val listJob: ArrayList<SongEntity> = arrayListOf()
+                        for (song in listTrack){
+                            if (song.downloadState == DownloadState.STATE_NOT_DOWNLOADED) {
+                                listJob.add(song)
+                            }
+                        }
+                        viewModel.listJob.value = listJob
+                        Log.d("AlbumFragment", "ListJob: ${viewModel.listJob.value}")
+                        viewModel.updatePlaylistDownloadState(
+                            browseId!!,
+                            DownloadState.STATE_DOWNLOADING
+                        )
+                        listJob.forEach {job ->
+                            val downloadRequest =
+                                DownloadRequest.Builder(job.videoId, job.videoId.toUri())
+                                    .setData(job.title.toByteArray())
+                                    .setCustomCacheKey(job.videoId)
+                                    .build()
+                            viewModel.updateDownloadState(
+                                job.videoId,
+                                DownloadState.STATE_DOWNLOADING
+                            )
+                            DownloadService.sendAddDownload(
+                                requireContext(),
+                                MusicDownloadService::class.java,
+                                downloadRequest,
+                                false
+                            )
+                            viewModel.getDownloadStateFromService(job.videoId)
+                        }
+                        lifecycleScope.launch {
+                            viewModel.listJob.collect {jobs->
+                                var count = 0
+                                jobs.forEach { job ->
+                                    if (job.downloadState == DownloadState.STATE_DOWNLOADED) {
+                                        count++
+                                    }
+                                }
+                                if (count == jobs.size) {
+                                    viewModel.updatePlaylistDownloadState(
+                                        browseId!!,
+                                        DownloadState.STATE_DOWNLOADED
+                                    )
+                                    Toast.makeText(
+                                        requireContext(),
+                                        getString(R.string.downloaded),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
+                        }
+                    }
+                }
+
             }
             else if (viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
-                Toast.makeText(requireContext(), "Downloaded", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), getString(R.string.downloaded), Toast.LENGTH_SHORT).show()
             }
             else if (viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADING) {
-                Toast.makeText(requireContext(), "Downloading", Toast.LENGTH_SHORT).show()
+                Toast.makeText(requireContext(), getString(R.string.downloading), Toast.LENGTH_SHORT).show()
             }
         }
         binding.topAppBarLayout.addOnOffsetChangedListener { it, verticalOffset ->

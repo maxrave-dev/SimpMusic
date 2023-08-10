@@ -145,4 +145,5 @@
     <string name="crash">Lỗi</string>
     <string name="send">Gửi</string>
     <string name="mail_subject">Báo cáo</string>
+    <string name="delete_song_from_playlist">Xoá bài hát này khỏi danh sách phát</string>
 </resources>

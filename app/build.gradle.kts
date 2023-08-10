@@ -134,6 +134,10 @@ dependencies {
 
     implementation("com.daimajia.swipelayout:library:1.2.0@aar")
 
+    //arca
+    val acraVersion = "5.11.0"
+    implementation("ch.acra:acra-mail:$acraVersion")
+
 
 }
 // Allow references to generated code

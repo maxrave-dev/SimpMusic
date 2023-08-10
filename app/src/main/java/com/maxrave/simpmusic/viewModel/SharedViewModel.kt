@@ -181,6 +181,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                 simpleMediaServiceHandler.changeTrack.collectLatest { isChanged ->
                     val song = getCurrentMediaItem()
                     if (song != null && getCurrentMediaItemIndex() > 0) {
+                        var downloaded = false
                         val tempSong = musicSource.catalogMetadata[getCurrentMediaItemIndex()]
                         Log.d("Check tempSong", tempSong.toString())
                         mainRepository.insertSong(tempSong.toSongEntity())
@@ -189,6 +190,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                                 _songDB.value = songEntity
                                 if (songEntity != null) {
                                     _liked.value = songEntity.liked
+                                    downloaded = songEntity.downloadState == DownloadState.STATE_DOWNLOADED
                                     Log.d("Check like", songEntity.toString())
                                 }
                             }
@@ -198,25 +200,30 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                         _nowPlayingMediaItem.value = song
                         _songTransitions.value = true
                         resetLyrics()
-                        mainRepository.getLyricsData("${tempSong.title} ${tempSong.artists?.firstOrNull()?.name}").collect { response ->
-                            _lyrics.value = response
-                            when(_lyrics.value) {
-                                is Resource.Success -> {
-                                    if (_lyrics.value?.data != null) {
-                                        insertLyrics(_lyrics.value?.data!!.toLyricsEntity(song.mediaId))
-                                        parseLyrics(_lyrics.value?.data)
+                        if (!downloaded) {
+                            mainRepository.getLyricsData("${tempSong.title} ${tempSong.artists?.firstOrNull()?.name}").collect { response ->
+                                _lyrics.value = response
+                                when(_lyrics.value) {
+                                    is Resource.Success -> {
+                                        if (_lyrics.value?.data != null) {
+                                            insertLyrics(_lyrics.value?.data!!.toLyricsEntity(song.mediaId))
+                                            parseLyrics(_lyrics.value?.data)
+                                        }
                                     }
-                                }
-                                is Resource.Error -> {
-                                    if (_lyrics.value?.message != "reset") {
-                                        getSavedLyrics(tempSong.videoId)
+                                    is Resource.Error -> {
+                                        if (_lyrics.value?.message != "reset") {
+                                            getSavedLyrics(tempSong.videoId)
+                                        }
                                     }
-                                }
 
-                                else -> {
-                                    Log.d("Check lyrics", "Loading")
+                                    else -> {
+                                        Log.d("Check lyrics", "Loading")
+                                    }
                                 }
                             }
+                        }
+                        else {
+                            getSavedLyrics(tempSong.videoId)
                         }
                     }
                     Log.d("Check Change Track", "Change Track: $isChanged")
@@ -341,11 +348,6 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
             }
         }
     }
-    fun getLyrics(query: String) {
-        viewModelScope.launch {
-
-        }
-    }
 
     fun getRelated(videoId: String){
         Queue.clear()
@@ -413,6 +415,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                 simpleMediaServiceHandler.changeTrackToFalse()
                 _firstTrackAdded.value = true
                 musicSource.addFirstMetadata(track)
+                getSavedLyrics(track.videoId)
             } else {
                 var itag = 0
                 when (quality) {
@@ -455,27 +458,27 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                         simpleMediaServiceHandler.changeTrackToFalse()
                         _firstTrackAdded.value = true
                         musicSource.addFirstMetadata(track)
-                    }
-                }
-            }
-            resetLyrics()
-            mainRepository.getLyricsData("${track.title} ${track.artists?.firstOrNull()?.name}").collect { response ->
-                _lyrics.value = response
-                when(_lyrics.value) {
-                    is Resource.Success -> {
-                        if (_lyrics.value?.data != null) {
-                            insertLyrics(_lyrics.value?.data!!.toLyricsEntity(track.videoId))
-                            parseLyrics(_lyrics.value?.data)
-                        }
-                    }
-                    is Resource.Error -> {
-                        if (_lyrics.value?.message != "reset") {
-                            getSavedLyrics(track.videoId)
-                        }
-                    }
+                        resetLyrics()
+                        mainRepository.getLyricsData("${track.title} ${track.artists?.firstOrNull()?.name}").collect { response ->
+                            _lyrics.value = response
+                            when(_lyrics.value) {
+                                is Resource.Success -> {
+                                    if (_lyrics.value?.data != null) {
+                                        insertLyrics(_lyrics.value?.data!!.toLyricsEntity(track.videoId))
+                                        parseLyrics(_lyrics.value?.data)
+                                    }
+                                }
+                                is Resource.Error -> {
+                                    if (_lyrics.value?.message != "reset") {
+                                        getSavedLyrics(track.videoId)
+                                    }
+                                }
 
-                    else -> {
-                        Log.d("Check lyrics", "Loading")
+                                else -> {
+                                    Log.d("Check lyrics", "Loading")
+                                }
+                            }
+                        }
                     }
                 }
             }

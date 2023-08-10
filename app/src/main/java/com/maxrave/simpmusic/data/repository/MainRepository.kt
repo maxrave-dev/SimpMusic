@@ -609,10 +609,11 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
     }.flowOn(Dispatchers.IO)
     suspend fun getLyricsData(query: String): Flow<Resource<Lyrics>> = flow {
         runCatching {
-            Log.d("Lyrics", "query: $query")
+            val q = query.replace(Regex("\\([^)]*?(feat|ft|cùng với)[^)]*?\\)"), "")
+            Log.d("Lyrics", "query: $q")
             YouTube.authencation().onSuccess {token ->
                 if (token.accessToken != null) {
-                    YouTube.getSongId(token.accessToken!!, query).onSuccess { spotifyResult ->
+                    YouTube.getSongId(token.accessToken!!, q).onSuccess { spotifyResult ->
                         Log.d("SongId", "id: ${spotifyResult.tracks?.items?.get(0)?.id}")
                         spotifyResult.tracks?.items?.get(0)?.let {
                             it.id?.let { it1 ->

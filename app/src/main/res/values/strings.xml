@@ -140,6 +140,7 @@
     <string name="crash">Crash</string>
     <string name="send">Send</string>
     <string name="mail_subject">Report Crash</string>
+    <string name="delete_song_from_playlist">Delete this song from playlist</string>
     <plurals name="n_song">
         <item quantity="one">%d song</item>
         <item quantity="other">%d songs</item>

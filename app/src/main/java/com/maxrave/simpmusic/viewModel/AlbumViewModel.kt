@@ -3,17 +3,12 @@ package com.maxrave.simpmusic.viewModel
 import android.app.Application
 import android.graphics.drawable.GradientDrawable
 import android.util.Log
-import android.widget.Toast
-import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.exoplayer.offline.Download
-import androidx.media3.exoplayer.offline.DownloadRequest
-import androidx.media3.exoplayer.offline.DownloadService
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
@@ -22,16 +17,11 @@ import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.AlbumBrowse
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.repository.MainRepository
-import com.maxrave.simpmusic.di.DownloadCache
-import com.maxrave.simpmusic.extension.addThumbnails
-import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
-import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -40,7 +30,11 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
-class AlbumViewModel @Inject constructor(private var dataStoreManager: DataStoreManager, private val mainRepository: MainRepository, @DownloadCache private val downloadCache: SimpleCache, application: Application): AndroidViewModel(application) {
+class AlbumViewModel @Inject constructor(
+    private var dataStoreManager: DataStoreManager,
+    private val mainRepository: MainRepository,
+    application: Application
+): AndroidViewModel(application) {
     @Inject
     lateinit var downloadUtils: DownloadUtils
 
@@ -150,15 +144,6 @@ class AlbumViewModel @Inject constructor(private var dataStoreManager: DataStore
     }
     val albumDownloadState: MutableStateFlow<Int> = MutableStateFlow(DownloadState.STATE_NOT_DOWNLOADED)
 
-    private fun updateSongDownloadState(song: SongEntity, state: Int) {
-        viewModelScope.launch {
-            mainRepository.insertSong(song)
-            mainRepository.getSongById(song.videoId).collect {
-                mainRepository.updateDownloadState(song.videoId, state)
-            }
-        }
-    }
-
 
     private fun updateAlbumDownloadState(browseId: String, state: Int) {
         viewModelScope.launch {
@@ -192,43 +177,25 @@ class AlbumViewModel @Inject constructor(private var dataStoreManager: DataStore
             }
         }
     }
+    val listJob: MutableStateFlow<ArrayList<SongEntity>> = MutableStateFlow(arrayListOf())
 
-    @UnstableApi
-    fun getAllDownloadStateFromService(browseId: String) {
-        var downloadState: StateFlow<List<Download?>>
+    fun updatePlaylistDownloadState(id: String, state: Int) {
         viewModelScope.launch {
-            downloadState = downloadUtils.getAllDownloads().stateIn(viewModelScope)
-            downloadState.collect { down ->
-                if (down.isNotEmpty()){
-                    var count = 0
-                    down.forEach { downloadItem ->
-                        if (downloadItem?.state == Download.STATE_COMPLETED) {
-                            count++
-                        }
-                        else if (downloadItem?.state == Download.STATE_FAILED) {
-                            updateAlbumDownloadState(browseId, DownloadState.STATE_NOT_DOWNLOADED)
-                        }
+            mainRepository.getAlbum(id).collect { playlist ->
+                _albumEntity.value = playlist
+                mainRepository.updateAlbumDownloadState(id, state)
+                albumDownloadState.value = state
+            }
+        }
+    }
+    fun updateDownloadState(videoId: String, state: Int) {
+        viewModelScope.launch {
+            mainRepository.updateDownloadState(videoId, state)
+            listJob.value.find { it.videoId == videoId }?.let {
+                mainRepository.getSongById(videoId).collect { song ->
+                    if (song != null) {
+                        listJob.value[listJob.value.indexOf(listJob.value.find { it.videoId == song.videoId })] = song
                     }
-                    if (count == down.size) {
-                        mainRepository.getAlbum(browseId).collect{ album ->
-                            mainRepository.getSongsByListVideoId(album.tracks!!).collect{ tracks ->
-                                tracks.forEach { track ->
-                                    if (track.downloadState != DownloadState.STATE_DOWNLOADED) {
-                                        mainRepository.updateDownloadState(track.videoId, DownloadState.STATE_NOT_DOWNLOADED)
-                                        Toast.makeText(getApplication(), "Download Failed", Toast.LENGTH_SHORT).show()
-                                    }
-                                }
-                            }
-                        }
-                        updateAlbumDownloadState(browseId, DownloadState.STATE_DOWNLOADED)
-                        Toast.makeText(getApplication(), "Download Completed", Toast.LENGTH_SHORT).show()
-                    }
-                    else {
-                        updateAlbumDownloadState(browseId, DownloadState.STATE_DOWNLOADING)
-                    }
-                }
-                else {
-                    updateAlbumDownloadState(browseId, DownloadState.STATE_NOT_DOWNLOADED)
                 }
             }
         }
@@ -245,25 +212,26 @@ class AlbumViewModel @Inject constructor(private var dataStoreManager: DataStore
                             mainRepository.getSongById(videoId).collect{ song ->
                                 if (song?.downloadState != DownloadState.STATE_DOWNLOADED) {
                                     mainRepository.updateDownloadState(videoId, DownloadState.STATE_DOWNLOADED)
+                                    listJob.value.find { it.videoId == videoId }?.let {
+                                        mainRepository.getSongById(videoId).collect { song ->
+                                            if (song != null) {
+                                                listJob.value[listJob.value.indexOf(listJob.value.find { it.videoId == song.videoId })] = song
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
                         Download.STATE_FAILED -> {
-                            var status = false
-                            downloadCache.keys.forEach { keys ->
-                                if (keys == videoId) {
-                                    mainRepository.getSongById(videoId).collect{ song ->
-                                        if (song?.downloadState != DownloadState.STATE_DOWNLOADED) {
-                                            mainRepository.updateDownloadState(videoId, DownloadState.STATE_DOWNLOADED)
+                            mainRepository.getSongById(videoId).collect {song ->
+                                if (song?.downloadState != DownloadState.STATE_NOT_DOWNLOADED) {
+                                    mainRepository.updateDownloadState(videoId, DownloadState.STATE_NOT_DOWNLOADED)
+                                    listJob.value.find { it.videoId == videoId }?.let {
+                                        mainRepository.getSongById(videoId).collect { song ->
+                                            if (song != null) {
+                                                listJob.value[listJob.value.indexOf(listJob.value.find { it.videoId == song.videoId })] = song
+                                            }
                                         }
-                                    }
-                                    status = true
-                                }
-                            }
-                            if (!status) {
-                                mainRepository.getSongById(videoId).collect{ song ->
-                                    if (song?.downloadState != DownloadState.STATE_NOT_DOWNLOADED) {
-                                        mainRepository.updateDownloadState(videoId, DownloadState.STATE_NOT_DOWNLOADED)
                                     }
                                 }
                             }
@@ -272,6 +240,13 @@ class AlbumViewModel @Inject constructor(private var dataStoreManager: DataStore
                             mainRepository.getSongById(videoId).collect{ song ->
                                 if (song?.downloadState != DownloadState.STATE_DOWNLOADING) {
                                     mainRepository.updateDownloadState(videoId, DownloadState.STATE_DOWNLOADING)
+                                    listJob.value.find { it.videoId == videoId }?.let {
+                                        mainRepository.getSongById(videoId).collect { song ->
+                                            if (song != null) {
+                                                listJob.value[listJob.value.indexOf(listJob.value.find { it.videoId == song.videoId })] = song
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -279,6 +254,13 @@ class AlbumViewModel @Inject constructor(private var dataStoreManager: DataStore
                             mainRepository.getSongById(videoId).collect{ song ->
                                 if (song?.downloadState != DownloadState.STATE_NOT_DOWNLOADED) {
                                     mainRepository.updateDownloadState(videoId, DownloadState.STATE_NOT_DOWNLOADED)
+                                    listJob.value.find { it.videoId == videoId }?.let {
+                                        mainRepository.getSongById(videoId).collect { song ->
+                                            if (song != null) {
+                                                listJob.value[listJob.value.indexOf(listJob.value.find { it.videoId == song.videoId })] = song
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -292,30 +274,6 @@ class AlbumViewModel @Inject constructor(private var dataStoreManager: DataStore
         }
     }
 
-    @UnstableApi
-    fun downloadAlbum(list: ArrayList<Track>, browseId: String) {
-        list.forEach { track ->
-            Log.d("Check Track Download", track.toString())
-            val trackWithThumbnail = track.addThumbnails()
-            updateSongDownloadState(trackWithThumbnail.toSongEntity(), DownloadState.STATE_PREPARING)
-            updateAlbumDownloadState(browseId, DownloadState.STATE_PREPARING)
-        }
-        list.forEach { track ->
-            updateAlbumDownloadState(browseId, DownloadState.STATE_DOWNLOADING)
-            val downloadRequest = DownloadRequest.Builder(track.videoId, track.videoId.toUri())
-                .setData(track.title.toByteArray())
-                .setCustomCacheKey(track.videoId)
-                .build()
-            DownloadService.sendAddDownload(
-                getApplication(),
-                MusicDownloadService::class.java,
-                downloadRequest,
-                false
-            )
-            getDownloadStateFromService(track.videoId)
-        }
-        getAllDownloadStateFromService(browseId)
-    }
     private var _listTrack: MutableLiveData<List<SongEntity>> = MutableLiveData()
     var listTrack: LiveData<List<SongEntity>> = _listTrack
 
@@ -334,5 +292,11 @@ class AlbumViewModel @Inject constructor(private var dataStoreManager: DataStore
     fun getLocation() {
         regionCode = runBlocking { dataStoreManager.location.first() }
         language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
+    }
+
+    fun insertSong(songEntity: SongEntity) {
+        viewModelScope.launch {
+            mainRepository.insertSong(songEntity)
+        }
     }
 }
