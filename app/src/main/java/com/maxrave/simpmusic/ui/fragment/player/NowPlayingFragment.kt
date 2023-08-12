@@ -56,8 +56,6 @@ import com.maxrave.simpmusic.extension.isMyServiceRunning
 import com.maxrave.simpmusic.extension.removeConflicts
 import com.maxrave.simpmusic.extension.setEnabledAll
 import com.maxrave.simpmusic.extension.toListName
-import com.maxrave.simpmusic.extension.toListTrack
-import com.maxrave.simpmusic.extension.toLyricsEntity
 import com.maxrave.simpmusic.service.RepeatState
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.service.test.source.FetchQueue
@@ -67,6 +65,7 @@ import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -402,7 +401,7 @@ class NowPlayingFragment : Fragment() {
 
         lifecycleScope.launch {
             val job7 = launch {
-                viewModel.songTransitions.collect { isChanged ->
+                viewModel.songTransitions.collectLatest { isChanged ->
                     if (isChanged) {
                         val song = viewModel.getCurrentMediaItem()
                         if (song != null) {

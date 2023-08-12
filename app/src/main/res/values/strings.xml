@@ -141,6 +141,12 @@
     <string name="send">Send</string>
     <string name="mail_subject">Report Crash</string>
     <string name="delete_song_from_playlist">Delete this song from playlist</string>
+    <string name="log_in">Log in</string>
+    <string name="log_in_to_get_personally_data">Log in to get personally data</string>
+    <string name="login_success">Login success</string>
+    <string name="log_out">Log out</string>
+    <string name="logged_in">Logged in</string>
+    <string name="logged_out">Logged out</string>
     <plurals name="n_song">
         <item quantity="one">%d song</item>
         <item quantity="other">%d songs</item>

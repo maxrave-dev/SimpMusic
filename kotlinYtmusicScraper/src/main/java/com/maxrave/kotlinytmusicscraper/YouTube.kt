@@ -10,13 +10,10 @@ import com.maxrave.kotlinytmusicscraper.models.GridRenderer
 import com.maxrave.kotlinytmusicscraper.models.MusicCarouselShelfRenderer
 import com.maxrave.kotlinytmusicscraper.models.PlaylistItem
 import com.maxrave.kotlinytmusicscraper.models.Run
-import com.maxrave.kotlinytmusicscraper.models.SearchSuggestions
 import com.maxrave.kotlinytmusicscraper.models.SongItem
 import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
-import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint.WatchEndpointMusicSupportedConfigs.WatchEndpointMusicConfig.Companion.MUSIC_VIDEO_TYPE_ATV
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.ANDROID_MUSIC
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.TVHTML5
-import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.WEB
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.WEB_REMIX
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
 import com.maxrave.kotlinytmusicscraper.models.getContinuation
@@ -25,8 +22,6 @@ import com.maxrave.kotlinytmusicscraper.models.oddElements
 import com.maxrave.kotlinytmusicscraper.models.response.AccountMenuResponse
 import com.maxrave.kotlinytmusicscraper.models.response.BrowseResponse
 import com.maxrave.kotlinytmusicscraper.models.response.GetQueueResponse
-import com.maxrave.kotlinytmusicscraper.models.response.GetSearchSuggestionsResponse
-import com.maxrave.kotlinytmusicscraper.models.response.GetTranscriptResponse
 import com.maxrave.kotlinytmusicscraper.models.response.NextResponse
 import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
 import com.maxrave.kotlinytmusicscraper.models.response.PlayerResponse
@@ -35,8 +30,6 @@ import com.maxrave.kotlinytmusicscraper.models.splitBySeparator
 import com.maxrave.kotlinytmusicscraper.models.spotify.SpotifyResult
 import com.maxrave.kotlinytmusicscraper.models.spotify.Token
 import com.maxrave.kotlinytmusicscraper.pages.AlbumPage
-import com.maxrave.kotlinytmusicscraper.pages.ArtistItemsContinuationPage
-import com.maxrave.kotlinytmusicscraper.pages.ArtistItemsPage
 import com.maxrave.kotlinytmusicscraper.pages.ArtistPage
 import com.maxrave.kotlinytmusicscraper.pages.BrowseResult
 import com.maxrave.kotlinytmusicscraper.pages.ExplorePage
@@ -49,10 +42,6 @@ import com.maxrave.kotlinytmusicscraper.pages.PlaylistPage
 import com.maxrave.kotlinytmusicscraper.pages.RelatedPage
 import com.maxrave.kotlinytmusicscraper.pages.SearchPage
 import com.maxrave.kotlinytmusicscraper.pages.SearchResult
-import com.maxrave.kotlinytmusicscraper.pages.SearchSuggestionPage
-import com.maxrave.kotlinytmusicscraper.pages.SearchSummary
-import com.maxrave.kotlinytmusicscraper.pages.SearchSummaryPage
-import com.maxrave.kotlinytmusicscraper.test.parseMixedContent
 import io.ktor.client.call.body
 import io.ktor.client.statement.bodyAsText
 import kotlinx.serialization.json.Json
@@ -227,7 +216,7 @@ object YouTube {
             continuation = response.continuationContents.musicPlaylistShelfContinuation.continuations?.getContinuation()
         )
     }
-    suspend fun customQuery(browseId: String, params: String? = null, continuation: String? = null, country: String? = null, setLogin: Boolean = false) = runCatching {
+    suspend fun customQuery(browseId: String, params: String? = null, continuation: String? = null, country: String? = null, setLogin: Boolean = true) = runCatching {
         ytMusic.browse(WEB_REMIX, browseId, params, continuation, country, setLogin).body<BrowseResponse>()
     }
     suspend fun nextCustom(videoId: String) = runCatching {

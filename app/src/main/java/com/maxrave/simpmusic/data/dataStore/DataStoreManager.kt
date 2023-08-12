@@ -5,7 +5,6 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
-import com.maxrave.simpmusic.common.QUALITY as COMMON_QUALITY
 import com.maxrave.simpmusic.common.SETTINGS_FILENAME
 import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -13,6 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
+import com.maxrave.simpmusic.common.QUALITY as COMMON_QUALITY
 
 @Singleton
 class DataStoreManager @Inject constructor(@ApplicationContext appContext: Context) {
@@ -65,8 +65,35 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
     val isRestoringDatabase: Flow<String> = settingsDataStore.data.map { preferences ->
         preferences[IS_RESTORING_DATABASE] ?: FALSE
     }
+    val loggedIn: Flow<String> = settingsDataStore.data.map { preferences ->
+        preferences[LOGGED_IN] ?: FALSE
+    }
+
+    val cookie: Flow<String> = settingsDataStore.data.map { preferences ->
+        preferences[COOKIE] ?: ""
+    }
+    suspend fun setCookie(cookie: String) {
+        settingsDataStore.edit { settings ->
+            settings[COOKIE] = cookie
+        }
+    }
+
+    suspend fun setLoggedIn(logged: Boolean) {
+        if (logged) {
+            settingsDataStore.edit { settings ->
+                settings[LOGGED_IN] = TRUE
+            }
+        } else {
+            settingsDataStore.edit { settings ->
+                settings[LOGGED_IN] = FALSE
+            }
+        }
+    }
+
 
     companion object Settings {
+        val COOKIE = stringPreferencesKey("cookie")
+        val LOGGED_IN = stringPreferencesKey("logged_in")
         val LOCATION = stringPreferencesKey("location")
         val QUALITY = stringPreferencesKey("quality")
         val IS_RESTORING_DATABASE = stringPreferencesKey("is_restoring_database")

@@ -6,20 +6,48 @@ import com.maxrave.kotlinytmusicscraper.models.response.BrowseResponse
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.browse.playlist.Author
 import com.maxrave.simpmusic.data.model.browse.playlist.PlaylistBrowse
+import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 
-fun parsePlaylistData(header:  BrowseResponse.Header.MusicDetailHeaderRenderer?, listContent: List<MusicShelfRenderer.Content>, playlistId: String): PlaylistBrowse? {
+fun parsePlaylistData(header: Any?, listContent: List<MusicShelfRenderer.Content>, playlistId: String): PlaylistBrowse? {
     if (header != null){
-        val title = header.title.runs?.get(0)?.text
-        Log.d("PlaylistParser", "title: $title")
-        val author = Author(id = header.subtitle.runs?.get(2)?.navigationEndpoint?.browseEndpoint?.browseId ?: "", name = header.subtitle.runs?.get(2)?.text ?: "")
-        Log.d("PlaylistParser", "author: $author")
-        val duration = header.secondSubtitle.runs?.get(2)?.text
-        Log.d("PlaylistParser", "duration: $duration")
+        var title = ""
+        val listAuthor: ArrayList<Author> = arrayListOf()
+        var duration = ""
         var description = ""
-        if (!header.description?.runs.isNullOrEmpty()) {
-            for (run in header.description?.runs!!) {
-                description += (run.text)
+        val listThumbnails: ArrayList<Thumbnail> = arrayListOf()
+        var year = ""
+        if (header is BrowseResponse.Header.MusicDetailHeaderRenderer) {
+            title += header.title.runs?.get(0)?.text
+            Log.d("PlaylistParser", "title: $title")
+            val author = Author(id = header.subtitle.runs?.get(2)?.navigationEndpoint?.browseEndpoint?.browseId ?: "", name = header.subtitle.runs?.get(2)?.text ?: "")
+            listAuthor.add(author)
+            Log.d("PlaylistParser", "author: $author")
+            duration += header.secondSubtitle.runs?.get(2)?.text
+            Log.d("PlaylistParser", "duration: $duration")
+            if (!header.description?.runs.isNullOrEmpty()) {
+                for (run in header.description?.runs!!) {
+                    description += (run.text)
+                }
             }
+            year += header.subtitle.runs?.get(4)?.text
+            header.thumbnail.croppedSquareThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail()
+                ?.let { listThumbnails.addAll(it) }
+        }
+        else if (header is BrowseResponse.Header.MusicEditablePlaylistDetailHeaderRenderer?) {
+            title += header.header.musicDetailHeaderRenderer.title.runs?.get(0)?.text
+            Log.d("PlaylistParser", "title: $title")
+            val author = Author(id = header.header.musicDetailHeaderRenderer.subtitle.runs?.get(2)?.navigationEndpoint?.browseEndpoint?.browseId ?: "", name = header.header.musicDetailHeaderRenderer.subtitle.runs?.get(2)?.text ?: "")
+            listAuthor.add(author)
+            Log.d("PlaylistParser", "author: $author")
+            duration += header.header.musicDetailHeaderRenderer.secondSubtitle.runs?.get(4)?.text
+            Log.d("PlaylistParser", "duration: $duration")
+            if (!header.header.musicDetailHeaderRenderer.description?.runs.isNullOrEmpty()) {
+                for (run in header.header.musicDetailHeaderRenderer.description?.runs!!) {
+                    description += (run.text)
+                }
+            }
+            header.header.musicDetailHeaderRenderer.thumbnail.croppedSquareThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail()
+                ?.let { listThumbnails.addAll(it) }
         }
         Log.d("PlaylistParser", "description: $description")
         val listTrack: MutableList<Track> = arrayListOf()
@@ -45,17 +73,17 @@ fun parsePlaylistData(header:  BrowseResponse.Header.MusicDetailHeaderRenderer?,
         }
         Log.d("PlaylistParser", "description: $description")
         return PlaylistBrowse(
-            author = author,
+            author = listAuthor.firstOrNull() ?: Author("", ""),
             description = description,
-            duration = duration ?: "",
+            duration = duration,
             durationSeconds = 0,
             id = playlistId,
             privacy = "PUBLIC",
-            thumbnails = header.thumbnail.croppedSquareThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail() ?: listOf(),
-            title = title ?: "",
+            thumbnails =  listThumbnails,
+            title = title,
             trackCount = listContent.size,
             tracks = listTrack,
-            year = header.subtitle.runs?.get(4)?.text ?: ""
+            year = year
         )
     }
     else {

@@ -16,6 +16,7 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.exoplayer.offline.Download
+import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.DownloadState
@@ -763,6 +764,20 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
             mainRepository.getPreparingSongs().collect {songs ->
                 songs.forEach { song ->
                     mainRepository.updateDownloadState(song.videoId, DownloadState.STATE_NOT_DOWNLOADED)
+                }
+            }
+        }
+    }
+
+    fun checkAuth() {
+        viewModelScope.launch {
+            dataStoreManager.cookie.collect { cookie ->
+                if (cookie != "") {
+                    YouTube.cookie = cookie
+                    Log.d("Cookie", "Cookie is not empty")
+                }
+                else {
+                    Log.e("Cookie", "Cookie is empty")
                 }
             }
         }

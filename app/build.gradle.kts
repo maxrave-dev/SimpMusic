@@ -56,6 +56,8 @@ dependencies {
     //runtime
     implementation("androidx.startup:startup-runtime:1.1.1")
     implementation(project(mapOf("path" to ":kotlinYtmusicScraper")))
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.1")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1")
     //ExoPlayer
     val media3_version= "1.1.0"
 
