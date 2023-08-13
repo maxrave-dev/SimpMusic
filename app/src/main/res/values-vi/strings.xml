@@ -146,4 +146,11 @@
     <string name="send">Gửi</string>
     <string name="mail_subject">Báo cáo</string>
     <string name="delete_song_from_playlist">Xoá bài hát này khỏi danh sách phát</string>
+    <string name="log_in">Đăng nhập</string>
+    <string name="log_in_to_get_personally_data">Đăng nhập để cá nhân hoá nguồn dữ liệu</string>
+    <string name="login_success">Đăng nhập thành công</string>
+    <string name="log_out">Đăng xuất</string>
+    <string name="logged_in">Đã đăng nhập</string>
+    <string name="logged_out">Đăng xuất thành công</string>
+    <string name="playlist">Danh sách phát</string>
 </resources>

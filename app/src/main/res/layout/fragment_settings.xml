@@ -347,7 +347,7 @@
                         android:layout_height="wrap_content"
                         android:textSize="16sp"
                         android:id="@+id/tvVersion"
-                        android:text="v0.1.0-beta">
+                        android:text="v0.1.1-beta">
 
                     </TextView>
                 </LinearLayout>

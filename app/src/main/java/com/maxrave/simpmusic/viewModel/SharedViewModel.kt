@@ -18,6 +18,7 @@ import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.exoplayer.offline.Download
 import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
+import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.QUALITY
@@ -775,6 +776,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                 if (cookie != "") {
                     YouTube.cookie = cookie
                     Log.d("Cookie", "Cookie is not empty")
+                    Toast.makeText(context, context.getString(R.string.logged_in), Toast.LENGTH_SHORT).show()
                 }
                 else {
                     Log.e("Cookie", "Cookie is empty")
