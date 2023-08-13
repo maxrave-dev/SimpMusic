@@ -19,17 +19,23 @@ fun parsePlaylistData(header: Any?, listContent: List<MusicShelfRenderer.Content
         if (header is BrowseResponse.Header.MusicDetailHeaderRenderer) {
             title += header.title.runs?.get(0)?.text
             Log.d("PlaylistParser", "title: $title")
-            val author = Author(id = header.subtitle.runs?.get(2)?.navigationEndpoint?.browseEndpoint?.browseId ?: "", name = header.subtitle.runs?.get(2)?.text ?: "")
-            listAuthor.add(author)
-            Log.d("PlaylistParser", "author: $author")
-            duration += header.secondSubtitle.runs?.get(2)?.text
+            if (!header.subtitle.runs.isNullOrEmpty() && header.subtitle.runs?.size!! > 2) {
+                val author = Author(id = header.subtitle.runs?.get(2)?.navigationEndpoint?.browseEndpoint?.browseId ?: "", name = header.subtitle.runs?.get(2)?.text ?: "")
+                listAuthor.add(author)
+                Log.d("PlaylistParser", "author: $author")
+            }
+            if (!header.secondSubtitle.runs.isNullOrEmpty() && header.secondSubtitle.runs?.size!! > 2) {
+                duration += header.secondSubtitle.runs?.get(2)?.text
+            }
             Log.d("PlaylistParser", "duration: $duration")
             if (!header.description?.runs.isNullOrEmpty()) {
                 for (run in header.description?.runs!!) {
                     description += (run.text)
                 }
             }
-            year += header.subtitle.runs?.get(4)?.text
+            if (!header.subtitle.runs.isNullOrEmpty() && header.subtitle.runs?.size!! > 4) {
+                year += header.subtitle.runs?.get(4)?.text
+            }
             header.thumbnail.croppedSquareThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail()
                 ?.let { listThumbnails.addAll(it) }
         }
@@ -73,7 +79,7 @@ fun parsePlaylistData(header: Any?, listContent: List<MusicShelfRenderer.Content
         }
         Log.d("PlaylistParser", "description: $description")
         return PlaylistBrowse(
-            author = listAuthor.firstOrNull() ?: Author("", ""),
+            author = listAuthor.firstOrNull() ?: Author("", "YouTube Music"),
             description = description,
             duration = duration,
             durationSeconds = 0,

@@ -147,6 +147,7 @@
     <string name="log_out">Log out</string>
     <string name="logged_in">Logged in</string>
     <string name="logged_out">Logged out</string>
+    <string name="playlist">Playlist</string>
     <plurals name="n_song">
         <item quantity="one">%d song</item>
         <item quantity="other">%d songs</item>

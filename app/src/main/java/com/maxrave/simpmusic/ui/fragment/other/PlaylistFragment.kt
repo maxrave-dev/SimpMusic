@@ -445,7 +445,12 @@ class PlaylistFragment: Fragment() {
                         with(binding){
                             topAppBar.title = it?.title
                             tvPlaylistAuthor.text = it?.author?.name
-                            tvYearAndCategory.text = requireContext().getString(R.string.year_and_category, it?.year.toString(), "Playlist")
+                            if (it?.year != "") {
+                                tvYearAndCategory.text = requireContext().getString(R.string.year_and_category, it?.year.toString(), "Playlist")
+                            }
+                            else {
+                                tvYearAndCategory.text = requireContext().getString(R.string.playlist)
+                            }
                             tvTrackCountAndDuration.text = requireContext().getString(R.string.album_length, it?.trackCount.toString(), "")
                             if (it?.description != null){
                                 tvDescription.originalText = it.description
@@ -518,7 +523,12 @@ class PlaylistFragment: Fragment() {
                                 }
                                 topAppBar.title = it?.title
                                 tvPlaylistAuthor.text = it?.author?.name
-                                tvYearAndCategory.text = requireContext().getString(R.string.year_and_category, it?.year.toString(), "Playlist")
+                                if (it?.year != "") {
+                                    tvYearAndCategory.text = requireContext().getString(R.string.year_and_category, it?.year.toString(), "Playlist")
+                                }
+                                else {
+                                    tvYearAndCategory.text = requireContext().getString(R.string.playlist)
+                                }
                                 tvTrackCountAndDuration.text = requireContext().getString(R.string.album_length, it?.trackCount.toString(), "")
                                 if (it?.description != null){
                                     tvDescription.originalText = it.description
