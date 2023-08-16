@@ -2,13 +2,13 @@ package com.maxrave.simpmusic.ui.fragment.home
 
 import android.os.Bundle
 import android.util.Log
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.widget.ListPopupWindow
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -27,8 +27,8 @@ import com.maxrave.simpmusic.adapter.home.chart.ArtistChartAdapter
 import com.maxrave.simpmusic.adapter.home.chart.TrackChartAdapter
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.data.model.browse.album.Track
-import com.maxrave.simpmusic.data.model.home.chart.toTrack
 import com.maxrave.simpmusic.data.model.home.HomeItem
+import com.maxrave.simpmusic.data.model.home.chart.toTrack
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.FragmentHomeBinding
 import com.maxrave.simpmusic.extension.toTrack
@@ -260,16 +260,20 @@ class HomeFragment : Fragment() {
                 is Resource.Success -> {
                     response.data?.let { homeItemList ->
                         val homeItemListWithoutQuickPicks = arrayListOf<HomeItem>()
-                        homeItemList.firstOrNull()?.let { firstHomeItem ->
-                            if (firstHomeItem.title == getString(R.string.quick_picks)) {
-                                val temp = firstHomeItem.contents.filterNotNull()
-                                quickPicksAdapter.updateData(temp)
-                                for (i in 1 until homeItemList.size) {
-                                    homeItemListWithoutQuickPicks.add(homeItemList[i])
-                                }
-                            } else {
-                                homeItemListWithoutQuickPicks.addAll(homeItemList)
+                        val firstHomeItem = homeItemList.find { it.title == getString(R.string.quick_picks) }
+                        if (firstHomeItem != null)
+                        {
+                            val temp = firstHomeItem.contents.filterNotNull()
+                            quickPicksAdapter.updateData(temp)
+                            for (i in 0 until homeItemList.size) {
+                                homeItemListWithoutQuickPicks.add(homeItemList[i])
                             }
+                            homeItemListWithoutQuickPicks.remove(firstHomeItem)
+                        }
+                        else {
+                            binding.tvTitleQuickPicks.visibility = View.GONE
+                            binding.tvStartWithARadio.visibility = View.GONE
+                            homeItemListWithoutQuickPicks.addAll(homeItemList)
                         }
                         Log.d("Data", "onViewCreated: $homeItemList")
                         mAdapter.updateData(homeItemListWithoutQuickPicks)

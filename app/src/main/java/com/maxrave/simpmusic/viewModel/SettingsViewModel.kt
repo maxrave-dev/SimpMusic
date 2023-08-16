@@ -54,10 +54,19 @@ class SettingsViewModel @Inject constructor(
     val location: LiveData<String> = _location
     private var _language: MutableLiveData<String> = MutableLiveData()
     val language: LiveData<String> = _language
+    private var _loggedIn: MutableLiveData<String> = MutableLiveData()
+    val loggedIn: LiveData<String> = _loggedIn
     fun getLocation() {
         viewModelScope.launch {
             dataStoreManager.location.collect { location ->
                 _location.postValue(location)
+            }
+        }
+    }
+    fun getLoggedIn() {
+        viewModelScope.launch {
+            dataStoreManager.loggedIn.collect { loggedIn ->
+                _loggedIn.postValue(loggedIn)
             }
         }
     }
@@ -216,6 +225,14 @@ class SettingsViewModel @Inject constructor(
             dataStoreManager.putString(SELECTED_LANGUAGE, code)
             YouTube.locale = YouTubeLocale(location.value!!, code)
             getLanguage()
+        }
+    }
+
+    fun clearCookie() {
+        viewModelScope.launch {
+            dataStoreManager.setCookie("")
+            YouTube.cookie = null
+            dataStoreManager.setLoggedIn(false)
         }
     }
 }

@@ -1,0 +1,2 @@
+- Add Log-in by Google to personalize your experience
+- Fix Piped Instance blocked by YouTube

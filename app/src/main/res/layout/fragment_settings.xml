@@ -49,6 +49,35 @@
                     android:orientation="vertical"
                     android:layout_marginVertical="5sp"
                     android:layout_marginStart="15sp"
+                    android:id="@+id/btLogin"
+                    android:focusable="true"
+                    android:clickable="true"
+                    android:foreground="?android:attr/selectableItemBackground">
+                    <TextView
+                        android:id="@+id/tvLogInTitle"
+                        android:textSize = "16sp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@android:color/white"
+                        android:text = "@string/log_in">
+
+                    </TextView>
+                    <TextView
+                        android:id="@+id/tvLogIn"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:text="@string/log_in_to_get_personally_data">
+
+                    </TextView>
+
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginVertical="5sp"
+                    android:layout_marginStart="15sp"
                     android:id="@+id/btLanguage"
                     android:focusable="true"
                     android:clickable="true"
@@ -318,7 +347,7 @@
                         android:layout_height="wrap_content"
                         android:textSize="16sp"
                         android:id="@+id/tvVersion"
-                        android:text="v0.1.0-beta">
+                        android:text="v0.1.1-beta">
 
                     </TextView>
                 </LinearLayout>

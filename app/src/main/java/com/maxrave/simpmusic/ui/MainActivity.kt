@@ -51,8 +51,10 @@ import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import pub.devrel.easypermissions.EasyPermissions
 import java.util.Locale
 
@@ -140,7 +142,9 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
         }
 
         viewModel.getLocation()
+        viewModel.checkAuth()
         viewModel.checkAllDownloadingSongs()
+        runBlocking { delay(500) }
 
         binding = ActivityMainBinding.inflate(layoutInflater)
         val view = binding.root

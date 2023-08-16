@@ -16,7 +16,9 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.exoplayer.offline.Download
+import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
+import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.QUALITY
@@ -443,18 +445,19 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                         itag = QUALITY.itags[1]
                     }
                 }
-                mainRepository.getStream(track.videoId, itag).collect{
-                    if (it != null){
-                        uri = it
+                mainRepository.getStream(track.videoId, itag).collect{ stream ->
+                    if (stream != null){
+                        uri = stream
+                        Log.d("Check URI", uri)
                         val artistName: String = track.artists.toListName().connectArtists()
                         var thumbUrl = track.thumbnails?.last()?.url!!
                         if (thumbUrl.contains("w120")) {
                             thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
                         }
                         Log.d("Check URI", uri)
-                        musicSource.downloadUrl.add(0, uri)
+                        musicSource.downloadUrl.add(0, uri.toUri().toString())
                         simpleMediaServiceHandler.addMediaItem(
-                            MediaItem.Builder().setUri(uri)
+                            MediaItem.Builder().setUri(uri.toUri())
                                 .setMediaId(track.videoId)
                                 .setMediaMetadata(
                                     MediaMetadata.Builder()
@@ -763,6 +766,21 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
             mainRepository.getPreparingSongs().collect {songs ->
                 songs.forEach { song ->
                     mainRepository.updateDownloadState(song.videoId, DownloadState.STATE_NOT_DOWNLOADED)
+                }
+            }
+        }
+    }
+
+    fun checkAuth() {
+        viewModelScope.launch {
+            dataStoreManager.cookie.collect { cookie ->
+                if (cookie != "") {
+                    YouTube.cookie = cookie
+                    Log.d("Cookie", "Cookie is not empty")
+                    Toast.makeText(context, context.getString(R.string.logged_in), Toast.LENGTH_SHORT).show()
+                }
+                else {
+                    Log.e("Cookie", "Cookie is empty")
                 }
             }
         }

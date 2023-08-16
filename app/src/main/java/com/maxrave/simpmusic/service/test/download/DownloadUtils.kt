@@ -61,7 +61,7 @@ class DownloadUtils @Inject constructor(
             runBlocking(Dispatchers.IO) {
                 Log.w("DownloadUtils", "Not cached: $mediaId")
                 var extract: DataSpec? = null
-                mainRepository.getStream(mediaId, 251).collect {values ->
+                mainRepository.getStream(mediaId, 251).collect { values ->
                     if (values != null){
                         extract = dataSpec.withUri((values).toUri())
                     }

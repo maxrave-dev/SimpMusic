@@ -369,7 +369,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
     }.flowOn(Dispatchers.IO)
     suspend fun getPlaylistData(playlistId: String): Flow<Resource<PlaylistBrowse>> = flow {
         runCatching {
-            var id: String = ""
+            var id = ""
             if (!playlistId.startsWith("VL")) {
                 id += "VL$playlistId"
             }
@@ -385,7 +385,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                     Log.d("Data", "data size: ${data.size}")
                     listContent.addAll(data)
                 }
-                val header = result.header?.musicDetailHeaderRenderer
+                val header = result.header?.musicDetailHeaderRenderer ?: result.header?.musicEditablePlaylistDetailHeaderRenderer
                 Log.d("Header", "header: $header")
                 var continueParam = result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(0)?.tabRenderer?.content?.sectionListRenderer?.contents?.get(0)?.musicPlaylistShelfRenderer?.continuations?.get(0)?.nextContinuationData?.continuation
                 var count = 0
@@ -639,8 +639,8 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
             }
         }.flowOn(Dispatchers.IO)
     suspend fun getStream(videoId: String, itag: Int): Flow<String?> = flow{
-            YouTube.getStream(videoId, itag).onSuccess {
-                emit(it)
+            YouTube.player(videoId).onSuccess {
+                emit(it.streamingData?.adaptiveFormats?.find { it.itag == itag }?.url)
             }.onFailure {
                 emit(null)
             }

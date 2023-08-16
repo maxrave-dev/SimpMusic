@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.adapter.home
 
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -113,11 +112,10 @@ class HomeItemContentAdapter(private var listContent: ArrayList<Content>): Recyc
     }
 
     override fun getItemViewType(position: Int): Int {
-        Log.d("TAG", "getItemViewType: ${listContent[position].playlistId}")
         val temp = listContent[position]
-        return if (temp.playlistId != null && temp.videoId == null) {
+        return if ((temp.playlistId != null && temp.videoId == null) || (temp.playlistId != null && temp.videoId == "")){
             PLAYLIST
-        } else if (temp.browseId != null && temp.videoId == null) {
+        } else if ((temp.browseId != null && temp.videoId == null) || (temp.browseId != null && temp.videoId == "") ) {
             ALBUM
         }
         else{

@@ -40,11 +40,11 @@ fun parseMixedContent(data: List<SectionListRenderer.Content>?): List<HomeItem> 
                     if (result1.musicTwoRowItemRenderer != null) {
                         val pageType = result1.musicTwoRowItemRenderer!!.title.runs?.get(0)?.navigationEndpoint?.browseEndpoint?.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType
                         if (pageType == null) {
-                            if (result1.musicTwoRowItemRenderer!!.navigationEndpoint.watchEndpoint?.playlistId != null){
+                            if (result1.musicTwoRowItemRenderer!!.navigationEndpoint.watchEndpoint?.playlistId != null && result1.musicTwoRowItemRenderer!!.navigationEndpoint.watchEndpoint?.videoId == null){
                                 val content = parseWatchPlaylist(result1.musicTwoRowItemRenderer!!)
                                 listContent.add(content)
                             }
-                            else {
+                            else if (result1.musicTwoRowItemRenderer!!.navigationEndpoint.watchEndpoint?.videoId != null){
                                 val content = parseSong(result1.musicTwoRowItemRenderer!!)
                                 listContent.add(content)
                             }
@@ -58,8 +58,14 @@ fun parseMixedContent(data: List<SectionListRenderer.Content>?): List<HomeItem> 
                             listContent.add(content)
                         }
                         else if (pageType == "MUSIC_PAGE_TYPE_PLAYLIST") {
-                            val content = parsePlaylist(result1.musicTwoRowItemRenderer!!)
-                            listContent.add(content)
+                            if (result1.musicTwoRowItemRenderer!!.navigationEndpoint.browseEndpoint?.browseId?.startsWith("MPRE") == true) {
+                                val content = parseAlbum(result1.musicTwoRowItemRenderer!!)
+                                listContent.add(content)
+                            }
+                            else {
+                                val content = parsePlaylist(result1.musicTwoRowItemRenderer!!)
+                                listContent.add(content)
+                            }
                         }
                     }
                     else
@@ -204,14 +210,14 @@ fun parseRelatedArtists(data: MusicTwoRowItemRenderer): Content {
 fun parseAlbum(data: MusicTwoRowItemRenderer): Content {
     val title = data.title.runs?.get(0)?.text
     val year = data.subtitle?.runs?.get(2)?.text
-    val browseId = data.title.runs?.get(0)?.navigationEndpoint?.browseEndpoint?.browseId
+    val browseId = data.navigationEndpoint.browseEndpoint?.browseId
     val thumbnails = data.thumbnailRenderer.musicThumbnailRenderer?.thumbnail?.thumbnails
     return Content(
         album = Album( id = browseId ?: "", name = title ?: ""),
         artists = listOf(),
         description = null,
         isExplicit = false,
-        playlistId = "",
+        playlistId = null,
         browseId = browseId,
         thumbnails = thumbnails?.toListThumbnail() ?:listOf(),
         title = title ?: "",
@@ -234,18 +240,37 @@ fun parseSong(data: MusicTwoRowItemRenderer): Content {
     Log.d("parse_runs", runs.toString())
     if (runs != null) {
         for (i in runs.indices) {
-            if (i.rem(2) == 0) {
-                if (i == runs.size -1) {
-                    view += runs[i].text
+            if (runs[0].text == "Song" || runs[0].text == "Bài hát") {
+                if (i.rem(2) == 0) {
+                    if (i == runs.size -1) {
+                        listArtist.add(Artist(name = runs[i].text, id = runs[i].navigationEndpoint?.browseEndpoint?.browseId))
+                    }
+                    else if (i != 0) {
+                        name += runs[i].text
+                        id += runs[i].navigationEndpoint?.browseEndpoint?.browseId
+                        if (id.startsWith("MPRE")) {
+                            listAlbum.add(Album(id = id, name = name))
+                        }
+                        else {
+                            listArtist.add(Artist(name = name, id = id))
+                        }
+                    }
                 }
-                else {
-                    name += runs[i].text
-                    id += runs[i].navigationEndpoint?.browseEndpoint?.browseId
-                    if (id.startsWith("MPRE")) {
-                         listAlbum.add(Album(id = id, name = name))
+            }
+            else {
+                if (i.rem(2) == 0) {
+                    if (i == runs.size -1) {
+                        view += runs[i].text
                     }
                     else {
-                        listArtist.add(Artist(name = name, id = id))
+                        name += runs[i].text
+                        id += runs[i].navigationEndpoint?.browseEndpoint?.browseId
+                        if (id.startsWith("MPRE")) {
+                            listAlbum.add(Album(id = id, name = name))
+                        }
+                        else {
+                            listArtist.add(Artist(name = name, id = id))
+                        }
                     }
                 }
             }

@@ -62,15 +62,31 @@ class HomeItemAdapter(private var homeItemList: ArrayList<HomeItem>, var context
         itemAdapter.setOnPlaylistClickListener(object : HomeItemContentAdapter.onPlaylistItemClickListener{
             override fun onPlaylistItemClick(position: Int) {
                 val args = Bundle()
-                args.putString("id", homeItemList[holder.bindingAdapterPosition].contents[position]?.playlistId)
-                navController.navigate(R.id.action_global_playlistFragment, args)
+                if (homeItemList[holder.bindingAdapterPosition].contents[position]?.playlistId?.startsWith("UC") == true) {
+                    Log.d("HomeItemAdapter", "Artist: ${homeItemList[holder.bindingAdapterPosition].contents[position]?.playlistId}")
+                    args.putString("channelId", homeItemList[holder.bindingAdapterPosition].contents[position]?.playlistId)
+                    navController.navigate(R.id.action_global_artistFragment, args)
+                }
+                else {
+                    Log.d("HomeItemAdapter", "onPlaylistItemClick: ${homeItemList[holder.bindingAdapterPosition].contents[position]?.playlistId}")
+                    args.putString("id", homeItemList[holder.bindingAdapterPosition].contents[position]?.playlistId)
+                    navController.navigate(R.id.action_global_playlistFragment, args)
+                }
             }
         })
         itemAdapter.setOnAlbumClickListener(object : HomeItemContentAdapter.onAlbumItemClickListener{
             override fun onAlbumItemClick(position: Int) {
                 val args = Bundle()
-                args.putString("browseId", homeItemList[holder.bindingAdapterPosition].contents[position]?.browseId)
-                navController.navigate(R.id.action_global_albumFragment, args)
+                if (homeItemList[holder.bindingAdapterPosition].contents[position]?.browseId?.startsWith("UC") == true) {
+                    Log.d("HomeItemAdapter", "Artist: ${homeItemList[holder.bindingAdapterPosition].contents[position]?.browseId}")
+                    args.putString("channelId", homeItemList[holder.bindingAdapterPosition].contents[position]?.browseId)
+                    navController.navigate(R.id.action_global_artistFragment, args)
+                }
+                else {
+                    Log.d("HomeItemAdapter", "onAlbumItemClick: ${homeItemList[holder.bindingAdapterPosition].contents[position]?.browseId}")
+                    args.putString("browseId", homeItemList[holder.bindingAdapterPosition].contents[position]?.browseId)
+                    navController.navigate(R.id.action_global_albumFragment, args)
+                }
             }
         })
     }

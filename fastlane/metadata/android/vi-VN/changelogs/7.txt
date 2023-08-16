@@ -1,0 +1,2 @@
+- Thêm chức năng đăng nhập bằng Google để cá nhân hóa trải nghiệm của bạn
+- Sửa lỗi Piped Instance bị chặn bởi YouTube

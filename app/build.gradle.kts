@@ -15,8 +15,8 @@ android {
         applicationId = "com.maxrave.simpmusic"
         minSdk = 26
         targetSdk = 34
-        versionCode = 6
-        versionName = "0.1.0-beta"
+        versionCode = 7
+        versionName = "0.1.1-beta"
 
         resourceConfigurations += listOf("en", "vi")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -56,6 +56,8 @@ dependencies {
     //runtime
     implementation("androidx.startup:startup-runtime:1.1.1")
     implementation(project(mapOf("path" to ":kotlinYtmusicScraper")))
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.1")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1")
     //ExoPlayer
     val media3_version= "1.1.0"
 

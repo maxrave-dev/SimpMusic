@@ -140,7 +140,7 @@ class LocalPlaylistFragment : Fragment() {
                     tempList.add((i as SongEntity).toTrack())
                 }
                 Queue.addAll(tempList)
-                if (Queue.getQueue().size > 1) {
+                if (Queue.getQueue().size >= 1) {
                     Queue.removeTrackWithIndex(position)
                 }
                 findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
@@ -200,7 +200,7 @@ class LocalPlaylistFragment : Fragment() {
                     tempList.add((i as SongEntity).toTrack())
                 }
                 Queue.addAll(tempList)
-                if (Queue.getQueue().size > 1) {
+                if (Queue.getQueue().size >= 1) {
                     Queue.removeFirstTrackForPlaylistAndAlbum()
                 }
                 findNavController().navigate(R.id.action_global_nowPlayingFragment, args)

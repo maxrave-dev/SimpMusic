@@ -142,7 +142,7 @@ class MusicSource @Inject constructor(val simpleMediaServiceHandler: SimpleMedia
                                     "MusicSource",
                                     "updateCatalog: ${track.title}, ${catalogMetadata.size}"
                                 )
-                                downloadUrl.add(uri)
+                                downloadUrl.add(uri.toString())
                                 added.value = true
                                 Log.d("MusicSource", "updateCatalog: ${track.title}")
                             }

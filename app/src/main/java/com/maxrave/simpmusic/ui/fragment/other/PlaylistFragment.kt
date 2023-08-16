@@ -147,7 +147,7 @@ class PlaylistFragment: Fragment() {
                 Queue.clear()
                 Queue.setNowPlaying(viewModel.playlistBrowse.value?.data!!.tracks[0])
                 Queue.addAll(viewModel.playlistBrowse.value?.data!!.tracks as ArrayList<Track>)
-                if (Queue.getQueue().size > 1) {
+                if (Queue.getQueue().size >= 1) {
                     Queue.removeFirstTrackForPlaylistAndAlbum()
                 }
                 findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
@@ -163,7 +163,7 @@ class PlaylistFragment: Fragment() {
                 Queue.clear()
                 Queue.setNowPlaying(viewModel.listTrack.value?.get(0)!!.toTrack())
                 Queue.addAll(viewModel.listTrack.value.toArrayListTrack())
-                if (Queue.getQueue().size > 1) {
+                if (Queue.getQueue().size >= 1) {
                     Queue.removeFirstTrackForPlaylistAndAlbum()
                 }
                 findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
@@ -188,7 +188,7 @@ class PlaylistFragment: Fragment() {
                     Queue.clear()
                     Queue.setNowPlaying(viewModel.playlistBrowse.value?.data!!.tracks[position])
                     Queue.addAll(viewModel.playlistBrowse.value?.data!!.tracks as ArrayList<Track>)
-                    if (Queue.getQueue().size > 1) {
+                    if (Queue.getQueue().size >= 1) {
                         Queue.removeTrackWithIndex(position)
                     }
                     findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
@@ -204,7 +204,7 @@ class PlaylistFragment: Fragment() {
                     Queue.clear()
                     Queue.setNowPlaying(viewModel.listTrack.value?.get(position)!!.toTrack())
                     Queue.addAll(viewModel.listTrack.value.toArrayListTrack())
-                    if (Queue.getQueue().size > 1) {
+                    if (Queue.getQueue().size >= 1) {
                         Queue.removeTrackWithIndex(position)
                     }
                     findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
@@ -445,7 +445,12 @@ class PlaylistFragment: Fragment() {
                         with(binding){
                             topAppBar.title = it?.title
                             tvPlaylistAuthor.text = it?.author?.name
-                            tvYearAndCategory.text = requireContext().getString(R.string.year_and_category, it?.year.toString(), "Playlist")
+                            if (it?.year != "") {
+                                tvYearAndCategory.text = requireContext().getString(R.string.year_and_category, it?.year.toString(), "Playlist")
+                            }
+                            else {
+                                tvYearAndCategory.text = requireContext().getString(R.string.playlist)
+                            }
                             tvTrackCountAndDuration.text = requireContext().getString(R.string.album_length, it?.trackCount.toString(), "")
                             if (it?.description != null){
                                 tvDescription.originalText = it.description
@@ -518,7 +523,12 @@ class PlaylistFragment: Fragment() {
                                 }
                                 topAppBar.title = it?.title
                                 tvPlaylistAuthor.text = it?.author?.name
-                                tvYearAndCategory.text = requireContext().getString(R.string.year_and_category, it?.year.toString(), "Playlist")
+                                if (it?.year != "") {
+                                    tvYearAndCategory.text = requireContext().getString(R.string.year_and_category, it?.year.toString(), "Playlist")
+                                }
+                                else {
+                                    tvYearAndCategory.text = requireContext().getString(R.string.playlist)
+                                }
                                 tvTrackCountAndDuration.text = requireContext().getString(R.string.album_length, it?.trackCount.toString(), "")
                                 if (it?.description != null){
                                     tvDescription.originalText = it.description

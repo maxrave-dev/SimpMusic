@@ -1,30 +1,28 @@
 package com.maxrave.simpmusic.ui.fragment.home
 
-import android.content.DialogInterface
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.os.LocaleListCompat
+import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
-import coil.Coil
 import coil.annotation.ExperimentalCoilApi
 import coil.imageLoader
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.QUALITY
 import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.common.SUPPORTED_LOCATION
+import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.databinding.FragmentSettingsBinding
-import com.maxrave.simpmusic.ui.MainActivity
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
@@ -63,6 +61,19 @@ class SettingsFragment : Fragment() {
         return binding.root
     }
 
+    override fun onResume() {
+        super.onResume()
+        viewModel.getLoggedIn()
+        viewModel.loggedIn.observe(viewLifecycleOwner) {
+            if (it == DataStoreManager.TRUE) {
+                binding.tvLogInTitle.text = getString(R.string.log_out)
+                binding.tvLogIn.text = getString(R.string.logged_in)
+            } else if (it == DataStoreManager.FALSE) {
+                binding.tvLogInTitle.text = getString(R.string.log_in)
+                binding.tvLogIn.text = getString(R.string.log_in_to_get_personally_data)
+            }
+        }
+    }
 
     @OptIn(ExperimentalCoilApi::class)
     @UnstableApi
@@ -73,9 +84,19 @@ class SettingsFragment : Fragment() {
         viewModel.getQuality()
         viewModel.getPlayerCacheSize()
         viewModel.getDownloadedCacheSize()
+        viewModel.getLoggedIn()
 
         val diskCache = context?.imageLoader?.diskCache
 
+        viewModel.loggedIn.observe(viewLifecycleOwner) {
+            if (it == DataStoreManager.TRUE) {
+                binding.tvLogInTitle.text = getString(R.string.log_out)
+                binding.tvLogIn.text = getString(R.string.logged_in)
+            } else if (it == DataStoreManager.FALSE) {
+                binding.tvLogInTitle.text = getString(R.string.log_in)
+                binding.tvLogIn.text = getString(R.string.log_in_to_get_personally_data)
+            }
+        }
         viewModel.location.observe(viewLifecycleOwner) {
             binding.tvContentCountry.text = it
         }
@@ -108,6 +129,15 @@ class SettingsFragment : Fragment() {
             startActivity(urlIntent)
         }
 
+        binding.btLogin.setOnClickListener {
+            if (viewModel.loggedIn.value == DataStoreManager.TRUE) {
+                viewModel.clearCookie()
+                Toast.makeText(requireContext(), getString(R.string.logged_out), Toast.LENGTH_SHORT).show()
+            }
+            else if (viewModel.loggedIn.value == DataStoreManager.FALSE) {
+                findNavController().navigate(R.id.action_global_logInFragment)
+            }
+        }
         binding.btGithub.setOnClickListener {
             val urlIntent = Intent(
                 Intent.ACTION_VIEW,
