@@ -1,6 +1,5 @@
 package com.maxrave.kotlinytmusicscraper
 
-import android.util.Log
 import com.maxrave.kotlinytmusicscraper.encoder.brotli
 import com.maxrave.kotlinytmusicscraper.models.Context
 import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
@@ -14,12 +13,9 @@ import com.maxrave.kotlinytmusicscraper.models.body.GetSearchSuggestionsBody
 import com.maxrave.kotlinytmusicscraper.models.body.NextBody
 import com.maxrave.kotlinytmusicscraper.models.body.PlayerBody
 import com.maxrave.kotlinytmusicscraper.models.body.SearchBody
-import com.maxrave.kotlinytmusicscraper.models.spotify.SpotifyResult
-import com.maxrave.kotlinytmusicscraper.models.spotify.Token
 import com.maxrave.kotlinytmusicscraper.utils.parseCookieString
 import com.maxrave.kotlinytmusicscraper.utils.sha1
 import io.ktor.client.*
-import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.compression.*
@@ -84,6 +80,9 @@ class Ytmusic {
         }
     }
 
+    internal fun HttpRequestBuilder.mask(value: String = "*") =
+        header("X-Goog-FieldMask", value)
+
     private fun HttpRequestBuilder.ytClient(client: YouTubeClient, setLogin: Boolean = false) {
         contentType(ContentType.Application.Json)
         headers {
@@ -116,7 +115,7 @@ class Ytmusic {
         params: String? = null,
         continuation: String? = null,
     ) = httpClient.post("search") {
-        ytClient(client)
+        ytClient(client, true)
         setBody(
             SearchBody(
                 context = client.toContext(locale, visitorData),
@@ -151,10 +150,10 @@ class Ytmusic {
         )
     }
 
-    suspend fun pipedStreams(videoId: String) =
-        httpClient.get("https://pipedapi.kavin.rocks/streams/${videoId}") {
-            contentType(ContentType.Application.Json)
-        }
+    suspend fun pipedStreams(videoId: String)
+        = httpClient.get("https://watchapi.whatever.social/streams/${videoId}") {
+        contentType(ContentType.Application.Json)
+    }
     suspend fun authorizationSpotify(): HttpResponse {
         val authHeaderValue = "721d6f670f074b1497e74fc59125a6f3:efddc083fa974d39bc6369a892c07ced"
         val authHeaderBase64 = Base64.getEncoder().encodeToString(authHeaderValue.toByteArray())

@@ -44,5 +44,22 @@ data class PipedResponse(
         val itag: Int,
         val url: String,
         val bitrate: Int,
+        val format: String,
+        val quality: String,
+        val mimeType: String?,
+        val codec: String?,
+        val audioTrackId: String?,
+        val audioTrackName: String?,
+        val audioTrackType: String?,
+        val audioTrackLocale: String?,
+        val videoOnly: Boolean,
+        val initStart: Int,
+        val initEnd: Int,
+        val indexStart: Int,
+        val indexEnd: Int,
+        val width: Int,
+        val height: Int,
+        val fps: Int,
+        val contentLength: Int
     )
 }

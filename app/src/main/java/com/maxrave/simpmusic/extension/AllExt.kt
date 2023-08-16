@@ -25,6 +25,7 @@ import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -387,6 +388,19 @@ fun PipedResponse.toTrack(videoId: String): Track {
         year = ""
     )
 }
+fun replaceHostAndRemoveHostParameter(url: String?, unwrap: Boolean = true) = url?.toHttpUrlOrNull()
+        ?.takeIf { unwrap }?.let {
+            val host = it.queryParameter("host")
+            // if there's no host parameter specified, there's no way to unwrap the URL
+            // and the proxied one must be used. That's the case if using LBRY.
+            if (host.isNullOrEmpty()) return@let url
+            it.newBuilder()
+                .host(host)
+                .removeAllQueryParameters("host")
+                .build()
+                .toString()
+        } ?: url
+
 operator fun File.div(child: String): File = File(this, child)
 fun String.toSQLiteQuery(): SimpleSQLiteQuery = SimpleSQLiteQuery(this)
 fun InputStream.zipInputStream(): ZipInputStream = ZipInputStream(this)

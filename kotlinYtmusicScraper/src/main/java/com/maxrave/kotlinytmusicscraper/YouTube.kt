@@ -299,10 +299,8 @@ object YouTube {
         )
     }
 
-    suspend fun getStream(videoId: String, itag: Int): Result<String> = runCatching {
-        val response = ytMusic.pipedStreams(videoId).body<PipedResponse>()
-        val audioStreams = response.audioStreams
-        return@runCatching audioStreams.find { it.itag == itag }?.url ?: throw Exception("No stream found")
+    suspend fun getStream(videoId: String): Result<PipedResponse> = runCatching {
+        ytMusic.pipedStreams(videoId).body()
     }
 
     suspend fun player(videoId: String, playlistId: String? = null): Result<PlayerResponse> = runCatching {

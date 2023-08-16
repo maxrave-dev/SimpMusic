@@ -639,8 +639,8 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
             }
         }.flowOn(Dispatchers.IO)
     suspend fun getStream(videoId: String, itag: Int): Flow<String?> = flow{
-            YouTube.getStream(videoId, itag).onSuccess {
-                emit(it)
+            YouTube.player(videoId).onSuccess {
+                emit(it.streamingData?.adaptiveFormats?.find { it.itag == itag }?.url)
             }.onFailure {
                 emit(null)
             }

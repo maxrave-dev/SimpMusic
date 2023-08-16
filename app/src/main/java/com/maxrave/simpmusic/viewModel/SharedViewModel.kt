@@ -445,18 +445,19 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                         itag = QUALITY.itags[1]
                     }
                 }
-                mainRepository.getStream(track.videoId, itag).collect{
-                    if (it != null){
-                        uri = it
+                mainRepository.getStream(track.videoId, itag).collect{ stream ->
+                    if (stream != null){
+                        uri = stream
+                        Log.d("Check URI", uri)
                         val artistName: String = track.artists.toListName().connectArtists()
                         var thumbUrl = track.thumbnails?.last()?.url!!
                         if (thumbUrl.contains("w120")) {
                             thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
                         }
                         Log.d("Check URI", uri)
-                        musicSource.downloadUrl.add(0, uri)
+                        musicSource.downloadUrl.add(0, uri.toUri().toString())
                         simpleMediaServiceHandler.addMediaItem(
-                            MediaItem.Builder().setUri(uri)
+                            MediaItem.Builder().setUri(uri.toUri())
                                 .setMediaId(track.videoId)
                                 .setMediaMetadata(
                                     MediaMetadata.Builder()

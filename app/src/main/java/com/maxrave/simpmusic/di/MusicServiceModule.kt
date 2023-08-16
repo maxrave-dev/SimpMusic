@@ -65,7 +65,7 @@ object MusicServiceModule {
     @Singleton
     fun provideAudioAttributes(): AudioAttributes =
         AudioAttributes.Builder()
-            .setContentType(C.AUDIO_CONTENT_TYPE_MOVIE)
+            .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
             .setUsage(C.USAGE_MEDIA)
             .build()
 
@@ -116,6 +116,7 @@ object MusicServiceModule {
     ): ExoPlayer =
         ExoPlayer.Builder(context)
             .setAudioAttributes(audioAttributes, true)
+            .setWakeMode(C.WAKE_MODE_LOCAL)
             .setHandleAudioBecomingNoisy(true)
             .setTrackSelector(DefaultTrackSelector(context))
             .setMediaSourceFactory(mediaSourceFactory)
@@ -150,8 +151,7 @@ object MusicServiceModule {
     @Provides
     @Singleton
     fun provideServiceHandler(
-        player: ExoPlayer,
-        @ApplicationContext context: Context
+        player: ExoPlayer
     ): SimpleMediaServiceHandler =
         SimpleMediaServiceHandler(
             player = player
