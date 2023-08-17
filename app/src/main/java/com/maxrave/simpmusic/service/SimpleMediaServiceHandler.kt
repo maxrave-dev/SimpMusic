@@ -1,6 +1,7 @@
 package com.maxrave.simpmusic.service
 
 import android.annotation.SuppressLint
+import android.media.audiofx.LoudnessEnhancer
 import android.util.Log
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
@@ -8,15 +9,27 @@ import androidx.media3.common.Player
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import com.maxrave.simpmusic.data.dataStore.DataStoreManager
+import com.maxrave.simpmusic.data.repository.MainRepository
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.cancellable
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
+@OptIn(DelicateCoroutinesApi::class)
 @UnstableApi
 class SimpleMediaServiceHandler @Inject constructor(
     private val player: ExoPlayer,
+    private val dataStoreManager: DataStoreManager,
+    private val mainRepository: MainRepository
 ) : Player.Listener {
+
+    private var loudnessEnhancer: LoudnessEnhancer? = null
+
+    private var volumeNormalizationJob: Job? = null
 
     private val _simpleMediaState = MutableStateFlow<SimpleMediaState>(SimpleMediaState.Initial)
     val simpleMediaState = _simpleMediaState.asStateFlow()
@@ -178,8 +191,9 @@ class SimpleMediaServiceHandler @Inject constructor(
     }
 
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-        super.onMediaItemTransition(mediaItem, reason)
-        if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO || reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT || reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK || reason == Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED){
+        Log.w("Smooth Switching Transition", "Current Position: ${player.currentPosition}")
+        mayBeNormalizeVolume()
+        if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO || reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT || reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK || reason == Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED) {
             if (!_changeTrack.value) {
                 _changeTrack.value = true
                 _nextTrackAvailable.value = player.hasNextMediaItem()
@@ -187,8 +201,7 @@ class SimpleMediaServiceHandler @Inject constructor(
                 Log.d("Change Track", "onMediaItemTransition: ${changeTrack.value}")
                 Log.d("Media Item Transition", "Media Item: ${mediaItem?.mediaMetadata?.title}")
                 Log.d("Media Item Transition", "Reason: $reason")
-            }
-            else {
+            } else {
                 _changeTrack.value = false
                 Log.d("Change Track", "onMediaItemTransition: ${changeTrack.value}")
                 Log.d("Media Item Transition", "Media Item: ${mediaItem?.mediaMetadata?.title}")
@@ -289,6 +302,37 @@ class SimpleMediaServiceHandler @Inject constructor(
 
     fun stopPlayer() {
         player.stop()
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    private fun mayBeNormalizeVolume() {
+        if (runBlocking { dataStoreManager.normalizeVolume.first() == DataStoreManager.TRUE }) {
+            loudnessEnhancer?.enabled = false
+            loudnessEnhancer?.release()
+            loudnessEnhancer = null
+            volumeNormalizationJob?.cancel()
+            player.volume = 1f
+            return
+        }
+
+        if (loudnessEnhancer == null) {
+            loudnessEnhancer = LoudnessEnhancer(player.audioSessionId)
+        }
+
+        player.currentMediaItem?.mediaId?.let { songId ->
+            volumeNormalizationJob?.cancel()
+            volumeNormalizationJob = GlobalScope.launch(Dispatchers.Main) {
+                mainRepository.getFormat(songId).cancellable().collectLatest { format ->
+                    if (format != null){
+                        try {
+                            loudnessEnhancer?.setTargetGain(-((format.loudnessDb ?: 0f) * 100).toInt() + 500)
+                            Log.w("Loudness", "mayBeNormalizeVolume: ${loudnessEnhancer?.targetGain}")
+                            loudnessEnhancer?.enabled = true
+                        } catch (_: Exception) { }
+                    }
+                }
+            }
+        }
     }
 }
 

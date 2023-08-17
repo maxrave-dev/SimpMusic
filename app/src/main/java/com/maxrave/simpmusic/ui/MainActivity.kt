@@ -50,6 +50,7 @@ import com.maxrave.simpmusic.ui.fragment.player.NowPlayingFragment
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
+import com.maxrave.simpmusic.workmanager.CheckForUpdate
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -57,6 +58,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import pub.devrel.easypermissions.EasyPermissions
 import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 @UnstableApi
 @AndroidEntryPoint

@@ -8,6 +8,7 @@ import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
 import com.maxrave.simpmusic.data.db.LocalDataSource
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
+import com.maxrave.simpmusic.data.db.entities.FormatEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.LyricsEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
@@ -248,6 +249,12 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
 
     suspend fun insertLyrics(lyricsEntity: LyricsEntity) =
         withContext(Dispatchers.IO) { localDataSource.insertLyrics(lyricsEntity) }
+
+    suspend fun insertFormat(format: FormatEntity) =
+        withContext(Dispatchers.IO) { localDataSource.insertFormat(format) }
+
+    suspend fun getFormat(videoId: String): Flow<FormatEntity?> =
+        flow { emit(localDataSource.getFormat(videoId)) }.flowOn(Dispatchers.IO)
 
     suspend fun getHomeData(): Flow<Resource<ArrayList<HomeItem>>> = flow {
         runCatching {
@@ -639,8 +646,20 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
             }
         }.flowOn(Dispatchers.IO)
     suspend fun getStream(videoId: String, itag: Int): Flow<String?> = flow{
-            YouTube.player(videoId).onSuccess {
-                emit(it.streamingData?.adaptiveFormats?.find { it.itag == itag }?.url)
+            YouTube.player(videoId).onSuccess { response ->
+                val format = response.streamingData?.formats?.find { it.itag == itag}
+                insertFormat(
+                    FormatEntity(
+                        videoId = videoId,
+                        itag = format?.itag ?: itag,
+                        mimeType = format?.mimeType,
+                        bitrate = format?.bitrate?.toLong(),
+                        contentLength = format?.contentLength,
+                        lastModified = format?.lastModified,
+                        loudnessDb = response.playerConfig?.audioConfig?.loudnessDb?.toFloat()
+                    )
+                )
+                emit(response.streamingData?.adaptiveFormats?.find { it.itag == itag }?.url)
             }.onFailure {
                 emit(null)
             }

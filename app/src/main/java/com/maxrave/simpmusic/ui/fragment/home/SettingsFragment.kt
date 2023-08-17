@@ -1,6 +1,8 @@
 package com.maxrave.simpmusic.ui.fragment.home
 
+import android.app.Activity
 import android.content.Intent
+import android.media.audiofx.AudioEffect
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -75,16 +77,25 @@ class SettingsFragment : Fragment() {
         }
     }
 
+    private var resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){ activityResult ->
+        if (activityResult.resultCode == Activity.RESULT_OK)
+        {
+
+        }
+    }
+
     @OptIn(ExperimentalCoilApi::class)
     @UnstableApi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         viewModel.getLocation()
         viewModel.getLanguage()
         viewModel.getQuality()
         viewModel.getPlayerCacheSize()
         viewModel.getDownloadedCacheSize()
         viewModel.getLoggedIn()
+        viewModel.getNormalizeVolume()
 
         val diskCache = context?.imageLoader?.diskCache
 
@@ -121,6 +132,10 @@ class SettingsFragment : Fragment() {
             0
         }.toString())
 
+        viewModel.normalizeVolume.observe(viewLifecycleOwner){
+            binding.swNormalizeVolume.isChecked = it == DataStoreManager.TRUE
+        }
+
         binding.btVersion.setOnClickListener {
             val urlIntent = Intent(
                 Intent.ACTION_VIEW,
@@ -136,6 +151,16 @@ class SettingsFragment : Fragment() {
             }
             else if (viewModel.loggedIn.value == DataStoreManager.FALSE) {
                 findNavController().navigate(R.id.action_global_logInFragment)
+            }
+        }
+
+        binding.btEqualizer.setOnClickListener {
+            val eqIntent = Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL)
+            if (eqIntent.resolveActivity(requireActivity().packageManager) != null){
+                resultLauncher.launch(eqIntent)
+            }
+            else {
+                Toast.makeText(requireContext(), getString(R.string.no_equalizer), Toast.LENGTH_SHORT).show()
             }
         }
         binding.btGithub.setOnClickListener {
@@ -283,6 +308,14 @@ class SettingsFragment : Fragment() {
 
         binding.btRestore.setOnClickListener {
             restoreLauncher.launch(arrayOf("application/octet-stream"))
+        }
+        binding.swNormalizeVolume.setOnCheckedChangeListener { compoundButton, checked ->
+            if (checked) {
+                viewModel.setNormalizeVolume(true)
+            } else {
+                viewModel.setNormalizeVolume(false)
+            }
+            Toast.makeText(requireContext(), getString(R.string.restart_app), Toast.LENGTH_SHORT).show()
         }
     }
 

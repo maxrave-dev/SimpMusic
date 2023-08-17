@@ -56,6 +56,9 @@ class SettingsViewModel @Inject constructor(
     val language: LiveData<String> = _language
     private var _loggedIn: MutableLiveData<String> = MutableLiveData()
     val loggedIn: LiveData<String> = _loggedIn
+    private var _normalizeVolume: MutableLiveData<String> = MutableLiveData()
+    val normalizeVolume: LiveData<String> = _normalizeVolume
+
     fun getLocation() {
         viewModelScope.launch {
             dataStoreManager.location.collect { location ->
@@ -233,6 +236,20 @@ class SettingsViewModel @Inject constructor(
             dataStoreManager.setCookie("")
             YouTube.cookie = null
             dataStoreManager.setLoggedIn(false)
+        }
+    }
+
+    fun getNormalizeVolume() {
+        viewModelScope.launch {
+            dataStoreManager.normalizeVolume.collect { normalizeVolume ->
+                _normalizeVolume.postValue(normalizeVolume)
+            }
+        }
+    }
+    fun setNormalizeVolume(normalizeVolume: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setNormalizeVolume(normalizeVolume)
+            getNormalizeVolume()
         }
     }
 }
