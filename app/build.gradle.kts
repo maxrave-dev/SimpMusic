@@ -18,7 +18,7 @@ android {
         versionCode = 8
         versionName = "0.1.2-beta"
 
-        resourceConfigurations += listOf("en", "vi")
+        resourceConfigurations += listOf("en", "vi", "it")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
     }

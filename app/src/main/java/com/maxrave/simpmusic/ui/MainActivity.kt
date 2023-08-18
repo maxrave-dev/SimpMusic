@@ -93,6 +93,7 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
         super.onCreate(savedInstanceState)
         action = intent.action
         viewModel.checkIsRestoring()
+        Log.d("Italy", "Key: ${Locale.ITALY.toLanguageTag()}")
 
         // Check if the migration has already been done or not
         if (getString(FIRST_TIME_MIGRATION) != STATUS_DONE) {
