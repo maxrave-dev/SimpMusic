@@ -151,10 +151,14 @@ object MusicServiceModule {
     @Provides
     @Singleton
     fun provideServiceHandler(
-        player: ExoPlayer
+        player: ExoPlayer,
+        dataStoreManager: DataStoreManager,
+        mainRepository: MainRepository
     ): SimpleMediaServiceHandler =
         SimpleMediaServiceHandler(
-            player = player
+            player = player,
+            dataStoreManager = dataStoreManager,
+            mainRepository = mainRepository
         )
 
     @Provides

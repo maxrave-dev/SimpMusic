@@ -12,6 +12,7 @@
     <string name="clear_search_history">Clear search history</string>
     <string name="liked">Liked</string>
     <string name="like">Like</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="download">Download</string>
     <string name="downloaded">Downloaded</string>
     <string name="downloading">Downloading</string>
@@ -135,7 +136,7 @@
     <string name="albums_inArtist">Albums</string>
     <string name="singles_inArtist">Singles</string>
     <string name="fans_might_also_like_inArtist">Fans might also like</string>
-    <string name="crash_log">SimpMusic crashed. Sorry for this problem. Send crash-log to developer</string>
+    <string name="crash_log">SimpMusic crashed. Sorry for this problem.\nSend crash-log to developer</string>
     <string name="crash">Crash</string>
     <string name="send">Send</string>
     <string name="mail_subject">Report Crash</string>
@@ -147,10 +148,17 @@
     <string name="logged_in">Logged in</string>
     <string name="logged_out">Logged out</string>
     <string name="playlist">Playlist</string>
+    <string name="restart_app">Restart app to apply the change</string>
+    <string name="balance_media_loudness">Balance media loudness</string>
+    <string name="normalize_volume">Normalize Volume</string>
+    <string name="audio">Audio</string>
+    <string name="no_equalizer">Your device doesn\'t have equalizer</string>
+    <string name="open_system_equalizer">Open system equalizer</string>
+    <string name="use_your_system_equalizer">Use your system equalizer</string>
+    <string name="version_name">v0.1.2-beta</string>
+    <string name="streaming_data_provider_piped">Streaming data provider (Piped)</string>
     <plurals name="n_song">
         <item quantity="one">%d song</item>
         <item quantity="other">%d songs</item>
     </plurals>
-    <string name="hello_blank_fragment">Hello blank fragment</string>
-    <string name="download">Download</string>
 </resources>

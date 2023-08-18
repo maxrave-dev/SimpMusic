@@ -271,7 +271,7 @@ class LocalPlaylistFragment : Fragment() {
             }
             moreDialogView.btDelete.setOnClickListener {
                 Log.d("Check", "onViewCreated: ${viewModel.localPlaylist.value}")
-                Log.d("Check", "onViewCreated: ${id}")
+                Log.d("Check", "onViewCreated: $id")
                 viewModel.deletePlaylist(id!!)
                 moreDialog.dismiss()
                 Toast.makeText(requireContext(), "Playlist deleted", Toast.LENGTH_SHORT).show()

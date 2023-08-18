@@ -299,11 +299,7 @@ object YouTube {
         )
     }
 
-    suspend fun getStream(videoId: String): Result<PipedResponse> = runCatching {
-        ytMusic.pipedStreams(videoId).body()
-    }
-
-    suspend fun player(videoId: String, playlistId: String? = null): Result<PlayerResponse> = runCatching {
+    suspend fun player(videoId: String, pipedInstance: String, playlistId: String? = null): Result<PlayerResponse> = runCatching {
         val playerResponse = ytMusic.player(ANDROID_MUSIC, videoId, playlistId).body<PlayerResponse>()
         if (playerResponse.playabilityStatus.status == "OK") {
             return@runCatching playerResponse
@@ -312,7 +308,7 @@ object YouTube {
         if (safePlayerResponse.playabilityStatus.status != "OK") {
             return@runCatching playerResponse
         }
-        val audioStreams = ytMusic.pipedStreams(videoId).body<PipedResponse>().audioStreams
+        val audioStreams = ytMusic.pipedStreams(videoId, pipedInstance).body<PipedResponse>().audioStreams
         safePlayerResponse.copy(
             streamingData = safePlayerResponse.streamingData?.copy(
                 adaptiveFormats = safePlayerResponse.streamingData.adaptiveFormats.mapNotNull { adaptiveFormat ->
@@ -389,8 +385,8 @@ object YouTube {
         ytMusic.accountMenu(WEB_REMIX).body<AccountMenuResponse>().actions[0].openPopupAction.popup.multiPageMenuRenderer.header?.activeAccountHeaderRenderer?.toAccountInfo()
     }
 
-    suspend fun pipeStream(videoId: String) = runCatching {
-        ytMusic.pipedStreams(videoId).body<PipedResponse>()
+    suspend fun pipeStream(videoId: String, pipedInstance: String) = runCatching {
+        ytMusic.pipedStreams(videoId, pipedInstance).body<PipedResponse>()
     }
 
     @JvmInline
