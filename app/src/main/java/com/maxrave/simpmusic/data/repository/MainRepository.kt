@@ -5,6 +5,7 @@ import android.util.Log
 import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.models.MusicShelfRenderer
 import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
+import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.LocalDataSource
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
@@ -49,8 +50,10 @@ import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 import javax.inject.Inject
@@ -58,7 +61,7 @@ import javax.inject.Singleton
 
 //@ActivityRetainedScoped
 @Singleton
-class MainRepository @Inject constructor(private val localDataSource: LocalDataSource, @ApplicationContext private val context: Context) {
+class MainRepository @Inject constructor(private val localDataSource: LocalDataSource, private val dataStoreManager: DataStoreManager, @ApplicationContext private val context: Context) {
     //Database
     suspend fun getSearchHistory(): Flow<List<SearchHistory>> =
         flow { emit(localDataSource.getSearchHistory()) }.flowOn(Dispatchers.IO)
@@ -646,7 +649,8 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
             }
         }.flowOn(Dispatchers.IO)
     suspend fun getStream(videoId: String, itag: Int): Flow<String?> = flow{
-            YouTube.player(videoId).onSuccess { response ->
+        val instance = runBlocking { dataStoreManager.pipedInstance.first() }
+        YouTube.player(videoId, instance).onSuccess { response ->
                 val format = response.streamingData?.formats?.find { it.itag == itag}
                 insertFormat(
                     FormatEntity(
@@ -666,7 +670,8 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
     }.flowOn(Dispatchers.IO)
 
     fun getSongFull(videoId: String): Flow<PipedResponse> = flow {
-        YouTube.pipeStream(videoId).onSuccess {
+        val instance = runBlocking { dataStoreManager.pipedInstance.first() }
+        YouTube.pipeStream(videoId, instance).onSuccess {
             emit(it)
         }
     }.flowOn(Dispatchers.IO)

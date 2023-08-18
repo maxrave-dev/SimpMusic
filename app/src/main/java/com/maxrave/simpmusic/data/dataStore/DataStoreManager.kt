@@ -106,19 +106,13 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
         }
     }
 
-    val smoothSwitching: Flow<String> = settingsDataStore.data.map { preferences ->
-        preferences[SMOOTH_SWITCHING] ?: FALSE
+    val pipedInstance: Flow<String> = settingsDataStore.data.map { preferences ->
+        preferences[PIPED] ?: "watchapi.whatever.social"
     }
 
-    suspend fun setSmoothSwitching(smooth: Boolean) {
-        if (smooth) {
-            settingsDataStore.edit { settings ->
-                settings[SMOOTH_SWITCHING] = TRUE
-            }
-        } else {
-            settingsDataStore.edit { settings ->
-                settings[SMOOTH_SWITCHING] = FALSE
-            }
+    suspend fun setPipedInstance(instance: String) {
+        settingsDataStore.edit { settings ->
+            settings[PIPED] = instance
         }
     }
 
@@ -129,8 +123,8 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
         val LOCATION = stringPreferencesKey("location")
         val QUALITY = stringPreferencesKey("quality")
         val NORMALIZE_VOLUME = stringPreferencesKey("normalize_volume")
-        val SMOOTH_SWITCHING = stringPreferencesKey("smooth_switching")
         val IS_RESTORING_DATABASE = stringPreferencesKey("is_restoring_database")
+        val PIPED = stringPreferencesKey("piped")
         val TRUE = "TRUE"
         val FALSE = "FALSE"
     }

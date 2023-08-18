@@ -43,11 +43,19 @@ object SUPPORTED_LOCATION {
 object SUPPORTED_LANGUAGE {
     val items: Array<CharSequence> = arrayOf("English", "Vietnamese")
     val codes: Array<String> = arrayOf("en-US", "vi-VN")
-    val serverCodes: Array<String> = arrayOf("en", "vi_VN")
 }
 object QUALITY {
     val items: Array<CharSequence> = arrayOf("Low - 66kps", "High - 129kps")
     val itags: Array<Int> = arrayOf(250, 251)
+}
+
+object PIPED_INSTANCE {
+    val listPiped: Array<CharSequence> = arrayOf("pipedapi.kavin.rocks", "pipedapi.tokhmi.xyz", "pipedapi.moomoo.me", "pipedapi.syncpundit.io",
+        "api-piped.mha.fi", "piped-api.garudalinux.org", "pipedapi.rivo.lol", "pipedapi.aeong.one", "pipedapi.leptons.xyz", "piped-api.lunar.icu",
+        "ytapi.dc09.ru", "pipedapi.colinslegacy.com", "yapi.vyper.me", "pipedapi-libre.kavin.rocks", "pa.mint.lgbt", "pa.il.ax", "piped-api.privacy.com.de",
+        "api.piped.projectsegfau.lt", "pipedapi.in.projectsegfau.lt", "pipedapi.us.projectsegfau.lt", "watchapi.whatever.social", "api.piped.privacydev.net",
+        "pipedapi.palveluntarjoaja.eu", "pipedapi.smnz.de", "pipedapi.adminforge.de", "pipedapi.qdi.fi", "piped-api.hostux.net", "pdapi.vern.cc", "pipedapi.jotoma.de",
+        "pipedapi.pfcd.me", "pipedapi.frontendfriendly.xyz", "api.piped.yt", "pipedapi.astartes.nl", "pipedapi.osphost.fi", "pipedapi.simpleprivacy.fr", "pipedapi.drgns.space")
 }
 
 const val SETTINGS_FILENAME = "settings"

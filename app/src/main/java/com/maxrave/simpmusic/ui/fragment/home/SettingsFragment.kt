@@ -20,6 +20,7 @@ import coil.annotation.ExperimentalCoilApi
 import coil.imageLoader
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.common.PIPED_INSTANCE
 import com.maxrave.simpmusic.common.QUALITY
 import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.common.SUPPORTED_LOCATION
@@ -96,6 +97,7 @@ class SettingsFragment : Fragment() {
         viewModel.getDownloadedCacheSize()
         viewModel.getLoggedIn()
         viewModel.getNormalizeVolume()
+        viewModel.getPipedInstance()
 
         val diskCache = context?.imageLoader?.diskCache
 
@@ -134,6 +136,9 @@ class SettingsFragment : Fragment() {
 
         viewModel.normalizeVolume.observe(viewLifecycleOwner){
             binding.swNormalizeVolume.isChecked = it == DataStoreManager.TRUE
+        }
+        viewModel.pipedInstance.observe(viewLifecycleOwner) {
+            binding.tvPipedInstance.text = it
         }
 
         binding.btVersion.setOnClickListener {
@@ -207,6 +212,27 @@ class SettingsFragment : Fragment() {
                         viewModel.changeLocation(SUPPORTED_LOCATION.items[checkedIndex].toString())
                         viewModel.location.observe(viewLifecycleOwner) {
                             binding.tvContentCountry.text = it
+                        }
+                    }
+                    dialog.dismiss()
+                }
+            dialog.show()
+        }
+        binding.btPipedInstance.setOnClickListener {
+            var checkedIndex = -1
+            val dialog = MaterialAlertDialogBuilder(requireContext())
+                .setSingleChoiceItems(PIPED_INSTANCE.listPiped, -1) { _, which ->
+                    checkedIndex = which
+                }
+                .setTitle(requireContext().getString(R.string.streaming_data_provider_piped))
+                .setNegativeButton(requireContext().getString(R.string.cancel)) { dialog, _ ->
+                    dialog.dismiss()
+                }
+                .setPositiveButton(requireContext().getString(R.string.change)) { dialog, _ ->
+                    if (checkedIndex != -1) {
+                        viewModel.setPipedInstance(PIPED_INSTANCE.listPiped[checkedIndex].toString())
+                        viewModel.pipedInstance.observe(viewLifecycleOwner) {
+                            binding.tvPipedInstance.text = it
                         }
                     }
                     dialog.dismiss()
