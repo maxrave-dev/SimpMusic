@@ -18,6 +18,10 @@ android {
         versionCode = 8
         versionName = "0.1.2-beta"
 
+        ksp {
+            arg("room.schemaLocation", "$projectDir/schemas")
+        }
+
         resourceConfigurations += listOf("en", "vi", "it")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

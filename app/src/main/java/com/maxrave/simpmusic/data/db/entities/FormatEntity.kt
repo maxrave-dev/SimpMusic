@@ -11,5 +11,9 @@ data class FormatEntity(
     val bitrate: Long? = null,
     val contentLength: Long? = null,
     val lastModified: Long? = null,
-    val loudnessDb: Float? = null
+    val loudnessDb: Float? = null,
+    val uploader: String? = null,
+    val uploaderId: String? = null,
+    val uploaderSubCount: Int? = null,
+    val uploaderThumbnail: String? = null,
 )

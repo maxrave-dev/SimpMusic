@@ -652,17 +652,23 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
         val instance = runBlocking { dataStoreManager.pipedInstance.first() }
         YouTube.player(videoId, instance).onSuccess { response ->
                 val format = response.streamingData?.formats?.find { it.itag == itag}
-                insertFormat(
-                    FormatEntity(
-                        videoId = videoId,
-                        itag = format?.itag ?: itag,
-                        mimeType = format?.mimeType,
-                        bitrate = format?.bitrate?.toLong(),
-                        contentLength = format?.contentLength,
-                        lastModified = format?.lastModified,
-                        loudnessDb = response.playerConfig?.audioConfig?.loudnessDb?.toFloat()
+                runBlocking {
+                    insertFormat(
+                        FormatEntity(
+                            videoId = videoId,
+                            itag = format?.itag ?: itag,
+                            mimeType = format?.mimeType,
+                            bitrate = format?.bitrate?.toLong(),
+                            contentLength = format?.contentLength,
+                            lastModified = format?.lastModified,
+                            loudnessDb = response.playerConfig?.audioConfig?.loudnessDb?.toFloat(),
+                            uploader = response.videoDetails?.author?.replace(Regex(" - Topic"), ""),
+                            uploaderId = response.videoDetails?.channelId,
+                            uploaderThumbnail = response.videoDetails?.authorAvatar,
+                            uploaderSubCount = response.videoDetails?.authorSubCount,
+                        )
                     )
-                )
+                }
                 emit(response.streamingData?.adaptiveFormats?.find { it.itag == itag }?.url)
             }.onFailure {
                 emit(null)

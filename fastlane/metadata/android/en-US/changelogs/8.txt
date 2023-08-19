@@ -1,0 +1,5 @@
+- Add Italiano to the list of languages
+- Add Normalize Volume
+- Add using system equalizer
+- Add Piped Instance chosen by user
+- Redesign logo

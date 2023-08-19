@@ -300,15 +300,26 @@ object YouTube {
     }
 
     suspend fun player(videoId: String, pipedInstance: String, playlistId: String? = null): Result<PlayerResponse> = runCatching {
+        val piped = ytMusic.pipedStreams(videoId, pipedInstance).body<PipedResponse>()
+        val audioStreams = piped.audioStreams
         val playerResponse = ytMusic.player(ANDROID_MUSIC, videoId, playlistId).body<PlayerResponse>()
         if (playerResponse.playabilityStatus.status == "OK") {
-            return@runCatching playerResponse
+            return@runCatching playerResponse.copy(
+                videoDetails = playerResponse.videoDetails?.copy(
+                    authorAvatar = piped.uploaderAvatar?.replace(Regex("s48"), "s960"),
+                    authorSubCount = piped.uploaderSubscriberCount,
+                )
+            )
         }
         val safePlayerResponse = ytMusic.player(TVHTML5, videoId, playlistId).body<PlayerResponse>()
         if (safePlayerResponse.playabilityStatus.status != "OK") {
-            return@runCatching playerResponse
+            return@runCatching playerResponse.copy(
+                videoDetails = safePlayerResponse.videoDetails?.copy(
+                    authorAvatar = piped.uploaderAvatar?.replace(Regex("s48"), "s960"),
+                    authorSubCount = piped.uploaderSubscriberCount,
+                )
+            )
         }
-        val audioStreams = ytMusic.pipedStreams(videoId, pipedInstance).body<PipedResponse>().audioStreams
         safePlayerResponse.copy(
             streamingData = safePlayerResponse.streamingData?.copy(
                 adaptiveFormats = safePlayerResponse.streamingData.adaptiveFormats.mapNotNull { adaptiveFormat ->
@@ -318,6 +329,10 @@ object YouTube {
                         )
                     }
                 }
+            ),
+            videoDetails = safePlayerResponse.videoDetails?.copy(
+                authorAvatar = piped.uploaderAvatar?.replace(Regex("s48"), "s96"),
+                authorSubCount = piped.uploaderSubscriberCount,
             )
         )
     }

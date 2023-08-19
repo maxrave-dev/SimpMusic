@@ -161,12 +161,7 @@ class SettingsFragment : Fragment() {
 
         binding.btEqualizer.setOnClickListener {
             val eqIntent = Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL)
-            if (eqIntent.resolveActivity(requireActivity().packageManager) != null){
-                resultLauncher.launch(eqIntent)
-            }
-            else {
-                Toast.makeText(requireContext(), getString(R.string.no_equalizer), Toast.LENGTH_SHORT).show()
-            }
+            resultLauncher.launch(eqIntent)
         }
         binding.btGithub.setOnClickListener {
             val urlIntent = Intent(
@@ -341,7 +336,6 @@ class SettingsFragment : Fragment() {
             } else {
                 viewModel.setNormalizeVolume(false)
             }
-            Toast.makeText(requireContext(), getString(R.string.restart_app), Toast.LENGTH_SHORT).show()
         }
     }
 
