@@ -153,4 +153,17 @@
     <string name="logged_in">Đã đăng nhập</string>
     <string name="logged_out">Đăng xuất thành công</string>
     <string name="playlist">Danh sách phát</string>
+    <string name="restart_app">Khởi động lại ứng dụng để thay đổi</string>
+    <string name="balance_media_loudness">Cân bằng độ lớn của âm thanh</string>
+    <string name="normalize_volume">Cân bằng âm lượng</string>
+    <string name="audio">Âm thanh</string>
+    <string name="no_equalizer">Thiết bị của bạn không có bộ chỉnh âm</string>
+    <string name="open_system_equalizer">Mở bộ chỉnh âm</string>
+    <string name="use_your_system_equalizer">Sử dụng bộ chỉnh âm của hệ thống</string>
+    <string name="streaming_data_provider_piped">Trang cung cấp dữ liệu (Piped)</string>
+    <string name="itag">Itag</string>
+    <string name="mime_type">Mime Type</string>
+    <string name="bitrate">Bitrate</string>
+    <string name="warning">Cảnh báo</string>
+    <string name="change_language_warning">Thay đổi ngôn ngữ sẽ làm ứng dụng đóng. Bạn có chắc chắn?</string>
 </resources>

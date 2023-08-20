@@ -69,6 +69,8 @@ data class PlayerResponse(
         val title: String,
         val author: String,
         val channelId: String,
+        val authorAvatar: String?,
+        val authorSubCount: Int?,
         val lengthSeconds: String,
         val musicVideoType: String?,
         val viewCount: String,

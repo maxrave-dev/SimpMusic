@@ -15,10 +15,14 @@ android {
         applicationId = "com.maxrave.simpmusic"
         minSdk = 26
         targetSdk = 34
-        versionCode = 7
-        versionName = "0.1.1-beta"
+        versionCode = 8
+        versionName = "0.1.2-beta"
 
-        resourceConfigurations += listOf("en", "vi")
+        ksp {
+            arg("room.schemaLocation", "$projectDir/schemas")
+        }
+
+        resourceConfigurations += listOf("en", "vi", "it")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
     }
@@ -90,8 +94,8 @@ dependencies {
     //Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     //Navigation
-    implementation("androidx.navigation:navigation-fragment-ktx:2.6.0")
-    implementation("androidx.navigation:navigation-ui-ktx:2.6.0")
+    implementation("androidx.navigation:navigation-fragment-ktx:2.7.0")
+    implementation("androidx.navigation:navigation-ui-ktx:2.7.0")
 
     implementation("com.google.code.gson:gson:2.10.1")
 
@@ -105,7 +109,7 @@ dependencies {
     implementation("androidx.palette:palette-ktx:1.0.0")
 
     //Preference
-    implementation("androidx.preference:preference-ktx:1.2.0")
+    implementation("androidx.preference:preference-ktx:1.2.1")
 
     //fragment ktx
     implementation("androidx.fragment:fragment-ktx:1.6.1")
@@ -113,8 +117,6 @@ dependencies {
     implementation("com.google.dagger:hilt-android:2.47")
     kapt("com.google.dagger:hilt-compiler:2.47")
     ksp("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.7.0")
-    //Preference ktx
-    implementation("androidx.preference:preference-ktx:1.2.0")
     //DataStore
     implementation("androidx.datastore:datastore-preferences:1.0.0")
     //Swipe To Refresh

@@ -25,6 +25,7 @@ import com.maxrave.simpmusic.common.QUALITY
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.TRUE
+import com.maxrave.simpmusic.data.db.entities.FormatEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.LyricsEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
@@ -139,6 +140,9 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     private var language: String? = null
     private var quality: String? = null
     private var isRestoring = MutableStateFlow(false)
+
+    private var _format: MutableLiveData<FormatEntity?> = MutableLiveData()
+    val format: LiveData<FormatEntity?> = _format
 
     val intent: MutableStateFlow<Intent?> = MutableStateFlow(null)
 
@@ -781,6 +785,21 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                 }
                 else {
                     Log.e("Cookie", "Cookie is empty")
+                }
+            }
+        }
+    }
+
+    fun getFormat(mediaId: String?) {
+        viewModelScope.launch {
+            if (mediaId != null){
+                mainRepository.getFormat(mediaId).collect { f ->
+                    if (f != null){
+                        _format.postValue(f)
+                    }
+                    else {
+                        _format.postValue(null)
+                    }
                 }
             }
         }

@@ -90,13 +90,41 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
         }
     }
 
+    val normalizeVolume: Flow<String> = settingsDataStore.data.map { preferences ->
+        preferences[NORMALIZE_VOLUME] ?: FALSE
+    }
+
+    suspend fun setNormalizeVolume(normalize: Boolean) {
+        if (normalize) {
+            settingsDataStore.edit { settings ->
+                settings[NORMALIZE_VOLUME] = TRUE
+            }
+        } else {
+            settingsDataStore.edit { settings ->
+                settings[NORMALIZE_VOLUME] = FALSE
+            }
+        }
+    }
+
+    val pipedInstance: Flow<String> = settingsDataStore.data.map { preferences ->
+        preferences[PIPED] ?: "watchapi.whatever.social"
+    }
+
+    suspend fun setPipedInstance(instance: String) {
+        settingsDataStore.edit { settings ->
+            settings[PIPED] = instance
+        }
+    }
+
 
     companion object Settings {
         val COOKIE = stringPreferencesKey("cookie")
         val LOGGED_IN = stringPreferencesKey("logged_in")
         val LOCATION = stringPreferencesKey("location")
         val QUALITY = stringPreferencesKey("quality")
+        val NORMALIZE_VOLUME = stringPreferencesKey("normalize_volume")
         val IS_RESTORING_DATABASE = stringPreferencesKey("is_restoring_database")
+        val PIPED = stringPreferencesKey("piped")
         val TRUE = "TRUE"
         val FALSE = "FALSE"
     }

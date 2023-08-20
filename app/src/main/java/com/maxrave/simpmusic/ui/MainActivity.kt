@@ -3,12 +3,14 @@ package com.maxrave.simpmusic.ui
 import android.Manifest
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.Toast
 import androidx.activity.viewModels
@@ -17,7 +19,10 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.graphics.ColorUtils
 import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.DownloadService
@@ -51,12 +56,14 @@ import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import dagger.hilt.android.AndroidEntryPoint
+import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import pub.devrel.easypermissions.EasyPermissions
 import java.util.Locale
+import kotlin.system.exitProcess
 
 @UnstableApi
 @AndroidEntryPoint
@@ -93,6 +100,7 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
         super.onCreate(savedInstanceState)
         action = intent.action
         viewModel.checkIsRestoring()
+        Log.d("Italy", "Key: ${Locale.ITALY.toLanguageTag()}")
 
         // Check if the migration has already been done or not
         if (getString(FIRST_TIME_MIGRATION) != STATUS_DONE) {
@@ -149,6 +157,12 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
         binding = ActivityMainBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
+        binding.bottomNavigationView.applyInsetter {
+            type(navigationBars = true) {
+                padding()
+            }
+        }
+        window.navigationBarColor = Color.parseColor("#CB0B0A0A")
         binding.miniplayer.visibility = View.GONE
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.fragment_container_view)
         val navController = navHostFragment?.findNavController()
@@ -385,9 +399,6 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
         super.onDestroy()
         Queue.clear()
         stopService()
-        viewModel.isServiceRunning.postValue(false)
-
-        Log.d("Service", "Service destroyed")
     }
     private fun startService() {
         if (viewModel.isServiceRunning.value == false) {
@@ -411,6 +422,8 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
                 Log.d("Service", "DownloadService stopped")
             }
             viewModel.isServiceRunning.postValue(false)
+            android.os.Process.killProcess(android.os.Process.myPid())
+            exitProcess(1)
         }
     }
 

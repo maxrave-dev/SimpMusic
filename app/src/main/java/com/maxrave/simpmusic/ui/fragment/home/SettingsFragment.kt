@@ -1,6 +1,8 @@
 package com.maxrave.simpmusic.ui.fragment.home
 
+import android.app.Activity
 import android.content.Intent
+import android.media.audiofx.AudioEffect
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -18,6 +20,7 @@ import coil.annotation.ExperimentalCoilApi
 import coil.imageLoader
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.common.PIPED_INSTANCE
 import com.maxrave.simpmusic.common.QUALITY
 import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.common.SUPPORTED_LOCATION
@@ -75,16 +78,26 @@ class SettingsFragment : Fragment() {
         }
     }
 
+    private var resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){ activityResult ->
+        if (activityResult.resultCode == Activity.RESULT_OK)
+        {
+
+        }
+    }
+
     @OptIn(ExperimentalCoilApi::class)
     @UnstableApi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         viewModel.getLocation()
         viewModel.getLanguage()
         viewModel.getQuality()
         viewModel.getPlayerCacheSize()
         viewModel.getDownloadedCacheSize()
         viewModel.getLoggedIn()
+        viewModel.getNormalizeVolume()
+        viewModel.getPipedInstance()
 
         val diskCache = context?.imageLoader?.diskCache
 
@@ -121,6 +134,13 @@ class SettingsFragment : Fragment() {
             0
         }.toString())
 
+        viewModel.normalizeVolume.observe(viewLifecycleOwner){
+            binding.swNormalizeVolume.isChecked = it == DataStoreManager.TRUE
+        }
+        viewModel.pipedInstance.observe(viewLifecycleOwner) {
+            binding.tvPipedInstance.text = it
+        }
+
         binding.btVersion.setOnClickListener {
             val urlIntent = Intent(
                 Intent.ACTION_VIEW,
@@ -137,6 +157,11 @@ class SettingsFragment : Fragment() {
             else if (viewModel.loggedIn.value == DataStoreManager.FALSE) {
                 findNavController().navigate(R.id.action_global_logInFragment)
             }
+        }
+
+        binding.btEqualizer.setOnClickListener {
+            val eqIntent = Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL)
+            resultLauncher.launch(eqIntent)
         }
         binding.btGithub.setOnClickListener {
             val urlIntent = Intent(
@@ -188,6 +213,27 @@ class SettingsFragment : Fragment() {
                 }
             dialog.show()
         }
+        binding.btPipedInstance.setOnClickListener {
+            var checkedIndex = -1
+            val dialog = MaterialAlertDialogBuilder(requireContext())
+                .setSingleChoiceItems(PIPED_INSTANCE.listPiped, -1) { _, which ->
+                    checkedIndex = which
+                }
+                .setTitle(requireContext().getString(R.string.streaming_data_provider_piped))
+                .setNegativeButton(requireContext().getString(R.string.cancel)) { dialog, _ ->
+                    dialog.dismiss()
+                }
+                .setPositiveButton(requireContext().getString(R.string.change)) { dialog, _ ->
+                    if (checkedIndex != -1) {
+                        viewModel.setPipedInstance(PIPED_INSTANCE.listPiped[checkedIndex].toString())
+                        viewModel.pipedInstance.observe(viewLifecycleOwner) {
+                            binding.tvPipedInstance.text = it
+                        }
+                    }
+                    dialog.dismiss()
+                }
+            dialog.show()
+        }
         binding.btLanguage.setOnClickListener {
             var checkedIndex = -1
             val dialog = MaterialAlertDialogBuilder(requireContext())
@@ -200,15 +246,27 @@ class SettingsFragment : Fragment() {
                 }
                 .setPositiveButton(getString(R.string.change)) { dialog, _ ->
                     if (checkedIndex != -1) {
-                        viewModel.changeLanguage(SUPPORTED_LANGUAGE.codes[checkedIndex])
-                        viewModel.language.observe(viewLifecycleOwner) {
-                            if (it != null) {
-                                val temp = SUPPORTED_LANGUAGE.items[SUPPORTED_LANGUAGE.codes.indexOf(it)]
-                                binding.tvLanguage.text = temp
-                                val localeList = LocaleListCompat.forLanguageTags(it)
-                                AppCompatDelegate.setApplicationLocales(localeList)
+                        val alertDialog = MaterialAlertDialogBuilder(requireContext())
+                            .setTitle(R.string.warning)
+                            .setMessage(R.string.change_language_warning)
+                            .setNegativeButton(getString(R.string.cancel)) { d, _ ->
+                                d.dismiss()
+                                dialog.dismiss()
                             }
-                        }
+                            .setPositiveButton(getString(R.string.change)) { d, _ ->
+                                viewModel.changeLanguage(SUPPORTED_LANGUAGE.codes[checkedIndex])
+                                viewModel.language.observe(viewLifecycleOwner) {
+                                    if (it != null) {
+                                        val temp = SUPPORTED_LANGUAGE.items[SUPPORTED_LANGUAGE.codes.indexOf(it)]
+                                        binding.tvLanguage.text = temp
+                                        val localeList = LocaleListCompat.forLanguageTags(it)
+                                        AppCompatDelegate.setApplicationLocales(localeList)
+                                    }
+                                }
+                                d.dismiss()
+                                dialog.dismiss()
+                            }
+                        alertDialog.show()
                     }
                     dialog.dismiss()
                 }
@@ -283,6 +341,13 @@ class SettingsFragment : Fragment() {
 
         binding.btRestore.setOnClickListener {
             restoreLauncher.launch(arrayOf("application/octet-stream"))
+        }
+        binding.swNormalizeVolume.setOnCheckedChangeListener { compoundButton, checked ->
+            if (checked) {
+                viewModel.setNormalizeVolume(true)
+            } else {
+                viewModel.setNormalizeVolume(false)
+            }
         }
     }
 
