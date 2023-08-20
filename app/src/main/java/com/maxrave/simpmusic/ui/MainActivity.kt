@@ -63,6 +63,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import pub.devrel.easypermissions.EasyPermissions
 import java.util.Locale
+import kotlin.system.exitProcess
 
 @UnstableApi
 @AndroidEntryPoint
@@ -398,9 +399,6 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
         super.onDestroy()
         Queue.clear()
         stopService()
-        viewModel.isServiceRunning.postValue(false)
-
-        Log.d("Service", "Service destroyed")
     }
     private fun startService() {
         if (viewModel.isServiceRunning.value == false) {
@@ -424,6 +422,8 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
                 Log.d("Service", "DownloadService stopped")
             }
             viewModel.isServiceRunning.postValue(false)
+            android.os.Process.killProcess(android.os.Process.myPid())
+            exitProcess(1)
         }
     }
 

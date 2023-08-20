@@ -164,4 +164,6 @@
     <string name="itag">Itag</string>
     <string name="mime_type">Mime Type</string>
     <string name="bitrate">Bitrate</string>
+    <string name="warning">Avvertimento</string>
+    <string name="change_language_warning">La modifica della lingua chiuderà l\'app. Sei sicuro?</string>
 </resources>

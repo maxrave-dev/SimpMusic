@@ -246,15 +246,27 @@ class SettingsFragment : Fragment() {
                 }
                 .setPositiveButton(getString(R.string.change)) { dialog, _ ->
                     if (checkedIndex != -1) {
-                        viewModel.changeLanguage(SUPPORTED_LANGUAGE.codes[checkedIndex])
-                        viewModel.language.observe(viewLifecycleOwner) {
-                            if (it != null) {
-                                val temp = SUPPORTED_LANGUAGE.items[SUPPORTED_LANGUAGE.codes.indexOf(it)]
-                                binding.tvLanguage.text = temp
-                                val localeList = LocaleListCompat.forLanguageTags(it)
-                                AppCompatDelegate.setApplicationLocales(localeList)
+                        val alertDialog = MaterialAlertDialogBuilder(requireContext())
+                            .setTitle(R.string.warning)
+                            .setMessage(R.string.change_language_warning)
+                            .setNegativeButton(getString(R.string.cancel)) { d, _ ->
+                                d.dismiss()
+                                dialog.dismiss()
                             }
-                        }
+                            .setPositiveButton(getString(R.string.change)) { d, _ ->
+                                viewModel.changeLanguage(SUPPORTED_LANGUAGE.codes[checkedIndex])
+                                viewModel.language.observe(viewLifecycleOwner) {
+                                    if (it != null) {
+                                        val temp = SUPPORTED_LANGUAGE.items[SUPPORTED_LANGUAGE.codes.indexOf(it)]
+                                        binding.tvLanguage.text = temp
+                                        val localeList = LocaleListCompat.forLanguageTags(it)
+                                        AppCompatDelegate.setApplicationLocales(localeList)
+                                    }
+                                }
+                                d.dismiss()
+                                dialog.dismiss()
+                            }
+                        alertDialog.show()
                     }
                     dialog.dismiss()
                 }

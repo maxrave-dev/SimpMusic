@@ -160,6 +160,8 @@
     <string name="itag">Itag</string>
     <string name="mime_type">Mime Type</string>
     <string name="bitrate">Bitrate</string>
+    <string name="warning">Warning</string>
+    <string name="change_language_warning">Changing language will close your app. Are you sure?</string>
     <plurals name="n_song">
         <item quantity="one">%d song</item>
         <item quantity="other">%d songs</item>
