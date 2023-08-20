@@ -151,7 +151,7 @@
     <string name="playlist">Playlist</string>
     <plurals name="n_song">
         <item quantity="one">%d canzone</item>
-        <item quantity="other">%d canzone</item>
+        <item quantity="many">%d canzone</item>
     </plurals>
     <string name="restart_app">Riavvia l\'app per applicare la modifica</string>
     <string name="balance_media_loudness">Bilancia il volume dei contenuti multimediali</string>
@@ -161,4 +161,7 @@
     <string name="open_system_equalizer">Equalizzatore a sistema aperto</string>
     <string name="use_your_system_equalizer">Usa l\'equalizzatore del tuo sistema</string>
     <string name="streaming_data_provider_piped">Fornitore di dati in streaming (Piped)</string>
+    <string name="itag">Itag</string>
+    <string name="mime_type">Mime Type</string>
+    <string name="bitrate">Bitrate</string>
 </resources>

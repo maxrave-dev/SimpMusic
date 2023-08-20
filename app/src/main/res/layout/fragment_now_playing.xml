@@ -461,9 +461,8 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
                                 android:scaleType="centerCrop"
-                                app:shapeAppearance="@style/circle"
                                 android:id="@+id/ivAuthor"
-                                android:alpha="0.2">
+                                android:alpha="0.6">
 
                             </ImageView>
                             <LinearLayout
@@ -521,6 +520,11 @@
                             </LinearLayout>
                         </FrameLayout>
                     </com.google.android.material.card.MaterialCardView>
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="15dp"
+                        android:background="@android:color/transparent">
+                    </RelativeLayout>
                 </LinearLayout>
             </LinearLayout>
 

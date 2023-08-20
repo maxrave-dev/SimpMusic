@@ -3,6 +3,7 @@ package com.maxrave.simpmusic.ui.fragment.player
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
@@ -64,6 +65,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import java.text.NumberFormat
+import java.util.Locale
 import javax.inject.Inject
 
 
@@ -116,11 +119,7 @@ class NowPlayingFragment : Fragment() {
                 margin()
             }
         }
-        binding.root.applyInsetter {
-            type(navigationBars = true) {
-                margin()
-            }
-        }
+        activity?.window?.navigationBarColor = Color.TRANSPARENT
         return binding.root
     }
 
@@ -203,7 +202,8 @@ class NowPlayingFragment : Fragment() {
                                                     binding.uploaderLayout.visibility = View.VISIBLE
                                                     binding.tvUploader.text = format.uploader
                                                     binding.ivAuthor.load(format.uploaderThumbnail)
-                                                    binding.tvSubCount.text = getString(R.string.subscribers, format.uploaderSubCount.toString())
+                                                    binding.tvSubCount.text = getString(R.string.subscribers, NumberFormat.getNumberInstance(
+                                                        Locale.US).format(format.uploaderSubCount).toString())
                                                 }
                                                 else {
                                                     binding.uploaderLayout.visibility = View.GONE
@@ -275,7 +275,8 @@ class NowPlayingFragment : Fragment() {
                                             binding.uploaderLayout.visibility = View.VISIBLE
                                             binding.tvUploader.text = format.uploader
                                             binding.ivAuthor.load(format.uploaderThumbnail)
-                                            binding.tvSubCount.text = getString(R.string.subscribers, format.uploaderSubCount.toString())
+                                            binding.tvSubCount.text = getString(R.string.subscribers, NumberFormat.getNumberInstance(
+                                                Locale.US).format(format.uploaderSubCount).toString())
                                         }
                                         else {
                                             binding.uploaderLayout.visibility = View.GONE
@@ -346,7 +347,8 @@ class NowPlayingFragment : Fragment() {
                                             binding.uploaderLayout.visibility = View.VISIBLE
                                             binding.tvUploader.text = format.uploader
                                             binding.ivAuthor.load(format.uploaderThumbnail)
-                                            binding.tvSubCount.text = getString(R.string.subscribers, format.uploaderSubCount.toString())
+                                            binding.tvSubCount.text = getString(R.string.subscribers, NumberFormat.getNumberInstance(
+                                                Locale.US).format(format.uploaderSubCount).toString())
                                         }
                                         else {
                                             binding.uploaderLayout.visibility = View.GONE
@@ -419,7 +421,8 @@ class NowPlayingFragment : Fragment() {
                                             binding.uploaderLayout.visibility = View.VISIBLE
                                             binding.tvUploader.text = format.uploader
                                             binding.ivAuthor.load(format.uploaderThumbnail)
-                                            binding.tvSubCount.text = getString(R.string.subscribers, format.uploaderSubCount.toString())
+                                            binding.tvSubCount.text = getString(R.string.subscribers, NumberFormat.getNumberInstance(
+                                                Locale.US).format(format.uploaderSubCount).toString())
                                         }
                                         else {
                                             binding.uploaderLayout.visibility = View.GONE
@@ -1147,7 +1150,8 @@ class NowPlayingFragment : Fragment() {
                     binding.uploaderLayout.visibility = View.VISIBLE
                     binding.tvUploader.text = format.uploader
                     binding.ivAuthor.load(format.uploaderThumbnail)
-                    binding.tvSubCount.text = getString(R.string.subscribers, format.uploaderSubCount.toString())
+                    binding.tvSubCount.text = getString(R.string.subscribers, NumberFormat.getNumberInstance(
+                        Locale.US).format(format.uploaderSubCount).toString())
                 }
                 else {
                     binding.uploaderLayout.visibility = View.GONE
@@ -1256,7 +1260,8 @@ class NowPlayingFragment : Fragment() {
                 binding.uploaderLayout.visibility = View.VISIBLE
                 binding.tvUploader.text = format.uploader
                 binding.ivAuthor.load(format.uploaderThumbnail)
-                binding.tvSubCount.text = getString(R.string.subscribers, format.uploaderSubCount.toString())
+                binding.tvSubCount.text = getString(R.string.subscribers, NumberFormat.getNumberInstance(
+                    Locale.US).format(format.uploaderSubCount).toString())
             }
             else {
                 binding.uploaderLayout.visibility = View.GONE
@@ -1287,6 +1292,7 @@ class NowPlayingFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         val activity = requireActivity()
+        activity.window.navigationBarColor = Color.parseColor("#CB0B0A0A")
         val bottom = activity.findViewById<BottomNavigationView>(R.id.bottom_navigation_view)
         val miniplayer = activity.findViewById<SwipeLayout>(R.id.miniplayer)
         bottom.animation = AnimationUtils.loadAnimation(requireContext(), R.anim.bottom_to_top)

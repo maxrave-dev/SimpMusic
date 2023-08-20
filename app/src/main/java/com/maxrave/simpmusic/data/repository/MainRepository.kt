@@ -619,7 +619,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
     }.flowOn(Dispatchers.IO)
     suspend fun getLyricsData(query: String): Flow<Resource<Lyrics>> = flow {
         runCatching {
-            val q = query.replace(Regex("\\([^)]*?(feat|ft|cùng với)[^)]*?\\)"), "")
+            val q = query.replace(Regex("\\([^)]*?(feat.|ft.|cùng với|con)[^)]*?\\)"), "")
             Log.d("Lyrics", "query: $q")
             YouTube.authencation().onSuccess {token ->
                 if (token.accessToken != null) {

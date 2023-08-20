@@ -2,4 +2,5 @@
 - Add Normalize Volume
 - Add using system equalizer
 - Add Piped Instance chosen by user
+- Translucent navigation bar
 - Redesign logo

@@ -3,4 +3,5 @@
 - Add using system equalizer
 - Thêm chức năng dùng bộ chỉnh âm
 - Tuỳ chỉnh thực thể Piped
+- Làm mờ thanh điều hướng
 - Chỉnh sửa logo

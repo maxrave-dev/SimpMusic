@@ -161,4 +161,7 @@
     <string name="open_system_equalizer">Mở bộ chỉnh âm</string>
     <string name="use_your_system_equalizer">Sử dụng bộ chỉnh âm của hệ thống</string>
     <string name="streaming_data_provider_piped">Trang cung cấp dữ liệu (Piped)</string>
+    <string name="itag">Itag</string>
+    <string name="mime_type">Mime Type</string>
+    <string name="bitrate">Bitrate</string>
 </resources>
