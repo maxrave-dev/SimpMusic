@@ -116,6 +116,48 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
         }
     }
 
+    val saveStateOfPlayback: Flow<String> = settingsDataStore.data.map { preferences ->
+        preferences[SAVE_STATE_OF_PLAYBACK] ?: FALSE
+    }
+    suspend fun setSaveStateOfPlayback(save: Boolean) {
+        if (save) {
+            settingsDataStore.edit { settings ->
+                settings[SAVE_STATE_OF_PLAYBACK] = TRUE
+            }
+        } else {
+            settingsDataStore.edit { settings ->
+                settings[SAVE_STATE_OF_PLAYBACK] = FALSE
+            }
+        }
+    }
+
+    val saveRecentSongAndQueue: Flow<String> = settingsDataStore.data.map { preferences ->
+        preferences[SAVE_RECENT_SONG] ?: FALSE
+    }
+    suspend fun setSaveRecentSongAndQueue(save: Boolean) {
+        if (save) {
+            settingsDataStore.edit { settings ->
+                settings[SAVE_RECENT_SONG] = TRUE
+            }
+        } else {
+            settingsDataStore.edit { settings ->
+                settings[SAVE_RECENT_SONG] = FALSE
+            }
+        }
+    }
+    val recentMediaId = settingsDataStore.data.map { preferences ->
+        preferences[RECENT_SONG_MEDIA_ID_KEY] ?: ""
+    }
+    val recentPosition = settingsDataStore.data.map { preferences ->
+        preferences[RECENT_SONG_POSITION_KEY] ?: "0"
+    }
+    suspend fun saveRecentSong (mediaId: String, position: Long) {
+        settingsDataStore.edit { settings ->
+            settings[RECENT_SONG_MEDIA_ID_KEY] = mediaId
+            settings[RECENT_SONG_POSITION_KEY] = position.toString()
+        }
+    }
+
 
     companion object Settings {
         val COOKIE = stringPreferencesKey("cookie")
@@ -125,6 +167,10 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
         val NORMALIZE_VOLUME = stringPreferencesKey("normalize_volume")
         val IS_RESTORING_DATABASE = stringPreferencesKey("is_restoring_database")
         val PIPED = stringPreferencesKey("piped")
+        val SAVE_STATE_OF_PLAYBACK = stringPreferencesKey("save_state_of_playback")
+        val SAVE_RECENT_SONG = stringPreferencesKey("save_recent_song")
+        val RECENT_SONG_MEDIA_ID_KEY = stringPreferencesKey("recent_song_media_id")
+        val RECENT_SONG_POSITION_KEY = stringPreferencesKey("recent_song_position")
         val TRUE = "TRUE"
         val FALSE = "FALSE"
     }

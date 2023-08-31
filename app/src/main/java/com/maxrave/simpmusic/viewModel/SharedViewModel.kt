@@ -65,7 +65,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 @UnstableApi
-class SharedViewModel @Inject constructor(private var dataStoreManager: DataStoreManager, @DownloadCache private val downloadedCache: SimpleCache, private val musicSource: MusicSource, private val mainRepository: MainRepository, private val simpleMediaServiceHandler: SimpleMediaServiceHandler, application: Application) : AndroidViewModel(application){
+class SharedViewModel @Inject constructor(private var dataStoreManager: DataStoreManager, @DownloadCache private val downloadedCache: SimpleCache, private val musicSource: MusicSource, private val mainRepository: MainRepository, private val simpleMediaServiceHandler: SimpleMediaServiceHandler, private val application: Application) : AndroidViewModel(application){
     @Inject
     lateinit var downloadUtils: DownloadUtils
 
@@ -120,6 +120,8 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
 
     private var _nowPlayingMediaItem = MutableLiveData<MediaItem?>()
     val nowPlayingMediaItem: LiveData<MediaItem?> = _nowPlayingMediaItem
+
+    val nowPLaying = simpleMediaServiceHandler.nowPlaying.asStateFlow()
 
     private var _songTransitions = MutableStateFlow<Boolean>(false)
     val songTransitions: StateFlow<Boolean> = _songTransitions
@@ -182,9 +184,9 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                 }
             }
             val job2 = launch {
-                simpleMediaServiceHandler.changeTrack.collectLatest { isChanged ->
-                    val song = getCurrentMediaItem()
-                    if (song != null && getCurrentMediaItemIndex() > 0) {
+                simpleMediaServiceHandler.nowPlaying.collectLatest { nowPlaying ->
+                    if (nowPlaying != null && getCurrentMediaItemIndex() > 0) {
+                        _nowPlayingMediaItem.postValue(nowPlaying)
                         var downloaded = false
                         val tempSong = musicSource.catalogMetadata[getCurrentMediaItemIndex()]
                         Log.d("Check tempSong", tempSong.toString())
@@ -194,43 +196,53 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                                 _songDB.value = songEntity
                                 if (songEntity != null) {
                                     _liked.value = songEntity.liked
-                                    downloaded = songEntity.downloadState == DownloadState.STATE_DOWNLOADED
+                                    downloaded =
+                                        songEntity.downloadState == DownloadState.STATE_DOWNLOADED
                                     Log.d("Check like", songEntity.toString())
                                 }
                             }
                         mainRepository.updateSongInLibrary(LocalDateTime.now(), tempSong.videoId)
                         mainRepository.updateListenCount(tempSong.videoId)
                         videoId.postValue(tempSong.videoId)
-                        _nowPlayingMediaItem.value = song
-                        _songTransitions.value = true
+                        _nowPlayingMediaItem.value = nowPlaying
                         resetLyrics()
                         if (!downloaded) {
-                            mainRepository.getLyricsData("${tempSong.title} ${tempSong.artists?.firstOrNull()?.name}").collect { response ->
-                                _lyrics.value = response
-                                when(_lyrics.value) {
-                                    is Resource.Success -> {
-                                        if (_lyrics.value?.data != null) {
-                                            insertLyrics(_lyrics.value?.data!!.toLyricsEntity(song.mediaId))
-                                            parseLyrics(_lyrics.value?.data)
+                            mainRepository.getLyricsData("${tempSong.title} ${tempSong.artists?.firstOrNull()?.name}")
+                                .collect { response ->
+                                    _lyrics.value = response
+                                    when (_lyrics.value) {
+                                        is Resource.Success -> {
+                                            if (_lyrics.value?.data != null) {
+                                                insertLyrics(
+                                                    _lyrics.value?.data!!.toLyricsEntity(
+                                                        nowPlaying.mediaId
+                                                    )
+                                                )
+                                                parseLyrics(_lyrics.value?.data)
+                                            }
                                         }
-                                    }
-                                    is Resource.Error -> {
-                                        if (_lyrics.value?.message != "reset") {
-                                            getSavedLyrics(tempSong.videoId, "${tempSong.title} ${tempSong.artists?.firstOrNull()?.name}")
-                                        }
-                                    }
 
-                                    else -> {
-                                        Log.d("Check lyrics", "Loading")
+                                        is Resource.Error -> {
+                                            if (_lyrics.value?.message != "reset") {
+                                                getSavedLyrics(
+                                                    tempSong.videoId,
+                                                    "${tempSong.title} ${tempSong.artists?.firstOrNull()?.name}"
+                                                )
+                                            }
+                                        }
+
+                                        else -> {
+                                            Log.d("Check lyrics", "Loading")
+                                        }
                                     }
                                 }
-                            }
-                        }
-                        else {
-                            getSavedLyrics(tempSong.videoId, "${tempSong.title} ${tempSong.artists?.firstOrNull()?.name}")
+                        } else {
+                            getSavedLyrics(
+                                tempSong.videoId,
+                                "${tempSong.title} ${tempSong.artists?.firstOrNull()?.name}"
+                            )
                         }
                     }
-                    Log.d("Check Change Track", "Change Track: $isChanged")
                 }
             }
             val job3 = launch {
@@ -434,7 +446,6 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                     "Check MediaItem Thumbnail",
                     getCurrentMediaItem()?.mediaMetadata?.artworkUri.toString()
                 )
-                simpleMediaServiceHandler.changeTrackToFalse()
                 _firstTrackAdded.value = true
                 musicSource.addFirstMetadata(track)
                 getSavedLyrics(track.videoId, "${track.title} ${track.artists?.firstOrNull()?.name}")
@@ -478,7 +489,6 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                             "Check MediaItem Thumbnail",
                             getCurrentMediaItem()?.mediaMetadata?.artworkUri.toString()
                         )
-                        simpleMediaServiceHandler.changeTrackToFalse()
                         _firstTrackAdded.value = true
                         musicSource.addFirstMetadata(track)
                         resetLyrics()
@@ -560,7 +570,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                     }
                 }
                 mainRepository.updateLocalPlaylistTracks(list, id)
-                Toast.makeText(getApplication(), "Added to playlist", Toast.LENGTH_SHORT).show()
+                Toast.makeText(getApplication(), application.getString(R.string.added_to_playlist), Toast.LENGTH_SHORT).show()
                 if (count == values.size) {
                     mainRepository.updateLocalPlaylistDownloadState(DownloadState.STATE_DOWNLOADED, id)
                 }
@@ -671,7 +681,6 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
 
     fun changeSongTransitionToFalse() {
         _songTransitions.value = false
-        simpleMediaServiceHandler.changeTrackToFalse()
     }
 
     fun changeFirstTrackAddedToFalse() {

@@ -137,5 +137,9 @@
         </service>
     </application>
 
-
+    <queries>
+        <intent>
+            <action android:name="android.media.action.DISPLAY_AUDIO_EFFECT_CONTROL_PANEL" />
+        </intent>
+    </queries>
 </manifest>

@@ -37,6 +37,8 @@ class SimpleMediaServiceHandler @Inject constructor(
     private val _changeTrack = MutableStateFlow<Boolean>(false)
     val changeTrack = _changeTrack.asStateFlow()
 
+    var nowPlaying = MutableStateFlow(player.currentMediaItem)
+
     private val _nextTrackAvailable = MutableStateFlow<Boolean>(false)
     val nextTrackAvailable = _nextTrackAvailable.asStateFlow()
 
@@ -56,11 +58,12 @@ class SimpleMediaServiceHandler @Inject constructor(
         player.shuffleModeEnabled = false
         player.repeatMode = Player.REPEAT_MODE_OFF
         job = Job()
+        nowPlaying.value = player.currentMediaItem
     }
-    fun changeTrackToFalse() {
-        _changeTrack.value = false
-        Log.i("Check song index", "${player.currentMediaItemIndex}")
-    }
+//    fun changeTrackToFalse() {
+//        _changeTrack.value = false
+//        Log.i("Check song index", "${player.currentMediaItemIndex}")
+//    }
     fun getMediaItemWithIndex(index: Int): MediaItem {
         return player.getMediaItemAt(index)
     }
@@ -193,24 +196,27 @@ class SimpleMediaServiceHandler @Inject constructor(
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
         Log.w("Smooth Switching Transition", "Current Position: ${player.currentPosition}")
         mayBeNormalizeVolume()
-        if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO || reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT || reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK || reason == Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED) {
-            if (!_changeTrack.value) {
-                _changeTrack.value = true
-                _nextTrackAvailable.value = player.hasNextMediaItem()
-                _previousTrackAvailable.value = player.hasPreviousMediaItem()
-                Log.d("Change Track", "onMediaItemTransition: ${changeTrack.value}")
-                Log.d("Media Item Transition", "Media Item: ${mediaItem?.mediaMetadata?.title}")
-                Log.d("Media Item Transition", "Reason: $reason")
-            } else {
-                _changeTrack.value = false
-                Log.d("Change Track", "onMediaItemTransition: ${changeTrack.value}")
-                Log.d("Media Item Transition", "Media Item: ${mediaItem?.mediaMetadata?.title}")
-                Log.d("Media Item Transition", "Reason: $reason")
-                _changeTrack.value = true
-                _nextTrackAvailable.value = player.hasNextMediaItem()
-                _previousTrackAvailable.value = player.hasPreviousMediaItem()
-            }
-        }
+        Log.w("REASON", "onMediaItemTransition: $reason")
+        Log.d("Media Item Transition", "Media Item: ${mediaItem?.mediaMetadata?.title}")
+        nowPlaying.value = mediaItem
+    //      if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO || reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT || reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK || reason == Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED) {
+//            if (!_changeTrack.value) {
+//                _changeTrack.value = true
+//                _nextTrackAvailable.value = player.hasNextMediaItem()
+//                _previousTrackAvailable.value = player.hasPreviousMediaItem()
+//                Log.d("Change Track", "onMediaItemTransition: ${changeTrack.value}")
+//                Log.d("Media Item Transition", "Media Item: ${mediaItem?.mediaMetadata?.title}")
+//                Log.d("Media Item Transition", "Reason: $reason")
+//            } else {
+//                _changeTrack.value = false
+//                Log.d("Change Track", "onMediaItemTransition: ${changeTrack.value}")
+//                Log.d("Media Item Transition", "Media Item: ${mediaItem?.mediaMetadata?.title}")
+//                Log.d("Media Item Transition", "Reason: $reason")
+//                _changeTrack.value = true
+//                _nextTrackAvailable.value = player.hasNextMediaItem()
+//                _previousTrackAvailable.value = player.hasPreviousMediaItem()
+//            }
+//        }
     }
 
 

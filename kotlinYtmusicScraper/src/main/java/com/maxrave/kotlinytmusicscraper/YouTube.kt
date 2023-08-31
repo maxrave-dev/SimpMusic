@@ -303,29 +303,43 @@ object YouTube {
         val piped = ytMusic.pipedStreams(videoId, pipedInstance).body<PipedResponse>()
         val audioStreams = piped.audioStreams
         val playerResponse = ytMusic.player(ANDROID_MUSIC, videoId, playlistId).body<PlayerResponse>()
+        Log.w("playerResponse", playerResponse.streamingData?.adaptiveFormats.toString())
         if (playerResponse.playabilityStatus.status == "OK") {
             return@runCatching playerResponse.copy(
                 videoDetails = playerResponse.videoDetails?.copy(
                     authorAvatar = piped.uploaderAvatar?.replace(Regex("s48"), "s960"),
                     authorSubCount = piped.uploaderSubscriberCount,
+                    description = piped.description,
+                ),
+                streamingData = playerResponse.streamingData?.copy(
+                    adaptiveFormats = playerResponse.streamingData.adaptiveFormats.mapNotNull { adaptiveFormat ->
+                        audioStreams.find { it.itag == adaptiveFormat.itag }?.let {
+                            adaptiveFormat.copy(
+                                mimeType = it.mimeType?: "",
+                                bitrate = it.bitrate,
+                            )
+                        }
+                    }
                 )
             )
         }
         val safePlayerResponse = ytMusic.player(TVHTML5, videoId, playlistId).body<PlayerResponse>()
+        Log.w("safePlayerResponse", safePlayerResponse.streamingData?.adaptiveFormats.toString())
         if (safePlayerResponse.playabilityStatus.status != "OK") {
             return@runCatching playerResponse.copy(
                 videoDetails = safePlayerResponse.videoDetails?.copy(
                     authorAvatar = piped.uploaderAvatar?.replace(Regex("s48"), "s960"),
                     authorSubCount = piped.uploaderSubscriberCount,
-                )
+                    description = piped.description,
+                    ),
             )
         }
         safePlayerResponse.copy(
             streamingData = safePlayerResponse.streamingData?.copy(
                 adaptiveFormats = safePlayerResponse.streamingData.adaptiveFormats.mapNotNull { adaptiveFormat ->
-                    audioStreams.find { it.bitrate == adaptiveFormat.bitrate }?.let {
+                    audioStreams.find { it.itag == adaptiveFormat.itag }?.let {
                         adaptiveFormat.copy(
-                            url = it.url
+                            url = it.url,
                         )
                     }
                 }
@@ -333,7 +347,8 @@ object YouTube {
             videoDetails = safePlayerResponse.videoDetails?.copy(
                 authorAvatar = piped.uploaderAvatar?.replace(Regex("s48"), "s96"),
                 authorSubCount = piped.uploaderSubscriberCount,
-            )
+                description = piped.description,
+                )
         )
     }
 

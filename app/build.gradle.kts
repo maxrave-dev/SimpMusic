@@ -2,7 +2,6 @@ plugins {
     id ("com.android.application")
     id ("org.jetbrains.kotlin.android")
     id ("androidx.navigation.safeargs")
-    id ("kotlin-kapt")
     id ("com.google.dagger.hilt.android")
     id("com.google.devtools.ksp")
 }
@@ -63,7 +62,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.1")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1")
     //ExoPlayer
-    val media3_version= "1.1.0"
+    val media3_version= "1.1.1"
 
     implementation("androidx.media3:media3-exoplayer:$media3_version")
     implementation("androidx.media3:media3-ui:$media3_version")
@@ -94,8 +93,8 @@ dependencies {
     //Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     //Navigation
-    implementation("androidx.navigation:navigation-fragment-ktx:2.7.0")
-    implementation("androidx.navigation:navigation-ui-ktx:2.7.0")
+    implementation("androidx.navigation:navigation-fragment-ktx:2.7.1")
+    implementation("androidx.navigation:navigation-ui-ktx:2.7.1")
 
     implementation("com.google.code.gson:gson:2.10.1")
 
@@ -114,8 +113,8 @@ dependencies {
     //fragment ktx
     implementation("androidx.fragment:fragment-ktx:1.6.1")
     //Hilt
-    implementation("com.google.dagger:hilt-android:2.47")
-    kapt("com.google.dagger:hilt-compiler:2.47")
+    implementation("com.google.dagger:hilt-android:2.48")
+    ksp("com.google.dagger:hilt-compiler:2.48")
     ksp("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.7.0")
     //DataStore
     implementation("androidx.datastore:datastore-preferences:1.0.0")
@@ -143,10 +142,6 @@ dependencies {
     implementation("ch.acra:acra-mail:$acraVersion")
 
 
-}
-// Allow references to generated code
-kapt {
-    correctErrorTypes = true
 }
 hilt {
     enableAggregatingTask = true

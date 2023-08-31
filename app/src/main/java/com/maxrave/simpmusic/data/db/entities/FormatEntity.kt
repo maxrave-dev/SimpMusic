@@ -16,4 +16,5 @@ data class FormatEntity(
     val uploaderId: String? = null,
     val uploaderSubCount: Int? = null,
     val uploaderThumbnail: String? = null,
+    val description: String? = null,
 )

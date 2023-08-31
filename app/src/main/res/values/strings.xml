@@ -162,6 +162,9 @@
     <string name="bitrate">Bitrate</string>
     <string name="warning">Warning</string>
     <string name="change_language_warning">Changing language will close your app. Are you sure?</string>
+    <string name="this_link_is_not_supported">This link is not supported</string>
+    <string name="added_to_playlist">Added to playlist</string>
+    <string name="description">Description</string>
     <plurals name="n_song">
         <item quantity="one">%d song</item>
         <item quantity="other">%d songs</item>

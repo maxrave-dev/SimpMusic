@@ -135,12 +135,12 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
                 putString(FIRST_TIME_MIGRATION, STATUS_DONE)
             }
         }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+//
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             WindowCompat.setDecorFitsSystemWindows(window, false)
-        } else {
-            window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
-        }
+//        } else {
+//            window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
+//        }
 
         if (!EasyPermissions.hasPermissions(this, Manifest.permission.POST_NOTIFICATIONS)){
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -257,6 +257,10 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
                                         navController.navigate(R.id.action_global_artistFragment, Bundle().apply {
                                             putString("channelId", artistId)
                                         })
+                                    }
+                                    else {
+                                        Toast.makeText(this@MainActivity,
+                                            getString(R.string.this_link_is_not_supported), Toast.LENGTH_SHORT).show()
                                     }
 //                                    else {
 //                                        viewModel.convertNameToId(artistId)

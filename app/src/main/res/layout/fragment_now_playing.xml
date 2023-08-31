@@ -355,16 +355,16 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="200sp"
                                 android:padding="10sp">
-                                    <TextView
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content"
-                                        android:id="@+id/tvPrevLyrics"
-                                        android:textSize="18sp"
-                                        android:textStyle="normal"
-                                        android:layout_above="@+id/tvNowLyrics"
-                                        android:lineSpacingExtra="5sp"
-                                        android:gravity="bottom">
-                                    </TextView>
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:id="@+id/tvPrevLyrics"
+                                    android:textSize="18sp"
+                                    android:textStyle="normal"
+                                    android:layout_above="@+id/tvNowLyrics"
+                                    android:lineSpacingExtra="5sp"
+                                    android:gravity="bottom">
+                                </TextView>
 
                                 <TextView
                                     android:id="@+id/tvNowLyrics"
@@ -379,15 +379,15 @@
                                     android:textStyle="bold">
 
                                 </TextView>
-                                    <TextView
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content"
-                                        android:id="@+id/tvNextLyrics"
-                                        android:textSize="18sp"
-                                        android:textStyle="normal"
-                                        android:layout_below="@+id/tvNowLyrics"
-                                        android:lineSpacingExtra="5sp">
-                                    </TextView>
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:id="@+id/tvNextLyrics"
+                                    android:textSize="18sp"
+                                    android:textStyle="normal"
+                                    android:layout_below="@+id/tvNowLyrics"
+                                    android:lineSpacingExtra="5sp">
+                                </TextView>
                             </RelativeLayout>
                             <RelativeLayout
                                 android:id="@+id/lyricsFullLayout"

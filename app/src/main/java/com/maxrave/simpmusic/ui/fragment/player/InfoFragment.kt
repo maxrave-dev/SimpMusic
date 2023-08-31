@@ -2,6 +2,7 @@ package com.maxrave.simpmusic.ui.fragment.player
 
 import android.app.Dialog
 import android.os.Bundle
+import android.text.Html
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -88,6 +89,7 @@ class InfoFragment: BottomSheetDialogFragment(){
                     itag.text = (format?.itag ?: context?.getString(androidx.media3.ui.R.string.exo_track_unknown)).toString()
                     mimeType.text = (format?.mimeType ?: context?.getString(androidx.media3.ui.R.string.exo_track_unknown)).toString()
                     bitrate.text = (format?.bitrate ?: context?.getString(androidx.media3.ui.R.string.exo_track_unknown)).toString()
+                    description.text = (Html.fromHtml(format?.description, Html.FROM_HTML_MODE_COMPACT) ?: context?.getString(androidx.media3.ui.R.string.exo_track_unknown)).toString()
                 }
             }
         }

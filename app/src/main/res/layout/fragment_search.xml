@@ -181,7 +181,9 @@
                             <androidx.recyclerview.widget.RecyclerView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:id="@+id/resultList">
+                                android:id="@+id/resultList"
+                                android:clipToPadding="false"
+                                android:paddingBottom="150dp" >
 
                             </androidx.recyclerview.widget.RecyclerView>
                             <RelativeLayout

@@ -5,6 +5,7 @@ import android.content.Intent
 import android.media.audiofx.AudioEffect
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,6 +16,7 @@ import androidx.core.os.LocaleListCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.ExoPlayer
 import androidx.navigation.fragment.findNavController
 import coil.annotation.ExperimentalCoilApi
 import coil.imageLoader
@@ -31,10 +33,14 @@ import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import javax.inject.Inject
 
 @UnstableApi
 @AndroidEntryPoint
 class SettingsFragment : Fragment() {
+
+    @Inject
+    lateinit var player: ExoPlayer
 
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
@@ -161,7 +167,17 @@ class SettingsFragment : Fragment() {
 
         binding.btEqualizer.setOnClickListener {
             val eqIntent = Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL)
-            resultLauncher.launch(eqIntent)
+            eqIntent.putExtra(AudioEffect.EXTRA_PACKAGE_NAME, requireContext().packageName)
+            eqIntent.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, player.audioSessionId)
+            val packageManager = requireContext().packageManager
+            val resolveInfo: List<*> = packageManager.queryIntentActivities(eqIntent, 0)
+            Log.d("EQ", resolveInfo.toString())
+            if (resolveInfo.isEmpty()) {
+                Toast.makeText(requireContext(), getString(R.string.no_equalizer), Toast.LENGTH_SHORT).show()
+            }
+            else{
+                resultLauncher.launch(eqIntent)
+            }
         }
         binding.btGithub.setOnClickListener {
             val urlIntent = Intent(
