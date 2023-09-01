@@ -45,6 +45,7 @@ import com.maxrave.simpmusic.data.parser.search.parseSearchArtist
 import com.maxrave.simpmusic.data.parser.search.parseSearchPlaylist
 import com.maxrave.simpmusic.data.parser.search.parseSearchSong
 import com.maxrave.simpmusic.data.parser.search.parseSearchVideo
+import com.maxrave.simpmusic.extension.bestMatchingIndex
 import com.maxrave.simpmusic.extension.toLyrics
 import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -625,14 +626,22 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                 if (token.accessToken != null) {
                     YouTube.getSongId(token.accessToken!!, q).onSuccess { spotifyResult ->
                         Log.d("SongId", "id: ${spotifyResult.tracks?.items?.get(0)?.id}")
-                        spotifyResult.tracks?.items?.get(0)?.let {
-                            it.id?.let { it1 ->
-                                Log.d("Lyrics", "id: $it1")
-                                YouTube.getLyrics(it1).onSuccess { lyrics ->
-                                    emit(Resource.Success<Lyrics>(lyrics.toLyrics()))
-                                }.onFailure {
-                                    Log.d("Lyrics", "Error: ${it.message}")
-                                    emit(Resource.Error<Lyrics>("Not found"))
+                        if (!spotifyResult.tracks?.items.isNullOrEmpty()) {
+                            val list = arrayListOf<String>()
+                            for (index in spotifyResult.tracks?.items!!.indices) {
+                                list.add(spotifyResult.tracks?.items?.get(index)?.name + spotifyResult.tracks?.items?.get(index)?.artists?.get(0)?.name)
+                            }
+                            bestMatchingIndex(q, list).let {
+                                spotifyResult.tracks?.items?.get(it)?.let {item ->
+                                    item.id?.let { it1 ->
+                                        Log.d("Lyrics", "id: $it1")
+                                        YouTube.getLyrics(it1).onSuccess { lyrics ->
+                                            emit(Resource.Success<Lyrics>(lyrics.toLyrics()))
+                                        }.onFailure {
+                                            Log.d("Lyrics", "Error: ${it.message}")
+                                            emit(Resource.Error<Lyrics>("Not found"))
+                                        }
+                                    }
                                 }
                             }
                         }

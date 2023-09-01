@@ -130,7 +130,7 @@ class SearchFragment : Fragment() {
                     Log.d("Check History", searchHistory.toString())
                     viewModel.searchHistory.postValue(searchHistory)
                     searchHistoryAdapter.updateData(searchHistory)
-                    viewModel.searchType.observe(viewLifecycleOwner) {searchType ->
+                    viewModel.searchType.value.let {searchType ->
                         when (searchType) {
                             "all" -> {
                                 resultList.clear()
@@ -173,6 +173,9 @@ class SearchFragment : Fragment() {
                                 fetchSearchPlaylists(query)
                                 binding.chipGroupTypeSearch.isClickable = true
                                 Log.d("Check Playlist", "Playlist is checked")
+                            }
+                            else -> {
+                                Log.d("Check Search Type", "Search Type is null")
                             }
                         }
                     }
@@ -257,9 +260,7 @@ class SearchFragment : Fragment() {
         binding.svSearch.setOnQueryTextFocusChangeListener{ v, hasFocus ->
             if (hasFocus){
                 Log.d("Check History in ViewModel", viewModel.searchHistory.value.toString())
-                viewModel.searchHistory.observe(viewLifecycleOwner){ history ->
-                    searchHistoryAdapter.updateData(history)
-                }
+                observeSearchHistory()
             }
         }
 
@@ -554,7 +555,7 @@ class SearchFragment : Fragment() {
             override fun onDeleteClick(position: Int) {
                 searchHistory.removeAt(position)
                 viewModel.searchHistory.value?.removeAt(position)
-                searchHistoryAdapter.updateData(searchHistory)
+                observeSearchHistory()
             }
         })
         binding.btClearSearchHistory.setOnClickListener {
