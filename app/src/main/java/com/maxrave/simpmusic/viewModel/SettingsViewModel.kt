@@ -58,8 +58,12 @@ class SettingsViewModel @Inject constructor(
     val loggedIn: LiveData<String> = _loggedIn
     private var _normalizeVolume: MutableLiveData<String> = MutableLiveData()
     val normalizeVolume: LiveData<String> = _normalizeVolume
+    private var _skipSilent: MutableLiveData<String> = MutableLiveData()
+    val skipSilent: LiveData<String> = _skipSilent
     private var _pipedInstance: MutableLiveData<String> = MutableLiveData()
     val pipedInstance: LiveData<String> = _pipedInstance
+    private var _savedPlaybackState: MutableLiveData<String> = MutableLiveData()
+    val savedPlaybackState: LiveData<String> = _savedPlaybackState
 
     fun getLocation() {
         viewModelScope.launch {
@@ -267,6 +271,33 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             dataStoreManager.setPipedInstance(pipedInstance)
             getPipedInstance()
+        }
+    }
+    fun getSkipSilent() {
+        viewModelScope.launch {
+            dataStoreManager.skipSilent.collect { skipSilent ->
+                _skipSilent.postValue(skipSilent)
+            }
+        }
+    }
+
+    fun setSkipSilent(skip: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setSkipSilent(skip)
+            getSkipSilent()
+        }
+    }
+    fun getSavedPlaybackState() {
+        viewModelScope.launch {
+            dataStoreManager.saveStateOfPlayback.collect { savedPlaybackState ->
+                _savedPlaybackState.postValue(savedPlaybackState)
+            }
+        }
+    }
+    fun setSavedPlaybackState(savedPlaybackState: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setSaveStateOfPlayback(savedPlaybackState)
+            getSavedPlaybackState()
         }
     }
 }

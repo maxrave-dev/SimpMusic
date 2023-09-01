@@ -790,7 +790,6 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                 if (cookie != "") {
                     YouTube.cookie = cookie
                     Log.d("Cookie", "Cookie is not empty")
-                    Toast.makeText(context, context.getString(R.string.logged_in), Toast.LENGTH_SHORT).show()
                 }
                 else {
                     Log.e("Cookie", "Cookie is empty")

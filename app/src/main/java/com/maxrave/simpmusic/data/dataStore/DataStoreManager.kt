@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import androidx.media3.common.Player
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.common.SETTINGS_FILENAME
 import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
@@ -105,6 +106,20 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
             }
         }
     }
+    val skipSilent: Flow<String> = settingsDataStore.data.map { preferences ->
+        preferences[SKIP_SILENT] ?: FALSE
+    }
+    suspend fun setSkipSilent(skip: Boolean) {
+        if (skip) {
+            settingsDataStore.edit { settings ->
+                settings[SKIP_SILENT] = TRUE
+            }
+        } else {
+            settingsDataStore.edit { settings ->
+                settings[SKIP_SILENT] = FALSE
+            }
+        }
+    }
 
     val pipedInstance: Flow<String> = settingsDataStore.data.map { preferences ->
         preferences[PIPED] ?: "watchapi.whatever.social"
@@ -127,6 +142,33 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
         } else {
             settingsDataStore.edit { settings ->
                 settings[SAVE_STATE_OF_PLAYBACK] = FALSE
+            }
+        }
+    }
+    val shuffleKey: Flow<String> = settingsDataStore.data.map { preferences ->
+        preferences[SHUFFLE_KEY] ?: FALSE
+    }
+    val repeatKey: Flow<String> = settingsDataStore.data.map { preferences ->
+        preferences[REPEAT_KEY] ?: REPEAT_MODE_OFF
+    }
+
+    suspend fun recoverShuffleAndRepeatKey(shuffle: Boolean, repeat: Int) {
+        if (shuffle) {
+            settingsDataStore.edit { settings ->
+                settings[SHUFFLE_KEY] = TRUE
+            }
+        }
+        else {
+            settingsDataStore.edit { settings ->
+                settings[SHUFFLE_KEY] = FALSE
+            }
+        }
+        settingsDataStore.edit { settings ->
+            settings[REPEAT_KEY] = when (repeat) {
+                Player.REPEAT_MODE_ONE -> REPEAT_ONE
+                Player.REPEAT_MODE_ALL -> REPEAT_ALL
+                Player.REPEAT_MODE_OFF -> REPEAT_MODE_OFF
+                else -> REPEAT_MODE_OFF
             }
         }
     }
@@ -167,10 +209,16 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
         val NORMALIZE_VOLUME = stringPreferencesKey("normalize_volume")
         val IS_RESTORING_DATABASE = stringPreferencesKey("is_restoring_database")
         val PIPED = stringPreferencesKey("piped")
+        val SKIP_SILENT = stringPreferencesKey("skip_silent")
         val SAVE_STATE_OF_PLAYBACK = stringPreferencesKey("save_state_of_playback")
         val SAVE_RECENT_SONG = stringPreferencesKey("save_recent_song")
         val RECENT_SONG_MEDIA_ID_KEY = stringPreferencesKey("recent_song_media_id")
         val RECENT_SONG_POSITION_KEY = stringPreferencesKey("recent_song_position")
+        val SHUFFLE_KEY = stringPreferencesKey("shuffle_key")
+        val REPEAT_KEY = stringPreferencesKey("repeat_key")
+        val REPEAT_MODE_OFF = "REPEAT_MODE_OFF"
+        val REPEAT_ONE = "REPEAT_ONE"
+        val REPEAT_ALL = "REPEAT_ALL"
         val TRUE = "TRUE"
         val FALSE = "FALSE"
     }

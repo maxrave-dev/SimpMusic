@@ -103,6 +103,8 @@ class SettingsFragment : Fragment() {
         viewModel.getDownloadedCacheSize()
         viewModel.getLoggedIn()
         viewModel.getNormalizeVolume()
+        viewModel.getSkipSilent()
+        viewModel.getSavedPlaybackState()
         viewModel.getPipedInstance()
 
         val diskCache = context?.imageLoader?.diskCache
@@ -142,6 +144,12 @@ class SettingsFragment : Fragment() {
 
         viewModel.normalizeVolume.observe(viewLifecycleOwner){
             binding.swNormalizeVolume.isChecked = it == DataStoreManager.TRUE
+        }
+        viewModel.skipSilent.observe(viewLifecycleOwner){
+            binding.swSkipSilent.isChecked = it == DataStoreManager.TRUE
+        }
+        viewModel.savedPlaybackState.observe(viewLifecycleOwner){
+            binding.swSavePlaybackState.isChecked = it == DataStoreManager.TRUE
         }
         viewModel.pipedInstance.observe(viewLifecycleOwner) {
             binding.tvPipedInstance.text = it
@@ -363,6 +371,20 @@ class SettingsFragment : Fragment() {
                 viewModel.setNormalizeVolume(true)
             } else {
                 viewModel.setNormalizeVolume(false)
+            }
+        }
+        binding.swSkipSilent.setOnCheckedChangeListener { compoundButton, checked ->
+            if (checked) {
+                viewModel.setSkipSilent(true)
+            } else {
+                viewModel.setSkipSilent(false)
+            }
+        }
+        binding.swSavePlaybackState.setOnCheckedChangeListener { compoundButton, checked ->
+            if (checked) {
+                viewModel.setSavedPlaybackState(true)
+            } else {
+                viewModel.setSavedPlaybackState(false)
             }
         }
     }

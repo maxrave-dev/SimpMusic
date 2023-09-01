@@ -55,8 +55,20 @@ class SimpleMediaServiceHandler @Inject constructor(
 
     init {
         player.addListener(this)
-        player.shuffleModeEnabled = false
-        player.repeatMode = Player.REPEAT_MODE_OFF
+        if (runBlocking{ dataStoreManager.saveStateOfPlayback.first() } == DataStoreManager.TRUE ) {
+            Log.d("CHECK INIT", "TRUE")
+            val shuffleKey = runBlocking { dataStoreManager.shuffleKey.first() }
+            val repeatKey = runBlocking { dataStoreManager.repeatKey.first() }
+            Log.d("CHECK INIT", "Shuffle: $shuffleKey")
+            Log.d("CHECK INIT", "Repeat: $repeatKey")
+            player.shuffleModeEnabled = shuffleKey == DataStoreManager.TRUE
+            player.repeatMode = when (repeatKey) {
+                DataStoreManager.REPEAT_ONE -> Player.REPEAT_MODE_ONE
+                DataStoreManager.REPEAT_ALL -> Player.REPEAT_MODE_ALL
+                DataStoreManager.REPEAT_MODE_OFF -> Player.REPEAT_MODE_OFF
+                else -> {Player.REPEAT_MODE_OFF}
+            }
+        }
         job = Job()
         nowPlaying.value = player.currentMediaItem
     }
@@ -195,6 +207,7 @@ class SimpleMediaServiceHandler @Inject constructor(
 
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
         Log.w("Smooth Switching Transition", "Current Position: ${player.currentPosition}")
+        maybeSkipSilent()
         mayBeNormalizeVolume()
         Log.w("REASON", "onMediaItemTransition: $reason")
         Log.d("Media Item Transition", "Media Item: ${mediaItem?.mediaMetadata?.title}")
@@ -234,8 +247,15 @@ class SimpleMediaServiceHandler @Inject constructor(
 
     override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
         when (shuffleModeEnabled){
-            true -> _shuffle.value = true
-            false -> _shuffle.value = false
+            true -> {
+                _shuffle.value = true
+            }
+            false ->{
+                _shuffle.value = false
+            }
+        }
+        if (runBlocking{ dataStoreManager.saveStateOfPlayback.first() } == DataStoreManager.TRUE ) {
+            runBlocking { dataStoreManager.recoverShuffleAndRepeatKey(player.shuffleModeEnabled, player.repeatMode) }
         }
     }
 
@@ -244,6 +264,9 @@ class SimpleMediaServiceHandler @Inject constructor(
             ExoPlayer.REPEAT_MODE_OFF -> _repeat.value = RepeatState.None
             ExoPlayer.REPEAT_MODE_ONE -> _repeat.value = RepeatState.One
             ExoPlayer.REPEAT_MODE_ALL -> _repeat.value = RepeatState.All
+        }
+        if (runBlocking{ dataStoreManager.saveStateOfPlayback.first() } == DataStoreManager.TRUE ) {
+            runBlocking { dataStoreManager.recoverShuffleAndRepeatKey(player.shuffleModeEnabled, player.repeatMode) }
         }
     }
 
@@ -339,6 +362,9 @@ class SimpleMediaServiceHandler @Inject constructor(
                 }
             }
         }
+    }
+    fun maybeSkipSilent() {
+        player.skipSilenceEnabled = runBlocking { dataStoreManager.skipSilent.first() == DataStoreManager.TRUE }
     }
 }
 
