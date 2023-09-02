@@ -26,19 +26,22 @@ class SimpleMediaService : MediaSessionService() {
     @Inject
     lateinit var context: Application
 
+    @Inject
+    lateinit var simpleMediaServiceHandler: SimpleMediaServiceHandler
+
     @UnstableApi
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        super.onStartCommand(intent, flags, startId)
         notificationManager.startNotificationService(
             mediaSessionService = this,
             mediaSession = mediaSession
         )
-        return START_STICKY_COMPATIBILITY
+        return super.onStartCommand(intent, flags, startId)
     }
 
     @UnstableApi
     override fun onDestroy() {
         super.onDestroy()
+        simpleMediaServiceHandler.mayBeSaveRecentSong()
         mediaSession.run {
             release()
             if (player.playbackState != Player.STATE_IDLE) {

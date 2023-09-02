@@ -166,4 +166,13 @@
     <string name="bitrate">Bitrate</string>
     <string name="warning">Cảnh báo</string>
     <string name="change_language_warning">Thay đổi ngôn ngữ sẽ làm ứng dụng đóng. Bạn có chắc chắn?</string>
+    <string name="this_link_is_not_supported">Đường dẫn này không được hỗ trợ</string>
+    <string name="added_to_playlist">Đã thêm vào danh sách phát</string>
+    <string name="description">Mô tả</string>
+    <string name="playback">Phát lại</string>
+    <string name="save_playback_state">Lưu trạng thái phát lại</string>
+    <string name="save_shuffle_and_repeat_mode">Lưu chế độ trộn và phát lại</string>
+    <string name="skip_silent">Bỏ qua im lặng</string>
+    <string name="skip_no_music_part">Bỏ qua phần không có nhạc</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Quá thời gian, kiểm qua kết nối internet hoặc thay đổi thực thể Piped trong Cài đặt</string>
 </resources>

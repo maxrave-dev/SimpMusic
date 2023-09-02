@@ -1,16 +1,22 @@
 package com.maxrave.simpmusic.service
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.media.audiofx.LoudnessEnhancer
 import android.util.Log
+import android.widget.Toast
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
+import com.maxrave.simpmusic.data.model.browse.album.Track
+import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.data.repository.MainRepository
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,7 +30,8 @@ import javax.inject.Inject
 class SimpleMediaServiceHandler @Inject constructor(
     private val player: ExoPlayer,
     private val dataStoreManager: DataStoreManager,
-    private val mainRepository: MainRepository
+    private val mainRepository: MainRepository,
+    @ApplicationContext private val context: Context
 ) : Player.Listener {
 
     private var loudnessEnhancer: LoudnessEnhancer? = null
@@ -192,12 +199,16 @@ class SimpleMediaServiceHandler @Inject constructor(
         when(error.errorCode) {
             PlaybackException.ERROR_CODE_TIMEOUT -> {
                 Log.e("Player Error", "onPlayerError: ${error.message}")
+                Toast.makeText(context,
+                    context.getString(R.string.time_out_check_internet_connection_or_change_piped_instance_in_settings), Toast.LENGTH_LONG).show()
                 player.seekToNext()
                 player.prepare()
                 player.playWhenReady = true
             }
             else -> {
                 Log.e("Player Error", "onPlayerError: ${error.message}")
+                Toast.makeText(context,
+                    context.getString(R.string.time_out_check_internet_connection_or_change_piped_instance_in_settings), Toast.LENGTH_LONG).show()
                 player.seekToNext()
                 player.prepare()
                 player.playWhenReady = true
@@ -335,7 +346,7 @@ class SimpleMediaServiceHandler @Inject constructor(
 
     @OptIn(DelicateCoroutinesApi::class)
     private fun mayBeNormalizeVolume() {
-        if (runBlocking { dataStoreManager.normalizeVolume.first() == DataStoreManager.TRUE }) {
+        if (!runBlocking { dataStoreManager.normalizeVolume.first() == DataStoreManager.TRUE }) {
             loudnessEnhancer?.enabled = false
             loudnessEnhancer?.release()
             loudnessEnhancer = null
@@ -363,8 +374,37 @@ class SimpleMediaServiceHandler @Inject constructor(
             }
         }
     }
-    fun maybeSkipSilent() {
+    private fun maybeSkipSilent() {
         player.skipSilenceEnabled = runBlocking { dataStoreManager.skipSilent.first() == DataStoreManager.TRUE }
+    }
+    fun mayBeSaveRecentSong() {
+        runBlocking {
+            if (dataStoreManager.saveRecentSongAndQueue.first() == DataStoreManager.TRUE) {
+                dataStoreManager.saveRecentSong(player.currentMediaItem?.mediaId ?: "", player.currentPosition)
+                Log.d("Check saved", player.currentMediaItem?.mediaMetadata?.title.toString())
+                val temp: ArrayList<Track> = ArrayList()
+                temp.clear()
+                Queue.getNowPlaying()?.let { nowPlaying ->
+                    if (nowPlaying.videoId != player.currentMediaItem?.mediaId) {
+                        temp += nowPlaying
+                    }
+                }
+                temp += Queue.getQueue()
+                Log.d("Check queue", Queue.getQueue().toString())
+                temp.find { it.videoId == player.currentMediaItem?.mediaId }?.let { track ->
+                    temp.remove(track)
+                }
+                Log.w("Check recover queue", temp.toString())
+                runBlocking { mainRepository.recoverQueue(temp) }
+            }
+        }
+    }
+
+    fun seekTo(position: String)  {
+        player.seekTo(position.toLong())
+        player.playWhenReady = true
+        player.pause()
+        Log.d("Check seek", "seekTo: ${player.duration}")
     }
 }
 

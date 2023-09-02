@@ -413,6 +413,9 @@ class NowPlayingFragment : Fragment() {
                 metadataCurSong = viewModel.metadata.value?.data
                 gradientDrawable = viewModel.gradientDrawable.value
                 lyricsBackground = viewModel.lyricsBackground.value
+                if (viewModel.progress.value >= 0) {
+                    binding.progressSong.value = viewModel.progress.value * 100
+                }
                 updateUIfromCurrentMediaItem(viewModel.getCurrentMediaItem())
             }
         }

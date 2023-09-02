@@ -10,7 +10,6 @@ import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.Toast
 import androidx.activity.viewModels
@@ -19,10 +18,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.graphics.ColorUtils
 import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
-import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.DownloadService
@@ -63,7 +59,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import pub.devrel.easypermissions.EasyPermissions
 import java.util.Locale
-import kotlin.system.exitProcess
 
 @UnstableApi
 @AndroidEntryPoint
@@ -152,6 +147,7 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
         viewModel.getLocation()
         viewModel.checkAuth()
         viewModel.checkAllDownloadingSongs()
+        viewModel.getSaveLastPlayedSong()
         runBlocking { delay(500) }
 
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -221,6 +217,42 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
         }
         binding.btPlayPause.setOnClickListener {
             viewModel.onUIEvent(UIEvent.PlayPause)
+        }
+        viewModel.saveLastPlayedSong.observe(this) {saved ->
+            viewModel.getSavedSongAndQueue()
+            viewModel.savedQueue.observe(this) {queue ->
+                Log.d("Check Queue", "onCreate: $queue")
+                viewModel.isServiceRunning.observe(this) {run ->
+                    if (run) {
+                        binding.miniplayer.visibility = View.VISIBLE
+                        binding.progressBar.progress = (viewModel.progress.value * 100).toInt()
+                    }
+                }
+                if (!queue.isNullOrEmpty()){
+                    Queue.addAll(queue)
+                    if (!this.isMyServiceRunning(FetchQueue::class.java)) {
+                        startService(
+                            Intent(
+                                this,
+                                FetchQueue::class.java
+                            )
+                        )
+                    } else {
+                        this.stopService(
+                            Intent(
+                                this,
+                                FetchQueue::class.java
+                            )
+                        )
+                        this.startService(
+                            Intent(
+                                this,
+                                FetchQueue::class.java
+                            )
+                        )
+                    }
+                }
+            }
         }
         lifecycleScope.launch {
             val job1 = launch {
@@ -401,7 +433,6 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
     }
     override fun onDestroy() {
         super.onDestroy()
-        Queue.clear()
         stopService()
     }
     private fun startService() {
@@ -426,8 +457,8 @@ class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongCha
                 Log.d("Service", "DownloadService stopped")
             }
             viewModel.isServiceRunning.postValue(false)
-            android.os.Process.killProcess(android.os.Process.myPid())
-            exitProcess(1)
+//            android.os.Process.killProcess(android.os.Process.myPid())
+//            exitProcess(1)
         }
     }
 

@@ -14,8 +14,8 @@ android {
         applicationId = "com.maxrave.simpmusic"
         minSdk = 26
         targetSdk = 34
-        versionCode = 8
-        versionName = "0.1.2-beta"
+        versionCode = 9
+        versionName = "0.1.3-beta"
 
         ksp {
             arg("room.schemaLocation", "$projectDir/schemas")

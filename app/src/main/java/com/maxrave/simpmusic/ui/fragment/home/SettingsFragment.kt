@@ -106,6 +106,7 @@ class SettingsFragment : Fragment() {
         viewModel.getSkipSilent()
         viewModel.getSavedPlaybackState()
         viewModel.getPipedInstance()
+        viewModel.getSaveRecentSongAndQueue()
 
         val diskCache = context?.imageLoader?.diskCache
 
@@ -150,6 +151,9 @@ class SettingsFragment : Fragment() {
         }
         viewModel.savedPlaybackState.observe(viewLifecycleOwner){
             binding.swSavePlaybackState.isChecked = it == DataStoreManager.TRUE
+        }
+        viewModel.saveRecentSongAndQueue.observe(viewLifecycleOwner) {
+            binding.swSaveLastPlayed.isChecked = it == DataStoreManager.TRUE
         }
         viewModel.pipedInstance.observe(viewLifecycleOwner) {
             binding.tvPipedInstance.text = it
@@ -385,6 +389,13 @@ class SettingsFragment : Fragment() {
                 viewModel.setSavedPlaybackState(true)
             } else {
                 viewModel.setSavedPlaybackState(false)
+            }
+        }
+        binding.swSaveLastPlayed.setOnCheckedChangeListener { compoundButton, checked ->
+            if (checked) {
+                viewModel.setSaveLastPlayed(true)
+            } else {
+                viewModel.setSaveLastPlayed(false)
             }
         }
     }

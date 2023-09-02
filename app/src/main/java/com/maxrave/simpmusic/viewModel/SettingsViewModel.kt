@@ -64,6 +64,8 @@ class SettingsViewModel @Inject constructor(
     val pipedInstance: LiveData<String> = _pipedInstance
     private var _savedPlaybackState: MutableLiveData<String> = MutableLiveData()
     val savedPlaybackState: LiveData<String> = _savedPlaybackState
+    private var _saveRecentSongAndQueue: MutableLiveData<String> = MutableLiveData()
+    val saveRecentSongAndQueue: LiveData<String> = _saveRecentSongAndQueue
 
     fun getLocation() {
         viewModelScope.launch {
@@ -85,6 +87,13 @@ class SettingsViewModel @Inject constructor(
             dataStoreManager.setLocation(location)
             YouTube.locale = YouTubeLocale(location, language.value!!)
             getLocation()
+        }
+    }
+    fun getSaveRecentSongAndQueue() {
+        viewModelScope.launch {
+            dataStoreManager.saveRecentSongAndQueue.collect { saved ->
+                _saveRecentSongAndQueue.postValue(saved)
+            }
         }
     }
     private var _quality: MutableLiveData<String> = MutableLiveData()
@@ -298,6 +307,13 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             dataStoreManager.setSaveStateOfPlayback(savedPlaybackState)
             getSavedPlaybackState()
+        }
+    }
+
+    fun setSaveLastPlayed(b: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setSaveRecentSongAndQueue(b)
+            getSaveRecentSongAndQueue()
         }
     }
 }

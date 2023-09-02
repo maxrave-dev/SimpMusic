@@ -13,6 +13,7 @@ import com.maxrave.simpmusic.data.db.entities.FormatEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.LyricsEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
+import com.maxrave.simpmusic.data.db.entities.QueueEntity
 import com.maxrave.simpmusic.data.db.entities.SearchHistory
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.AlbumBrowse
@@ -259,6 +260,20 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
 
     suspend fun getFormat(videoId: String): Flow<FormatEntity?> =
         flow { emit(localDataSource.getFormat(videoId)) }.flowOn(Dispatchers.IO)
+
+
+    suspend fun recoverQueue(temp: List<Track>) {
+        val queueEntity = QueueEntity(listTrack = temp)
+        withContext(Dispatchers.IO) { localDataSource.recoverQueue(queueEntity) }
+    }
+
+    suspend fun removeQueue(){
+        withContext(Dispatchers.IO) { localDataSource.deleteQueue() }
+    }
+
+    suspend fun getSavedQueue(): Flow<List<QueueEntity>?> =
+        flow { emit(localDataSource.getQueue())  }.flowOn(Dispatchers.IO)
+
 
     suspend fun getHomeData(): Flow<Resource<ArrayList<HomeItem>>> = flow {
         runCatching {

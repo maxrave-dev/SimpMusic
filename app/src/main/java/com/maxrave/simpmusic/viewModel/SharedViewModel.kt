@@ -41,6 +41,7 @@ import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toLyrics
 import com.maxrave.simpmusic.extension.toLyricsEntity
 import com.maxrave.simpmusic.extension.toSongEntity
+import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.PlayerEvent
 import com.maxrave.simpmusic.service.RepeatState
 import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
@@ -146,12 +147,20 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     private var _format: MutableLiveData<FormatEntity?> = MutableLiveData()
     val format: LiveData<FormatEntity?> = _format
 
+    private var _saveLastPlayedSong: MutableLiveData<Boolean> = MutableLiveData()
+    val saveLastPlayedSong: LiveData<Boolean> = _saveLastPlayedSong
+
     val intent: MutableStateFlow<Intent?> = MutableStateFlow(null)
 
     init {
         regionCode = runBlocking { dataStoreManager.location.first() }
         quality = runBlocking { dataStoreManager.quality.first() }
         language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
+        runBlocking {
+            if (dataStoreManager.saveRecentSongAndQueue.first() == TRUE) {
+                from.postValue(dataStoreManager.getString("from").first())
+            }
+        }
         viewModelScope.launch {
             val job1 = launch {
                 simpleMediaServiceHandler.simpleMediaState.collect { mediaState ->
@@ -676,6 +685,11 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     override fun onCleared() {
         viewModelScope.launch {
             simpleMediaServiceHandler.onPlayerEvent(PlayerEvent.Stop)
+            if (dataStoreManager.saveRecentSongAndQueue.first() == TRUE) {
+                if (from.value != null) {
+                    dataStoreManager.putString("from", from.value ?: "")
+                }
+            }
         }
     }
 
@@ -763,6 +777,51 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
         regionCode = runBlocking { dataStoreManager.location.first() }
         quality = runBlocking { dataStoreManager.quality.first() }
         language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
+    }
+
+    fun getSaveLastPlayedSong () {
+        runBlocking {
+            _saveLastPlayedSong.postValue(dataStoreManager.saveRecentSongAndQueue.first() == TRUE)
+        }
+    }
+    private var _savedQueue: MutableLiveData<List<Track>> = MutableLiveData()
+    val savedQueue: LiveData<List<Track>> = _savedQueue
+    fun getSavedSongAndQueue() {
+        viewModelScope.launch {
+            dataStoreManager.recentMediaId.collectLatest { mediaId ->
+                mainRepository.getSongById(mediaId).collect {song ->
+                    if (song != null) {
+                        Queue.clear()
+                        Queue.setNowPlaying(song.toTrack())
+                        loadMediaItemFromTrack(song.toTrack())
+                        firstTrackAdded.collectLatest { added ->
+                            if (added) {
+                                if (nowPLaying.value?.mediaId == mediaId) {
+                                    changeFirstTrackAddedToFalse()
+                                    runBlocking { val recentPosition = (dataStoreManager.recentPosition.first())
+                                        simpleMediaServiceHandler.seekTo(recentPosition)
+                                        Log.d("Check recentPosition", recentPosition)
+                                        songDB.value?.duration?.let {
+                                            it.split(":").let { split ->
+                                                _duration.emit(((split[0].toInt() * 60) + split[1].toInt())*1000.toLong())
+                                                Log.d("Check Duration", duration.value.toString())
+                                                calculateProgressValues(recentPosition.toLong())
+                                            }
+                                        }
+                                        mainRepository.getSavedQueue().collect { queue ->
+                                            Log.d("Check Queue", queue.toString())
+                                            if (!queue.isNullOrEmpty()) {
+                                                _savedQueue.value = queue.first().listTrack
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     fun stopPlayer() {

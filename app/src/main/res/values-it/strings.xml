@@ -166,4 +166,13 @@
     <string name="bitrate">Bitrate</string>
     <string name="warning">Avvertimento</string>
     <string name="change_language_warning">La modifica della lingua chiuderà l\'app. Sei sicuro?</string>
+    <string name="this_link_is_not_supported">Questo collegamento non è supportato</string>
+    <string name="added_to_playlist">Aggiunto alla playlist</string>
+    <string name="description">Descrizione</string>
+    <string name="playback">Riproduzione</string>
+    <string name="save_playback_state">Salva stato di riproduzione</string>
+    <string name="save_shuffle_and_repeat_mode">Salva la modalità casuale e di ripetizione</string>
+    <string name="skip_silent">Salta Silenzioso</string>
+    <string name="skip_no_music_part">Non saltare alcuna parte musicale</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Timeout, controlla la connessione Internet o modifica l\'istanza Piped in Impostazioni</string>
 </resources>

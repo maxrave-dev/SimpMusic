@@ -70,7 +70,7 @@ class FetchQueue: Service() {
                 }
             }
         }
-        return START_REDELIVER_INTENT
+        return START_NOT_STICKY
     }
 
     override fun onDestroy() {
