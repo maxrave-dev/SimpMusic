@@ -158,7 +158,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
         language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
         runBlocking {
             if (dataStoreManager.saveRecentSongAndQueue.first() == TRUE) {
-                from.postValue(dataStoreManager.getString("from").first())
+                from.postValue(dataStoreManager.getString("from").first() ?: "")
             }
         }
         viewModelScope.launch {
