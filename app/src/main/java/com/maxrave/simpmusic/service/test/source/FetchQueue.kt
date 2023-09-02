@@ -11,6 +11,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -67,6 +68,7 @@ class FetchQueue: Service() {
                             }
                         }
                     }
+                    stopSelf()
                 }
             }
         }
@@ -74,8 +76,10 @@ class FetchQueue: Service() {
     }
 
     override fun onDestroy() {
-        job.cancel()
         super.onDestroy()
+        job.cancel()
+        scope.cancel()
+        Log.d("FetchQueue", "onDestroy: ")
     }
 
 }

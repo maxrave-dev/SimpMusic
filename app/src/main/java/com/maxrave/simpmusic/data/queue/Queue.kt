@@ -16,7 +16,6 @@ object Queue {
         return queue
     }
     fun clear() {
-        queue = ArrayList()
         queue.clear()
     }
     fun setNowPlaying(song: Track) {

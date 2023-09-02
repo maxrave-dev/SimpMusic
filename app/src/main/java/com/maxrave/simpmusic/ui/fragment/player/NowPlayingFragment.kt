@@ -957,7 +957,9 @@ class NowPlayingFragment : Fragment() {
                         }
                     }
                     Log.d("Queue", "getRelated: ${listWithoutDuplicateElements.size}")
+                    Queue.clear()
                     Queue.addAll(listWithoutDuplicateElements)
+                    Log.d("Queue", "getRelated: ${Queue.getQueue().size}")
                     if (!requireContext().isMyServiceRunning(FetchQueue::class.java)) {
                         requireActivity().startService(
                             Intent(
