@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.fragment.home
 
-import android.app.Activity
 import android.content.Intent
 import android.media.audiofx.AudioEffect
 import android.net.Uri
@@ -46,12 +45,12 @@ class SettingsFragment : Fragment() {
     private val binding get() = _binding!!
     private val viewModel by viewModels<SettingsViewModel>()
 
-    val backupLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
+    private val backupLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
         if (uri != null) {
             viewModel.backup(requireContext(), uri)
         }
     }
-    val restoreLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+    private val restoreLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
             viewModel.restore(requireContext(), uri)
         }
@@ -84,12 +83,7 @@ class SettingsFragment : Fragment() {
         }
     }
 
-    private var resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()){ activityResult ->
-        if (activityResult.resultCode == Activity.RESULT_OK)
-        {
-
-        }
-    }
+    private var resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {}
 
     @OptIn(ExperimentalCoilApi::class)
     @UnstableApi

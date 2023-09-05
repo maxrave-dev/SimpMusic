@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.fragment.player
 
-import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
@@ -17,7 +16,9 @@ import androidx.core.graphics.ColorUtils
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.Download
@@ -65,7 +66,9 @@ import com.maxrave.simpmusic.viewModel.UIEvent
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.text.NumberFormat
 import java.util.Locale
 import javax.inject.Inject
@@ -82,7 +85,7 @@ class NowPlayingFragment : Fragment() {
     lateinit var simpleMediaServiceHandler: SimpleMediaServiceHandler
 
 
-    private val viewModel by activityViewModels<SharedViewModel>()
+    val viewModel by activityViewModels<SharedViewModel>()
     private var _binding: FragmentNowPlayingBinding? = null
     private val binding get() = _binding!!
     private var metadataCurSong: MetadataSong? = null
@@ -96,15 +99,15 @@ class NowPlayingFragment : Fragment() {
     private var gradientDrawable: GradientDrawable? = null
     private var lyricsBackground: Int? = null
 
-    private lateinit var songChangeListener: OnNowPlayingSongChangeListener
-    override fun onAttach(context: Context) {
-        super.onAttach(context)
-        if (context is OnNowPlayingSongChangeListener) {
-            songChangeListener = context
-        } else {
-            throw RuntimeException("$context must implement OnNowPlayingSongChangeListener")
-        }
-    }
+//    private lateinit var songChangeListener: OnNowPlayingSongChangeListener
+//    override fun onAttach(context: Context) {
+//        super.onAttach(context)
+//        if (context is OnNowPlayingSongChangeListener) {
+//            songChangeListener = context
+//        } else {
+//            throw RuntimeException("$context must implement OnNowPlayingSongChangeListener")
+//        }
+//    }
 
 //    override fun onResume() {
 //        Log.d("NowPlayingFragment", "onResume")
@@ -140,7 +143,7 @@ class NowPlayingFragment : Fragment() {
 
         type = arguments?.getString("type")
         videoId = arguments?.getString("videoId")
-        from = arguments?.getString("from")
+        from = arguments?.getString("from") ?: viewModel.from.value
         index = arguments?.getInt("index")
         downloaded = arguments?.getInt("downloaded")
 
@@ -413,8 +416,12 @@ class NowPlayingFragment : Fragment() {
                 metadataCurSong = viewModel.metadata.value?.data
                 gradientDrawable = viewModel.gradientDrawable.value
                 lyricsBackground = viewModel.lyricsBackground.value
-                if (viewModel.progress.value >= 0) {
-                    binding.progressSong.value = viewModel.progress.value * 100
+//                if (viewModel.progress.value in 0.0..1.0) {
+//                    binding.progressSong.value = viewModel.progress.value * 100
+//                }
+                if (videoId == null) {
+                    videoId = viewModel.nowPlayingMediaItem.value?.mediaId
+                    viewModel.videoId.postValue(videoId)
                 }
                 updateUIfromCurrentMediaItem(viewModel.getCurrentMediaItem())
             }
@@ -439,171 +446,182 @@ class NowPlayingFragment : Fragment() {
 //                    }
 //                }
 //            }
-            val job7 =
-                launch {
-                    viewModel.nowPLaying.collectLatest { song ->
-                        if (song != null) {
-                            Log.i("Now Playing Fragment", "song ${song.mediaMetadata.title}")
-                            videoId = viewModel.videoId.value
-                            binding.ivArt.visibility = View.GONE
-                            binding.loadingArt.visibility = View.VISIBLE
-                            Log.d("Check Lyrics", viewModel._lyrics.value?.data.toString())
-                            updateUIfromCurrentMediaItem(song)
-                            musicSource.setCurrentSongIndex(viewModel.getCurrentMediaItemIndex())
-                            viewModel.changeSongTransitionToFalse()
-                        }
-                    }
-                }
-            val job1 = launch {
-                viewModel.progressString.observe(viewLifecycleOwner) {
-                    binding.tvCurrentTime.text = it
-                    if (viewModel.progress.value * 100 in 0f..100f) {
-                        binding.progressSong.value = viewModel.progress.value * 100
-                        songChangeListener.onUpdateProgressBar(viewModel.progress.value * 100)
-                    }
-                }
-                viewModel.duration.collect {
-                    if (viewModel.formatDuration(it).contains('-')) {
-                        binding.tvFullTime.text = getString(R.string.na_na)
-                    } else {
-                        binding.tvFullTime.text = viewModel.formatDuration(it)
-                    }
-                }
-            }
-            val job2 = launch {
-                viewModel.isPlaying.observe(viewLifecycleOwner) {
-                    Log.d("Check Song Transistion", "${viewModel.songTransitions.value}")
-                    if (it) {
-                        binding.btPlayPause.setImageResource(R.drawable.baseline_pause_circle_24)
-                        songChangeListener.onIsPlayingChange()
-                    } else {
-                        binding.btPlayPause.setImageResource(R.drawable.baseline_play_circle_24)
-                        songChangeListener.onIsPlayingChange()
-                    }
-                }
-            }
-            //Update progress bar from buffered percentage
-            val job3 = launch {
-                viewModel.bufferedPercentage.collect {
-                    binding.buffered.progress = it
-//                    Log.d("buffered", it.toString())
-                }
-            }
-            //Check if song is ready to play. And make progress bar indeterminate
-            val job4 = launch {
-                viewModel.notReady.observe(viewLifecycleOwner) {
-                    binding.buffered.isIndeterminate = it
-                }
-            }
-            val job5 = launch {
-                viewModel.progressMillis.collect {
-                    if (viewModel._lyrics.value?.data != null) {
-                        val temp = viewModel.getLyricsString(it)
-                        binding.tvSyncState.text = when (viewModel.getLyricsSyncState()) {
-                            Config.SyncState.NOT_FOUND -> null
-                            Config.SyncState.LINE_SYNCED -> getString(R.string.line_synced)
-                            Config.SyncState.UNSYNCED -> getString(R.string.unsynced)
-                        }
-                        if (temp != null) {
-                            if (temp.nowLyric == "Lyrics not found") {
-                                binding.lyricsLayout.visibility = View.GONE
-                                binding.lyricsTextLayout.visibility = View.GONE
-                            } else {
-                                if (binding.btFull.text == getString(R.string.show)) {
-                                    binding.lyricsTextLayout.visibility = View.VISIBLE
-                                }
-                                binding.lyricsLayout.visibility = View.VISIBLE
-                                if (temp.nowLyric != null) {
-                                    binding.tvNowLyrics.visibility = View.VISIBLE
-                                    binding.tvNowLyrics.text = temp.nowLyric
-                                } else {
-                                    binding.tvNowLyrics.visibility = View.GONE
-                                }
-                                if (temp.prevLyrics != null) {
-                                    binding.tvPrevLyrics.visibility = View.VISIBLE
-                                    if (temp.prevLyrics.size > 1) {
-                                        val txt = temp.prevLyrics[0] + "\n" + temp.prevLyrics[1]
-                                        binding.tvPrevLyrics.text = txt
-                                    } else {
-                                        binding.tvPrevLyrics.text = temp.prevLyrics[0]
-                                    }
-                                } else {
-                                    binding.tvPrevLyrics.visibility = View.GONE
-                                }
-                                if (temp.nextLyric != null) {
-                                    binding.tvNextLyrics.visibility = View.VISIBLE
-                                    if (temp.nextLyric.size > 1) {
-                                        val txt = temp.nextLyric[0] + "\n" + temp.nextLyric[1]
-                                        binding.tvNextLyrics.text = txt
-                                    } else {
-                                        binding.tvNextLyrics.text = temp.nextLyric[0]
-                                    }
-                                } else {
-                                    binding.tvNextLyrics.visibility = View.GONE
-                                }
+            repeatOnLifecycle(Lifecycle.State.CREATED) {
+
+                val job7 =
+                    launch {
+                        viewModel.nowPLaying.collectLatest { song ->
+                            if (song != null) {
+                                Log.i("Now Playing Fragment", "song ${song.mediaMetadata.title}")
+                                videoId = viewModel.videoId.value
+                                binding.ivArt.visibility = View.GONE
+                                binding.loadingArt.visibility = View.VISIBLE
+                                Log.d("Check Lyrics", viewModel._lyrics.value?.data.toString())
+                                updateUIfromCurrentMediaItem(song)
+                                musicSource.setCurrentSongIndex(viewModel.getCurrentMediaItemIndex())
+                                viewModel.changeSongTransitionToFalse()
                             }
                         }
-                    } else {
-                        binding.lyricsLayout.visibility = View.GONE
-                        binding.lyricsTextLayout.visibility = View.GONE
                     }
-                }
-            }
-            val job6 = launch {
-                viewModel.lyricsFull.observe(viewLifecycleOwner) {
-                    if (it != null) {
-                        binding.tvFullLyrics.text = it
-                    }
-                }
-            }
-            val job8 = launch {
-                viewModel.shuffleModeEnabled.collect { shuffle ->
-                    when (shuffle) {
-                        true -> {
-                            binding.btShuffle.setImageResource(R.drawable.baseline_shuffle_24_enable)
-                        }
-
-                        false -> {
-                            binding.btShuffle.setImageResource(R.drawable.baseline_shuffle_24)
+                val job13 = launch {
+                    viewModel.progress.collect {
+                        if (it in 0.0..1.0) {
+                            binding.progressSong.value = it * 100
                         }
                     }
                 }
-            }
-            val job9 = launch {
-                viewModel.repeatMode.collect { repeatMode ->
-                    when (repeatMode) {
-                        RepeatState.None -> {
-                            binding.btRepeat.setImageResource(R.drawable.baseline_repeat_24)
-                        }
-
-                        RepeatState.One -> {
-                            binding.btRepeat.setImageResource(R.drawable.baseline_repeat_one_24)
-                        }
-
-                        RepeatState.All -> {
-                            binding.btRepeat.setImageResource(R.drawable.baseline_repeat_24_enable)
+                val job1 = launch {
+                    viewModel.progressString.observe(viewLifecycleOwner) {
+                        binding.tvCurrentTime.text = it
+//                        if (viewModel.progress.value * 100 in 0f..100f) {
+//                            binding.progressSong.value = viewModel.progress.value * 100
+////                        songChangeListener.onUpdateProgressBar(viewModel.progress.value * 100)
+//                        }
+                    }
+                    viewModel.duration.collect {
+                        if (viewModel.formatDuration(it).contains('-')) {
+                            binding.tvFullTime.text = getString(R.string.na_na)
+                        } else {
+                            binding.tvFullTime.text = viewModel.formatDuration(it)
                         }
                     }
                 }
-            }
-            val job10 = launch {
-                viewModel.liked.collect { liked ->
-                    binding.cbFavorite.isChecked = liked
+                val job2 = launch {
+                    viewModel.isPlaying.observe(viewLifecycleOwner) {
+                        Log.d("Check Song Transistion", "${viewModel.songTransitions.value}")
+                        if (it) {
+                            binding.btPlayPause.setImageResource(R.drawable.baseline_pause_circle_24)
+//                        songChangeListener.onIsPlayingChange()
+                        } else {
+                            binding.btPlayPause.setImageResource(R.drawable.baseline_play_circle_24)
+//                        songChangeListener.onIsPlayingChange()
+                        }
+                    }
                 }
-            }
+                //Update progress bar from buffered percentage
+                val job3 = launch {
+                    viewModel.bufferedPercentage.collect {
+                        binding.buffered.progress = it
+//                    Log.d("buffered", it.toString())
+                    }
+                }
+                //Check if song is ready to play. And make progress bar indeterminate
+                val job4 = launch {
+                    viewModel.notReady.observe(viewLifecycleOwner) {
+                        binding.buffered.isIndeterminate = it
+                    }
+                }
+                val job5 = launch {
+                    viewModel.progressMillis.collect {
+                        if (viewModel._lyrics.value?.data != null) {
+                            val temp = viewModel.getLyricsString(it)
+                            binding.tvSyncState.text = when (viewModel.getLyricsSyncState()) {
+                                Config.SyncState.NOT_FOUND -> null
+                                Config.SyncState.LINE_SYNCED -> getString(R.string.line_synced)
+                                Config.SyncState.UNSYNCED -> getString(R.string.unsynced)
+                            }
+                            if (temp != null) {
+                                if (temp.nowLyric == "Lyrics not found") {
+                                    binding.lyricsLayout.visibility = View.GONE
+                                    binding.lyricsTextLayout.visibility = View.GONE
+                                } else {
+                                    if (binding.btFull.text == getString(R.string.show)) {
+                                        binding.lyricsTextLayout.visibility = View.VISIBLE
+                                    }
+                                    binding.lyricsLayout.visibility = View.VISIBLE
+                                    if (temp.nowLyric != null) {
+                                        binding.tvNowLyrics.visibility = View.VISIBLE
+                                        binding.tvNowLyrics.text = temp.nowLyric
+                                    } else {
+                                        binding.tvNowLyrics.visibility = View.GONE
+                                    }
+                                    if (temp.prevLyrics != null) {
+                                        binding.tvPrevLyrics.visibility = View.VISIBLE
+                                        if (temp.prevLyrics.size > 1) {
+                                            val txt = temp.prevLyrics[0] + "\n" + temp.prevLyrics[1]
+                                            binding.tvPrevLyrics.text = txt
+                                        } else {
+                                            binding.tvPrevLyrics.text = temp.prevLyrics[0]
+                                        }
+                                    } else {
+                                        binding.tvPrevLyrics.visibility = View.GONE
+                                    }
+                                    if (temp.nextLyric != null) {
+                                        binding.tvNextLyrics.visibility = View.VISIBLE
+                                        if (temp.nextLyric.size > 1) {
+                                            val txt = temp.nextLyric[0] + "\n" + temp.nextLyric[1]
+                                            binding.tvNextLyrics.text = txt
+                                        } else {
+                                            binding.tvNextLyrics.text = temp.nextLyric[0]
+                                        }
+                                    } else {
+                                        binding.tvNextLyrics.visibility = View.GONE
+                                    }
+                                }
+                            }
+                        } else {
+                            binding.lyricsLayout.visibility = View.GONE
+                            binding.lyricsTextLayout.visibility = View.GONE
+                        }
+                    }
+                }
+                val job6 = launch {
+                    viewModel.lyricsFull.observe(viewLifecycleOwner) {
+                        if (it != null) {
+                            binding.tvFullLyrics.text = it
+                        }
+                    }
+                }
+                val job8 = launch {
+                    viewModel.shuffleModeEnabled.collect { shuffle ->
+                        when (shuffle) {
+                            true -> {
+                                binding.btShuffle.setImageResource(R.drawable.baseline_shuffle_24_enable)
+                            }
 
-            job1.join()
-            job2.join()
-            job3.join()
-            job4.join()
-            job5.join()
-            job6.join()
-            job7.join()
-            job8.join()
-            job9.join()
-            job10.join()
+                            false -> {
+                                binding.btShuffle.setImageResource(R.drawable.baseline_shuffle_24)
+                            }
+                        }
+                    }
+                }
+                val job9 = launch {
+                    viewModel.repeatMode.collect { repeatMode ->
+                        when (repeatMode) {
+                            RepeatState.None -> {
+                                binding.btRepeat.setImageResource(R.drawable.baseline_repeat_24)
+                            }
+
+                            RepeatState.One -> {
+                                binding.btRepeat.setImageResource(R.drawable.baseline_repeat_one_24)
+                            }
+
+                            RepeatState.All -> {
+                                binding.btRepeat.setImageResource(R.drawable.baseline_repeat_24_enable)
+                            }
+                        }
+                    }
+                }
+                val job10 = launch {
+                    viewModel.liked.collect { liked ->
+                        binding.cbFavorite.isChecked = liked
+                    }
+                }
+
+                job1.join()
+                job2.join()
+                job3.join()
+                job4.join()
+                job5.join()
+                job6.join()
+                job7.join()
+                job8.join()
+                job9.join()
+                job10.join()
+                job13.join()
 //            job11.join()
 //            job12.join()
+            }
         }
         binding.btFull.setOnClickListener {
             if (binding.btFull.text == getString(R.string.show)) {
@@ -684,7 +702,7 @@ class NowPlayingFragment : Fragment() {
                         val dialog = BottomSheetDialog(requireContext())
                         val bottomSheetView = BottomSheetNowPlayingBinding.inflate(layoutInflater)
                         with(bottomSheetView) {
-                            if (viewModel.liked.value) {
+                            if (runBlocking { viewModel.liked.first() }) {
                                 tvFavorite.text = getString(R.string.liked)
                                 cbFavorite.isChecked = true
                             } else {
@@ -1036,7 +1054,7 @@ class NowPlayingFragment : Fragment() {
                             }
                             Log.d("Update UI", "updateUI: NULL")
                         }
-                        songChangeListener.onNowPlayingSongChange()
+//                        songChangeListener.onNowPlayingSongChange()
                     },
                 )
                 .transformations(object : Transformation {
@@ -1084,6 +1102,7 @@ class NowPlayingFragment : Fragment() {
                 .build()
             ImageLoader(requireContext()).enqueue(request)
             binding.topAppBar.subtitle = from
+            viewModel.from.postValue(from)
             binding.tvSongTitle.text = nowPlaying.title
             binding.tvSongTitle.isSelected = true
             val tempArtist = mutableListOf<String>()
@@ -1122,6 +1141,7 @@ class NowPlayingFragment : Fragment() {
             binding.tvSongTitle.visibility = View.VISIBLE
             binding.tvSongArtist.visibility = View.VISIBLE
             binding.topAppBar.subtitle = from
+            viewModel.from.postValue(from)
             binding.tvSongTitle.text = mediaItem.mediaMetadata.title
             binding.tvSongTitle.isSelected = true
             binding.tvSongArtist.text = mediaItem.mediaMetadata.artist
@@ -1157,7 +1177,7 @@ class NowPlayingFragment : Fragment() {
                             }
                             Log.d("Update UI", "updateUI: NULL")
                         }
-                        songChangeListener.onNowPlayingSongChange()
+//                        songChangeListener.onNowPlayingSongChange()
                     },
                 )
                 .diskCacheKey(mediaItem.mediaMetadata.artworkUri.toString())
@@ -1236,11 +1256,11 @@ class NowPlayingFragment : Fragment() {
         return stringBuilder.toString()
     }
 
-    public interface OnNowPlayingSongChangeListener {
-        fun onNowPlayingSongChange()
-        fun onIsPlayingChange()
-        fun onUpdateProgressBar(progress: Float)
-    }
+//    public interface OnNowPlayingSongChangeListener {
+//        fun onNowPlayingSongChange()
+//        fun onIsPlayingChange()
+//        fun onUpdateProgressBar(progress: Float)
+//    }
 
     override fun onDestroyView() {
         super.onDestroyView()

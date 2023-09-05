@@ -27,11 +27,13 @@ import com.maxrave.simpmusic.di.PlayerCache
 import com.maxrave.simpmusic.extension.zipInputStream
 import com.maxrave.simpmusic.extension.zipOutputStream
 import com.maxrave.simpmusic.service.SimpleMediaService
+import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
 import com.maxrave.simpmusic.ui.MainActivity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.zip.ZipEntry
@@ -41,14 +43,16 @@ import kotlin.system.exitProcess
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     application: Application,
-    private var dataStoreManager: DataStoreManager,
     private var mainRepository: MainRepository,
     private var database: MusicDatabase,
     private var databaseDao: DatabaseDao,
     @PlayerCache private val playerCache: SimpleCache,
-    @DownloadCache private val downloadCache: SimpleCache
+    @DownloadCache private val downloadCache: SimpleCache,
+    private val simpleMediaServiceHandler: SimpleMediaServiceHandler
     ) : AndroidViewModel(application) {
 
+    @Inject
+    lateinit var dataStoreManager: DataStoreManager
 
     private var _location: MutableLiveData<String> = MutableLiveData()
     val location: LiveData<String> = _location
@@ -69,30 +73,38 @@ class SettingsViewModel @Inject constructor(
 
     fun getLocation() {
         viewModelScope.launch {
-            dataStoreManager.location.collect { location ->
-                _location.postValue(location)
+            withContext(Dispatchers.Main) {
+                dataStoreManager.location.collect { location ->
+                    _location.postValue(location)
+                }
             }
         }
     }
     fun getLoggedIn() {
         viewModelScope.launch {
-            dataStoreManager.loggedIn.collect { loggedIn ->
-                _loggedIn.postValue(loggedIn)
+            withContext(Dispatchers.Main) {
+                dataStoreManager.loggedIn.collect { loggedIn ->
+                    _loggedIn.postValue(loggedIn)
+                }
             }
         }
     }
 
     fun changeLocation(location: String) {
         viewModelScope.launch {
-            dataStoreManager.setLocation(location)
-            YouTube.locale = YouTubeLocale(location, language.value!!)
-            getLocation()
+            withContext((Dispatchers.Main)) {
+                dataStoreManager.setLocation(location)
+                YouTube.locale = YouTubeLocale(location, language.value!!)
+                getLocation()
+            }
         }
     }
     fun getSaveRecentSongAndQueue() {
         viewModelScope.launch {
-            dataStoreManager.saveRecentSongAndQueue.collect { saved ->
-                _saveRecentSongAndQueue.postValue(saved)
+            withContext(Dispatchers.Main) {
+                dataStoreManager.saveRecentSongAndQueue.collect { saved ->
+                    _saveRecentSongAndQueue.postValue(saved)
+                }
             }
         }
     }
@@ -101,10 +113,12 @@ class SettingsViewModel @Inject constructor(
 
     fun getQuality() {
         viewModelScope.launch {
-            dataStoreManager.quality.collect { quality ->
-                when (quality) {
-                    QUALITY.items[0].toString() -> _quality.postValue(QUALITY.items[0].toString())
-                    QUALITY.items[1].toString() -> _quality.postValue(QUALITY.items[1].toString())
+            withContext(Dispatchers.Main) {
+                dataStoreManager.quality.collect { quality ->
+                    when (quality) {
+                        QUALITY.items[0].toString() -> _quality.postValue(QUALITY.items[0].toString())
+                        QUALITY.items[1].toString() -> _quality.postValue(QUALITY.items[1].toString())
+                    }
                 }
             }
         }
@@ -112,11 +126,13 @@ class SettingsViewModel @Inject constructor(
 
     fun changeQuality(checkedIndex: Int) {
         viewModelScope.launch {
-            when (checkedIndex) {
-                0 -> dataStoreManager.setQuality(QUALITY.items[0].toString())
-                1 -> dataStoreManager.setQuality(QUALITY.items[1].toString())
+            withContext((Dispatchers.Main)) {
+                when (checkedIndex) {
+                    0 -> dataStoreManager.setQuality(QUALITY.items[0].toString())
+                    1 -> dataStoreManager.setQuality(QUALITY.items[1].toString())
+                }
+                getQuality()
             }
-            getQuality()
         }
     }
 
@@ -172,7 +188,7 @@ class SettingsViewModel @Inject constructor(
 //                            outputStream.putNextEntry(ZipEntry(SETTINGS_FILENAME))
 //                            inputStream.copyTo(outputStream)
 //                        }
-                    runBlocking(Dispatchers.IO) {
+                    runBlocking((Dispatchers.Main)) {
                         databaseDao.checkpoint()
                     }
                     FileInputStream(database.openHelper.writableDatabase.path).use { inputStream ->
@@ -204,7 +220,7 @@ class SettingsViewModel @Inject constructor(
 //                            }
 
                             DB_NAME -> {
-                                runBlocking(Dispatchers.IO) {
+                                runBlocking((Dispatchers.Main)) {
                                     databaseDao.checkpoint()
                                 }
                                 database.close()
@@ -231,8 +247,10 @@ class SettingsViewModel @Inject constructor(
 
     fun getLanguage() {
         viewModelScope.launch {
-            dataStoreManager.getString(SELECTED_LANGUAGE).collect { language ->
-                _language.postValue(language)
+            withContext(Dispatchers.Main){
+                dataStoreManager.getString(SELECTED_LANGUAGE).collect { language ->
+                    _language.postValue(language)
+                }
             }
         }
     }
@@ -240,80 +258,107 @@ class SettingsViewModel @Inject constructor(
     @UnstableApi
     fun changeLanguage(code: String) {
         viewModelScope.launch {
-            dataStoreManager.putString(SELECTED_LANGUAGE, code)
-            YouTube.locale = YouTubeLocale(location.value!!, code)
-            getLanguage()
+            withContext((Dispatchers.Main)) {
+                dataStoreManager.putString(SELECTED_LANGUAGE, code)
+                YouTube.locale = YouTubeLocale(location.value!!, code)
+                getLanguage()
+            }
         }
     }
 
     fun clearCookie() {
         viewModelScope.launch {
-            dataStoreManager.setCookie("")
-            YouTube.cookie = null
-            dataStoreManager.setLoggedIn(false)
+            withContext((Dispatchers.Main)) {
+                dataStoreManager.setCookie("")
+                YouTube.cookie = null
+                dataStoreManager.setLoggedIn(false)
+            }
         }
     }
 
     fun getNormalizeVolume() {
         viewModelScope.launch {
-            dataStoreManager.normalizeVolume.collect { normalizeVolume ->
-                _normalizeVolume.postValue(normalizeVolume)
+            withContext(Dispatchers.Main) {
+                dataStoreManager.normalizeVolume.collect { normalizeVolume ->
+                    _normalizeVolume.postValue(normalizeVolume)
+                }
             }
         }
     }
+    @UnstableApi
     fun setNormalizeVolume(normalizeVolume: Boolean) {
         viewModelScope.launch {
-            dataStoreManager.setNormalizeVolume(normalizeVolume)
-            getNormalizeVolume()
+            withContext((Dispatchers.Main)) {
+                dataStoreManager.setNormalizeVolume(normalizeVolume)
+                simpleMediaServiceHandler.editNormalizeVolume(normalizeVolume)
+                getNormalizeVolume()
+            }
         }
     }
 
     fun getPipedInstance() {
         viewModelScope.launch {
-            dataStoreManager.pipedInstance.collect { pipedInstance ->
-                _pipedInstance.postValue(pipedInstance)
+            withContext(Dispatchers.Main) {
+                dataStoreManager.pipedInstance.collect { pipedInstance ->
+                    _pipedInstance.postValue(pipedInstance)
+                }
             }
         }
     }
 
     fun setPipedInstance(pipedInstance: String) {
         viewModelScope.launch {
-            dataStoreManager.setPipedInstance(pipedInstance)
-            getPipedInstance()
+            withContext((Dispatchers.Main)) {
+                dataStoreManager.setPipedInstance(pipedInstance)
+                getPipedInstance()
+            }
         }
     }
     fun getSkipSilent() {
         viewModelScope.launch {
-            dataStoreManager.skipSilent.collect { skipSilent ->
-                _skipSilent.postValue(skipSilent)
+            withContext(Dispatchers.Main) {
+                dataStoreManager.skipSilent.collect { skipSilent ->
+                    _skipSilent.postValue(skipSilent)
+
+                }
             }
         }
     }
 
+    @UnstableApi
     fun setSkipSilent(skip: Boolean) {
         viewModelScope.launch {
-            dataStoreManager.setSkipSilent(skip)
-            getSkipSilent()
+            withContext((Dispatchers.Main)) {
+                dataStoreManager.setSkipSilent(skip)
+                simpleMediaServiceHandler.editSkipSilent(skip)
+                getSkipSilent()
+            }
         }
     }
     fun getSavedPlaybackState() {
         viewModelScope.launch {
-            dataStoreManager.saveStateOfPlayback.collect { savedPlaybackState ->
-                _savedPlaybackState.postValue(savedPlaybackState)
+            withContext(Dispatchers.Main) {
+                dataStoreManager.saveStateOfPlayback.collect { savedPlaybackState ->
+                    _savedPlaybackState.postValue(savedPlaybackState)
+                }
             }
         }
     }
     fun setSavedPlaybackState(savedPlaybackState: Boolean) {
         viewModelScope.launch {
-            dataStoreManager.setSaveStateOfPlayback(savedPlaybackState)
-            getSavedPlaybackState()
+            withContext((Dispatchers.Main)) {
+                dataStoreManager.setSaveStateOfPlayback(savedPlaybackState)
+                getSavedPlaybackState()
+            }
         }
     }
 
     fun setSaveLastPlayed(b: Boolean) {
         viewModelScope.launch {
-            dataStoreManager.setSaveRecentSongAndQueue(b)
-            getSaveRecentSongAndQueue()
+            withContext((Dispatchers.Main)) {
+                dataStoreManager.setSaveRecentSongAndQueue(b)
+                getSaveRecentSongAndQueue()
+            }
         }
     }
 }

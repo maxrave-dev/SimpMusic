@@ -175,4 +175,6 @@
     <string name="skip_silent">Bỏ qua im lặng</string>
     <string name="skip_no_music_part">Bỏ qua phần không có nhạc</string>
     <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Quá thời gian, kiểm qua kết nối internet hoặc thay đổi thực thể Piped trong Cài đặt</string>
+    <string name="save_last_played">Lưu phiên phát lại cuối cùng</string>
+    <string name="save_last_played_track_and_queue">Lưu bài hát đang phát và danh sách chờ cuối cùng</string>
 </resources>

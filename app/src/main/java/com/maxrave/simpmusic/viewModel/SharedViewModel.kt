@@ -52,7 +52,9 @@ import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
@@ -70,16 +72,18 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     @Inject
     lateinit var downloadUtils: DownloadUtils
 
+    var restoreLastPlayedTrackDone: Boolean = false
+
     private var _allSongsDB: MutableLiveData<List<SongEntity>> = MutableLiveData()
     val allSongsDB: LiveData<List<SongEntity>> = _allSongsDB
 
     private var _songDB: MutableLiveData<SongEntity> = MutableLiveData()
     val songDB: LiveData<SongEntity> = _songDB
     private var _liked: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val liked: StateFlow<Boolean> = _liked
+    val liked: SharedFlow<Boolean> = _liked.asSharedFlow()
 
-    var _firstTrackAdded: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val firstTrackAdded: StateFlow<Boolean> = _firstTrackAdded
+    private var _firstTrackAdded: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val firstTrackAdded: SharedFlow<Boolean> = _firstTrackAdded.asSharedFlow()
 
     protected val context
         get() = getApplication<Application>()
@@ -98,16 +102,16 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     val metadata: LiveData<Resource<MetadataSong>> = _metadata
 
     private var _bufferedPercentage = MutableStateFlow<Int>(0)
-    val bufferedPercentage: StateFlow<Int> = _bufferedPercentage
+    val bufferedPercentage: SharedFlow<Int> = _bufferedPercentage.asSharedFlow()
 
     private var _progress = MutableStateFlow<Float>(0F)
     private var _progressMillis = MutableStateFlow<Long>(0L)
-    val progressMillis: StateFlow<Long> = _progressMillis
-    val progress: StateFlow<Float> = _progress
+    val progressMillis: SharedFlow<Long> = _progressMillis.asSharedFlow()
+    val progress: SharedFlow<Float> = _progress.asSharedFlow()
     var progressString : MutableLiveData<String> = MutableLiveData("00:00")
 
     private val _duration = MutableStateFlow<Long>(0L)
-    val duration: StateFlow<Long> = _duration
+    val duration: SharedFlow<Long> = _duration.asSharedFlow()
     private val _uiState = MutableStateFlow<UIState>(UIState.Initial)
     val uiState = _uiState.asStateFlow()
 
@@ -122,7 +126,8 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     private var _nowPlayingMediaItem = MutableLiveData<MediaItem?>()
     val nowPlayingMediaItem: LiveData<MediaItem?> = _nowPlayingMediaItem
 
-    val nowPLaying = simpleMediaServiceHandler.nowPlaying.asStateFlow()
+    private var _nowPlaying = simpleMediaServiceHandler.nowPlaying
+    val nowPLaying = _nowPlaying.asSharedFlow()
 
     private var _songTransitions = MutableStateFlow<Boolean>(false)
     val songTransitions: StateFlow<Boolean> = _songTransitions
@@ -142,6 +147,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     private var regionCode: String? = null
     private var language: String? = null
     private var quality: String? = null
+    var from_backup: String? = null
     private var isRestoring = MutableStateFlow(false)
 
     private var _format: MutableLiveData<FormatEntity?> = MutableLiveData()
@@ -150,17 +156,21 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     private var _saveLastPlayedSong: MutableLiveData<Boolean> = MutableLiveData()
     val saveLastPlayedSong: LiveData<Boolean> = _saveLastPlayedSong
 
+    var recentPosition: String = 0L.toString()
+
     val intent: MutableStateFlow<Intent?> = MutableStateFlow(null)
 
     init {
-        regionCode = runBlocking { dataStoreManager.location.first() }
-        quality = runBlocking { dataStoreManager.quality.first() }
-        language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
-        runBlocking {
-            if (dataStoreManager.saveRecentSongAndQueue.first() == TRUE) {
-                from.postValue(dataStoreManager.getString("from").first() ?: "")
-            }
-        }
+//        regionCode = runBlocking { dataStoreManager.location.first() }
+//        quality = runBlocking { dataStoreManager.quality.first() }
+//        language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
+//        val from_backup = runBlocking { dataStoreManager.playlistFromSaved.first() }
+//        if (runBlocking { dataStoreManager.saveRecentSongAndQueue.first() == TRUE }) {
+//            if (from_backup != null) {
+//                from.postValue(from_backup)
+//            }
+//            recentPosition = runBlocking { (dataStoreManager.recentPosition.first()) }
+//        }
         viewModelScope.launch {
             val job1 = launch {
                 simpleMediaServiceHandler.simpleMediaState.collect { mediaState ->
@@ -175,7 +185,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                         }
                         is SimpleMediaState.Playing -> isPlaying.value = mediaState.isPlaying
                         is SimpleMediaState.Progress -> {
-                            if (duration.value > 0){
+                            if (_duration.value > 0){
                                 calculateProgressValues(mediaState.progress)
                                 _progressMillis.value = mediaState.progress
                             }
@@ -556,7 +566,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
         return String.format("%02d:%02d", minutes, seconds)
     }
     private fun calculateProgressValues(currentProgress: Long) {
-        _progress.value = if (currentProgress > 0) (currentProgress.toFloat() / duration.value) else 0f
+        _progress.value = if (currentProgress > 0) (currentProgress.toFloat() / _duration.value) else 0f
         progressString.value = formatDuration(currentProgress)
     }
 
@@ -683,13 +693,12 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
 
     @UnstableApi
     override fun onCleared() {
-        viewModelScope.launch {
-            simpleMediaServiceHandler.onPlayerEvent(PlayerEvent.Stop)
-            if (dataStoreManager.saveRecentSongAndQueue.first() == TRUE) {
-                if (from.value != null) {
-                    dataStoreManager.putString("from", from.value ?: "")
-                }
+        runBlocking {
+            if (from.value != null) {
+                Log.d("Check from", from.value!!)
+                dataStoreManager.setPlaylistFromSaved(from.value!!)
             }
+            simpleMediaServiceHandler.onPlayerEvent(PlayerEvent.Stop)
         }
     }
 
@@ -777,18 +786,23 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
         regionCode = runBlocking { dataStoreManager.location.first() }
         quality = runBlocking { dataStoreManager.quality.first() }
         language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
+        from_backup = runBlocking { dataStoreManager.playlistFromSaved.first() }
+        recentPosition = runBlocking { (dataStoreManager.recentPosition.first()) }
     }
 
     fun getSaveLastPlayedSong () {
-        runBlocking {
-            _saveLastPlayedSong.postValue(dataStoreManager.saveRecentSongAndQueue.first() == TRUE)
+        viewModelScope.launch {
+            dataStoreManager.saveRecentSongAndQueue.first().let { saved ->
+                _saveLastPlayedSong.postValue(saved == TRUE)
+                Log.d("Check SaveLastPlayedSong", restoreLastPlayedTrackDone.toString())
+            }
         }
     }
     private var _savedQueue: MutableLiveData<List<Track>> = MutableLiveData()
     val savedQueue: LiveData<List<Track>> = _savedQueue
     fun getSavedSongAndQueue() {
         viewModelScope.launch {
-            dataStoreManager.recentMediaId.collectLatest { mediaId ->
+            dataStoreManager.recentMediaId.first().let{ mediaId ->
                 mainRepository.getSongById(mediaId).collect {song ->
                     if (song != null) {
                         Queue.clear()
@@ -796,29 +810,35 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                         loadMediaItemFromTrack(song.toTrack())
                         firstTrackAdded.collectLatest { added ->
                             if (added) {
-                                if (nowPLaying.value?.mediaId == mediaId) {
+                                if (_nowPlaying.value?.mediaId == mediaId) {
+                                    from.postValue(from_backup)
                                     changeFirstTrackAddedToFalse()
-                                    runBlocking { val recentPosition = (dataStoreManager.recentPosition.first())
-                                        simpleMediaServiceHandler.seekTo(recentPosition)
-                                        Log.d("Check recentPosition", recentPosition)
-                                        songDB.value?.duration?.let {
+                                    simpleMediaServiceHandler.seekTo(recentPosition)
+                                    Log.d("Check recentPosition", recentPosition)
+                                    songDB.value?.duration?.let {
+                                        if (it != "" && it.contains(":")) {
                                             it.split(":").let { split ->
                                                 _duration.emit(((split[0].toInt() * 60) + split[1].toInt())*1000.toLong())
-                                                Log.d("Check Duration", duration.value.toString())
+                                                Log.d("Check Duration", _duration.value.toString())
                                                 calculateProgressValues(recentPosition.toLong())
                                             }
                                         }
-                                        mainRepository.getSavedQueue().collect { queue ->
-                                            Log.d("Check Queue", queue.toString())
-                                            if (!queue.isNullOrEmpty()) {
-                                                _savedQueue.value = queue.first().listTrack
-                                            }
-                                        }
                                     }
+                                    getSaveQueue()
                                 }
                             }
                         }
                     }
+                }
+            }
+        }
+    }
+    private fun getSaveQueue() {
+        viewModelScope.launch {
+            mainRepository.getSavedQueue().collect { queue ->
+                Log.d("Check Queue", queue.toString())
+                if (!queue.isNullOrEmpty()) {
+                    _savedQueue.value = queue.first().listTrack
                 }
             }
         }
@@ -845,7 +865,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
 
     fun checkAuth() {
         viewModelScope.launch {
-            dataStoreManager.cookie.collect { cookie ->
+            dataStoreManager.cookie.first().let { cookie ->
                 if (cookie != "") {
                     YouTube.cookie = cookie
                     Log.d("Cookie", "Cookie is not empty")
@@ -871,16 +891,25 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
             }
         }
     }
+
+    fun restoreLastPLayedTrackDone() {
+        putString(DataStoreManager.RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE, TRUE)
+    }
+    fun removeSaveQueue() {
+        viewModelScope.launch {
+            mainRepository.removeQueue()
+        }
+    }
 }
 sealed class UIEvent {
-    object PlayPause : UIEvent()
-    object Backward : UIEvent()
-    object Forward : UIEvent()
-    object Next : UIEvent()
-    object Previous : UIEvent()
-    object Stop : UIEvent()
-    object Shuffle : UIEvent()
-    object Repeat : UIEvent()
+    data object PlayPause : UIEvent()
+    data object Backward : UIEvent()
+    data object Forward : UIEvent()
+    data object Next : UIEvent()
+    data object Previous : UIEvent()
+    data object Stop : UIEvent()
+    data object Shuffle : UIEvent()
+    data object Repeat : UIEvent()
     data class UpdateProgress(val newProgress: Float) : UIEvent()
 }
 

@@ -19,6 +19,8 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.databinding.FragmentLogInBinding
+import com.maxrave.simpmusic.extension.isMyServiceRunning
+import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.viewModel.LogInViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
@@ -92,5 +94,10 @@ class LogInFragment : Fragment() {
         val bottom = activity.findViewById<BottomNavigationView>(R.id.bottom_navigation_view)
         bottom.animation = AnimationUtils.loadAnimation(requireContext(), R.anim.bottom_to_top)
         bottom.visibility = View.VISIBLE
+        val miniplayer = activity.findViewById<SwipeLayout>(R.id.miniplayer)
+        if (requireActivity().isMyServiceRunning(SimpleMediaService::class.java)) {
+            miniplayer.animation = AnimationUtils.loadAnimation(requireContext(), R.anim.bottom_to_top)
+            miniplayer.visibility = View.VISIBLE
+        }
     }
 }

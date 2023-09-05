@@ -101,7 +101,7 @@ dependencies {
     //Coil
     implementation("io.coil-kt:coil:2.4.0")
     //Glide
-    implementation("com.github.bumptech.glide:glide:4.15.1")
+    implementation("com.github.bumptech.glide:glide:4.16.0")
     //Easy Permissions
     implementation("pub.devrel:easypermissions:3.0.0")
     //Palette Color
@@ -138,7 +138,7 @@ dependencies {
     implementation("com.daimajia.swipelayout:library:1.2.0@aar")
 
     //arca
-    val acraVersion = "5.11.0"
+    val acraVersion = "5.11.2"
     implementation("ch.acra:acra-mail:$acraVersion")
 
 

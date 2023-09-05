@@ -58,10 +58,17 @@ class SimpleMediaServiceHandler @Inject constructor(
     private val _repeat = MutableStateFlow<RepeatState>(RepeatState.None)
     val repeat = _repeat.asStateFlow()
 
+    private var skipSilent = false
+
+    private var normalizeVolume = false
+
     private var job: Job? = null
 
     init {
         player.addListener(this)
+        job = Job()
+        skipSilent = runBlocking { dataStoreManager.skipSilent.first() == DataStoreManager.TRUE }
+        normalizeVolume = runBlocking { dataStoreManager.normalizeVolume.first() == DataStoreManager.TRUE }
         if (runBlocking{ dataStoreManager.saveStateOfPlayback.first() } == DataStoreManager.TRUE ) {
             Log.d("CHECK INIT", "TRUE")
             val shuffleKey = runBlocking { dataStoreManager.shuffleKey.first() }
@@ -76,7 +83,13 @@ class SimpleMediaServiceHandler @Inject constructor(
                 else -> {Player.REPEAT_MODE_OFF}
             }
         }
-        job = Job()
+        _shuffle.value = player.shuffleModeEnabled
+        _repeat.value = when (player.repeatMode) {
+            Player.REPEAT_MODE_ONE -> RepeatState.One
+            Player.REPEAT_MODE_ALL -> RepeatState.All
+            Player.REPEAT_MODE_OFF -> RepeatState.None
+            else -> {RepeatState.None}
+        }
         nowPlaying.value = player.currentMediaItem
     }
 //    fun changeTrackToFalse() {
@@ -218,29 +231,10 @@ class SimpleMediaServiceHandler @Inject constructor(
 
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
         Log.w("Smooth Switching Transition", "Current Position: ${player.currentPosition}")
-        maybeSkipSilent()
         mayBeNormalizeVolume()
         Log.w("REASON", "onMediaItemTransition: $reason")
         Log.d("Media Item Transition", "Media Item: ${mediaItem?.mediaMetadata?.title}")
         nowPlaying.value = mediaItem
-    //      if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO || reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT || reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK || reason == Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED) {
-//            if (!_changeTrack.value) {
-//                _changeTrack.value = true
-//                _nextTrackAvailable.value = player.hasNextMediaItem()
-//                _previousTrackAvailable.value = player.hasPreviousMediaItem()
-//                Log.d("Change Track", "onMediaItemTransition: ${changeTrack.value}")
-//                Log.d("Media Item Transition", "Media Item: ${mediaItem?.mediaMetadata?.title}")
-//                Log.d("Media Item Transition", "Reason: $reason")
-//            } else {
-//                _changeTrack.value = false
-//                Log.d("Change Track", "onMediaItemTransition: ${changeTrack.value}")
-//                Log.d("Media Item Transition", "Media Item: ${mediaItem?.mediaMetadata?.title}")
-//                Log.d("Media Item Transition", "Reason: $reason")
-//                _changeTrack.value = true
-//                _nextTrackAvailable.value = player.hasNextMediaItem()
-//                _previousTrackAvailable.value = player.hasPreviousMediaItem()
-//            }
-//        }
     }
 
 
@@ -265,9 +259,6 @@ class SimpleMediaServiceHandler @Inject constructor(
                 _shuffle.value = false
             }
         }
-        if (runBlocking{ dataStoreManager.saveStateOfPlayback.first() } == DataStoreManager.TRUE ) {
-            runBlocking { dataStoreManager.recoverShuffleAndRepeatKey(player.shuffleModeEnabled, player.repeatMode) }
-        }
     }
 
     override fun onRepeatModeChanged(repeatMode: Int) {
@@ -275,9 +266,6 @@ class SimpleMediaServiceHandler @Inject constructor(
             ExoPlayer.REPEAT_MODE_OFF -> _repeat.value = RepeatState.None
             ExoPlayer.REPEAT_MODE_ONE -> _repeat.value = RepeatState.One
             ExoPlayer.REPEAT_MODE_ALL -> _repeat.value = RepeatState.All
-        }
-        if (runBlocking{ dataStoreManager.saveStateOfPlayback.first() } == DataStoreManager.TRUE ) {
-            runBlocking { dataStoreManager.recoverShuffleAndRepeatKey(player.shuffleModeEnabled, player.repeatMode) }
         }
     }
 
@@ -346,7 +334,7 @@ class SimpleMediaServiceHandler @Inject constructor(
 
     @OptIn(DelicateCoroutinesApi::class)
     private fun mayBeNormalizeVolume() {
-        if (!runBlocking { dataStoreManager.normalizeVolume.first() == DataStoreManager.TRUE }) {
+        if (!normalizeVolume) {
             loudnessEnhancer?.enabled = false
             loudnessEnhancer?.release()
             loudnessEnhancer = null
@@ -375,7 +363,7 @@ class SimpleMediaServiceHandler @Inject constructor(
         }
     }
     private fun maybeSkipSilent() {
-        player.skipSilenceEnabled = runBlocking { dataStoreManager.skipSilent.first() == DataStoreManager.TRUE }
+        player.skipSilenceEnabled = skipSilent
     }
     fun mayBeSaveRecentSong() {
         runBlocking {
@@ -395,15 +383,29 @@ class SimpleMediaServiceHandler @Inject constructor(
                     temp.remove(track)
                 }
                 Log.w("Check recover queue", temp.toString())
-                runBlocking { mainRepository.recoverQueue(temp) }
+                runBlocking {
+                    mainRepository.recoverQueue(temp)
+                    dataStoreManager.putString(DataStoreManager.RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE, DataStoreManager.FALSE)
+                }
             }
         }
+    }
+    fun mayBeSavePlaybackState() {
+        if (runBlocking{ dataStoreManager.saveStateOfPlayback.first() } == DataStoreManager.TRUE ) {
+            runBlocking { dataStoreManager.recoverShuffleAndRepeatKey(player.shuffleModeEnabled, player.repeatMode) }
+        }
+    }
+    fun editSkipSilent(skip: Boolean) {
+        skipSilent = skip
+        maybeSkipSilent()
+    }
+    fun editNormalizeVolume(normalize: Boolean) {
+        normalizeVolume = normalize
     }
 
     fun seekTo(position: String)  {
         player.seekTo(position.toLong())
-        player.playWhenReady = true
-        player.pause()
+        player.playWhenReady = false
         Log.d("Check seek", "seekTo: ${player.duration}")
     }
 }

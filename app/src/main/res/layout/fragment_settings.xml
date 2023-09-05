@@ -378,7 +378,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:textColor="@android:color/white"
-                            android:text = "Save Last Played">
+                            android:text = "@string/save_last_played">
 
                         </TextView>
                         <TextView
@@ -386,7 +386,7 @@
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:textSize="16sp"
-                            android:text="Save last played track and queue">
+                            android:text="@string/save_last_played_track_and_queue">
 
                         </TextView>
 

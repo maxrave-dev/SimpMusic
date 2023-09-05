@@ -1,11 +1,15 @@
 package com.maxrave.simpmusic.di
 
 import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.room.Room
 import com.maxrave.simpmusic.common.DB_NAME
+import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.Converters
 import com.maxrave.simpmusic.data.db.DatabaseDao
 import com.maxrave.simpmusic.data.db.MusicDatabase
+import com.maxrave.simpmusic.extension.dataStore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -27,4 +31,11 @@ object LocalServiceModule {
     @Singleton
     fun provideDatabaseDao(musicDatabase: MusicDatabase): DatabaseDao = musicDatabase.getDatabaseDao()
 
+    @Provides
+    @Singleton
+    fun provideDatastore(@ApplicationContext context: Context): DataStore<Preferences> = context.dataStore
+
+    @Provides
+    @Singleton
+    fun provideDatastoreManager(@ApplicationContext context: Context, settingsDataStore: DataStore<Preferences>): DataStoreManager = DataStoreManager(context, settingsDataStore)
 }

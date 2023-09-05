@@ -1,33 +1,32 @@
 package com.maxrave.simpmusic.data.dataStore
 
 import android.content.Context
+import androidx.datastore.core.DataStore
+import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
-import androidx.datastore.preferences.preferencesDataStore
 import androidx.media3.common.Player
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
-import com.maxrave.simpmusic.common.SETTINGS_FILENAME
 import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
-import javax.inject.Singleton
 import com.maxrave.simpmusic.common.QUALITY as COMMON_QUALITY
 
-@Singleton
-class DataStoreManager @Inject constructor(@ApplicationContext appContext: Context) {
-    private val Context.dataStore by preferencesDataStore(SETTINGS_FILENAME)
-
-    private val settingsDataStore = appContext.dataStore
+class DataStoreManager @Inject constructor(@ApplicationContext appContext: Context, private val settingsDataStore: DataStore<Preferences>) {
 
     val location: Flow<String> = settingsDataStore.data.map { preferences ->
         preferences[LOCATION] ?: "VN"
     }
 
     suspend fun setLocation(location: String) {
-        settingsDataStore.edit { settings ->
-            settings[LOCATION] = location
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[LOCATION] = location
+            }
         }
     }
 
@@ -36,14 +35,18 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
     }
 
     suspend fun restore(isRestoring: Boolean) {
-        settingsDataStore.edit { settings ->
-            settings[IS_RESTORING_DATABASE] = if (isRestoring) TRUE else FALSE
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[IS_RESTORING_DATABASE] = if (isRestoring) TRUE else FALSE
+            }
         }
     }
 
     suspend fun setQuality(quality: String) {
-        settingsDataStore.edit { settings ->
-            settings[QUALITY] = quality
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[QUALITY] = quality
+            }
         }
     }
 
@@ -74,19 +77,23 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
         preferences[COOKIE] ?: ""
     }
     suspend fun setCookie(cookie: String) {
-        settingsDataStore.edit { settings ->
-            settings[COOKIE] = cookie
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[COOKIE] = cookie
+            }
         }
     }
 
     suspend fun setLoggedIn(logged: Boolean) {
-        if (logged) {
-            settingsDataStore.edit { settings ->
-                settings[LOGGED_IN] = TRUE
-            }
-        } else {
-            settingsDataStore.edit { settings ->
-                settings[LOGGED_IN] = FALSE
+        withContext(Dispatchers.IO) {
+            if (logged) {
+                settingsDataStore.edit { settings ->
+                    settings[LOGGED_IN] = TRUE
+                }
+            } else {
+                settingsDataStore.edit { settings ->
+                    settings[LOGGED_IN] = FALSE
+                }
             }
         }
     }
@@ -96,13 +103,15 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
     }
 
     suspend fun setNormalizeVolume(normalize: Boolean) {
-        if (normalize) {
-            settingsDataStore.edit { settings ->
-                settings[NORMALIZE_VOLUME] = TRUE
-            }
-        } else {
-            settingsDataStore.edit { settings ->
-                settings[NORMALIZE_VOLUME] = FALSE
+        withContext(Dispatchers.IO) {
+            if (normalize) {
+                settingsDataStore.edit { settings ->
+                    settings[NORMALIZE_VOLUME] = TRUE
+                }
+            } else {
+                settingsDataStore.edit { settings ->
+                    settings[NORMALIZE_VOLUME] = FALSE
+                }
             }
         }
     }
@@ -110,13 +119,15 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
         preferences[SKIP_SILENT] ?: FALSE
     }
     suspend fun setSkipSilent(skip: Boolean) {
-        if (skip) {
-            settingsDataStore.edit { settings ->
-                settings[SKIP_SILENT] = TRUE
-            }
-        } else {
-            settingsDataStore.edit { settings ->
-                settings[SKIP_SILENT] = FALSE
+        withContext(Dispatchers.IO) {
+            if (skip) {
+                settingsDataStore.edit { settings ->
+                    settings[SKIP_SILENT] = TRUE
+                }
+            } else {
+                settingsDataStore.edit { settings ->
+                    settings[SKIP_SILENT] = FALSE
+                }
             }
         }
     }
@@ -126,8 +137,10 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
     }
 
     suspend fun setPipedInstance(instance: String) {
-        settingsDataStore.edit { settings ->
-            settings[PIPED] = instance
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[PIPED] = instance
+            }
         }
     }
 
@@ -135,13 +148,15 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
         preferences[SAVE_STATE_OF_PLAYBACK] ?: FALSE
     }
     suspend fun setSaveStateOfPlayback(save: Boolean) {
-        if (save) {
-            settingsDataStore.edit { settings ->
-                settings[SAVE_STATE_OF_PLAYBACK] = TRUE
-            }
-        } else {
-            settingsDataStore.edit { settings ->
-                settings[SAVE_STATE_OF_PLAYBACK] = FALSE
+        withContext(Dispatchers.IO) {
+            if (save) {
+                settingsDataStore.edit { settings ->
+                    settings[SAVE_STATE_OF_PLAYBACK] = TRUE
+                }
+            } else {
+                settingsDataStore.edit { settings ->
+                    settings[SAVE_STATE_OF_PLAYBACK] = FALSE
+                }
             }
         }
     }
@@ -153,22 +168,24 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
     }
 
     suspend fun recoverShuffleAndRepeatKey(shuffle: Boolean, repeat: Int) {
-        if (shuffle) {
-            settingsDataStore.edit { settings ->
-                settings[SHUFFLE_KEY] = TRUE
+        withContext(Dispatchers.IO) {
+            if (shuffle) {
+                settingsDataStore.edit { settings ->
+                    settings[SHUFFLE_KEY] = TRUE
+                }
             }
-        }
-        else {
-            settingsDataStore.edit { settings ->
-                settings[SHUFFLE_KEY] = FALSE
+            else {
+                settingsDataStore.edit { settings ->
+                    settings[SHUFFLE_KEY] = FALSE
+                }
             }
-        }
-        settingsDataStore.edit { settings ->
-            settings[REPEAT_KEY] = when (repeat) {
-                Player.REPEAT_MODE_ONE -> REPEAT_ONE
-                Player.REPEAT_MODE_ALL -> REPEAT_ALL
-                Player.REPEAT_MODE_OFF -> REPEAT_MODE_OFF
-                else -> REPEAT_MODE_OFF
+            settingsDataStore.edit { settings ->
+                settings[REPEAT_KEY] = when (repeat) {
+                    Player.REPEAT_MODE_ONE -> REPEAT_ONE
+                    Player.REPEAT_MODE_ALL -> REPEAT_ALL
+                    Player.REPEAT_MODE_OFF -> REPEAT_MODE_OFF
+                    else -> REPEAT_MODE_OFF
+                }
             }
         }
     }
@@ -177,13 +194,15 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
         preferences[SAVE_RECENT_SONG] ?: FALSE
     }
     suspend fun setSaveRecentSongAndQueue(save: Boolean) {
-        if (save) {
-            settingsDataStore.edit { settings ->
-                settings[SAVE_RECENT_SONG] = TRUE
-            }
-        } else {
-            settingsDataStore.edit { settings ->
-                settings[SAVE_RECENT_SONG] = FALSE
+        withContext(Dispatchers.IO) {
+            if (save) {
+                settingsDataStore.edit { settings ->
+                    settings[SAVE_RECENT_SONG] = TRUE
+                }
+            } else {
+                settingsDataStore.edit { settings ->
+                    settings[SAVE_RECENT_SONG] = FALSE
+                }
             }
         }
     }
@@ -194,9 +213,22 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
         preferences[RECENT_SONG_POSITION_KEY] ?: "0"
     }
     suspend fun saveRecentSong (mediaId: String, position: Long) {
-        settingsDataStore.edit { settings ->
-            settings[RECENT_SONG_MEDIA_ID_KEY] = mediaId
-            settings[RECENT_SONG_POSITION_KEY] = position.toString()
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[RECENT_SONG_MEDIA_ID_KEY] = mediaId
+                settings[RECENT_SONG_POSITION_KEY] = position.toString()
+            }
+        }
+    }
+
+    val playlistFromSaved = settingsDataStore.data.map { preferences ->
+        preferences[FROM_SAVED_PLAYLIST] ?: ""
+    }
+    suspend fun setPlaylistFromSaved(playlist: String) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[FROM_SAVED_PLAYLIST] = playlist
+            }
         }
     }
 
@@ -216,6 +248,8 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
         val RECENT_SONG_POSITION_KEY = stringPreferencesKey("recent_song_position")
         val SHUFFLE_KEY = stringPreferencesKey("shuffle_key")
         val REPEAT_KEY = stringPreferencesKey("repeat_key")
+        val FROM_SAVED_PLAYLIST = stringPreferencesKey("from_saved_playlist")
+        val RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE = "RestoreLastPlayedTrackAndQueueDone"
         val REPEAT_MODE_OFF = "REPEAT_MODE_OFF"
         val REPEAT_ONE = "REPEAT_ONE"
         val REPEAT_ALL = "REPEAT_ALL"
