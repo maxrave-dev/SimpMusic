@@ -74,8 +74,6 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var musicSource: MusicSource
 
-    private var restoreLastPlayedDone = false
-
     private lateinit var binding: ActivityMainBinding
     val viewModel by viewModels<SharedViewModel>()
     private var action: String? = null
@@ -423,11 +421,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun mayBeRestoreLastPlayedTrackAndQueue() {
-        Log.d("Restore", "mayBeRestoreLastPlayedTrackAndQueue: $restoreLastPlayedDone")
         if (getString(RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE) == DataStoreManager.FALSE) {
-            restoreLastPlayedDone = true
-            Log.d("Restore", "mayBeRestoreLastPlayedTrackAndQueue: $restoreLastPlayedDone")
-            viewModel.restoreLastPLayedTrackDone()
             viewModel.getSaveLastPlayedSong()
             val queue = viewModel.saveLastPlayedSong.switchMap { saved: Boolean ->
                 if (saved) {
@@ -453,6 +447,7 @@ class MainActivity : AppCompatActivity() {
                 if (queueData.isNotEmpty()) {
                     if (isMusicServiceRunning) {
                         binding.miniplayer.visibility = View.VISIBLE
+                        viewModel.restoreLastPLayedTrackDone()
                     }
                     Queue.clear()
                     Queue.addAll(queueData)

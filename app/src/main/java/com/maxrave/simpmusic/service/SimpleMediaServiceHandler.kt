@@ -383,10 +383,8 @@ class SimpleMediaServiceHandler @Inject constructor(
                     temp.remove(track)
                 }
                 Log.w("Check recover queue", temp.toString())
-                runBlocking {
-                    mainRepository.recoverQueue(temp)
-                    dataStoreManager.putString(DataStoreManager.RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE, DataStoreManager.FALSE)
-                }
+                mainRepository.recoverQueue(temp)
+                dataStoreManager.putString(DataStoreManager.RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE, DataStoreManager.FALSE)
             }
         }
     }

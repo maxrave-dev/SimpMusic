@@ -11,7 +11,7 @@ import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.Download
@@ -74,7 +74,7 @@ class SearchFragment : Fragment() {
     private lateinit var suggestList: ArrayList<String>
     private lateinit var searchAllResult: ArrayList<Any>
 
-    private val viewModel by viewModels<SearchViewModel>()
+    private val viewModel by activityViewModels<SearchViewModel>()
     private lateinit var resultAdapter: SearchItemAdapter
     private lateinit var searchHistoryAdapter: SearchHistoryItemAdapter
     private lateinit var suggestAdapter: SuggestQueryAdapter
@@ -341,7 +341,7 @@ class SearchFragment : Fragment() {
                                 DownloadState.STATE_DOWNLOADING -> {
                                     tvDownload.text = getString(R.string.downloading)
                                     ivDownload.setImageResource(R.drawable.baseline_downloading_white)
-                                    setEnabledAll(btDownload, false)
+                                    setEnabledAll(btDownload, true)
                                 }
                                 DownloadState.STATE_DOWNLOADED -> {
                                     tvDownload.text = getString(R.string.downloaded)
@@ -351,7 +351,7 @@ class SearchFragment : Fragment() {
                                 DownloadState.STATE_PREPARING -> {
                                     tvDownload.text = getString(R.string.preparing)
                                     ivDownload.setImageResource(R.drawable.baseline_downloading_white)
-                                    setEnabledAll(btDownload, false)
+                                    setEnabledAll(btDownload, true)
                                 }
                             }
                         }
@@ -477,7 +477,7 @@ class SearchFragment : Fragment() {
                                                     )
                                                     tvDownload.text = getString(R.string.downloading)
                                                     ivDownload.setImageResource(R.drawable.baseline_downloading_white)
-                                                    setEnabledAll(btDownload, false)
+                                                    setEnabledAll(btDownload, true)
                                                 }
 
                                                 Download.STATE_FAILED -> {
@@ -518,7 +518,7 @@ class SearchFragment : Fragment() {
                                     }
                                 }
                             }
-                            else if (tvDownload.text == getString(R.string.downloaded)){
+                            else if (tvDownload.text == getString(R.string.downloaded) || tvDownload.text == getString(R.string.downloading)){
                                 DownloadService.sendRemoveDownload(
                                     requireContext(),
                                     MusicDownloadService::class.java,
@@ -589,59 +589,59 @@ class SearchFragment : Fragment() {
         binding.chipGroupTypeSearch.setOnCheckedStateChangeListener { _, checkedIds ->
             if (checkedIds.contains(binding.chipSong.id))
             {
+                viewModel.searchType.postValue("songs")
                 resultList.clear()
                 val temp = viewModel.songsSearchResult.value?.data
                 for (i in temp!!){
                     resultList.add(i)
                 }
                 resultAdapter.updateList(resultList)
-                viewModel.searchType.postValue("songs")
             }
             else if (checkedIds.contains(binding.chipVideo.id)){
+                viewModel.searchType.postValue("videos")
                 resultList.clear()
                 val temp = viewModel.videoSearchResult.value?.data
                 for (i in temp!!){
                     resultList.add(i)
                 }
                 resultAdapter.updateList(resultList)
-                viewModel.searchType.postValue("videos")
             }
             else if (checkedIds.contains(binding.chipAll.id))
             {
+                viewModel.searchType.postValue("all")
                 resultList.clear()
                 resultList.addAll(searchAllResult)
                 resultAdapter.updateList(resultList)
-                viewModel.searchType.postValue("all")
             }
             else if (checkedIds.contains(binding.chipAlbum.id))
             {
+                viewModel.searchType.postValue("albums")
                 resultList.clear()
                 val temp = viewModel.albumsSearchResult.value?.data
                 for (i in temp!!){
                     resultList.add(i)
                 }
                 resultAdapter.updateList(resultList)
-                viewModel.searchType.postValue("albums")
             }
             else if (checkedIds.contains(binding.chipArtists.id))
             {
+                viewModel.searchType.postValue("artists")
                 resultList.clear()
                 val temp = viewModel.artistsSearchResult.value?.data
                 for (i in temp!!){
                     resultList.add(i)
                 }
                 resultAdapter.updateList(resultList)
-                viewModel.searchType.postValue("artists")
             }
             else if (checkedIds.contains(binding.chipPlaylist.id))
             {
+                viewModel.searchType.postValue("playlists")
                 resultList.clear()
                 val temp = viewModel.playlistSearchResult.value?.data
                 for (i in temp!!){
                     resultList.add(i)
                 }
                 resultAdapter.updateList(resultList)
-                viewModel.searchType.postValue("playlists")
             }
         }
         suggestAdapter.setOnClickListener(object: SuggestQueryAdapter.onItemClickListener{
@@ -685,6 +685,7 @@ class SearchFragment : Fragment() {
                             binding.shimmerLayout.stopShimmer()
                             binding.shimmerLayout.visibility = View.GONE
                             setEnabledAll(binding.chipGroupTypeSearch, true)
+                            binding.resultList.smoothScrollToPosition(0)
                         }
                     }
                     is Resource.Error -> {
@@ -728,6 +729,7 @@ class SearchFragment : Fragment() {
                             binding.shimmerLayout.stopShimmer()
                             binding.shimmerLayout.visibility = View.GONE
                             setEnabledAll(binding.chipGroupTypeSearch, true)
+                            binding.resultList.smoothScrollToPosition(0)
                         }
                     }
                     is Resource.Error -> {
@@ -772,6 +774,7 @@ class SearchFragment : Fragment() {
                                 binding.shimmerLayout.visibility = View.GONE
                                 binding.refreshSearch.isRefreshing = false
                                 setEnabledAll(binding.chipGroupTypeSearch, true)
+                                binding.resultList.smoothScrollToPosition(0)
                             }
                         }
                         is Resource.Error -> {
@@ -817,6 +820,7 @@ class SearchFragment : Fragment() {
                                 binding.shimmerLayout.visibility = View.GONE
                                 binding.refreshSearch.isRefreshing = false
                                 setEnabledAll(binding.chipGroupTypeSearch, true)
+                                binding.resultList.smoothScrollToPosition(0)
                             }
                         }
                         is Resource.Error -> {
@@ -862,6 +866,7 @@ class SearchFragment : Fragment() {
                                 binding.shimmerLayout.visibility = View.GONE
                                 binding.refreshSearch.isRefreshing = false
                                 setEnabledAll(binding.chipGroupTypeSearch, true)
+                                binding.resultList.smoothScrollToPosition(0)
                             }
                         }
                         is Resource.Error -> {
@@ -1059,6 +1064,7 @@ class SearchFragment : Fragment() {
                         binding.shimmerLayout.visibility = View.GONE
                         binding.refreshSearch.isRefreshing = false
                         setEnabledAll(binding.chipGroupTypeSearch, true)
+                        binding.resultList.smoothScrollToPosition(0)
                     }
                 }
             }
