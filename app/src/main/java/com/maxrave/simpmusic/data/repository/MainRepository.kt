@@ -5,6 +5,8 @@ import android.util.Log
 import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.models.MusicShelfRenderer
 import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
+import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
+import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.LocalDataSource
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
@@ -637,7 +639,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
         runCatching {
             val q = query.replace(Regex("\\([^)]*?(feat.|ft.|cùng với|con)[^)]*?\\)"), "").replace("  ", " ")
             Log.d("Lyrics", "query: $q")
-            YouTube.authencation().onSuccess {token ->
+            YouTube.authentication().onSuccess { token ->
                 if (token.accessToken != null) {
                     YouTube.getSongId(token.accessToken!!, q).onSuccess { spotifyResult ->
                         Log.d("SongId", "id: ${spotifyResult.tracks?.items?.get(0)?.id}")
@@ -675,7 +677,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
     suspend fun getStream(videoId: String, itag: Int): Flow<String?> = flow{
         val instance = runBlocking { dataStoreManager.pipedInstance.first() }
         YouTube.player(videoId, instance).onSuccess { response ->
-                val format = response.streamingData?.formats?.find { it.itag == itag}
+            val format = response.streamingData?.formats?.find { it.itag == itag}
                 runBlocking {
                     insertFormat(
                         FormatEntity(
@@ -699,6 +701,13 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                 emit(null)
             }
     }.flowOn(Dispatchers.IO)
+    suspend fun getSkipSegments(videoId: String): Flow<List<SkipSegments>?> = flow {
+        YouTube.getSkipSegments(videoId).onSuccess {
+            emit(it)
+        }.onFailure {
+            emit(null)
+        }
+    }.flowOn(Dispatchers.IO)
 
     fun getSongFull(videoId: String): Flow<PipedResponse> = flow {
         val instance = runBlocking { dataStoreManager.pipedInstance.first() }
@@ -706,4 +715,13 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
             emit(it)
         }
     }.flowOn(Dispatchers.IO)
+
+    fun checkForUpdate(): Flow<GithubResponse?> = flow {
+        YouTube.checkForUpdate().onSuccess {
+            emit(it)
+        }
+            .onFailure {
+                emit(null)
+            }
+    }
 }

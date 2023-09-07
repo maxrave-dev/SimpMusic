@@ -8,7 +8,7 @@ import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.provider.ContactsContract.Data
+import android.text.Html
 import android.util.Log
 import android.view.View
 import android.view.animation.AnimationUtils
@@ -27,7 +27,6 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.switchMap
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.DownloadService
-import androidx.navigation.NavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.setupWithNavController
 import androidx.palette.graphics.Palette
@@ -36,6 +35,7 @@ import coil.request.ImageRequest
 import coil.size.Size
 import coil.transform.Transformation
 import com.daimajia.swipe.SwipeLayout
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
 import com.maxrave.simpmusic.R
@@ -50,7 +50,6 @@ import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.RESTORE_LA
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.ActivityMainBinding
-import com.maxrave.simpmusic.extension.dataStore
 import com.maxrave.simpmusic.extension.isMyServiceRunning
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.SimpleMediaService
@@ -65,6 +64,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import pub.devrel.easypermissions.EasyPermissions
+import java.text.SimpleDateFormat
 import java.util.Locale
 import javax.inject.Inject
 
@@ -473,8 +473,12 @@ class MainActivity : AppCompatActivity() {
                             )
                         )
                     }
+                    checkForUpdate()
                 }
             }
+        }
+        else {
+            checkForUpdate()
         }
     }
 
@@ -557,6 +561,34 @@ class MainActivity : AppCompatActivity() {
     fun showBottomNav(){
         binding.bottomNavigationView.visibility = View.VISIBLE
         binding.miniPlayerContainer.visibility = View.VISIBLE
+    }
+
+    private fun checkForUpdate() {
+        viewModel.checkForUpdate()
+        viewModel.githubResponse.observe(this) {response ->
+            if (response != null) {
+                if (response.tagName != getString(R.string.version_name)) {
+                    val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
+                    val outputFormat = SimpleDateFormat("dd MMM yyyy HH:mm:ss", Locale.getDefault())
+                    val formatted = response.publishedAt?.let { input ->
+                        inputFormat.parse(input)
+                            ?.let { outputFormat.format(it) }
+                    }
+
+                    MaterialAlertDialogBuilder(this)
+                        .setTitle(getString(R.string.update_available))
+                        .setMessage(getString(R.string.update_message, response.tagName, formatted, Html.fromHtml(response.body, Html.FROM_HTML_MODE_COMPACT)))
+                        .setPositiveButton(getString(R.string.download)) { _, _ ->
+                            val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(response.assets?.firstOrNull()?.browserDownloadUrl))
+                            startActivity(browserIntent)
+                        }
+                        .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                            dialog.dismiss()
+                        }
+                        .show()
+                }
+            }
+        }
     }
 
     private fun putString(key: String, value: String) {

@@ -26,7 +26,9 @@ import com.maxrave.kotlinytmusicscraper.models.response.NextResponse
 import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
 import com.maxrave.kotlinytmusicscraper.models.response.PlayerResponse
 import com.maxrave.kotlinytmusicscraper.models.response.SearchResponse
+import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.kotlinytmusicscraper.models.splitBySeparator
+import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
 import com.maxrave.kotlinytmusicscraper.models.spotify.SpotifyResult
 import com.maxrave.kotlinytmusicscraper.models.spotify.Token
 import com.maxrave.kotlinytmusicscraper.pages.AlbumPage
@@ -225,7 +227,7 @@ object YouTube {
     suspend fun getLyrics(songId: String) = runCatching {
         ytMusic.getLyrics(songId).body<Lyrics>()
     }
-    suspend fun authencation() = runCatching {
+    suspend fun authentication() = runCatching {
         ytMusic.authorizationSpotify().body<Token>()
     }
     suspend fun getSongId(authorization: String, query: String) = runCatching {
@@ -244,6 +246,14 @@ object YouTube {
             }
         }
         return@runCatching listSuggest
+    }
+
+    suspend fun getSkipSegments(videoId: String) = runCatching {
+        ytMusic.getSkipSegments(videoId).body<List<SkipSegments>>()
+    }
+
+    suspend fun checkForUpdate() = runCatching {
+        ytMusic.checkForUpdate().body<GithubResponse>()
     }
 
     suspend fun explore(): Result<ExplorePage> = runCatching {

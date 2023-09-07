@@ -18,6 +18,7 @@ import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.exoplayer.offline.Download
 import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
+import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.DownloadState
@@ -206,6 +207,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                 simpleMediaServiceHandler.nowPlaying.collectLatest { nowPlaying ->
                     if (nowPlaying != null && getCurrentMediaItemIndex() > 0) {
                         _nowPlayingMediaItem.postValue(nowPlaying)
+                        getSkipSegments(nowPlaying.mediaId)
                         var downloaded = false
                         val tempSong = musicSource.catalogMetadata[getCurrentMediaItemIndex()]
                         Log.d("Check tempSong", tempSong.toString())
@@ -369,6 +371,15 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     fun insertLyrics(lyrics: LyricsEntity) {
         viewModelScope.launch {
             mainRepository.insertLyrics(lyrics)
+        }
+    }
+    fun getSkipSegments(videoId: String) {
+        viewModelScope.launch {
+            mainRepository.getSkipSegments(videoId).collect { segments ->
+                if (segments != null) {
+                    Log.w("Check segments ${videoId}", segments.toString())
+                }
+            }
         }
     }
     fun getSavedLyrics(videoId: String, query: String) {
@@ -898,6 +909,17 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     fun removeSaveQueue() {
         viewModelScope.launch {
             mainRepository.removeQueue()
+        }
+    }
+    private var _githubResponse = MutableLiveData<GithubResponse>()
+    val githubResponse: LiveData<GithubResponse> = _githubResponse
+
+    fun checkForUpdate() {
+        viewModelScope.launch {
+            mainRepository.checkForUpdate().collect {response ->
+                dataStoreManager.putString("CheckForUpdateAt", System.currentTimeMillis().toString())
+                _githubResponse.postValue(response)
+            }
         }
     }
 }

@@ -4,6 +4,7 @@ import android.content.Intent
 import android.media.audiofx.AudioEffect
 import android.net.Uri
 import android.os.Bundle
+import android.text.Html
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -30,8 +31,12 @@ import com.maxrave.simpmusic.databinding.FragmentSettingsBinding
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
+import java.text.SimpleDateFormat
+import java.time.Instant
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Locale
 import javax.inject.Inject
 
 @UnstableApi
@@ -101,6 +106,7 @@ class SettingsFragment : Fragment() {
         viewModel.getSavedPlaybackState()
         viewModel.getPipedInstance()
         viewModel.getSaveRecentSongAndQueue()
+        viewModel.getLastCheckForUpdate()
 
         val diskCache = context?.imageLoader?.diskCache
 
@@ -151,6 +157,39 @@ class SettingsFragment : Fragment() {
         }
         viewModel.pipedInstance.observe(viewLifecycleOwner) {
             binding.tvPipedInstance.text = it
+        }
+        viewModel.lastCheckForUpdate.observe(viewLifecycleOwner) {
+            binding.tvCheckForUpdate.text = getString(R.string.last_checked_at, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                .withZone(ZoneId.systemDefault())
+                .format(Instant.ofEpochMilli(it.toLong())))
+        }
+        binding.btCheckForUpdate.setOnClickListener {
+            binding.tvCheckForUpdate.text = getString(R.string.checking)
+            viewModel.checkForUpdate()
+            viewModel.githubResponse.observe(viewLifecycleOwner) {response ->
+                if (it != null) {
+                    binding.tvCheckForUpdate.text = getString(R.string.last_checked_at, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                        .withZone(ZoneId.systemDefault())
+                        .format(Instant.ofEpochMilli(System.currentTimeMillis())))
+                    val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
+                    val outputFormat = SimpleDateFormat("dd MMM yyyy HH:mm:ss", Locale.getDefault())
+                    val formatted = response.publishedAt?.let { input ->
+                        inputFormat.parse(input)
+                            ?.let { outputFormat.format(it) }
+                    }
+                    MaterialAlertDialogBuilder(requireContext())
+                        .setTitle(getString(R.string.update_available))
+                        .setMessage(getString(R.string.update_message, response.tagName, formatted, Html.fromHtml(response.body, Html.FROM_HTML_MODE_COMPACT)))
+                        .setPositiveButton(getString(R.string.download)) { _, _ ->
+                            val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(response.assets?.firstOrNull()?.browserDownloadUrl))
+                            startActivity(browserIntent)
+                        }
+                        .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                            dialog.dismiss()
+                        }
+                        .show()
+                }
+            }
         }
 
         binding.btVersion.setOnClickListener {

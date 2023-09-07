@@ -13,6 +13,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.cache.SimpleCache
 import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
+import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DB_NAME
 import com.maxrave.simpmusic.common.DownloadState
@@ -31,6 +32,7 @@ import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
 import com.maxrave.simpmusic.ui.MainActivity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -70,6 +72,19 @@ class SettingsViewModel @Inject constructor(
     val savedPlaybackState: LiveData<String> = _savedPlaybackState
     private var _saveRecentSongAndQueue: MutableLiveData<String> = MutableLiveData()
     val saveRecentSongAndQueue: LiveData<String> = _saveRecentSongAndQueue
+    private var _lastCheckForUpdate: MutableLiveData<String> = MutableLiveData()
+    val lastCheckForUpdate: LiveData<String> = _lastCheckForUpdate
+    private var _githubResponse = MutableLiveData<GithubResponse>()
+    val githubResponse: LiveData<GithubResponse> = _githubResponse
+
+    fun checkForUpdate() {
+        viewModelScope.launch {
+            mainRepository.checkForUpdate().collect {response ->
+                dataStoreManager.putString("CheckForUpdateAt", System.currentTimeMillis().toString())
+                _githubResponse.postValue(response)
+            }
+        }
+    }
 
     fun getLocation() {
         viewModelScope.launch {
@@ -104,6 +119,15 @@ class SettingsViewModel @Inject constructor(
             withContext(Dispatchers.Main) {
                 dataStoreManager.saveRecentSongAndQueue.collect { saved ->
                     _saveRecentSongAndQueue.postValue(saved)
+                }
+            }
+        }
+    }
+    fun getLastCheckForUpdate() {
+        viewModelScope.launch {
+            withContext(Dispatchers.Main) {
+                dataStoreManager.getString("CheckForUpdateAt").first().let { lastCheckForUpdate ->
+                    _lastCheckForUpdate.postValue(lastCheckForUpdate)
                 }
             }
         }
