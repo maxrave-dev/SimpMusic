@@ -60,7 +60,9 @@ import com.maxrave.simpmusic.viewModel.UIEvent
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import pub.devrel.easypermissions.EasyPermissions
@@ -405,6 +407,28 @@ class MainActivity : AppCompatActivity() {
                 job5.join()
                 job6.join()
             }
+        }
+        lifecycleScope.launch {
+             viewModel.progress.collect { progress ->
+                 val skipSegments = viewModel.skipSegments.first()
+                 val enabled = viewModel.sponsorBlockEnabled()
+                 val listCategory = viewModel.sponsorBlockCategories()
+                 if (skipSegments != null && enabled == DataStoreManager.TRUE) {
+                    for (skip in skipSegments) {
+                        if (listCategory.contains(skip.category)) {
+                            val firstPart = (skip.segment[0]/skip.videoDuration).toFloat()
+                            val secondPart = (skip.segment[1]/skip.videoDuration).toFloat()
+                            if (progress in firstPart..secondPart) {
+                                Log.w("Seek to", (skip.segment[1]/skip.videoDuration).toFloat().toString())
+                                viewModel.skipSegment((skip.segment[1] * 1000).toLong())
+                                Toast.makeText(this@MainActivity,
+                                    getString(R.string.sponsorblock_skip_segment, skip.category), Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                 }
+                 delay(500)
+             }
         }
         binding.card.animation = AnimationUtils.loadAnimation(this, R.anim.bottom_to_top)
         binding.cbFavorite.setOnCheckedChangeListener{ _, isChecked ->

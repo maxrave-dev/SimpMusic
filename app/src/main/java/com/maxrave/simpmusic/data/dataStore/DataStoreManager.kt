@@ -1,16 +1,19 @@
 package com.maxrave.simpmusic.data.dataStore
 
 import android.content.Context
+import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.media3.common.Player
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
+import com.maxrave.simpmusic.common.SPONSOR_BLOCK
 import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -133,7 +136,7 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
     }
 
     val pipedInstance: Flow<String> = settingsDataStore.data.map { preferences ->
-        preferences[PIPED] ?: "watchapi.whatever.social"
+        preferences[PIPED] ?: "pipedapi-libre.kavin.rocks"
     }
 
     suspend fun setPipedInstance(instance: String) {
@@ -232,6 +235,39 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
         }
     }
 
+    val sponsorBlockEnabled = settingsDataStore.data.map { preferences ->
+        preferences[SPONSOR_BLOCK_ENABLED] ?: FALSE
+    }
+    suspend fun setSponsorBlockEnabled(enabled: Boolean) {
+        withContext(Dispatchers.IO) {
+            if (enabled) {
+                settingsDataStore.edit { settings ->
+                    settings[SPONSOR_BLOCK_ENABLED] = TRUE
+                }
+            } else {
+                settingsDataStore.edit { settings ->
+                    settings[SPONSOR_BLOCK_ENABLED] = FALSE
+                }
+            }
+        }
+    }
+    suspend fun getSponsorBlockCategories(): ArrayList<String> {
+        val list : ArrayList<String> = arrayListOf()
+        for (category in SPONSOR_BLOCK.list) {
+            if (getString(category.toString()).first() == TRUE) list.add(category.toString())
+        }
+        return list
+    }
+    suspend fun setSponsorBlockCategories(categories: ArrayList<String>) {
+        withContext(Dispatchers.IO) {
+            Log.w("setSponsorBlockCategories", categories.toString())
+            for (category in categories) {
+                settingsDataStore.edit { settings ->
+                    settings[stringPreferencesKey(category)] = TRUE
+                }
+            }
+        }
+    }
 
     companion object Settings {
         val COOKIE = stringPreferencesKey("cookie")
@@ -250,6 +286,7 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
         val REPEAT_KEY = stringPreferencesKey("repeat_key")
         val FROM_SAVED_PLAYLIST = stringPreferencesKey("from_saved_playlist")
         val RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE = "RestoreLastPlayedTrackAndQueueDone"
+        val SPONSOR_BLOCK_ENABLED = stringPreferencesKey("sponsor_block_enabled")
         val REPEAT_MODE_OFF = "REPEAT_MODE_OFF"
         val REPEAT_ONE = "REPEAT_ONE"
         val REPEAT_ALL = "REPEAT_ALL"

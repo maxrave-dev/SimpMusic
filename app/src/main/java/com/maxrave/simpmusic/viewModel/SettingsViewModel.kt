@@ -76,6 +76,10 @@ class SettingsViewModel @Inject constructor(
     val lastCheckForUpdate: LiveData<String> = _lastCheckForUpdate
     private var _githubResponse = MutableLiveData<GithubResponse>()
     val githubResponse: LiveData<GithubResponse> = _githubResponse
+    private var _sponsorBlockEnabled: MutableLiveData<String> = MutableLiveData()
+    val sponsorBlockEnabled: LiveData<String> = _sponsorBlockEnabled
+    private var _sponsorBlockCategories: MutableLiveData<ArrayList<String>> = MutableLiveData()
+    val sponsorBlockCategories: LiveData<ArrayList<String>> = _sponsorBlockCategories
 
     fun checkForUpdate() {
         viewModelScope.launch {
@@ -129,6 +133,43 @@ class SettingsViewModel @Inject constructor(
                 dataStoreManager.getString("CheckForUpdateAt").first().let { lastCheckForUpdate ->
                     _lastCheckForUpdate.postValue(lastCheckForUpdate)
                 }
+            }
+        }
+    }
+
+    fun getSponsorBlockEnabled() {
+        viewModelScope.launch {
+            withContext(Dispatchers.Main) {
+                dataStoreManager.sponsorBlockEnabled.first().let { enabled ->
+                    _sponsorBlockEnabled.postValue(enabled)
+                }
+            }
+        }
+    }
+
+    fun setSponsorBlockEnabled(enabled: Boolean) {
+        viewModelScope.launch {
+            withContext(Dispatchers.Main) {
+                dataStoreManager.setSponsorBlockEnabled(enabled)
+                getSponsorBlockEnabled()
+            }
+        }
+    }
+
+    fun getSponsorBlockCategories() {
+        viewModelScope.launch {
+            withContext(Dispatchers.Main) {
+                dataStoreManager.getSponsorBlockCategories().let {
+                    _sponsorBlockCategories.postValue(it)
+                }
+            }
+        }
+    }
+    fun setSponsorBlockCategories(list: ArrayList<String>) {
+        viewModelScope.launch {
+            withContext(Dispatchers.Main) {
+                dataStoreManager.setSponsorBlockCategories(list)
+                getSponsorBlockCategories()
             }
         }
     }

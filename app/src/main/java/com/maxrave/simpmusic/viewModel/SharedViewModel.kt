@@ -19,6 +19,7 @@ import androidx.media3.exoplayer.offline.Download
 import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
+import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.DownloadState
@@ -145,6 +146,10 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     private var _repeatMode = MutableStateFlow<RepeatState>(RepeatState.None)
     val repeatMode: StateFlow<RepeatState> = _repeatMode
 
+    //SponsorBlock
+    private var _skipSegments: MutableStateFlow<List<SkipSegments>?> = MutableStateFlow(null)
+    val skipSegments: StateFlow<List<SkipSegments>?> = _skipSegments
+
     private var regionCode: String? = null
     private var language: String? = null
     private var quality: String? = null
@@ -205,9 +210,11 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
             }
             val job2 = launch {
                 simpleMediaServiceHandler.nowPlaying.collectLatest { nowPlaying ->
+                    nowPlaying?.let { now ->
+                        getSkipSegments(now.mediaId)
+                    }
                     if (nowPlaying != null && getCurrentMediaItemIndex() > 0) {
                         _nowPlayingMediaItem.postValue(nowPlaying)
-                        getSkipSegments(nowPlaying.mediaId)
                         var downloaded = false
                         val tempSong = musicSource.catalogMetadata[getCurrentMediaItemIndex()]
                         Log.d("Check tempSong", tempSong.toString())
@@ -374,13 +381,21 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
         }
     }
     fun getSkipSegments(videoId: String) {
+        resetSkipSegments()
         viewModelScope.launch {
             mainRepository.getSkipSegments(videoId).collect { segments ->
                 if (segments != null) {
                     Log.w("Check segments ${videoId}", segments.toString())
+                    _skipSegments.value = segments
+                }
+                else {
+                    _skipSegments.value = null
                 }
             }
         }
+    }
+    private fun resetSkipSegments() {
+        _skipSegments.value = null
     }
     fun getSavedLyrics(videoId: String, query: String) {
         viewModelScope.launch {
@@ -922,6 +937,11 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
             }
         }
     }
+    fun skipSegment(position: Long) {
+        simpleMediaServiceHandler.skipSegment(position)
+    }
+    fun sponsorBlockEnabled() = runBlocking { dataStoreManager.sponsorBlockEnabled.first() }
+    fun sponsorBlockCategories() = runBlocking { dataStoreManager.getSponsorBlockCategories() }
 }
 sealed class UIEvent {
     data object PlayPause : UIEvent()

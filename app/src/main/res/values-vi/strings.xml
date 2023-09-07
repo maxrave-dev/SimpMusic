@@ -177,4 +177,27 @@
     <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Quá thời gian, kiểm qua kết nối internet hoặc thay đổi thực thể Piped trong Cài đặt</string>
     <string name="save_last_played">Lưu phiên phát lại cuối cùng</string>
     <string name="save_last_played_track_and_queue">Lưu bài hát đang phát và danh sách chờ cuối cùng</string>
+    <string name="update_available">Phiên bản mới có sẵn</string>
+    <string name="update_message">"Phiên bản %1$s có sẵn\nRa mắt: %2$s\nCác thay đổi:\n%3$s "</string>
+    <string name="check_for_update">Kiểm tra cập nhật</string>
+    <string name="last_checked_at">Lần kiểm tra cuối vào %1$s</string>
+    <string name="checking">Đang kiểm tra</string>
+    <string name="sponsorblock_skip_segment">SponsorBlock: Bỏ qua phân đoạn %1$s</string>
+    <string name="sponsor">Được tài trợ</string>
+    <string name="self_promotion">Tự quảng cáo</string>
+    <string name="interaction">Tương tác</string>
+    <string name="intro">Mở đầu</string>
+    <string name="outro">Kết thúc</string>
+    <string name="preview">Xem trước</string>
+    <string name="music_off_topic">Không phải âm nhạc</string>
+    <string name="poi_highlight">Tóm tắt</string>
+    <string name="filler">Bộ lọc</string>
+    <string name="sponsorBlock">SponsorBlock</string>
+    <string name="enable_sponsor_block">Bật SponsorBlock</string>
+    <string name="categories_sponsor_block">Lựa chọn hành vi bỏ qua phân đoạn</string>
+    <string name="what_segments_will_be_skipped">Loại phân đoạn gì sẽ được bỏ qua</string>
+    <string name="save">Lưu</string>
+    <string name="saved">Đã lưu</string>
+    <string name="sponsor_block_intro">SponsorBlock là một dự án mã nguồn mở sử dụng để bỏ qua các phần gây khó chịu của video trên YouTube.\nTìm hiểu thêm: https://sponsor.ajay.app/\nTrong SimpMusic, SponsorBlock chỉ khả dụng khi thiết bị của bạn trực tuyến</string>
+    <string name="skip_sponsor_part_of_video">Bỏ qua phân đoạn được tài trợ của video</string>
 </resources>

@@ -24,6 +24,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.PIPED_INSTANCE
 import com.maxrave.simpmusic.common.QUALITY
+import com.maxrave.simpmusic.common.SPONSOR_BLOCK
 import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.common.SUPPORTED_LOCATION
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
@@ -107,6 +108,8 @@ class SettingsFragment : Fragment() {
         viewModel.getPipedInstance()
         viewModel.getSaveRecentSongAndQueue()
         viewModel.getLastCheckForUpdate()
+        viewModel.getSponsorBlockEnabled()
+        viewModel.getSponsorBlockCategories()
 
         val diskCache = context?.imageLoader?.diskCache
 
@@ -154,6 +157,9 @@ class SettingsFragment : Fragment() {
         }
         viewModel.saveRecentSongAndQueue.observe(viewLifecycleOwner) {
             binding.swSaveLastPlayed.isChecked = it == DataStoreManager.TRUE
+        }
+        viewModel.sponsorBlockEnabled.observe(viewLifecycleOwner) {
+            binding.swEnableSponsorBlock.isChecked = it == DataStoreManager.TRUE
         }
         viewModel.pipedInstance.observe(viewLifecycleOwner) {
             binding.tvPipedInstance.text = it
@@ -389,6 +395,50 @@ class SettingsFragment : Fragment() {
                 }
             dialog.show()
         }
+        binding.btCategoriesSponsorBlock.setOnClickListener {
+            Log.d("Check category", viewModel.sponsorBlockCategories.value.toString())
+            val selectedItem: ArrayList<String> = arrayListOf()
+            val item: Array<CharSequence> = Array(9) {i ->
+                getString(SPONSOR_BLOCK.listName[i])
+            }
+
+            val checked = BooleanArray(9) { i ->
+                if (!viewModel.sponsorBlockCategories.value.isNullOrEmpty()) {
+                    viewModel.sponsorBlockCategories.value!!.contains(SPONSOR_BLOCK.list[i].toString())
+                }
+                else {
+                    false
+                }
+            }
+
+            val dialog = MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Category")
+                .setMultiChoiceItems(item, checked) { dialogInterface, i, b ->
+                    if (b) {
+                        if (!selectedItem.contains(SPONSOR_BLOCK.list[i].toString())) {
+                            selectedItem.add(SPONSOR_BLOCK.list[i].toString())
+                        }
+                    }
+                    else {
+                        if (selectedItem.contains(SPONSOR_BLOCK.list[i].toString())) {
+                            selectedItem.remove(SPONSOR_BLOCK.list[i].toString())
+                        }
+                    }
+                }
+                .setPositiveButton(getString(R.string.save)) { dialog , i ->
+                    viewModel.setSponsorBlockCategories(selectedItem)
+                    Log.d("Check category", selectedItem.toString())
+                    viewModel.getSponsorBlockCategories()
+                    viewModel.sponsorBlockCategories.observe(viewLifecycleOwner) {
+                        Toast.makeText(requireContext(), getString(R.string.saved), Toast.LENGTH_SHORT).show()
+                        dialog.dismiss()
+                    }
+                }
+                .setNegativeButton(R.string.cancel) {dialog , i ->
+                    dialog.dismiss()
+                }
+            dialog.show()
+        }
 
 
         binding.topAppBar.setNavigationOnClickListener {
@@ -429,6 +479,14 @@ class SettingsFragment : Fragment() {
                 viewModel.setSaveLastPlayed(true)
             } else {
                 viewModel.setSaveLastPlayed(false)
+            }
+        }
+        binding.swEnableSponsorBlock.setOnCheckedChangeListener { compoundButton, checked ->
+            if (checked) {
+                viewModel.setSponsorBlockEnabled(true)
+            }
+            else {
+                viewModel.setSponsorBlockEnabled(false)
             }
         }
     }

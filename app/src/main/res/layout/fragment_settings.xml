@@ -179,7 +179,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textSize="16sp"
-                        android:text="watchapi.whatever.social">
+                        android:text="pipedapi-libre.kavin.rocks">
 
                     </TextView>
 
@@ -400,6 +400,95 @@
 
                     </com.google.android.material.switchmaterial.SwitchMaterial>
                 </RelativeLayout>
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/sponsorBlock"
+                    android:textColor="@android:color/white"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:layout_marginVertical="15sp">
+
+                </TextView>
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                    <LinearLayout
+                        android:layout_alignParentStart="true"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginVertical="5sp"
+                        android:layout_marginStart="15sp"
+                        android:id="@+id/btEnableSponsorBlock"
+                        android:focusable="true"
+                        android:clickable="true"
+                        android:foreground="?android:attr/selectableItemBackground"
+                        android:layout_toStartOf="@+id/swEnableSponsorBlock">
+                        <TextView
+                            android:textSize = "16sp"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textColor="@android:color/white"
+                            android:text = "@string/enable_sponsor_block">
+
+                        </TextView>
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textSize="16sp"
+                            android:id="@+id/tvEnableSponsorBlock"
+                            android:text="@string/skip_sponsor_part_of_video">
+
+                        </TextView>
+                    </LinearLayout>
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/swEnableSponsorBlock"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true">
+
+                    </com.google.android.material.switchmaterial.SwitchMaterial>
+                </RelativeLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginVertical="5sp"
+                    android:layout_marginStart="15sp"
+                    android:id="@+id/btCategoriesSponsorBlock"
+                    android:focusable="true"
+                    android:clickable="true"
+                    android:foreground="?android:attr/selectableItemBackground">
+                    <TextView
+                        android:textSize = "16sp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@android:color/white"
+                        android:text = "@string/categories_sponsor_block">
+
+                    </TextView>
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:id="@+id/tvCategoriesSponsorBlock"
+                        android:text="@string/what_segments_will_be_skipped">
+
+                    </TextView>
+
+                </LinearLayout>
+                <TextView
+                    android:autoLink="web"
+                    android:layout_marginVertical="5sp"
+                    android:layout_marginStart="15sp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="11sp"
+                    android:text="@string/sponsor_block_intro">
+
+                </TextView>
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

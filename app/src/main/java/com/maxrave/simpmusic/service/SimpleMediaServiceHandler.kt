@@ -406,6 +406,14 @@ class SimpleMediaServiceHandler @Inject constructor(
         player.playWhenReady = false
         Log.d("Check seek", "seekTo: ${player.duration}")
     }
+    fun skipSegment(position: Long) {
+        if (position in 0..player.duration) {
+            player.seekTo(position)
+        }
+        else if (position > player.duration) {
+            player.seekToNext()
+        }
+    }
 }
 
 sealed class RepeatState {

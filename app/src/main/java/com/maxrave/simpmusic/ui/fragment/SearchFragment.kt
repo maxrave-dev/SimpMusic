@@ -649,6 +649,20 @@ class SearchFragment : Fragment() {
                 binding.svSearch.setQuery(suggestList[position], false)
             }
         })
+        lifecycleScope.launch {
+            viewModel.loading.observe(viewLifecycleOwner) { loading ->
+                if (loading) {
+                    if (binding.chipGroupTypeSearch.isEnabled) {
+                        setEnabledAll(binding.chipGroupTypeSearch, false)
+                    }
+                }
+                else {
+                    if (!binding.chipGroupTypeSearch.isEnabled) {
+                        setEnabledAll(binding.chipGroupTypeSearch, true)
+                    }
+                }
+            }
+        }
     }
 
     private fun observeSearchHistory() {
