@@ -173,27 +173,32 @@ class SettingsFragment : Fragment() {
             binding.tvCheckForUpdate.text = getString(R.string.checking)
             viewModel.checkForUpdate()
             viewModel.githubResponse.observe(viewLifecycleOwner) {response ->
-                if (it != null) {
-                    binding.tvCheckForUpdate.text = getString(R.string.last_checked_at, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-                        .withZone(ZoneId.systemDefault())
-                        .format(Instant.ofEpochMilli(System.currentTimeMillis())))
-                    val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
-                    val outputFormat = SimpleDateFormat("dd MMM yyyy HH:mm:ss", Locale.getDefault())
-                    val formatted = response.publishedAt?.let { input ->
-                        inputFormat.parse(input)
-                            ?.let { outputFormat.format(it) }
+                if (response != null) {
+                    if (response.tagName != getString(R.string.version_name)) {
+                        binding.tvCheckForUpdate.text = getString(R.string.last_checked_at, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                            .withZone(ZoneId.systemDefault())
+                            .format(Instant.ofEpochMilli(System.currentTimeMillis())))
+                        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
+                        val outputFormat = SimpleDateFormat("dd MMM yyyy HH:mm:ss", Locale.getDefault())
+                        val formatted = response.publishedAt?.let { input ->
+                            inputFormat.parse(input)
+                                ?.let { outputFormat.format(it) }
+                        }
+                        MaterialAlertDialogBuilder(requireContext())
+                            .setTitle(getString(R.string.update_available))
+                            .setMessage(getString(R.string.update_message, response.tagName, formatted, Html.fromHtml(response.body, Html.FROM_HTML_MODE_COMPACT)))
+                            .setPositiveButton(getString(R.string.download)) { _, _ ->
+                                val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(response.assets?.firstOrNull()?.browserDownloadUrl))
+                                startActivity(browserIntent)
+                            }
+                            .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                                dialog.dismiss()
+                            }
+                            .show()
                     }
-                    MaterialAlertDialogBuilder(requireContext())
-                        .setTitle(getString(R.string.update_available))
-                        .setMessage(getString(R.string.update_message, response.tagName, formatted, Html.fromHtml(response.body, Html.FROM_HTML_MODE_COMPACT)))
-                        .setPositiveButton(getString(R.string.download)) { _, _ ->
-                            val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(response.assets?.firstOrNull()?.browserDownloadUrl))
-                            startActivity(browserIntent)
-                        }
-                        .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
-                            dialog.dismiss()
-                        }
-                        .show()
+                    else {
+                        Toast.makeText(requireContext(), getString(R.string.no_update), Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
         }
@@ -220,6 +225,7 @@ class SettingsFragment : Fragment() {
             val eqIntent = Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL)
             eqIntent.putExtra(AudioEffect.EXTRA_PACKAGE_NAME, requireContext().packageName)
             eqIntent.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, player.audioSessionId)
+            eqIntent.putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MUSIC)
             val packageManager = requireContext().packageManager
             val resolveInfo: List<*> = packageManager.queryIntentActivities(eqIntent, 0)
             Log.d("EQ", resolveInfo.toString())

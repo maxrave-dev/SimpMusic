@@ -51,16 +51,16 @@ android {
 
 dependencies {
 
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
-    implementation("androidx.core:core-ktx:1.10.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
+    implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
     //material design3
     implementation("com.google.android.material:material:1.9.0")
     //runtime
     implementation("androidx.startup:startup-runtime:1.1.1")
     implementation(project(mapOf("path" to ":kotlinYtmusicScraper")))
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.1")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
     //ExoPlayer
     val media3_version= "1.1.1"
 
@@ -93,8 +93,8 @@ dependencies {
     //Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     //Navigation
-    implementation("androidx.navigation:navigation-fragment-ktx:2.7.1")
-    implementation("androidx.navigation:navigation-ui-ktx:2.7.1")
+    implementation("androidx.navigation:navigation-fragment-ktx:2.7.2")
+    implementation("androidx.navigation:navigation-ui-ktx:2.7.2")
 
     implementation("com.google.code.gson:gson:2.10.1")
 
@@ -132,14 +132,14 @@ dependencies {
     implementation("com.airbnb.android:lottie:$lottieVersion")
 
     //Paging 3
-    val paging_version= "3.2.0"
+    val paging_version= "3.2.1"
     implementation("androidx.paging:paging-runtime-ktx:$paging_version")
 
     implementation("com.daimajia.swipelayout:library:1.2.0@aar")
 
-    //arca
-    val acraVersion = "5.11.2"
-    implementation("ch.acra:acra-mail:$acraVersion")
+
+    //Custom Activity On Crash
+    implementation ("cat.ereza:customactivityoncrash:2.4.0")
 
 
 }

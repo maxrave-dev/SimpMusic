@@ -36,6 +36,7 @@ import coil.transform.Transformation
 import com.daimajia.swipe.SwipeLayout
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.slider.Slider
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.adapter.artist.SeeArtistOfNowPlayingAdapter
@@ -49,6 +50,7 @@ import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.BottomSheetAddToAPlaylistBinding
 import com.maxrave.simpmusic.databinding.BottomSheetNowPlayingBinding
 import com.maxrave.simpmusic.databinding.BottomSheetSeeArtistOfNowPlayingBinding
+import com.maxrave.simpmusic.databinding.BottomSheetSleepTimerBinding
 import com.maxrave.simpmusic.databinding.FragmentNowPlayingBinding
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.isMyServiceRunning
@@ -607,7 +609,16 @@ class NowPlayingFragment : Fragment() {
                         binding.cbFavorite.isChecked = liked
                     }
                 }
-
+                val job11 = launch {
+                    viewModel.previousTrackAvailable.collect { available ->
+                        setEnabledAll(binding.btPrevious, available)
+                    }
+                }
+                val job12 = launch {
+                    viewModel.nextTrackAvailable.collect { available ->
+                        setEnabledAll(binding.btNext, available)
+                    }
+                }
                 job1.join()
                 job2.join()
                 job3.join()
@@ -619,8 +630,8 @@ class NowPlayingFragment : Fragment() {
                 job9.join()
                 job10.join()
                 job13.join()
-//            job11.join()
-//            job12.join()
+                job11.join()
+                job12.join()
             }
         }
         binding.btFull.setOnClickListener {
@@ -677,6 +688,7 @@ class NowPlayingFragment : Fragment() {
                         nowPlayingSong.mediaId,
                         false
                     )
+                    viewModel.updateLikeInNotification(false)
                 }
             } else {
                 viewModel.getCurrentMediaItem()?.let { nowPlayingSong ->
@@ -684,6 +696,7 @@ class NowPlayingFragment : Fragment() {
                         nowPlayingSong.mediaId,
                         true
                     )
+                    viewModel.updateLikeInNotification(true)
                 }
             }
         }
@@ -702,6 +715,18 @@ class NowPlayingFragment : Fragment() {
                         val dialog = BottomSheetDialog(requireContext())
                         val bottomSheetView = BottomSheetNowPlayingBinding.inflate(layoutInflater)
                         with(bottomSheetView) {
+                            lifecycleScope.launch {
+                                viewModel.sleepTimerMinutes.collect { min ->
+                                    if (min > 0) {
+                                        tvSleepTimer.text = getString(R.string.sleep_timer, min.toString())
+                                        ivSleepTimer.setImageResource(R.drawable.alarm_enable)
+                                    }
+                                    else {
+                                        tvSleepTimer.text = getString(R.string.sleep_timer_off)
+                                        ivSleepTimer.setImageResource(R.drawable.baseline_access_alarm_24)
+                                    }
+                                }
+                            }
                             if (runBlocking { viewModel.liked.first() }) {
                                 tvFavorite.text = getString(R.string.liked)
                                 cbFavorite.isChecked = true
@@ -751,6 +776,40 @@ class NowPlayingFragment : Fragment() {
                                     cbFavorite.isChecked = true
                                     tvFavorite.text = getString(R.string.liked)
                                     viewModel.updateLikeStatus(song.videoId, true)
+                                }
+                            }
+                            btSleepTimer.setOnClickListener {
+                                Log.w("Sleep Timer", "onClick")
+                                if(viewModel.sleepTimerRunning.value == true) {
+                                    MaterialAlertDialogBuilder(requireContext())
+                                        .setTitle(getString(R.string.warning))
+                                        .setMessage(getString(R.string.sleep_timer_warning))
+                                        .setPositiveButton(getString(R.string.yes)) { d, _ ->
+                                            viewModel.stopSleepTimer()
+                                            Toast.makeText(requireContext(), getString(R.string.sleep_timer_off_done), Toast.LENGTH_SHORT).show()
+                                            d.dismiss()
+                                        }
+                                        .setNegativeButton(getString(R.string.cancel)) { d, _ ->
+                                            d.dismiss()
+                                        }
+                                        .show()
+                                }
+                                else {
+                                    val d = BottomSheetDialog(requireContext())
+                                    val v = BottomSheetSleepTimerBinding.inflate(layoutInflater)
+                                    v.btSet.setOnClickListener {
+                                        val min = v.etTime.editText?.text.toString()
+                                        if (min.isNotBlank() && min.toInt() > 0){
+                                            viewModel.setSleepTimer(min.toInt())
+                                            d.dismiss()
+                                        }
+                                        else {
+                                            Toast.makeText(requireContext(), getString(R.string.sleep_timer_set_error), Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                    d.setContentView(v.root)
+                                    d.setCancelable(true)
+                                    d.show()
                                 }
                             }
                             btAddPlaylist.setOnClickListener {

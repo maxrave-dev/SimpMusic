@@ -74,6 +74,17 @@ object SPONSOR_BLOCK {
         R.string.filler)
 }
 
+object MEDIA_CUSTOM_COMMAND {
+    const val LIKE = "like"
+    const val REPEAT = "repeat"
+}
+
+object MEDIA_NOTIFICATION {
+    const val NOTIFICATION_ID = 200
+    const val NOTIFICATION_CHANNEL_NAME = "SimpMusic Playback Notification"
+    const val NOTIFICATION_CHANNEL_ID = "SimpMusic Playback Notification ID"
+}
+
 const val SETTINGS_FILENAME = "settings"
 
 const val DB_NAME = "Music Database"

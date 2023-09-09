@@ -134,10 +134,10 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     private var _songTransitions = MutableStateFlow<Boolean>(false)
     val songTransitions: StateFlow<Boolean> = _songTransitions
 
-    private var _nextTrackAvailable = MutableStateFlow<Boolean>(false)
+    private var _nextTrackAvailable = simpleMediaServiceHandler.nextTrackAvailable
     val nextTrackAvailable: StateFlow<Boolean> = _nextTrackAvailable
 
-    private var _previousTrackAvailable = MutableStateFlow<Boolean>(false)
+    private var _previousTrackAvailable = simpleMediaServiceHandler.previousTrackAvailable
     val previousTrackAvailable: StateFlow<Boolean> = _previousTrackAvailable
 
     private var _shuffleModeEnabled = MutableStateFlow<Boolean>(false)
@@ -149,6 +149,17 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     //SponsorBlock
     private var _skipSegments: MutableStateFlow<List<SkipSegments>?> = MutableStateFlow(null)
     val skipSegments: StateFlow<List<SkipSegments>?> = _skipSegments
+
+    //Sleep Timer
+    private var _sleepTimerMinutes = simpleMediaServiceHandler.sleepMinutes
+    val sleepTimerMinutes: SharedFlow<Int> = _sleepTimerMinutes
+
+    private var _sleepTimerDone = simpleMediaServiceHandler.sleepDone
+    val sleepTimerDone: SharedFlow<Boolean> = _sleepTimerDone
+
+    private var _sleepTimerRunning: MutableLiveData<Boolean> = MutableLiveData(false)
+    val sleepTimerRunning: LiveData<Boolean> = _sleepTimerRunning
+
 
     private var regionCode: String? = null
     private var language: String? = null
@@ -224,6 +235,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                                 _songDB.value = songEntity
                                 if (songEntity != null) {
                                     _liked.value = songEntity.liked
+                                    simpleMediaServiceHandler.like(songEntity.liked)
                                     downloaded =
                                         songEntity.downloadState == DownloadState.STATE_DOWNLOADED
                                     Log.d("Check like", songEntity.toString())
@@ -284,13 +296,17 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                 }
             }
             val job5 = launch {
-                simpleMediaServiceHandler.nextTrackAvailable.collect {  available ->
-                    _nextTrackAvailable.value = available
+                sleepTimerDone.collect { done ->
+                    if (done) {
+                        _sleepTimerRunning.value = false
+                    }
                 }
             }
             val job6 = launch {
-                simpleMediaServiceHandler.previousTrackAvailable.collect { available ->
-                    _previousTrackAvailable.value = available
+                simpleMediaServiceHandler.liked.collect { liked ->
+                    if (liked != _liked.value) {
+                        videoId.value?.let { updateLikeStatus(it, liked) }
+                    }
                 }
             }
 
@@ -309,6 +325,19 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
 
     fun putString(key: String, value: String) {
         runBlocking { dataStoreManager.putString(key, value) }
+    }
+
+    fun setSleepTimer(minutes: Int) {
+        _sleepTimerRunning.value = true
+        simpleMediaServiceHandler.sleepStart(minutes)
+    }
+    fun stopSleepTimer() {
+        _sleepTimerRunning.value = false
+        simpleMediaServiceHandler.sleepStop()
+    }
+
+    fun updateLikeInNotification(liked: Boolean) {
+        simpleMediaServiceHandler.like(liked)
     }
 
     private var _downloadState: MutableStateFlow<Download?> = MutableStateFlow(null)
@@ -870,9 +899,6 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
         }
     }
 
-    fun stopPlayer() {
-        simpleMediaServiceHandler.stopPlayer()
-    }
 
     fun checkAllDownloadingSongs() {
         viewModelScope.launch {

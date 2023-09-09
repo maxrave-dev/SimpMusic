@@ -1,0 +1,15 @@
+- Sửa mỗi số lỗi nhỏ
+- Xử lý crash an toàn
+- Xoá tác vụ tải xuống bài hát ngay cả khi đang tải
+- Sửa lỗi cân bằng âm lượng
+- Sửa lỗi equalizer
+- Sửa lỗi xung đột hàng đợi
+- Sửa lỗi không cập nhật giao diện khi chuyển bài hát
+- Cải thiện khả năng tìm kiếm lời bài hát
+- Chức năng kiểm tra cập nhật
+- Thêm nút yêu thích và nút chế độ lặp lại trong thông báo
+- Thêm mô tả bài hát đang phát
+- Thêm chức năng lưu trạng thái phát nhạc
+- Thêm chức năng lưu bài hát đang phát cuối cùng và hàng đợi
+- Thêm chức năng hẹn giờ ngủ
+- Hỗ trợ SponsorBlock

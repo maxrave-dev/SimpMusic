@@ -42,6 +42,7 @@ import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.FIRST_TIME_MIGRATION
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
+import com.maxrave.simpmusic.common.SPONSOR_BLOCK
 import com.maxrave.simpmusic.common.STATUS_DONE
 import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.common.SUPPORTED_LOCATION
@@ -60,7 +61,6 @@ import com.maxrave.simpmusic.viewModel.UIEvent
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -218,7 +218,7 @@ class MainActivity : AppCompatActivity() {
         })
         binding.btRemoveMiniPlayer.setOnClickListener {
             if (viewModel.isServiceRunning.value == true){
-                viewModel.stopPlayer()
+                stopService()
             }
             viewModel.videoId.postValue(null)
             binding.miniplayer.visibility = View.GONE
@@ -369,7 +369,7 @@ class MainActivity : AppCompatActivity() {
                                         gd.gradientType = GradientDrawable.LINEAR_GRADIENT
                                         gd.gradientRadius = 0.5f
                                         gd.alpha = 150
-                                        val bg = ColorUtils.setAlphaComponent(startColor, 230)
+                                        val bg = ColorUtils.setAlphaComponent(startColor, 255)
                                         binding.card.setCardBackgroundColor(bg)
                                         binding.cardBottom.setCardBackgroundColor(bg)
                                         return input
@@ -409,36 +409,60 @@ class MainActivity : AppCompatActivity() {
             }
         }
         lifecycleScope.launch {
-             viewModel.progress.collect { progress ->
-                 val skipSegments = viewModel.skipSegments.first()
-                 val enabled = viewModel.sponsorBlockEnabled()
-                 val listCategory = viewModel.sponsorBlockCategories()
-                 if (skipSegments != null && enabled == DataStoreManager.TRUE) {
-                    for (skip in skipSegments) {
-                        if (listCategory.contains(skip.category)) {
-                            val firstPart = (skip.segment[0]/skip.videoDuration).toFloat()
-                            val secondPart = (skip.segment[1]/skip.videoDuration).toFloat()
-                            if (progress in firstPart..secondPart) {
-                                Log.w("Seek to", (skip.segment[1]/skip.videoDuration).toFloat().toString())
-                                viewModel.skipSegment((skip.segment[1] * 1000).toLong())
-                                Toast.makeText(this@MainActivity,
-                                    getString(R.string.sponsorblock_skip_segment, skip.category), Toast.LENGTH_SHORT).show()
-                            }
-                        }
-                    }
+             val job1 = launch {
+                 viewModel.progress.collect { progress ->
+                     val skipSegments = viewModel.skipSegments.first()
+                     val enabled = viewModel.sponsorBlockEnabled()
+                     val listCategory = viewModel.sponsorBlockCategories()
+                     if (skipSegments != null && enabled == DataStoreManager.TRUE) {
+                         for (skip in skipSegments) {
+                             if (listCategory.contains(skip.category)) {
+                                 val firstPart = (skip.segment[0]/skip.videoDuration).toFloat()
+                                 val secondPart = (skip.segment[1]/skip.videoDuration).toFloat()
+                                 if (progress in firstPart..secondPart) {
+                                     Log.w("Seek to", (skip.segment[1]/skip.videoDuration).toFloat().toString())
+                                     viewModel.skipSegment((skip.segment[1] * 1000).toLong())
+                                     Toast.makeText(this@MainActivity,
+                                         getString(R.string.sponsorblock_skip_segment, getString(SPONSOR_BLOCK.listName.get(SPONSOR_BLOCK.list.indexOf(skip.category))).lowercase()), Toast.LENGTH_SHORT).show()
+                                 }
+                             }
+                         }
+                     }
+                     delay(500)
                  }
-                 delay(500)
              }
+
+             val job2 = launch {
+                viewModel.sleepTimerDone.collect { done ->
+                    if (done) {
+                        MaterialAlertDialogBuilder(this@MainActivity)
+                            .setTitle(getString(R.string.sleep_timer_off))
+                            .setMessage(getString(R.string.good_night))
+                            .setPositiveButton(getString(R.string.yes)) { d, _ ->
+                                d.dismiss()
+                            }
+                            .show()
+                    }
+                }
+             }
+            job1.join()
+            job2.join()
         }
         binding.card.animation = AnimationUtils.loadAnimation(this, R.anim.bottom_to_top)
         binding.cbFavorite.setOnCheckedChangeListener{ _, isChecked ->
             if (!isChecked){
                 Log.d("cbFavorite", "onCheckedChanged: $isChecked")
-                viewModel.nowPlayingMediaItem.value?.let { nowPlayingSong -> viewModel.updateLikeStatus(nowPlayingSong.mediaId, false) }
+                viewModel.nowPlayingMediaItem.value?.let { nowPlayingSong ->
+                    viewModel.updateLikeStatus(nowPlayingSong.mediaId, false)
+                    viewModel.updateLikeInNotification(false)
+                }
             }
             else {
                 Log.d("cbFavorite", "onCheckedChanged: $isChecked")
-                viewModel.nowPlayingMediaItem.value?.let { nowPlayingSong -> viewModel.updateLikeStatus(nowPlayingSong.mediaId, true) }
+                viewModel.nowPlayingMediaItem.value?.let { nowPlayingSong ->
+                    viewModel.updateLikeStatus(nowPlayingSong.mediaId, true)
+                    viewModel.updateLikeInNotification(true)
+                }
             }
         }
         mayBeRestoreLastPlayedTrackAndQueue()
@@ -514,7 +538,7 @@ class MainActivity : AppCompatActivity() {
         if (viewModel.isServiceRunning.value == false) {
             if (!isMyServiceRunning(SimpleMediaService::class.java)) {
                 val intent = Intent(this, SimpleMediaService::class.java)
-                startForegroundService(intent)
+                startService(intent)
                 viewModel.isServiceRunning.postValue(true)
                 Log.d("Service", "Service started")
             }
@@ -534,8 +558,6 @@ class MainActivity : AppCompatActivity() {
                 Log.d("Service", "DownloadService stopped")
             }
             viewModel.isServiceRunning.postValue(false)
-//            android.os.Process.killProcess(android.os.Process.myPid())
-//            exitProcess(1)
         }
     }
 

@@ -35,7 +35,9 @@
                     android:layout_height="wrap_content"
                     android:id="@+id/suggestList"
                     tools:listitem="@layout/item_suggest_query"
-                    android:visibility="gone">
+                    android:visibility="gone"
+                    android:clipToPadding="false"
+                    android:paddingBottom="150dp">
 
                 </androidx.recyclerview.widget.RecyclerView>
 
@@ -44,7 +46,7 @@
                     android:layout_height="wrap_content"
                     android:layout_width="match_parent"
                     android:visibility="visible"
-                    android:layout_marginBottom="125sp">
+                    android:layout_marginBottom="150dp">
 
                     <androidx.core.widget.NestedScrollView
                         android:layout_width="match_parent"

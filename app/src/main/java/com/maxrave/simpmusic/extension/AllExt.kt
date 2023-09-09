@@ -3,8 +3,10 @@ package com.maxrave.simpmusic.extension
 import android.app.ActivityManager
 import android.app.Service
 import android.content.Context
+import android.graphics.Color
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.media3.common.MediaItem
 import androidx.sqlite.db.SimpleSQLiteQuery
@@ -341,6 +343,9 @@ fun Lyrics.toLyricsEntity(videoId: String): LyricsEntity {
 fun setEnabledAll(v: View, enabled: Boolean) {
     v.isEnabled = enabled
     v.isFocusable = enabled
+    if (v is ImageButton) {
+        if (enabled) v.setColorFilter(Color.WHITE) else v.setColorFilter(Color.GRAY)
+    }
     if (v is ViewGroup) {
         val vg = v
         for (i in 0 until vg.childCount) setEnabledAll(vg.getChildAt(i), enabled)
