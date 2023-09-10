@@ -27,6 +27,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.lifecycle.switchMap
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.DownloadService
+import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.setupWithNavController
 import androidx.palette.graphics.Palette
@@ -222,7 +223,8 @@ class MainActivity : AppCompatActivity() {
 
         })
         binding.btRemoveMiniPlayer.setOnClickListener {
-            stopService()
+            viewModel.stopPlayer()
+            viewModel.isServiceRunning.postValue(false)
             viewModel.videoId.postValue(null)
             binding.miniplayer.visibility = View.GONE
             binding.card.radius = 8f
@@ -301,27 +303,41 @@ class MainActivity : AppCompatActivity() {
                                         data!!.host == "youtu.be" -> path
                                         else -> null
                                     }?.let { videoId ->
-                                        viewModel.getSongFull(videoId)
-                                        viewModel.songFull.observe(this@MainActivity) {
-                                            if (it != null){
-                                                val track = it.toTrack(videoId)
-                                                Queue.clear()
-                                                Queue.setNowPlaying(track)
-                                                val args = Bundle()
-                                                args.putString("videoId", videoId)
-                                                args.putString("from", getString(R.string.shared))
-                                                args.putString("type", Config.SHARE)
-                                                viewModel.intent.value = null
-                                                if (navController.currentDestination?.id == R.id.nowPlayingFragment) {
-                                                    navController.popBackStack()
-                                                    navController.navigate(R.id.action_global_nowPlayingFragment, args)
-                                                }
-                                                else {
-                                                    hideBottomNav()
-                                                    navController.navigate(R.id.action_global_nowPlayingFragment, args)
-                                                }
-                                            }
+                                        val args = Bundle()
+                                        args.putString("videoId", videoId)
+                                        args.putString("from", getString(R.string.shared))
+                                        args.putString("type", Config.SHARE)
+                                        viewModel.videoId.value = videoId
+                                        hideBottomNav()
+                                        if (navController.currentDestination?.id == R.id.nowPlayingFragment) {
+                                            findNavController(R.id.fragment_container_view).popBackStack()
+                                            navController.navigate(R.id.action_global_nowPlayingFragment, args)
                                         }
+                                        else {
+                                            navController.navigate(R.id.action_global_nowPlayingFragment, args)
+                                        }
+
+//                                        viewModel.getSongFull(videoId)
+//                                        viewModel.songFull.observe(this@MainActivity) {
+//                                            if (it != null){
+//                                                val track = it.toTrack(videoId)
+//                                                Queue.clear()
+//                                                Queue.setNowPlaying(track)
+//                                                val args = Bundle()
+//                                                args.putString("videoId", videoId)
+//                                                args.putString("from", getString(R.string.shared))
+//                                                args.putString("type", Config.SHARE)
+//                                                viewModel.intent.value = null
+//                                                if (navController.currentDestination?.id == R.id.nowPlayingFragment) {
+//                                                    navController.popBackStack()
+//                                                    navController.navigate(R.id.action_global_nowPlayingFragment, args)
+//                                                }
+//                                                else {
+//                                                    hideBottomNav()
+//                                                    navController.navigate(R.id.action_global_nowPlayingFragment, args)
+//                                                }
+//                                            }
+//                                        }
                                     }
                                 }
                             }

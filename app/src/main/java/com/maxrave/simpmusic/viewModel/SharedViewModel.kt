@@ -816,8 +816,8 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
             }
         }
     }
-    private val _songFull: MutableLiveData<PipedResponse> = MutableLiveData()
-    var songFull: LiveData<PipedResponse> = _songFull
+    private val _songFull: MutableLiveData<PipedResponse?> = MutableLiveData()
+    var songFull: LiveData<PipedResponse?> = _songFull
 
     fun getSongFull(videoId: String) {
         viewModelScope.launch {
@@ -968,6 +968,9 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     }
     fun sponsorBlockEnabled() = runBlocking { dataStoreManager.sponsorBlockEnabled.first() }
     fun sponsorBlockCategories() = runBlocking { dataStoreManager.getSponsorBlockCategories() }
+    fun stopPlayer() {
+        onUIEvent(UIEvent.Stop)
+    }
 }
 sealed class UIEvent {
     data object PlayPause : UIEvent()
