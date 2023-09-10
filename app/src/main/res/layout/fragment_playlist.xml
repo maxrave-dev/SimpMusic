@@ -170,7 +170,7 @@
                                 android:layout_alignParentEnd="true"
                                 android:layout_centerVertical="true"
                                 android:visibility="gone"
-                                android:background="?attr/actionBarItemBackground"
+                                android:background="@android:color/transparent"
                                 android:src="@drawable/baseline_more_vert_24">
 
                             </ImageButton>

@@ -26,8 +26,6 @@
                 android:layout_height="wrap_content"
                 android:layout_width="wrap_content"
                 android:layout_toEndOf="@+id/ivThumbnail"
-                android:layout_toStartOf="@id/btMore"
-                android:layout_marginEnd="10dp"
                 android:layout_marginStart="20sp"
                 android:layout_centerVertical="true"
                 android:orientation="vertical">
@@ -38,12 +36,10 @@
                     android:fontFamily="@font/roboto"
                     android:textStyle="bold"
                     android:textSize="16sp"
-                    android:singleLine="true"
-                    android:ellipsize="marquee"
-                    android:marqueeRepeatLimit="marquee_forever"
-                    android:focusable="true"
-                    android:focusableInTouchMode="true"
+                    android:maxLines="1"
                     android:scrollHorizontally="true"
+                    android:ellipsize="marquee"
+                    android:marqueeRepeatLimit ="marquee_forever"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
@@ -55,12 +51,10 @@
                     android:fontFamily="@font/roboto"
                     android:textStyle="normal"
                     android:textSize="13sp"
-                    android:singleLine="true"
-                    android:ellipsize="marquee"
-                    android:marqueeRepeatLimit="marquee_forever"
-                    android:focusable="true"
-                    android:focusableInTouchMode="true"
+                    android:maxLines="1"
                     android:scrollHorizontally="true"
+                    android:ellipsize="marquee"
+                    android:marqueeRepeatLimit ="marquee_forever"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
@@ -73,11 +67,12 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:src="@drawable/baseline_more_vert_24"
-                android:background="?attr/actionBarItemBackground"
+                android:background="@android:color/transparent"
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
                 android:focusable="true"
-                android:clickable="true">
+                android:clickable="true"
+                android:foreground="?android:attr/selectableItemBackground">
 
             </ImageButton>
 
