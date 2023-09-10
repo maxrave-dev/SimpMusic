@@ -45,9 +45,9 @@ More [screenshot](https://photos.app.goo.gl/AbieoXG5ctDrpwzp7) here.
 
 ## Data
 - This app using public api from YouTube Music with some tricks to get data from YouTube Music.
-- Thanks for [InnerTune](https://github.com/z-huang/InnerTune/) for the idea to get data from YouTube Music. This repo is my inspiration to create this app.
+- Thanks for [@InnerTune](https://github.com/z-huang/InnerTune/) for the idea to get data from YouTube Music. This repo is my inspiration to create this app.
 - Special thanks for [@spotify-lyrics-api](https://github.com/akashrchandran/spotify-lyrics-api) for lyrics and [@Piped](https://github.com/TeamPiped/Piped) for streaming data.
-- My app is using [SponsorBlock](https://sponsor.ajay.app/) to skip sponsor in YouTube videos. Thanks for this great service.
+- My app is using [@SponsorBlock](https://sponsor.ajay.app/) to skip sponsor in YouTube videos. Thanks for this great service.
 ## Translation
 You can help me to translate this app to your language by cloning this repo and using Android Studio Translations Editor to translate "string.xml" file in "values" folder. Then create a pull request for me.
 More info [here](https://developer.android.com/studio/write/translations-editor)
