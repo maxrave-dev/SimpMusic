@@ -35,12 +35,13 @@
             android:layout_width="40sp"
             android:layout_height="40sp"
             android:src="@drawable/baseline_more_vert_24"
-            android:background="?attr/actionBarItemBackground"
+            android:background="@android:color/transparent"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
             android:layout_marginEnd="5sp"
             android:focusable="true"
-            android:clickable="true">
+            android:clickable="true"
+            android:foreground="?android:attr/selectableItemBackground">
 
         </ImageButton>
         <LinearLayout

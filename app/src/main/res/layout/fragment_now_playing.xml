@@ -218,7 +218,7 @@
                             android:layout_width="80dp"
                             android:layout_height="80sp"
                             android:layout_centerInParent="true"
-                            android:background="?attr/actionBarItemBackground"
+                            android:background="@null"
                             android:scaleType="fitCenter"
                             android:src="@drawable/baseline_play_circle_24" />
 
@@ -226,7 +226,7 @@
                             android:id="@+id/btNext"
                             android:layout_width="50sp"
                             android:layout_height="50sp"
-                            android:background="?attr/actionBarItemBackground"
+                            android:background="@null"
                             android:layout_centerVertical="true"
                             android:layout_marginStart="20sp"
                             android:scaleType="fitCenter"
@@ -239,7 +239,7 @@
                             android:id="@+id/btRepeat"
                             android:layout_width="30sp"
                             android:layout_height="30sp"
-                            android:background="?attr/actionBarItemBackground"
+                            android:background="@null"
                             android:layout_centerVertical="true"
                             android:layout_marginStart="20sp"
                             android:scaleType="fitCenter"
@@ -252,7 +252,7 @@
                             android:id="@+id/btPrevious"
                             android:layout_width="50sp"
                             android:layout_height="50sp"
-                            android:background="?attr/actionBarItemBackground"
+                            android:background="@null"
                             android:layout_centerVertical="true"
                             android:layout_marginEnd="20sp"
                             android:scaleType="fitCenter"
@@ -265,7 +265,7 @@
                             android:id="@+id/btShuffle"
                             android:layout_width="30sp"
                             android:layout_height="30sp"
-                            android:background="?attr/actionBarItemBackground"
+                            android:background="@null"
                             android:layout_centerVertical="true"
                             android:layout_marginEnd="20sp"
                             android:scaleType="fitCenter"
@@ -285,10 +285,11 @@
                             android:layout_height="wrap_content"
                             android:src="@drawable/baseline_info_24"
                             android:layout_alignParentStart="true"
-                            android:background="?attr/actionBarItemBackground"
+                            android:background="@null"
                             android:id="@+id/btSongInfo"
                             android:focusable="true"
-                            android:clickable="true">
+                            android:clickable="true"
+                            android:foreground="?android:attr/selectableItemBackground">
 
                         </ImageButton>
                         <ImageButton
@@ -296,10 +297,11 @@
                             android:layout_height="wrap_content"
                             android:src="@drawable/baseline_queue_music_24"
                             android:layout_alignParentEnd="true"
-                            android:background="?attr/actionBarItemBackground"
+                            android:background="@null"
                             android:id="@+id/btQueue"
                             android:focusable="true"
-                            android:clickable="true">
+                            android:clickable="true"
+                            android:foreground="?android:attr/selectableItemBackground">
 
                         </ImageButton>
 
@@ -353,16 +355,16 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="200sp"
                                 android:padding="10sp">
-                                <TextView
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:id="@+id/tvPrevLyrics"
-                                    android:textSize="18sp"
-                                    android:textStyle="normal"
-                                    android:layout_above="@+id/tvNowLyrics"
-                                    android:lineSpacingExtra="5sp"
-                                    android:gravity="bottom">
-                                </TextView>
+                                    <TextView
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:id="@+id/tvPrevLyrics"
+                                        android:textSize="18sp"
+                                        android:textStyle="normal"
+                                        android:layout_above="@+id/tvNowLyrics"
+                                        android:lineSpacingExtra="5sp"
+                                        android:gravity="bottom">
+                                    </TextView>
 
                                 <TextView
                                     android:id="@+id/tvNowLyrics"
@@ -377,15 +379,15 @@
                                     android:textStyle="bold">
 
                                 </TextView>
-                                <TextView
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:id="@+id/tvNextLyrics"
-                                    android:textSize="18sp"
-                                    android:textStyle="normal"
-                                    android:layout_below="@+id/tvNowLyrics"
-                                    android:lineSpacingExtra="5sp">
-                                </TextView>
+                                    <TextView
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:id="@+id/tvNextLyrics"
+                                        android:textSize="18sp"
+                                        android:textStyle="normal"
+                                        android:layout_below="@+id/tvNowLyrics"
+                                        android:lineSpacingExtra="5sp">
+                                    </TextView>
                             </RelativeLayout>
                             <RelativeLayout
                                 android:id="@+id/lyricsFullLayout"

@@ -1,29 +1,37 @@
 package com.maxrave.simpmusic
 
 import android.app.Application
+import android.content.Context
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.media3.common.util.UnstableApi
-import cat.ereza.customactivityoncrash.config.CaocConfig
-import com.maxrave.simpmusic.ui.MainActivity
 import dagger.hilt.android.HiltAndroidApp
-
+import org.acra.config.mailSender
+import org.acra.data.StringFormat
+import org.acra.ktx.initAcra
 
 @HiltAndroidApp
 class SimpMusicApplication: Application(){
-    @UnstableApi
     override fun onCreate() {
         super.onCreate()
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-        CaocConfig.Builder.create()
-            .backgroundMode(CaocConfig.BACKGROUND_MODE_SILENT) //default: CaocConfig.BACKGROUND_MODE_SHOW_CUSTOM
-            .enabled(true) //default: true
-            .showErrorDetails(true) //default: true
-            .showRestartButton(true) //default: true
-            .errorDrawable(R.drawable.logo_simpmusic_01)
-            .logErrorOnRestart(false) //default: true
-            .trackActivities(true) //default: false
-            .minTimeBetweenCrashesMs(2000) //default: 3000 //default: bug image
-            .restartActivity(MainActivity::class.java) //default: null (your app's launch activity)
-            .apply()
+    }
+
+    override fun attachBaseContext(base: Context?) {
+        super.attachBaseContext(base)
+        initAcra {
+            buildConfigClass = BuildConfig::class.java
+            reportFormat = StringFormat.JSON
+            mailSender {
+                //required
+                mailTo = "simpmusic.maxravedev@gmail.com"
+                //defaults to true
+                reportAsFile = true
+                //defaults to ACRA-report.stacktrace
+                reportFileName = "Crash.txt"
+                //defaults to "<applicationId> Crash Report"
+                subject = getString(R.string.mail_subject)
+                //defaults to empty
+                body = getString(R.string.crash_log)
+            }
+        }
     }
 }
