@@ -8,9 +8,9 @@ import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.text.Html
 import android.util.Log
 import android.view.View
+import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.Toast
 import androidx.activity.viewModels
@@ -19,68 +19,64 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.graphics.ColorUtils
 import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
+import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.MediatorLiveData
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import androidx.lifecycle.switchMap
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.DownloadService
-import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.setupWithNavController
 import androidx.palette.graphics.Palette
 import coil.ImageLoader
+import coil.load
 import coil.request.ImageRequest
 import coil.size.Size
 import coil.transform.Transformation
 import com.daimajia.swipe.SwipeLayout
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.FIRST_TIME_MIGRATION
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
-import com.maxrave.simpmusic.common.SPONSOR_BLOCK
 import com.maxrave.simpmusic.common.STATUS_DONE
 import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.common.SUPPORTED_LOCATION
-import com.maxrave.simpmusic.data.dataStore.DataStoreManager
-import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE
-import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.ActivityMainBinding
+import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.isMyServiceRunning
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.service.test.source.FetchQueue
-import com.maxrave.simpmusic.service.test.source.MusicSource
+import com.maxrave.simpmusic.ui.fragment.player.NowPlayingFragment
+import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import pub.devrel.easypermissions.EasyPermissions
-import java.text.SimpleDateFormat
 import java.util.Locale
-import javax.inject.Inject
+import kotlin.system.exitProcess
 
 @UnstableApi
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity() {
-    @Inject
-    lateinit var musicSource: MusicSource
-
+class MainActivity : AppCompatActivity(), NowPlayingFragment.OnNowPlayingSongChangeListener {
     private lateinit var binding: ActivityMainBinding
-    val viewModel by viewModels<SharedViewModel>()
+    private val viewModel by viewModels<SharedViewModel>()
     private var action: String? = null
     private var data: Uri? = null
+
+    override fun onResume() {
+        super.onResume()
+        viewModel.getCurrentMediaItem()
+    }
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
@@ -99,21 +95,10 @@ class MainActivity : AppCompatActivity() {
         EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
     }
 
-    override fun onResume() {
-        super.onResume()
-        Log.d("MainActivity", "onResume: ")
-    }
-
     @UnstableApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d("MainActivity", "onCreate: ")
         action = intent.action
-        data = intent?.data ?: intent?.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
-        if (data != null) {
-            viewModel.intent.value = intent
-        }
-
         viewModel.checkIsRestoring()
         Log.d("Italy", "Key: ${Locale.ITALY.toLanguageTag()}")
 
@@ -150,12 +135,12 @@ class MainActivity : AppCompatActivity() {
                 putString(FIRST_TIME_MIGRATION, STATUS_DONE)
             }
         }
-//
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             WindowCompat.setDecorFitsSystemWindows(window, false)
-//        } else {
-//            window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
-//        }
+        } else {
+            window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
+        }
 
         if (!EasyPermissions.hasPermissions(this, Manifest.permission.POST_NOTIFICATIONS)){
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -178,9 +163,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
         window.navigationBarColor = Color.parseColor("#CB0B0A0A")
-        if (!isMyServiceRunning(SimpleMediaService::class.java)) {
-            binding.miniplayer.visibility = View.GONE
-        }
+        binding.miniplayer.visibility = View.GONE
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.fragment_container_view)
         val navController = navHostFragment?.findNavController()
         binding.bottomNavigationView.setupWithNavController(navController!!)
@@ -223,8 +206,9 @@ class MainActivity : AppCompatActivity() {
 
         })
         binding.btRemoveMiniPlayer.setOnClickListener {
-            viewModel.stopPlayer()
-            viewModel.isServiceRunning.postValue(false)
+            if (viewModel.isServiceRunning.value == true){
+                viewModel.stopPlayer()
+            }
             viewModel.videoId.postValue(null)
             binding.miniplayer.visibility = View.GONE
             binding.card.radius = 8f
@@ -239,46 +223,41 @@ class MainActivity : AppCompatActivity() {
             viewModel.onUIEvent(UIEvent.PlayPause)
         }
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.CREATED) {
-                val job1 = launch {
-                    viewModel.intent.collectLatest { intent ->
-                        if (intent != null){
-                            data = intent.data ?: intent.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
-                            Log.d("MainActivity", "onCreate: $data")
-                            if (data != null) {
-                                when (val path = data!!.pathSegments.firstOrNull()) {
-                                    "playlist" -> data!!.getQueryParameter("list")?.let { playlistId ->
-                                        if (playlistId.startsWith("OLAK5uy_")) {
-                                            viewModel.intent.value = null
-                                            navController.navigate(R.id.action_global_albumFragment, Bundle().apply {
-                                                putString("browseId", playlistId)
-                                            })
-                                        }
-                                        else if (playlistId.startsWith("VL")) {
-                                            viewModel.intent.value = null
-                                            navController.navigate(R.id.action_global_playlistFragment, Bundle().apply {
-                                                putString("id", playlistId)
-                                            })
-                                        }
-                                        else {
-                                            viewModel.intent.value = null
-                                            navController.navigate(R.id.action_global_playlistFragment, Bundle().apply {
-                                                putString("id", "VL$playlistId")
-                                            })
-                                        }
+            val job1 = launch {
+                viewModel.intent.collectLatest { intent ->
+                    if (intent != null){
+                        data = intent.data ?: intent.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
+                        Log.d("MainActivity", "onCreate: $data")
+                        if (data != null) {
+                            when (val path = data!!.pathSegments.firstOrNull()) {
+                                "playlist" -> data!!.getQueryParameter("list")?.let { playlistId ->
+                                    if (playlistId.startsWith("OLAK5uy_")) {
+                                        viewModel.intent.value = null
+                                        navController.navigate(R.id.action_global_albumFragment, Bundle().apply {
+                                            putString("browseId", playlistId)
+                                        })
                                     }
+                                    else if (playlistId.startsWith("VL")) {
+                                        viewModel.intent.value = null
+                                        navController.navigate(R.id.action_global_playlistFragment, Bundle().apply {
+                                            putString("id", playlistId)
+                                        })
+                                    }
+                                    else {
+                                        viewModel.intent.value = null
+                                        navController.navigate(R.id.action_global_playlistFragment, Bundle().apply {
+                                            putString("id", "VL$playlistId")
+                                        })
+                                    }
+                                }
 
-                                    "channel", "c" -> data!!.lastPathSegment?.let { artistId ->
-                                        if (artistId.startsWith("UC")) {
-                                            viewModel.intent.value = null
-                                            navController.navigate(R.id.action_global_artistFragment, Bundle().apply {
-                                                putString("channelId", artistId)
-                                            })
-                                        }
-                                        else {
-                                            Toast.makeText(this@MainActivity,
-                                                getString(R.string.this_link_is_not_supported), Toast.LENGTH_SHORT).show()
-                                        }
+                                "channel", "c" -> data!!.lastPathSegment?.let { artistId ->
+                                    if (artistId.startsWith("UC")) {
+                                        viewModel.intent.value = null
+                                        navController.navigate(R.id.action_global_artistFragment, Bundle().apply {
+                                            putString("channelId", artistId)
+                                        })
+                                    }
 //                                    else {
 //                                        viewModel.convertNameToId(artistId)
 //                                        viewModel.artistId.observe(this@MainActivity) {channelId ->
@@ -296,24 +275,24 @@ class MainActivity : AppCompatActivity() {
 //                                            }
 //                                        }
 //                                    }
-                                    }
+                                }
 
-                                    else -> when {
-                                        path == "watch" -> data!!.getQueryParameter("v")
-                                        data!!.host == "youtu.be" -> path
-                                        else -> null
-                                    }?.let { videoId ->
-                                        val args = Bundle()
-                                        args.putString("videoId", videoId)
-                                        args.putString("from", getString(R.string.shared))
-                                        args.putString("type", Config.SHARE)
-                                        viewModel.videoId.value = videoId
-                                        hideBottomNav()
-                                        if (navController.currentDestination?.id == R.id.nowPlayingFragment) {
-                                            findNavController(R.id.fragment_container_view).popBackStack()
-                                            navController.navigate(R.id.action_global_nowPlayingFragment, args)
-                                        }
-                                        else {
+                                else -> when {
+                                    path == "watch" -> data!!.getQueryParameter("v")
+                                    data!!.host == "youtu.be" -> path
+                                    else -> null
+                                }?.let { videoId ->
+                                    viewModel.getSongFull(videoId)
+                                    viewModel.songFull.observe(this@MainActivity) {
+                                        if (it != null){
+                                            val track = it.toTrack(videoId)
+                                            Queue.clear()
+                                            Queue.setNowPlaying(track)
+                                            val args = Bundle()
+                                            args.putString("videoId", videoId)
+                                            args.putString("from", getString(R.string.shared))
+                                            args.putString("type", Config.SONG_CLICK)
+                                            viewModel.intent.value = null
                                             navController.navigate(R.id.action_global_nowPlayingFragment, args)
                                         }
                                     }
@@ -322,154 +301,99 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 }
-                val job5 = launch {
-                    viewModel.nowPLaying.collect {
-                        if (it != null){
-                            if (viewModel.isServiceRunning.value == false){
-                                startMusicService()
-                            }
-                            binding.songTitle.text = it.mediaMetadata.title
-                            binding.songTitle.isSelected = true
-                            binding.songArtist.text = it.mediaMetadata.artist
-                            binding.songArtist.isSelected = true
-                            val request = ImageRequest.Builder(this@MainActivity)
-                                .data(it.mediaMetadata.artworkUri)
-                                .target(
-                                    onSuccess = { result ->
-                                        binding.ivArt.setImageDrawable(result)
-                                    },
-                                )
-                                .transformations(object : Transformation {
-                                    override val cacheKey: String
-                                        get() = it.mediaMetadata.artworkUri.toString()
+            }
+            val job5 = launch {
+                viewModel.nowPlayingMediaItem.observe(this@MainActivity){
+                    if (it != null){
+                        if (viewModel.isServiceRunning.value == false){
+                            startService()
+                            viewModel.isServiceRunning.postValue(true)
+                        }
+                        binding.songTitle.text = it.mediaMetadata.title
+                        binding.songTitle.isSelected = true
+                        binding.songArtist.text = it.mediaMetadata.artist
+                        binding.songArtist.isSelected = true
+                        val request = ImageRequest.Builder(this@MainActivity)
+                            .data(it.mediaMetadata.artworkUri)
+                            .target(
+                                onSuccess = { result ->
+                                    binding.ivArt.setImageDrawable(result)
+                                },
+                            )
+                            .transformations(object : Transformation {
+                                override val cacheKey: String
+                                    get() = it.mediaMetadata.artworkUri.toString()
 
-                                    override suspend fun transform(input: Bitmap, size: Size): Bitmap {
-                                        val p = Palette.from(input).generate()
-                                        val defaultColor = 0x000000
-                                        var startColor = p.getDarkVibrantColor(defaultColor)
-                                        Log.d("Check Start Color", "transform: $startColor")
+                                override suspend fun transform(input: Bitmap, size: Size): Bitmap {
+                                    val p = Palette.from(input).generate()
+                                    val defaultColor = 0x000000
+                                    var startColor = p.getDarkVibrantColor(defaultColor)
+                                    Log.d("Check Start Color", "transform: $startColor")
+                                    if (startColor == defaultColor){
+                                        startColor = p.getDarkMutedColor(defaultColor)
                                         if (startColor == defaultColor){
-                                            startColor = p.getDarkMutedColor(defaultColor)
+                                            startColor = p.getVibrantColor(defaultColor)
                                             if (startColor == defaultColor){
-                                                startColor = p.getVibrantColor(defaultColor)
+                                                startColor = p.getMutedColor(defaultColor)
                                                 if (startColor == defaultColor){
-                                                    startColor = p.getMutedColor(defaultColor)
+                                                    startColor = p.getLightVibrantColor(defaultColor)
                                                     if (startColor == defaultColor){
-                                                        startColor = p.getLightVibrantColor(defaultColor)
-                                                        if (startColor == defaultColor){
-                                                            startColor = p.getLightMutedColor(defaultColor)
-                                                        }
+                                                        startColor = p.getLightMutedColor(defaultColor)
                                                     }
                                                 }
                                             }
-                                            Log.d("Check Start Color", "transform: $startColor")
                                         }
-                                        val endColor = 0x1b1a1f
-                                        val gd = GradientDrawable(
-                                            GradientDrawable.Orientation.TOP_BOTTOM,
-                                            intArrayOf(startColor, endColor)
-                                        )
-                                        gd.cornerRadius = 0f
-                                        gd.gradientType = GradientDrawable.LINEAR_GRADIENT
-                                        gd.gradientRadius = 0.5f
-                                        gd.alpha = 150
-                                        val bg = ColorUtils.setAlphaComponent(startColor, 255)
-                                        binding.card.setCardBackgroundColor(bg)
-                                        binding.cardBottom.setCardBackgroundColor(bg)
-                                        return input
+                                        Log.d("Check Start Color", "transform: $startColor")
                                     }
+                                    val endColor = 0x1b1a1f
+                                    val gd = GradientDrawable(
+                                        GradientDrawable.Orientation.TOP_BOTTOM,
+                                        intArrayOf(startColor, endColor)
+                                    )
+                                    gd.cornerRadius = 0f
+                                    gd.gradientType = GradientDrawable.LINEAR_GRADIENT
+                                    gd.gradientRadius = 0.5f
+                                    gd.alpha = 150
+                                    val bg = ColorUtils.setAlphaComponent(startColor, 230)
+                                    binding.card.setCardBackgroundColor(bg)
+                                    binding.cardBottom.setCardBackgroundColor(bg)
+                                    return input
+                                }
 
-                                })
-                                .build()
-                            ImageLoader(this@MainActivity).execute(request)
-                        }
+                            })
+                            .build()
+                        ImageLoader(this@MainActivity).enqueue(request)
                     }
                 }
-                val job2 = launch {
-                    viewModel.progress.collect{
-                        binding.progressBar.progress = (it * 100).toInt()
-                    }
-                }
-
-                val job6 = launch {
-                    viewModel.liked.collect{ liked ->
-                        binding.cbFavorite.isChecked = liked
-                    }
-                }
-                val job3 = launch {
-                    viewModel.isPlaying.observe(this@MainActivity){
-                        if (it){
-                            binding.btPlayPause.setImageResource(R.drawable.baseline_pause_24)
-                        }else{
-                            binding.btPlayPause.setImageResource(R.drawable.baseline_play_arrow_24)
-                        }
-                    }
-                }
-                job1.join()
-                job2.join()
-                job3.join()
-                job5.join()
-                job6.join()
             }
-        }
-        lifecycleScope.launch {
-             val job1 = launch {
-                 viewModel.progress.collect { progress ->
-                     val skipSegments = viewModel.skipSegments.first()
-                     val enabled = viewModel.sponsorBlockEnabled()
-                     val listCategory = viewModel.sponsorBlockCategories()
-                     if (skipSegments != null && enabled == DataStoreManager.TRUE) {
-                         for (skip in skipSegments) {
-                             if (listCategory.contains(skip.category)) {
-                                 val firstPart = (skip.segment[0]/skip.videoDuration).toFloat()
-                                 val secondPart = (skip.segment[1]/skip.videoDuration).toFloat()
-                                 if (progress in firstPart..secondPart) {
-                                     Log.w("Seek to", (skip.segment[1]/skip.videoDuration).toFloat().toString())
-                                     viewModel.skipSegment((skip.segment[1] * 1000).toLong())
-                                     Toast.makeText(this@MainActivity,
-                                         getString(R.string.sponsorblock_skip_segment, getString(SPONSOR_BLOCK.listName.get(SPONSOR_BLOCK.list.indexOf(skip.category))).lowercase()), Toast.LENGTH_SHORT).show()
-                                 }
-                             }
-                         }
-                     }
-                     delay(500)
-                 }
-             }
-
-             val job2 = launch {
-                viewModel.sleepTimerDone.collect { done ->
-                    if (done) {
-                        MaterialAlertDialogBuilder(this@MainActivity)
-                            .setTitle(getString(R.string.sleep_timer_off))
-                            .setMessage(getString(R.string.good_night))
-                            .setPositiveButton(getString(R.string.yes)) { d, _ ->
-                                d.dismiss()
-                            }
-                            .show()
-                    }
+            val job2 = launch {
+                viewModel.progress.collect{
+                    binding.progressBar.progress = (it * 100).toInt()
                 }
-             }
+            }
+
+            val job6 = launch {
+                viewModel.liked.collect{ liked ->
+                    binding.cbFavorite.isChecked = liked
+                }
+            }
             job1.join()
             job2.join()
+            //job3.join()
+            job5.join()
+            job6.join()
         }
         binding.card.animation = AnimationUtils.loadAnimation(this, R.anim.bottom_to_top)
         binding.cbFavorite.setOnCheckedChangeListener{ _, isChecked ->
             if (!isChecked){
                 Log.d("cbFavorite", "onCheckedChanged: $isChecked")
-                viewModel.nowPlayingMediaItem.value?.let { nowPlayingSong ->
-                    viewModel.updateLikeStatus(nowPlayingSong.mediaId, false)
-                    viewModel.updateLikeInNotification(false)
-                }
+                viewModel.nowPlayingMediaItem.value?.let { nowPlayingSong -> viewModel.updateLikeStatus(nowPlayingSong.mediaId, false) }
             }
             else {
                 Log.d("cbFavorite", "onCheckedChanged: $isChecked")
-                viewModel.nowPlayingMediaItem.value?.let { nowPlayingSong ->
-                    viewModel.updateLikeStatus(nowPlayingSong.mediaId, true)
-                    viewModel.updateLikeInNotification(true)
-                }
+                viewModel.nowPlayingMediaItem.value?.let { nowPlayingSong -> viewModel.updateLikeStatus(nowPlayingSong.mediaId, true) }
             }
         }
-        mayBeRestoreLastPlayedTrackAndQueue()
     }
 
     private fun mayBeRestoreLastPlayedTrackAndQueue() {
@@ -537,9 +461,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        Queue.clear()
         stopService()
     }
-    private fun startMusicService() {
+    private fun startService() {
         if (viewModel.isServiceRunning.value == false) {
             if (!isMyServiceRunning(SimpleMediaService::class.java)) {
                 val intent = Intent(this, SimpleMediaService::class.java)
@@ -563,83 +488,57 @@ class MainActivity : AppCompatActivity() {
                 Log.d("Service", "DownloadService stopped")
             }
             viewModel.isServiceRunning.postValue(false)
+            android.os.Process.killProcess(android.os.Process.myPid())
+            exitProcess(1)
         }
     }
 
-//    override fun onNowPlayingSongChange() {
-//        viewModel.metadata.observe(this) {
-//            when(it){
-//                is Resource.Success -> {
-//                    binding.songTitle.text = it.data?.title
-//                    binding.songTitle.isSelected = true
-//                    if (it.data?.artists != null){
-//                        var tempArtist = mutableListOf<String>()
-//                        for (artist in it.data.artists) {
-//                            tempArtist.add(artist.name)
-//                        }
-//                        val artistName = tempArtist.connectArtists()
-//                        binding.songArtist.text = artistName
-//                    }
-//                    binding.songArtist.isSelected = true
-//                    binding.ivArt.load(it.data?.thumbnails?.get(0)?.url)
-//
-//                }
-//                is Resource.Error -> {
-//
-//                }
-//            }
-//        }
-//    }
-//
-//    override fun onIsPlayingChange() {
-//        viewModel.isPlaying.observe(this){
-//            if (it){
-//                binding.btPlayPause.setImageResource(R.drawable.baseline_pause_24)
-//            }else{
-//                binding.btPlayPause.setImageResource(R.drawable.baseline_play_arrow_24)
-//            }
-//        }
-//    }
-//
-//    override fun onUpdateProgressBar(progress: Float) {
-//
-//    }
+    override fun onNowPlayingSongChange() {
+        viewModel.metadata.observe(this) {
+            when(it){
+                is Resource.Success -> {
+                    binding.songTitle.text = it.data?.title
+                    binding.songTitle.isSelected = true
+                    if (it.data?.artists != null){
+                        var tempArtist = mutableListOf<String>()
+                        for (artist in it.data.artists) {
+                            tempArtist.add(artist.name)
+                        }
+                        val artistName = tempArtist.connectArtists()
+                        binding.songArtist.text = artistName
+                    }
+                    binding.songArtist.isSelected = true
+                    binding.ivArt.load(it.data?.thumbnails?.get(0)?.url)
+
+                }
+                is Resource.Error -> {
+
+                }
+            }
+        }
+    }
+
+    override fun onIsPlayingChange() {
+        viewModel.isPlaying.observe(this){
+            if (it){
+                binding.btPlayPause.setImageResource(R.drawable.baseline_pause_24)
+            }else{
+                binding.btPlayPause.setImageResource(R.drawable.baseline_play_arrow_24)
+            }
+        }
+    }
+
+    override fun onUpdateProgressBar(progress: Float) {
+
+    }
 
     fun hideBottomNav(){
         binding.bottomNavigationView.visibility = View.GONE
-        binding.miniplayer.visibility = View.GONE
+        binding.miniPlayerContainer.visibility = View.GONE
     }
     fun showBottomNav(){
         binding.bottomNavigationView.visibility = View.VISIBLE
         binding.miniPlayerContainer.visibility = View.VISIBLE
-    }
-
-    private fun checkForUpdate() {
-        viewModel.checkForUpdate()
-        viewModel.githubResponse.observe(this) {response ->
-            if (response != null) {
-                if (response.tagName != getString(R.string.version_name)) {
-                    val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
-                    val outputFormat = SimpleDateFormat("dd MMM yyyy HH:mm:ss", Locale.getDefault())
-                    val formatted = response.publishedAt?.let { input ->
-                        inputFormat.parse(input)
-                            ?.let { outputFormat.format(it) }
-                    }
-
-                    MaterialAlertDialogBuilder(this)
-                        .setTitle(getString(R.string.update_available))
-                        .setMessage(getString(R.string.update_message, response.tagName, formatted, Html.fromHtml(response.body, Html.FROM_HTML_MODE_COMPACT)))
-                        .setPositiveButton(getString(R.string.download)) { _, _ ->
-                            val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(response.assets?.firstOrNull()?.browserDownloadUrl))
-                            startActivity(browserIntent)
-                        }
-                        .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
-                            dialog.dismiss()
-                        }
-                        .show()
-                }
-            }
-        }
     }
 
     private fun putString(key: String, value: String) {

@@ -26,9 +26,7 @@ import com.maxrave.kotlinytmusicscraper.models.response.NextResponse
 import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
 import com.maxrave.kotlinytmusicscraper.models.response.PlayerResponse
 import com.maxrave.kotlinytmusicscraper.models.response.SearchResponse
-import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.kotlinytmusicscraper.models.splitBySeparator
-import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
 import com.maxrave.kotlinytmusicscraper.models.spotify.SpotifyResult
 import com.maxrave.kotlinytmusicscraper.models.spotify.Token
 import com.maxrave.kotlinytmusicscraper.pages.AlbumPage
@@ -227,7 +225,7 @@ object YouTube {
     suspend fun getLyrics(songId: String) = runCatching {
         ytMusic.getLyrics(songId).body<Lyrics>()
     }
-    suspend fun authentication() = runCatching {
+    suspend fun authencation() = runCatching {
         ytMusic.authorizationSpotify().body<Token>()
     }
     suspend fun getSongId(authorization: String, query: String) = runCatching {
@@ -246,14 +244,6 @@ object YouTube {
             }
         }
         return@runCatching listSuggest
-    }
-
-    suspend fun getSkipSegments(videoId: String) = runCatching {
-        ytMusic.getSkipSegments(videoId).body<List<SkipSegments>>()
-    }
-
-    suspend fun checkForUpdate() = runCatching {
-        ytMusic.checkForUpdate().body<GithubResponse>()
     }
 
     suspend fun explore(): Result<ExplorePage> = runCatching {
@@ -313,43 +303,29 @@ object YouTube {
         val piped = ytMusic.pipedStreams(videoId, pipedInstance).body<PipedResponse>()
         val audioStreams = piped.audioStreams
         val playerResponse = ytMusic.player(ANDROID_MUSIC, videoId, playlistId).body<PlayerResponse>()
-        Log.w("playerResponse", playerResponse.streamingData?.adaptiveFormats.toString())
         if (playerResponse.playabilityStatus.status == "OK") {
             return@runCatching playerResponse.copy(
                 videoDetails = playerResponse.videoDetails?.copy(
                     authorAvatar = piped.uploaderAvatar?.replace(Regex("s48"), "s960"),
                     authorSubCount = piped.uploaderSubscriberCount,
-                    description = piped.description,
-                ),
-                streamingData = playerResponse.streamingData?.copy(
-                    adaptiveFormats = playerResponse.streamingData.adaptiveFormats.mapNotNull { adaptiveFormat ->
-                        audioStreams.find { it.itag == adaptiveFormat.itag }?.let {
-                            adaptiveFormat.copy(
-                                mimeType = it.mimeType?: "",
-                                bitrate = it.bitrate,
-                            )
-                        }
-                    }
                 )
             )
         }
         val safePlayerResponse = ytMusic.player(TVHTML5, videoId, playlistId).body<PlayerResponse>()
-        Log.w("safePlayerResponse", safePlayerResponse.streamingData?.adaptiveFormats.toString())
         if (safePlayerResponse.playabilityStatus.status != "OK") {
             return@runCatching playerResponse.copy(
                 videoDetails = safePlayerResponse.videoDetails?.copy(
                     authorAvatar = piped.uploaderAvatar?.replace(Regex("s48"), "s960"),
                     authorSubCount = piped.uploaderSubscriberCount,
-                    description = piped.description,
-                    ),
+                )
             )
         }
         safePlayerResponse.copy(
             streamingData = safePlayerResponse.streamingData?.copy(
                 adaptiveFormats = safePlayerResponse.streamingData.adaptiveFormats.mapNotNull { adaptiveFormat ->
-                    audioStreams.find { it.itag == adaptiveFormat.itag }?.let {
+                    audioStreams.find { it.bitrate == adaptiveFormat.bitrate }?.let {
                         adaptiveFormat.copy(
-                            url = it.url,
+                            url = it.url
                         )
                     }
                 }
@@ -357,8 +333,7 @@ object YouTube {
             videoDetails = safePlayerResponse.videoDetails?.copy(
                 authorAvatar = piped.uploaderAvatar?.replace(Regex("s48"), "s96"),
                 authorSubCount = piped.uploaderSubscriberCount,
-                description = piped.description,
-                )
+            )
         )
     }
 

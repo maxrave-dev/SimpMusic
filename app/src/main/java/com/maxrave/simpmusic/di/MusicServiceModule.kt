@@ -1,8 +1,6 @@
 package com.maxrave.simpmusic.di
 
-import android.app.PendingIntent
 import android.content.Context
-import android.content.Intent
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.util.UnstableApi
@@ -19,10 +17,9 @@ import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
 import androidx.media3.session.MediaSession
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.repository.MainRepository
+import com.maxrave.simpmusic.service.SimpleMediaNotificationManager
 import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
-import com.maxrave.simpmusic.service.SimpleMediaSessionCallback
 import com.maxrave.simpmusic.service.test.source.MusicSource
-import com.maxrave.simpmusic.ui.MainActivity
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -119,34 +116,36 @@ object MusicServiceModule {
     ): ExoPlayer =
         ExoPlayer.Builder(context)
             .setAudioAttributes(audioAttributes, true)
-            .setWakeMode(C.WAKE_MODE_NETWORK)
+            .setWakeMode(C.WAKE_MODE_LOCAL)
             .setHandleAudioBecomingNoisy(true)
-            .setSeekForwardIncrementMs(5000)
-            .setSeekBackIncrementMs(5000)
             .setTrackSelector(DefaultTrackSelector(context))
             .setMediaSourceFactory(mediaSourceFactory)
             .build()
 
     @Provides
     @Singleton
-    fun provideMediaSessionCallback() : SimpleMediaSessionCallback = SimpleMediaSessionCallback()
+    fun provideNotificationManager(
+        @ApplicationContext context: Context,
+        player: ExoPlayer
+    ): SimpleMediaNotificationManager =
+        SimpleMediaNotificationManager(
+            context = context,
+            player = player
+        )
 
     @Provides
     @Singleton
     fun provideMediaSession(
         @ApplicationContext context: Context,
-        player: ExoPlayer,
-        callback: SimpleMediaSessionCallback
+        player: ExoPlayer
     ): MediaSession =
         MediaSession.Builder(context, player)
-            .setCallback(callback)
-            .setSessionActivity(
-                PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java),
-                    PendingIntent.FLAG_IMMUTABLE
-                )
-            )
             .build()
 
+//    @Provides
+//    @Singleton
+//    fun provideMediaLibrarySession(@ApplicationContext context: Context): MediaLibrarySession =
+//        MediaLibrarySession.Builder().build()
 
     @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
     @Provides
@@ -154,18 +153,12 @@ object MusicServiceModule {
     fun provideServiceHandler(
         player: ExoPlayer,
         dataStoreManager: DataStoreManager,
-        mainRepository: MainRepository,
-        @ApplicationContext context: Context,
-        mediaSession: MediaSession,
-        mediaSessionCallback: SimpleMediaSessionCallback
+        mainRepository: MainRepository
     ): SimpleMediaServiceHandler =
         SimpleMediaServiceHandler(
             player = player,
             dataStoreManager = dataStoreManager,
-            mainRepository = mainRepository,
-            context = context,
-            mediaSession = mediaSession,
-            mediaSessionCallback = mediaSessionCallback
+            mainRepository = mainRepository
         )
 
     @Provides

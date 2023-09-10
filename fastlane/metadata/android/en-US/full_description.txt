@@ -8,6 +8,3 @@ A simple music app using YouTube Music for backend
 - Analyze your playing data and create custom playlists ...
 - Caching and can save data for offline playback
 - Synced lyrics
-- Support SponsorBlock
-- Sleep Timer
-- And many more

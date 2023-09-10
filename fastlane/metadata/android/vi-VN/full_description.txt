@@ -8,6 +8,3 @@
 - Thống kê dữ liệu nghe nhạc của bạn và tạo danh sách phát tùy chỉnh
 - Lưu trữ dữ liệu ngoại tuyến
 - Lời bài hát được đồng bộ
-- Hỗ trợ SponsorBlock
-- Hẹn giờ đi ngủ
-- Và rất nhiều tính năng khác

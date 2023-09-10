@@ -78,9 +78,10 @@
         android:layout_alignParentEnd="true"
         android:layout_centerVertical="true"
         android:src="@drawable/baseline_more_vert_24"
-        android:background="?attr/actionBarItemBackground"
+        android:background="@android:color/transparent"
         android:focusable="true"
-        android:clickable="true">
+        android:clickable="true"
+        android:foreground="?android:attr/selectableItemBackground">
 
     </ImageButton>
 </RelativeLayout>

@@ -154,29 +154,6 @@
                 android:text="">
             </TextView>
             <TextView
-                android:text="@string/description"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginVertical="5sp"
-                android:textSize="16sp"
-                android:textStyle="bold"
-                android:gravity="center_horizontal">
-
-            </TextView>
-
-            <TextView
-                android:layout_marginVertical="10sp"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:textStyle="normal"
-                android:textSize="16sp"
-                android:id="@+id/description"
-                android:paddingHorizontal="16sp"
-                android:text=""
-                android:textColorLink="@android:color/white"
-                android:autoLink="web">
-            </TextView>
-            <TextView
                 android:text="@string/youtube_url"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -218,8 +195,7 @@
                 android:textSize="16sp"
                 android:id="@+id/download_url"
                 android:paddingHorizontal="16sp"
-                android:text=""
-                android:textColorLink="@android:color/white">
+                android:text="">
             </TextView>
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

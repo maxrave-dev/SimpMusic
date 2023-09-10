@@ -4,7 +4,6 @@ import androidx.room.ProvidedTypeConverter
 import androidx.room.TypeConverter
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.metadata.Line
 import java.lang.reflect.Type
 import java.time.Instant
@@ -21,18 +20,6 @@ class Converters {
 
     @TypeConverter
     fun fromArrayList(list: List<String>?): String? {
-        val gson = Gson()
-        return gson.toJson(list)
-    }
-
-    @TypeConverter
-    fun fromStringToListTrack(value: String?): List<Track>? {
-        val listType: Type = object : TypeToken<List<Track?>?>() {}.type
-        return Gson().fromJson(value, listType)
-    }
-
-    @TypeConverter
-    fun fromListTrackToString(list: List<Track>?): String? {
         val gson = Gson()
         return gson.toJson(list)
     }
