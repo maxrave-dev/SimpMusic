@@ -18,6 +18,7 @@ object Config {
     const val ALBUM_CLICK = "ALBUM_CLICK"
     const val RADIO_CLICK = "RADIO_CLICK"
     const val MINIPLAYER_CLICK = "MINIPLAYER_CLICK"
+    const val SHARE = "SHARE"
 
     const val VN = "VN"
 

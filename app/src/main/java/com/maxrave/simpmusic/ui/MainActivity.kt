@@ -244,9 +244,6 @@ class MainActivity : AppCompatActivity() {
                             data = intent.data ?: intent.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
                             Log.d("MainActivity", "onCreate: $data")
                             if (data != null) {
-                                if (navController.currentDestination?.id == R.id.nowPlayingFragment) {
-                                    navController.popBackStack()
-                                }
                                 when (val path = data!!.pathSegments.firstOrNull()) {
                                     "playlist" -> data!!.getQueryParameter("list")?.let { playlistId ->
                                         if (playlistId.startsWith("OLAK5uy_")) {
@@ -313,9 +310,16 @@ class MainActivity : AppCompatActivity() {
                                                 val args = Bundle()
                                                 args.putString("videoId", videoId)
                                                 args.putString("from", getString(R.string.shared))
-                                                args.putString("type", Config.SONG_CLICK)
+                                                args.putString("type", Config.SHARE)
                                                 viewModel.intent.value = null
-                                                navController.navigate(R.id.action_global_nowPlayingFragment, args)
+                                                if (navController.currentDestination?.id == R.id.nowPlayingFragment) {
+                                                    navController.popBackStack()
+                                                    navController.navigate(R.id.action_global_nowPlayingFragment, args)
+                                                }
+                                                else {
+                                                    hideBottomNav()
+                                                    navController.navigate(R.id.action_global_nowPlayingFragment, args)
+                                                }
                                             }
                                         }
                                     }
@@ -383,7 +387,7 @@ class MainActivity : AppCompatActivity() {
 
                                 })
                                 .build()
-                            ImageLoader(this@MainActivity).enqueue(request)
+                            ImageLoader(this@MainActivity).execute(request)
                         }
                     }
                 }
@@ -608,7 +612,7 @@ class MainActivity : AppCompatActivity() {
 
     fun hideBottomNav(){
         binding.bottomNavigationView.visibility = View.GONE
-        binding.miniPlayerContainer.visibility = View.GONE
+        binding.miniplayer.visibility = View.GONE
     }
     fun showBottomNav(){
         binding.bottomNavigationView.visibility = View.VISIBLE
