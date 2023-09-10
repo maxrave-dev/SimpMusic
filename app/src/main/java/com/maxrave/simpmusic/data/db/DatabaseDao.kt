@@ -13,6 +13,7 @@ import com.maxrave.simpmusic.data.db.entities.FormatEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.LyricsEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
+import com.maxrave.simpmusic.data.db.entities.QueueEntity
 import com.maxrave.simpmusic.data.db.entities.SearchHistory
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.extension.toSQLiteQuery
@@ -252,4 +253,14 @@ interface DatabaseDao {
 
     @Query("SELECT * FROM format WHERE videoId = :videoId")
     suspend fun getFormat(videoId: String): FormatEntity?
+
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun recoverQueue(queue: QueueEntity)
+
+    @Query("DELETE FROM queue")
+    suspend fun deleteQueue()
+
+    @Query("SELECT * FROM queue")
+    suspend fun getQueue(): List<QueueEntity>?
 }

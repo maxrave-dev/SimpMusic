@@ -35,7 +35,9 @@
                     android:layout_height="wrap_content"
                     android:id="@+id/suggestList"
                     tools:listitem="@layout/item_suggest_query"
-                    android:visibility="gone">
+                    android:visibility="gone"
+                    android:clipToPadding="false"
+                    android:paddingBottom="150dp">
 
                 </androidx.recyclerview.widget.RecyclerView>
 
@@ -44,26 +46,34 @@
                     android:layout_height="wrap_content"
                     android:layout_width="match_parent"
                     android:visibility="visible"
-                    android:layout_marginBottom="125sp">
+                    android:layout_marginBottom="150dp">
 
-                    <androidx.recyclerview.widget.RecyclerView
+                    <androidx.core.widget.NestedScrollView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:id="@+id/recentlyList"
-                        tools:itemCount="15"
-                        tools:listitem="@layout/item_recently_query"
                         android:layout_alignParentTop="true">
+                        <LinearLayout
+                            android:orientation="vertical"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+                            <androidx.recyclerview.widget.RecyclerView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:id="@+id/recentlyList"
+                                tools:itemCount="15"
+                                tools:listitem="@layout/item_recently_query">
 
-                    </androidx.recyclerview.widget.RecyclerView>
-                    <Button
-                        android:id="@+id/btClearSearchHistory"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        style="@style/Widget.Material3.Button.TextButton"
-                        android:text="@string/clear_search_history"
-                        android:textColor="?attr/colorOnBackground"
-                        android:layout_below="@+id/recentlyList">
-                    </Button>
+                            </androidx.recyclerview.widget.RecyclerView>
+                            <Button
+                                android:id="@+id/btClearSearchHistory"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                style="@style/Widget.Material3.Button.TextButton"
+                                android:text="@string/clear_search_history"
+                                android:textColor="?attr/colorOnBackground">
+                            </Button>
+                        </LinearLayout>
+                    </androidx.core.widget.NestedScrollView>
                 </RelativeLayout>
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -181,7 +191,9 @@
                             <androidx.recyclerview.widget.RecyclerView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:id="@+id/resultList">
+                                android:id="@+id/resultList"
+                                android:clipToPadding="false"
+                                android:paddingBottom="150dp" >
 
                             </androidx.recyclerview.widget.RecyclerView>
                             <RelativeLayout

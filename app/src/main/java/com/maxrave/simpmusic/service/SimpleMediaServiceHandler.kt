@@ -1,18 +1,32 @@
 package com.maxrave.simpmusic.service
 
 import android.annotation.SuppressLint
+import android.content.Context
+import android.content.Intent
+import android.media.audiofx.AudioEffect
 import android.media.audiofx.LoudnessEnhancer
+import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.CommandButton
+import androidx.media3.session.MediaSession
+import androidx.media3.session.SessionCommand
+import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.common.MEDIA_CUSTOM_COMMAND
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
+import com.maxrave.simpmusic.data.model.browse.album.Track
+import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.data.repository.MainRepository
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.collectLatest
@@ -23,19 +37,26 @@ import javax.inject.Inject
 @UnstableApi
 class SimpleMediaServiceHandler @Inject constructor(
     private val player: ExoPlayer,
+    private val mediaSession: MediaSession,
+    private val mediaSessionCallback: SimpleMediaSessionCallback,
     private val dataStoreManager: DataStoreManager,
-    private val mainRepository: MainRepository
+    private val mainRepository: MainRepository,
+    @ApplicationContext private val context: Context
 ) : Player.Listener {
 
     private var loudnessEnhancer: LoudnessEnhancer? = null
 
     private var volumeNormalizationJob: Job? = null
 
+    private var sleepTimerJob: Job? = null
+
     private val _simpleMediaState = MutableStateFlow<SimpleMediaState>(SimpleMediaState.Initial)
     val simpleMediaState = _simpleMediaState.asStateFlow()
 
     private val _changeTrack = MutableStateFlow<Boolean>(false)
     val changeTrack = _changeTrack.asStateFlow()
+
+    var nowPlaying = MutableStateFlow(player.currentMediaItem)
 
     private val _nextTrackAvailable = MutableStateFlow<Boolean>(false)
     val nextTrackAvailable = _nextTrackAvailable.asStateFlow()
@@ -49,18 +70,95 @@ class SimpleMediaServiceHandler @Inject constructor(
     private val _repeat = MutableStateFlow<RepeatState>(RepeatState.None)
     val repeat = _repeat.asStateFlow()
 
+    private val _sleepMinutes = MutableStateFlow<Int>(0)
+    val sleepMinutes = _sleepMinutes.asSharedFlow()
+
+    private val _sleepDone = MutableStateFlow<Boolean>(false)
+    val sleepDone = _sleepDone.asSharedFlow()
+
+    private val _liked = MutableStateFlow(false)
+    val liked = _liked.asSharedFlow()
+
+    private var updateNotificationJob: Job? = null
+
+    private var skipSilent = false
+
+    private var normalizeVolume = false
+
     private var job: Job? = null
 
     init {
         player.addListener(this)
-        player.shuffleModeEnabled = false
-        player.repeatMode = Player.REPEAT_MODE_OFF
         job = Job()
+        skipSilent = runBlocking { dataStoreManager.skipSilent.first() == DataStoreManager.TRUE }
+        normalizeVolume = runBlocking { dataStoreManager.normalizeVolume.first() == DataStoreManager.TRUE }
+        if (runBlocking{ dataStoreManager.saveStateOfPlayback.first() } == DataStoreManager.TRUE ) {
+            Log.d("CHECK INIT", "TRUE")
+            val shuffleKey = runBlocking { dataStoreManager.shuffleKey.first() }
+            val repeatKey = runBlocking { dataStoreManager.repeatKey.first() }
+            Log.d("CHECK INIT", "Shuffle: $shuffleKey")
+            Log.d("CHECK INIT", "Repeat: $repeatKey")
+            player.shuffleModeEnabled = shuffleKey == DataStoreManager.TRUE
+            player.repeatMode = when (repeatKey) {
+                DataStoreManager.REPEAT_ONE -> Player.REPEAT_MODE_ONE
+                DataStoreManager.REPEAT_ALL -> Player.REPEAT_MODE_ALL
+                DataStoreManager.REPEAT_MODE_OFF -> Player.REPEAT_MODE_OFF
+                else -> {Player.REPEAT_MODE_OFF}
+            }
+        }
+        _shuffle.value = player.shuffleModeEnabled
+        _repeat.value = when (player.repeatMode) {
+            Player.REPEAT_MODE_ONE -> RepeatState.One
+            Player.REPEAT_MODE_ALL -> RepeatState.All
+            Player.REPEAT_MODE_OFF -> RepeatState.None
+            else -> {RepeatState.None}
+        }
+        nowPlaying.value = player.currentMediaItem
+        mediaSessionCallback.apply {
+            toggleLike = ::toggleLike
+        }
     }
-    fun changeTrackToFalse() {
-        _changeTrack.value = false
-        Log.i("Check song index", "${player.currentMediaItemIndex}")
+    fun toggleLike() {
+        updateNotificationJob?.cancel()
+        updateNotificationJob = GlobalScope.launch(Dispatchers.Main) {
+            mainRepository.updateLikeStatus(player.currentMediaItem?.mediaId ?: "", if (!(_liked.value)) 1 else 0)
+        }
+        _liked.value = !(_liked.value)
+        updateNotification()
     }
+
+    fun like(liked: Boolean) {
+        _liked.value = liked
+        updateNotification()
+    }
+    //Set sleep timer
+    fun sleepStart(minutes: Int) {
+        _sleepDone.value = false
+        sleepTimerJob?.cancel()
+        sleepTimerJob = GlobalScope.launch(Dispatchers.Main) {
+            _sleepMinutes.value = minutes
+            var count = minutes
+            while (count > 0) {
+                delay(60 * 1000L)
+                count--
+                _sleepMinutes.value = count
+            }
+            player.pause()
+            _sleepMinutes.value = 0
+            _sleepDone.value = true
+        }
+    }
+    fun sleepStop() {
+        _sleepDone.value = false
+        sleepTimerJob?.cancel()
+        _sleepMinutes.value = 0
+    }
+
+    private fun updateNextPreviousTrackAvailability() {
+        _nextTrackAvailable.value = player.hasNextMediaItem()
+        _previousTrackAvailable.value = player.hasPreviousMediaItem()
+    }
+
     fun getMediaItemWithIndex(index: Int): MediaItem {
         return player.getMediaItemAt(index)
     }
@@ -82,6 +180,7 @@ class SimpleMediaServiceHandler @Inject constructor(
             player.prepare()
             player.playWhenReady = true
         }
+        updateNextPreviousTrackAvailability()
     }
 
     fun clearMediaItems() {
@@ -168,6 +267,23 @@ class SimpleMediaServiceHandler @Inject constructor(
         }
     }
 
+    override fun onEvents(player: Player, events: Player.Events) {
+        val shouldBePlaying = !(player.playbackState == Player.STATE_ENDED || !player.playWhenReady)
+        if (events.containsAny(
+                Player.EVENT_PLAYBACK_STATE_CHANGED,
+                Player.EVENT_PLAY_WHEN_READY_CHANGED,
+                Player.EVENT_IS_PLAYING_CHANGED,
+                Player.EVENT_POSITION_DISCONTINUITY
+            )
+        ) {
+            if (shouldBePlaying) {
+                sendOpenEqualizerIntent()
+            } else {
+                sendCloseEqualizerIntent()
+            }
+        }
+    }
+
     override fun onTracksChanged(tracks: Tracks) {
         Log.d("Tracks", "onTracksChanged: ${tracks.groups.size}")
         super.onTracksChanged(tracks)
@@ -177,15 +293,15 @@ class SimpleMediaServiceHandler @Inject constructor(
         when(error.errorCode) {
             PlaybackException.ERROR_CODE_TIMEOUT -> {
                 Log.e("Player Error", "onPlayerError: ${error.message}")
-                player.seekToNext()
-                player.prepare()
-                player.playWhenReady = true
+                Toast.makeText(context,
+                    context.getString(R.string.time_out_check_internet_connection_or_change_piped_instance_in_settings), Toast.LENGTH_LONG).show()
+                player.pause()
             }
             else -> {
                 Log.e("Player Error", "onPlayerError: ${error.message}")
-                player.seekToNext()
-                player.prepare()
-                player.playWhenReady = true
+                Toast.makeText(context,
+                    context.getString(R.string.time_out_check_internet_connection_or_change_piped_instance_in_settings), Toast.LENGTH_LONG).show()
+                player.pause()
             }
         }
     }
@@ -193,24 +309,11 @@ class SimpleMediaServiceHandler @Inject constructor(
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
         Log.w("Smooth Switching Transition", "Current Position: ${player.currentPosition}")
         mayBeNormalizeVolume()
-        if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO || reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT || reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK || reason == Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED) {
-            if (!_changeTrack.value) {
-                _changeTrack.value = true
-                _nextTrackAvailable.value = player.hasNextMediaItem()
-                _previousTrackAvailable.value = player.hasPreviousMediaItem()
-                Log.d("Change Track", "onMediaItemTransition: ${changeTrack.value}")
-                Log.d("Media Item Transition", "Media Item: ${mediaItem?.mediaMetadata?.title}")
-                Log.d("Media Item Transition", "Reason: $reason")
-            } else {
-                _changeTrack.value = false
-                Log.d("Change Track", "onMediaItemTransition: ${changeTrack.value}")
-                Log.d("Media Item Transition", "Media Item: ${mediaItem?.mediaMetadata?.title}")
-                Log.d("Media Item Transition", "Reason: $reason")
-                _changeTrack.value = true
-                _nextTrackAvailable.value = player.hasNextMediaItem()
-                _previousTrackAvailable.value = player.hasPreviousMediaItem()
-            }
-        }
+        Log.w("REASON", "onMediaItemTransition: $reason")
+        Log.d("Media Item Transition", "Media Item: ${mediaItem?.mediaMetadata?.title}")
+        nowPlaying.value = mediaItem
+        updateNextPreviousTrackAvailability()
+        updateNotification()
     }
 
 
@@ -228,9 +331,14 @@ class SimpleMediaServiceHandler @Inject constructor(
 
     override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
         when (shuffleModeEnabled){
-            true -> _shuffle.value = true
-            false -> _shuffle.value = false
+            true -> {
+                _shuffle.value = true
+            }
+            false ->{
+                _shuffle.value = false
+            }
         }
+        updateNextPreviousTrackAvailability()
     }
 
     override fun onRepeatModeChanged(repeatMode: Int) {
@@ -239,6 +347,8 @@ class SimpleMediaServiceHandler @Inject constructor(
             ExoPlayer.REPEAT_MODE_ONE -> _repeat.value = RepeatState.One
             ExoPlayer.REPEAT_MODE_ALL -> _repeat.value = RepeatState.All
         }
+        updateNextPreviousTrackAvailability()
+        updateNotification()
     }
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -251,6 +361,7 @@ class SimpleMediaServiceHandler @Inject constructor(
         } else {
             stopProgressUpdate()
         }
+        updateNextPreviousTrackAvailability()
     }
 
     private suspend fun startProgressUpdate() = job.run {
@@ -300,13 +411,9 @@ class SimpleMediaServiceHandler @Inject constructor(
         }
     }
 
-    fun stopPlayer() {
-        player.stop()
-    }
-
     @OptIn(DelicateCoroutinesApi::class)
     private fun mayBeNormalizeVolume() {
-        if (runBlocking { dataStoreManager.normalizeVolume.first() == DataStoreManager.TRUE }) {
+        if (!normalizeVolume) {
             loudnessEnhancer?.enabled = false
             loudnessEnhancer?.release()
             loudnessEnhancer = null
@@ -332,6 +439,117 @@ class SimpleMediaServiceHandler @Inject constructor(
                     }
                 }
             }
+        }
+    }
+    private fun maybeSkipSilent() {
+        player.skipSilenceEnabled = skipSilent
+    }
+    fun mayBeSaveRecentSong() {
+        runBlocking {
+            if (dataStoreManager.saveRecentSongAndQueue.first() == DataStoreManager.TRUE) {
+                dataStoreManager.saveRecentSong(player.currentMediaItem?.mediaId ?: "", player.currentPosition)
+                Log.d("Check saved", player.currentMediaItem?.mediaMetadata?.title.toString())
+                val temp: ArrayList<Track> = ArrayList()
+                temp.clear()
+                Queue.getNowPlaying()?.let { nowPlaying ->
+                    if (nowPlaying.videoId != player.currentMediaItem?.mediaId) {
+                        temp += nowPlaying
+                    }
+                }
+                temp += Queue.getQueue()
+                Log.d("Check queue", Queue.getQueue().toString())
+                temp.find { it.videoId == player.currentMediaItem?.mediaId }?.let { track ->
+                    temp.remove(track)
+                }
+                Log.w("Check recover queue", temp.toString())
+                mainRepository.recoverQueue(temp)
+                dataStoreManager.putString(DataStoreManager.RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE, DataStoreManager.FALSE)
+            }
+        }
+    }
+    fun mayBeSavePlaybackState() {
+        if (runBlocking{ dataStoreManager.saveStateOfPlayback.first() } == DataStoreManager.TRUE ) {
+            runBlocking { dataStoreManager.recoverShuffleAndRepeatKey(player.shuffleModeEnabled, player.repeatMode) }
+        }
+    }
+    fun editSkipSilent(skip: Boolean) {
+        skipSilent = skip
+        maybeSkipSilent()
+    }
+    fun editNormalizeVolume(normalize: Boolean) {
+        normalizeVolume = normalize
+    }
+
+    fun seekTo(position: String)  {
+        player.seekTo(position.toLong())
+        player.playWhenReady = false
+        Log.d("Check seek", "seekTo: ${player.duration}")
+    }
+    fun skipSegment(position: Long) {
+        if (position in 0..player.duration) {
+            player.seekTo(position)
+        }
+        else if (position > player.duration) {
+            player.seekToNext()
+        }
+    }
+    private fun sendOpenEqualizerIntent() {
+        context.sendBroadcast (
+            Intent(AudioEffect.ACTION_OPEN_AUDIO_EFFECT_CONTROL_SESSION).apply {
+                putExtra(AudioEffect.EXTRA_AUDIO_SESSION, player.audioSessionId)
+                putExtra(AudioEffect.EXTRA_PACKAGE_NAME, context.packageName)
+                putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MUSIC)
+            }
+        )
+    }
+    private fun sendCloseEqualizerIntent() {
+        context.sendBroadcast(
+            Intent(AudioEffect.ACTION_CLOSE_AUDIO_EFFECT_CONTROL_SESSION).apply {
+                putExtra(AudioEffect.EXTRA_AUDIO_SESSION, player.audioSessionId)
+            }
+        )
+    }
+    fun release() {
+        player.removeListener(this)
+        job?.cancel()
+        sleepTimerJob?.cancel()
+        volumeNormalizationJob?.cancel()
+        updateNotificationJob?.cancel()
+    }
+
+    private fun updateNotification() {
+        updateNotificationJob?.cancel()
+        updateNotificationJob = GlobalScope.launch(Dispatchers.Main) {
+            val liked = mainRepository.getSongById(player.currentMediaItem?.mediaId ?: "").first()?.liked
+            if (liked != null) {
+                _liked.value = liked
+            }
+            mediaSession.setCustomLayout(
+                listOf(
+                    CommandButton.Builder()
+                        .setDisplayName(if (liked == true) context.getString(R.string.liked) else context.getString(R.string.like))
+                        .setIconResId(if (liked == true) R.drawable.baseline_favorite_24 else R.drawable.baseline_favorite_border_24)
+                        .setSessionCommand(SessionCommand(MEDIA_CUSTOM_COMMAND.LIKE, Bundle()))
+                        .build(),
+                    CommandButton.Builder()
+                        .setDisplayName(
+                            when (player.repeatMode) {
+                                Player.REPEAT_MODE_ONE -> context.getString(androidx.media3.ui.R.string.exo_controls_repeat_one_description)
+                                Player.REPEAT_MODE_ALL -> context.getString(androidx.media3.ui.R.string.exo_controls_repeat_all_description)
+                                else -> context.getString(androidx.media3.ui.R.string.exo_controls_repeat_off_description)
+                            }
+                        )
+                        .setSessionCommand(SessionCommand(MEDIA_CUSTOM_COMMAND.REPEAT, Bundle()))
+                        .setIconResId(
+                            when (player.repeatMode) {
+                                Player.REPEAT_MODE_ONE -> R.drawable.baseline_repeat_one_24
+                                Player.REPEAT_MODE_ALL -> R.drawable.repeat_on
+                                else -> R.drawable.baseline_repeat_24_enable
+                            }
+                        )
+                        .build()
+                )
+            )
         }
     }
 }

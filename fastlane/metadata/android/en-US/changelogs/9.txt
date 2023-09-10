@@ -1,0 +1,15 @@
+- Fixed some bugs
+- Catching crash safety
+- Remove download feature when progress is downloading
+- Fix normalize volume issue
+- Fix equalizer issue
+- Fix conflict queue
+- Fix no update UI when switching songs
+- Improve search lyrics engine
+- Check for update feature
+- Add favorite button and repeat button in notification
+- Add description of now playing song
+- Add save state of playback feature
+- Add save last played song and queue feature
+- Add sleep timer feature
+- Add SponsorBlock feature

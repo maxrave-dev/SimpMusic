@@ -6,6 +6,7 @@ import com.maxrave.simpmusic.data.db.entities.FormatEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.LyricsEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
+import com.maxrave.simpmusic.data.db.entities.QueueEntity
 import com.maxrave.simpmusic.data.db.entities.SearchHistory
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import java.time.LocalDateTime
@@ -76,4 +77,8 @@ class LocalDataSource @Inject constructor(private val databaseDao: DatabaseDao) 
 
     suspend fun insertFormat(format: FormatEntity) = databaseDao.insertFormat(format)
     suspend fun getFormat(videoId: String) = databaseDao.getFormat(videoId)
+
+    suspend fun recoverQueue(queueEntity: QueueEntity) = databaseDao.recoverQueue(queueEntity)
+    suspend fun getQueue() = databaseDao.getQueue()
+    suspend fun deleteQueue() = databaseDao.deleteQueue()
 }

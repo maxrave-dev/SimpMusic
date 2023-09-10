@@ -2,7 +2,6 @@ package com.maxrave.simpmusic.adapter.playlist
 
 import android.util.Log
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
@@ -41,6 +40,8 @@ class PlaylistItemAdapter(private var playlistItemList: ArrayList<Any>): Recycle
             binding.tvSongTitle.text = track.title
             binding.tvSongArtist.text = track.artists.toListName().connectArtists()
             binding.ivThumbnail.load(track.thumbnails?.last()?.url)
+            binding.tvSongTitle.isSelected = true
+            binding.tvSongArtist.isSelected = true
         }
     }
     inner class LocalPlaylistTrackViewHolder(val binding: ItemPopularSongBinding, rootListener: OnItemClickListener, mOptionListener: OnOptionClickListener): RecyclerView.ViewHolder(binding.root) {
@@ -55,6 +56,8 @@ class PlaylistItemAdapter(private var playlistItemList: ArrayList<Any>): Recycle
         fun bind (song: SongEntity){
             binding.tvSongTitle.text = song.title
             binding.tvSongArtist.text = song.artistName?.connectArtists()
+            binding.tvSongTitle.isSelected = true
+            binding.tvSongArtist.isSelected = true
             binding.ivThumbnail.load(song.thumbnails)
         }
     }
