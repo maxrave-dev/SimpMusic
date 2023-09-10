@@ -1159,7 +1159,6 @@ class NowPlayingFragment : Fragment() {
 
                 })
                 .build()
-            ImageLoader(requireContext()).enqueue(request)
             binding.topAppBar.subtitle = from
             viewModel.from.postValue(from)
             binding.tvSongTitle.text = nowPlaying.title
@@ -1187,6 +1186,9 @@ class NowPlayingFragment : Fragment() {
                 else {
                     binding.uploaderLayout.visibility = View.GONE
                 }
+            }
+            lifecycleScope.launch {
+                ImageLoader(requireContext()).execute(request)
             }
         }
     }
@@ -1284,7 +1286,6 @@ class NowPlayingFragment : Fragment() {
 
                 })
                 .build()
-            ImageLoader(requireContext()).enqueue(request)
             viewModel.format.observe(viewLifecycleOwner){ format ->
                 Log.d("Check Format", format.toString())
                 if (format != null){
@@ -1297,6 +1298,9 @@ class NowPlayingFragment : Fragment() {
                 else {
                     binding.uploaderLayout.visibility = View.GONE
                 }
+            }
+            lifecycleScope.launch {
+                ImageLoader(requireContext()).execute(request)
             }
         }
     }

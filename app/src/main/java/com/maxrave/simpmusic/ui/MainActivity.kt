@@ -108,6 +108,11 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         Log.d("MainActivity", "onCreate: ")
         action = intent.action
+        data = intent?.data ?: intent?.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
+        if (data != null) {
+            viewModel.intent.value = intent
+        }
+
         viewModel.checkIsRestoring()
         Log.d("Italy", "Key: ${Locale.ITALY.toLanguageTag()}")
 
@@ -217,9 +222,7 @@ class MainActivity : AppCompatActivity() {
 
         })
         binding.btRemoveMiniPlayer.setOnClickListener {
-            if (viewModel.isServiceRunning.value == true){
-                stopService()
-            }
+            stopService()
             viewModel.videoId.postValue(null)
             binding.miniplayer.visibility = View.GONE
             binding.card.radius = 8f
@@ -241,6 +244,9 @@ class MainActivity : AppCompatActivity() {
                             data = intent.data ?: intent.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
                             Log.d("MainActivity", "onCreate: $data")
                             if (data != null) {
+                                if (navController.currentDestination?.id == R.id.nowPlayingFragment) {
+                                    navController.popBackStack()
+                                }
                                 when (val path = data!!.pathSegments.firstOrNull()) {
                                     "playlist" -> data!!.getQueryParameter("list")?.let { playlistId ->
                                         if (playlistId.startsWith("OLAK5uy_")) {
