@@ -848,8 +848,8 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     fun getSaveLastPlayedSong () {
         viewModelScope.launch {
             dataStoreManager.saveRecentSongAndQueue.first().let { saved ->
-                _saveLastPlayedSong.postValue(saved == TRUE)
                 Log.d("Check SaveLastPlayedSong", restoreLastPlayedTrackDone.toString())
+                _saveLastPlayedSong.postValue(saved == TRUE)
             }
         }
     }

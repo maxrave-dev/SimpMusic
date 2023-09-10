@@ -38,7 +38,7 @@ import javax.inject.Inject
 class SimpleMediaServiceHandler @Inject constructor(
     private val player: ExoPlayer,
     private val mediaSession: MediaSession,
-    private val mediaSessionCallback: SimpleMediaSessionCallback,
+    mediaSessionCallback: SimpleMediaSessionCallback,
     private val dataStoreManager: DataStoreManager,
     private val mainRepository: MainRepository,
     @ApplicationContext private val context: Context
@@ -118,7 +118,7 @@ class SimpleMediaServiceHandler @Inject constructor(
             toggleLike = ::toggleLike
         }
     }
-    fun toggleLike() {
+    private fun toggleLike() {
         updateNotificationJob?.cancel()
         updateNotificationJob = GlobalScope.launch(Dispatchers.Main) {
             mainRepository.updateLikeStatus(player.currentMediaItem?.mediaId ?: "", if (!(_liked.value)) 1 else 0)
@@ -510,6 +510,7 @@ class SimpleMediaServiceHandler @Inject constructor(
         )
     }
     fun release() {
+        sendCloseEqualizerIntent()
         player.removeListener(this)
         job?.cancel()
         sleepTimerJob?.cancel()

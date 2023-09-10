@@ -52,27 +52,10 @@ class SimpleMediaService : MediaSessionService() {
         controllerFuture.addListener({ controllerFuture.get() }, MoreExecutors.directExecutor())
         return super.onStartCommand(intent, flags, startId)
     }
-    @UnstableApi
-    override fun onTaskRemoved(rootIntent: Intent?) {
-        if (!player.playWhenReady || player.mediaItemCount == 0) {
-            simpleMediaServiceHandler.mayBeSaveRecentSong()
-            simpleMediaServiceHandler.mayBeSavePlaybackState()
-            mediaSession.run {
-                release()
-                if (player.playbackState != Player.STATE_IDLE) {
-                    player.seekTo(0)
-                    player.playWhenReady = false
-                    player.stop()
-                }
-            }
-            simpleMediaServiceHandler.release()
-//            notificationManager.stopNotificationService(this)
-            stopSelf()
-        }
-    }
 
     @UnstableApi
     override fun onDestroy() {
+        super.onDestroy()
         simpleMediaServiceHandler.mayBeSaveRecentSong()
         simpleMediaServiceHandler.mayBeSavePlaybackState()
         mediaSession.run {
@@ -84,8 +67,23 @@ class SimpleMediaService : MediaSessionService() {
             }
         }
         simpleMediaServiceHandler.release()
-        super.onDestroy()
         Log.d("SimpleMediaService", "onDestroy: ")
+    }
+
+    @UnstableApi
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        simpleMediaServiceHandler.mayBeSaveRecentSong()
+        simpleMediaServiceHandler.mayBeSavePlaybackState()
+        mediaSession.run {
+            release()
+            if (player.playbackState != Player.STATE_IDLE) {
+                player.seekTo(0)
+                player.playWhenReady = false
+                player.stop()
+            }
+        }
+        simpleMediaServiceHandler.release()
+        stopSelf()
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession =

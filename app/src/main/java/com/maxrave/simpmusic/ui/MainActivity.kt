@@ -316,28 +316,6 @@ class MainActivity : AppCompatActivity() {
                                         else {
                                             navController.navigate(R.id.action_global_nowPlayingFragment, args)
                                         }
-
-//                                        viewModel.getSongFull(videoId)
-//                                        viewModel.songFull.observe(this@MainActivity) {
-//                                            if (it != null){
-//                                                val track = it.toTrack(videoId)
-//                                                Queue.clear()
-//                                                Queue.setNowPlaying(track)
-//                                                val args = Bundle()
-//                                                args.putString("videoId", videoId)
-//                                                args.putString("from", getString(R.string.shared))
-//                                                args.putString("type", Config.SHARE)
-//                                                viewModel.intent.value = null
-//                                                if (navController.currentDestination?.id == R.id.nowPlayingFragment) {
-//                                                    navController.popBackStack()
-//                                                    navController.navigate(R.id.action_global_nowPlayingFragment, args)
-//                                                }
-//                                                else {
-//                                                    hideBottomNav()
-//                                                    navController.navigate(R.id.action_global_nowPlayingFragment, args)
-//                                                }
-//                                            }
-//                                        }
                                     }
                                 }
                             }
@@ -496,6 +474,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun mayBeRestoreLastPlayedTrackAndQueue() {
         if (getString(RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE) == DataStoreManager.FALSE) {
+            Log.d("Restore", "mayBeRestoreLastPlayedTrackAndQueue: ")
             viewModel.getSaveLastPlayedSong()
             val queue = viewModel.saveLastPlayedSong.switchMap { saved: Boolean ->
                 if (saved) {
@@ -564,7 +543,7 @@ class MainActivity : AppCompatActivity() {
         if (viewModel.isServiceRunning.value == false) {
             if (!isMyServiceRunning(SimpleMediaService::class.java)) {
                 val intent = Intent(this, SimpleMediaService::class.java)
-                startService(intent)
+                startForegroundService(intent)
                 viewModel.isServiceRunning.postValue(true)
                 Log.d("Service", "Service started")
             }
