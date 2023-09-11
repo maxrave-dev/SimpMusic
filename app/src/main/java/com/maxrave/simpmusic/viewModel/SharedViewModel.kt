@@ -26,6 +26,7 @@ import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.QUALITY
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
+import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.TRUE
 import com.maxrave.simpmusic.data.db.entities.FormatEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
@@ -865,7 +866,8 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                         loadMediaItemFromTrack(song.toTrack())
                         firstTrackAdded.collectLatest { added ->
                             if (added) {
-                                if (_nowPlaying.value?.mediaId == mediaId) {
+                                if (_nowPlaying.value?.mediaId == mediaId && getString(RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE) == DataStoreManager.FALSE) {
+                                    restoreLastPLayedTrackDone()
                                     from.postValue(from_backup)
                                     changeFirstTrackAddedToFalse()
                                     simpleMediaServiceHandler.seekTo(recentPosition)

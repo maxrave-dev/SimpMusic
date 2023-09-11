@@ -500,7 +500,6 @@ class MainActivity : AppCompatActivity() {
                 if (queueData.isNotEmpty()) {
                     if (isMusicServiceRunning) {
                         binding.miniplayer.visibility = View.VISIBLE
-                        viewModel.restoreLastPLayedTrackDone()
                     }
                     Queue.clear()
                     Queue.addAll(queueData)
