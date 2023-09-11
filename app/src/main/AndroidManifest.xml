@@ -23,8 +23,7 @@
         <activity
             android:name=".ui.MainActivity"
             android:exported="true"
-            android:launchMode="singleTask"
-            android:configChanges="keyboardHidden|orientation|screenSize">
+            android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <action android:name="android.intent.action.VIEW" />
@@ -99,12 +98,6 @@
             <meta-data android:name="android.app.shortcuts"
                 android:resource="@xml/shortcuts" />
         </activity>
-        <receiver android:name="androidx.media3.session.MediaButtonReceiver"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MEDIA_BUTTON" />
-            </intent-filter>
-        </receiver>
         <provider
             android:name="androidx.startup.InitializationProvider"
             android:authorities="${applicationId}.androidx-startup"
@@ -126,7 +119,7 @@
         <service
             android:name=".service.SimpleMediaService"
             android:foregroundServiceType="mediaPlayback"
-            android:stopWithTask="false"
+            android:stopWithTask="true"
             android:exported="false">
             <intent-filter>
                 <action android:name="androidx.media3.session.MediaSessionService"/>
@@ -144,9 +137,5 @@
         </service>
     </application>
 
-    <queries>
-        <intent>
-            <action android:name="android.media.action.DISPLAY_AUDIO_EFFECT_CONTROL_PANEL" />
-        </intent>
-    </queries>
+
 </manifest>

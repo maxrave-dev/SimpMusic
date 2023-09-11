@@ -5,17 +5,12 @@ import android.util.Log
 import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.models.MusicShelfRenderer
 import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
-import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
-import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
-import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.LocalDataSource
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
-import com.maxrave.simpmusic.data.db.entities.FormatEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.LyricsEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
-import com.maxrave.simpmusic.data.db.entities.QueueEntity
 import com.maxrave.simpmusic.data.db.entities.SearchHistory
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.AlbumBrowse
@@ -48,16 +43,13 @@ import com.maxrave.simpmusic.data.parser.search.parseSearchArtist
 import com.maxrave.simpmusic.data.parser.search.parseSearchPlaylist
 import com.maxrave.simpmusic.data.parser.search.parseSearchSong
 import com.maxrave.simpmusic.data.parser.search.parseSearchVideo
-import com.maxrave.simpmusic.extension.bestMatchingIndex
 import com.maxrave.simpmusic.extension.toLyrics
 import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 import javax.inject.Inject
@@ -65,7 +57,7 @@ import javax.inject.Singleton
 
 //@ActivityRetainedScoped
 @Singleton
-class MainRepository @Inject constructor(private val localDataSource: LocalDataSource, private val dataStoreManager: DataStoreManager, @ApplicationContext private val context: Context) {
+class MainRepository @Inject constructor(private val localDataSource: LocalDataSource, @ApplicationContext private val context: Context) {
     //Database
     suspend fun getSearchHistory(): Flow<List<SearchHistory>> =
         flow { emit(localDataSource.getSearchHistory()) }.flowOn(Dispatchers.IO)
@@ -256,26 +248,6 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
 
     suspend fun insertLyrics(lyricsEntity: LyricsEntity) =
         withContext(Dispatchers.IO) { localDataSource.insertLyrics(lyricsEntity) }
-
-    suspend fun insertFormat(format: FormatEntity) =
-        withContext(Dispatchers.IO) { localDataSource.insertFormat(format) }
-
-    suspend fun getFormat(videoId: String): Flow<FormatEntity?> =
-        flow { emit(localDataSource.getFormat(videoId)) }.flowOn(Dispatchers.IO)
-
-
-    suspend fun recoverQueue(temp: List<Track>) {
-        val queueEntity = QueueEntity(listTrack = temp)
-        withContext(Dispatchers.IO) { localDataSource.recoverQueue(queueEntity) }
-    }
-
-    suspend fun removeQueue(){
-        withContext(Dispatchers.IO) { localDataSource.deleteQueue() }
-    }
-
-    suspend fun getSavedQueue(): Flow<List<QueueEntity>?> =
-        flow { emit(localDataSource.getQueue())  }.flowOn(Dispatchers.IO)
-
 
     suspend fun getHomeData(): Flow<Resource<ArrayList<HomeItem>>> = flow {
         runCatching {
@@ -637,28 +609,20 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
     }.flowOn(Dispatchers.IO)
     suspend fun getLyricsData(query: String): Flow<Resource<Lyrics>> = flow {
         runCatching {
-            val q = query.replace(Regex("\\([^)]*?(feat.|ft.|cùng với|con)[^)]*?\\)"), "").replace("  ", " ")
+            val q = query.replace(Regex("\\([^)]*?(feat|ft|cùng với)[^)]*?\\)"), "")
             Log.d("Lyrics", "query: $q")
-            YouTube.authentication().onSuccess { token ->
+            YouTube.authencation().onSuccess {token ->
                 if (token.accessToken != null) {
                     YouTube.getSongId(token.accessToken!!, q).onSuccess { spotifyResult ->
                         Log.d("SongId", "id: ${spotifyResult.tracks?.items?.get(0)?.id}")
-                        if (!spotifyResult.tracks?.items.isNullOrEmpty()) {
-                            val list = arrayListOf<String>()
-                            for (index in spotifyResult.tracks?.items!!.indices) {
-                                list.add(spotifyResult.tracks?.items?.get(index)?.name + spotifyResult.tracks?.items?.get(index)?.artists?.get(0)?.name)
-                            }
-                            bestMatchingIndex(q, list).let {
-                                spotifyResult.tracks?.items?.get(it)?.let {item ->
-                                    item.id?.let { it1 ->
-                                        Log.d("Lyrics", "id: $it1")
-                                        YouTube.getLyrics(it1).onSuccess { lyrics ->
-                                            emit(Resource.Success<Lyrics>(lyrics.toLyrics()))
-                                        }.onFailure {
-                                            Log.d("Lyrics", "Error: ${it.message}")
-                                            emit(Resource.Error<Lyrics>("Not found"))
-                                        }
-                                    }
+                        spotifyResult.tracks?.items?.get(0)?.let {
+                            it.id?.let { it1 ->
+                                Log.d("Lyrics", "id: $it1")
+                                YouTube.getLyrics(it1).onSuccess { lyrics ->
+                                    emit(Resource.Success<Lyrics>(lyrics.toLyrics()))
+                                }.onFailure {
+                                    Log.d("Lyrics", "Error: ${it.message}")
+                                    emit(Resource.Error<Lyrics>("Not found"))
                                 }
                             }
                         }
@@ -675,53 +639,16 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
             }
         }.flowOn(Dispatchers.IO)
     suspend fun getStream(videoId: String, itag: Int): Flow<String?> = flow{
-        val instance = runBlocking { dataStoreManager.pipedInstance.first() }
-        YouTube.player(videoId, instance).onSuccess { response ->
-            val format = response.streamingData?.formats?.find { it.itag == itag}
-                runBlocking {
-                    insertFormat(
-                        FormatEntity(
-                            videoId = videoId,
-                            itag = format?.itag ?: itag,
-                            mimeType = format?.mimeType,
-                            bitrate = format?.bitrate?.toLong(),
-                            contentLength = format?.contentLength,
-                            lastModified = format?.lastModified,
-                            loudnessDb = response.playerConfig?.audioConfig?.loudnessDb?.toFloat(),
-                            uploader = response.videoDetails?.author?.replace(Regex(" - Topic"), ""),
-                            uploaderId = response.videoDetails?.channelId,
-                            uploaderThumbnail = response.videoDetails?.authorAvatar,
-                            uploaderSubCount = response.videoDetails?.authorSubCount,
-                            description = response.videoDetails?.description
-                        )
-                    )
-                }
-                emit(response.streamingData?.adaptiveFormats?.find { it.itag == itag }?.url)
+            YouTube.player(videoId).onSuccess {
+                emit(it.streamingData?.adaptiveFormats?.find { it.itag == itag }?.url)
             }.onFailure {
                 emit(null)
             }
     }.flowOn(Dispatchers.IO)
-    suspend fun getSkipSegments(videoId: String): Flow<List<SkipSegments>?> = flow {
-        YouTube.getSkipSegments(videoId).onSuccess {
-            emit(it)
-        }.onFailure {
-            emit(null)
-        }
-    }.flowOn(Dispatchers.IO)
 
     fun getSongFull(videoId: String): Flow<PipedResponse> = flow {
-        val instance = runBlocking { dataStoreManager.pipedInstance.first() }
-        YouTube.pipeStream(videoId, instance).onSuccess {
+        YouTube.pipeStream(videoId).onSuccess {
             emit(it)
         }
     }.flowOn(Dispatchers.IO)
-
-    fun checkForUpdate(): Flow<GithubResponse?> = flow {
-        YouTube.checkForUpdate().onSuccess {
-            emit(it)
-        }
-            .onFailure {
-                emit(null)
-            }
-    }
 }

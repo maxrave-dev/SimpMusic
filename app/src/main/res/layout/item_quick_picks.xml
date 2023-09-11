@@ -38,12 +38,10 @@
                     android:fontFamily="@font/roboto"
                     android:textStyle="bold"
                     android:textSize="18sp"
-                    android:singleLine="true"
-                    android:ellipsize="marquee"
-                    android:marqueeRepeatLimit="marquee_forever"
-                    android:focusable="true"
-                    android:focusableInTouchMode="true"
+                    android:maxLines="1"
                     android:scrollHorizontally="true"
+                    android:ellipsize="marquee"
+                    android:marqueeRepeatLimit ="marquee_forever"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
@@ -55,12 +53,10 @@
                     android:fontFamily="@font/roboto"
                     android:textStyle="normal"
                     android:textSize="14sp"
-                    android:singleLine="true"
-                    android:ellipsize="marquee"
-                    android:marqueeRepeatLimit="marquee_forever"
-                    android:focusable="true"
-                    android:focusableInTouchMode="true"
+                    android:maxLines="1"
                     android:scrollHorizontally="true"
+                    android:ellipsize="marquee"
+                    android:marqueeRepeatLimit ="marquee_forever"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 

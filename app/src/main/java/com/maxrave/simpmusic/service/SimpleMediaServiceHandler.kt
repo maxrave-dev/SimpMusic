@@ -1,39 +1,18 @@
 package com.maxrave.simpmusic.service
 
 import android.annotation.SuppressLint
-import android.content.Context
-import android.content.Intent
-import android.media.audiofx.AudioEffect
-import android.media.audiofx.LoudnessEnhancer
-import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.session.CommandButton
-import androidx.media3.session.MediaSession
-import androidx.media3.session.SessionCommand
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.MEDIA_CUSTOM_COMMAND
-import com.maxrave.simpmusic.data.dataStore.DataStoreManager
-import com.maxrave.simpmusic.data.model.browse.album.Track
-import com.maxrave.simpmusic.data.queue.Queue
-import com.maxrave.simpmusic.data.repository.MainRepository
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.cancellable
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
-@OptIn(DelicateCoroutinesApi::class)
 @UnstableApi
 class SimpleMediaServiceHandler @Inject constructor(
     private val player: ExoPlayer,
@@ -44,19 +23,11 @@ class SimpleMediaServiceHandler @Inject constructor(
     @ApplicationContext private val context: Context
 ) : Player.Listener {
 
-    private var loudnessEnhancer: LoudnessEnhancer? = null
-
-    private var volumeNormalizationJob: Job? = null
-
-    private var sleepTimerJob: Job? = null
-
     private val _simpleMediaState = MutableStateFlow<SimpleMediaState>(SimpleMediaState.Initial)
     val simpleMediaState = _simpleMediaState.asStateFlow()
 
     private val _changeTrack = MutableStateFlow<Boolean>(false)
     val changeTrack = _changeTrack.asStateFlow()
-
-    var nowPlaying = MutableStateFlow(player.currentMediaItem)
 
     private val _nextTrackAvailable = MutableStateFlow<Boolean>(false)
     val nextTrackAvailable = _nextTrackAvailable.asStateFlow()
@@ -70,53 +41,13 @@ class SimpleMediaServiceHandler @Inject constructor(
     private val _repeat = MutableStateFlow<RepeatState>(RepeatState.None)
     val repeat = _repeat.asStateFlow()
 
-    private val _sleepMinutes = MutableStateFlow<Int>(0)
-    val sleepMinutes = _sleepMinutes.asSharedFlow()
-
-    private val _sleepDone = MutableStateFlow<Boolean>(false)
-    val sleepDone = _sleepDone.asSharedFlow()
-
-    private val _liked = MutableStateFlow(false)
-    val liked = _liked.asSharedFlow()
-
-    private var updateNotificationJob: Job? = null
-
-    private var skipSilent = false
-
-    private var normalizeVolume = false
-
     private var job: Job? = null
 
     init {
         player.addListener(this)
+        player.shuffleModeEnabled = false
+        player.repeatMode = Player.REPEAT_MODE_OFF
         job = Job()
-        skipSilent = runBlocking { dataStoreManager.skipSilent.first() == DataStoreManager.TRUE }
-        normalizeVolume = runBlocking { dataStoreManager.normalizeVolume.first() == DataStoreManager.TRUE }
-        if (runBlocking{ dataStoreManager.saveStateOfPlayback.first() } == DataStoreManager.TRUE ) {
-            Log.d("CHECK INIT", "TRUE")
-            val shuffleKey = runBlocking { dataStoreManager.shuffleKey.first() }
-            val repeatKey = runBlocking { dataStoreManager.repeatKey.first() }
-            Log.d("CHECK INIT", "Shuffle: $shuffleKey")
-            Log.d("CHECK INIT", "Repeat: $repeatKey")
-            player.shuffleModeEnabled = shuffleKey == DataStoreManager.TRUE
-            player.repeatMode = when (repeatKey) {
-                DataStoreManager.REPEAT_ONE -> Player.REPEAT_MODE_ONE
-                DataStoreManager.REPEAT_ALL -> Player.REPEAT_MODE_ALL
-                DataStoreManager.REPEAT_MODE_OFF -> Player.REPEAT_MODE_OFF
-                else -> {Player.REPEAT_MODE_OFF}
-            }
-        }
-        _shuffle.value = player.shuffleModeEnabled
-        _repeat.value = when (player.repeatMode) {
-            Player.REPEAT_MODE_ONE -> RepeatState.One
-            Player.REPEAT_MODE_ALL -> RepeatState.All
-            Player.REPEAT_MODE_OFF -> RepeatState.None
-            else -> {RepeatState.None}
-        }
-        nowPlaying.value = player.currentMediaItem
-        mediaSessionCallback.apply {
-            toggleLike = ::toggleLike
-        }
     }
     private fun toggleLike() {
         updateNotificationJob?.cancel()
@@ -131,34 +62,6 @@ class SimpleMediaServiceHandler @Inject constructor(
         _liked.value = liked
         updateNotification()
     }
-    //Set sleep timer
-    fun sleepStart(minutes: Int) {
-        _sleepDone.value = false
-        sleepTimerJob?.cancel()
-        sleepTimerJob = GlobalScope.launch(Dispatchers.Main) {
-            _sleepMinutes.value = minutes
-            var count = minutes
-            while (count > 0) {
-                delay(60 * 1000L)
-                count--
-                _sleepMinutes.value = count
-            }
-            player.pause()
-            _sleepMinutes.value = 0
-            _sleepDone.value = true
-        }
-    }
-    fun sleepStop() {
-        _sleepDone.value = false
-        sleepTimerJob?.cancel()
-        _sleepMinutes.value = 0
-    }
-
-    private fun updateNextPreviousTrackAvailability() {
-        _nextTrackAvailable.value = player.hasNextMediaItem()
-        _previousTrackAvailable.value = player.hasPreviousMediaItem()
-    }
-
     fun getMediaItemWithIndex(index: Int): MediaItem {
         return player.getMediaItemAt(index)
     }
@@ -180,7 +83,6 @@ class SimpleMediaServiceHandler @Inject constructor(
             player.prepare()
             player.playWhenReady = true
         }
-        updateNextPreviousTrackAvailability()
     }
 
     fun clearMediaItems() {
@@ -267,23 +169,6 @@ class SimpleMediaServiceHandler @Inject constructor(
         }
     }
 
-    override fun onEvents(player: Player, events: Player.Events) {
-        val shouldBePlaying = !(player.playbackState == Player.STATE_ENDED || !player.playWhenReady)
-        if (events.containsAny(
-                Player.EVENT_PLAYBACK_STATE_CHANGED,
-                Player.EVENT_PLAY_WHEN_READY_CHANGED,
-                Player.EVENT_IS_PLAYING_CHANGED,
-                Player.EVENT_POSITION_DISCONTINUITY
-            )
-        ) {
-            if (shouldBePlaying) {
-                sendOpenEqualizerIntent()
-            } else {
-                sendCloseEqualizerIntent()
-            }
-        }
-    }
-
     override fun onTracksChanged(tracks: Tracks) {
         Log.d("Tracks", "onTracksChanged: ${tracks.groups.size}")
         super.onTracksChanged(tracks)
@@ -293,27 +178,40 @@ class SimpleMediaServiceHandler @Inject constructor(
         when(error.errorCode) {
             PlaybackException.ERROR_CODE_TIMEOUT -> {
                 Log.e("Player Error", "onPlayerError: ${error.message}")
-                Toast.makeText(context,
-                    context.getString(R.string.time_out_check_internet_connection_or_change_piped_instance_in_settings), Toast.LENGTH_LONG).show()
-                player.pause()
+                player.seekToNext()
+                player.prepare()
+                player.playWhenReady = true
             }
             else -> {
                 Log.e("Player Error", "onPlayerError: ${error.message}")
-                Toast.makeText(context,
-                    context.getString(R.string.time_out_check_internet_connection_or_change_piped_instance_in_settings), Toast.LENGTH_LONG).show()
-                player.pause()
+                player.seekToNext()
+                player.prepare()
+                player.playWhenReady = true
             }
         }
     }
 
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
-        Log.w("Smooth Switching Transition", "Current Position: ${player.currentPosition}")
-        mayBeNormalizeVolume()
-        Log.w("REASON", "onMediaItemTransition: $reason")
-        Log.d("Media Item Transition", "Media Item: ${mediaItem?.mediaMetadata?.title}")
-        nowPlaying.value = mediaItem
-        updateNextPreviousTrackAvailability()
-        updateNotification()
+        super.onMediaItemTransition(mediaItem, reason)
+        if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO || reason == Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT || reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK || reason == Player.MEDIA_ITEM_TRANSITION_REASON_PLAYLIST_CHANGED){
+            if (!_changeTrack.value) {
+                _changeTrack.value = true
+                _nextTrackAvailable.value = player.hasNextMediaItem()
+                _previousTrackAvailable.value = player.hasPreviousMediaItem()
+                Log.d("Change Track", "onMediaItemTransition: ${changeTrack.value}")
+                Log.d("Media Item Transition", "Media Item: ${mediaItem?.mediaMetadata?.title}")
+                Log.d("Media Item Transition", "Reason: $reason")
+            }
+            else {
+                _changeTrack.value = false
+                Log.d("Change Track", "onMediaItemTransition: ${changeTrack.value}")
+                Log.d("Media Item Transition", "Media Item: ${mediaItem?.mediaMetadata?.title}")
+                Log.d("Media Item Transition", "Reason: $reason")
+                _changeTrack.value = true
+                _nextTrackAvailable.value = player.hasNextMediaItem()
+                _previousTrackAvailable.value = player.hasPreviousMediaItem()
+            }
+        }
     }
 
 
@@ -331,14 +229,9 @@ class SimpleMediaServiceHandler @Inject constructor(
 
     override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
         when (shuffleModeEnabled){
-            true -> {
-                _shuffle.value = true
-            }
-            false ->{
-                _shuffle.value = false
-            }
+            true -> _shuffle.value = true
+            false -> _shuffle.value = false
         }
-        updateNextPreviousTrackAvailability()
     }
 
     override fun onRepeatModeChanged(repeatMode: Int) {
@@ -347,8 +240,6 @@ class SimpleMediaServiceHandler @Inject constructor(
             ExoPlayer.REPEAT_MODE_ONE -> _repeat.value = RepeatState.One
             ExoPlayer.REPEAT_MODE_ALL -> _repeat.value = RepeatState.All
         }
-        updateNextPreviousTrackAvailability()
-        updateNotification()
     }
 
     @OptIn(DelicateCoroutinesApi::class)
@@ -361,7 +252,6 @@ class SimpleMediaServiceHandler @Inject constructor(
         } else {
             stopProgressUpdate()
         }
-        updateNextPreviousTrackAvailability()
     }
 
     private suspend fun startProgressUpdate() = job.run {

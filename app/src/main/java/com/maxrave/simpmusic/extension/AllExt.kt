@@ -3,15 +3,11 @@ package com.maxrave.simpmusic.extension
 import android.app.ActivityManager
 import android.app.Service
 import android.content.Context
-import android.graphics.Color
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
-import androidx.datastore.preferences.preferencesDataStore
 import androidx.media3.common.MediaItem
 import androidx.sqlite.db.SimpleSQLiteQuery
 import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
-import com.maxrave.simpmusic.common.SETTINGS_FILENAME
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.LyricsEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
@@ -35,8 +31,6 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
-
-val Context.dataStore by preferencesDataStore(name = SETTINGS_FILENAME)
 
 fun Context.isMyServiceRunning(serviceClass: Class<out Service>) = try {
     (getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager)
@@ -343,9 +337,6 @@ fun Lyrics.toLyricsEntity(videoId: String): LyricsEntity {
 fun setEnabledAll(v: View, enabled: Boolean) {
     v.isEnabled = enabled
     v.isFocusable = enabled
-    if (v is ImageButton) {
-        if (enabled) v.setColorFilter(Color.WHITE) else v.setColorFilter(Color.GRAY)
-    }
     if (v is ViewGroup) {
         val vg = v
         for (i in 0 until vg.childCount) setEnabledAll(vg.getChildAt(i), enabled)

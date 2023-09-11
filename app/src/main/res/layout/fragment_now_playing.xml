@@ -218,7 +218,7 @@
                             android:layout_width="80dp"
                             android:layout_height="80sp"
                             android:layout_centerInParent="true"
-                            android:background="?attr/actionBarItemBackground"
+                            android:background="@null"
                             android:scaleType="fitCenter"
                             android:src="@drawable/baseline_play_circle_24" />
 
@@ -226,7 +226,7 @@
                             android:id="@+id/btNext"
                             android:layout_width="50sp"
                             android:layout_height="50sp"
-                            android:background="?attr/actionBarItemBackground"
+                            android:background="@null"
                             android:layout_centerVertical="true"
                             android:layout_marginStart="20sp"
                             android:scaleType="fitCenter"
@@ -239,7 +239,7 @@
                             android:id="@+id/btRepeat"
                             android:layout_width="30sp"
                             android:layout_height="30sp"
-                            android:background="?attr/actionBarItemBackground"
+                            android:background="@null"
                             android:layout_centerVertical="true"
                             android:layout_marginStart="20sp"
                             android:scaleType="fitCenter"
@@ -252,7 +252,7 @@
                             android:id="@+id/btPrevious"
                             android:layout_width="50sp"
                             android:layout_height="50sp"
-                            android:background="?attr/actionBarItemBackground"
+                            android:background="@null"
                             android:layout_centerVertical="true"
                             android:layout_marginEnd="20sp"
                             android:scaleType="fitCenter"
@@ -265,7 +265,7 @@
                             android:id="@+id/btShuffle"
                             android:layout_width="30sp"
                             android:layout_height="30sp"
-                            android:background="?attr/actionBarItemBackground"
+                            android:background="@null"
                             android:layout_centerVertical="true"
                             android:layout_marginEnd="20sp"
                             android:scaleType="fitCenter"
@@ -285,10 +285,11 @@
                             android:layout_height="wrap_content"
                             android:src="@drawable/baseline_info_24"
                             android:layout_alignParentStart="true"
-                            android:background="?attr/actionBarItemBackground"
+                            android:background="@null"
                             android:id="@+id/btSongInfo"
                             android:focusable="true"
-                            android:clickable="true">
+                            android:clickable="true"
+                            android:foreground="?android:attr/selectableItemBackground">
 
                         </ImageButton>
                         <ImageButton
@@ -296,10 +297,11 @@
                             android:layout_height="wrap_content"
                             android:src="@drawable/baseline_queue_music_24"
                             android:layout_alignParentEnd="true"
-                            android:background="?attr/actionBarItemBackground"
+                            android:background="@null"
                             android:id="@+id/btQueue"
                             android:focusable="true"
-                            android:clickable="true">
+                            android:clickable="true"
+                            android:foreground="?android:attr/selectableItemBackground">
 
                         </ImageButton>
 
@@ -353,16 +355,16 @@
                                 android:layout_width="match_parent"
                                 android:layout_height="200sp"
                                 android:padding="10sp">
-                                <TextView
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:id="@+id/tvPrevLyrics"
-                                    android:textSize="18sp"
-                                    android:textStyle="normal"
-                                    android:layout_above="@+id/tvNowLyrics"
-                                    android:lineSpacingExtra="5sp"
-                                    android:gravity="bottom">
-                                </TextView>
+                                    <TextView
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:id="@+id/tvPrevLyrics"
+                                        android:textSize="18sp"
+                                        android:textStyle="normal"
+                                        android:layout_above="@+id/tvNowLyrics"
+                                        android:lineSpacingExtra="5sp"
+                                        android:gravity="bottom">
+                                    </TextView>
 
                                 <TextView
                                     android:id="@+id/tvNowLyrics"
@@ -377,38 +379,35 @@
                                     android:textStyle="bold">
 
                                 </TextView>
-                                <TextView
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:id="@+id/tvNextLyrics"
-                                    android:textSize="18sp"
-                                    android:textStyle="normal"
-                                    android:layout_below="@+id/tvNowLyrics"
-                                    android:lineSpacingExtra="5sp">
-                                </TextView>
+                                    <TextView
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:id="@+id/tvNextLyrics"
+                                        android:textSize="18sp"
+                                        android:textStyle="normal"
+                                        android:layout_below="@+id/tvNowLyrics"
+                                        android:lineSpacingExtra="5sp">
+                                    </TextView>
                             </RelativeLayout>
                             <RelativeLayout
                                 android:id="@+id/lyricsFullLayout"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:padding="10sp">
-
                                 <androidx.core.widget.NestedScrollView
                                     android:layout_width="match_parent"
                                     android:layout_height="300sp"
                                     android:layout_centerInParent="true">
-
                                     <LinearLayout
                                         android:layout_width="match_parent"
                                         android:layout_height="wrap_content"
                                         android:orientation="vertical">
-
                                         <TextView
-                                            android:id="@+id/tvFullLyrics"
                                             android:layout_width="match_parent"
                                             android:layout_height="wrap_content"
+                                            android:id="@+id/tvFullLyrics"
                                             android:textSize="22sp"
-                                            android:textStyle="bold" />
+                                            android:textStyle="bold"/>
 
                                     </LinearLayout>
                                 </androidx.core.widget.NestedScrollView>
@@ -440,89 +439,6 @@
                         </LinearLayout>
 
                     </com.google.android.material.card.MaterialCardView>
-                    <com.google.android.material.card.MaterialCardView
-                        style="@style/Widget.Material3.CardView.Elevated"
-                        android:layout_width="match_parent"
-                        android:layout_height="250dp"
-                        android:layout_marginTop="15sp"
-                        android:layout_marginBottom="10sp"
-                        app:cardPreventCornerOverlap="true"
-                        android:id="@+id/uploaderLayout"
-                        android:focusable="true"
-                        android:clickable="true"
-                        android:foreground="?android:attr/selectableItemBackground">
-
-                        <FrameLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="match_parent">
-                            <ImageView
-                                android:layout_width="match_parent"
-                                android:layout_height="match_parent"
-                                android:scaleType="centerCrop"
-                                android:id="@+id/ivAuthor"
-                                android:alpha="0.6">
-
-                            </ImageView>
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:orientation="vertical"
-                                android:background="@android:color/transparent"
-                                android:layout_margin="10sp"
-                                android:padding="10sp">
-
-                                <TextView
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:text="@string/artists"
-                                    android:gravity="start"
-                                    style="@style/SubTitleToolBar">
-                                </TextView>
-                                <RelativeLayout
-                                    android:id="@+id/btUploader"
-                                    android:layout_width="match_parent"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="10sp">
-                                    <LinearLayout
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content"
-                                        android:layout_alignParentBottom="true"
-                                        android:orientation="vertical">
-                                        <TextView
-                                            android:layout_width="match_parent"
-                                            android:layout_height="wrap_content"
-                                            android:text=""
-                                            android:maxLines="1"
-                                            android:fontFamily="@font/roboto"
-                                            android:textStyle="bold"
-                                            android:textSize="15sp"
-                                            android:id="@+id/tvUploader"
-                                            android:textColor="@android:color/white">
-
-                                        </TextView>
-                                        <TextView
-                                            android:id="@+id/tvSubCount"
-                                            android:layout_marginTop="4sp"
-                                            android:text=""
-                                            android:fontFamily="@font/roboto"
-                                            android:textStyle="normal"
-                                            android:textSize="11sp"
-                                            android:layout_width="wrap_content"
-                                            android:layout_height="wrap_content"
-                                            android:maxLines="1">
-
-                                        </TextView>
-                                    </LinearLayout>
-
-                                </RelativeLayout>
-                            </LinearLayout>
-                        </FrameLayout>
-                    </com.google.android.material.card.MaterialCardView>
-                    <RelativeLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="15dp"
-                        android:background="@android:color/transparent">
-                    </RelativeLayout>
                 </LinearLayout>
             </LinearLayout>
 

@@ -11,7 +11,7 @@ import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.Download
@@ -74,7 +74,7 @@ class SearchFragment : Fragment() {
     private lateinit var suggestList: ArrayList<String>
     private lateinit var searchAllResult: ArrayList<Any>
 
-    private val viewModel by activityViewModels<SearchViewModel>()
+    private val viewModel by viewModels<SearchViewModel>()
     private lateinit var resultAdapter: SearchItemAdapter
     private lateinit var searchHistoryAdapter: SearchHistoryItemAdapter
     private lateinit var suggestAdapter: SuggestQueryAdapter
@@ -85,7 +85,7 @@ class SearchFragment : Fragment() {
     ): View {
         Log.d("SearchFragment", "onCreateView")
         _binding = FragmentSearchBinding.inflate(inflater, container, false)
-        binding.root.applyInsetter {
+        binding.svSearch.applyInsetter {
             type(statusBars = true) {
                 margin()
             }
@@ -124,59 +124,59 @@ class SearchFragment : Fragment() {
                     binding.recentlyQueryView.visibility = View.GONE
                     binding.defaultLayout.visibility = View.GONE
                     binding.resultView.visibility = View.VISIBLE
+//                    if (!searchHistory.contains(query)){
+//                        viewModel.insertSearchHistory(query)
+//                        viewModel.getSearchHistory()
+//                        observeSearchHistory()
+//                    }
                     viewModel.insertSearchHistory(query)
                     viewModel.getSearchHistory()
                     observeSearchHistory()
                     Log.d("Check History", searchHistory.toString())
                     viewModel.searchHistory.postValue(searchHistory)
                     searchHistoryAdapter.updateData(searchHistory)
-                    viewModel.searchType.value.let {searchType ->
-                        when (searchType) {
-                            "all" -> {
-                                resultList.clear()
-                                resultAdapter.updateList(resultList)
-                                fetchSearchAll(query)
-                                Log.d("Check All", "All is checked")
-                            }
-                            "videos" -> {
-                                resultList.clear()
-                                resultAdapter.updateList(resultList)
-                                fetchSearchVideos(query)
-                                binding.chipGroupTypeSearch.isClickable = true
-                                Log.d("Check Video", "Video is checked")
-                            }
-                            "songs" -> {
-                                resultList.clear()
-                                Log.d("Check ResultList", resultList.toString())
-                                resultAdapter.updateList(resultList)
-                                fetchSearchSongs(query)
-                                binding.chipGroupTypeSearch.isClickable = true
-                                Log.d("Check Song", "Song is checked")
-                            }
-                            "albums" -> {
-                                resultList.clear()
-                                resultAdapter.updateList(resultList)
-                                fetchSearchAlbums(query)
-                                binding.chipGroupTypeSearch.isClickable = true
-                                Log.d("Check Album", "Album is checked")
-                            }
-                            "artists" -> {
-                                resultList.clear()
-                                resultAdapter.updateList(resultList)
-                                fetchSearchArtists(query)
-                                binding.chipGroupTypeSearch.isClickable = true
-                                Log.d("Check Artist", "Artist is checked")
-                            }
-                            "playlists" -> {
-                                resultList.clear()
-                                resultAdapter.updateList(resultList)
-                                fetchSearchPlaylists(query)
-                                binding.chipGroupTypeSearch.isClickable = true
-                                Log.d("Check Playlist", "Playlist is checked")
-                            }
-                            else -> {
-                                Log.d("Check Search Type", "Search Type is null")
-                            }
+                    when (viewModel.searchType.value) {
+                        "all" -> {
+                            resultList.clear()
+                            resultAdapter.updateList(resultList)
+                            fetchSearchAll(query)
+                            Log.d("Check All", "All is checked")
+                        }
+                        "videos" -> {
+                            resultList.clear()
+                            resultAdapter.updateList(resultList)
+                            fetchSearchVideos(query)
+                            binding.chipGroupTypeSearch.isClickable = true
+                            Log.d("Check Video", "Video is checked")
+                        }
+                        "songs" -> {
+                            resultList.clear()
+                            Log.d("Check ResultList", resultList.toString())
+                            resultAdapter.updateList(resultList)
+                            fetchSearchSongs(query)
+                            binding.chipGroupTypeSearch.isClickable = true
+                            Log.d("Check Song", "Song is checked")
+                        }
+                        "albums" -> {
+                            resultList.clear()
+                            resultAdapter.updateList(resultList)
+                            fetchSearchAlbums(query)
+                            binding.chipGroupTypeSearch.isClickable = true
+                            Log.d("Check Album", "Album is checked")
+                        }
+                        "artists" -> {
+                            resultList.clear()
+                            resultAdapter.updateList(resultList)
+                            fetchSearchArtists(query)
+                            binding.chipGroupTypeSearch.isClickable = true
+                            Log.d("Check Artist", "Artist is checked")
+                        }
+                        "playlists" -> {
+                            resultList.clear()
+                            resultAdapter.updateList(resultList)
+                            fetchSearchPlaylists(query)
+                            binding.chipGroupTypeSearch.isClickable = true
+                            Log.d("Check Playlist", "Playlist is checked")
                         }
                     }
                 }
@@ -239,11 +239,14 @@ class SearchFragment : Fragment() {
 
         binding.suggestList.visibility = View.GONE
         if (viewModel.searchAllResult.value == null || viewModel.searchAllResult.value!!.isEmpty()){
+            Log.d("SearchFragment Dòng 92", "viewModel.searchAllResult.value == null")
             if (searchHistory.isEmpty()) {
+                Log.d("SearchFragment Dòng 94", "searchHistory.isEmpty()")
                 binding.recentlyQueryView.visibility = View.GONE
                 binding.defaultLayout.visibility = View.VISIBLE
             }
             else {
+                Log.d("SearchFragment Dòng 98", "searchHistory.isNotEmpty()")
                 binding.recentlyQueryView.visibility = View.VISIBLE
                 binding.defaultLayout.visibility = View.GONE
                 binding.resultView.visibility = View.GONE
@@ -251,6 +254,7 @@ class SearchFragment : Fragment() {
         }
         else {
             searchAllResult.addAll(viewModel.searchAllResult.value!!)
+            Log.d("SearchFragment", "searchAllResult: $searchAllResult")
             resultAdapter.updateList(searchAllResult)
             binding.recentlyQueryView.visibility = View.GONE
             binding.defaultLayout.visibility = View.GONE
@@ -260,7 +264,9 @@ class SearchFragment : Fragment() {
         binding.svSearch.setOnQueryTextFocusChangeListener{ v, hasFocus ->
             if (hasFocus){
                 Log.d("Check History in ViewModel", viewModel.searchHistory.value.toString())
-                observeSearchHistory()
+                viewModel.searchHistory.observe(viewLifecycleOwner){ history ->
+                    searchHistoryAdapter.updateData(searchHistory)
+                }
             }
         }
 
@@ -341,7 +347,7 @@ class SearchFragment : Fragment() {
                                 DownloadState.STATE_DOWNLOADING -> {
                                     tvDownload.text = getString(R.string.downloading)
                                     ivDownload.setImageResource(R.drawable.baseline_downloading_white)
-                                    setEnabledAll(btDownload, true)
+                                    setEnabledAll(btDownload, false)
                                 }
                                 DownloadState.STATE_DOWNLOADED -> {
                                     tvDownload.text = getString(R.string.downloaded)
@@ -351,7 +357,7 @@ class SearchFragment : Fragment() {
                                 DownloadState.STATE_PREPARING -> {
                                     tvDownload.text = getString(R.string.preparing)
                                     ivDownload.setImageResource(R.drawable.baseline_downloading_white)
-                                    setEnabledAll(btDownload, true)
+                                    setEnabledAll(btDownload, false)
                                 }
                             }
                         }
@@ -477,7 +483,7 @@ class SearchFragment : Fragment() {
                                                     )
                                                     tvDownload.text = getString(R.string.downloading)
                                                     ivDownload.setImageResource(R.drawable.baseline_downloading_white)
-                                                    setEnabledAll(btDownload, true)
+                                                    setEnabledAll(btDownload, false)
                                                 }
 
                                                 Download.STATE_FAILED -> {
@@ -518,7 +524,7 @@ class SearchFragment : Fragment() {
                                     }
                                 }
                             }
-                            else if (tvDownload.text == getString(R.string.downloaded) || tvDownload.text == getString(R.string.downloading)){
+                            else if (tvDownload.text == getString(R.string.downloaded)){
                                 DownloadService.sendRemoveDownload(
                                     requireContext(),
                                     MusicDownloadService::class.java,
@@ -555,7 +561,7 @@ class SearchFragment : Fragment() {
             override fun onDeleteClick(position: Int) {
                 searchHistory.removeAt(position)
                 viewModel.searchHistory.value?.removeAt(position)
-                observeSearchHistory()
+                searchHistoryAdapter.updateData(searchHistory)
             }
         })
         binding.btClearSearchHistory.setOnClickListener {
@@ -565,8 +571,6 @@ class SearchFragment : Fragment() {
             viewModel.deleteSearchHistory()
         }
         binding.refreshSearch.setOnRefreshListener {
-            resultList.clear()
-            resultAdapter.updateList(resultList)
             if (binding.chipAll.isChecked){
                 fetchSearchAll(binding.svSearch.query.toString())
             }
@@ -589,59 +593,59 @@ class SearchFragment : Fragment() {
         binding.chipGroupTypeSearch.setOnCheckedStateChangeListener { _, checkedIds ->
             if (checkedIds.contains(binding.chipSong.id))
             {
-                viewModel.searchType.postValue("songs")
                 resultList.clear()
                 val temp = viewModel.songsSearchResult.value?.data
                 for (i in temp!!){
                     resultList.add(i)
                 }
                 resultAdapter.updateList(resultList)
+                viewModel.searchType.postValue("songs")
             }
             else if (checkedIds.contains(binding.chipVideo.id)){
-                viewModel.searchType.postValue("videos")
                 resultList.clear()
                 val temp = viewModel.videoSearchResult.value?.data
                 for (i in temp!!){
                     resultList.add(i)
                 }
                 resultAdapter.updateList(resultList)
+                viewModel.searchType.postValue("videos")
             }
             else if (checkedIds.contains(binding.chipAll.id))
             {
-                viewModel.searchType.postValue("all")
                 resultList.clear()
                 resultList.addAll(searchAllResult)
                 resultAdapter.updateList(resultList)
+                viewModel.searchType.postValue("all")
             }
             else if (checkedIds.contains(binding.chipAlbum.id))
             {
-                viewModel.searchType.postValue("albums")
                 resultList.clear()
                 val temp = viewModel.albumsSearchResult.value?.data
                 for (i in temp!!){
                     resultList.add(i)
                 }
                 resultAdapter.updateList(resultList)
+                viewModel.searchType.postValue("albums")
             }
             else if (checkedIds.contains(binding.chipArtists.id))
             {
-                viewModel.searchType.postValue("artists")
                 resultList.clear()
                 val temp = viewModel.artistsSearchResult.value?.data
                 for (i in temp!!){
                     resultList.add(i)
                 }
                 resultAdapter.updateList(resultList)
+                viewModel.searchType.postValue("artists")
             }
             else if (checkedIds.contains(binding.chipPlaylist.id))
             {
-                viewModel.searchType.postValue("playlists")
                 resultList.clear()
                 val temp = viewModel.playlistSearchResult.value?.data
                 for (i in temp!!){
                     resultList.add(i)
                 }
                 resultAdapter.updateList(resultList)
+                viewModel.searchType.postValue("playlists")
             }
         }
         suggestAdapter.setOnClickListener(object: SuggestQueryAdapter.onItemClickListener{
@@ -649,20 +653,6 @@ class SearchFragment : Fragment() {
                 binding.svSearch.setQuery(suggestList[position], false)
             }
         })
-        lifecycleScope.launch {
-            viewModel.loading.observe(viewLifecycleOwner) { loading ->
-                if (loading) {
-                    if (binding.chipGroupTypeSearch.isEnabled) {
-                        setEnabledAll(binding.chipGroupTypeSearch, false)
-                    }
-                }
-                else {
-                    if (!binding.chipGroupTypeSearch.isEnabled) {
-                        setEnabledAll(binding.chipGroupTypeSearch, true)
-                    }
-                }
-            }
-        }
     }
 
     private fun observeSearchHistory() {
@@ -699,7 +689,6 @@ class SearchFragment : Fragment() {
                             binding.shimmerLayout.stopShimmer()
                             binding.shimmerLayout.visibility = View.GONE
                             setEnabledAll(binding.chipGroupTypeSearch, true)
-                            binding.resultList.smoothScrollToPosition(0)
                         }
                     }
                     is Resource.Error -> {
@@ -743,7 +732,6 @@ class SearchFragment : Fragment() {
                             binding.shimmerLayout.stopShimmer()
                             binding.shimmerLayout.visibility = View.GONE
                             setEnabledAll(binding.chipGroupTypeSearch, true)
-                            binding.resultList.smoothScrollToPosition(0)
                         }
                     }
                     is Resource.Error -> {
@@ -788,7 +776,6 @@ class SearchFragment : Fragment() {
                                 binding.shimmerLayout.visibility = View.GONE
                                 binding.refreshSearch.isRefreshing = false
                                 setEnabledAll(binding.chipGroupTypeSearch, true)
-                                binding.resultList.smoothScrollToPosition(0)
                             }
                         }
                         is Resource.Error -> {
@@ -834,7 +821,6 @@ class SearchFragment : Fragment() {
                                 binding.shimmerLayout.visibility = View.GONE
                                 binding.refreshSearch.isRefreshing = false
                                 setEnabledAll(binding.chipGroupTypeSearch, true)
-                                binding.resultList.smoothScrollToPosition(0)
                             }
                         }
                         is Resource.Error -> {
@@ -880,7 +866,6 @@ class SearchFragment : Fragment() {
                                 binding.shimmerLayout.visibility = View.GONE
                                 binding.refreshSearch.isRefreshing = false
                                 setEnabledAll(binding.chipGroupTypeSearch, true)
-                                binding.resultList.smoothScrollToPosition(0)
                             }
                         }
                         is Resource.Error -> {
@@ -1069,6 +1054,39 @@ class SearchFragment : Fragment() {
                                 .setDuration(3000)
                                 .show()
                         }
+//                        val sortedList = temp.sortedWith(compareByDescending<Any>
+//                            {compareQuery ->
+//                                    when (compareQuery){
+//                                    is SongsResult -> compareQuery.title?.lowercase()?.contains(binding.svSearch.query.toString().lowercase())
+//                                    is VideosResult -> compareQuery.title.lowercase().contains(binding.svSearch.query.toString().lowercase())
+//                                    is AlbumsResult -> compareQuery.title.lowercase().contains(binding.svSearch.query.toString().lowercase())
+//                                    is ArtistsResult -> compareQuery.artist.lowercase().contains(binding.svSearch.query.toString().lowercase())
+//                                    is PlaylistsResult -> compareQuery.title.lowercase().contains(binding.svSearch.query.toString().lowercase())
+//                                    else -> ""
+//                                }
+//                            }
+//                            .thenBy {compareQuery ->
+//                                when (compareQuery){
+//                                    is SongsResult -> compareQuery.title?.length
+//                                    is VideosResult -> compareQuery.title.length
+//                                    is AlbumsResult -> compareQuery.title.length
+//                                    is ArtistsResult -> compareQuery.artist.length
+//                                    is PlaylistsResult -> compareQuery.title.length
+//                                    else -> ""
+//                                }  }
+//                            .thenBy { compareQuery ->
+//                                when (compareQuery){
+//                                    is SongsResult -> compareQuery.title
+//                                    is VideosResult -> compareQuery.title
+//                                    is AlbumsResult -> compareQuery.title
+//                                    is ArtistsResult -> compareQuery.artist
+//                                    is PlaylistsResult -> compareQuery.title
+//                                    else -> ""
+//                                }
+//                            }
+//                        )
+//                        temp.clear()
+//                        temp.addAll(sortedList)
                         resultList.clear()
                         viewModel.searchAllResult.postValue(temp)
                         searchAllResult.addAll(temp)
@@ -1078,7 +1096,6 @@ class SearchFragment : Fragment() {
                         binding.shimmerLayout.visibility = View.GONE
                         binding.refreshSearch.isRefreshing = false
                         setEnabledAll(binding.chipGroupTypeSearch, true)
-                        binding.resultList.smoothScrollToPosition(0)
                     }
                 }
             }

@@ -3,11 +3,11 @@ package com.maxrave.simpmusic.ui.fragment.library
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
+import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.DownloadService
@@ -130,7 +130,7 @@ class DownloadedFragment : Fragment() {
                             DownloadState.STATE_DOWNLOADING -> {
                                 tvDownload.text = getString(R.string.downloading)
                                 ivDownload.setImageResource(R.drawable.baseline_downloading_white)
-                                setEnabledAll(btDownload, true)
+                                setEnabledAll(btDownload, false)
                             }
 
                             DownloadState.STATE_DOWNLOADED -> {
@@ -211,7 +211,7 @@ class DownloadedFragment : Fragment() {
                         addPlaylistDialog.show()
                     }
                     btDownload.setOnClickListener {
-                        if (tvDownload.text == getString(R.string.downloaded) || tvDownload.text == getString(R.string.downloading)){
+                        if (tvDownload.text == getString(R.string.downloaded)){
                             DownloadService.sendRemoveDownload(
                                 requireContext(),
                                 MusicDownloadService::class.java,

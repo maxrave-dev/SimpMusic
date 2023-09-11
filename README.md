@@ -20,31 +20,22 @@ A simple music app using YouTube Music for backend
 - Analyze your playing data and create custom playlists ...
 - Caching and can save data for offline playback
 - Synced lyrics ( From [akashrchandran/spotify-lyrics-api](https://github.com/akashrchandran/spotify-lyrics-api) )
-- Sleep Timer
-- Support SponsorBlock
-- Google Login
-- And many more ...
 ## Screenshot
 <p float="left">
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/miniplayer_top.jpg" width="200" />
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/miniplayer_bottom.jpg" width="200" />
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/home.jpg" width="200" />
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/z4388612780899_b2eed27b24f5a3974421c0770eab2a5f.jpg" width="200" />
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/z4388612785636_f309089b0f5db60252b25f0b6e89963a.jpg" width="200" />
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/z4388612800661_926c2f0a8b6f5663bf7c45abe7a68060.jpg" width="200" />
 </p>
 <p float="left">
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/moodmoment.jpg" width="200" />
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/chart.jpg" width="200" />
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/artist_top.jpg" width="200" />
-</p>
-<p float="left">
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/search.jpg" width="200" />
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/search_suggest.jpg" width="200" />
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/search_result.jpg" width="200" />
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/z4388612795073_be57c0b10070ded437ddf59f546b9002.jpg" width="200" />
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/z4620350122758_2c14f823fda525931752b2d8a9d5a69d.jpg" width="200" />
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/z4620350129854_769bf3dd0c2bdcc2193e8443e71dca87.jpg" width="200" />
 </p>
 
 More [screenshot](https://photos.app.goo.gl/AbieoXG5ctDrpwzp7) here.
 
 ## Data
-- This app using public api from YouTube Music with some tricks to get data from YouTube Music.
+- This app using public api from YouTube Music with some tricks to get data from YouTube Music
 - Thanks for [InnerTune](https://github.com/z-huang/InnerTune/) for the idea to get data from YouTube Music. This repo is my inspiration to create this app.
 - Special thanks for [@spotify-lyrics-api](https://github.com/akashrchandran/spotify-lyrics-api) for lyrics and [@Piped](https://github.com/TeamPiped/Piped) for streaming data.
 - My app is using [@SponsorBlock](https://sponsor.ajay.app/) to skip sponsor in YouTube videos. Thanks for this great service.

@@ -99,8 +99,7 @@ class Ytmusic {
                     append("cookie", cookie)
                     if ("SAPISID" !in cookieMap) return@let
                     val currentTime = System.currentTimeMillis() / 1000
-                    val sapisidHash =
-                        sha1("$currentTime ${cookieMap["SAPISID"]} https://music.youtube.com")
+                    val sapisidHash = sha1("$currentTime ${cookieMap["SAPISID"]} https://music.youtube.com")
                     append("Authorization", "SAPISIDHASH ${currentTime}_${sapisidHash}")
                 }
             }
@@ -151,11 +150,10 @@ class Ytmusic {
         )
     }
 
-    suspend fun pipedStreams(videoId: String, pipedInstance: String) =
-        httpClient.get("https://${pipedInstance}/streams/${videoId}") {
-            contentType(ContentType.Application.Json)
-        }
-
+    suspend fun pipedStreams(videoId: String)
+        = httpClient.get("https://watchapi.whatever.social/streams/${videoId}") {
+        contentType(ContentType.Application.Json)
+    }
     suspend fun authorizationSpotify(): HttpResponse {
         val authHeaderValue = "721d6f670f074b1497e74fc59125a6f3:efddc083fa974d39bc6369a892c07ced"
         val authHeaderBase64 = Base64.getEncoder().encodeToString(authHeaderValue.toByteArray())
@@ -168,54 +166,24 @@ class Ytmusic {
             )
         }
     }
+    suspend fun searchSongId(authorization: String, query: String) = httpClient.get("https://api.spotify.com/v1/search") {
+        contentType(ContentType.Application.Json)
+        header(HttpHeaders.Authorization, "Bearer $authorization")
+        parameter("type", "track")
+        parameter("q", query)
+    }
+    suspend fun getLyrics(trackId: String) = httpClient.get("https://spotify-lyric-api.herokuapp.com/") {
+                    contentType(ContentType.Application.Json)
+                    parameter("trackid", trackId)
+                    parameter("format", "id3")
+                }
 
-    suspend fun searchSongId(authorization: String, query: String) =
-        httpClient.get("https://api.spotify.com/v1/search") {
-            contentType(ContentType.Application.Json)
-            header(HttpHeaders.Authorization, "Bearer $authorization")
-            parameter("type", "track")
-            parameter("q", query)
-        }
-
-    suspend fun getLyrics(trackId: String) =
-        httpClient.get("https://spotify-lyric-api.herokuapp.com/") {
-            contentType(ContentType.Application.Json)
-            parameter("trackid", trackId)
-            parameter("format", "id3")
-        }
-
-    suspend fun getSuggestQuery(query: String) =
-        httpClient.get("http://suggestqueries.google.com/complete/search") {
+    suspend fun getSuggestQuery(query: String) = httpClient.get("http://suggestqueries.google.com/complete/search") {
             contentType(ContentType.Application.Json)
             parameter("client", "firefox")
             parameter("ds", "yt")
             parameter("q", query)
         }
-
-    /***
-     * SponsorBlock testing
-     * @author maxrave-dev
-     */
-
-    suspend fun getSkipSegments(videoId: String) =
-        httpClient.get("https://sponsor.ajay.app/api/skipSegments/") {
-            contentType(ContentType.Application.Json)
-            parameter("videoID", videoId)
-            parameter("category", "sponsor")
-            parameter("category", "selfpromo")
-            parameter("category", "interaction")
-            parameter("category", "intro")
-            parameter("category", "outro")
-            parameter("category", "preview")
-            parameter("category", "music_offtopic")
-            parameter("category", "poi_highlight")
-            parameter("category", "filler")
-            parameter("service", "YouTube")
-        }
-
-    suspend fun checkForUpdate() = httpClient.get("https://api.github.com/repos/maxrave-dev/SimpMusic/releases/latest") {
-        contentType(ContentType.Application.Json)
-    }
 
     suspend fun browse(
         client: YouTubeClient,
@@ -236,7 +204,8 @@ class Ytmusic {
                     formData = FormData(listOf(countryCode))
                 )
             )
-        } else {
+        }
+        else {
             setBody(
                 BrowseBody(
                     context = client.toContext(locale, visitorData),
@@ -253,7 +222,6 @@ class Ytmusic {
             parameter("type", "next")
         }
     }
-
     suspend fun nextCustom(client: YouTubeClient, videoId: String) = httpClient.post("next") {
         ytClient(client, setLogin = false)
         setBody(

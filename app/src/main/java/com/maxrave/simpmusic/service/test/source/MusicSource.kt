@@ -85,8 +85,7 @@ class MusicSource @Inject constructor(val simpleMediaServiceHandler: SimpleMedia
     @UnstableApi
     private suspend fun updateCatalog(downloaded: Int = 0): Boolean {
         state = STATE_INITIALIZING
-        val tempQueue: ArrayList<Track> = arrayListOf()
-        tempQueue.addAll(Queue.getQueue())
+        val tempQueue = Queue.getQueue()
         val quality = runBlocking { dataStoreManager.quality.first() }
         val itag = when (quality) {
             QUALITY.items[0].toString() -> 250
