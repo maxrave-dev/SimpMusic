@@ -9,6 +9,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.Download
+import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
@@ -39,7 +40,7 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
-class SearchViewModel @Inject constructor(private val mainRepository: MainRepository, application: Application, private var dataStoreManager: DataStoreManager) : AndroidViewModel(application) {
+class SearchViewModel @Inject constructor(private val mainRepository: MainRepository, private val application: Application, private var dataStoreManager: DataStoreManager) : AndroidViewModel(application) {
     @Inject
     lateinit var downloadUtils: DownloadUtils
 
@@ -49,24 +50,24 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
     var searchHistory: MutableLiveData<ArrayList<String>> = MutableLiveData()
     var searchResult: MutableLiveData<ArrayList<Any>> = MutableLiveData()
 
-    private val _songSearchResult: MutableLiveData<Resource<ArrayList<SongsResult>>> = MutableLiveData()
+    private var _songSearchResult: MutableLiveData<Resource<ArrayList<SongsResult>>> = MutableLiveData()
     val songsSearchResult: LiveData<Resource<ArrayList<SongsResult>>> = _songSearchResult
 
-    private val _artistSearchResult: MutableLiveData<Resource<ArrayList<ArtistsResult>>> = MutableLiveData()
+    private var _artistSearchResult: MutableLiveData<Resource<ArrayList<ArtistsResult>>> = MutableLiveData()
     val artistsSearchResult: LiveData<Resource<ArrayList<ArtistsResult>>> = _artistSearchResult
 
-    private val _albumSearchResult: MutableLiveData<Resource<ArrayList<AlbumsResult>>> = MutableLiveData()
+    private var _albumSearchResult: MutableLiveData<Resource<ArrayList<AlbumsResult>>> = MutableLiveData()
     val albumsSearchResult: LiveData<Resource<ArrayList<AlbumsResult>>> = _albumSearchResult
 
-    private val _playlistSearchResult: MutableLiveData<Resource<ArrayList<PlaylistsResult>>> = MutableLiveData()
+    private var _playlistSearchResult: MutableLiveData<Resource<ArrayList<PlaylistsResult>>> = MutableLiveData()
     val playlistSearchResult: LiveData<Resource<ArrayList<PlaylistsResult>>> = _playlistSearchResult
 
-    private val _videoSearchResult: MutableLiveData<Resource<ArrayList<VideosResult>>> = MutableLiveData()
+    private var _videoSearchResult: MutableLiveData<Resource<ArrayList<VideosResult>>> = MutableLiveData()
     val videoSearchResult: LiveData<Resource<ArrayList<VideosResult>>> = _videoSearchResult
 
     var loading = MutableLiveData<Boolean>()
 
-    private val _suggestQuery: MutableLiveData<Resource<ArrayList<String>>> = MutableLiveData()
+    private var _suggestQuery: MutableLiveData<Resource<ArrayList<String>>> = MutableLiveData()
     val suggestQuery : LiveData<Resource<ArrayList<String>>> = _suggestQuery
 
     var errorMessage = MutableLiveData<String>()
@@ -327,7 +328,7 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
                     }
                 }
                 mainRepository.updateLocalPlaylistTracks(list, id)
-                Toast.makeText(getApplication(), "Added to playlist", Toast.LENGTH_SHORT).show()
+                Toast.makeText(getApplication(), application.getString (R.string.added_to_playlist), Toast.LENGTH_SHORT).show()
                 if (count == values.size) {
                     mainRepository.updateLocalPlaylistDownloadState(DownloadState.STATE_DOWNLOADED, id)
                 }

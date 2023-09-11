@@ -270,10 +270,12 @@
                     android:id="@+id/rvRecentlyAdded"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginBottom="10sp"
-                    android:paddingBottom="135sp"
-                    android:clipToPadding="false"/>
+                    android:orientation="vertical" />
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="150dp"
+                    android:background="@android:color/transparent">
+                </RelativeLayout>
 
             </LinearLayout>
         </androidx.core.widget.NestedScrollView>

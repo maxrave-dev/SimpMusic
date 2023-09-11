@@ -55,6 +55,8 @@ class QuickPicksAdapter(val contentList: ArrayList<Content>, val context: Contex
             artistName = removeComma(artistName)
             binding.tvSongArtist.text = artistName
             binding.ivThumbnail.load(content.thumbnails.last().url)
+            binding.tvSongArtist.isSelected = true
+            binding.tvSongTitle.isSelected = true
         }
     }
     private fun removeTrailingComma(sentence: String): String {

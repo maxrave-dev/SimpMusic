@@ -18,13 +18,17 @@ import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.exoplayer.offline.Download
 import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
+import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
+import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.QUALITY
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
+import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.TRUE
+import com.maxrave.simpmusic.data.db.entities.FormatEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.LyricsEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
@@ -40,6 +44,7 @@ import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toLyrics
 import com.maxrave.simpmusic.extension.toLyricsEntity
 import com.maxrave.simpmusic.extension.toSongEntity
+import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.PlayerEvent
 import com.maxrave.simpmusic.service.RepeatState
 import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
@@ -50,7 +55,9 @@ import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
@@ -64,9 +71,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 @UnstableApi
-class SharedViewModel @Inject constructor(private var dataStoreManager: DataStoreManager, @DownloadCache private val downloadedCache: SimpleCache, private val musicSource: MusicSource, private val mainRepository: MainRepository, private val simpleMediaServiceHandler: SimpleMediaServiceHandler, application: Application) : AndroidViewModel(application){
+class SharedViewModel @Inject constructor(private var dataStoreManager: DataStoreManager, @DownloadCache private val downloadedCache: SimpleCache, private val musicSource: MusicSource, private val mainRepository: MainRepository, private val simpleMediaServiceHandler: SimpleMediaServiceHandler, private val application: Application) : AndroidViewModel(application){
     @Inject
     lateinit var downloadUtils: DownloadUtils
+
+    var restoreLastPlayedTrackDone: Boolean = false
 
     private var _allSongsDB: MutableLiveData<List<SongEntity>> = MutableLiveData()
     val allSongsDB: LiveData<List<SongEntity>> = _allSongsDB
@@ -74,10 +83,10 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     private var _songDB: MutableLiveData<SongEntity> = MutableLiveData()
     val songDB: LiveData<SongEntity> = _songDB
     private var _liked: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val liked: StateFlow<Boolean> = _liked
+    val liked: SharedFlow<Boolean> = _liked.asSharedFlow()
 
-    var _firstTrackAdded: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val firstTrackAdded: StateFlow<Boolean> = _firstTrackAdded
+    private var _firstTrackAdded: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val firstTrackAdded: SharedFlow<Boolean> = _firstTrackAdded.asSharedFlow()
 
     protected val context
         get() = getApplication<Application>()
@@ -96,16 +105,16 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     val metadata: LiveData<Resource<MetadataSong>> = _metadata
 
     private var _bufferedPercentage = MutableStateFlow<Int>(0)
-    val bufferedPercentage: StateFlow<Int> = _bufferedPercentage
+    val bufferedPercentage: SharedFlow<Int> = _bufferedPercentage.asSharedFlow()
 
     private var _progress = MutableStateFlow<Float>(0F)
     private var _progressMillis = MutableStateFlow<Long>(0L)
-    val progressMillis: StateFlow<Long> = _progressMillis
-    val progress: StateFlow<Float> = _progress
+    val progressMillis: SharedFlow<Long> = _progressMillis.asSharedFlow()
+    val progress: SharedFlow<Float> = _progress.asSharedFlow()
     var progressString : MutableLiveData<String> = MutableLiveData("00:00")
 
     private val _duration = MutableStateFlow<Long>(0L)
-    val duration: StateFlow<Long> = _duration
+    val duration: SharedFlow<Long> = _duration.asSharedFlow()
     private val _uiState = MutableStateFlow<UIState>(UIState.Initial)
     val uiState = _uiState.asStateFlow()
 
@@ -120,13 +129,16 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     private var _nowPlayingMediaItem = MutableLiveData<MediaItem?>()
     val nowPlayingMediaItem: LiveData<MediaItem?> = _nowPlayingMediaItem
 
+    private var _nowPlaying = simpleMediaServiceHandler.nowPlaying
+    val nowPLaying = _nowPlaying.asSharedFlow()
+
     private var _songTransitions = MutableStateFlow<Boolean>(false)
     val songTransitions: StateFlow<Boolean> = _songTransitions
 
-    private var _nextTrackAvailable = MutableStateFlow<Boolean>(false)
+    private var _nextTrackAvailable = simpleMediaServiceHandler.nextTrackAvailable
     val nextTrackAvailable: StateFlow<Boolean> = _nextTrackAvailable
 
-    private var _previousTrackAvailable = MutableStateFlow<Boolean>(false)
+    private var _previousTrackAvailable = simpleMediaServiceHandler.previousTrackAvailable
     val previousTrackAvailable: StateFlow<Boolean> = _previousTrackAvailable
 
     private var _shuffleModeEnabled = MutableStateFlow<Boolean>(false)
@@ -135,17 +147,48 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     private var _repeatMode = MutableStateFlow<RepeatState>(RepeatState.None)
     val repeatMode: StateFlow<RepeatState> = _repeatMode
 
+    //SponsorBlock
+    private var _skipSegments: MutableStateFlow<List<SkipSegments>?> = MutableStateFlow(null)
+    val skipSegments: StateFlow<List<SkipSegments>?> = _skipSegments
+
+    //Sleep Timer
+    private var _sleepTimerMinutes = simpleMediaServiceHandler.sleepMinutes
+    val sleepTimerMinutes: SharedFlow<Int> = _sleepTimerMinutes
+
+    private var _sleepTimerDone = simpleMediaServiceHandler.sleepDone
+    val sleepTimerDone: SharedFlow<Boolean> = _sleepTimerDone
+
+    private var _sleepTimerRunning: MutableLiveData<Boolean> = MutableLiveData(false)
+    val sleepTimerRunning: LiveData<Boolean> = _sleepTimerRunning
+
+
     private var regionCode: String? = null
     private var language: String? = null
     private var quality: String? = null
+    var from_backup: String? = null
     private var isRestoring = MutableStateFlow(false)
+
+    private var _format: MutableLiveData<FormatEntity?> = MutableLiveData()
+    val format: LiveData<FormatEntity?> = _format
+
+    private var _saveLastPlayedSong: MutableLiveData<Boolean> = MutableLiveData()
+    val saveLastPlayedSong: LiveData<Boolean> = _saveLastPlayedSong
+
+    var recentPosition: String = 0L.toString()
 
     val intent: MutableStateFlow<Intent?> = MutableStateFlow(null)
 
     init {
-        regionCode = runBlocking { dataStoreManager.location.first() }
-        quality = runBlocking { dataStoreManager.quality.first() }
-        language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
+//        regionCode = runBlocking { dataStoreManager.location.first() }
+//        quality = runBlocking { dataStoreManager.quality.first() }
+//        language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
+//        val from_backup = runBlocking { dataStoreManager.playlistFromSaved.first() }
+//        if (runBlocking { dataStoreManager.saveRecentSongAndQueue.first() == TRUE }) {
+//            if (from_backup != null) {
+//                from.postValue(from_backup)
+//            }
+//            recentPosition = runBlocking { (dataStoreManager.recentPosition.first()) }
+//        }
         viewModelScope.launch {
             val job1 = launch {
                 simpleMediaServiceHandler.simpleMediaState.collect { mediaState ->
@@ -160,7 +203,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                         }
                         is SimpleMediaState.Playing -> isPlaying.value = mediaState.isPlaying
                         is SimpleMediaState.Progress -> {
-                            if (duration.value > 0){
+                            if (_duration.value > 0){
                                 calculateProgressValues(mediaState.progress)
                                 _progressMillis.value = mediaState.progress
                             }
@@ -178,9 +221,12 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                 }
             }
             val job2 = launch {
-                simpleMediaServiceHandler.changeTrack.collectLatest { isChanged ->
-                    val song = getCurrentMediaItem()
-                    if (song != null && getCurrentMediaItemIndex() > 0) {
+                simpleMediaServiceHandler.nowPlaying.collectLatest { nowPlaying ->
+                    nowPlaying?.let { now ->
+                        getSkipSegments(now.mediaId)
+                    }
+                    if (nowPlaying != null && getCurrentMediaItemIndex() > 0) {
+                        _nowPlayingMediaItem.postValue(nowPlaying)
                         var downloaded = false
                         val tempSong = musicSource.catalogMetadata[getCurrentMediaItemIndex()]
                         Log.d("Check tempSong", tempSong.toString())
@@ -190,43 +236,54 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                                 _songDB.value = songEntity
                                 if (songEntity != null) {
                                     _liked.value = songEntity.liked
-                                    downloaded = songEntity.downloadState == DownloadState.STATE_DOWNLOADED
+                                    simpleMediaServiceHandler.like(songEntity.liked)
+                                    downloaded =
+                                        songEntity.downloadState == DownloadState.STATE_DOWNLOADED
                                     Log.d("Check like", songEntity.toString())
                                 }
                             }
                         mainRepository.updateSongInLibrary(LocalDateTime.now(), tempSong.videoId)
                         mainRepository.updateListenCount(tempSong.videoId)
                         videoId.postValue(tempSong.videoId)
-                        _nowPlayingMediaItem.value = song
-                        _songTransitions.value = true
+                        _nowPlayingMediaItem.value = nowPlaying
                         resetLyrics()
                         if (!downloaded) {
-                            mainRepository.getLyricsData("${tempSong.title} ${tempSong.artists?.firstOrNull()?.name}").collect { response ->
-                                _lyrics.value = response
-                                when(_lyrics.value) {
-                                    is Resource.Success -> {
-                                        if (_lyrics.value?.data != null) {
-                                            insertLyrics(_lyrics.value?.data!!.toLyricsEntity(song.mediaId))
-                                            parseLyrics(_lyrics.value?.data)
+                            mainRepository.getLyricsData("${tempSong.title} ${tempSong.artists?.firstOrNull()?.name}")
+                                .collect { response ->
+                                    _lyrics.value = response
+                                    when (_lyrics.value) {
+                                        is Resource.Success -> {
+                                            if (_lyrics.value?.data != null) {
+                                                insertLyrics(
+                                                    _lyrics.value?.data!!.toLyricsEntity(
+                                                        nowPlaying.mediaId
+                                                    )
+                                                )
+                                                parseLyrics(_lyrics.value?.data)
+                                            }
                                         }
-                                    }
-                                    is Resource.Error -> {
-                                        if (_lyrics.value?.message != "reset") {
-                                            getSavedLyrics(tempSong.videoId, "${tempSong.title} ${tempSong.artists?.firstOrNull()?.name}")
-                                        }
-                                    }
 
-                                    else -> {
-                                        Log.d("Check lyrics", "Loading")
+                                        is Resource.Error -> {
+                                            if (_lyrics.value?.message != "reset") {
+                                                getSavedLyrics(
+                                                    tempSong.videoId,
+                                                    "${tempSong.title} ${tempSong.artists?.firstOrNull()?.name}"
+                                                )
+                                            }
+                                        }
+
+                                        else -> {
+                                            Log.d("Check lyrics", "Loading")
+                                        }
                                     }
                                 }
-                            }
-                        }
-                        else {
-                            getSavedLyrics(tempSong.videoId, "${tempSong.title} ${tempSong.artists?.firstOrNull()?.name}")
+                        } else {
+                            getSavedLyrics(
+                                tempSong.videoId,
+                                "${tempSong.title} ${tempSong.artists?.firstOrNull()?.name}"
+                            )
                         }
                     }
-                    Log.d("Check Change Track", "Change Track: $isChanged")
                 }
             }
             val job3 = launch {
@@ -240,13 +297,17 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                 }
             }
             val job5 = launch {
-                simpleMediaServiceHandler.nextTrackAvailable.collect {  available ->
-                    _nextTrackAvailable.value = available
+                sleepTimerDone.collect { done ->
+                    if (done) {
+                        _sleepTimerRunning.value = false
+                    }
                 }
             }
             val job6 = launch {
-                simpleMediaServiceHandler.previousTrackAvailable.collect { available ->
-                    _previousTrackAvailable.value = available
+                simpleMediaServiceHandler.liked.collect { liked ->
+                    if (liked != _liked.value) {
+                        videoId.value?.let { updateLikeStatus(it, liked) }
+                    }
                 }
             }
 
@@ -265,6 +326,19 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
 
     fun putString(key: String, value: String) {
         runBlocking { dataStoreManager.putString(key, value) }
+    }
+
+    fun setSleepTimer(minutes: Int) {
+        _sleepTimerRunning.value = true
+        simpleMediaServiceHandler.sleepStart(minutes)
+    }
+    fun stopSleepTimer() {
+        _sleepTimerRunning.value = false
+        simpleMediaServiceHandler.sleepStop()
+    }
+
+    fun updateLikeInNotification(liked: Boolean) {
+        simpleMediaServiceHandler.like(liked)
     }
 
     private var _downloadState: MutableStateFlow<Download?> = MutableStateFlow(null)
@@ -335,6 +409,23 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
         viewModelScope.launch {
             mainRepository.insertLyrics(lyrics)
         }
+    }
+    fun getSkipSegments(videoId: String) {
+        resetSkipSegments()
+        viewModelScope.launch {
+            mainRepository.getSkipSegments(videoId).collect { segments ->
+                if (segments != null) {
+                    Log.w("Check segments ${videoId}", segments.toString())
+                    _skipSegments.value = segments
+                }
+                else {
+                    _skipSegments.value = null
+                }
+            }
+        }
+    }
+    private fun resetSkipSegments() {
+        _skipSegments.value = null
     }
     fun getSavedLyrics(videoId: String, query: String) {
         viewModelScope.launch {
@@ -430,7 +521,6 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                     "Check MediaItem Thumbnail",
                     getCurrentMediaItem()?.mediaMetadata?.artworkUri.toString()
                 )
-                simpleMediaServiceHandler.changeTrackToFalse()
                 _firstTrackAdded.value = true
                 musicSource.addFirstMetadata(track)
                 getSavedLyrics(track.videoId, "${track.title} ${track.artists?.firstOrNull()?.name}")
@@ -474,7 +564,6 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                             "Check MediaItem Thumbnail",
                             getCurrentMediaItem()?.mediaMetadata?.artworkUri.toString()
                         )
-                        simpleMediaServiceHandler.changeTrackToFalse()
                         _firstTrackAdded.value = true
                         musicSource.addFirstMetadata(track)
                         resetLyrics()
@@ -533,7 +622,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
         return String.format("%02d:%02d", minutes, seconds)
     }
     private fun calculateProgressValues(currentProgress: Long) {
-        _progress.value = if (currentProgress > 0) (currentProgress.toFloat() / duration.value) else 0f
+        _progress.value = if (currentProgress > 0) (currentProgress.toFloat() / _duration.value) else 0f
         progressString.value = formatDuration(currentProgress)
     }
 
@@ -556,7 +645,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                     }
                 }
                 mainRepository.updateLocalPlaylistTracks(list, id)
-                Toast.makeText(getApplication(), "Added to playlist", Toast.LENGTH_SHORT).show()
+                Toast.makeText(getApplication(), application.getString(R.string.added_to_playlist), Toast.LENGTH_SHORT).show()
                 if (count == values.size) {
                     mainRepository.updateLocalPlaylistDownloadState(DownloadState.STATE_DOWNLOADED, id)
                 }
@@ -660,14 +749,17 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
 
     @UnstableApi
     override fun onCleared() {
-        viewModelScope.launch {
+        runBlocking {
+            if (from.value != null) {
+                Log.d("Check from", from.value!!)
+                dataStoreManager.setPlaylistFromSaved(from.value!!)
+            }
             simpleMediaServiceHandler.onPlayerEvent(PlayerEvent.Stop)
         }
     }
 
     fun changeSongTransitionToFalse() {
         _songTransitions.value = false
-        simpleMediaServiceHandler.changeTrackToFalse()
     }
 
     fun changeFirstTrackAddedToFalse() {
@@ -725,8 +817,8 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
             }
         }
     }
-    private val _songFull: MutableLiveData<PipedResponse> = MutableLiveData()
-    var songFull: LiveData<PipedResponse> = _songFull
+    private val _songFull: MutableLiveData<PipedResponse?> = MutableLiveData()
+    var songFull: LiveData<PipedResponse?> = _songFull
 
     fun getSongFull(videoId: String) {
         viewModelScope.launch {
@@ -750,11 +842,65 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
         regionCode = runBlocking { dataStoreManager.location.first() }
         quality = runBlocking { dataStoreManager.quality.first() }
         language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
+        from_backup = runBlocking { dataStoreManager.playlistFromSaved.first() }
+        recentPosition = runBlocking { (dataStoreManager.recentPosition.first()) }
     }
 
-    fun stopPlayer() {
-        simpleMediaServiceHandler.stopPlayer()
+    fun getSaveLastPlayedSong () {
+        viewModelScope.launch {
+            dataStoreManager.saveRecentSongAndQueue.first().let { saved ->
+                Log.d("Check SaveLastPlayedSong", restoreLastPlayedTrackDone.toString())
+                _saveLastPlayedSong.postValue(saved == TRUE)
+            }
+        }
     }
+    private var _savedQueue: MutableLiveData<List<Track>> = MutableLiveData()
+    val savedQueue: LiveData<List<Track>> = _savedQueue
+    fun getSavedSongAndQueue() {
+        viewModelScope.launch {
+            dataStoreManager.recentMediaId.first().let{ mediaId ->
+                mainRepository.getSongById(mediaId).collect {song ->
+                    if (song != null) {
+                        Queue.clear()
+                        Queue.setNowPlaying(song.toTrack())
+                        loadMediaItemFromTrack(song.toTrack())
+                        firstTrackAdded.collectLatest { added ->
+                            if (added) {
+                                if (_nowPlaying.value?.mediaId == mediaId && getString(RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE) == DataStoreManager.FALSE) {
+                                    restoreLastPLayedTrackDone()
+                                    from.postValue(from_backup)
+                                    changeFirstTrackAddedToFalse()
+                                    simpleMediaServiceHandler.seekTo(recentPosition)
+                                    Log.d("Check recentPosition", recentPosition)
+                                    songDB.value?.duration?.let {
+                                        if (it != "" && it.contains(":")) {
+                                            it.split(":").let { split ->
+                                                _duration.emit(((split[0].toInt() * 60) + split[1].toInt())*1000.toLong())
+                                                Log.d("Check Duration", _duration.value.toString())
+                                                calculateProgressValues(recentPosition.toLong())
+                                            }
+                                        }
+                                    }
+                                    getSaveQueue()
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    private fun getSaveQueue() {
+        viewModelScope.launch {
+            mainRepository.getSavedQueue().collect { queue ->
+                Log.d("Check Queue", queue.toString())
+                if (!queue.isNullOrEmpty()) {
+                    _savedQueue.value = queue.first().listTrack
+                }
+            }
+        }
+    }
+
 
     fun checkAllDownloadingSongs() {
         viewModelScope.launch {
@@ -773,11 +919,10 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
 
     fun checkAuth() {
         viewModelScope.launch {
-            dataStoreManager.cookie.collect { cookie ->
+            dataStoreManager.cookie.first().let { cookie ->
                 if (cookie != "") {
                     YouTube.cookie = cookie
                     Log.d("Cookie", "Cookie is not empty")
-                    Toast.makeText(context, context.getString(R.string.logged_in), Toast.LENGTH_SHORT).show()
                 }
                 else {
                     Log.e("Cookie", "Cookie is empty")
@@ -785,16 +930,59 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
             }
         }
     }
+
+    fun getFormat(mediaId: String?) {
+        viewModelScope.launch {
+            if (mediaId != null){
+                mainRepository.getFormat(mediaId).collect { f ->
+                    if (f != null){
+                        _format.postValue(f)
+                    }
+                    else {
+                        _format.postValue(null)
+                    }
+                }
+            }
+        }
+    }
+
+    fun restoreLastPLayedTrackDone() {
+        putString(DataStoreManager.RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE, TRUE)
+    }
+    fun removeSaveQueue() {
+        viewModelScope.launch {
+            mainRepository.removeQueue()
+        }
+    }
+    private var _githubResponse = MutableLiveData<GithubResponse>()
+    val githubResponse: LiveData<GithubResponse> = _githubResponse
+
+    fun checkForUpdate() {
+        viewModelScope.launch {
+            mainRepository.checkForUpdate().collect {response ->
+                dataStoreManager.putString("CheckForUpdateAt", System.currentTimeMillis().toString())
+                _githubResponse.postValue(response)
+            }
+        }
+    }
+    fun skipSegment(position: Long) {
+        simpleMediaServiceHandler.skipSegment(position)
+    }
+    fun sponsorBlockEnabled() = runBlocking { dataStoreManager.sponsorBlockEnabled.first() }
+    fun sponsorBlockCategories() = runBlocking { dataStoreManager.getSponsorBlockCategories() }
+    fun stopPlayer() {
+        onUIEvent(UIEvent.Stop)
+    }
 }
 sealed class UIEvent {
-    object PlayPause : UIEvent()
-    object Backward : UIEvent()
-    object Forward : UIEvent()
-    object Next : UIEvent()
-    object Previous : UIEvent()
-    object Stop : UIEvent()
-    object Shuffle : UIEvent()
-    object Repeat : UIEvent()
+    data object PlayPause : UIEvent()
+    data object Backward : UIEvent()
+    data object Forward : UIEvent()
+    data object Next : UIEvent()
+    data object Previous : UIEvent()
+    data object Stop : UIEvent()
+    data object Shuffle : UIEvent()
+    data object Repeat : UIEvent()
     data class UpdateProgress(val newProgress: Float) : UIEvent()
 }
 

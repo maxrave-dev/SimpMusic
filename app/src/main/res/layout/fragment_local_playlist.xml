@@ -149,7 +149,7 @@
                                     android:layout_height="35sp"
                                     android:layout_alignParentEnd="true"
                                     android:layout_centerVertical="true"
-                                    android:background="@android:color/transparent"
+                                    android:background="?attr/actionBarItemBackground"
                                     android:src="@drawable/baseline_more_vert_24">
 
                                 </ImageButton>
