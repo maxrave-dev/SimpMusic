@@ -1,8 +1,11 @@
 package com.maxrave.simpmusic.ui.fragment.home
 
 import android.content.Intent
+import android.media.audiofx.AudioEffect
 import android.net.Uri
 import android.os.Bundle
+import android.text.Html
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,12 +16,15 @@ import androidx.core.os.LocaleListCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.ExoPlayer
 import androidx.navigation.fragment.findNavController
 import coil.annotation.ExperimentalCoilApi
 import coil.imageLoader
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.common.PIPED_INSTANCE
 import com.maxrave.simpmusic.common.QUALITY
+import com.maxrave.simpmusic.common.SPONSOR_BLOCK
 import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.common.SUPPORTED_LOCATION
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
@@ -26,23 +32,31 @@ import com.maxrave.simpmusic.databinding.FragmentSettingsBinding
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
+import java.text.SimpleDateFormat
+import java.time.Instant
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Locale
+import javax.inject.Inject
 
 @UnstableApi
 @AndroidEntryPoint
 class SettingsFragment : Fragment() {
 
+    @Inject
+    lateinit var player: ExoPlayer
+
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
     private val viewModel by viewModels<SettingsViewModel>()
 
-    val backupLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
+    private val backupLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
         if (uri != null) {
             viewModel.backup(requireContext(), uri)
         }
     }
-    val restoreLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+    private val restoreLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) {
             viewModel.restore(requireContext(), uri)
         }
@@ -75,16 +89,27 @@ class SettingsFragment : Fragment() {
         }
     }
 
+    private var resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {}
+
     @OptIn(ExperimentalCoilApi::class)
     @UnstableApi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
         viewModel.getLocation()
         viewModel.getLanguage()
         viewModel.getQuality()
         viewModel.getPlayerCacheSize()
         viewModel.getDownloadedCacheSize()
         viewModel.getLoggedIn()
+        viewModel.getNormalizeVolume()
+        viewModel.getSkipSilent()
+        viewModel.getSavedPlaybackState()
+        viewModel.getPipedInstance()
+        viewModel.getSaveRecentSongAndQueue()
+        viewModel.getLastCheckForUpdate()
+        viewModel.getSponsorBlockEnabled()
+        viewModel.getSponsorBlockCategories()
 
         val diskCache = context?.imageLoader?.diskCache
 
@@ -121,6 +146,63 @@ class SettingsFragment : Fragment() {
             0
         }.toString())
 
+        viewModel.normalizeVolume.observe(viewLifecycleOwner){
+            binding.swNormalizeVolume.isChecked = it == DataStoreManager.TRUE
+        }
+        viewModel.skipSilent.observe(viewLifecycleOwner){
+            binding.swSkipSilent.isChecked = it == DataStoreManager.TRUE
+        }
+        viewModel.savedPlaybackState.observe(viewLifecycleOwner){
+            binding.swSavePlaybackState.isChecked = it == DataStoreManager.TRUE
+        }
+        viewModel.saveRecentSongAndQueue.observe(viewLifecycleOwner) {
+            binding.swSaveLastPlayed.isChecked = it == DataStoreManager.TRUE
+        }
+        viewModel.sponsorBlockEnabled.observe(viewLifecycleOwner) {
+            binding.swEnableSponsorBlock.isChecked = it == DataStoreManager.TRUE
+        }
+        viewModel.pipedInstance.observe(viewLifecycleOwner) {
+            binding.tvPipedInstance.text = it
+        }
+        viewModel.lastCheckForUpdate.observe(viewLifecycleOwner) {
+            binding.tvCheckForUpdate.text = getString(R.string.last_checked_at, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                .withZone(ZoneId.systemDefault())
+                .format(Instant.ofEpochMilli(it.toLong())))
+        }
+        binding.btCheckForUpdate.setOnClickListener {
+            binding.tvCheckForUpdate.text = getString(R.string.checking)
+            viewModel.checkForUpdate()
+            viewModel.githubResponse.observe(viewLifecycleOwner) {response ->
+                if (response != null) {
+                    if (response.tagName != getString(R.string.version_name)) {
+                        binding.tvCheckForUpdate.text = getString(R.string.last_checked_at, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                            .withZone(ZoneId.systemDefault())
+                            .format(Instant.ofEpochMilli(System.currentTimeMillis())))
+                        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
+                        val outputFormat = SimpleDateFormat("dd MMM yyyy HH:mm:ss", Locale.getDefault())
+                        val formatted = response.publishedAt?.let { input ->
+                            inputFormat.parse(input)
+                                ?.let { outputFormat.format(it) }
+                        }
+                        MaterialAlertDialogBuilder(requireContext())
+                            .setTitle(getString(R.string.update_available))
+                            .setMessage(getString(R.string.update_message, response.tagName, formatted, Html.fromHtml(response.body, Html.FROM_HTML_MODE_COMPACT)))
+                            .setPositiveButton(getString(R.string.download)) { _, _ ->
+                                val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(response.assets?.firstOrNull()?.browserDownloadUrl))
+                                startActivity(browserIntent)
+                            }
+                            .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                                dialog.dismiss()
+                            }
+                            .show()
+                    }
+                    else {
+                        Toast.makeText(requireContext(), getString(R.string.no_update), Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+
         binding.btVersion.setOnClickListener {
             val urlIntent = Intent(
                 Intent.ACTION_VIEW,
@@ -136,6 +218,22 @@ class SettingsFragment : Fragment() {
             }
             else if (viewModel.loggedIn.value == DataStoreManager.FALSE) {
                 findNavController().navigate(R.id.action_global_logInFragment)
+            }
+        }
+
+        binding.btEqualizer.setOnClickListener {
+            val eqIntent = Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL)
+            eqIntent.putExtra(AudioEffect.EXTRA_PACKAGE_NAME, requireContext().packageName)
+            eqIntent.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, player.audioSessionId)
+            eqIntent.putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MUSIC)
+            val packageManager = requireContext().packageManager
+            val resolveInfo: List<*> = packageManager.queryIntentActivities(eqIntent, 0)
+            Log.d("EQ", resolveInfo.toString())
+            if (resolveInfo.isEmpty()) {
+                Toast.makeText(requireContext(), getString(R.string.no_equalizer), Toast.LENGTH_SHORT).show()
+            }
+            else{
+                resultLauncher.launch(eqIntent)
             }
         }
         binding.btGithub.setOnClickListener {
@@ -188,6 +286,27 @@ class SettingsFragment : Fragment() {
                 }
             dialog.show()
         }
+        binding.btPipedInstance.setOnClickListener {
+            var checkedIndex = -1
+            val dialog = MaterialAlertDialogBuilder(requireContext())
+                .setSingleChoiceItems(PIPED_INSTANCE.listPiped, -1) { _, which ->
+                    checkedIndex = which
+                }
+                .setTitle(requireContext().getString(R.string.streaming_data_provider_piped))
+                .setNegativeButton(requireContext().getString(R.string.cancel)) { dialog, _ ->
+                    dialog.dismiss()
+                }
+                .setPositiveButton(requireContext().getString(R.string.change)) { dialog, _ ->
+                    if (checkedIndex != -1) {
+                        viewModel.setPipedInstance(PIPED_INSTANCE.listPiped[checkedIndex].toString())
+                        viewModel.pipedInstance.observe(viewLifecycleOwner) {
+                            binding.tvPipedInstance.text = it
+                        }
+                    }
+                    dialog.dismiss()
+                }
+            dialog.show()
+        }
         binding.btLanguage.setOnClickListener {
             var checkedIndex = -1
             val dialog = MaterialAlertDialogBuilder(requireContext())
@@ -200,15 +319,27 @@ class SettingsFragment : Fragment() {
                 }
                 .setPositiveButton(getString(R.string.change)) { dialog, _ ->
                     if (checkedIndex != -1) {
-                        viewModel.changeLanguage(SUPPORTED_LANGUAGE.codes[checkedIndex])
-                        viewModel.language.observe(viewLifecycleOwner) {
-                            if (it != null) {
-                                val temp = SUPPORTED_LANGUAGE.items[SUPPORTED_LANGUAGE.codes.indexOf(it)]
-                                binding.tvLanguage.text = temp
-                                val localeList = LocaleListCompat.forLanguageTags(it)
-                                AppCompatDelegate.setApplicationLocales(localeList)
+                        val alertDialog = MaterialAlertDialogBuilder(requireContext())
+                            .setTitle(R.string.warning)
+                            .setMessage(R.string.change_language_warning)
+                            .setNegativeButton(getString(R.string.cancel)) { d, _ ->
+                                d.dismiss()
+                                dialog.dismiss()
                             }
-                        }
+                            .setPositiveButton(getString(R.string.change)) { d, _ ->
+                                viewModel.changeLanguage(SUPPORTED_LANGUAGE.codes[checkedIndex])
+                                viewModel.language.observe(viewLifecycleOwner) {
+                                    if (it != null) {
+                                        val temp = SUPPORTED_LANGUAGE.items[SUPPORTED_LANGUAGE.codes.indexOf(it)]
+                                        binding.tvLanguage.text = temp
+                                        val localeList = LocaleListCompat.forLanguageTags(it)
+                                        AppCompatDelegate.setApplicationLocales(localeList)
+                                    }
+                                }
+                                d.dismiss()
+                                dialog.dismiss()
+                            }
+                        alertDialog.show()
                     }
                     dialog.dismiss()
                 }
@@ -270,6 +401,50 @@ class SettingsFragment : Fragment() {
                 }
             dialog.show()
         }
+        binding.btCategoriesSponsorBlock.setOnClickListener {
+            Log.d("Check category", viewModel.sponsorBlockCategories.value.toString())
+            val selectedItem: ArrayList<String> = arrayListOf()
+            val item: Array<CharSequence> = Array(9) {i ->
+                getString(SPONSOR_BLOCK.listName[i])
+            }
+
+            val checked = BooleanArray(9) { i ->
+                if (!viewModel.sponsorBlockCategories.value.isNullOrEmpty()) {
+                    viewModel.sponsorBlockCategories.value!!.contains(SPONSOR_BLOCK.list[i].toString())
+                }
+                else {
+                    false
+                }
+            }
+
+            val dialog = MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Category")
+                .setMultiChoiceItems(item, checked) { dialogInterface, i, b ->
+                    if (b) {
+                        if (!selectedItem.contains(SPONSOR_BLOCK.list[i].toString())) {
+                            selectedItem.add(SPONSOR_BLOCK.list[i].toString())
+                        }
+                    }
+                    else {
+                        if (selectedItem.contains(SPONSOR_BLOCK.list[i].toString())) {
+                            selectedItem.remove(SPONSOR_BLOCK.list[i].toString())
+                        }
+                    }
+                }
+                .setPositiveButton(getString(R.string.save)) { dialog , i ->
+                    viewModel.setSponsorBlockCategories(selectedItem)
+                    Log.d("Check category", selectedItem.toString())
+                    viewModel.getSponsorBlockCategories()
+                    viewModel.sponsorBlockCategories.observe(viewLifecycleOwner) {
+                        Toast.makeText(requireContext(), getString(R.string.saved), Toast.LENGTH_SHORT).show()
+                        dialog.dismiss()
+                    }
+                }
+                .setNegativeButton(R.string.cancel) {dialog , i ->
+                    dialog.dismiss()
+                }
+            dialog.show()
+        }
 
 
         binding.topAppBar.setNavigationOnClickListener {
@@ -283,6 +458,42 @@ class SettingsFragment : Fragment() {
 
         binding.btRestore.setOnClickListener {
             restoreLauncher.launch(arrayOf("application/octet-stream"))
+        }
+        binding.swNormalizeVolume.setOnCheckedChangeListener { compoundButton, checked ->
+            if (checked) {
+                viewModel.setNormalizeVolume(true)
+            } else {
+                viewModel.setNormalizeVolume(false)
+            }
+        }
+        binding.swSkipSilent.setOnCheckedChangeListener { compoundButton, checked ->
+            if (checked) {
+                viewModel.setSkipSilent(true)
+            } else {
+                viewModel.setSkipSilent(false)
+            }
+        }
+        binding.swSavePlaybackState.setOnCheckedChangeListener { compoundButton, checked ->
+            if (checked) {
+                viewModel.setSavedPlaybackState(true)
+            } else {
+                viewModel.setSavedPlaybackState(false)
+            }
+        }
+        binding.swSaveLastPlayed.setOnCheckedChangeListener { compoundButton, checked ->
+            if (checked) {
+                viewModel.setSaveLastPlayed(true)
+            } else {
+                viewModel.setSaveLastPlayed(false)
+            }
+        }
+        binding.swEnableSponsorBlock.setOnCheckedChangeListener { compoundButton, checked ->
+            if (checked) {
+                viewModel.setSponsorBlockEnabled(true)
+            }
+            else {
+                viewModel.setSponsorBlockEnabled(false)
+            }
         }
     }
 

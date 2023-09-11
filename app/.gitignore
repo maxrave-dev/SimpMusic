@@ -1,3 +1,4 @@
 /build
 /release
 /release/
+!/build/outputs/apk/full/debug/*

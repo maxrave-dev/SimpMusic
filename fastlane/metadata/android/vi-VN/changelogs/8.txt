@@ -1,0 +1,6 @@
+- Thêm ngôn ngữ Ý
+- Thêm chức năng cân bằng âm lượng
+- Thêm chức năng dùng bộ chỉnh âm
+- Tuỳ chỉnh thực thể Piped
+- Làm mờ thanh điều hướng
+- Chỉnh sửa logo

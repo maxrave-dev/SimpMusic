@@ -133,7 +133,7 @@ class MostPlayedFragment: Fragment() {
                             DownloadState.STATE_DOWNLOADING -> {
                                 tvDownload.text = getString(R.string.downloading)
                                 ivDownload.setImageResource(R.drawable.baseline_downloading_white)
-                                setEnabledAll(btDownload, false)
+                                setEnabledAll(btDownload, true)
                             }
 
                             DownloadState.STATE_DOWNLOADED -> {
@@ -284,7 +284,7 @@ class MostPlayedFragment: Fragment() {
                                                 )
                                                 tvDownload.text = getString(R.string.downloading)
                                                 ivDownload.setImageResource(R.drawable.baseline_downloading_white)
-                                                setEnabledAll(btDownload, false)
+                                                setEnabledAll(btDownload, true)
                                             }
 
                                             Download.STATE_FAILED -> {
@@ -325,7 +325,7 @@ class MostPlayedFragment: Fragment() {
                                 }
                             }
                         }
-                        else if (tvDownload.text == getString(R.string.downloaded)){
+                        else if (tvDownload.text == getString(R.string.downloaded) || tvDownload.text == getString(R.string.downloading)){
                             DownloadService.sendRemoveDownload(
                                 requireContext(),
                                 MusicDownloadService::class.java,

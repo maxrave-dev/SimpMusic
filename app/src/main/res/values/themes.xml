@@ -30,6 +30,10 @@
         <item name="android:fontFamily">@font/poppins_medium</item>
         <item name="fontFamily">@font/poppins_medium</item>
         <item name="android:statusBarColor" >@color/colorPrimaryDark</item>
+        <item name="android:navigationBarColor">
+            @android:color/transparent
+        </item>
+        <item name="android:windowTranslucentNavigation">true</item>
 
     </style>
     <style name="FullScreenDialogTheme" parent="MaterialAlertDialog.Material3">

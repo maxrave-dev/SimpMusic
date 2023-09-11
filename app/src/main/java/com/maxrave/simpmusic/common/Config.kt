@@ -1,5 +1,7 @@
 package com.maxrave.simpmusic.common
 
+import com.maxrave.simpmusic.R
+
 object Config {
     enum class SyncState {
         LINE_SYNCED,
@@ -16,6 +18,7 @@ object Config {
     const val ALBUM_CLICK = "ALBUM_CLICK"
     const val RADIO_CLICK = "RADIO_CLICK"
     const val MINIPLAYER_CLICK = "MINIPLAYER_CLICK"
+    const val SHARE = "SHARE"
 
     const val VN = "VN"
 
@@ -41,13 +44,46 @@ object SUPPORTED_LOCATION {
         "TN", "TR", "TW", "TZ", "UA", "UG", "US", "UY", "VE", "VN", "YE", "ZA", "ZW")
 }
 object SUPPORTED_LANGUAGE {
-    val items: Array<CharSequence> = arrayOf("English", "Vietnamese")
-    val codes: Array<String> = arrayOf("en-US", "vi-VN")
-    val serverCodes: Array<String> = arrayOf("en", "vi_VN")
+    val items: Array<CharSequence> = arrayOf("English", "Vietnamese", "Italiano")
+    val codes: Array<String> = arrayOf("en-US", "vi-VN", "it-IT")
 }
 object QUALITY {
     val items: Array<CharSequence> = arrayOf("Low - 66kps", "High - 129kps")
     val itags: Array<Int> = arrayOf(250, 251)
+}
+
+object PIPED_INSTANCE {
+    val listPiped: Array<CharSequence> = arrayOf("pipedapi.kavin.rocks", "pipedapi.tokhmi.xyz", "pipedapi.moomoo.me", "pipedapi.syncpundit.io",
+        "api-piped.mha.fi", "piped-api.garudalinux.org", "pipedapi.rivo.lol", "pipedapi.aeong.one", "pipedapi.leptons.xyz", "piped-api.lunar.icu",
+        "ytapi.dc09.ru", "pipedapi.colinslegacy.com", "yapi.vyper.me", "pipedapi-libre.kavin.rocks", "pa.mint.lgbt", "pa.il.ax", "piped-api.privacy.com.de",
+        "api.piped.projectsegfau.lt", "pipedapi.in.projectsegfau.lt", "pipedapi.us.projectsegfau.lt", "watchapi.whatever.social", "api.piped.privacydev.net",
+        "pipedapi.palveluntarjoaja.eu", "pipedapi.smnz.de", "pipedapi.adminforge.de", "pipedapi.qdi.fi", "piped-api.hostux.net", "pdapi.vern.cc", "pipedapi.jotoma.de",
+        "pipedapi.pfcd.me", "pipedapi.frontendfriendly.xyz", "api.piped.yt", "pipedapi.astartes.nl", "pipedapi.osphost.fi", "pipedapi.simpleprivacy.fr", "pipedapi.drgns.space")
+}
+
+object SPONSOR_BLOCK {
+    val list: Array<CharSequence> = arrayOf("sponsor", "selfpromo", "interaction", "intro", "outro", "preview", "music_offtopic", "poi_highlight", "filler")
+    val listName: Array<Int> = arrayOf(
+        R.string.sponsor,
+        R.string.self_promotion,
+        R.string.interaction,
+        R.string.intro,
+        R.string.outro,
+        R.string.preview,
+        R.string.music_off_topic,
+        R.string.poi_highlight,
+        R.string.filler)
+}
+
+object MEDIA_CUSTOM_COMMAND {
+    const val LIKE = "like"
+    const val REPEAT = "repeat"
+}
+
+object MEDIA_NOTIFICATION {
+    const val NOTIFICATION_ID = 200
+    const val NOTIFICATION_CHANNEL_NAME = "SimpMusic Playback Notification"
+    const val NOTIFICATION_CHANNEL_ID = "SimpMusic Playback Notification ID"
 }
 
 const val SETTINGS_FILENAME = "settings"
