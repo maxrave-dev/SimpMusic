@@ -516,6 +516,7 @@ class SimpleMediaServiceHandler @Inject constructor(
         sleepTimerJob?.cancel()
         volumeNormalizationJob?.cancel()
         updateNotificationJob?.cancel()
+        GlobalScope.cancel()
     }
 
     private fun updateNotification() {
