@@ -85,7 +85,7 @@ class SearchFragment : Fragment() {
     ): View {
         Log.d("SearchFragment", "onCreateView")
         _binding = FragmentSearchBinding.inflate(inflater, container, false)
-        binding.root.applyInsetter {
+        binding.svSearch.applyInsetter {
             type(statusBars = true) {
                 margin()
             }

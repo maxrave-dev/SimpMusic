@@ -299,27 +299,20 @@ object YouTube {
         )
     }
 
-    suspend fun player(videoId: String, pipedInstance: String, playlistId: String? = null): Result<PlayerResponse> = runCatching {
-        val piped = ytMusic.pipedStreams(videoId, pipedInstance).body<PipedResponse>()
-        val audioStreams = piped.audioStreams
+    suspend fun getStream(videoId: String): Result<PipedResponse> = runCatching {
+        ytMusic.pipedStreams(videoId).body()
+    }
+
+    suspend fun player(videoId: String, playlistId: String? = null): Result<PlayerResponse> = runCatching {
         val playerResponse = ytMusic.player(ANDROID_MUSIC, videoId, playlistId).body<PlayerResponse>()
         if (playerResponse.playabilityStatus.status == "OK") {
-            return@runCatching playerResponse.copy(
-                videoDetails = playerResponse.videoDetails?.copy(
-                    authorAvatar = piped.uploaderAvatar?.replace(Regex("s48"), "s960"),
-                    authorSubCount = piped.uploaderSubscriberCount,
-                )
-            )
+            return@runCatching playerResponse
         }
         val safePlayerResponse = ytMusic.player(TVHTML5, videoId, playlistId).body<PlayerResponse>()
         if (safePlayerResponse.playabilityStatus.status != "OK") {
-            return@runCatching playerResponse.copy(
-                videoDetails = safePlayerResponse.videoDetails?.copy(
-                    authorAvatar = piped.uploaderAvatar?.replace(Regex("s48"), "s960"),
-                    authorSubCount = piped.uploaderSubscriberCount,
-                )
-            )
+            return@runCatching playerResponse
         }
+        val audioStreams = ytMusic.pipedStreams(videoId).body<PipedResponse>().audioStreams
         safePlayerResponse.copy(
             streamingData = safePlayerResponse.streamingData?.copy(
                 adaptiveFormats = safePlayerResponse.streamingData.adaptiveFormats.mapNotNull { adaptiveFormat ->
@@ -329,10 +322,6 @@ object YouTube {
                         )
                     }
                 }
-            ),
-            videoDetails = safePlayerResponse.videoDetails?.copy(
-                authorAvatar = piped.uploaderAvatar?.replace(Regex("s48"), "s96"),
-                authorSubCount = piped.uploaderSubscriberCount,
             )
         )
     }
@@ -400,8 +389,8 @@ object YouTube {
         ytMusic.accountMenu(WEB_REMIX).body<AccountMenuResponse>().actions[0].openPopupAction.popup.multiPageMenuRenderer.header?.activeAccountHeaderRenderer?.toAccountInfo()
     }
 
-    suspend fun pipeStream(videoId: String, pipedInstance: String) = runCatching {
-        ytMusic.pipedStreams(videoId, pipedInstance).body<PipedResponse>()
+    suspend fun pipeStream(videoId: String) = runCatching {
+        ytMusic.pipedStreams(videoId).body<PipedResponse>()
     }
 
     @JvmInline

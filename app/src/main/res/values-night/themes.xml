@@ -29,9 +29,6 @@
         <item name="colorPrimaryInverse">@color/md_theme_dark_inversePrimary</item>
         <item name="android:statusBarColor" >@color/colorPrimaryDark</item>
         <item name="android:fontFamily">@font/poppins_medium</item>
-        <item name="android:navigationBarColor">
-            @android:color/transparent
-        </item>
         <item name="fontFamily">@font/poppins_medium</item>
     </style>
 </resources>

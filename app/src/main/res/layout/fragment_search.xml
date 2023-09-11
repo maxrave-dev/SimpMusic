@@ -7,8 +7,7 @@
         tools:context=".ui.fragment.SearchFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingTop="10sp"
-        android:paddingHorizontal="10sp">
+        android:padding="10sp">
         <androidx.appcompat.widget.SearchView
             app:marginTopSystemWindowInsets="true"
             android:id="@+id/svSearch"
@@ -181,15 +180,11 @@
                             <androidx.recyclerview.widget.RecyclerView
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:id="@+id/resultList">
+                                android:id="@+id/resultList"
+                                android:paddingBottom="135sp"
+                                android:clipToPadding="false">
 
                             </androidx.recyclerview.widget.RecyclerView>
-                            <RelativeLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="150dp"
-                                android:background="@android:color/transparent">
-
-                            </RelativeLayout>
                         </LinearLayout>
                     </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 

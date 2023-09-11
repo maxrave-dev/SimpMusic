@@ -2,5 +2,4 @@
 <locale-config xmlns:android="http://schemas.android.com/apk/res/android">
     <locale android:name="en-US"/>
     <locale android:name="vi"/>
-    <locale android:name="it"/>
 </locale-config>

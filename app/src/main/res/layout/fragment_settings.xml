@@ -156,114 +156,6 @@
                     </TextView>
 
                 </LinearLayout>
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginVertical="5sp"
-                    android:layout_marginStart="15sp"
-                    android:id="@+id/btPipedInstance"
-                    android:focusable="true"
-                    android:clickable="true"
-                    android:foreground="?android:attr/selectableItemBackground">
-                    <TextView
-                        android:textSize = "16sp"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:textColor="@android:color/white"
-                        android:text = "@string/streaming_data_provider_piped">
-
-                    </TextView>
-                    <TextView
-                        android:id="@+id/tvPipedInstance"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:textSize="16sp"
-                        android:text="watchapi.whatever.social">
-
-                    </TextView>
-
-                </LinearLayout>
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/audio"
-                    android:textColor="@android:color/white"
-                    android:textStyle="bold"
-                    android:textSize="16sp"
-                    android:layout_marginVertical="15sp">
-
-                </TextView>
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
-                    <LinearLayout
-                        android:layout_alignParentStart="true"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="vertical"
-                        android:layout_marginVertical="5sp"
-                        android:layout_marginStart="15sp"
-                        android:id="@+id/btNormalizeVolume"
-                        android:focusable="true"
-                        android:clickable="true"
-                        android:foreground="?android:attr/selectableItemBackground"
-                        android:layout_toStartOf="@+id/swNormalizeVolume">
-                        <TextView
-                            android:textSize = "16sp"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:textColor="@android:color/white"
-                            android:text = "@string/normalize_volume">
-
-                        </TextView>
-                        <TextView
-                            android:id="@+id/tvNormalizeVolume"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:textSize="16sp"
-                            android:text="@string/balance_media_loudness">
-
-                        </TextView>
-
-                    </LinearLayout>
-                    <com.google.android.material.switchmaterial.SwitchMaterial
-                        android:id="@+id/swNormalizeVolume"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentEnd="true"
-                        android:layout_centerVertical="true">
-
-                    </com.google.android.material.switchmaterial.SwitchMaterial>
-                </RelativeLayout>
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginVertical="5sp"
-                    android:layout_marginStart="15sp"
-                    android:id="@+id/btEqualizer"
-                    android:focusable="true"
-                    android:clickable="true"
-                    android:foreground="?android:attr/selectableItemBackground">
-                    <TextView
-                        android:textSize = "16sp"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:textColor="@android:color/white"
-                        android:text = "@string/open_system_equalizer">
-
-                    </TextView>
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:textSize="16sp"
-                        android:id="@+id/tvEqualizer"
-                        android:text="@string/use_your_system_equalizer">
-
-                    </TextView>
-
-                </LinearLayout>
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -455,7 +347,7 @@
                         android:layout_height="wrap_content"
                         android:textSize="16sp"
                         android:id="@+id/tvVersion"
-                        android:text="@string/version_name">
+                        android:text="v0.1.1-beta">
 
                     </TextView>
                 </LinearLayout>

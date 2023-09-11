@@ -65,7 +65,7 @@ class LibraryFragment : Fragment() {
         savedInstanceState: Bundle?,
     ): View {
         _binding = FragmentLibraryBinding.inflate(inflater, container, false)
-        binding.root.applyInsetter {
+        binding.topAppBarLayout.applyInsetter {
             type(statusBars = true){
                 margin()
             }

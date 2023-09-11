@@ -2,7 +2,6 @@ package com.maxrave.simpmusic.data.db
 
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
-import com.maxrave.simpmusic.data.db.entities.FormatEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.LyricsEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
@@ -73,7 +72,4 @@ class LocalDataSource @Inject constructor(private val databaseDao: DatabaseDao) 
     suspend fun getSavedLyrics(videoId: String) = databaseDao.getLyrics(videoId)
     suspend fun insertLyrics(lyrics: LyricsEntity) = databaseDao.insertLyrics(lyrics)
     suspend fun getPreparingSongs() = databaseDao.getPreparingSongs()
-
-    suspend fun insertFormat(format: FormatEntity) = databaseDao.insertFormat(format)
-    suspend fun getFormat(videoId: String) = databaseDao.getFormat(videoId)
 }

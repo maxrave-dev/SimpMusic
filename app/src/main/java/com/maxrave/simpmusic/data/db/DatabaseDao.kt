@@ -9,7 +9,6 @@ import androidx.room.Transaction
 import androidx.sqlite.db.SupportSQLiteQuery
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
-import com.maxrave.simpmusic.data.db.entities.FormatEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.LyricsEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
@@ -246,10 +245,4 @@ interface DatabaseDao {
 
     @Query("SELECT * FROM song WHERE downloadState = 1")
     suspend fun getPreparingSongs(): List<SongEntity>
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertFormat(format: FormatEntity)
-
-    @Query("SELECT * FROM format WHERE videoId = :videoId")
-    suspend fun getFormat(videoId: String): FormatEntity?
 }
