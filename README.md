@@ -51,7 +51,7 @@ More [screenshot](https://photos.app.goo.gl/AbieoXG5ctDrpwzp7) here.
 ## Translation
 [![Crowdin](https://badges.crowdin.net/simpmusic/localized.svg)](https://crowdin.com/project/simpmusic)
 
-You can help me to translate this app to your language by using Crowdin. [SimpMusic on Crowdin](https://photos.app.goo.gl/AbieoXG5ctDrpwzp7)
+You can help me to translate this app to your language by using Crowdin. [SimpMusic on Crowdin](https://crowdin.com/project/simpmusic)
 ## Support
 Join my Discord server to update the newest features, tips and report bugs
 |   [<img src="https://upload.wikimedia.org/wikipedia/vi/7/72/Discord_logo.svg.png" height="40">]()         | [Discord](https://discord.gg/Rq5tWVM9Hg) |
