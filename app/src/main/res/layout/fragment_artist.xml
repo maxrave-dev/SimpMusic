@@ -232,7 +232,28 @@
                     tools:listitem="@layout/item_singles">
 
                 </androidx.recyclerview.widget.RecyclerView>
+                <TextView
+                    android:padding="15sp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/videos"
+                    android:textSize="18sp"
+                    android:textStyle="bold">
 
+                </TextView>
+                <androidx.recyclerview.widget.RecyclerView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="15sp"
+                    android:layout_marginEnd="15sp"
+                    android:id="@+id/rvVideo"
+                    android:scrollbars="horizontal"
+                    android:orientation="horizontal"
+                    app:reverseLayout="true"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    tools:listitem="@layout/item_singles">
+
+                </androidx.recyclerview.widget.RecyclerView>
                 <TextView
                     android:padding="15sp"
                     android:layout_width="match_parent"

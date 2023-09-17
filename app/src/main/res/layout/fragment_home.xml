@@ -64,12 +64,60 @@
                        android:layout_height="wrap_content"
                        android:padding="15sp"
                        android:layout_marginTop="10sp">
+                       <LinearLayout
+                           android:layout_width="match_parent"
+                           android:layout_height="wrap_content"
+                           android:orientation="vertical"
+                           android:id="@+id/accountLayout">
+                           <TextView
+                               android:layout_width="match_parent"
+                               android:layout_height="wrap_content"
+                               android:id="@+id/tvTitleAccount"
+                               android:textSize="13sp"
+                               android:textStyle="normal"
+                               android:fontFamily="@font/roboto"
+                               android:text="@string/welcome_back"
+                               android:layout_marginBottom="3sp"
+                               android:layout_marginTop="5sp">
+
+                           </TextView>
+                           <LinearLayout
+                               android:layout_width="match_parent"
+                               android:layout_height="wrap_content"
+                               android:orientation="horizontal"
+                               android:layout_marginBottom="10sp"
+                               android:layout_gravity="center_vertical"
+                               android:layout_marginTop="5sp">
+                               <com.google.android.material.imageview.ShapeableImageView
+                                   android:layout_marginStart="5dp"
+                                   android:layout_width="40dp"
+                                   android:layout_height="40dp"
+                                   android:id="@+id/ivAccount"
+                                   app:shapeAppearanceOverlay="@style/circle"
+                                   android:scaleType="fitCenter">
+
+                               </com.google.android.material.imageview.ShapeableImageView>
+                               <TextView
+                                   android:id="@+id/tvAccountName"
+                                   android:layout_width="match_parent"
+                                   android:layout_height="40dp"
+                                   android:textSize="21sp"
+                                   android:textStyle="bold"
+                                   android:fontFamily="@font/roboto"
+                                   android:gravity="center_vertical"
+                                   android:text=""
+                                   android:layout_marginStart="8dp">
+
+                               </TextView>
+                           </LinearLayout>
+
+                       </LinearLayout>
 
                        <TextView
                            android:id="@+id/tvStartWithARadio"
                            android:layout_width="match_parent"
                            android:layout_height="wrap_content"
-                           android:textSize="15sp"
+                           android:textSize="13sp"
                            android:textStyle="normal"
                            android:fontFamily="@font/roboto"
                            android:text="@string/let_s_start_with_a_radio"
@@ -82,7 +130,7 @@
                            android:id="@+id/tvTitleQuickPicks"
                            android:layout_width="match_parent"
                            android:layout_height="wrap_content"
-                           android:textSize="25sp"
+                           android:textSize="21sp"
                            android:textStyle="bold"
                            android:fontFamily="@font/roboto"
                            android:text="@string/quick_picks"
@@ -120,7 +168,7 @@
                        <TextView
                            android:layout_width="match_parent"
                            android:layout_height="wrap_content"
-                           android:textSize="15sp"
+                           android:textSize="13sp"
                            android:textStyle="normal"
                            android:fontFamily="@font/roboto"
                            android:text="@string/let_s_pick_a_playlist_for_you"
@@ -137,7 +185,7 @@
                            android:layout_marginBottom="10sp"
                            android:fontFamily="@font/roboto"
                            android:text="@string/moods_amp_moment"
-                           android:textSize="25sp"
+                           android:textSize="21sp"
                            android:textStyle="bold">
 
                        </TextView>
@@ -157,7 +205,7 @@
                            android:id="@+id/tvTitleGenre"
                            android:layout_width="match_parent"
                            android:layout_height="wrap_content"
-                           android:textSize="25sp"
+                           android:textSize="21sp"
                            android:textStyle="bold"
                            android:fontFamily="@font/roboto"
                            android:text="@string/genre"
@@ -187,7 +235,7 @@
                            <TextView
                                android:layout_width="match_parent"
                                android:layout_height="wrap_content"
-                               android:textSize="15sp"
+                               android:textSize="13sp"
                                android:textStyle="normal"
                                android:fontFamily="@font/roboto"
                                android:text="@string/what_is_best_choice_today"
@@ -200,7 +248,7 @@
                                android:id="@+id/tvTitleChart"
                                android:layout_width="match_parent"
                                android:layout_height="wrap_content"
-                               android:textSize="25sp"
+                               android:textSize="21sp"
                                android:textStyle="bold"
                                android:fontFamily="@font/roboto"
                                android:text="@string/chart"

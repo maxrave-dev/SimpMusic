@@ -452,7 +452,7 @@ class PlaylistFragment: Fragment() {
                                 tvYearAndCategory.text = requireContext().getString(R.string.playlist)
                             }
                             tvTrackCountAndDuration.text = requireContext().getString(R.string.album_length, it?.trackCount.toString(), "")
-                            if (it?.description != null){
+                            if (it?.description != null && it.description != ""){
                                 tvDescription.originalText = it.description
                             } else {
                                 tvDescription.originalText = getString(R.string.no_description)
@@ -530,7 +530,7 @@ class PlaylistFragment: Fragment() {
                                     tvYearAndCategory.text = requireContext().getString(R.string.playlist)
                                 }
                                 tvTrackCountAndDuration.text = requireContext().getString(R.string.album_length, it?.trackCount.toString(), "")
-                                if (it?.description != null){
+                                if (it?.description != null && it.description != ""){
                                     tvDescription.originalText = it.description
                                 } else {
                                     tvDescription.originalText = getString(R.string.no_description)
@@ -617,7 +617,7 @@ class PlaylistFragment: Fragment() {
                         if (playlistEntity.description != ""){
                             tvDescription.originalText = playlistEntity.description
                         } else {
-                            tvDescription.originalText = "No description"
+                            tvDescription.originalText = getString(R.string.no_description)
                         }
                         loadImage(playlistEntity.thumbnails)
                         if (viewModel.gradientDrawable.value == null) {

@@ -8,6 +8,7 @@ import androidx.media3.common.util.UnstableApi
 import com.maxrave.simpmusic.common.QUALITY
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.model.browse.album.Track
+import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.extension.connectArtists
@@ -23,7 +24,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
-class MusicSource @Inject constructor(val simpleMediaServiceHandler: SimpleMediaServiceHandler, private val dataStoreManager: DataStoreManager, private val mainRepository: MainRepository) {
+class MusicSource @Inject constructor(private val simpleMediaServiceHandler: SimpleMediaServiceHandler, private val dataStoreManager: DataStoreManager, private val mainRepository: MainRepository) {
 
     var catalogMetadata: ArrayList<Track> = (arrayListOf())
     var downloadUrl: ArrayList<String> = arrayListOf()
@@ -100,20 +101,45 @@ class MusicSource @Inject constructor(val simpleMediaServiceHandler: SimpleMedia
                 thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
             }
             if (downloaded == 1) {
-                val mediaItem = MediaItem.Builder()
-                    .setMediaId(track.videoId)
-                    .setUri(track.videoId.toUri())
-                    .setMediaMetadata(
-                        MediaMetadata.Builder()
-                            .setArtworkUri(thumbUrl.toUri())
-                            .setAlbumTitle(track.album?.name)
-                            .setTitle(track.title)
-                            .setArtist(track.artists.toListName().connectArtists())
-                            .build()
-                    )
-                    .build()
-                simpleMediaServiceHandler.addMediaItemNotSet(mediaItem)
-                catalogMetadata.add(track)
+                if (track.artists.isNullOrEmpty())
+                {
+                    mainRepository.getFormat(track.videoId).collect { format ->
+                        if (format != null) {
+                            val mediaItem = MediaItem.Builder()
+                                .setMediaId(track.videoId)
+                                .setUri(track.videoId.toUri())
+                                .setMediaMetadata(
+                                    MediaMetadata.Builder()
+                                        .setArtworkUri(thumbUrl.toUri())
+                                        .setAlbumTitle(track.album?.name)
+                                        .setTitle(track.title)
+                                        .setArtist(format.uploader)
+                                        .build()
+                                )
+                                .build()
+                            simpleMediaServiceHandler.addMediaItemNotSet(mediaItem)
+                            catalogMetadata.add(track.copy(
+                                artists = listOf(Artist(format.uploaderId, format.uploader?: "" ))
+                            ))
+                        }
+                    }
+                }
+                else {
+                    val mediaItem = MediaItem.Builder()
+                        .setMediaId(track.videoId)
+                        .setUri(track.videoId.toUri())
+                        .setMediaMetadata(
+                            MediaMetadata.Builder()
+                                .setArtworkUri(thumbUrl.toUri())
+                                .setAlbumTitle(track.album?.name)
+                                .setTitle(track.title)
+                                .setArtist(track.artists.toListName().connectArtists())
+                                .build()
+                        )
+                        .build()
+                    simpleMediaServiceHandler.addMediaItemNotSet(mediaItem)
+                    catalogMetadata.add(track)
+                }
                 Log.d("MusicSource", "updateCatalog: ${track.title}, ${catalogMetadata.size}")
                 downloadUrl.add(" ")
                 added.value = true
@@ -125,20 +151,45 @@ class MusicSource @Inject constructor(val simpleMediaServiceHandler: SimpleMedia
                         val artistName: String = track.artists.toListName().connectArtists()
                         if (uri != null) {
                             if (!catalogMetadata.contains(track)) {
-                                simpleMediaServiceHandler.addMediaItemNotSet(
-                                    MediaItem.Builder().setUri(uri)
-                                        .setMediaId(track.videoId)
-                                        .setMediaMetadata(
-                                            MediaMetadata.Builder()
-                                                .setTitle(track.title)
-                                                .setArtist(artistName)
-                                                .setArtworkUri(thumbUrl.toUri())
-                                                .setAlbumTitle(track.album?.name)
-                                                .build()
-                                        )
-                                        .build()
-                                )
-                                catalogMetadata.add(track)
+                                if (track.artists.isNullOrEmpty())
+                                {
+                                    mainRepository.getFormat(track.videoId).collect { format ->
+                                        if (format != null) {
+                                            catalogMetadata.add(track.copy(
+                                                artists = listOf(Artist(format.uploaderId, format.uploader?: "" ))
+                                            ))
+                                            simpleMediaServiceHandler.addMediaItemNotSet(
+                                                MediaItem.Builder().setUri(uri)
+                                                    .setMediaId(track.videoId)
+                                                    .setMediaMetadata(
+                                                        MediaMetadata.Builder()
+                                                            .setTitle(track.title)
+                                                            .setArtist(format.uploader)
+                                                            .setArtworkUri(thumbUrl.toUri())
+                                                            .setAlbumTitle(track.album?.name)
+                                                            .build()
+                                                    )
+                                                    .build()
+                                            )
+                                        }
+                                    }
+                                }
+                                else {
+                                    simpleMediaServiceHandler.addMediaItemNotSet(
+                                        MediaItem.Builder().setUri(uri)
+                                            .setMediaId(track.videoId)
+                                            .setMediaMetadata(
+                                                MediaMetadata.Builder()
+                                                    .setTitle(track.title)
+                                                    .setArtist(artistName)
+                                                    .setArtworkUri(thumbUrl.toUri())
+                                                    .setAlbumTitle(track.album?.name)
+                                                    .build()
+                                            )
+                                            .build()
+                                    )
+                                    catalogMetadata.add(track)
+                                }
                                 Log.d(
                                     "MusicSource",
                                     "updateCatalog: ${track.title}, ${catalogMetadata.size}"

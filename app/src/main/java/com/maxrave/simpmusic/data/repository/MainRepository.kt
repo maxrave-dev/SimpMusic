@@ -4,9 +4,9 @@ import android.content.Context
 import android.util.Log
 import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.models.MusicShelfRenderer
-import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
+import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.LocalDataSource
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
@@ -54,7 +54,6 @@ import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.runBlocking
@@ -281,6 +280,14 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
         runCatching {
             YouTube.customQuery(browseId = "FEmusic_home").onSuccess { result ->
                 val list: ArrayList<HomeItem> = arrayListOf()
+                if (result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(0)?.tabRenderer?.content?.sectionListRenderer?.contents?.get(0)?.musicCarouselShelfRenderer?.header?.musicCarouselShelfBasicHeaderRenderer?.strapline?.runs?.get(0)?.text != null) {
+                    val accountName = result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(0)?.tabRenderer?.content?.sectionListRenderer?.contents?.get(0)?.musicCarouselShelfRenderer?.header?.musicCarouselShelfBasicHeaderRenderer?.strapline?.runs?.get(0)?.text ?: ""
+                    val accountThumbUrl = result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(0)?.tabRenderer?.content?.sectionListRenderer?.contents?.get(0)?.musicCarouselShelfRenderer?.header?.musicCarouselShelfBasicHeaderRenderer?.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.get(0)?.url?.replace("s88", "s352") ?: ""
+                    if (accountName != "" && accountThumbUrl != "") {
+                        dataStoreManager.putString("AccountName", accountName)
+                        dataStoreManager.putString("AccountThumbUrl", accountThumbUrl)
+                    }
+                }
                 var continueParam =
                     result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(0)?.tabRenderer?.content?.sectionListRenderer?.continuations?.get(
                         0
@@ -675,9 +682,8 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
             }
         }.flowOn(Dispatchers.IO)
     suspend fun getStream(videoId: String, itag: Int): Flow<String?> = flow{
-        val instance = runBlocking { dataStoreManager.pipedInstance.first() }
-        YouTube.player(videoId, instance).onSuccess { response ->
-            val format = response.streamingData?.formats?.find { it.itag == itag}
+        YouTube.player(videoId).onSuccess { response ->
+            val format = response.streamingData?.adaptiveFormats?.find { it.itag == itag}
                 runBlocking {
                     insertFormat(
                         FormatEntity(
@@ -688,18 +694,31 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                             contentLength = format?.contentLength,
                             lastModified = format?.lastModified,
                             loudnessDb = response.playerConfig?.audioConfig?.loudnessDb?.toFloat(),
-                            uploader = response.videoDetails?.author?.replace(Regex(" - Topic"), ""),
+                            uploader = response.videoDetails?.author?.replace(Regex(" - Topic| - Chủ đề|"), ""),
                             uploaderId = response.videoDetails?.channelId,
                             uploaderThumbnail = response.videoDetails?.authorAvatar,
                             uploaderSubCount = response.videoDetails?.authorSubCount,
-                            description = response.videoDetails?.description
+                            description = response.videoDetails?.description,
+                            playbackTrackingVideostatsPlaybackUrl = response.playbackTracking?.videostatsPlaybackUrl?.baseUrl,
+                            playbackTrackingAtrUrl = response.playbackTracking?.atrUrl?.baseUrl,
+                            playbackTrackingVideostatsWatchtimeUrl = response.playbackTracking?.videostatsWatchtimeUrl?.baseUrl,
                         )
                     )
                 }
                 emit(response.streamingData?.adaptiveFormats?.find { it.itag == itag }?.url)
             }.onFailure {
+                it.printStackTrace()
+            Log.e("Stream", "Error: ${it.message}")
                 emit(null)
             }
+    }.flowOn(Dispatchers.IO)
+    suspend fun initPlayback(playback: String, atr: String, watchTime: String): Flow<Int> = flow {
+        YouTube.initPlayback(playback, atr, watchTime).onSuccess { response ->
+            emit(response)
+        }.onFailure {
+            Log.e("InitPlayback", "Error: ${it.message}")
+            emit(0)
+        }
     }.flowOn(Dispatchers.IO)
     suspend fun getSkipSegments(videoId: String): Flow<List<SkipSegments>?> = flow {
         YouTube.getSkipSegments(videoId).onSuccess {
@@ -709,10 +728,12 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
         }
     }.flowOn(Dispatchers.IO)
 
-    fun getSongFull(videoId: String): Flow<PipedResponse> = flow {
-        val instance = runBlocking { dataStoreManager.pipedInstance.first() }
-        YouTube.pipeStream(videoId, instance).onSuccess {
+    fun getFullMetadata(videoId: String): Flow<YouTubeInitialPage?> = flow {
+        YouTube.getFullMetadata(videoId).onSuccess {
             emit(it)
+        }.onFailure {
+            Log.e("getFullMetadata", "Error: ${it.message}")
+            emit(null)
         }
     }.flowOn(Dispatchers.IO)
 

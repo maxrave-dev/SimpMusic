@@ -156,34 +156,48 @@
                     </TextView>
 
                 </LinearLayout>
-                <LinearLayout
+                <RelativeLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_marginVertical="5sp"
-                    android:layout_marginStart="15sp"
-                    android:id="@+id/btPipedInstance"
-                    android:focusable="true"
-                    android:clickable="true"
-                    android:foreground="?android:attr/selectableItemBackground">
-                    <TextView
-                        android:textSize = "16sp"
+                    android:layout_height="wrap_content">
+                    <LinearLayout
+                        android:layout_alignParentStart="true"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:textColor="@android:color/white"
-                        android:text = "@string/streaming_data_provider_piped">
+                        android:orientation="vertical"
+                        android:layout_marginVertical="5sp"
+                        android:layout_marginStart="15sp"
+                        android:id="@+id/btSaveHistory"
+                        android:focusable="true"
+                        android:clickable="true"
+                        android:foreground="?android:attr/selectableItemBackground"
+                        android:layout_toStartOf="@+id/swSaveHistory">
+                        <TextView
+                            android:textSize = "16sp"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textColor="@android:color/white"
+                            android:text = "@string/send_back_listening_data_to_google">
 
-                    </TextView>
-                    <TextView
-                        android:id="@+id/tvPipedInstance"
-                        android:layout_width="match_parent"
+                        </TextView>
+                        <TextView
+                            android:id="@+id/tvSaveHistory"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textSize="11sp"
+                            android:text="@string/upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">
+
+                        </TextView>
+
+                    </LinearLayout>
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/swSaveHistory"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:textSize="16sp"
-                        android:text="pipedapi-libre.kavin.rocks">
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true">
 
-                    </TextView>
-
-                </LinearLayout>
+                    </com.google.android.material.switchmaterial.SwitchMaterial>
+                </RelativeLayout>
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

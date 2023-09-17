@@ -80,6 +80,8 @@ class SettingsViewModel @Inject constructor(
     val sponsorBlockEnabled: LiveData<String> = _sponsorBlockEnabled
     private var _sponsorBlockCategories: MutableLiveData<ArrayList<String>> = MutableLiveData()
     val sponsorBlockCategories: LiveData<ArrayList<String>> = _sponsorBlockCategories
+    private var _sendBackToGoogle: MutableLiveData<String> = MutableLiveData()
+    val sendBackToGoogle: LiveData<String> = _sendBackToGoogle
 
     fun checkForUpdate() {
         viewModelScope.launch {
@@ -360,22 +362,20 @@ class SettingsViewModel @Inject constructor(
             }
         }
     }
-
-    fun getPipedInstance() {
+    fun getSendBackToGoogle() {
         viewModelScope.launch {
             withContext(Dispatchers.Main) {
-                dataStoreManager.pipedInstance.collect { pipedInstance ->
-                    _pipedInstance.postValue(pipedInstance)
+                dataStoreManager.sendBackToGoogle.collect { sendBackToGoogle ->
+                    _sendBackToGoogle.postValue(sendBackToGoogle)
                 }
             }
         }
     }
-
-    fun setPipedInstance(pipedInstance: String) {
+    fun setSendBackToGoogle(sendBackToGoogle: Boolean) {
         viewModelScope.launch {
             withContext((Dispatchers.Main)) {
-                dataStoreManager.setPipedInstance(pipedInstance)
-                getPipedInstance()
+                dataStoreManager.setSendBackToGoogle(sendBackToGoogle)
+                getSendBackToGoogle()
             }
         }
     }

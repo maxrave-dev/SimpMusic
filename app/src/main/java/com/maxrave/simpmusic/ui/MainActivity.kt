@@ -432,7 +432,6 @@ class MainActivity : AppCompatActivity() {
                              }
                          }
                      }
-                     delay(500)
                  }
              }
 

@@ -40,7 +40,7 @@ class ArtistChartAdapter(var listArtist: ArrayList<ItemArtist>, val context: Con
         with(holder) {
             binding.tvRank.text = artist.rank.toString()
             binding.tvArtistName.text = artist.title
-            binding.tvSubscribers.text = context.getString(R.string.subscribers, artist.subscribers)
+            binding.tvSubscribers.text = if (artist.subscribers.contains(context.getString(R.string.subscribers))) artist.subscribers else context.getString(R.string.subscribers, artist.subscribers)
             binding.ivArt.load(artist.thumbnails.last().url)
         }
     }

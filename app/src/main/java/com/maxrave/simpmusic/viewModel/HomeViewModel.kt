@@ -6,14 +6,12 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.model.explore.mood.Mood
 import com.maxrave.simpmusic.data.model.home.HomeItem
 import com.maxrave.simpmusic.data.model.home.chart.Chart
-import com.maxrave.simpmusic.data.parser.parseMixedContent
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -36,6 +34,8 @@ class HomeViewModel @Inject constructor(
     val homeItemList: LiveData<Resource<ArrayList<HomeItem>>> = _homeItemList
     private val _exploreMoodItem: MutableLiveData<Resource<Mood>> = MutableLiveData()
     val exploreMoodItem: LiveData<Resource<Mood>> = _exploreMoodItem
+    private val _accountInfo: MutableLiveData<Pair<String?, String?>?> = MutableLiveData()
+    val accountInfo: LiveData<Pair<String?, String?>?> = _accountInfo
 
     val showSnackBarErrorState = MutableSharedFlow<String>()
 
@@ -96,6 +96,11 @@ class HomeViewModel @Inject constructor(
                 _chart.value = chart
                 Log.d("HomeViewModel", "getHomeItemList: $result")
                 loading.value = false
+                dataStoreManager.cookie.first().let {
+                    if (it != "") {
+                        _accountInfo.postValue(Pair(dataStoreManager.getString("AccountName").first(), dataStoreManager.getString("AccountThumbUrl").first()))
+                    }
+                }
                 when {
                     home is Resource.Error -> home.message
                     exploreMoodItem is Resource.Error -> exploreMoodItem.message

@@ -225,7 +225,7 @@ class Ytmusic {
         countryCode: String? = null,
         setLogin: Boolean = false,
     ) = httpClient.post("browse") {
-        ytClient(client, setLogin)
+        ytClient(client, if (setLogin) true else cookie != "" && cookie != null)
 
         if (countryCode != null) {
             setBody(
@@ -332,4 +332,25 @@ class Ytmusic {
         ytClient(client)
         setBody(AccountMenuBody(client.toContext(locale, visitorData)))
     }
+
+    suspend fun scrapeYouTube(
+        videoId: String
+    ) = httpClient.get("https://www.youtube.com/watch?v=$videoId") {
+        headers {
+            append(HttpHeaders.AcceptLanguage, locale.hl)
+            if (cookie != null) {
+                append(HttpHeaders.Cookie, cookie ?: "")
+            }
+        }
+    }
+
+    suspend fun initPlayback(url: String, cpn: String)
+    = httpClient.get(url) {
+        ytClient(YouTubeClient.ANDROID_MUSIC, true)
+        parameter("ver", "2")
+        parameter("c", "ANDROID_MUSIC")
+        parameter("cpn", cpn)
+    }
+
+
 }

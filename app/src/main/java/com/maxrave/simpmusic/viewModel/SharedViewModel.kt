@@ -17,9 +17,9 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.exoplayer.offline.Download
 import com.maxrave.kotlinytmusicscraper.YouTube
-import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
+import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.DownloadState
@@ -224,6 +224,13 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                 simpleMediaServiceHandler.nowPlaying.collectLatest { nowPlaying ->
                     nowPlaying?.let { now ->
                         getSkipSegments(now.mediaId)
+                        if (dataStoreManager.sendBackToGoogle.first() == TRUE) {
+                            mainRepository.getFormat(now.mediaId).collect { formatTemp ->
+                                if (formatTemp != null) {
+                                    initPlayback(formatTemp.playbackTrackingVideostatsPlaybackUrl, formatTemp.playbackTrackingAtrUrl, formatTemp.playbackTrackingVideostatsWatchtimeUrl)
+                                }
+                            }
+                        }
                     }
                     if (nowPlaying != null && getCurrentMediaItemIndex() > 0) {
                         _nowPlayingMediaItem.postValue(nowPlaying)
@@ -317,6 +324,16 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
             job4.join()
             job5.join()
             job6.join()
+        }
+    }
+
+    private fun initPlayback(playback: String?, atr: String?, watchTime: String?) {
+        viewModelScope.launch {
+            if (playback != null && atr != null && watchTime != null) {
+                mainRepository.initPlayback(playback, atr, watchTime).collect {
+                    Log.w("Check initPlayback code", it.toString())
+                }
+            }
         }
     }
 
@@ -817,12 +834,12 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
             }
         }
     }
-    private val _songFull: MutableLiveData<PipedResponse?> = MutableLiveData()
-    var songFull: LiveData<PipedResponse?> = _songFull
+    private val _songFull: MutableLiveData<YouTubeInitialPage?> = MutableLiveData()
+    var songFull: LiveData<YouTubeInitialPage?> = _songFull
 
     fun getSongFull(videoId: String) {
         viewModelScope.launch {
-            mainRepository.getSongFull(videoId).collect {
+            mainRepository.getFullMetadata(videoId).collect {
                 _songFull.postValue(it)
             }
         }

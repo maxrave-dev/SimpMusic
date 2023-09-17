@@ -14,7 +14,7 @@ import com.maxrave.simpmusic.data.db.entities.QueueEntity
 import com.maxrave.simpmusic.data.db.entities.SearchHistory
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 
-@Database(entities = [SearchHistory::class, SongEntity::class, ArtistEntity::class, AlbumEntity::class, PlaylistEntity::class, LocalPlaylistEntity::class, LyricsEntity::class, FormatEntity::class, QueueEntity::class], version = 3, exportSchema = true, autoMigrations = [AutoMigration(from = 2, to = 3)])
+@Database(entities = [SearchHistory::class, SongEntity::class, ArtistEntity::class, AlbumEntity::class, PlaylistEntity::class, LocalPlaylistEntity::class, LyricsEntity::class, FormatEntity::class, QueueEntity::class], version = 4, exportSchema = true, autoMigrations = [AutoMigration(from = 2, to = 3), AutoMigration(from = 1, to = 3), AutoMigration(from = 3, to = 4), AutoMigration(from = 2, to = 4)])
 @TypeConverters(Converters::class)
 abstract class MusicDatabase: RoomDatabase() {
     abstract fun getDatabaseDao(): DatabaseDao

@@ -31,6 +31,8 @@ import com.maxrave.kotlinytmusicscraper.models.splitBySeparator
 import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
 import com.maxrave.kotlinytmusicscraper.models.spotify.SpotifyResult
 import com.maxrave.kotlinytmusicscraper.models.spotify.Token
+import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
+import com.maxrave.kotlinytmusicscraper.models.youtube.data.YouTubeDataPage
 import com.maxrave.kotlinytmusicscraper.pages.AlbumPage
 import com.maxrave.kotlinytmusicscraper.pages.ArtistPage
 import com.maxrave.kotlinytmusicscraper.pages.BrowseResult
@@ -44,14 +46,18 @@ import com.maxrave.kotlinytmusicscraper.pages.PlaylistPage
 import com.maxrave.kotlinytmusicscraper.pages.RelatedPage
 import com.maxrave.kotlinytmusicscraper.pages.SearchPage
 import com.maxrave.kotlinytmusicscraper.pages.SearchResult
+import com.mohamedrejeb.ksoup.html.parser.KsoupHtmlHandler
+import com.mohamedrejeb.ksoup.html.parser.KsoupHtmlParser
 import io.ktor.client.call.body
 import io.ktor.client.statement.bodyAsText
+import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
 import org.json.JSONArray
 import java.net.Proxy
+import kotlin.random.Random
 
 object YouTube {
     private val ytMusic = Ytmusic()
@@ -308,58 +314,138 @@ object YouTube {
             }.orEmpty()
         )
     }
+    suspend fun getFullMetadata(videoId: String): Result<YouTubeInitialPage> = runCatching {
+        val ytScrape = ytMusic.scrapeYouTube(videoId).body<String>()
+        var response = ""
+        val ksoupHtmlParser = KsoupHtmlParser(
+            object : KsoupHtmlHandler {
+                override fun onText(text: String) {
+                    super.onText(text)
+                    if (text.contains("var ytInitialPlayerResponse")) {
+                        val temp = text.replace("var ytInitialPlayerResponse = ", "").dropLast(1)
+                        Log.d("Scrape", "Temp $temp")
+                        response = temp.trimIndent()
+                    }
+                }
+            }
+        )
+        ksoupHtmlParser.write(ytScrape)
+        ksoupHtmlParser.end()
+        val json = Json { ignoreUnknownKeys = true }
+        return@runCatching json.decodeFromString<YouTubeInitialPage>(response)
+    }
 
-    suspend fun player(videoId: String, pipedInstance: String, playlistId: String? = null): Result<PlayerResponse> = runCatching {
-        val piped = ytMusic.pipedStreams(videoId, pipedInstance).body<PipedResponse>()
-        val audioStreams = piped.audioStreams
+    suspend fun player(videoId: String, playlistId: String? = null): Result<PlayerResponse> = runCatching {
+        val ytScrape = ytMusic.scrapeYouTube(videoId).body<String>()
+        var response = ""
+        var data = ""
+        val ksoupHtmlParser = KsoupHtmlParser(
+            object : KsoupHtmlHandler {
+                override fun onText(text: String) {
+                    super.onText(text)
+                    if (text.contains("var ytInitialPlayerResponse")) {
+                        val temp = text.replace("var ytInitialPlayerResponse = ", "").dropLast(1)
+//                        println("Scrape Temp $temp")
+                        response = temp.trimIndent()
+                    }
+                    else if (text.contains("var ytInitialData")) {
+                        val temp = text.replace("var ytInitialData = ", "").dropLast(1)
+//                        println("Scrape Temp $temp")
+                        data = temp.trimIndent()
+//                        println(data)
+                    }
+                }
+            }
+        )
+        ksoupHtmlParser.write(ytScrape)
+        ksoupHtmlParser.end()
+        val json = Json {ignoreUnknownKeys = true}
+//        println(data)
+        val ytScrapeData = json.decodeFromString<YouTubeDataPage>(data)
+        val ytScrapeInitial = json.decodeFromString<YouTubeInitialPage>(response)
         val playerResponse = ytMusic.player(ANDROID_MUSIC, videoId, playlistId).body<PlayerResponse>()
-        Log.w("playerResponse", playerResponse.streamingData?.adaptiveFormats.toString())
+//        println( playerResponse.streamingData?.adaptiveFormats?.findLast { it.itag == 251 }?.mimeType.toString())
         if (playerResponse.playabilityStatus.status == "OK") {
             return@runCatching playerResponse.copy(
                 videoDetails = playerResponse.videoDetails?.copy(
-                    authorAvatar = piped.uploaderAvatar?.replace(Regex("s48"), "s960"),
-                    authorSubCount = piped.uploaderSubscriberCount,
-                    description = piped.description,
+//                    authorAvatar = piped.uploaderAvatar?.replace(Regex("s48"), "s960"),
+                    author = ytScrapeInitial.videoDetails?.author ?: playerResponse.videoDetails.author,
+                    authorAvatar = ytScrapeData.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.thumbnail?.thumbnails?.get(0)?.url?.replace(Regex("s48"), "s960"),
+//                    authorSubCount = piped.uploaderSubscriberCount,
+                    authorSubCount = ytScrapeData.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.subscriberCountText?.simpleText ?: "0",
+                    description = ytScrapeInitial.videoDetails?.shortDescription,
                 ),
-                streamingData = playerResponse.streamingData?.copy(
-                    adaptiveFormats = playerResponse.streamingData.adaptiveFormats.mapNotNull { adaptiveFormat ->
-                        audioStreams.find { it.itag == adaptiveFormat.itag }?.let {
-                            adaptiveFormat.copy(
-                                mimeType = it.mimeType?: "",
-                                bitrate = it.bitrate,
-                            )
-                        }
-                    }
-                )
             )
         }
         val safePlayerResponse = ytMusic.player(TVHTML5, videoId, playlistId).body<PlayerResponse>()
-        Log.w("safePlayerResponse", safePlayerResponse.streamingData?.adaptiveFormats.toString())
         if (safePlayerResponse.playabilityStatus.status != "OK") {
             return@runCatching playerResponse.copy(
                 videoDetails = safePlayerResponse.videoDetails?.copy(
-                    authorAvatar = piped.uploaderAvatar?.replace(Regex("s48"), "s960"),
-                    authorSubCount = piped.uploaderSubscriberCount,
-                    description = piped.description,
+//                    authorAvatar = piped.uploaderAvatar?.replace(Regex("s48"), "s960"),
+                    author = ytScrapeInitial.videoDetails?.author ?: safePlayerResponse.videoDetails.author,
+                    authorAvatar = ytScrapeData.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.thumbnail?.thumbnails?.get(0)?.url?.replace(Regex("s48"), "s960"),
+//                    authorSubCount = piped.uploaderSubscriberCount,
+                    authorSubCount = ytScrapeData.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.subscriberCountText?.simpleText ?: "0",
+                    description = ytScrapeInitial.videoDetails?.shortDescription,
                     ),
             )
         }
-        safePlayerResponse.copy(
-            streamingData = safePlayerResponse.streamingData?.copy(
-                adaptiveFormats = safePlayerResponse.streamingData.adaptiveFormats.mapNotNull { adaptiveFormat ->
-                    audioStreams.find { it.itag == adaptiveFormat.itag }?.let {
-                        adaptiveFormat.copy(
-                            url = it.url,
-                        )
+        else {
+            val piped = ytMusic.pipedStreams(videoId, "pipedapi.kavin.rocks").body<PipedResponse>()
+            Log.w("use Piped?", piped.audioStreams.toString())
+            val audioStreams = piped.audioStreams
+            return@runCatching safePlayerResponse.copy(
+                streamingData = safePlayerResponse.streamingData?.copy(
+                    adaptiveFormats = safePlayerResponse.streamingData.adaptiveFormats.mapNotNull { adaptiveFormat ->
+                        audioStreams.find { it.itag == adaptiveFormat.itag }?.let {
+                            adaptiveFormat.copy(
+                                url = it.url,
+                            )
+                        }
+                    }
+                ),
+                videoDetails = safePlayerResponse.videoDetails?.copy(
+//                    authorAvatar = piped.uploaderAvatar?.replace(Regex("s48"), "s960"),
+                    author = ytScrapeInitial.videoDetails?.author ?: safePlayerResponse.videoDetails.author,
+                    authorAvatar = ytScrapeData.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.thumbnail?.thumbnails?.get(0)?.url?.replace(Regex("s48"), "s960"),
+//                    authorSubCount = piped.uploaderSubscriberCount,
+                    authorSubCount = ytScrapeData.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.subscriberCountText?.simpleText ?: "0",
+                    description = ytScrapeInitial.videoDetails?.shortDescription,
+                )
+            )
+        }
+    }
+    suspend fun initPlayback(playbackUrl: String, atrUrl: String, watchtimeUrl: String): Result<Int> {
+        return runCatching {
+            val cpn = (1..16).map { "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"[Random.Default.nextInt(0, 64)] }.joinToString("")
+            ytMusic.initPlayback(playbackUrl, cpn).status.value.let { status ->
+                if (status == 204) {
+                    println("playback done")
+                    delay(5000)
+                    ytMusic.initPlayback(atrUrl, cpn).status.value.let { atr ->
+                        if (atr == 204) {
+                            println("atr done")
+                            delay(500)
+                            ytMusic.initPlayback(watchtimeUrl, cpn).status.value.let { watchtime ->
+                                if (watchtime == 204) {
+                                    println("watchtime done")
+                                    return@runCatching 204
+                                }
+                                else {
+                                    return@runCatching watchtime
+                                }
+                            }
+                        }
+                        else {
+                            return@runCatching atr
+                        }
                     }
                 }
-            ),
-            videoDetails = safePlayerResponse.videoDetails?.copy(
-                authorAvatar = piped.uploaderAvatar?.replace(Regex("s48"), "s96"),
-                authorSubCount = piped.uploaderSubscriberCount,
-                description = piped.description,
-                )
-        )
+                else {
+                    return@runCatching status
+                }
+            }
+        }
     }
 
     suspend fun next(endpoint: WatchEndpoint, continuation: String? = null): Result<NextResult> = runCatching {
@@ -439,6 +525,10 @@ object YouTube {
             val FILTER_FEATURED_PLAYLIST = SearchFilter("EgeKAQQoADgBagwQDhAKEAMQBRAJEAQ%3D")
             val FILTER_COMMUNITY_PLAYLIST = SearchFilter("EgeKAQQoAEABagoQAxAEEAoQCRAF")
         }
+    }
+
+    suspend fun scrapeYouTube(videoId: String) = runCatching {
+        ytMusic.scrapeYouTube(videoId).body<String>()
     }
 
     const val MAX_GET_QUEUE_SIZE = 1000

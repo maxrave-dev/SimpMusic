@@ -14,7 +14,10 @@ data class FormatEntity(
     val loudnessDb: Float? = null,
     val uploader: String? = null,
     val uploaderId: String? = null,
-    val uploaderSubCount: Int? = null,
+    val uploaderSubCount: String? = null,
     val uploaderThumbnail: String? = null,
     val description: String? = null,
+    val playbackTrackingVideostatsPlaybackUrl: String? = null,
+    val playbackTrackingAtrUrl: String? = null,
+    val playbackTrackingVideostatsWatchtimeUrl: String? = null,
 )

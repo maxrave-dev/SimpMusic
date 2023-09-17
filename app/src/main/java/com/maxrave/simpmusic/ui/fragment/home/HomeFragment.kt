@@ -16,6 +16,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import coil.load
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.snackbar.Snackbar
 import com.maxrave.simpmusic.R
@@ -300,6 +301,24 @@ class HomeFragment : Fragment() {
                 is Resource.Error -> {
                     binding.swipeRefreshLayout.isRefreshing = false
                 }
+            }
+        }
+        binding.accountLayout.visibility = View.GONE
+        viewModel.accountInfo.observe(viewLifecycleOwner) {pair ->
+            if (pair != null) {
+                val accountName = pair.first
+                val accountThumbUrl = pair.second
+                if (accountName != null && accountThumbUrl != null) {
+                    binding.accountLayout.visibility = View.VISIBLE
+                    binding.tvAccountName.text = accountName
+                    binding.ivAccount.load(accountThumbUrl)
+                }
+                else {
+                    binding.accountLayout.visibility = View.GONE
+                }
+            }
+            else {
+                binding.accountLayout.visibility = View.GONE
             }
         }
         viewLifecycleOwner.lifecycleScope.launch {

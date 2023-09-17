@@ -353,8 +353,7 @@ class AlbumFragment: Fragment() {
                             btArtist.text = it?.artists?.get(0)?.name
                             tvYearAndCategory.text= context?.getString(R.string.year_and_category, it?.year, it?.type)
                             tvTrackCountAndDuration.text = context?.getString(R.string.album_length, it?.trackCount.toString(), it?.duration)
-                            tvDescription.originalText = it?.description.toString()
-                            if (it?.description == null){
+                            if (it?.description == null || it.description == ""){
                                 tvDescription.originalText = "No description"
                             }
                             else {
@@ -423,9 +422,8 @@ class AlbumFragment: Fragment() {
                                     btArtist.text = it.artists[0].name
                                     tvYearAndCategory.text= context?.getString(R.string.year_and_category, it.year, it.type)
                                     tvTrackCountAndDuration.text = context?.getString(R.string.album_length, it.trackCount.toString(), it.duration)
-                                    tvDescription.originalText = it.description.toString()
-                                    if (it.description == null){
-                                        tvDescription.originalText = "No description"
+                                    if (it.description == null || it.description == ""){
+                                        tvDescription.originalText = getString(R.string.no_description)
                                     }
                                     else {
                                         tvDescription.originalText = it.description.toString()
@@ -503,9 +501,8 @@ class AlbumFragment: Fragment() {
                     btArtist.text = albumEntity.artistName?.get(0) ?: "Unknown"
                     tvYearAndCategory.text= context?.getString(R.string.year_and_category, albumEntity.year, albumEntity.type)
                     tvTrackCountAndDuration.text = context?.getString(R.string.album_length, albumEntity.trackCount.toString(), albumEntity.duration)
-                    tvDescription.originalText = albumEntity.description.toString()
-                    if (albumEntity.description == null){
-                        tvDescription.originalText = "No description"
+                    if (albumEntity.description == ""){
+                        tvDescription.originalText = getString(R.string.no_description)
                     }
                     else {
                         tvDescription.originalText = albumEntity.description.toString()

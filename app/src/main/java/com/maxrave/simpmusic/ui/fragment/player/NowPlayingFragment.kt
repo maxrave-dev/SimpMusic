@@ -72,8 +72,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import java.text.NumberFormat
-import java.util.Locale
 import javax.inject.Inject
 
 
@@ -167,6 +165,27 @@ class NowPlayingFragment : Fragment() {
                     binding.tvSongTitle.visibility = View.GONE
                     binding.tvSongArtist.visibility = View.GONE
                     Queue.getNowPlaying()?.let {
+                        lifecycleScope.launch {
+                            viewModel.firstTrackAdded.collect { added ->
+                                if (added) {
+                                    viewModel.changeFirstTrackAddedToFalse()
+                                    viewModel.getFormat(it.videoId)
+                                    viewModel.format.observe(viewLifecycleOwner){ format ->
+                                        Log.d("Check Format", format.toString())
+                                        if (format != null){
+                                            binding.uploaderLayout.visibility = View.VISIBLE
+                                            binding.tvUploader.text = format.uploader
+                                            binding.ivAuthor.load(format.uploaderThumbnail)
+                                            binding.tvSubCount.text = format.uploaderSubCount
+                                        }
+                                        else {
+                                            binding.uploaderLayout.visibility = View.GONE
+                                        }
+                                    }
+                                    getRelated(it.videoId)
+                                }
+                            }
+                        }
                         musicSource.reset()
                         if (requireContext().isMyServiceRunning(FetchQueue::class.java)) {
                             requireActivity().stopService(
@@ -180,29 +199,6 @@ class NowPlayingFragment : Fragment() {
                         viewModel.videoId.postValue(it.videoId)
                         viewModel.from.postValue(from)
                         updateUIfromQueueNowPlaying()
-                        lifecycleScope.launch {
-                            viewModel.firstTrackAdded.collect { added ->
-                                if (added) {
-                                    viewModel.changeFirstTrackAddedToFalse()
-                                    viewModel.getFormat(it.videoId)
-                                    viewModel.format.observe(viewLifecycleOwner){ format ->
-                                        Log.d("Check Format", format.toString())
-                                        if (format != null){
-                                            binding.uploaderLayout.visibility = View.VISIBLE
-                                            binding.tvUploader.text = format.uploader
-                                            binding.ivAuthor.load(format.uploaderThumbnail)
-                                            binding.tvSubCount.text = getString(R.string.subscribers, NumberFormat.getNumberInstance(
-                                                Locale.US).format(format.uploaderSubCount).toString())
-                                        }
-                                        else {
-                                            binding.uploaderLayout.visibility = View.GONE
-                                        }
-                                    }
-                                    getRelated(it.videoId)
-                                }
-                            }
-                        }
-
                     }
                 }
             }
@@ -219,9 +215,9 @@ class NowPlayingFragment : Fragment() {
                     Log.d("Check videoId in ViewModel", viewModel.videoId.value.toString())
                     viewModel.getSongFull(videoId!!)
                     viewModel.songFull.observe(viewLifecycleOwner) {
-                        Log.w("Check Song Full", it?.title.toString())
-                        if (it != null && it.thumbnailUrl?.contains(videoId!!) == true) {
-                            val track = it.toTrack(videoId!!)
+                        Log.w("Check Song Full", it?.videoDetails?.title.toString())
+                        if (it != null && it.videoDetails?.videoId == videoId && it.videoDetails?.videoId != null) {
+                            val track = it.toTrack()
                             Queue.clear()
                             Queue.setNowPlaying(track)
                             musicSource.reset()
@@ -250,8 +246,7 @@ class NowPlayingFragment : Fragment() {
                                                 binding.uploaderLayout.visibility = View.VISIBLE
                                                 binding.tvUploader.text = format.uploader
                                                 binding.ivAuthor.load(format.uploaderThumbnail)
-                                                binding.tvSubCount.text = getString(R.string.subscribers, NumberFormat.getNumberInstance(
-                                                    Locale.US).format(format.uploaderSubCount).toString())
+                                                binding.tvSubCount.text = format.uploaderSubCount
                                             }
                                             else {
                                                 binding.uploaderLayout.visibility = View.GONE
@@ -306,8 +301,7 @@ class NowPlayingFragment : Fragment() {
                                             binding.uploaderLayout.visibility = View.VISIBLE
                                             binding.tvUploader.text = format.uploader
                                             binding.ivAuthor.load(format.uploaderThumbnail)
-                                            binding.tvSubCount.text = getString(R.string.subscribers, NumberFormat.getNumberInstance(
-                                                Locale.US).format(format.uploaderSubCount).toString())
+                                            binding.tvSubCount.text = format.uploaderSubCount
                                         }
                                         else {
                                             binding.uploaderLayout.visibility = View.GONE
@@ -378,8 +372,7 @@ class NowPlayingFragment : Fragment() {
                                             binding.uploaderLayout.visibility = View.VISIBLE
                                             binding.tvUploader.text = format.uploader
                                             binding.ivAuthor.load(format.uploaderThumbnail)
-                                            binding.tvSubCount.text = getString(R.string.subscribers, NumberFormat.getNumberInstance(
-                                                Locale.US).format(format.uploaderSubCount).toString())
+                                            binding.tvSubCount.text = format.uploaderSubCount
                                         }
                                         else {
                                             binding.uploaderLayout.visibility = View.GONE
@@ -452,8 +445,7 @@ class NowPlayingFragment : Fragment() {
                                             binding.uploaderLayout.visibility = View.VISIBLE
                                             binding.tvUploader.text = format.uploader
                                             binding.ivAuthor.load(format.uploaderThumbnail)
-                                            binding.tvSubCount.text = getString(R.string.subscribers, NumberFormat.getNumberInstance(
-                                                Locale.US).format(format.uploaderSubCount).toString())
+                                            binding.tvSubCount.text = format.uploaderSubCount
                                         }
                                         else {
                                             binding.uploaderLayout.visibility = View.GONE
@@ -1240,8 +1232,7 @@ class NowPlayingFragment : Fragment() {
                     binding.uploaderLayout.visibility = View.VISIBLE
                     binding.tvUploader.text = format.uploader
                     binding.ivAuthor.load(format.uploaderThumbnail)
-                    binding.tvSubCount.text = getString(R.string.subscribers, NumberFormat.getNumberInstance(
-                        Locale.US).format(format.uploaderSubCount).toString())
+                    binding.tvSubCount.text = format.uploaderSubCount
                 }
                 else {
                     binding.uploaderLayout.visibility = View.GONE
@@ -1352,8 +1343,7 @@ class NowPlayingFragment : Fragment() {
                     binding.uploaderLayout.visibility = View.VISIBLE
                     binding.tvUploader.text = format.uploader
                     binding.ivAuthor.load(format.uploaderThumbnail)
-                    binding.tvSubCount.text = getString(R.string.subscribers, NumberFormat.getNumberInstance(
-                        Locale.US).format(format.uploaderSubCount).toString())
+                    binding.tvSubCount.text = format.uploaderSubCount
                 }
                 else {
                     binding.uploaderLayout.visibility = View.GONE

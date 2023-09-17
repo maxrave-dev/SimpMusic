@@ -9,21 +9,66 @@ import kotlinx.coroutines.runBlocking
 
 fun main() {
     runBlocking {
-        YouTube.customQuery("FEmusic_home").onSuccess { result ->
-            val list = mutableListOf<Map<String, Any?>?>()
-            val limit = 5
-            var continueParam = result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(0)?.tabRenderer?.content?.sectionListRenderer?.continuations?.get(0)?.nextContinuationData?.continuation
-            list.addAll(parseMixedContent(result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(0)?.tabRenderer?.content?.sectionListRenderer?.contents))
-            var count = 0
-            while (count < limit && continueParam != null){
-                YouTube.customQuery("", continueParam).onSuccess {
-                    list.addAll(parseMixedContent(it.continuationContents?.sectionListContinuation?.contents))
-                    continueParam = it.continuationContents?.sectionListContinuation?.continuations?.get(0)?.nextContinuationData?.continuation
-                    count++
-                    println(count)
+        YouTube.cookie = "VISITOR_INFO1_LIVE=zhhx1-pXFL0; __utmz=27069237.1673094830.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); VISITOR_PRIVACY_METADATA=CgJWThICGgA%3D; __utma=27069237.597876058.1673094830.1691393097.1693037834.24; SID=awiHuIzML_IVPtnIi79j6ROA2WhRT-W4-c52-MLFqgroCU_Un_pe-kcRiM64XCZGu1KkoQ.; __Secure-1PSID=awiHuIzML_IVPtnIi79j6ROA2WhRT-W4-c52-MLFqgroCU_UFqjPiN5bEcivwgZg5kdyXw.; __Secure-3PSID=awiHuIzML_IVPtnIi79j6ROA2WhRT-W4-c52-MLFqgroCU_URAVONF3mY51fW5e7zQ7uBA.; HSID=A6fCLyhfmgiR8cgzQ; SSID=Ar-puWJ0jxD84eCD6; APISID=7se7s_CznxJlRn2t/A2KFwppY54Ybm3Abw; SAPISID=MZx1n771jRq7sE4c/AyEQHi5NsLCkvKcGt; __Secure-1PAPISID=MZx1n771jRq7sE4c/AyEQHi5NsLCkvKcGt; __Secure-3PAPISID=MZx1n771jRq7sE4c/AyEQHi5NsLCkvKcGt; LOGIN_INFO=AFmmF2swRQIhALlK-GIKSX-_-wAq3MR4LiZxDEyZau-CdERSaDCSToolAiBHixfkKWkvAOsMjXax7ia-Nsld97BRcVkrl0mP4wkxNA:QUQ3MjNmeVBBcWJNVnp1cWNLVnFnNVhCdTQ5d3JzaTNsaUVLZWwzNUFFM21Gd3BaWTZHdTh6VzJDZDhaR09UTDVHYkpORWdudXFwNVNybE1wWVVKM3p5ZFpoODgyQWc2OUlISnc1TUJpU09DXzVJR3FUVWdhVGxZT3RLcTBXcThZdGhjVENjMmI4ZnJZWGtrQ29UejhRMVl0N1NTVUxRYnl3; PREF=f6=40000000&tz=Asia.Saigon&f7=100&autoplay=true&volume=56&gl=VN&hl=vi&guide_collapsed=false; YSC=0ukOXfdxEmA; __Secure-1PSIDTS=sidts-CjEB3e41hXWXBiV8H7ZyfdAHIzSKGskCWZbwARRHAW3uCaJSInbKtluacecZbxO_DLtVEAA; __Secure-3PSIDTS=sidts-CjEB3e41hXWXBiV8H7ZyfdAHIzSKGskCWZbwARRHAW3uCaJSInbKtluacecZbxO_DLtVEAA; SIDCC=APoG2W_d8Hwm_kU1nc-fFziapVRismDsb5B06nunLQUovlVnI7xsYBZEmbyRxEwAjqhto-ZZcAs; __Secure-1PSIDCC=APoG2W8W9LS5IoFFDiEuUE-89IgRe0haSCQodm3DUV06fXpD-Jk8kMeET0L5OiGmEw2CTgzoQIg; __Secure-3PSIDCC=APoG2W_Ii-jswtLqsV-v6vWLJnVW-5bw6arSWwLyZ_e3gZGAMwsy-xSRyFWH5B-TsGihP7ZIyGA"
+
+        YouTube.player("cPcGnUJmcFg", "").onSuccess { player ->
+//            player.playbackTracking?.videostatsPlaybackUrl?.baseUrl?.let { url ->
+//                YouTube.initPlayback(url).onSuccess { playback ->
+//                    println(playback)
+//                    delay(5000)
+//                    player.playbackTracking.atrUrl?.baseUrl?.let {
+//                        YouTube.initPlayback(it).onSuccess { atr ->
+//                            println(atr)
+//                        }
+//                    }
+//                }
+//            }
+            if (player.playbackTracking?.videostatsPlaybackUrl?.baseUrl != null && player.playbackTracking.atrUrl?.baseUrl != null && player.playbackTracking.videostatsWatchtimeUrl?.baseUrl != null) {
+                YouTube.initPlayback(player.playbackTracking.videostatsPlaybackUrl.baseUrl,
+                    player.playbackTracking.atrUrl.baseUrl, player.playbackTracking.videostatsWatchtimeUrl.baseUrl
+                ).onSuccess { playback ->
+
                 }
             }
         }
+            .onFailure { error ->
+                error.printStackTrace()
+            }
+//        YouTube.customQuery("FEmusic_history", setLogin = true).onSuccess {
+//            println(Json.encodeToString(it))
+//        }
+//            .onFailure { error ->
+//                error.printStackTrace()
+//            }
+//        YouTube.scrapeYouTube("XLbiC-ly7v8").onSuccess { scrape ->
+//            var response = ""
+//            var data = ""
+//            val ksoupHtmlParser = KsoupHtmlParser(
+//                object : KsoupHtmlHandler {
+//                    override fun onText(text: String) {
+//                        super.onText(text)
+//                        if (text.contains("var ytInitialPlayerResponse")) {
+//                            val temp = text.replace("var ytInitialPlayerResponse = ", "").dropLast(1)
+//                            response = temp.trimIndent()
+//                        }
+//                        else if (text.contains("var ytInitialData")) {
+//                            val temp = text.replace("var ytInitialData = ", "").dropLast(1)
+//                            data = temp.trimIndent()
+//                        }
+//                    }
+//                }
+//            )
+//            ksoupHtmlParser.write(scrape)
+//            ksoupHtmlParser.end()
+//            val json = Json {ignoreUnknownKeys = true}
+//            val ytScrapeData = json.decodeFromString<YouTubeDataPage>(data)
+//            val ytScrapeInitial = json.decodeFromString<YouTubeInitialPage>(response)
+//            println(ytScrapeInitial.playbackTracking.toString())
+//
+//        }
+//            .onFailure { error ->
+//                error.printStackTrace()
+//            }
     }
 }
 

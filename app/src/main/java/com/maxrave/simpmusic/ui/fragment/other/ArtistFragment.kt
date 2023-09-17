@@ -28,6 +28,7 @@ import com.maxrave.simpmusic.adapter.artist.PopularAdapter
 import com.maxrave.simpmusic.adapter.artist.RelatedArtistsAdapter
 import com.maxrave.simpmusic.adapter.artist.SeeArtistOfNowPlayingAdapter
 import com.maxrave.simpmusic.adapter.artist.SinglesAdapter
+import com.maxrave.simpmusic.adapter.artist.VideoAdapter
 import com.maxrave.simpmusic.adapter.playlist.AddToAPlaylistAdapter
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
@@ -37,6 +38,7 @@ import com.maxrave.simpmusic.data.model.browse.artist.ResultAlbum
 import com.maxrave.simpmusic.data.model.browse.artist.ResultRelated
 import com.maxrave.simpmusic.data.model.browse.artist.ResultSingle
 import com.maxrave.simpmusic.data.model.browse.artist.ResultSong
+import com.maxrave.simpmusic.data.model.browse.artist.ResultVideo
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.BottomSheetAddToAPlaylistBinding
 import com.maxrave.simpmusic.databinding.BottomSheetNowPlayingBinding
@@ -62,6 +64,7 @@ class ArtistFragment: Fragment(){
     private lateinit var popularAdapter: PopularAdapter
     private lateinit var singlesAdapter: SinglesAdapter
     private lateinit var albumsAdapter: AlbumsAdapter
+    private lateinit var videoAdapter: VideoAdapter
     private lateinit var relatedArtistsAdapter: RelatedArtistsAdapter
 
     private var gradientDrawable: GradientDrawable? = null
@@ -92,6 +95,7 @@ class ArtistFragment: Fragment(){
         popularAdapter = PopularAdapter(arrayListOf())
         singlesAdapter = SinglesAdapter(arrayListOf())
         albumsAdapter = AlbumsAdapter(arrayListOf())
+        videoAdapter = VideoAdapter(arrayListOf())
         relatedArtistsAdapter = RelatedArtistsAdapter(arrayListOf(), requireContext())
         binding.rvPopularSongs.apply {
             adapter = popularAdapter
@@ -103,6 +107,10 @@ class ArtistFragment: Fragment(){
         }
         binding.rvAlbum.apply {
             adapter = albumsAdapter
+            layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        }
+        binding.rvVideo.apply {
+            adapter = videoAdapter
             layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         }
         binding.rvRelatedArtists.apply {
@@ -158,6 +166,20 @@ class ArtistFragment: Fragment(){
                 args.putString("videoId", videoId)
                 args.putString("from", "\"${viewModel.artistBrowse.value?.data?.name}\" ${getString(R.string.popular)}")
                 args.putString("type", Config.SONG_CLICK)
+                findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+            }
+        })
+        videoAdapter.setOnClickListener(object : VideoAdapter.OnItemClickListener{
+            override fun onItemClick(position: Int, type: String) {
+                val songClicked = videoAdapter.getCurrentList()[position]
+                val videoId = songClicked.videoId
+                Queue.clear()
+                val firstQueue: Track = songClicked.toTrack()
+                Queue.setNowPlaying(firstQueue)
+                val args = Bundle()
+                args.putString("videoId", videoId)
+                args.putString("from", "\"${viewModel.artistBrowse.value?.data?.name}\" ${getString(R.string.videos)}")
+                args.putString("type", Config.VIDEO_CLICK)
                 findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
             }
         })
@@ -367,6 +389,9 @@ class ArtistFragment: Fragment(){
                             }
                             if (it.albums?.results != null) {
                                 albumsAdapter.updateList(it.albums.results as ArrayList<ResultAlbum>)
+                            }
+                            if (it.video != null) {
+                                videoAdapter.updateList(it.video as ArrayList<ResultVideo>)
                             }
                             if (it.related?.results != null) {
                                 relatedArtistsAdapter.updateList(it.related.results as ArrayList<ResultRelated>)
