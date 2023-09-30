@@ -101,6 +101,60 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
         }
     }
 
+    val spotifyCookie = settingsDataStore.data.map { preferences ->
+        preferences[SPOTIFY_COOKIE] ?: ""
+    }
+
+    suspend fun setSpotifyCookie(cookie: String) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[SPOTIFY_COOKIE] = cookie
+            }
+        }
+    }
+
+    val spotifyLoggedIn = settingsDataStore.data.map { preferences ->
+        preferences[SPOTIFY_LOGGED_IN] ?: FALSE
+    }
+
+    suspend fun setSpotifyLoggedIn(logged: Boolean) {
+        withContext(Dispatchers.IO) {
+            if (logged) {
+                settingsDataStore.edit { settings ->
+                    settings[SPOTIFY_LOGGED_IN] = TRUE
+                }
+            } else {
+                settingsDataStore.edit { settings ->
+                    settings[SPOTIFY_LOGGED_IN] = FALSE
+                }
+            }
+        }
+    }
+
+    val spotifyAccessToken = settingsDataStore.data.map { preferences ->
+        preferences[stringPreferencesKey("spotify_access_token")] ?: ""
+    }
+
+    suspend fun setSpotifyAccessToken(token: String) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[stringPreferencesKey("spotify_access_token")] = token
+            }
+        }
+    }
+
+    val spotifyAccessTokenExpire = settingsDataStore.data.map { preferences ->
+        preferences[stringPreferencesKey("spotify_access_token_expire")] ?: ""
+    }
+
+    suspend fun setSpotifyAccessTokenExpire(token: String) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[stringPreferencesKey("spotify_access_token_expire")] = token
+            }
+        }
+    }
+
     val normalizeVolume: Flow<String> = settingsDataStore.data.map { preferences ->
         preferences[NORMALIZE_VOLUME] ?: FALSE
     }
@@ -277,6 +331,8 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
     companion object Settings {
         val COOKIE = stringPreferencesKey("cookie")
         val LOGGED_IN = stringPreferencesKey("logged_in")
+        val SPOTIFY_COOKIE = stringPreferencesKey("spotify_cookie")
+        val SPOTIFY_LOGGED_IN = stringPreferencesKey("spotify_logged_in")
         val LOCATION = stringPreferencesKey("location")
         val QUALITY = stringPreferencesKey("quality")
         val NORMALIZE_VOLUME = stringPreferencesKey("normalize_volume")

@@ -29,6 +29,7 @@ import com.maxrave.kotlinytmusicscraper.models.response.SearchResponse
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.kotlinytmusicscraper.models.splitBySeparator
 import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
+import com.maxrave.kotlinytmusicscraper.models.spotify.AccessToken
 import com.maxrave.kotlinytmusicscraper.models.spotify.SpotifyResult
 import com.maxrave.kotlinytmusicscraper.models.spotify.Token
 import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
@@ -59,30 +60,64 @@ import org.json.JSONArray
 import java.net.Proxy
 import kotlin.random.Random
 
+/**
+ * Special thanks to [z-huang/InnerTune](https://github.com/z-huang/InnerTune)
+ * This library is from [z-huang/InnerTune] and I just modified it to comply with SimpMusic
+ *
+ * Here is the object that can create all request to YouTube Music and Spotify in SimpMusic
+ * Using YouTube Internal API, Spotify Web API and Spotify Internal API for get lyrics
+ * @author maxrave-dev
+ */
 object YouTube {
     private val ytMusic = Ytmusic()
 
+    /**
+     * Set the locale and language for YouTube Music
+     */
     var locale: YouTubeLocale
         get() = ytMusic.locale
         set(value) {
             ytMusic.locale = value
         }
+    /**
+     * Set custom visitorData for client (default is @see [DEFAULT_VISITOR_DATA])
+     */
     var visitorData: String
         get() = ytMusic.visitorData
         set(value) {
             ytMusic.visitorData = value
         }
+
+    /**
+     * Set cookie and authentication header for client (for log in option)
+     */
     var cookie: String?
         get() = ytMusic.cookie
         set(value) {
             ytMusic.cookie = value
         }
+
+    var spotifyCookie: String?
+        get() = ytMusic.spotifyCookie
+        set(value) {
+            ytMusic.spotifyCookie = value
+        }
+
+    /**
+     * Set the proxy for client
+     */
     var proxy: Proxy?
         get() = ytMusic.proxy
         set(value) {
             ytMusic.proxy = value
         }
 
+    /**
+     * Search for a song, album, artist, playlist, etc.
+     * @param query the search query
+     * @param filter the search filter (see in [SearchFilter])
+     * @return a [Result]<[SearchResult]> object
+     */
     suspend fun search(query: String, filter: SearchFilter): Result<SearchResult> = runCatching {
         val response = ytMusic.search(WEB_REMIX, query, filter.value).body<SearchResponse>()
         SearchResult(
@@ -97,6 +132,11 @@ object YouTube {
         )
     }
 
+    /**
+     * Every search request response a limited data. Use this function to get the next data
+     * @param continuation continuation token from [SearchResult.continuation]
+     * @return a [Result]<[SearchResult]> object
+     */
     suspend fun searchContinuation(continuation: String): Result<SearchResult> = runCatching {
         val response = ytMusic.search(WEB_REMIX, continuation = continuation).body<SearchResponse>()
         SearchResult(
@@ -108,6 +148,12 @@ object YouTube {
         )
     }
 
+    /**
+     * Get the album page data from YouTube Music
+     * @param browseId the album browseId
+     * @param withSongs if true, the function will get the songs data too
+     * @return a [Result]<[AlbumPage]> object
+     */
     suspend fun album(browseId: String, withSongs: Boolean = true): Result<AlbumPage> = runCatching {
         val response = ytMusic.browse(WEB_REMIX, browseId).body<BrowseResponse>()
         val playlistId = response.microformat?.microformatDataRenderer?.urlCanonical?.substringAfterLast('=')!!
@@ -152,6 +198,11 @@ object YouTube {
             }!!
     }
 
+    /**
+     * Get the artist page data from YouTube Music
+     * @param browseId the artist browseId
+     * @return a [Result]<[ArtistPage]> object
+     */
     suspend fun artist(browseId: String): Result<ArtistPage> = runCatching {
         val response = ytMusic.browse(WEB_REMIX, browseId).body<BrowseResponse>()
         ArtistPage(
@@ -173,6 +224,11 @@ object YouTube {
         )
     }
 
+    /**
+     * Get the playlist page data from YouTube Music
+     * @param playlistId the playlistId
+     * @return a [Result]<[PlaylistPage]> object
+     */
     suspend fun playlist(playlistId: String): Result<PlaylistPage> = runCatching {
         val response = ytMusic.browse(
             client = WEB_REMIX,
@@ -224,21 +280,64 @@ object YouTube {
             continuation = response.continuationContents.musicPlaylistShelfContinuation.continuations?.getContinuation()
         )
     }
+
+    /**
+     * Execute a custom POST request to YouTube Music
+     * In SimpMusic, I use this function to parsing Home, Playlist, Album data instead using [album], [playlist], [artist] function
+     * @param browseId the browseId (such as "FEmusic_home", "VL$playlistId", etc.)
+     * @param params the params
+     * @param continuation the continuation token
+     * @param country the country code
+     * @param setLogin if true, the function will set the cookie and authentication header
+     * @return a [Result]<[BrowseResponse]> object
+     */
     suspend fun customQuery(browseId: String, params: String? = null, continuation: String? = null, country: String? = null, setLogin: Boolean = true) = runCatching {
         ytMusic.browse(WEB_REMIX, browseId, params, continuation, country, setLogin).body<BrowseResponse>()
     }
+
+    /**
+     * Get the related data of a song from YouTube Music
+     * @param videoId the videoId of song
+     * @return a [Result]<[NextResponse]> object
+     */
     suspend fun nextCustom(videoId: String) = runCatching {
         ytMusic.nextCustom(WEB_REMIX, videoId).body<NextResponse>()
     }
-    suspend fun getLyrics(songId: String) = runCatching {
-        ytMusic.getLyrics(songId).body<Lyrics>()
+
+    /**
+     * Get lyrics from Spotify (after get the songId from [getSongId])
+     * @author maxrave-dev
+     * @param songId the songId of song (songId of Spotify not videoId of YouTube)
+     * @return a [Result]<[Lyrics]> object
+     */
+    suspend fun getLyrics(songId: String, authorization: String? = null) = runCatching {
+        ytMusic.getLyrics(songId, authorization).body<Lyrics>()
     }
+
+    /**
+     * Authentication to Spotify Web API
+     * @return a [Result]<[Token]> object
+     */
     suspend fun authentication() = runCatching {
         ytMusic.authorizationSpotify().body<Token>()
     }
+    /**
+     * Get the Spotify SongId search result
+     * @return a [Result]<[SpotifyResult]> object
+     */
     suspend fun getSongId(authorization: String, query: String) = runCatching {
         ytMusic.searchSongId(authorization, query).body<SpotifyResult>()
     }
+
+    suspend fun getAccessToken() = runCatching {
+        ytMusic.getAccessToken().body<AccessToken>()
+    }
+
+    /**
+     * Get the suggest query from Google
+     * @param query the search query
+     * @return a [Result]<[ArrayList]<[String]>> object
+     */
     suspend fun getSuggestQuery(query: String) = runCatching {
         val listSuggest: ArrayList<String> = arrayListOf()
         ytMusic.getSuggestQuery(query).body<String>().let { array ->
@@ -254,6 +353,11 @@ object YouTube {
         return@runCatching listSuggest
     }
 
+    /**
+     * Get Skip Segments from SponsorBlock
+     * @param videoId the videoId of song
+     * @return a [Result]<[List]<[SkipSegments]>> object
+     */
     suspend fun getSkipSegments(videoId: String) = runCatching {
         ytMusic.getSkipSegments(videoId).body<List<SkipSegments>>()
     }
@@ -513,6 +617,10 @@ object YouTube {
 
     suspend fun pipeStream(videoId: String, pipedInstance: String) = runCatching {
         ytMusic.pipedStreams(videoId, pipedInstance).body<PipedResponse>()
+    }
+
+    suspend fun getLibraryPlaylists() = runCatching {
+        ytMusic.browse(WEB_REMIX, "FEmusic_liked_playlists", setLogin = true).body<BrowseResponse>()
     }
 
     @JvmInline

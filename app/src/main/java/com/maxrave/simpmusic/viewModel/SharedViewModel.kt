@@ -945,6 +945,15 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                     Log.e("Cookie", "Cookie is empty")
                 }
             }
+            dataStoreManager.spotifyCookie.first().let { cookie ->
+                if (cookie != "") {
+                    YouTube.spotifyCookie = cookie
+                    Log.d("Spotify Cookie", "Cookie is not empty")
+                }
+                else {
+                    Log.e("Spotify Cookie", "Cookie is empty")
+                }
+            }
         }
     }
 

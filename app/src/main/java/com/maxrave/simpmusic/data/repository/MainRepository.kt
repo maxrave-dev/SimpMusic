@@ -6,6 +6,7 @@ import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.models.MusicShelfRenderer
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
+import com.maxrave.kotlinytmusicscraper.models.spotify.AccessToken
 import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.LocalDataSource
@@ -39,6 +40,7 @@ import com.maxrave.simpmusic.data.parser.parseAlbumData
 import com.maxrave.simpmusic.data.parser.parseArtistData
 import com.maxrave.simpmusic.data.parser.parseChart
 import com.maxrave.simpmusic.data.parser.parseGenreObject
+import com.maxrave.simpmusic.data.parser.parseLibraryPlaylist
 import com.maxrave.simpmusic.data.parser.parseMixedContent
 import com.maxrave.simpmusic.data.parser.parseMoodsMomentObject
 import com.maxrave.simpmusic.data.parser.parsePlaylistData
@@ -54,6 +56,7 @@ import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.runBlocking
@@ -296,7 +299,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                     result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(0)?.tabRenderer?.content?.sectionListRenderer?.contents
                 list.addAll(parseMixedContent(data))
                 var count = 0
-                while (count < 3 && continueParam != null) {
+                while (count < 5 && continueParam != null) {
                     YouTube.customQuery(browseId = "", continuation = continueParam).onSuccess { response ->
                         continueParam =
                             response.continuationContents?.sectionListContinuation?.continuations?.get(
@@ -659,11 +662,29 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                                 spotifyResult.tracks?.items?.get(it)?.let {item ->
                                     item.id?.let { it1 ->
                                         Log.d("Lyrics", "id: $it1")
-                                        YouTube.getLyrics(it1).onSuccess { lyrics ->
-                                            emit(Resource.Success<Lyrics>(lyrics.toLyrics()))
-                                        }.onFailure {
-                                            Log.d("Lyrics", "Error: ${it.message}")
-                                            emit(Resource.Error<Lyrics>("Not found"))
+                                        if (dataStoreManager.spotifyAccessTokenExpire.first() != "" && dataStoreManager.spotifyAccessToken.first() != "" && dataStoreManager.spotifyAccessTokenExpire.first().toLong() < System.currentTimeMillis()) {
+                                            YouTube.getLyrics(it1, dataStoreManager.spotifyAccessToken.first()).onSuccess { lyrics ->
+                                                emit(Resource.Success<Lyrics>(lyrics.toLyrics()))
+                                            }.onFailure {
+                                                Log.d("Lyrics", "Error: ${it.message}")
+                                                emit(Resource.Error<Lyrics>("Not found"))
+                                            }
+                                        }
+                                        else {
+                                            YouTube.getAccessToken().onSuccess { value: AccessToken ->
+                                                dataStoreManager.setSpotifyAccessToken(value.accessToken!!)
+                                                dataStoreManager.setSpotifyAccessTokenExpire(value.accessTokenExpirationTimestampMs.toString())
+                                                YouTube.getLyrics(it1, value.accessToken).onSuccess { lyrics ->
+                                                    emit(Resource.Success<Lyrics>(lyrics.toLyrics()))
+                                                }.onFailure {
+                                                    Log.d("Lyrics", "Error: ${it.message}")
+                                                    emit(Resource.Error<Lyrics>("Not found"))
+                                                }
+                                            }
+                                                .onFailure { e ->
+                                                    e.printStackTrace()
+                                                    emit(Resource.Error<Lyrics>("Not found"))
+                                                }
                                         }
                                     }
                                 }
@@ -712,6 +733,24 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                 emit(null)
             }
     }.flowOn(Dispatchers.IO)
+    suspend fun getLibraryPlaylist(): Flow<ArrayList<PlaylistsResult>?> = flow {
+        YouTube.getLibraryPlaylists().onSuccess { data ->
+            val input = data.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(0)?.tabRenderer?.content?.sectionListRenderer?.contents?.get(0)?.gridRenderer?.items ?: null
+            if (input != null) {
+                Log.w("Library", "input: ${input.size}")
+                val list = parseLibraryPlaylist(input)
+                emit(list)
+            }
+            else {
+                emit(null)
+            }
+        }
+            .onFailure {e ->
+                Log.e("Library", "Error: ${e.message}")
+                e.printStackTrace()
+                emit(null)
+            }
+    }
     suspend fun initPlayback(playback: String, atr: String, watchTime: String): Flow<Int> = flow {
         YouTube.initPlayback(playback, atr, watchTime).onSuccess { response ->
             emit(response)

@@ -443,6 +443,7 @@ class SearchFragment : Fragment() {
                             addPlaylistDialog.setCancelable(true)
                             addPlaylistDialog.show()
                         }
+                        btSleepTimer.visibility = View.GONE
                         btDownload.setOnClickListener {
                             if (tvDownload.text == getString(R.string.download)){
                                 Log.d("Download", "onClick: ${track.videoId}")

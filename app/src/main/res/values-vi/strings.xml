@@ -9,7 +9,7 @@
     <string name="year_and_category">%1$s • %2$s</string>
     <string name="album_length">%1$s bài hát  %2$s</string>
     <string name="view_count">%1$s lượt xem</string>
-    <string name="lyrics_provider">Lời bát hát được cung cấp bởi akashrchandran/spotify-lyrics-api</string>
+    <string name="lyrics_provider">Lời bát hát được cung cấp bởi Spotify (Musixmatch)</string>
     <string name="clear_search_history">Xoá lịch sử tìm kiếm</string>
     <string name="liked">Đã thích</string>
     <string name="like">Thích</string>
@@ -30,7 +30,7 @@
     <string name="no_favorite_playlists">Không có danh sách phát yêu thích nào</string>
     <string name="downloaded_playlists">Danh sách phát đã tải xuống</string>
     <string name="no_playlists_downloaded">Không có danh sách phát đã tải nào</string>
-    <string name="your_playlists">Danh sách phát của bạn</string>
+    <string name="your_playlists">Danh sách phát nội bộ của bạn</string>
     <string name="no_playlists_added">Không có danh sách phát nào được thêm</string>
     <string name="recently_added">Đã thêm gần đây</string>
     <string name="search_for_songs_artists_albums_playlists_and_more">Tìm kiếm bài hát, nghệ sĩ, album, danh sách phát và thêm nữa</string>
@@ -146,6 +146,7 @@
     <string name="send">Gửi</string>
     <string name="mail_subject">Báo cáo</string>
     <string name="delete_song_from_playlist">Xoá bài hát này khỏi danh sách phát</string>
+    <string name="log_in_to_YouTube">Đăng nhập vào YouTube</string>
     <string name="log_in">Đăng nhập</string>
     <string name="log_in_to_get_personally_data">Đăng nhập để cá nhân hoá nguồn dữ liệu</string>
     <string name="login_success">Đăng nhập thành công</string>
@@ -218,4 +219,8 @@
     <string name="sleep_timer_set_error">Hãy nhập một giá trị đúng chuẩn</string>
     <string name="sleep_timer_warning">Xoá bộ hẹn giờ ngủ</string>
     <string name="yes">Đồng ý</string>
+    <string name="welcome_back">Chào mừng trở lại,</string>
+    <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">Tải lên dữ liệu lịch sử phát lại tới YouTube Music, giúp hệ thống gợi ý hoạt động tốt hơn. Hoạt động khi đã đăng nhập</string>
+    <string name="send_back_listening_data_to_google">Gửi dữ liệu nghe nhạc về Google</string>
+    <string name="videos_inArtist">Video</string>
 </resources>

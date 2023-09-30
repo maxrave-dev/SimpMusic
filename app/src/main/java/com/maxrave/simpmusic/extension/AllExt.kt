@@ -388,16 +388,26 @@ fun ArrayList<String>.removeConflicts(): ArrayList<String> {
 
 fun com.maxrave.kotlinytmusicscraper.models.lyrics.Lyrics.toLyrics(): Lyrics {
     val lines : ArrayList<Line> = arrayListOf()
-    this.lines?.forEach {
-        lines.add(Line(
-            endTimeMs = it.endTimeMs, startTimeMs = it.startTimeMs, syllables = it.syllables ?: listOf(), words = it.words
-        ))
+    if (this.lyrics != null) {
+        this.lyrics?.lines?.forEach {
+            lines.add(Line(
+                endTimeMs = it.endTimeMs, startTimeMs = it.startTimeMs, syllables = it.syllables ?: listOf(), words = it.words
+            ))
+        }
+        return Lyrics(
+            error = false,
+            lines = lines,
+            syncType = this.lyrics!!.syncType
+        )
     }
-    return Lyrics(
-        error = this.error,
-        lines = lines,
-        syncType = this.syncType
-    )
+    else {
+        return Lyrics(
+            error = true,
+            lines = null,
+            syncType = null
+        )
+    }
+
 }
 fun PipedResponse.toTrack(videoId: String): Track {
     return Track(

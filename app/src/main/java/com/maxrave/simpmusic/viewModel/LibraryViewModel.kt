@@ -33,6 +33,9 @@ class LibraryViewModel @Inject constructor(private val mainRepository: MainRepos
     private var _listLocalPlaylist: MutableLiveData<List<LocalPlaylistEntity>> = MutableLiveData()
     val listLocalPlaylist: LiveData<List<LocalPlaylistEntity>> = _listLocalPlaylist
 
+    private var _listYouTubePlaylist: MutableLiveData<List<Any>> = MutableLiveData()
+    val listYouTubePlaylist: LiveData<List<Any>> = _listYouTubePlaylist
+
     private var _songEntity: MutableLiveData<SongEntity> = MutableLiveData()
     val songEntity: LiveData<SongEntity> = _songEntity
 
@@ -45,6 +48,14 @@ class LibraryViewModel @Inject constructor(private val mainRepository: MainRepos
             mainRepository.getAllRecentData().collect {data ->
                 temp.addAll(data)
                 _listRecentlyAdded.postValue(temp)
+            }
+        }
+    }
+
+    fun getYouTubePlaylist() {
+        viewModelScope.launch {
+            mainRepository.getLibraryPlaylist().collect { data ->
+                _listYouTubePlaylist.postValue(data)
             }
         }
     }

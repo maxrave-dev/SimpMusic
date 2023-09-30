@@ -59,7 +59,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textColor="@android:color/white"
-                        android:text = "@string/log_in">
+                        android:text = "@string/log_in_to_YouTube">
 
                     </TextView>
                     <TextView
@@ -68,6 +68,35 @@
                         android:layout_height="wrap_content"
                         android:textSize="16sp"
                         android:text="@string/log_in_to_get_personally_data">
+
+                    </TextView>
+
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginVertical="5sp"
+                    android:layout_marginStart="15sp"
+                    android:id="@+id/btSpotifyLogin"
+                    android:focusable="true"
+                    android:clickable="true"
+                    android:foreground="?android:attr/selectableItemBackground">
+                    <TextView
+                        android:id="@+id/tvSpotifyLogInTitle"
+                        android:textSize = "16sp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@android:color/white"
+                        android:text = "@string/log_in_to_Spotify">
+
+                    </TextView>
+                    <TextView
+                        android:id="@+id/tvSpotifyLogIn"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:text="@string/log_in_to_get_spotify_lyrics">
 
                     </TextView>
 

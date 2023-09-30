@@ -8,7 +8,7 @@
     <string name="year_and_category">%1$s • %2$s</string>
     <string name="album_length">%1$s tracks  %2$s</string>
     <string name="view_count">%1$s views</string>
-    <string name="lyrics_provider">Lyrics provided by akashrchandran/spotify-lyrics-api</string>
+    <string name="lyrics_provider">Lyrics provided by Spotify (Musixmatch)</string>
     <string name="clear_search_history">Clear search history</string>
     <string name="liked">Liked</string>
     <string name="like">Like</string>
@@ -29,7 +29,7 @@
     <string name="no_favorite_playlists">No favorite playlists</string>
     <string name="downloaded_playlists">Downloaded Playlists</string>
     <string name="no_playlists_downloaded">No playlists downloaded</string>
-    <string name="your_playlists">Your Playlists</string>
+    <string name="your_playlists">Your Local Playlists</string>
     <string name="no_playlists_added">No playlists added</string>
     <string name="recently_added">Recently Added</string>
     <string name="search_for_songs_artists_albums_playlists_and_more">Search for songs, artists, albums, playlists, and more</string>
@@ -142,9 +142,11 @@
     <string name="mail_subject">Report Crash</string>
     <string name="delete_song_from_playlist">Delete this song from playlist</string>
     <string name="log_in">Log in</string>
+    <string name="log_in_to_YouTube">Log in to YouTube</string>
     <string name="log_in_to_get_personally_data">Log in to get personally data</string>
     <string name="login_success">Login success</string>
-    <string name="log_out">Log out</string>
+    <string name="log_out">Log out from YouTube</string>
+    <string name="log_out_from_spotity">Log out from Spotify</string>
     <string name="logged_in">Logged in</string>
     <string name="logged_out">Logged out</string>
     <string name="playlist">Playlist</string>
@@ -218,7 +220,12 @@
     <string name="welcome_back">Welcome back,</string>
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">Upload your listening history to YouTube Music server, it will make YT Music recommendation system better. Working only if logged in</string>
     <string name="send_back_listening_data_to_google">Send back listening data to Google</string>
-    <string name="videos_inArtist">Video</string>
+    <string name="videos_inArtist">Videos</string>
+    <string name="your_youtube_playlists">Your YouTube Playlists</string>
+    <string name="no_YouTube_playlists">No YouTube Playlists</string>
+    <string name="track">track(s)</string>
+    <string name="log_in_to_get_spotify_lyrics">Log in to get Spotify lyrics</string>
+    <string name="log_in_to_Spotify">Log in to Spotify</string>
     <plurals name="n_song">
         <item quantity="one">%d song</item>
         <item quantity="other">%d songs</item>

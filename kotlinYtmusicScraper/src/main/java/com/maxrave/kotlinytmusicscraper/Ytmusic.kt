@@ -44,6 +44,11 @@ class Ytmusic {
         }
     private var cookieMap = emptyMap<String, String>()
 
+    var spotifyCookie: String? = null
+        set(value) {
+            field = value
+        }
+
     var proxy: Proxy? = null
         set(value) {
             field = value
@@ -177,11 +182,23 @@ class Ytmusic {
             parameter("q", query)
         }
 
-    suspend fun getLyrics(trackId: String) =
-        httpClient.get("https://spotify-lyric-api.herokuapp.com/") {
+    suspend fun getAccessToken() = httpClient.get("https://open.spotify.com/get_access_token?reason=transport&productType=web_player") {
+        contentType(ContentType.Application.Json)
+        header(HttpHeaders.Cookie, spotifyCookie)
+    }
+
+    suspend fun getLyrics(trackId: String, authorization: String? = null) =
+//        httpClient.get("https://spotify-lyric-api.herokuapp.com/") {
+//            contentType(ContentType.Application.Json)
+//            parameter("trackid", trackId)
+//            parameter("format", "id3")
+//        }
+        httpClient.get("https://spclient.wg.spotify.com/color-lyrics/v2/track/$trackId/") {
             contentType(ContentType.Application.Json)
-            parameter("trackid", trackId)
-            parameter("format", "id3")
+            headers {
+                header(HttpHeaders.Authorization, "Bearer $authorization")
+                header("App-Platform", "Win32")
+            }
         }
 
     suspend fun getSuggestQuery(query: String) =

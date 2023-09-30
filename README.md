@@ -19,7 +19,7 @@ A simple music app using YouTube Music for backend
 - Search everything on YouTube
 - Analyze your playing data and create custom playlists ...
 - Caching and can save data for offline playback
-- Synced lyrics ( From [akashrchandran/spotify-lyrics-api](https://github.com/akashrchandran/spotify-lyrics-api) )
+- Synced lyrics (log in to Spotify to get lyrics)
 - Sleep Timer
 - Support SponsorBlock
 - Google Login
@@ -46,7 +46,6 @@ More [screenshot](https://photos.app.goo.gl/AbieoXG5ctDrpwzp7) here.
 ## Data
 - This app using public api from YouTube Music with some tricks to get data from YouTube Music.
 - Thanks for [InnerTune](https://github.com/z-huang/InnerTune/) for the idea to get data from YouTube Music. This repo is my inspiration to create this app.
-- Special thanks for [@spotify-lyrics-api](https://github.com/akashrchandran/spotify-lyrics-api) for lyrics and [@Piped](https://github.com/TeamPiped/Piped) for streaming data.
 - My app is using [@SponsorBlock](https://sponsor.ajay.app/) to skip sponsor in YouTube videos. Thanks for this great service.
 ## Translation
 [![Crowdin](https://badges.crowdin.net/simpmusic/localized.svg)](https://crowdin.com/project/simpmusic)

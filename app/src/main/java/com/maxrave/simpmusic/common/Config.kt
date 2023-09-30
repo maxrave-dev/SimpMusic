@@ -11,6 +11,8 @@ object Config {
 
     const val YOUTUBE_MUSIC_MAIN_URL = "https://music.youtube.com/"
     const val LOG_IN_URL = "https://accounts.google.com/ServiceLogin?ltmpl=music&service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3Dhttps%253A%252F%252Fmusic.youtube.com%252F%26feature%3D__FEATURE__&hl=en"
+    const val SPOTIFY_URL = "https://open.spotify.com/"
+    const val SPOTIFY_LOG_IN_URL = "https://accounts.spotify.com/en/login?continue=https:%2F%2Fopen.spotify.com%2F"
 
     const val SONG_CLICK = "SONG_CLICK"
     const val VIDEO_CLICK = "VIDEO_CLICK"

@@ -24,6 +24,7 @@ import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
+import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.BottomSheetAddPlaylistBinding
@@ -60,6 +61,9 @@ class LibraryFragment : Fragment() {
     private lateinit var listLocalPlaylist: ArrayList<Any>
     private lateinit var adapterLocalPlaylist: FavoritePlaylistAdapter
 
+    private lateinit var listYouTubePlaylist: ArrayList<Any>
+    private lateinit var adapterYouTubePlaylist: FavoritePlaylistAdapter
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
@@ -88,6 +92,9 @@ class LibraryFragment : Fragment() {
         listLocalPlaylist = ArrayList()
         adapterLocalPlaylist = FavoritePlaylistAdapter(arrayListOf(), requireContext())
 
+        listYouTubePlaylist = ArrayList()
+        adapterYouTubePlaylist = FavoritePlaylistAdapter(arrayListOf(), requireContext())
+
         binding.rvRecentlyAdded.apply {
             adapter = adapterItem
             layoutManager = LinearLayoutManager(requireContext())
@@ -107,6 +114,12 @@ class LibraryFragment : Fragment() {
             adapter = adapterLocalPlaylist
             layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         }
+
+        binding.rvYouTubePlaylists.apply {
+            adapter = adapterYouTubePlaylist
+            layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        }
+        viewModel.getYouTubePlaylist()
         viewModel.getRecentlyAdded()
         viewModel.getPlaylistFavorite()
         viewModel.getLocalPlaylist()
@@ -170,6 +183,21 @@ class LibraryFragment : Fragment() {
             }
             else {
                 binding.tvDownloadedPlaylistsStatus.visibility = View.GONE
+            }
+        }
+        viewModel.listYouTubePlaylist.observe(viewLifecycleOwner) { list ->
+            val temp = ArrayList<Any>()
+            for (i in list.size - 1 downTo 0) {
+                temp.add(list[i])
+            }
+            listYouTubePlaylist.clear()
+            listYouTubePlaylist.addAll(temp)
+            adapterYouTubePlaylist.updateList(listYouTubePlaylist)
+            if (listYouTubePlaylist.isEmpty()) {
+                binding.tvYouTubePlaylistsStatus.visibility = View.VISIBLE
+            }
+            else {
+                binding.tvYouTubePlaylistsStatus.visibility = View.GONE
             }
         }
         adapterItem.setOnClickListener(object : SearchItemAdapter.onItemClickListener {
@@ -365,6 +393,14 @@ class LibraryFragment : Fragment() {
             }
 
         })
+        adapterYouTubePlaylist.setOnClickListener(object : FavoritePlaylistAdapter.OnItemClickListener {
+            override fun onItemClick(position: Int, type: String) {
+                val args = Bundle()
+                args.putString("id", (listYouTubePlaylist.get(position) as PlaylistsResult).browseId)
+                findNavController().navigate(R.id.action_global_playlistFragment, args)
+            }
+
+        })
         adapterDownloaded.setOnClickListener(object : FavoritePlaylistAdapter.OnItemClickListener {
             override fun onItemClick(position: Int, type: String) {
                 when (type) {
@@ -405,43 +441,72 @@ class LibraryFragment : Fragment() {
         binding.btDownloaded.setOnClickListener {
             findNavController().navigate(R.id.action_bottom_navigation_item_library_to_downloadedFragment)
         }
-        binding.topAppBar.setOnMenuItemClickListener { menuItem ->
-            when (menuItem.itemId) {
-                R.id.library_fragment_menu_item_add -> {
-                    val dialog = BottomSheetDialog(requireContext())
-                    val viewDialog = BottomSheetAddPlaylistBinding.inflate(layoutInflater)
-                    viewDialog.btCreatePlaylist.setOnClickListener {
-                        val title = viewDialog.etPlaylistName.editText?.text.toString()
-                        if (title.isNotEmpty()){
-                            viewModel.createPlaylist(title)
-                            viewModel.listLocalPlaylist.observe(viewLifecycleOwner) { list ->
-                                val temp: ArrayList<Any> = arrayListOf()
-                                for (i in list.size - 1 downTo 0) {
-                                    temp.add(list[i])
-                                }
-                                listLocalPlaylist.clear()
-                                listLocalPlaylist.addAll(temp)
-                                adapterLocalPlaylist.updateList(temp)
-                                if (listLocalPlaylist.isEmpty()) {
-                                    binding.tvYourPlaylistsStatus.visibility = View.VISIBLE
-                                }
-                                else {
-                                    binding.tvYourPlaylistsStatus.visibility = View.GONE
-                                }
-                            }
-                            dialog.dismiss()
+        binding.btAddLocalPlaylist.setOnClickListener {
+            val dialog = BottomSheetDialog(requireContext())
+            val viewDialog = BottomSheetAddPlaylistBinding.inflate(layoutInflater)
+            viewDialog.btCreatePlaylist.setOnClickListener {
+                val title = viewDialog.etPlaylistName.editText?.text.toString()
+                if (title.isNotEmpty()){
+                    viewModel.createPlaylist(title)
+                    viewModel.listLocalPlaylist.observe(viewLifecycleOwner) { list ->
+                        val temp: ArrayList<Any> = arrayListOf()
+                        for (i in list.size - 1 downTo 0) {
+                            temp.add(list[i])
+                        }
+                        listLocalPlaylist.clear()
+                        listLocalPlaylist.addAll(temp)
+                        adapterLocalPlaylist.updateList(temp)
+                        if (listLocalPlaylist.isEmpty()) {
+                            binding.tvYourPlaylistsStatus.visibility = View.VISIBLE
+                        }
+                        else {
+                            binding.tvYourPlaylistsStatus.visibility = View.GONE
                         }
                     }
-                    dialog.setCancelable(true)
-                    dialog.setContentView(viewDialog.root)
-                    dialog.show()
-                    true
-                }
-                else -> {
-                    false
+                    dialog.dismiss()
                 }
             }
+            dialog.setCancelable(true)
+            dialog.setContentView(viewDialog.root)
+            dialog.show()
         }
+//        binding.topAppBar.setOnMenuItemClickListener { menuItem ->
+//            when (menuItem.itemId) {
+//                R.id.library_fragment_menu_item_add -> {
+//                    val dialog = BottomSheetDialog(requireContext())
+//                    val viewDialog = BottomSheetAddPlaylistBinding.inflate(layoutInflater)
+//                    viewDialog.btCreatePlaylist.setOnClickListener {
+//                        val title = viewDialog.etPlaylistName.editText?.text.toString()
+//                        if (title.isNotEmpty()){
+//                            viewModel.createPlaylist(title)
+//                            viewModel.listLocalPlaylist.observe(viewLifecycleOwner) { list ->
+//                                val temp: ArrayList<Any> = arrayListOf()
+//                                for (i in list.size - 1 downTo 0) {
+//                                    temp.add(list[i])
+//                                }
+//                                listLocalPlaylist.clear()
+//                                listLocalPlaylist.addAll(temp)
+//                                adapterLocalPlaylist.updateList(temp)
+//                                if (listLocalPlaylist.isEmpty()) {
+//                                    binding.tvYourPlaylistsStatus.visibility = View.VISIBLE
+//                                }
+//                                else {
+//                                    binding.tvYourPlaylistsStatus.visibility = View.GONE
+//                                }
+//                            }
+//                            dialog.dismiss()
+//                        }
+//                    }
+//                    dialog.setCancelable(true)
+//                    dialog.setContentView(viewDialog.root)
+//                    dialog.show()
+//                    true
+//                }
+//                else -> {
+//                    false
+//                }
+//            }
+//        }
     }
 
 }
