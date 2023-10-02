@@ -110,6 +110,7 @@ class FavoriteFragment : Fragment() {
                 val dialog = BottomSheetDialog(requireContext())
                 val bottomSheetView = BottomSheetNowPlayingBinding.inflate(layoutInflater)
                 with(bottomSheetView) {
+                    btSleepTimer.visibility = View.GONE
                     tvFavorite.text = getString(R.string.liked)
                     cbFavorite.isChecked = true
                     val song = listLiked[position] as SongEntity

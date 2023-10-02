@@ -54,7 +54,7 @@ class QuickPicksAdapter(val contentList: ArrayList<Content>, val context: Contex
             artistName = removeTrailingComma(artistName)
             artistName = removeComma(artistName)
             binding.tvSongArtist.text = artistName
-            binding.ivThumbnail.load(content.thumbnails.last().url)
+            binding.ivThumbnail.load(content.thumbnails.lastOrNull()?.url ?: "https://i.ytimg.com/vi/${content.videoId}/maxresdefault.jpg")
             binding.tvSongArtist.isSelected = true
             binding.tvSongTitle.isSelected = true
         }

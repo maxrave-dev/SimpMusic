@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.media3.common.Player
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
@@ -144,13 +145,13 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
     }
 
     val spotifyAccessTokenExpire = settingsDataStore.data.map { preferences ->
-        preferences[stringPreferencesKey("spotify_access_token_expire")] ?: ""
+        preferences[longPreferencesKey("spotify_access_token_expire")] ?: 0L
     }
 
-    suspend fun setSpotifyAccessTokenExpire(token: String) {
+    suspend fun setSpotifyAccessTokenExpire(token: Long) {
         withContext(Dispatchers.IO) {
             settingsDataStore.edit { settings ->
-                settings[stringPreferencesKey("spotify_access_token_expire")] = token
+                settings[longPreferencesKey("spotify_access_token_expire")] = token
             }
         }
     }

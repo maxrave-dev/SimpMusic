@@ -35,3 +35,25 @@ fun bestMatchingIndex(s: String, list: List<String>): Int {
     }
     return listCost.indexOf(listCost.minOrNull())
 }
+
+fun get3MatchingIndex(s: String, list: List<String>): ArrayList<Int> {
+    val listIndex = ArrayList<Int>()
+    val listCost = ArrayList<Int>()
+    for (i in list.indices){
+        listCost.add(levenshtein(s, list[i]))
+    }
+    listIndex.add(listCost.indexOf(listCost.minOrNull()))
+    var count = 1
+    while (count <= 3) {
+        val cloneList = ArrayList(list)
+        cloneList.remove(list[listIndex.last()])
+        listCost.clear()
+        for (i in list.indices){
+            if (listIndex.contains(i)) continue
+            listCost.add(levenshtein(s, list[i]))
+        }
+        listIndex.add(listCost.indexOf(listCost.minOrNull()))
+        count++
+    }
+    return listIndex
+}

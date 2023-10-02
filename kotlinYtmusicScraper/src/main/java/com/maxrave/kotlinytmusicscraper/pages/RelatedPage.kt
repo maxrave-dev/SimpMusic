@@ -79,7 +79,7 @@ data class RelatedPage(
                     }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint ?: return null,
                     radioEndpoint = renderer.menu.menuRenderer.items.find {
                         it.menuNavigationItemRenderer?.icon?.iconType == "MIX"
-                    }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint ?: return null
+                    }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint
                 )
                 renderer.isArtist -> {
                     ArtistItem(

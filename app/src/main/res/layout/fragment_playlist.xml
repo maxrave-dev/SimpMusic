@@ -169,7 +169,7 @@
                                 android:layout_height="35sp"
                                 android:layout_alignParentEnd="true"
                                 android:layout_centerVertical="true"
-                                android:visibility="gone"
+                                android:visibility="visible"
                                 android:background="?attr/actionBarItemBackground"
                                 android:src="@drawable/baseline_more_vert_24">
 

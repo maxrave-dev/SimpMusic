@@ -105,6 +105,7 @@ class DownloadedFragment : Fragment() {
                 val dialog = BottomSheetDialog(requireContext())
                 val bottomSheetView = BottomSheetNowPlayingBinding.inflate(layoutInflater)
                 with(bottomSheetView) {
+                    btSleepTimer.visibility = View.GONE
                     viewModel.songEntity.observe(viewLifecycleOwner) { songEntity ->
                         if (songEntity.liked) {
                             tvFavorite.text = getString(R.string.liked)

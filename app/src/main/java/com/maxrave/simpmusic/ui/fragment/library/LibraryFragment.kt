@@ -240,6 +240,7 @@ class LibraryFragment : Fragment() {
                 val dialog = BottomSheetDialog(requireContext())
                 val bottomSheetView = BottomSheetNowPlayingBinding.inflate(layoutInflater)
                 with(bottomSheetView) {
+                    btSleepTimer.visibility = View.GONE
                     viewModel.songEntity.observe(viewLifecycleOwner) { songEntity ->
                         if (songEntity.liked) {
                             tvFavorite.text = getString(R.string.liked)
@@ -397,6 +398,7 @@ class LibraryFragment : Fragment() {
             override fun onItemClick(position: Int, type: String) {
                 val args = Bundle()
                 args.putString("id", (listYouTubePlaylist.get(position) as PlaylistsResult).browseId)
+                args.putBoolean("youtube", true)
                 findNavController().navigate(R.id.action_global_playlistFragment, args)
             }
 

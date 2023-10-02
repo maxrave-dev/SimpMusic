@@ -226,6 +226,11 @@
     <string name="track">track(s)</string>
     <string name="log_in_to_get_spotify_lyrics">Log in to get Spotify lyrics</string>
     <string name="log_in_to_Spotify">Log in to Spotify</string>
+    <string name="save_to_local_playlist">Save to local playlist</string>
+    <string name="added_local_playlist">Added Local Playlist</string>
+    <string name="sync">Sync to YouTube Music</string>
+    <string name="synced">Synced with YouTube Music</string>
+    <string name="song">Song</string>
     <plurals name="n_song">
         <item quantity="one">%d song</item>
         <item quantity="other">%d songs</item>

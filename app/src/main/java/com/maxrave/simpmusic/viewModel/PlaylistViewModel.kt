@@ -367,4 +367,11 @@ class PlaylistViewModel @Inject constructor(
             }
         }
     }
+
+    fun insertLocalPlaylist(localPlaylistEntity: LocalPlaylistEntity) {
+        viewModelScope.launch {
+            mainRepository.insertLocalPlaylist(localPlaylistEntity)
+            Toast.makeText(context, context.getString(R.string.added_local_playlist), Toast.LENGTH_SHORT).show()
+        }
+    }
 }

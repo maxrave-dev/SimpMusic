@@ -96,7 +96,12 @@ class HomeItemContentAdapter(private var listContent: ArrayList<Content>, privat
                 }
                 tvTitle.text = content.title
                 tvTitle.isSelected = true
-                tvDescription.text = content.description ?: (if (!content.artists.isNullOrEmpty()) content.artists.toListName().connectArtists() else context.getString(R.string.album))
+                if (content.description != "" && content.description != null) {
+                    tvDescription.text = content.description
+                }
+                else {
+                    tvDescription.text = if (!content.artists.isNullOrEmpty()) content.artists.toListName().connectArtists() else context.getString(R.string.album)
+                }
                 tvDescription.isSelected = true
             }
         }

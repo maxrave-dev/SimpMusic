@@ -7,6 +7,8 @@ import com.maxrave.kotlinytmusicscraper.models.YouTubeClient
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
 import com.maxrave.kotlinytmusicscraper.models.body.AccountMenuBody
 import com.maxrave.kotlinytmusicscraper.models.body.BrowseBody
+import com.maxrave.kotlinytmusicscraper.models.body.CreatePlaylistBody
+import com.maxrave.kotlinytmusicscraper.models.body.EditPlaylistBody
 import com.maxrave.kotlinytmusicscraper.models.body.FormData
 import com.maxrave.kotlinytmusicscraper.models.body.GetQueueBody
 import com.maxrave.kotlinytmusicscraper.models.body.GetSearchSuggestionsBody
@@ -188,11 +190,6 @@ class Ytmusic {
     }
 
     suspend fun getLyrics(trackId: String, authorization: String? = null) =
-//        httpClient.get("https://spotify-lyric-api.herokuapp.com/") {
-//            contentType(ContentType.Application.Json)
-//            parameter("trackid", trackId)
-//            parameter("format", "id3")
-//        }
         httpClient.get("https://spclient.wg.spotify.com/color-lyrics/v2/track/$trackId/") {
             contentType(ContentType.Application.Json)
             headers {
@@ -207,6 +204,60 @@ class Ytmusic {
             parameter("client", "firefox")
             parameter("ds", "yt")
             parameter("q", query)
+        }
+
+    suspend fun createYouTubePlaylist(title: String, listVideoId: ArrayList<String>) =
+        httpClient.post("playlist/create") {
+            ytClient(YouTubeClient.WEB_REMIX, setLogin = true)
+            setBody(
+                CreatePlaylistBody(
+                    title = title,
+                    videoIds = listVideoId
+                )
+            )
+        }
+
+    suspend fun editYouTubePlaylist(playlistId: String, title: String? = null) =
+        httpClient.post("browse/edit_playlist") {
+            ytClient(YouTubeClient.WEB_REMIX, setLogin = true)
+            setBody(
+                EditPlaylistBody(
+                    playlistId = playlistId,
+                    actions = EditPlaylistBody.Action(
+                        playlistName = title ?: ""
+                    )
+                )
+            )
+        }
+
+    suspend fun addItemYouTubePlaylist(playlistId: String, videoId: String) =
+        httpClient.post("browse/edit_playlist") {
+            ytClient(YouTubeClient.WEB_REMIX, setLogin = true)
+            setBody(
+                EditPlaylistBody(
+                    playlistId = playlistId,
+                    actions = EditPlaylistBody.Action(
+                        playlistName = null,
+                        action = "ACTION_ADD_VIDEO",
+                        addedVideoId = videoId
+                    )
+                )
+            )
+        }
+    suspend fun removeItemYouTubePlaylist(playlistId: String, videoId: String, setVideoId: String) =
+        httpClient.post("browse/edit_playlist") {
+            ytClient(YouTubeClient.WEB_REMIX, setLogin = true)
+            setBody(
+                EditPlaylistBody(
+                    playlistId = playlistId,
+                    actions = EditPlaylistBody.Action(
+                        playlistName = null,
+                        action = "ACTION_REMOVE_VIDEO",
+                        removedVideoId = videoId,
+                        setVideoId = setVideoId
+                    )
+                )
+            )
         }
 
     /***
@@ -355,9 +406,7 @@ class Ytmusic {
     ) = httpClient.get("https://www.youtube.com/watch?v=$videoId") {
         headers {
             append(HttpHeaders.AcceptLanguage, locale.hl)
-            if (cookie != null) {
-                append(HttpHeaders.Cookie, cookie ?: "")
-            }
+            append(HttpHeaders.ContentLanguage, locale.gl)
         }
     }
 

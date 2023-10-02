@@ -218,4 +218,5 @@
     <string name="sleep_timer_warning">Rimuovere il timer di spegnimento?</string>
     <string name="yes">SÌ</string>
     <string name="videos_inArtist">Video</string>
+    <string name="song">Bài hát</string>
 </resources>

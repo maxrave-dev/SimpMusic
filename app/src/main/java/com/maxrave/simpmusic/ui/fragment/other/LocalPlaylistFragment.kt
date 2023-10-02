@@ -269,6 +269,14 @@ class LocalPlaylistFragment : Fragment() {
                 editDialog.setContentView(editDialogView.root)
                 editDialog.show()
             }
+            if (viewModel.localPlaylist.value?.syncedWithYouTubePlaylist == 0) {
+                moreDialogView.tvSync.text = getString(R.string.sync)
+                moreDialogView.ivSync.setImageResource(R.drawable.baseline_sync_24)
+            }
+            else if (viewModel.localPlaylist.value?.syncedWithYouTubePlaylist == 1) {
+                moreDialogView.tvSync.text = getString(R.string.synced)
+                moreDialogView.ivSync.setImageResource(R.drawable.baseline_sync_disabled_24)
+            }
             moreDialogView.btDelete.setOnClickListener {
                 Log.d("Check", "onViewCreated: ${viewModel.localPlaylist.value}")
                 Log.d("Check", "onViewCreated: $id")

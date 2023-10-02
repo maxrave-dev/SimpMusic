@@ -41,6 +41,7 @@ import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.BottomSheetAddToAPlaylistBinding
 import com.maxrave.simpmusic.databinding.BottomSheetNowPlayingBinding
+import com.maxrave.simpmusic.databinding.BottomSheetPlaylistMoreBinding
 import com.maxrave.simpmusic.databinding.BottomSheetSeeArtistOfNowPlayingBinding
 import com.maxrave.simpmusic.databinding.FragmentPlaylistBinding
 import com.maxrave.simpmusic.extension.connectArtists
@@ -134,6 +135,46 @@ class PlaylistFragment: Fragment() {
                 viewModel.playlistEntity.value?.let { playlist -> viewModel.updatePlaylistLiked(true, playlist.id) }
             }
         }
+        binding.btMore.setOnClickListener {
+            val bottomSheetDialog = BottomSheetDialog(requireContext())
+            val moreView = BottomSheetPlaylistMoreBinding.inflate(layoutInflater)
+            moreView.ivThumbnail.load(viewModel.playlistEntity.value?.thumbnails)
+            moreView.tvSongTitle.text = viewModel.playlistEntity.value?.title
+            moreView.tvSongArtist.text = viewModel.playlistEntity.value?.author
+            moreView.btShare.setOnClickListener {
+                val shareIntent = Intent(Intent.ACTION_SEND)
+                shareIntent.type = "text/plain"
+                val url = "https://youtube.com/playlist?list=${viewModel.playlistEntity.value?.id?.replaceFirst("VL", "")}"
+                shareIntent.putExtra(Intent.EXTRA_TEXT, url)
+                val chooserIntent =
+                    Intent.createChooser(shareIntent, getString(R.string.share_url))
+                startActivity(chooserIntent)
+            }
+            if (requireArguments().getBoolean("youtube")) {
+                moreView.btSync.visibility = View.VISIBLE
+                moreView.btSync.setOnClickListener {
+                    val playlist = viewModel.playlistEntity.value
+                    if (playlist != null){
+                        val localPlaylistEntity = LocalPlaylistEntity(
+                            title = playlist.title,
+                            thumbnail = playlist.thumbnails,
+                            youtubePlaylistId = playlist.id,
+                            syncedWithYouTubePlaylist = 1,
+                            tracks = playlist.tracks,
+                            downloadState = DownloadState.STATE_NOT_DOWNLOADED
+                        )
+                        viewModel.insertLocalPlaylist(localPlaylistEntity)
+                    }
+                }
+            }
+            else {
+                moreView.btSync.visibility = View.GONE
+            }
+
+            bottomSheetDialog.setContentView(moreView.root)
+            bottomSheetDialog.setCancelable(true)
+            bottomSheetDialog.show()
+        }
 
         binding.btPlayPause.setOnClickListener {
             if (viewModel.playlistBrowse.value is Resource.Success && viewModel.playlistBrowse.value?.data != null){
@@ -221,6 +262,7 @@ class PlaylistFragment: Fragment() {
                 val dialog = BottomSheetDialog(requireContext())
                 val bottomSheetView = BottomSheetNowPlayingBinding.inflate(layoutInflater)
                 with(bottomSheetView) {
+                    btSleepTimer.visibility = View.GONE
                     viewModel.songEntity.observe(viewLifecycleOwner) { songEntity ->
                         if (songEntity.liked) {
                             tvFavorite.text = getString(R.string.liked)

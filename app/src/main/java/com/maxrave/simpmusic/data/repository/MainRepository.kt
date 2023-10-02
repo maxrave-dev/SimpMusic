@@ -50,7 +50,7 @@ import com.maxrave.simpmusic.data.parser.search.parseSearchArtist
 import com.maxrave.simpmusic.data.parser.search.parseSearchPlaylist
 import com.maxrave.simpmusic.data.parser.search.parseSearchSong
 import com.maxrave.simpmusic.data.parser.search.parseSearchVideo
-import com.maxrave.simpmusic.extension.bestMatchingIndex
+import com.maxrave.simpmusic.extension.get3MatchingIndex
 import com.maxrave.simpmusic.extension.toLyrics
 import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -61,6 +61,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import java.sql.Timestamp
 import java.time.LocalDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -305,11 +306,12 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                             response.continuationContents?.sectionListContinuation?.continuations?.get(
                                 0
                             )?.nextContinuationData?.continuation
+                        Log.d("Repository", "continueParam: $continueParam")
                         val dataContinue =
                             response.continuationContents?.sectionListContinuation?.contents
                         list.addAll(parseMixedContent(dataContinue))
-                        Log.d("Repository", "continueParam: $continueParam")
                         count++
+                        Log.d("Repository", "count: $count")
                     }.onFailure {
                         Log.e("Repository", "Error: ${it.message}")
                         count++
@@ -658,38 +660,53 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                             for (index in spotifyResult.tracks?.items!!.indices) {
                                 list.add(spotifyResult.tracks?.items?.get(index)?.name + spotifyResult.tracks?.items?.get(index)?.artists?.get(0)?.name)
                             }
-                            bestMatchingIndex(q, list).let {
-                                spotifyResult.tracks?.items?.get(it)?.let {item ->
-                                    item.id?.let { it1 ->
-                                        Log.d("Lyrics", "id: $it1")
-                                        if (dataStoreManager.spotifyAccessTokenExpire.first() != "" && dataStoreManager.spotifyAccessToken.first() != "" && dataStoreManager.spotifyAccessTokenExpire.first().toLong() < System.currentTimeMillis()) {
-                                            YouTube.getLyrics(it1, dataStoreManager.spotifyAccessToken.first()).onSuccess { lyrics ->
-                                                emit(Resource.Success<Lyrics>(lyrics.toLyrics()))
-                                            }.onFailure {
-                                                Log.d("Lyrics", "Error: ${it.message}")
-                                                emit(Resource.Error<Lyrics>("Not found"))
-                                            }
-                                        }
-                                        else {
-                                            YouTube.getAccessToken().onSuccess { value: AccessToken ->
-                                                dataStoreManager.setSpotifyAccessToken(value.accessToken!!)
-                                                dataStoreManager.setSpotifyAccessTokenExpire(value.accessTokenExpirationTimestampMs.toString())
-                                                YouTube.getLyrics(it1, value.accessToken).onSuccess { lyrics ->
+//                            bestMatchingIndex(q, list).let {
+                            get3MatchingIndex(q, list). let { index ->
+                                var count = 0
+                                while (count < index.size) {
+                                    spotifyResult.tracks?.items?.get(count)?.let {item ->
+                                        item.id?.let { it1 ->
+                                            Log.d("Lyrics", "id: $it1")
+                                            if (dataStoreManager.spotifyAccessTokenExpire.first() != 0L && dataStoreManager.spotifyAccessToken.first() != "" && Timestamp(dataStoreManager.spotifyAccessTokenExpire.first()) > Timestamp(System.currentTimeMillis())) {
+                                                YouTube.getLyrics(it1, dataStoreManager.spotifyAccessToken.first()).onSuccess { lyrics ->
+                                                    count = index.size
                                                     emit(Resource.Success<Lyrics>(lyrics.toLyrics()))
                                                 }.onFailure {
-                                                    Log.d("Lyrics", "Error: ${it.message}")
-                                                    emit(Resource.Error<Lyrics>("Not found"))
+                                                    Log.d("Lyrics", "Error: Lỗi getLyrics ${it.message}")
+                                                    count++
+                                                    if (count == index.size - 1) {
+                                                        emit(Resource.Error<Lyrics>("Not found"))
+                                                    }
                                                 }
                                             }
-                                                .onFailure { e ->
-                                                    e.printStackTrace()
-                                                    emit(Resource.Error<Lyrics>("Not found"))
+                                            else {
+                                                YouTube.getAccessToken().onSuccess { value: AccessToken ->
+                                                    dataStoreManager.setSpotifyAccessToken(value.accessToken!!)
+                                                    dataStoreManager.setSpotifyAccessTokenExpire(value.accessTokenExpirationTimestampMs!!)
+                                                    YouTube.getLyrics(it1, value.accessToken).onSuccess { lyrics ->
+                                                        count = index.size
+                                                        emit(Resource.Success<Lyrics>(lyrics.toLyrics()))
+                                                    }.onFailure {
+                                                        it.printStackTrace()
+                                                        count++
+                                                        if (count == index.size - 1) {
+                                                            emit(Resource.Error<Lyrics>("Not found"))
+                                                        }
+                                                    }
                                                 }
+                                                    .onFailure { e ->
+                                                        e.printStackTrace()
+                                                        count++
+                                                        if (count == index.size - 1) {
+                                                            emit(Resource.Error<Lyrics>("Not found"))
+                                                        }
+                                                    }
+                                            }
                                         }
                                     }
                                 }
-                            }
-                        }
+
+                                }                        }
                     }.onFailure {
                         Log.d("SongId", "Error: ${it.message}")
                         emit(Resource.Error<Lyrics>("Not found"))
