@@ -113,7 +113,7 @@ fun parseMixedContent(data: List<SectionListRenderer.Content>?): List<HomeItem> 
 //                            }
 //                        }
                             if (musicTwoRowItemRenderer.isSong) {
-                                val ytItem = ArtistPage.fromMusicTwoRowItemRenderer(musicTwoRowItemRenderer) as SongItem?
+                                val ytItem = RelatedPage.fromMusicTwoRowItemRenderer(musicTwoRowItemRenderer) as SongItem?
                                 Log.w("Song", ytItem.toString())
                                 if (ytItem != null) {
                                     listContent.add(
@@ -181,17 +181,16 @@ fun parseMixedContent(data: List<SectionListRenderer.Content>?): List<HomeItem> 
                                 if (ytItem != null) {
                                     listContent.add(
                                         Content(
-                                            album = null,
-                                            artists = ytItem.artists?.map { Artist(id = it.id, name = it.name) } ?: listOf(),
-                                            description = ytItem.year?.toString() ?: "",
-                                            isExplicit = ytItem.explicit,
-                                            playlistId = ytItem.playlistId,
-                                            browseId = ytItem.browseId,
+                                            album = Album( id = musicTwoRowItemRenderer.navigationEndpoint.browseEndpoint?.browseId ?: "", name = title ?: ""),
+                                            artists = listOf(),
+                                            description = null,
+                                            isExplicit = false,
+                                            playlistId = null,
+                                            browseId = musicTwoRowItemRenderer.navigationEndpoint.browseEndpoint?.browseId,
                                             thumbnails = musicTwoRowItemRenderer.thumbnailRenderer.musicThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail() ?: listOf(),
-                                            title = ytItem.title,
-                                            videoId = null,
-                                            views = null,
-                                            radio = null
+                                            title = musicTwoRowItemRenderer.title.runs?.get(0)?.text ?: "",
+                                            videoId = "",
+                                            views = ""
                                         )
                                     )
                                 }
@@ -209,21 +208,43 @@ fun parseMixedContent(data: List<SectionListRenderer.Content>?): List<HomeItem> 
                                             }
                                         }
                                     }
-                                    listContent.add(
-                                        Content(
-                                            album = null,
-                                            artists = listOf(Artist(id = ytItem.author?.id ?: "", name = ytItem.author?.name ?: "")),
-                                            description = description,
-                                            isExplicit = ytItem.explicit,
-                                            playlistId = ytItem.id,
-                                            browseId = ytItem.id,
-                                            thumbnails = musicTwoRowItemRenderer.thumbnailRenderer.musicThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail() ?: listOf(),
-                                            title = ytItem.title,
-                                            videoId = null,
-                                            views = null,
-                                            radio = null
+                                    if (ytItem.id.startsWith("MPRE")) {
+                                        val ytItemAlbum = RelatedPage.fromMusicTwoRowItemRenderer(musicTwoRowItemRenderer) as AlbumItem?
+                                        Log.w("Album", ytItem.toString())
+                                        if (ytItemAlbum != null) {
+                                            listContent.add(
+                                                Content(
+                                                    album = Album( id = musicTwoRowItemRenderer.navigationEndpoint.browseEndpoint?.browseId ?: "", name = title ?: ""),
+                                                    artists = listOf(),
+                                                    description = null,
+                                                    isExplicit = false,
+                                                    playlistId = null,
+                                                    browseId = musicTwoRowItemRenderer.navigationEndpoint.browseEndpoint?.browseId,
+                                                    thumbnails = musicTwoRowItemRenderer.thumbnailRenderer.musicThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail() ?: listOf(),
+                                                    title = musicTwoRowItemRenderer.title.runs?.get(0)?.text ?: "",
+                                                    videoId = "",
+                                                    views = ""
+                                                )
+                                            )
+                                        }
+                                    }
+                                    else {
+                                        listContent.add(
+                                            Content(
+                                                album = null,
+                                                artists = listOf(Artist(id = ytItem.author?.id ?: "", name = ytItem.author?.name ?: "")),
+                                                description = description,
+                                                isExplicit = ytItem.explicit,
+                                                playlistId = ytItem.id,
+                                                browseId = ytItem.id,
+                                                thumbnails = musicTwoRowItemRenderer.thumbnailRenderer.musicThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail() ?: listOf(),
+                                                title = ytItem.title,
+                                                videoId = null,
+                                                views = null,
+                                                radio = null
+                                            )
                                         )
-                                    )
+                                    }
                                 }
                             }
                             else {
@@ -237,15 +258,15 @@ fun parseMixedContent(data: List<SectionListRenderer.Content>?): List<HomeItem> 
                             if (ytItem != null) {
                                 val content = Content(
                                     album = ytItem.album?.let { Album(name = it.name, id = it.id) },
-                                    artists = ytItem.artists.map { Artist(name = it.name, id = it.id) },
+                                    artists = parseSongArtists(result1.musicResponsiveListItemRenderer!!, 1) ?: listOf(),
                                     description = null,
-                                    isExplicit = ytItem.explicit,
+                                    isExplicit = false,
                                     playlistId = null,
                                     browseId = null,
                                     thumbnails = result1.musicResponsiveListItemRenderer!!.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail() ?: listOf(),
                                     title = ytItem.title ?: "",
                                     videoId = ytItem.id ?: "",
-                                    views = null,
+                                    views = "",
                                     radio = null
                                 )
                                 listContent.add(content)

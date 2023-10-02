@@ -204,8 +204,15 @@ class ArtistFragment: Fragment(){
                     tvSongTitle.isSelected = true
                     tvSongArtist.text = song.artists.toListName().connectArtists()
                     tvSongArtist.isSelected = true
-                    ivThumbnail.load(song.thumbnails)
-
+                    ivThumbnail.load(song.thumbnails.lastOrNull()?.url)
+                    btRadio.setOnClickListener {
+                        val args = Bundle()
+                        args.putString("radioId", "RDAMVM${song.videoId}")
+                        args.putString("title", "${song.title} ${context?.getString(R.string.radio)}")
+                        args.putString("thumbnails", song.thumbnails.lastOrNull()?.url)
+                        dialog.dismiss()
+                        findNavController().navigate(R.id.action_global_playlistFragment, args)
+                    }
                     btLike.setOnClickListener {
                         if (cbFavorite.isChecked) {
                             cbFavorite.isChecked = false
@@ -317,6 +324,19 @@ class ArtistFragment: Fragment(){
                     Log.d("ArtistFragment", "Expanded")
                 }
             }
+        binding.btRadio.setOnClickListener {
+            val radioId = viewModel.artistBrowse.value?.data?.radioId
+            if (radioId != null){
+                val args = Bundle()
+                args.putString("radioId", radioId)
+                args.putString("title", "${viewModel.artistBrowse.value?.data?.name} ${context?.getString(R.string.radio)}")
+                args.putString("thumbnails", viewModel.artistBrowse.value?.data?.thumbnails?.lastOrNull()?.url)
+                findNavController().navigate(R.id.action_global_playlistFragment, args)
+            }
+            else {
+                Snackbar.make(binding.root, getString(R.string.error), Snackbar.LENGTH_LONG).show()
+            }
+        }
         binding.btFollow.setOnClickListener {
             val id = viewModel.artistEntity.value?.channelId
             if (id  != null) {

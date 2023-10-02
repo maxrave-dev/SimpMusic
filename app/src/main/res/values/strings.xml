@@ -231,6 +231,9 @@
     <string name="sync">Sync to YouTube Music</string>
     <string name="synced">Synced with YouTube Music</string>
     <string name="song">Song</string>
+    <string name="radio">Radio</string>
+    <string name="auto_created_by_youtube_music">Auto created by YouTube Music</string>
+    <string name="start_radio">Start radio</string>
     <plurals name="n_song">
         <item quantity="one">%d song</item>
         <item quantity="other">%d songs</item>

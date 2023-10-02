@@ -4,10 +4,13 @@ import android.content.Context
 import android.util.Log
 import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.models.MusicShelfRenderer
+import com.maxrave.kotlinytmusicscraper.models.SongItem
+import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
 import com.maxrave.kotlinytmusicscraper.models.spotify.AccessToken
 import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
+import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.LocalDataSource
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
@@ -22,6 +25,7 @@ import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.AlbumBrowse
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.browse.artist.ArtistBrowse
+import com.maxrave.simpmusic.data.model.browse.playlist.Author
 import com.maxrave.simpmusic.data.model.browse.playlist.PlaylistBrowse
 import com.maxrave.simpmusic.data.model.explore.mood.Genre
 import com.maxrave.simpmusic.data.model.explore.mood.Mood
@@ -35,6 +39,7 @@ import com.maxrave.simpmusic.data.model.searchResult.albums.AlbumsResult
 import com.maxrave.simpmusic.data.model.searchResult.artists.ArtistsResult
 import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
+import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
 import com.maxrave.simpmusic.data.parser.parseAlbumData
 import com.maxrave.simpmusic.data.parser.parseArtistData
@@ -51,6 +56,7 @@ import com.maxrave.simpmusic.data.parser.search.parseSearchPlaylist
 import com.maxrave.simpmusic.data.parser.search.parseSearchSong
 import com.maxrave.simpmusic.data.parser.search.parseSearchVideo
 import com.maxrave.simpmusic.extension.get3MatchingIndex
+import com.maxrave.simpmusic.extension.toListTrack
 import com.maxrave.simpmusic.extension.toLyrics
 import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -405,6 +411,52 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                 .onFailure { e ->
                     emit(Resource.Error<GenreObject>(e.message.toString()))
                 }
+        }
+    }.flowOn(Dispatchers.IO)
+    suspend fun getRadio(radioId: String, title: String?, thumbnail: String?): Flow<Resource<PlaylistBrowse>> = flow {
+        runCatching {
+            YouTube.next(endpoint = WatchEndpoint(playlistId = radioId)).onSuccess { next ->
+                val data: ArrayList<SongItem> = arrayListOf()
+                data.addAll(next.items)
+                var continuation = next.continuation
+                Log.w("Radio", "data: ${data.size}")
+                var count = 0
+                while (continuation != null && count < 3) {
+                    YouTube.next(endpoint = WatchEndpoint(playlistId = radioId), continuation = continuation).onSuccess { nextContinue ->
+                        data.addAll(nextContinue.items)
+                        continuation = nextContinue.continuation
+                        if (data.size >= 50) {
+                            continuation = null
+                        }
+                        Log.w("Radio", "data: ${data.size}")
+                        count++
+                    }.onFailure {
+                        continuation = null
+                        count++
+                    }
+                }
+                Log.w("Repository", "data: ${data.size}")
+                val playlistBrowse = PlaylistBrowse(
+                    author = Author(id = "", name = "YouTube Music"),
+                    description = context.getString(R.string.auto_created_by_youtube_music),
+                    duration = "",
+                    durationSeconds = 0,
+                    id = radioId,
+                    privacy = "",
+                    thumbnails = listOf(Thumbnail(544, thumbnail ?: "", 544)),
+                    title = title ?: "",
+                    trackCount = data.size,
+                    tracks = data.toListTrack(),
+                    year = LocalDateTime.now().year.toString()
+                )
+                Log.w("Repository", "playlistBrowse: $playlistBrowse")
+                emit(Resource.Success<PlaylistBrowse>(playlistBrowse))
+            }
+            .onFailure {
+                exception ->
+                exception.printStackTrace()
+                emit(Resource.Error<PlaylistBrowse>(exception.message.toString()))
+            }
         }
     }.flowOn(Dispatchers.IO)
     suspend fun getPlaylistData(playlistId: String): Flow<Resource<PlaylistBrowse>> = flow {

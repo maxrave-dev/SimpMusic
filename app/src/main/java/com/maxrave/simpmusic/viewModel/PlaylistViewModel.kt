@@ -91,6 +91,18 @@ class PlaylistViewModel @Inject constructor(
         }
     }
 
+    fun getRadio(radioId: String, title: String?, thumbnails: String?) {
+        loading.value = true
+        viewModelScope.launch {
+            mainRepository.getRadio(radioId, title, thumbnails).collect {
+                _playlistBrowse.value = it
+            }
+            withContext(Dispatchers.Main) {
+                loading.value = false
+            }
+        }
+    }
+
     fun insertPlaylist(playlistEntity: PlaylistEntity){
         viewModelScope.launch {
             mainRepository.insertPlaylist(playlistEntity)

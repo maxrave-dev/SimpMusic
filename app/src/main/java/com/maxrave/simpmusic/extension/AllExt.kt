@@ -10,6 +10,7 @@ import android.widget.ImageButton
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.media3.common.MediaItem
 import androidx.sqlite.db.SimpleSQLiteQuery
+import com.maxrave.kotlinytmusicscraper.models.SongItem
 import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
 import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
 import com.maxrave.simpmusic.common.SETTINGS_FILENAME
@@ -115,6 +116,34 @@ fun SongsResult.toTrack(): Track {
         this.resultType,
         ""
     )
+}
+fun SongItem.toTrack(): Track {
+    return Track(
+        album = this.album.let { Album(it?.id ?: "", it?.name ?: "")},
+        artists = this.artists.map { artist -> Artist(id = artist.id ?: "", name = artist.name)  },
+        duration = this.duration.toString(),
+        durationSeconds = this.duration,
+        isAvailable = false,
+        isExplicit = this.explicit,
+        likeStatus = null,
+        thumbnails = this.thumbnails?.thumbnails?.toListThumbnail() ?: listOf(),
+        title = this.title,
+        videoId = this.id,
+        videoType = null,
+        category = null,
+        feedbackTokens = null,
+        resultType = null,
+        year = null
+    )
+}
+fun List<SongItem>?.toListTrack(): ArrayList<Track> {
+    val listTrack = arrayListOf<Track>()
+    if (this != null) {
+        for (item in this) {
+            listTrack.add(item.toTrack())
+        }
+    }
+    return listTrack
 }
 fun List<Artist>?.toListName(): List<String> {
     val list = mutableListOf<String>()

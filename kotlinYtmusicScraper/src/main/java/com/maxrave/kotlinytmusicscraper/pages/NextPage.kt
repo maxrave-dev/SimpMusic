@@ -44,7 +44,8 @@ object NextPage {
             thumbnail = renderer.thumbnail.thumbnails.lastOrNull()?.url ?: return null,
             explicit = renderer.badges?.find {
                 it.musicInlineBadgeRenderer.icon.iconType == "MUSIC_EXPLICIT_BADGE"
-            } != null
+            } != null,
+            thumbnails = renderer.thumbnail
         )
     }
 }

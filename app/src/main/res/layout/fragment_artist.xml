@@ -124,24 +124,29 @@
 
                             <Button
                                 android:id="@+id/btFollow"
-                                android:layout_width="120sp"
+                                android:layout_width="130sp"
                                 android:layout_height="50sp"
                                 android:textColor="?attr/colorOnSecondaryContainer"
                                 style="?attr/materialButtonOutlinedStyle"
                                 android:layout_alignParentStart="true">
 
                             </Button>
-                            <ImageButton
+                            <Button
+                                style="@style/Widget.Material3.Button.OutlinedButton.Icon"
                                 android:layout_width="wrap_content"
-                                android:id="@+id/btMore"
-                                android:layout_height="match_parent"
-                                android:background="@android:color/transparent"
+                                android:id="@+id/btRadio"
+                                app:iconPadding="8sp"
+                                android:layout_height="50sp"
+                                android:textColor="?attr/colorOnSecondaryContainer"
                                 android:layout_centerVertical="true"
-                                android:visibility="gone"
-                                android:src="@drawable/baseline_more_vert_24"
+                                android:visibility="visible"
+                                app:icon ="@drawable/baseline_sensors_24"
+                                app:strokeColor="@android:color/transparent"
+                                app:strokeWidth="0sp"
+                                android:text="@string/start_radio"
                                 android:layout_alignParentEnd="true">
 
-                            </ImageButton>
+                            </Button>
                         </RelativeLayout>
 
                     </LinearLayout>
