@@ -439,6 +439,9 @@ class SearchFragment : Fragment() {
                                     if (playlist.tracks != null) {
                                         tempTrack.addAll(playlist.tracks)
                                     }
+                                    if (!tempTrack.contains(track.videoId) && playlist.syncedWithYouTubePlaylist == 1 && playlist.youtubePlaylistId != null) {
+                                        viewModel.addToYouTubePlaylist(playlist.id, playlist.youtubePlaylistId, track.videoId)
+                                    }
                                     tempTrack.add(track.videoId)
                                     tempTrack.removeConflicts()
                                     viewModel.updateLocalPlaylistTracks(tempTrack, playlist.id)

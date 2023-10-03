@@ -150,7 +150,8 @@
     <string name="log_in">Đăng nhập</string>
     <string name="log_in_to_get_personally_data">Đăng nhập để cá nhân hoá nguồn dữ liệu</string>
     <string name="login_success">Đăng nhập thành công</string>
-    <string name="log_out">Đăng xuất</string>
+    <string name="log_out">Đăng xuất khỏi YouTube</string>
+    <string name="log_out_from_spotity">Đăng xuất khỏi Spotify</string>
     <string name="logged_in">Đã đăng nhập</string>
     <string name="logged_out">Đăng xuất thành công</string>
     <string name="playlist">Danh sách phát</string>
@@ -223,4 +224,27 @@
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">Tải lên dữ liệu lịch sử phát lại tới YouTube Music, giúp hệ thống gợi ý hoạt động tốt hơn. Hoạt động khi đã đăng nhập</string>
     <string name="send_back_listening_data_to_google">Gửi dữ liệu nghe nhạc về Google</string>
     <string name="videos_inArtist">Video</string>
+    <string name="your_youtube_playlists">Danh sách phát YouTube của bạn</string>
+    <string name="no_YouTube_playlists">Không có danh sách phát YouTube nào</string>
+    <string name="track">bài hát</string>
+    <string name="log_in_to_get_spotify_lyrics">Đăng nhập vào Spotify để tải lời bài hát</string>
+    <string name="log_in_to_Spotify">Đăng nhập vào Spotify</string>
+    <string name="save_to_local_playlist">Lưu vào danh sách phát nội bộ</string>
+    <string name="added_local_playlist">Đã thêm danh sách phát nội bộ</string>
+    <string name="sync">Đồng bộ đến YouTube Music</string>
+    <string name="synced">Đồng bộ với YouTube Music</string>
+    <string name="song">Bài hát</string>
+    <string name="radio">Đài phát</string>
+    <string name="auto_created_by_youtube_music">Tự động tạo bởi YouTube Music</string>
+    <string name="start_radio">Bắt đầu đài phát</string>
+    <string name="saved_to_local_playlist">Đã lưu vào danh sách phát nội bộ</string>
+    <string name="if_you_want_to_unsync_this_playlist_please_go_to_local_playlist">Nếu bạn muốn huỷ đồng bộ danh sách phát này, xin hãy truy cập đến phần danh sách phát nội bộ</string>
+    <string name="log_in_to_get_YouTube_playlist">Đăng nhập để tải danh sách phát YouTube của bạn</string>
+    <string name="sync_playlist_warning">SimpMusic sẽ tự động tạo một danh sách phát trên YouTube Music. Bạn có chắc chắn?</string>
+    <string name="syncing">Đang đồng bộ</string>
+    <string name="unsync_playlist_warning">Huỷ đồng bộ danh sách phát này? Điều này sẽ không xoá danh sách phát này trên YouTube Music</string>
+    <string name="unsyncing">Đang huỷ đồng bộ</string>
+    <string name="added_to_youtube_playlist">Đã thêm vào danh sách phát YouTube</string>
+    <string name="removed_from_YouTube_playlist">Đã xoá khỏi danh sách phát YouTube</string>
+    <string name="update_playlist">Cập nhật danh sách phát từ YouTube Music</string>
 </resources>

@@ -54,6 +54,9 @@ class PlaylistViewModel @Inject constructor(
     private val _id: MutableLiveData<String> = MutableLiveData()
     var id: LiveData<String> = _id
 
+    private val _isRadio: MutableLiveData<Boolean> = MutableLiveData()
+    var isRadio: LiveData<Boolean> = _isRadio
+
     private var _playlistEntity: MutableLiveData<PlaylistEntity> = MutableLiveData()
     var playlistEntity: LiveData<PlaylistEntity> = _playlistEntity
 
@@ -75,6 +78,9 @@ class PlaylistViewModel @Inject constructor(
 
     fun updateId(id: String){
         _id.value = id
+    }
+    fun updateIsRadio(isRadio: Boolean) {
+        _isRadio.value = isRadio
     }
 
     fun browsePlaylist(id: String) {
@@ -403,6 +409,21 @@ class PlaylistViewModel @Inject constructor(
             if (value != null) {
                 mainRepository.getLocalPlaylistByYoutubePlaylistId(value).collect {
                     _localPlaylistIfYouTubePlaylist.value = it
+                }
+            }
+        }
+    }
+    fun addToYouTubePlaylist(localPlaylistId: Long, youtubePlaylistId: String, videoId: String) {
+        viewModelScope.launch {
+            mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylistId, LocalPlaylistEntity.YouTubeSyncState.Syncing)
+            mainRepository.addYouTubePlaylistItem(youtubePlaylistId, videoId).collect { response ->
+                if (response == "STATUS_SUCCEEDED") {
+                    mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylistId, LocalPlaylistEntity.YouTubeSyncState.Synced)
+                    Toast.makeText(context, context.getString(R.string.added_to_youtube_playlist), Toast.LENGTH_SHORT).show()
+                }
+                else {
+                    mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylistId, LocalPlaylistEntity.YouTubeSyncState.NotSynced)
+                    Toast.makeText(context, context.getString(R.string.error), Toast.LENGTH_SHORT).show()
                 }
             }
         }

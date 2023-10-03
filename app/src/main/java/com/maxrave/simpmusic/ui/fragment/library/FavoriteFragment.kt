@@ -234,6 +234,9 @@ class FavoriteFragment : Fragment() {
                                 if (playlist.tracks != null) {
                                     tempTrack.addAll(playlist.tracks)
                                 }
+                                if (!tempTrack.contains(song.videoId) && playlist.syncedWithYouTubePlaylist == 1 && playlist.youtubePlaylistId != null) {
+                                    viewModel.addToYouTubePlaylist(playlist.id, playlist.youtubePlaylistId, song.videoId)
+                                }
                                 tempTrack.add(song.videoId)
                                 tempTrack.removeConflicts()
                                 viewModel.updateLocalPlaylistTracks(tempTrack, playlist.id)

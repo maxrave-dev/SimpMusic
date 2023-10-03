@@ -170,7 +170,7 @@ class NowPlayingFragment : Fragment() {
                                 viewModel.firstTrackAdded.collect { added ->
                                     if (added) {
                                         viewModel.changeFirstTrackAddedToFalse()
-                                        viewModel.getFormat(it.videoId)
+//                                        viewModel.getFormat(it.videoId)
                                         getRelated(it.videoId)
                                     }
                                 }
@@ -230,7 +230,7 @@ class NowPlayingFragment : Fragment() {
                                     viewModel.firstTrackAdded.collect { added ->
                                         if (added) {
                                             viewModel.changeFirstTrackAddedToFalse()
-                                            viewModel.getFormat(track.videoId)
+//                                            viewModel.getFormat(track.videoId)
                                             getRelated(track.videoId)
                                         }
                                     }
@@ -262,7 +262,7 @@ class NowPlayingFragment : Fragment() {
                                 viewModel.firstTrackAdded.collect { added ->
                                     if (added) {
                                         viewModel.changeFirstTrackAddedToFalse()
-                                        viewModel.getFormat(it.videoId)
+//                                        viewModel.getFormat(it.videoId)
                                         getRelated(it.videoId)
                                     }
                                 }
@@ -336,8 +336,8 @@ class NowPlayingFragment : Fragment() {
                             repeatOnLifecycle(Lifecycle.State.CREATED) {
                                 viewModel.firstTrackAdded.collect { added ->
                                     if (added) {
-                                        viewModel.getFormat(it.videoId)
                                         viewModel.changeFirstTrackAddedToFalse()
+//                                        viewModel.getFormat(it.videoId)
                                         if (index == null) {
                                             fetchSourceFromQueue(downloaded = downloaded ?: 0)
                                         } else {
@@ -399,9 +399,8 @@ class NowPlayingFragment : Fragment() {
                             repeatOnLifecycle(Lifecycle.State.CREATED) {
                                 viewModel.firstTrackAdded.collect { added ->
                                     if (added) {
-                                        viewModel.getFormat(it.videoId)
-
                                         viewModel.changeFirstTrackAddedToFalse()
+//                                        viewModel.getFormat(it.videoId)
                                         if (index == null) {
                                             fetchSourceFromQueue(downloaded = downloaded ?: 0)
                                         } else {
@@ -459,6 +458,7 @@ class NowPlayingFragment : Fragment() {
                             if (song != null) {
                                 Log.i("Now Playing Fragment", "song ${song.mediaMetadata.title}")
                                 videoId = viewModel.videoId.value
+                                viewModel.getFormat(song.mediaId)
                                 binding.ivArt.visibility = View.GONE
                                 binding.loadingArt.visibility = View.VISIBLE
                                 Log.d("Check Lyrics", viewModel._lyrics.value?.data.toString())
@@ -1050,7 +1050,8 @@ class NowPlayingFragment : Fragment() {
 
     private fun getRelated(videoId: String) {
         viewModel.getRelated(videoId)
-            viewModel.related.observe(viewLifecycleOwner) { response ->
+        lifecycleScope.launch {
+            viewModel.related.collectLatest { response ->
                 when (response) {
                     is Resource.Success -> {
                         val data = response.data!!
@@ -1090,10 +1091,13 @@ class NowPlayingFragment : Fragment() {
                     }
 
                     is Resource.Error -> {
-                        Toast.makeText(requireContext(), response.message, Toast.LENGTH_SHORT).show()
-                        Log.d("Error", "${response.message}")
+                        if (response.message != "null") {
+                            Toast.makeText(requireContext(), response.message, Toast.LENGTH_SHORT).show()
+                            Log.d("Error", "${response.message}")
+                        }
                     }
                 }
+            }
         }
     }
 
@@ -1215,7 +1219,7 @@ class NowPlayingFragment : Fragment() {
         if (mediaItem != null) {
             binding.ivArt.visibility = View.GONE
             binding.loadingArt.visibility = View.VISIBLE
-            viewModel.getFormat(mediaItem.mediaId)
+//            viewModel.getFormat(mediaItem.mediaId)
             Log.d("Update UI", "current: ${mediaItem.mediaMetadata.title}")
             binding.tvSongTitle.visibility = View.VISIBLE
             binding.tvSongArtist.visibility = View.VISIBLE

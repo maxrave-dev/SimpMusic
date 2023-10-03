@@ -69,7 +69,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import java.sql.Timestamp
+import java.time.Instant
 import java.time.LocalDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -465,7 +465,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                     duration = "",
                     durationSeconds = 0,
                     id = radioId,
-                    privacy = "",
+                    privacy = "PRIVATE",
                     thumbnails = listOf(Thumbnail(544, thumbnail ?: "", 544)),
                     title = title ?: "",
                     trackCount = data.size,
@@ -742,7 +742,8 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                                     spotifyResult.tracks?.items?.get(count)?.let {item ->
                                         item.id?.let { it1 ->
                                             Log.d("Lyrics", "id: $it1")
-                                            if (dataStoreManager.spotifyAccessTokenExpire.first() != 0L && dataStoreManager.spotifyAccessToken.first() != "" && Timestamp(dataStoreManager.spotifyAccessTokenExpire.first()) > Timestamp(System.currentTimeMillis())) {
+                                            if (dataStoreManager.spotifyAccessTokenExpire.first() != 0L && dataStoreManager.spotifyAccessToken.first() != "" && (dataStoreManager.spotifyAccessTokenExpire.first().toLong()) > Instant.now().toEpochMilli()) {
+                                                Log.d("Lyrics", "token: ${dataStoreManager.spotifyAccessToken.first()}")
                                                 YouTube.getLyrics(it1, dataStoreManager.spotifyAccessToken.first()).onSuccess { lyrics ->
                                                     count = index.size
                                                     emit(Resource.Success<Lyrics>(lyrics.toLyrics()))
@@ -758,6 +759,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                                                 YouTube.getAccessToken().onSuccess { value: AccessToken ->
                                                     dataStoreManager.setSpotifyAccessToken(value.accessToken!!)
                                                     dataStoreManager.setSpotifyAccessTokenExpire(value.accessTokenExpirationTimestampMs!!)
+                                                    Log.d("Lyrics", "token: ${value.accessToken}")
                                                     YouTube.getLyrics(it1, value.accessToken).onSuccess { lyrics ->
                                                         count = index.size
                                                         emit(Resource.Success<Lyrics>(lyrics.toLyrics()))

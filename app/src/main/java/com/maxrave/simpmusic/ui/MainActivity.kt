@@ -626,7 +626,7 @@ class MainActivity : AppCompatActivity() {
 
                     MaterialAlertDialogBuilder(this)
                         .setTitle(getString(R.string.update_available))
-                        .setMessage(getString(R.string.update_message, response.tagName, formatted, Html.fromHtml(response.body, Html.FROM_HTML_MODE_COMPACT)))
+                        .setMessage(getString(R.string.update_message, response.tagName, formatted, response.body))
                         .setPositiveButton(getString(R.string.download)) { _, _ ->
                             val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(response.assets?.firstOrNull()?.browserDownloadUrl))
                             startActivity(browserIntent)

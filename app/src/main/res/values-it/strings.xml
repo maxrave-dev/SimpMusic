@@ -146,7 +146,8 @@
     <string name="log_in">Accedi</string>
     <string name="log_in_to_get_personally_data">Accedi per ottenere i tuoi dati personali</string>
     <string name="login_success">Accesso effettuato</string>
-    <string name="log_out">Esci</string>
+    <string name="log_out">Esci da YouTube</string>
+    <string name="log_out_from_spotity">Esci da Spotify</string>
     <string name="logged_in">Account Collegato</string>
     <string name="logged_out">Account Disconnesso</string>
     <string name="playlist">Playlist</string>
@@ -218,5 +219,4 @@
     <string name="sleep_timer_warning">Rimuovere il timer di spegnimento?</string>
     <string name="yes">SÌ</string>
     <string name="videos_inArtist">Video</string>
-    <string name="song">Bài hát</string>
 </resources>

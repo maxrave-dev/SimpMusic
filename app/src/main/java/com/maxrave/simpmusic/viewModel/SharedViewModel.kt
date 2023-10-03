@@ -93,8 +93,8 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
 
     val isServiceRunning = MutableLiveData<Boolean>(false)
 
-    private var _related = MutableLiveData<Resource<ArrayList<Track>>>()
-    val related: LiveData<Resource<ArrayList<Track>>> = _related
+    private var _related = MutableStateFlow<Resource<ArrayList<Track>>>(Resource.Error("null"))
+    val related: StateFlow<Resource<ArrayList<Track>>> = _related
 
     val listItag = listOf(171,249,250,251,140,141,256,258)
     var videoId = MutableLiveData<String>()
