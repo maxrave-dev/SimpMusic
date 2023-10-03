@@ -8,19 +8,22 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
+import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.repository.MainRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.time.LocalDateTime
 import javax.inject.Inject
 
 
 @HiltViewModel
-class LibraryViewModel @Inject constructor(private val mainRepository: MainRepository, private val application: Application) : AndroidViewModel(application) {
+class LibraryViewModel @Inject constructor(private val mainRepository: MainRepository, private val application: Application, private val dataStoreManager: DataStoreManager) : AndroidViewModel(application) {
     private var _listRecentlyAdded: MutableLiveData<List<Any>> = MutableLiveData()
     val listRecentlyAdded: LiveData<List<Any>> = _listRecentlyAdded
 
@@ -58,6 +61,10 @@ class LibraryViewModel @Inject constructor(private val mainRepository: MainRepos
                 _listYouTubePlaylist.postValue(data)
             }
         }
+    }
+
+    fun getYouTubeLoggedIn(): Boolean {
+        return runBlocking { dataStoreManager.loggedIn.first() } == DataStoreManager.TRUE
     }
 
     fun getPlaylistFavorite() {

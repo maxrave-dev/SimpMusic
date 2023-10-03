@@ -166,23 +166,13 @@ class NowPlayingFragment : Fragment() {
                     binding.tvSongArtist.visibility = View.GONE
                     Queue.getNowPlaying()?.let {
                         lifecycleScope.launch {
-                            viewModel.firstTrackAdded.collect { added ->
-                                if (added) {
-                                    viewModel.changeFirstTrackAddedToFalse()
-                                    viewModel.getFormat(it.videoId)
-                                    viewModel.format.observe(viewLifecycleOwner){ format ->
-                                        Log.d("Check Format", format.toString())
-                                        if (format != null){
-                                            binding.uploaderLayout.visibility = View.VISIBLE
-                                            binding.tvUploader.text = format.uploader
-                                            binding.ivAuthor.load(format.uploaderThumbnail)
-                                            binding.tvSubCount.text = format.uploaderSubCount
-                                        }
-                                        else {
-                                            binding.uploaderLayout.visibility = View.GONE
-                                        }
+                            repeatOnLifecycle(Lifecycle.State.CREATED) {
+                                viewModel.firstTrackAdded.collect { added ->
+                                    if (added) {
+                                        viewModel.changeFirstTrackAddedToFalse()
+                                        viewModel.getFormat(it.videoId)
+                                        getRelated(it.videoId)
                                     }
-                                    getRelated(it.videoId)
                                 }
                             }
                         }
@@ -236,23 +226,13 @@ class NowPlayingFragment : Fragment() {
                             miniplayer.visibility = View.GONE
                             bottom.visibility = View.GONE
                             lifecycleScope.launch {
-                                viewModel.firstTrackAdded.collect { added ->
-                                    if (added) {
-                                        viewModel.changeFirstTrackAddedToFalse()
-                                        viewModel.getFormat(track.videoId)
-                                        viewModel.format.observe(viewLifecycleOwner){ format ->
-                                            Log.d("Check Format", format.toString())
-                                            if (format != null){
-                                                binding.uploaderLayout.visibility = View.VISIBLE
-                                                binding.tvUploader.text = format.uploader
-                                                binding.ivAuthor.load(format.uploaderThumbnail)
-                                                binding.tvSubCount.text = format.uploaderSubCount
-                                            }
-                                            else {
-                                                binding.uploaderLayout.visibility = View.GONE
-                                            }
+                                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                                    viewModel.firstTrackAdded.collect { added ->
+                                        if (added) {
+                                            viewModel.changeFirstTrackAddedToFalse()
+                                            viewModel.getFormat(track.videoId)
+                                            getRelated(track.videoId)
                                         }
-                                        getRelated(track.videoId)
                                     }
                                 }
                             }
@@ -277,6 +257,17 @@ class NowPlayingFragment : Fragment() {
                     binding.tvSongTitle.visibility = View.GONE
                     binding.tvSongArtist.visibility = View.GONE
                     Queue.getNowPlaying()?.let {
+                        lifecycleScope.launch {
+                            repeatOnLifecycle(Lifecycle.State.CREATED) {
+                                viewModel.firstTrackAdded.collect { added ->
+                                    if (added) {
+                                        viewModel.changeFirstTrackAddedToFalse()
+                                        viewModel.getFormat(it.videoId)
+                                        getRelated(it.videoId)
+                                    }
+                                }
+                            }
+                        }
                         musicSource.reset()
                         if (requireContext().isMyServiceRunning(FetchQueue::class.java)) {
                             requireActivity().stopService(
@@ -290,27 +281,6 @@ class NowPlayingFragment : Fragment() {
                         viewModel.videoId.postValue(it.videoId)
                         viewModel.from.postValue(from)
                         updateUIfromQueueNowPlaying()
-                        lifecycleScope.launch {
-                            viewModel.firstTrackAdded.collect { added ->
-                                if (added) {
-                                    viewModel.changeFirstTrackAddedToFalse()
-                                    viewModel.getFormat(it.videoId)
-                                    viewModel.format.observe(viewLifecycleOwner){ format ->
-                                        Log.d("Check Format", format.toString())
-                                        if (format != null){
-                                            binding.uploaderLayout.visibility = View.VISIBLE
-                                            binding.tvUploader.text = format.uploader
-                                            binding.ivAuthor.load(format.uploaderThumbnail)
-                                            binding.tvSubCount.text = format.uploaderSubCount
-                                        }
-                                        else {
-                                            binding.uploaderLayout.visibility = View.GONE
-                                        }
-                                    }
-                                    getRelated(it.videoId)
-                                }
-                            }
-                        }
                     }
                     //}
 //                viewModel.loadMediaItems(videoId!!)
@@ -363,26 +333,16 @@ class NowPlayingFragment : Fragment() {
 //                        }
                         Log.d("check index", index.toString())
                         lifecycleScope.launch {
-                            viewModel.firstTrackAdded.collect { added ->
-                                if (added) {
-                                    viewModel.getFormat(it.videoId)
-                                    viewModel.format.observe(viewLifecycleOwner){ format ->
-                                        Log.d("Check Format", format.toString())
-                                        if (format != null){
-                                            binding.uploaderLayout.visibility = View.VISIBLE
-                                            binding.tvUploader.text = format.uploader
-                                            binding.ivAuthor.load(format.uploaderThumbnail)
-                                            binding.tvSubCount.text = format.uploaderSubCount
+                            repeatOnLifecycle(Lifecycle.State.CREATED) {
+                                viewModel.firstTrackAdded.collect { added ->
+                                    if (added) {
+                                        viewModel.getFormat(it.videoId)
+                                        viewModel.changeFirstTrackAddedToFalse()
+                                        if (index == null) {
+                                            fetchSourceFromQueue(downloaded = downloaded ?: 0)
+                                        } else {
+                                            fetchSourceFromQueue(index!!, downloaded = downloaded ?: 0)
                                         }
-                                        else {
-                                            binding.uploaderLayout.visibility = View.GONE
-                                        }
-                                    }
-                                    viewModel.changeFirstTrackAddedToFalse()
-                                    if (index == null) {
-                                        fetchSourceFromQueue(downloaded = downloaded ?: 0)
-                                    } else {
-                                        fetchSourceFromQueue(index!!, downloaded = downloaded ?: 0)
                                     }
                                 }
                             }
@@ -436,26 +396,17 @@ class NowPlayingFragment : Fragment() {
 //                        }
                         Log.d("check index", index.toString())
                         lifecycleScope.launch {
-                            viewModel.firstTrackAdded.collect { added ->
-                                if (added) {
-                                    viewModel.getFormat(it.videoId)
-                                    viewModel.format.observe(viewLifecycleOwner){ format ->
-                                        Log.d("Check Format", format.toString())
-                                        if (format != null){
-                                            binding.uploaderLayout.visibility = View.VISIBLE
-                                            binding.tvUploader.text = format.uploader
-                                            binding.ivAuthor.load(format.uploaderThumbnail)
-                                            binding.tvSubCount.text = format.uploaderSubCount
+                            repeatOnLifecycle(Lifecycle.State.CREATED) {
+                                viewModel.firstTrackAdded.collect { added ->
+                                    if (added) {
+                                        viewModel.getFormat(it.videoId)
+
+                                        viewModel.changeFirstTrackAddedToFalse()
+                                        if (index == null) {
+                                            fetchSourceFromQueue(downloaded = downloaded ?: 0)
+                                        } else {
+                                            fetchSourceFromQueue(index!!, downloaded = downloaded ?: 0)
                                         }
-                                        else {
-                                            binding.uploaderLayout.visibility = View.GONE
-                                        }
-                                    }
-                                    viewModel.changeFirstTrackAddedToFalse()
-                                    if (index == null) {
-                                        fetchSourceFromQueue(downloaded = downloaded ?: 0)
-                                    } else {
-                                        fetchSourceFromQueue(index!!, downloaded = downloaded ?: 0)
                                     }
                                 }
                             }
@@ -671,6 +622,20 @@ class NowPlayingFragment : Fragment() {
                         setEnabledAll(binding.btNext, available)
                     }
                 }
+                val job14 = launch {
+                    viewModel.format.collectLatest { format ->
+                        Log.d("Check Format", format.toString())
+                        if (format != null){
+                            binding.uploaderLayout.visibility = View.VISIBLE
+                            binding.tvUploader.text = format.uploader
+                            binding.ivAuthor.load(format.uploaderThumbnail)
+                            binding.tvSubCount.text = format.uploaderSubCount
+                        }
+                        else {
+                            binding.uploaderLayout.visibility = View.GONE
+                        }
+                    }
+                }
                 job1.join()
                 job2.join()
                 job3.join()
@@ -684,6 +649,7 @@ class NowPlayingFragment : Fragment() {
                 job13.join()
                 job11.join()
                 job12.join()
+                job14.join()
             }
         }
         binding.btFull.setOnClickListener {
@@ -830,6 +796,14 @@ class NowPlayingFragment : Fragment() {
                                     viewModel.updateLikeStatus(song.videoId, true)
                                 }
                             }
+                            btRadio.setOnClickListener {
+                                val args = Bundle()
+                                args.putString("radioId", "RDAMVM${song.videoId}")
+                                args.putString("title", "${song.title} ${context?.getString(R.string.radio)}")
+                                args.putString("thumbnails", song.thumbnails?.lastOrNull()?.url)
+                                dialog.dismiss()
+                                findNavController().navigate(R.id.action_global_playlistFragment, args)
+                            }
                             btSleepTimer.setOnClickListener {
                                 Log.w("Sleep Timer", "onClick")
                                 if(viewModel.sleepTimerRunning.value == true) {
@@ -886,6 +860,9 @@ class NowPlayingFragment : Fragment() {
                                         val tempTrack = ArrayList<String>()
                                         if (playlist.tracks != null) {
                                             tempTrack.addAll(playlist.tracks)
+                                        }
+                                        if (!tempTrack.contains(song.videoId) && playlist.syncedWithYouTubePlaylist == 1 && playlist.youtubePlaylistId != null) {
+                                            viewModel.addToYouTubePlaylist(playlist.id, playlist.youtubePlaylistId, song.videoId)
                                         }
                                         tempTrack.add(song.videoId)
                                         tempTrack.removeConflicts()
@@ -1073,50 +1050,50 @@ class NowPlayingFragment : Fragment() {
 
     private fun getRelated(videoId: String) {
         viewModel.getRelated(videoId)
-        viewModel.related.observe(viewLifecycleOwner) { response ->
-            when (response) {
-                is Resource.Success -> {
-                    val data = response.data!!
-                    data.add(Queue.getNowPlaying()!!)
-                    val listWithoutDuplicateElements: ArrayList<Track> = ArrayList()
-                    for (element in data) {
-                        // Check if element not exist in list, perform add element to list
-                        if (!listWithoutDuplicateElements.contains(element)) {
-                            listWithoutDuplicateElements.add(element)
+            viewModel.related.observe(viewLifecycleOwner) { response ->
+                when (response) {
+                    is Resource.Success -> {
+                        val data = response.data!!
+                        data.add(Queue.getNowPlaying()!!)
+                        val listWithoutDuplicateElements: ArrayList<Track> = ArrayList()
+                        for (element in data) {
+                            // Check if element not exist in list, perform add element to list
+                            if (!listWithoutDuplicateElements.contains(element)) {
+                                listWithoutDuplicateElements.add(element)
+                            }
+                        }
+                        Log.d("Queue", "getRelated: ${listWithoutDuplicateElements.size}")
+                        Queue.clear()
+                        Queue.addAll(listWithoutDuplicateElements)
+                        Log.d("Queue", "getRelated: ${Queue.getQueue().size}")
+                        if (!requireContext().isMyServiceRunning(FetchQueue::class.java)) {
+                            requireActivity().startService(
+                                Intent(
+                                    requireContext(),
+                                    FetchQueue::class.java
+                                )
+                            )
+                        } else {
+                            requireActivity().stopService(
+                                Intent(
+                                    requireContext(),
+                                    FetchQueue::class.java
+                                )
+                            )
+                            requireActivity().startService(
+                                Intent(
+                                    requireContext(),
+                                    FetchQueue::class.java
+                                )
+                            )
                         }
                     }
-                    Log.d("Queue", "getRelated: ${listWithoutDuplicateElements.size}")
-                    Queue.clear()
-                    Queue.addAll(listWithoutDuplicateElements)
-                    Log.d("Queue", "getRelated: ${Queue.getQueue().size}")
-                    if (!requireContext().isMyServiceRunning(FetchQueue::class.java)) {
-                        requireActivity().startService(
-                            Intent(
-                                requireContext(),
-                                FetchQueue::class.java
-                            )
-                        )
-                    } else {
-                        requireActivity().stopService(
-                            Intent(
-                                requireContext(),
-                                FetchQueue::class.java
-                            )
-                        )
-                        requireActivity().startService(
-                            Intent(
-                                requireContext(),
-                                FetchQueue::class.java
-                            )
-                        )
+
+                    is Resource.Error -> {
+                        Toast.makeText(requireContext(), response.message, Toast.LENGTH_SHORT).show()
+                        Log.d("Error", "${response.message}")
                     }
                 }
-
-                is Resource.Error -> {
-                    Toast.makeText(requireContext(), response.message, Toast.LENGTH_SHORT).show()
-                    Log.d("Error", "${response.message}")
-                }
-            }
         }
     }
 
@@ -1226,20 +1203,10 @@ class NowPlayingFragment : Fragment() {
             binding.tvSongArtist.isSelected = true
             binding.tvSongTitle.visibility = View.VISIBLE
             binding.tvSongArtist.visibility = View.VISIBLE
-            viewModel.format.observe(viewLifecycleOwner){ format ->
-                Log.d("Check Format", format.toString())
-                if (format != null){
-                    binding.uploaderLayout.visibility = View.VISIBLE
-                    binding.tvUploader.text = format.uploader
-                    binding.ivAuthor.load(format.uploaderThumbnail)
-                    binding.tvSubCount.text = format.uploaderSubCount
-                }
-                else {
-                    binding.uploaderLayout.visibility = View.GONE
-                }
-            }
             lifecycleScope.launch {
-                ImageLoader(requireContext()).execute(request)
+                repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    ImageLoader(requireContext()).execute(request)
+                }
             }
         }
     }
@@ -1337,20 +1304,10 @@ class NowPlayingFragment : Fragment() {
 
                 })
                 .build()
-            viewModel.format.observe(viewLifecycleOwner){ format ->
-                Log.d("Check Format", format.toString())
-                if (format != null){
-                    binding.uploaderLayout.visibility = View.VISIBLE
-                    binding.tvUploader.text = format.uploader
-                    binding.ivAuthor.load(format.uploaderThumbnail)
-                    binding.tvSubCount.text = format.uploaderSubCount
-                }
-                else {
-                    binding.uploaderLayout.visibility = View.GONE
-                }
-            }
             lifecycleScope.launch {
-                ImageLoader(requireContext()).execute(request)
+                repeatOnLifecycle(Lifecycle.State.STARTED) {
+                    ImageLoader(requireContext()).execute(request)
+                }
             }
         }
     }

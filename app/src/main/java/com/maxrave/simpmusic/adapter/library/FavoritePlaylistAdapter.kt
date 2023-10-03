@@ -2,7 +2,6 @@ package com.maxrave.simpmusic.adapter.library
 
 import android.content.Context
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
@@ -117,7 +116,8 @@ class FavoritePlaylistAdapter(private var listPlaylist: ArrayList<Any>, private 
                 tvPlaylistName.isSelected = true
                 tvArtistName.text = playlistsResult.author
                 tvArtistName.isSelected = true
-                tvStatus.visibility = View.GONE
+                tvStatus.text = context.getString(R.string.your_youtube_playlists)
+                tvStatus.isSelected = true
             }
         }
     }

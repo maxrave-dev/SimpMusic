@@ -168,8 +168,8 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     var from_backup: String? = null
     private var isRestoring = MutableStateFlow(false)
 
-    private var _format: MutableLiveData<FormatEntity?> = MutableLiveData()
-    val format: LiveData<FormatEntity?> = _format
+    private var _format: MutableStateFlow<FormatEntity?> = MutableStateFlow(null)
+    val format: StateFlow<FormatEntity?> = _format
 
     private var _saveLastPlayedSong: MutableLiveData<Boolean> = MutableLiveData()
     val saveLastPlayedSong: LiveData<Boolean> = _saveLastPlayedSong
@@ -962,10 +962,10 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
             if (mediaId != null){
                 mainRepository.getFormat(mediaId).collect { f ->
                     if (f != null){
-                        _format.postValue(f)
+                        _format.emit(f)
                     }
                     else {
-                        _format.postValue(null)
+                        _format.emit(null)
                     }
                 }
             }
@@ -998,6 +998,22 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     fun sponsorBlockCategories() = runBlocking { dataStoreManager.getSponsorBlockCategories() }
     fun stopPlayer() {
         onUIEvent(UIEvent.Stop)
+    }
+
+    fun addToYouTubePlaylist(localPlaylistId: Long, youtubePlaylistId: String, videoId: String) {
+        viewModelScope.launch {
+            mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylistId, LocalPlaylistEntity.YouTubeSyncState.Syncing)
+            mainRepository.addYouTubePlaylistItem(youtubePlaylistId, videoId).collect { response ->
+                if (response == "STATUS_SUCCEEDED") {
+                    mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylistId, LocalPlaylistEntity.YouTubeSyncState.Synced)
+                    Toast.makeText(getApplication(), application.getString(R.string.added_to_youtube_playlist), Toast.LENGTH_SHORT).show()
+                }
+                else {
+                    mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylistId, LocalPlaylistEntity.YouTubeSyncState.NotSynced)
+                    Toast.makeText(getApplication(), application.getString(R.string.error), Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 }
 sealed class UIEvent {

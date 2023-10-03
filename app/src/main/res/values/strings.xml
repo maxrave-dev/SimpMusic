@@ -234,6 +234,16 @@
     <string name="radio">Radio</string>
     <string name="auto_created_by_youtube_music">Auto created by YouTube Music</string>
     <string name="start_radio">Start radio</string>
+    <string name="saved_to_local_playlist">Saved to local playlist</string>
+    <string name="if_you_want_to_unsync_this_playlist_please_go_to_local_playlist">if you want to unsync this playlist, please go to local playlist</string>
+    <string name="log_in_to_get_YouTube_playlist">Log in to get YouTube Playlist</string>
+    <string name="sync_playlist_warning">SimpMusic will create a YouTube Music Playlist automatically. Are you sure?</string>
+    <string name="syncing">Syncing</string>
+    <string name="unsync_playlist_warning">"Unsync this playlist? This playlist will not be removed from YouTube Music "</string>
+    <string name="unsyncing">Unsyncing</string>
+    <string name="added_to_youtube_playlist">Added to YouTube Playlist</string>
+    <string name="removed_from_YouTube_playlist">Removed from YouTube Playlist</string>
+    <string name="update_playlist">Update playlist from YouTube Music</string>
     <plurals name="n_song">
         <item quantity="one">%d song</item>
         <item quantity="other">%d songs</item>

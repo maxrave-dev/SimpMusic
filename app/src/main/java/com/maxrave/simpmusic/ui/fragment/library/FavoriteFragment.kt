@@ -144,7 +144,14 @@ class FavoriteFragment : Fragment() {
                             setEnabledAll(btDownload, true)
                         }
                     }
-
+                    btRadio.setOnClickListener {
+                        val args = Bundle()
+                        args.putString("radioId", "RDAMVM${song.videoId}")
+                        args.putString("title", "${song.title} ${context?.getString(R.string.radio)}")
+                        args.putString("thumbnails", song.thumbnails)
+                        dialog.dismiss()
+                        findNavController().navigate(R.id.action_global_playlistFragment, args)
+                    }
                     btLike.setOnClickListener {
                         if (cbFavorite.isChecked){
                             cbFavorite.isChecked = false

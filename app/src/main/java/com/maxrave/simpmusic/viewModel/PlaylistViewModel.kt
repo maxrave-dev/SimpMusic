@@ -21,6 +21,7 @@ import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.browse.playlist.PlaylistBrowse
 import com.maxrave.simpmusic.data.repository.MainRepository
+import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -380,10 +381,30 @@ class PlaylistViewModel @Inject constructor(
         }
     }
 
-    fun insertLocalPlaylist(localPlaylistEntity: LocalPlaylistEntity) {
+    fun insertLocalPlaylist(localPlaylistEntity: LocalPlaylistEntity, listTrack: List<Track>) {
         viewModelScope.launch {
             mainRepository.insertLocalPlaylist(localPlaylistEntity)
+            mainRepository.getLocalPlaylistByYoutubePlaylistId(localPlaylistEntity.youtubePlaylistId!!).collect { playlist ->
+                if (playlist != null && playlist.youtubePlaylistId == localPlaylistEntity.youtubePlaylistId) {
+                    for (track in listTrack) {
+                        mainRepository.insertSong(track.toSongEntity())
+                    }
+                }
+            }
             Toast.makeText(context, context.getString(R.string.added_local_playlist), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private var _localPlaylistIfYouTubePlaylist: MutableStateFlow<LocalPlaylistEntity?> = MutableStateFlow(null)
+    var localPlaylistIfYouTubePlaylist: MutableStateFlow<LocalPlaylistEntity?> = _localPlaylistIfYouTubePlaylist
+
+    fun checkSyncedPlaylist(value: String?) {
+        viewModelScope.launch {
+            if (value != null) {
+                mainRepository.getLocalPlaylistByYoutubePlaylistId(value).collect {
+                    _localPlaylistIfYouTubePlaylist.value = it
+                }
+            }
         }
     }
 }

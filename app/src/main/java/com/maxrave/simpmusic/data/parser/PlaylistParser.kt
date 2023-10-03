@@ -3,6 +3,7 @@ package com.maxrave.simpmusic.data.parser
 import android.util.Log
 import com.maxrave.kotlinytmusicscraper.models.MusicShelfRenderer
 import com.maxrave.kotlinytmusicscraper.models.response.BrowseResponse
+import com.maxrave.simpmusic.data.db.entities.SetVideoIdEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.browse.playlist.Author
 import com.maxrave.simpmusic.data.model.browse.playlist.PlaylistBrowse
@@ -80,7 +81,9 @@ fun parsePlaylistData(header: Any?, listContent: List<MusicShelfRenderer.Content
                 resultType = null,
                 year = null
             )
-            listTrack.add(track)
+            if (track.videoId != "") {
+                listTrack.add(track)
+            }
         }
         Log.d("PlaylistParser", "description: $description")
         return PlaylistBrowse(
@@ -100,4 +103,19 @@ fun parsePlaylistData(header: Any?, listContent: List<MusicShelfRenderer.Content
     else {
         return null
     }
+}
+
+fun parseSetVideoId(listContent: List<MusicShelfRenderer.Content>): ArrayList<SetVideoIdEntity> {
+    val listSetVideoId: ArrayList<SetVideoIdEntity> = arrayListOf()
+    for (content in listContent) {
+        val videoId = content.musicResponsiveListItemRenderer.flexColumns[0].musicResponsiveListItemFlexColumnRenderer.text?.runs?.get(0)?.navigationEndpoint?.watchEndpoint?.videoId
+        val setVideoId = content.musicResponsiveListItemRenderer.menu?.menuRenderer?.items?.find { it.menuServiceItemRenderer?.icon?.iconType == "REMOVE_FROM_PLAYLIST" }?.menuServiceItemRenderer?.serviceEndpoint?.playlistEditEndpoint?.actions?.get(0)?.setVideoId
+        if (videoId != null && setVideoId != null) {
+            listSetVideoId.add(SetVideoIdEntity(videoId, setVideoId))
+        }
+        else {
+            Log.d("PlaylistParser", "videoId or setVideoId is null")
+        }
+    }
+    return listSetVideoId
 }

@@ -196,6 +196,7 @@
                         android:textColor="?attr/colorOnSecondaryContainer"
                         android:background="@android:color/transparent"
                         android:src="@drawable/baseline_shuffle_24"
+                        android:visibility="gone"
                         android:focusable="true"
                         android:clickable="true"
                         android:foreground="?android:attr/selectableItemBackground">

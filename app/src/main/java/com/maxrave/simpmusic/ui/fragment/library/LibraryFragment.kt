@@ -185,19 +185,32 @@ class LibraryFragment : Fragment() {
                 binding.tvDownloadedPlaylistsStatus.visibility = View.GONE
             }
         }
+        if (!viewModel.getYouTubeLoggedIn()) {
+            binding.tvYouTubePlaylistsStatus.visibility = View.VISIBLE
+            binding.tvYouTubePlaylistsStatus.text = getString(R.string.log_in_to_get_YouTube_playlist)
+        }
         viewModel.listYouTubePlaylist.observe(viewLifecycleOwner) { list ->
-            val temp = ArrayList<Any>()
-            for (i in list.size - 1 downTo 0) {
-                temp.add(list[i])
-            }
-            listYouTubePlaylist.clear()
-            listYouTubePlaylist.addAll(temp)
-            adapterYouTubePlaylist.updateList(listYouTubePlaylist)
-            if (listYouTubePlaylist.isEmpty()) {
-                binding.tvYouTubePlaylistsStatus.visibility = View.VISIBLE
+            Log.w("LibraryFragment", "onViewCreated: $list")
+            if (!list.isNullOrEmpty() && viewModel.getYouTubeLoggedIn()) {
+                val temp = ArrayList<Any>()
+                for (i in list.size - 1 downTo 0) {
+                    temp.add(list[i])
+                }
+                listYouTubePlaylist.clear()
+                listYouTubePlaylist.addAll(temp)
+                adapterYouTubePlaylist.updateList(listYouTubePlaylist)
+                if (listYouTubePlaylist.isEmpty()) {
+                    binding.tvYouTubePlaylistsStatus.visibility = View.VISIBLE
+                    binding.tvYouTubePlaylistsStatus.text = getString(R.string.no_YouTube_playlists)
+                }
+                else {
+                    binding.tvYouTubePlaylistsStatus.visibility = View.GONE
+                    binding.tvYouTubePlaylistsStatus.text = getString(R.string.no_YouTube_playlists)
+                }
             }
             else {
-                binding.tvYouTubePlaylistsStatus.visibility = View.GONE
+                binding.tvYouTubePlaylistsStatus.visibility = View.VISIBLE
+                binding.tvYouTubePlaylistsStatus.text = getString(R.string.log_in_to_get_YouTube_playlist)
             }
         }
         adapterItem.setOnClickListener(object : SearchItemAdapter.onItemClickListener {
@@ -256,7 +269,14 @@ class LibraryFragment : Fragment() {
                     tvSongArtist.text = song.artistName?.connectArtists()
                     tvSongArtist.isSelected = true
                     ivThumbnail.load(song.thumbnails)
-
+                    btRadio.setOnClickListener {
+                        val args = Bundle()
+                        args.putString("radioId", "RDAMVM${song.videoId}")
+                        args.putString("title", "${song.title} ${context?.getString(R.string.radio)}")
+                        args.putString("thumbnails", song.thumbnails)
+                        dialog.dismiss()
+                        findNavController().navigate(R.id.action_global_playlistFragment, args)
+                    }
                     btLike.setOnClickListener {
                         if (cbFavorite.isChecked){
                             cbFavorite.isChecked = false

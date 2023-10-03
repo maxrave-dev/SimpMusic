@@ -20,7 +20,9 @@ import com.maxrave.kotlinytmusicscraper.models.getContinuation
 import com.maxrave.kotlinytmusicscraper.models.lyrics.Lyrics
 import com.maxrave.kotlinytmusicscraper.models.oddElements
 import com.maxrave.kotlinytmusicscraper.models.response.AccountMenuResponse
+import com.maxrave.kotlinytmusicscraper.models.response.AddItemYouTubePlaylistResponse
 import com.maxrave.kotlinytmusicscraper.models.response.BrowseResponse
+import com.maxrave.kotlinytmusicscraper.models.response.CreatePlaylistResponse
 import com.maxrave.kotlinytmusicscraper.models.response.GetQueueResponse
 import com.maxrave.kotlinytmusicscraper.models.response.NextResponse
 import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
@@ -637,6 +639,22 @@ object YouTube {
 
     suspend fun scrapeYouTube(videoId: String) = runCatching {
         ytMusic.scrapeYouTube(videoId).body<String>()
+    }
+
+    suspend fun removeItemYouTubePlaylist(playlistId: String, videoId: String, setVideoId: String) = runCatching {
+        ytMusic.removeItemYouTubePlaylist(playlistId, videoId, setVideoId).status.value
+    }
+
+    suspend fun addPlaylistItem(playlistId: String, videoId: String) = runCatching {
+        ytMusic.addItemYouTubePlaylist(playlistId, videoId).body<AddItemYouTubePlaylistResponse>()
+    }
+
+    suspend fun editPlaylist(playlistId: String, title: String) = runCatching {
+        ytMusic.editYouTubePlaylist(playlistId, title).status.value
+    }
+
+    suspend fun createPlaylist(title: String, listVideoId: List<String>?) = runCatching {
+        ytMusic.createYouTubePlaylist(title, listVideoId).body<CreatePlaylistResponse>()
     }
 
     const val MAX_GET_QUEUE_SIZE = 1000

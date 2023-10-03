@@ -46,6 +46,7 @@ import com.maxrave.simpmusic.databinding.BottomSheetSeeArtistOfNowPlayingBinding
 import com.maxrave.simpmusic.databinding.FragmentPlaylistBinding
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.removeConflicts
+import com.maxrave.simpmusic.extension.setEnabledAll
 import com.maxrave.simpmusic.extension.toArrayListTrack
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toListVideoId
@@ -116,7 +117,20 @@ class PlaylistFragment: Fragment() {
         val thumbnails = arguments?.getString("thumbnails")
         if (id == null && radioId == null || id == viewModel.id.value && radioId == null || id == null && radioId == viewModel.id.value){
             id = viewModel.id.value
-            fetchDataFromViewModel()
+            if (!requireArguments().getBoolean("youtube")) {
+                fetchDataFromViewModel()
+            }
+            else
+            {
+                if (id != null) {
+                    if (downloaded == null || downloaded == 0){
+                        fetchData(id)
+                    }
+                    if (downloaded == 1){
+                        fetchData(id, downloaded = 1)
+                    }
+                }
+            }
         }
         else if (radioId != null && id == null) {
             viewModel.clearPlaylistBrowse()
@@ -167,19 +181,47 @@ class PlaylistFragment: Fragment() {
                 startActivity(chooserIntent)
             }
             if (requireArguments().getBoolean("youtube")) {
+                Log.w("PlaylistFragment", "id check: $id")
                 moreView.btSync.visibility = View.VISIBLE
+                viewModel.checkSyncedPlaylist(id)
+                lifecycleScope.launch {
+                    viewModel.localPlaylistIfYouTubePlaylist.collectLatest { ytPlaylist ->
+                        Log.w("PlaylistFragment", "ytPlaylist: ${ytPlaylist?.youtubePlaylistId}")
+                        Log.w("PlaylistFragment", "id: $id")
+                        if (ytPlaylist != null) {
+                            val tempId = ytPlaylist.youtubePlaylistId
+                            if (tempId == id) {
+                                moreView.tvSync.text = context?.getString(R.string.saved_to_local_playlist)
+                                setEnabledAll(moreView.btSync, false)
+                            }
+                        }
+                        else {
+                            moreView.tvSync.text = context?.getString(R.string.save_to_local_playlist)
+                        }
+                    }
+                }
                 moreView.btSync.setOnClickListener {
-                    val playlist = viewModel.playlistEntity.value
-                    if (playlist != null){
-                        val localPlaylistEntity = LocalPlaylistEntity(
-                            title = playlist.title,
-                            thumbnail = playlist.thumbnails,
-                            youtubePlaylistId = playlist.id,
-                            syncedWithYouTubePlaylist = 1,
-                            tracks = playlist.tracks,
-                            downloadState = DownloadState.STATE_NOT_DOWNLOADED
-                        )
-                        viewModel.insertLocalPlaylist(localPlaylistEntity)
+                    if (moreView.tvSync.text == context?.getString(R.string.save_to_local_playlist)) {
+                        val playlist = viewModel.playlistBrowse.value?.data
+                        if (playlist != null) {
+                            val localPlaylistEntity = LocalPlaylistEntity(
+                                title = playlist.title,
+                                thumbnail = playlist.thumbnails.lastOrNull()?.url,
+                                youtubePlaylistId = playlist.id,
+                                syncedWithYouTubePlaylist = 1,
+                                tracks = playlist.tracks.toListVideoId(),
+                                downloadState = DownloadState.STATE_NOT_DOWNLOADED,
+                                syncState = LocalPlaylistEntity.YouTubeSyncState.Synced
+                            )
+                            viewModel.insertLocalPlaylist(localPlaylistEntity, playlist.tracks)
+                            moreView.tvSync.text = context?.getString(R.string.saved_to_local_playlist)
+                        }
+                    } else {
+                        Snackbar.make(
+                            requireView(),
+                            getString(R.string.if_you_want_to_unsync_this_playlist_please_go_to_local_playlist),
+                            Snackbar.LENGTH_SHORT
+                        ).show()
                     }
                 }
             }
@@ -194,36 +236,48 @@ class PlaylistFragment: Fragment() {
 
         binding.btPlayPause.setOnClickListener {
             if (viewModel.playlistBrowse.value is Resource.Success && viewModel.playlistBrowse.value?.data != null){
-                val args = Bundle()
-                args.putString("type", Config.PLAYLIST_CLICK)
-                args.putString("videoId", viewModel.playlistBrowse.value?.data?.tracks?.get(0)?.videoId)
-                args.putString("from", "Playlist \"${viewModel.playlistBrowse.value?.data?.title}\"")
-                if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
-                    args.putInt("downloaded", 1)
+                if (!viewModel.playlistBrowse.value?.data?.tracks.isNullOrEmpty()) {
+                    val args = Bundle()
+                    args.putString("type", Config.PLAYLIST_CLICK)
+                    args.putString("videoId", viewModel.playlistBrowse.value?.data?.tracks?.get(0)?.videoId)
+                    args.putString("from", "Playlist \"${viewModel.playlistBrowse.value?.data?.title}\"")
+                    if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
+                        args.putInt("downloaded", 1)
+                    }
+                    Queue.clear()
+                    Queue.setNowPlaying(viewModel.playlistBrowse.value?.data!!.tracks[0])
+                    Queue.addAll(viewModel.playlistBrowse.value?.data!!.tracks as ArrayList<Track>)
+                    if (Queue.getQueue().size >= 1) {
+                        Queue.removeFirstTrackForPlaylistAndAlbum()
+                    }
+                    findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
                 }
-                Queue.clear()
-                Queue.setNowPlaying(viewModel.playlistBrowse.value?.data!!.tracks[0])
-                Queue.addAll(viewModel.playlistBrowse.value?.data!!.tracks as ArrayList<Track>)
-                if (Queue.getQueue().size >= 1) {
-                    Queue.removeFirstTrackForPlaylistAndAlbum()
+                else {
+                    Snackbar.make(requireView(),
+                        getString(R.string.playlist_is_empty), Snackbar.LENGTH_SHORT).show()
                 }
-                findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
             }
             else if (viewModel.playlistEntity.value != null && viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED){
-                val args = Bundle()
-                args.putString("type", Config.ALBUM_CLICK)
-                args.putString("videoId", viewModel.playlistEntity.value?.tracks?.get(0))
-                args.putString("from", "Album \"${viewModel.playlistEntity.value?.title}\"")
-                if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
-                    args.putInt("downloaded", 1)
+                if (!viewModel.playlistEntity.value?.tracks.isNullOrEmpty()) {
+                    val args = Bundle()
+                    args.putString("type", Config.ALBUM_CLICK)
+                    args.putString("videoId", viewModel.playlistEntity.value?.tracks?.get(0))
+                    args.putString("from", "Album \"${viewModel.playlistEntity.value?.title}\"")
+                    if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
+                        args.putInt("downloaded", 1)
+                    }
+                    Queue.clear()
+                    Queue.setNowPlaying(viewModel.listTrack.value?.get(0)!!.toTrack())
+                    Queue.addAll(viewModel.listTrack.value.toArrayListTrack())
+                    if (Queue.getQueue().size >= 1) {
+                        Queue.removeFirstTrackForPlaylistAndAlbum()
+                    }
+                    findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
                 }
-                Queue.clear()
-                Queue.setNowPlaying(viewModel.listTrack.value?.get(0)!!.toTrack())
-                Queue.addAll(viewModel.listTrack.value.toArrayListTrack())
-                if (Queue.getQueue().size >= 1) {
-                    Queue.removeFirstTrackForPlaylistAndAlbum()
+                else {
+                    Snackbar.make(requireView(),
+                        getString(R.string.playlist_is_empty), Snackbar.LENGTH_SHORT).show()
                 }
-                findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
             }
             else {
                 Snackbar.make(requireView(),
@@ -577,6 +631,7 @@ class PlaylistFragment: Fragment() {
 
     private fun fetchDataWithRadio(radioId: String, title: String?, thumbnails: String?) {
         viewModel.clearPlaylistBrowse()
+        viewModel.updateId(radioId)
         viewModel.getRadio(radioId, title, thumbnails)
         viewModel.playlistBrowse.observe(viewLifecycleOwner) {response ->
             when (response) {

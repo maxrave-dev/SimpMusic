@@ -360,7 +360,14 @@ class SearchFragment : Fragment() {
                         tvSongArtist.text = track.artists.toListName().connectArtists()
                         tvSongArtist.isSelected = true
                         ivThumbnail.load(track.thumbnails?.last()?.url)
-
+                        btRadio.setOnClickListener {
+                            val args = Bundle()
+                            args.putString("radioId", "RDAMVM${track.videoId}")
+                            args.putString("title", "${track.title} ${context?.getString(R.string.radio)}")
+                            args.putString("thumbnails", track.thumbnails?.lastOrNull()?.url)
+                            dialog.dismiss()
+                            findNavController().navigate(R.id.action_global_playlistFragment, args)
+                        }
                         btLike.setOnClickListener {
                             if (cbFavorite.isChecked){
                                 cbFavorite.isChecked = false

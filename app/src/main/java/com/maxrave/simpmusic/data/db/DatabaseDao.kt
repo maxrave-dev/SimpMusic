@@ -15,6 +15,7 @@ import com.maxrave.simpmusic.data.db.entities.LyricsEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.QueueEntity
 import com.maxrave.simpmusic.data.db.entities.SearchHistory
+import com.maxrave.simpmusic.data.db.entities.SetVideoIdEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.extension.toSQLiteQuery
 import java.time.LocalDateTime
@@ -232,6 +233,15 @@ interface DatabaseDao {
     @Query("SELECT * FROM local_playlist WHERE downloadState = 3")
     suspend fun getDownloadedLocalPlaylists(): List<LocalPlaylistEntity>
 
+    @Query("UPDATE local_playlist SET youtubePlaylistId = :youtubePlaylistId WHERE id = :id")
+    suspend fun updateLocalPlaylistYouTubePlaylistId(id: Long, youtubePlaylistId: String?)
+
+    @Query("UPDATE local_playlist SET synced_with_youtube_playlist = :synced WHERE id = :id")
+    suspend fun updateLocalPlaylistYouTubePlaylistSynced(id: Long, synced: Int)
+
+    @Query("UPDATE local_playlist SET youtube_sync_state = :state WHERE id = :id")
+    suspend fun updateLocalPlaylistYouTubePlaylistSyncState(id: Long, state: Int)
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLyrics(lyrics: LyricsEntity)
 
@@ -263,4 +273,13 @@ interface DatabaseDao {
 
     @Query("SELECT * FROM queue")
     suspend fun getQueue(): List<QueueEntity>?
+
+    @Query("SELECT * FROM local_playlist WHERE youtubePlaylistId = :youtubePlaylistId")
+    suspend fun getLocalPlaylistByYoutubePlaylistId(youtubePlaylistId: String): LocalPlaylistEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertSetVideoId(setVideoIdEntity: SetVideoIdEntity)
+
+    @Query("SELECT * FROM set_video_id WHERE videoId = :videoId")
+    suspend fun getSetVideoId(videoId: String): SetVideoIdEntity?
 }

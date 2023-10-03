@@ -206,11 +206,12 @@ class Ytmusic {
             parameter("q", query)
         }
 
-    suspend fun createYouTubePlaylist(title: String, listVideoId: ArrayList<String>) =
+    suspend fun createYouTubePlaylist(title: String, listVideoId: List<String>?) =
         httpClient.post("playlist/create") {
             ytClient(YouTubeClient.WEB_REMIX, setLogin = true)
             setBody(
                 CreatePlaylistBody(
+                    context = YouTubeClient.WEB_REMIX.toContext(locale, visitorData),
                     title = title,
                     videoIds = listVideoId
                 )
@@ -222,9 +223,13 @@ class Ytmusic {
             ytClient(YouTubeClient.WEB_REMIX, setLogin = true)
             setBody(
                 EditPlaylistBody(
-                    playlistId = playlistId,
-                    actions = EditPlaylistBody.Action(
-                        playlistName = title ?: ""
+                    context = YouTubeClient.WEB_REMIX.toContext(locale, visitorData),
+                    playlistId = playlistId.removePrefix("VL"),
+                    actions = listOf(
+                        EditPlaylistBody.Action(
+                            action = "ACTION_SET_PLAYLIST_NAME",
+                            playlistName = title ?: ""
+                        )
                     )
                 )
             )
@@ -235,11 +240,14 @@ class Ytmusic {
             ytClient(YouTubeClient.WEB_REMIX, setLogin = true)
             setBody(
                 EditPlaylistBody(
-                    playlistId = playlistId,
-                    actions = EditPlaylistBody.Action(
-                        playlistName = null,
-                        action = "ACTION_ADD_VIDEO",
-                        addedVideoId = videoId
+                    context = YouTubeClient.WEB_REMIX.toContext(locale, visitorData),
+                    playlistId = playlistId.removePrefix("VL"),
+                    actions = listOf(
+                        EditPlaylistBody.Action(
+                            playlistName = null,
+                            action = "ACTION_ADD_VIDEO",
+                            addedVideoId = videoId
+                        )
                     )
                 )
             )
@@ -249,12 +257,15 @@ class Ytmusic {
             ytClient(YouTubeClient.WEB_REMIX, setLogin = true)
             setBody(
                 EditPlaylistBody(
-                    playlistId = playlistId,
-                    actions = EditPlaylistBody.Action(
-                        playlistName = null,
-                        action = "ACTION_REMOVE_VIDEO",
-                        removedVideoId = videoId,
-                        setVideoId = setVideoId
+                    context = YouTubeClient.WEB_REMIX.toContext(locale, visitorData),
+                    playlistId = playlistId.removePrefix("VL"),
+                    actions = listOf(
+                        EditPlaylistBody.Action(
+                            playlistName = null,
+                            action = "ACTION_REMOVE_VIDEO",
+                            removedVideoId = videoId,
+                            setVideoId = setVideoId
+                        )
                     )
                 )
             )

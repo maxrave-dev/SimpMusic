@@ -3,19 +3,25 @@ package com.maxrave.simpmusic.viewModel
 import android.app.Application
 import android.graphics.drawable.GradientDrawable
 import android.util.Log
+import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.Download
+import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
+import com.maxrave.simpmusic.data.db.entities.SetVideoIdEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.repository.MainRepository
+import com.maxrave.simpmusic.extension.toListVideoId
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
+import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -23,7 +29,7 @@ import javax.inject.Inject
 @HiltViewModel
 class LocalPlaylistViewModel @Inject constructor(
     private val mainRepository: MainRepository,
-    application: Application
+    private val application: Application
 ) : AndroidViewModel(application) {
     @Inject
     lateinit var downloadUtils: DownloadUtils
@@ -252,6 +258,126 @@ class LocalPlaylistViewModel @Inject constructor(
                         }
                 }
             }
+    }
+
+    private var _listSetVideoId: MutableStateFlow<ArrayList<SetVideoIdEntity>?> = MutableStateFlow(null)
+    val listSetVideoId: StateFlow<ArrayList<SetVideoIdEntity>?> = _listSetVideoId
+
+    fun getSetVideoId(youtubePlaylistId: String) {
+        viewModelScope.launch {
+            mainRepository.getYouTubeSetVideoId(youtubePlaylistId).collect {
+                _listSetVideoId.value = it
+            }
+        }
+    }
+
+    fun removeYouTubePlaylistItem(youtubePlaylistId: String, videoId: String) {
+        viewModelScope.launch {
+            mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylist.value?.id!!, LocalPlaylistEntity.YouTubeSyncState.Syncing)
+            mainRepository.removeYouTubePlaylistItem(youtubePlaylistId, videoId).collect {
+                if (it == 200) {
+                    Toast.makeText(application, application.getString(R.string.removed_from_YouTube_playlist), Toast.LENGTH_SHORT).show()
+                    mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylist.value?.id!!, LocalPlaylistEntity.YouTubeSyncState.Synced)
+                }
+                else {
+                    Toast.makeText(application, application.getString(R.string.error), Toast.LENGTH_SHORT).show()
+                    mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylist.value?.id!!, LocalPlaylistEntity.YouTubeSyncState.NotSynced)
+                }
+            }
+        }
+    }
+
+    fun syncPlaylistWithYouTubePlaylist(playlist: LocalPlaylistEntity) {
+        viewModelScope.launch {
+            mainRepository.createYouTubePlaylist(playlist).collect {
+                if (it != null) {
+                    val ytId = "VL$it"
+                    mainRepository.updateLocalPlaylistYouTubePlaylistId(playlist.id, ytId)
+                    mainRepository.updateLocalPlaylistYouTubePlaylistSynced(playlist.id, 1)
+                    mainRepository.getLocalPlaylistByYoutubePlaylistId(ytId).collect { yt ->
+                        if (yt != null) {
+                            mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(yt.id, LocalPlaylistEntity.YouTubeSyncState.Synced)
+                            mainRepository.getLocalPlaylist(playlist.id).collect {last ->
+                                _listLocalPlaylist.postValue(last)
+                                Toast.makeText(application, application.getString(R.string.synced), Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    }
+                }
+                else {
+                    Toast.makeText(application, application.getString(R.string.error), Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    fun unsyncPlaylistWithYouTubePlaylist(playlist: LocalPlaylistEntity) {
+        viewModelScope.launch {
+            mainRepository.updateLocalPlaylistYouTubePlaylistId(playlist.id, null)
+            mainRepository.updateLocalPlaylistYouTubePlaylistSynced(playlist.id, 0)
+            mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(playlist.id, LocalPlaylistEntity.YouTubeSyncState.NotSynced)
+            mainRepository.getLocalPlaylist(playlist.id).collect {last ->
+                if (last.syncedWithYouTubePlaylist == 0) {
+                    _listLocalPlaylist.postValue(last)
+                    Toast.makeText(application, application.getString(R.string.unsynced), Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+
+    }
+
+    fun updateYouTubePlaylistTitle(title: String, youtubePlaylistId: String) {
+        viewModelScope.launch {
+            mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylist.value?.id!!, LocalPlaylistEntity.YouTubeSyncState.Syncing)
+            mainRepository.editYouTubePlaylist(title, youtubePlaylistId).collect { status ->
+                if (status == 200) {
+                    mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylist.value?.id!!, LocalPlaylistEntity.YouTubeSyncState.Synced)
+                    Toast.makeText(application, application.getString(R.string.synced), Toast.LENGTH_SHORT).show()
+                }
+                else {
+                    mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylist.value?.id!!, LocalPlaylistEntity.YouTubeSyncState.NotSynced)
+                    Toast.makeText(application, application.getString(R.string.error), Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    fun updateListTrackSynced(id: Long, list: List<String>, youtubeId: String) {
+        viewModelScope.launch {
+            mainRepository.getPlaylistData(youtubeId).collect {yt ->
+                if (yt is Resource.Success) {
+                    if (yt.data != null) {
+                        val listTrack: ArrayList<String> = arrayListOf()
+                        listTrack.addAll(list)
+                        yt.data.tracks.forEach { track ->
+                            if (!list.contains(track.videoId)) {
+                                listTrack.add(track.videoId)
+                            }
+                        }
+                        mainRepository.updateLocalPlaylistTracks(listTrack, id)
+                        if (yt.data.tracks.size < list.size) {
+                            list.forEach { track2 ->
+                                if (!yt.data.tracks.toListVideoId().contains(track2)) {
+                                    mainRepository.addYouTubePlaylistItem(youtubeId, track2).collect { status ->
+                                        if (status == "STATUS_SUCCEEDED") {
+                                            Toast.makeText(application, application.getString(R.string.added_to_youtube_playlist), Toast.LENGTH_SHORT).show()
+                                        }
+                                        else {
+                                            Toast.makeText(application, application.getString(R.string.error), Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        Toast.makeText(application, application.getString(R.string.synced), Toast.LENGTH_SHORT).show()
+                        mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(id, LocalPlaylistEntity.YouTubeSyncState.Synced)
+                        mainRepository.getLocalPlaylist(id).collect {last ->
+                            _listLocalPlaylist.postValue(last)
+                        }
+                    }
+                }
+            }
+        }
     }
 
 }

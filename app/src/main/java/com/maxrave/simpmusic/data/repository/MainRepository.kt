@@ -21,6 +21,7 @@ import com.maxrave.simpmusic.data.db.entities.LyricsEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.QueueEntity
 import com.maxrave.simpmusic.data.db.entities.SearchHistory
+import com.maxrave.simpmusic.data.db.entities.SetVideoIdEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.AlbumBrowse
 import com.maxrave.simpmusic.data.model.browse.album.Track
@@ -50,6 +51,7 @@ import com.maxrave.simpmusic.data.parser.parseMixedContent
 import com.maxrave.simpmusic.data.parser.parseMoodsMomentObject
 import com.maxrave.simpmusic.data.parser.parsePlaylistData
 import com.maxrave.simpmusic.data.parser.parseRelated
+import com.maxrave.simpmusic.data.parser.parseSetVideoId
 import com.maxrave.simpmusic.data.parser.search.parseSearchAlbum
 import com.maxrave.simpmusic.data.parser.search.parseSearchArtist
 import com.maxrave.simpmusic.data.parser.search.parseSearchPlaylist
@@ -285,6 +287,27 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
     suspend fun getSavedQueue(): Flow<List<QueueEntity>?> =
         flow { emit(localDataSource.getQueue())  }.flowOn(Dispatchers.IO)
 
+    suspend fun getLocalPlaylistByYoutubePlaylistId(playlistId: String): Flow<LocalPlaylistEntity?> =
+        flow { emit(localDataSource.getLocalPlaylistByYoutubePlaylistId(playlistId)) }.flowOn(Dispatchers.IO)
+
+    suspend fun insertSetVideoId(setVideoId: SetVideoIdEntity) =
+        withContext(Dispatchers.IO) { localDataSource.insertSetVideoId(setVideoId) }
+
+    suspend fun getSetVideoId(videoId: String): Flow<SetVideoIdEntity?> =
+        flow { emit(localDataSource.getSetVideoId(videoId)) }.flowOn(Dispatchers.IO)
+
+
+    suspend fun updateLocalPlaylistYouTubePlaylistId(id: Long, ytId: String?) = withContext(Dispatchers.IO) {
+        localDataSource.updateLocalPlaylistYouTubePlaylistId(id, ytId)
+    }
+
+    suspend fun updateLocalPlaylistYouTubePlaylistSynced(id: Long, synced: Int) = withContext(Dispatchers.IO) {
+        localDataSource.updateLocalPlaylistYouTubePlaylistSynced(id, synced)
+    }
+
+    suspend fun updateLocalPlaylistYouTubePlaylistSyncState(id: Long, syncState: Int) = withContext(Dispatchers.IO) {
+        localDataSource.updateLocalPlaylistYouTubePlaylistSyncState(id, syncState)
+    }
 
     suspend fun getHomeData(): Flow<Resource<ArrayList<HomeItem>>> = flow {
         runCatching {
@@ -852,5 +875,117 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
             .onFailure {
                 emit(null)
             }
+    }
+
+    suspend fun getYouTubeSetVideoId(youtubePlaylistId: String): Flow<ArrayList<SetVideoIdEntity>?> = flow {
+        YouTube.playlist(youtubePlaylistId).onSuccess { playlistPage ->
+            flow {
+                runCatching {
+                    var id = ""
+                    if (!youtubePlaylistId.startsWith("VL")) {
+                        id += "VL$youtubePlaylistId"
+                    }
+                    else {
+                        id += youtubePlaylistId
+                    }
+                    Log.d("Repository", "playlist id: $id")
+                    YouTube.customQuery(browseId = id, setLogin = true).onSuccess { result ->
+                        val listContent: ArrayList<MusicShelfRenderer.Content> = arrayListOf()
+                        val data: List<MusicShelfRenderer.Content>? = result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(0)?.tabRenderer?.content?.sectionListRenderer?.contents?.get(0)?.musicPlaylistShelfRenderer?.contents
+                        if (data != null) {
+                            Log.d("Data", "data: $data")
+                            Log.d("Data", "data size: ${data.size}")
+                            listContent.addAll(data)
+                        }
+                        var continueParam = result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(0)?.tabRenderer?.content?.sectionListRenderer?.contents?.get(0)?.musicPlaylistShelfRenderer?.continuations?.get(0)?.nextContinuationData?.continuation
+                        var count = 0
+                        Log.d("Repository", "playlist data: ${listContent.size}")
+                        Log.d("Repository", "continueParam: $continueParam")
+                        while (continueParam != null) {
+                            YouTube.customQuery(browseId = "", continuation = continueParam, setLogin = true).onSuccess { values ->
+                                Log.d("Continue", "continue: $continueParam")
+                                val dataMore: List<MusicShelfRenderer.Content>? = values.continuationContents?.musicPlaylistShelfContinuation?.contents
+                                if (dataMore != null) {
+                                    listContent.addAll(dataMore)
+                                }
+                                continueParam = values.continuationContents?.musicPlaylistShelfContinuation?.continuations?.get(0)?.nextContinuationData?.continuation
+                                count++
+                            }.onFailure {
+                                Log.e("Continue", "Error: ${it.message}")
+                                continueParam = null
+                                count++
+                            }
+                        }
+                        Log.d("Repository", "playlist final data: ${listContent.size}")
+                        parseSetVideoId(listContent).let { playlist ->
+                            playlist.forEach { item ->
+                                insertSetVideoId(item)
+                            }
+                            emit(playlist)
+                        }
+                    }.onFailure { e ->
+                        e.printStackTrace()
+                        emit(null)
+                    }
+                }
+            }.flowOn(Dispatchers.IO)
+        }
+    }
+
+    suspend fun createYouTubePlaylist(playlist: LocalPlaylistEntity): Flow<String?> = flow {
+        runCatching {
+            YouTube.createPlaylist(playlist.title, playlist.tracks).onSuccess {
+                emit(it.playlistId)
+            }.onFailure {
+                it.printStackTrace()
+                emit(null)
+            }
+        }
+    }
+
+    suspend fun editYouTubePlaylist(title: String, youtubePlaylistId: String): Flow<Int> = flow {
+        runCatching {
+            YouTube.editPlaylist(youtubePlaylistId, title).onSuccess { response ->
+                emit(response)
+            }.onFailure {
+                it.printStackTrace()
+                emit(0)
+            }
+        }
+    }
+
+    suspend fun removeYouTubePlaylistItem(youtubePlaylistId: String, videoId: String) = flow {
+        runCatching {
+            getSetVideoId(videoId).collect() { setVideoId ->
+                if (setVideoId?.setVideoId != null) {
+                    YouTube.removeItemYouTubePlaylist(youtubePlaylistId, videoId, setVideoId.setVideoId).onSuccess {
+                        emit(it)
+                    }.onFailure {
+                        emit(0)
+                    }
+                }
+                else {
+                    emit(0)
+                }
+            }
+        }
+    }
+
+    suspend fun addYouTubePlaylistItem(youtubePlaylistId: String, videoId: String) = flow {
+        runCatching {
+            YouTube.addPlaylistItem(youtubePlaylistId, videoId).onSuccess {
+                if (it.playlistEditResults.isNotEmpty()) {
+                    for (playlistEditResult in it.playlistEditResults) {
+                        insertSetVideoId(SetVideoIdEntity(playlistEditResult.playlistEditVideoAddedResultData.videoId, playlistEditResult.playlistEditVideoAddedResultData.setVideoId))
+                    }
+                    emit(it.status)
+                }
+                else {
+                    emit("FAILED")
+                }
+            }.onFailure {
+                emit("FAILED")
+            }
+        }
     }
 }
