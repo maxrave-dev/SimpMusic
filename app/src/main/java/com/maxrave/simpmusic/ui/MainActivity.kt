@@ -197,6 +197,27 @@ class MainActivity : AppCompatActivity() {
             else -> {}
         }
 
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            when (destination.id) {
+                R.id.bottom_navigation_item_home, R.id.settingsFragment, R.id.recentlySongsFragment -> {
+                    binding.bottomNavigationView.menu.findItem(R.id.bottom_navigation_item_home)?.isChecked =
+                        true
+                }
+
+                R.id.bottom_navigation_item_search -> {
+                    binding.bottomNavigationView.menu.findItem(R.id.bottom_navigation_item_search)?.isChecked =
+                        true
+                }
+
+                R.id.bottom_navigation_item_library, R.id.downloadedFragment, R.id.mostPlayedFragment, R.id.followedFragment, R.id.favoriteFragment -> {
+                    binding.bottomNavigationView.menu.findItem(R.id.bottom_navigation_item_library)?.isChecked =
+                        true
+                }
+
+                else -> {}
+            }
+        }
+
         binding.miniplayer.showMode = SwipeLayout.ShowMode.PullOut
         binding.miniplayer.addDrag(SwipeLayout.DragEdge.Right, binding.llBottom)
         binding.miniplayer.addSwipeListener(object : SwipeLayout.SwipeListener {
