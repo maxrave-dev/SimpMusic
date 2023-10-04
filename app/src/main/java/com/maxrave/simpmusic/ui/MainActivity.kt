@@ -53,7 +53,6 @@ import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.ActivityMainBinding
 import com.maxrave.simpmusic.extension.isMyServiceRunning
-import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.service.test.source.FetchQueue
 import com.maxrave.simpmusic.service.test.source.MusicSource
@@ -121,12 +120,18 @@ class MainActivity : AppCompatActivity() {
         if (getString(FIRST_TIME_MIGRATION) != STATUS_DONE) {
             Log.d("Locale Key", "onCreate: ${Locale.getDefault().toLanguageTag()}")
             if (SUPPORTED_LANGUAGE.codes.contains(Locale.getDefault().toLanguageTag())) {
-                Log.d("Contains", "onCreate: ${SUPPORTED_LANGUAGE.codes.contains(Locale.getDefault().toLanguageTag())}")
+                Log.d(
+                    "Contains",
+                    "onCreate: ${
+                        SUPPORTED_LANGUAGE.codes.contains(
+                            Locale.getDefault().toLanguageTag()
+                        )
+                    }"
+                )
                 putString(SELECTED_LANGUAGE, Locale.getDefault().toLanguageTag())
                 if (SUPPORTED_LOCATION.items.contains(Locale.getDefault().country)) {
                     putString("location", Locale.getDefault().country)
-                }
-                else {
+                } else {
                     putString("location", "US")
                 }
                 YouTube.locale = YouTubeLocale(
@@ -152,15 +157,19 @@ class MainActivity : AppCompatActivity() {
         }
 //
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            WindowCompat.setDecorFitsSystemWindows(window, false)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
 //        } else {
 //            window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
 //        }
 
-        if (!EasyPermissions.hasPermissions(this, Manifest.permission.POST_NOTIFICATIONS)){
+        if (!EasyPermissions.hasPermissions(this, Manifest.permission.POST_NOTIFICATIONS)) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                EasyPermissions.requestPermissions(this,
-                    getString(R.string.this_app_needs_to_access_your_notification), 1, Manifest.permission.POST_NOTIFICATIONS)
+                EasyPermissions.requestPermissions(
+                    this,
+                    getString(R.string.this_app_needs_to_access_your_notification),
+                    1,
+                    Manifest.permission.POST_NOTIFICATIONS
+                )
             }
         }
 
@@ -188,13 +197,37 @@ class MainActivity : AppCompatActivity() {
             "com.maxrave.simpmusic.action.HOME" -> {
                 binding.bottomNavigationView.selectedItemId = R.id.bottom_navigation_item_home
             }
+
             "com.maxrave.simpmusic.action.SEARCH" -> {
                 binding.bottomNavigationView.selectedItemId = R.id.bottom_navigation_item_search
             }
+
             "com.maxrave.simpmusic.action.LIBRARY" -> {
                 binding.bottomNavigationView.selectedItemId = R.id.bottom_navigation_item_library
             }
+
             else -> {}
+        }
+
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            when (destination.id) {
+                R.id.bottom_navigation_item_home, R.id.settingsFragment, R.id.recentlySongsFragment -> {
+                    binding.bottomNavigationView.menu.findItem(R.id.bottom_navigation_item_home)?.isChecked =
+                        true
+                }
+
+                R.id.bottom_navigation_item_search -> {
+                    binding.bottomNavigationView.menu.findItem(R.id.bottom_navigation_item_search)?.isChecked =
+                        true
+                }
+
+                R.id.bottom_navigation_item_library, R.id.downloadedFragment, R.id.mostPlayedFragment, R.id.followedFragment, R.id.favoriteFragment -> {
+                    binding.bottomNavigationView.menu.findItem(R.id.bottom_navigation_item_library)?.isChecked =
+                        true
+                }
+
+                else -> {}
+            }
         }
 
         binding.miniplayer.showMode = SwipeLayout.ShowMode.PullOut
@@ -242,42 +275,51 @@ class MainActivity : AppCompatActivity() {
             repeatOnLifecycle(Lifecycle.State.CREATED) {
                 val job1 = launch {
                     viewModel.intent.collectLatest { intent ->
-                        if (intent != null){
+                        if (intent != null) {
                             data = intent.data ?: intent.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
                             Log.d("MainActivity", "onCreate: $data")
                             if (data != null) {
                                 when (val path = data!!.pathSegments.firstOrNull()) {
-                                    "playlist" -> data!!.getQueryParameter("list")?.let { playlistId ->
-                                        if (playlistId.startsWith("OLAK5uy_")) {
-                                            viewModel.intent.value = null
-                                            navController.navigate(R.id.action_global_albumFragment, Bundle().apply {
-                                                putString("browseId", playlistId)
-                                            })
+                                    "playlist" -> data!!.getQueryParameter("list")
+                                        ?.let { playlistId ->
+                                            if (playlistId.startsWith("OLAK5uy_")) {
+                                                viewModel.intent.value = null
+                                                navController.navigate(
+                                                    R.id.action_global_albumFragment,
+                                                    Bundle().apply {
+                                                        putString("browseId", playlistId)
+                                                    })
+                                            } else if (playlistId.startsWith("VL")) {
+                                                viewModel.intent.value = null
+                                                navController.navigate(
+                                                    R.id.action_global_playlistFragment,
+                                                    Bundle().apply {
+                                                        putString("id", playlistId)
+                                                    })
+                                            } else {
+                                                viewModel.intent.value = null
+                                                navController.navigate(
+                                                    R.id.action_global_playlistFragment,
+                                                    Bundle().apply {
+                                                        putString("id", "VL$playlistId")
+                                                    })
+                                            }
                                         }
-                                        else if (playlistId.startsWith("VL")) {
-                                            viewModel.intent.value = null
-                                            navController.navigate(R.id.action_global_playlistFragment, Bundle().apply {
-                                                putString("id", playlistId)
-                                            })
-                                        }
-                                        else {
-                                            viewModel.intent.value = null
-                                            navController.navigate(R.id.action_global_playlistFragment, Bundle().apply {
-                                                putString("id", "VL$playlistId")
-                                            })
-                                        }
-                                    }
 
                                     "channel", "c" -> data!!.lastPathSegment?.let { artistId ->
                                         if (artistId.startsWith("UC")) {
                                             viewModel.intent.value = null
-                                            navController.navigate(R.id.action_global_artistFragment, Bundle().apply {
-                                                putString("channelId", artistId)
-                                            })
-                                        }
-                                        else {
-                                            Toast.makeText(this@MainActivity,
-                                                getString(R.string.this_link_is_not_supported), Toast.LENGTH_SHORT).show()
+                                            navController.navigate(
+                                                R.id.action_global_artistFragment,
+                                                Bundle().apply {
+                                                    putString("channelId", artistId)
+                                                })
+                                        } else {
+                                            Toast.makeText(
+                                                this@MainActivity,
+                                                getString(R.string.this_link_is_not_supported),
+                                                Toast.LENGTH_SHORT
+                                            ).show()
                                         }
 //                                    else {
 //                                        viewModel.convertNameToId(artistId)
@@ -311,10 +353,15 @@ class MainActivity : AppCompatActivity() {
                                         hideBottomNav()
                                         if (navController.currentDestination?.id == R.id.nowPlayingFragment) {
                                             findNavController(R.id.fragment_container_view).popBackStack()
-                                            navController.navigate(R.id.action_global_nowPlayingFragment, args)
-                                        }
-                                        else {
-                                            navController.navigate(R.id.action_global_nowPlayingFragment, args)
+                                            navController.navigate(
+                                                R.id.action_global_nowPlayingFragment,
+                                                args
+                                            )
+                                        } else {
+                                            navController.navigate(
+                                                R.id.action_global_nowPlayingFragment,
+                                                args
+                                            )
                                         }
                                     }
                                 }
@@ -324,8 +371,8 @@ class MainActivity : AppCompatActivity() {
                 }
                 val job5 = launch {
                     viewModel.nowPLaying.collect {
-                        if (it != null){
-                            if (viewModel.isServiceRunning.value == false){
+                        if (it != null) {
+                            if (viewModel.isServiceRunning.value == false) {
                                 startMusicService()
                             }
                             binding.songTitle.text = it.mediaMetadata.title
@@ -343,21 +390,26 @@ class MainActivity : AppCompatActivity() {
                                     override val cacheKey: String
                                         get() = it.mediaMetadata.artworkUri.toString()
 
-                                    override suspend fun transform(input: Bitmap, size: Size): Bitmap {
+                                    override suspend fun transform(
+                                        input: Bitmap,
+                                        size: Size
+                                    ): Bitmap {
                                         val p = Palette.from(input).generate()
                                         val defaultColor = 0x000000
                                         var startColor = p.getDarkVibrantColor(defaultColor)
                                         Log.d("Check Start Color", "transform: $startColor")
-                                        if (startColor == defaultColor){
+                                        if (startColor == defaultColor) {
                                             startColor = p.getDarkMutedColor(defaultColor)
-                                            if (startColor == defaultColor){
+                                            if (startColor == defaultColor) {
                                                 startColor = p.getVibrantColor(defaultColor)
-                                                if (startColor == defaultColor){
+                                                if (startColor == defaultColor) {
                                                     startColor = p.getMutedColor(defaultColor)
-                                                    if (startColor == defaultColor){
-                                                        startColor = p.getLightVibrantColor(defaultColor)
-                                                        if (startColor == defaultColor){
-                                                            startColor = p.getLightMutedColor(defaultColor)
+                                                    if (startColor == defaultColor) {
+                                                        startColor =
+                                                            p.getLightVibrantColor(defaultColor)
+                                                        if (startColor == defaultColor) {
+                                                            startColor =
+                                                                p.getLightMutedColor(defaultColor)
                                                         }
                                                     }
                                                 }
@@ -386,21 +438,21 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
                 val job2 = launch {
-                    viewModel.progress.collect{
+                    viewModel.progress.collect {
                         binding.progressBar.progress = (it * 100).toInt()
                     }
                 }
 
                 val job6 = launch {
-                    viewModel.liked.collect{ liked ->
+                    viewModel.liked.collect { liked ->
                         binding.cbFavorite.isChecked = liked
                     }
                 }
                 val job3 = launch {
-                    viewModel.isPlaying.observe(this@MainActivity){
-                        if (it){
+                    viewModel.isPlaying.observe(this@MainActivity) {
+                        if (it) {
                             binding.btPlayPause.setImageResource(R.drawable.baseline_pause_24)
-                        }else{
+                        } else {
                             binding.btPlayPause.setImageResource(R.drawable.baseline_play_arrow_24)
                         }
                     }
@@ -413,30 +465,42 @@ class MainActivity : AppCompatActivity() {
             }
         }
         lifecycleScope.launch {
-             val job1 = launch {
-                 viewModel.progress.collect { progress ->
-                     val skipSegments = viewModel.skipSegments.first()
-                     val enabled = viewModel.sponsorBlockEnabled()
-                     val listCategory = viewModel.sponsorBlockCategories()
-                     if (skipSegments != null && enabled == DataStoreManager.TRUE) {
-                         for (skip in skipSegments) {
-                             if (listCategory.contains(skip.category)) {
-                                 val firstPart = (skip.segment[0]/skip.videoDuration).toFloat()
-                                 val secondPart = (skip.segment[1]/skip.videoDuration).toFloat()
-                                 if (progress in firstPart..secondPart) {
-                                     Log.w("Seek to", (skip.segment[1]/skip.videoDuration).toFloat().toString())
-                                     viewModel.skipSegment((skip.segment[1] * 1000).toLong())
-                                     Toast.makeText(this@MainActivity,
-                                         getString(R.string.sponsorblock_skip_segment, getString(SPONSOR_BLOCK.listName.get(SPONSOR_BLOCK.list.indexOf(skip.category))).lowercase()), Toast.LENGTH_SHORT).show()
-                                 }
-                             }
-                         }
-                     }
-                     delay(500)
-                 }
-             }
+            val job1 = launch {
+                viewModel.progress.collect { progress ->
+                    val skipSegments = viewModel.skipSegments.first()
+                    val enabled = viewModel.sponsorBlockEnabled()
+                    val listCategory = viewModel.sponsorBlockCategories()
+                    if (skipSegments != null && enabled == DataStoreManager.TRUE) {
+                        for (skip in skipSegments) {
+                            if (listCategory.contains(skip.category)) {
+                                val firstPart = (skip.segment[0] / skip.videoDuration).toFloat()
+                                val secondPart = (skip.segment[1] / skip.videoDuration).toFloat()
+                                if (progress in firstPart..secondPart) {
+                                    Log.w(
+                                        "Seek to",
+                                        (skip.segment[1] / skip.videoDuration).toFloat().toString()
+                                    )
+                                    viewModel.skipSegment((skip.segment[1] * 1000).toLong())
+                                    Toast.makeText(
+                                        this@MainActivity,
+                                        getString(
+                                            R.string.sponsorblock_skip_segment,
+                                            getString(
+                                                SPONSOR_BLOCK.listName.get(
+                                                    SPONSOR_BLOCK.list.indexOf(skip.category)
+                                                )
+                                            ).lowercase()
+                                        ), Toast.LENGTH_SHORT
+                                    ).show()
+                                }
+                            }
+                        }
+                    }
+                    delay(500)
+                }
+            }
 
-             val job2 = launch {
+            val job2 = launch {
                 viewModel.sleepTimerDone.collect { done ->
                     if (done) {
                         MaterialAlertDialogBuilder(this@MainActivity)
@@ -448,20 +512,19 @@ class MainActivity : AppCompatActivity() {
                             .show()
                     }
                 }
-             }
+            }
             job1.join()
             job2.join()
         }
         binding.card.animation = AnimationUtils.loadAnimation(this, R.anim.bottom_to_top)
-        binding.cbFavorite.setOnCheckedChangeListener{ _, isChecked ->
-            if (!isChecked){
+        binding.cbFavorite.setOnCheckedChangeListener { _, isChecked ->
+            if (!isChecked) {
                 Log.d("cbFavorite", "onCheckedChanged: $isChecked")
                 viewModel.nowPlayingMediaItem.value?.let { nowPlayingSong ->
                     viewModel.updateLikeStatus(nowPlayingSong.mediaId, false)
                     viewModel.updateLikeInNotification(false)
                 }
-            }
-            else {
+            } else {
                 Log.d("cbFavorite", "onCheckedChanged: $isChecked")
                 viewModel.nowPlayingMediaItem.value?.let { nowPlayingSong ->
                     viewModel.updateLikeStatus(nowPlayingSong.mediaId, true)
@@ -486,15 +549,16 @@ class MainActivity : AppCompatActivity() {
                     return@switchMap null
                 }
             }
-            val result: MediatorLiveData<Pair<List<Track>, Boolean>> = MediatorLiveData<Pair<List<Track>, Boolean>>().apply {
-                addSource(queue) {
-                    value = Pair(it ?: listOf(), viewModel.isServiceRunning.value ?: false)
+            val result: MediatorLiveData<Pair<List<Track>, Boolean>> =
+                MediatorLiveData<Pair<List<Track>, Boolean>>().apply {
+                    addSource(queue) {
+                        value = Pair(it ?: listOf(), viewModel.isServiceRunning.value ?: false)
+                    }
+                    addSource(viewModel.isServiceRunning) {
+                        value = Pair(queue.value ?: listOf(), it ?: false)
+                    }
                 }
-                addSource(viewModel.isServiceRunning) {
-                    value = Pair(queue.value ?: listOf(), it ?: false)
-                }
-            }
-            result.observe(this) {data ->
+            result.observe(this) { data ->
                 val isMusicServiceRunning = data.second
                 val queueData = data.first
                 if (queueData.isNotEmpty()) {
@@ -528,8 +592,7 @@ class MainActivity : AppCompatActivity() {
                     checkForUpdate()
                 }
             }
-        }
-        else {
+        } else {
             checkForUpdate()
         }
     }
@@ -538,6 +601,7 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
         stopService()
     }
+
     private fun startMusicService() {
         if (viewModel.isServiceRunning.value == false) {
             if (!isMyServiceRunning(SimpleMediaService::class.java)) {
@@ -548,15 +612,16 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
-    private fun stopService(){
-        if (viewModel.isServiceRunning.value == true){
+
+    private fun stopService() {
+        if (viewModel.isServiceRunning.value == true) {
             stopService(Intent(this, SimpleMediaService::class.java))
             Log.d("Service", "Service stopped")
-            if (this.isMyServiceRunning(FetchQueue:: class.java)){
+            if (this.isMyServiceRunning(FetchQueue::class.java)) {
                 stopService(Intent(this, FetchQueue::class.java))
                 Log.d("Service", "FetchQueue stopped")
             }
-            if (this.isMyServiceRunning(DownloadService:: class.java)){
+            if (this.isMyServiceRunning(DownloadService::class.java)) {
                 this.stopService(Intent(this, DownloadService::class.java))
                 viewModel.changeAllDownloadingToError()
                 Log.d("Service", "DownloadService stopped")
@@ -604,21 +669,23 @@ class MainActivity : AppCompatActivity() {
 //
 //    }
 
-    fun hideBottomNav(){
+    fun hideBottomNav() {
         binding.bottomNavigationView.visibility = View.GONE
         binding.miniplayer.visibility = View.GONE
     }
-    fun showBottomNav(){
+
+    fun showBottomNav() {
         binding.bottomNavigationView.visibility = View.VISIBLE
         binding.miniPlayerContainer.visibility = View.VISIBLE
     }
 
     private fun checkForUpdate() {
         viewModel.checkForUpdate()
-        viewModel.githubResponse.observe(this) {response ->
+        viewModel.githubResponse.observe(this) { response ->
             if (response != null) {
                 if (response.tagName != getString(R.string.version_name)) {
-                    val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
+                    val inputFormat =
+                        SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
                     val outputFormat = SimpleDateFormat("dd MMM yyyy HH:mm:ss", Locale.getDefault())
                     val formatted = response.publishedAt?.let { input ->
                         inputFormat.parse(input)
@@ -627,9 +694,19 @@ class MainActivity : AppCompatActivity() {
 
                     MaterialAlertDialogBuilder(this)
                         .setTitle(getString(R.string.update_available))
-                        .setMessage(getString(R.string.update_message, response.tagName, formatted, Html.fromHtml(response.body, Html.FROM_HTML_MODE_COMPACT)))
+                        .setMessage(
+                            getString(
+                                R.string.update_message,
+                                response.tagName,
+                                formatted,
+                                Html.fromHtml(response.body, Html.FROM_HTML_MODE_COMPACT)
+                            )
+                        )
                         .setPositiveButton(getString(R.string.download)) { _, _ ->
-                            val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(response.assets?.firstOrNull()?.browserDownloadUrl))
+                            val browserIntent = Intent(
+                                Intent.ACTION_VIEW,
+                                Uri.parse(response.assets?.firstOrNull()?.browserDownloadUrl)
+                            )
                             startActivity(browserIntent)
                         }
                         .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
