@@ -176,7 +176,7 @@
     <string name="save_shuffle_and_repeat_mode">Lưu chế độ trộn và phát lại</string>
     <string name="skip_silent">Bỏ qua im lặng</string>
     <string name="skip_no_music_part">Bỏ qua phần không có nhạc</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Quá thời gian, kiểm qua kết nối internet hoặc thay đổi thực thể Piped trong Cài đặt</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Quá thời gian, kiểm qua kết nối internet</string>
     <string name="save_last_played">Lưu phiên phát lại cuối cùng</string>
     <string name="save_last_played_track_and_queue">Lưu bài hát đang phát và danh sách chờ cuối cùng</string>
     <string name="update_available">Phiên bản mới có sẵn</string>
@@ -232,7 +232,7 @@
     <string name="save_to_local_playlist">Lưu vào danh sách phát nội bộ</string>
     <string name="added_local_playlist">Đã thêm danh sách phát nội bộ</string>
     <string name="sync">Đồng bộ đến YouTube Music</string>
-    <string name="synced">Đồng bộ với YouTube Music</string>
+    <string name="synced">Đã đồng bộ với YouTube Music</string>
     <string name="song">Bài hát</string>
     <string name="radio">Đài phát</string>
     <string name="auto_created_by_youtube_music">Tự động tạo bởi YouTube Music</string>
@@ -247,4 +247,6 @@
     <string name="added_to_youtube_playlist">Đã thêm vào danh sách phát YouTube</string>
     <string name="removed_from_YouTube_playlist">Đã xoá khỏi danh sách phát YouTube</string>
     <string name="update_playlist">Cập nhật danh sách phát từ YouTube Music</string>
+    <string name="backup_create_success">Sao lưu thành công</string>
+    <string name="backup_create_failed">Sao lưu thất bại</string>
 </resources>

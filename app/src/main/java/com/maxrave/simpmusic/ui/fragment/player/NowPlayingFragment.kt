@@ -1207,11 +1207,7 @@ class NowPlayingFragment : Fragment() {
             binding.tvSongArtist.isSelected = true
             binding.tvSongTitle.visibility = View.VISIBLE
             binding.tvSongArtist.visibility = View.VISIBLE
-            lifecycleScope.launch {
-                repeatOnLifecycle(Lifecycle.State.STARTED) {
-                    ImageLoader(requireContext()).execute(request)
-                }
-            }
+            ImageLoader(requireContext()).enqueue(request)
         }
     }
 
@@ -1308,11 +1304,7 @@ class NowPlayingFragment : Fragment() {
 
                 })
                 .build()
-            lifecycleScope.launch {
-                repeatOnLifecycle(Lifecycle.State.STARTED) {
-                    ImageLoader(requireContext()).execute(request)
-                }
-            }
+            ImageLoader(requireContext()).enqueue(request)
         }
     }
 

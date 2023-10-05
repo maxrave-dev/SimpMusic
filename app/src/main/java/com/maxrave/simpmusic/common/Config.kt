@@ -46,8 +46,8 @@ object SUPPORTED_LOCATION {
         "TN", "TR", "TW", "TZ", "UA", "UG", "US", "UY", "VE", "VN", "YE", "ZA", "ZW")
 }
 object SUPPORTED_LANGUAGE {
-    val items: Array<CharSequence> = arrayOf("English", "Vietnamese", "Italiano")
-    val codes: Array<String> = arrayOf("en-US", "vi-VN", "it-IT")
+    val items: Array<CharSequence> = arrayOf("English", "Vietnamese", "Italiano", "Deutsch")
+    val codes: Array<String> = arrayOf("en-US", "vi-VN", "it-IT", "de-DE")
 }
 object QUALITY {
     val items: Array<CharSequence> = arrayOf("Low - 66kps", "High - 129kps")

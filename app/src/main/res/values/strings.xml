@@ -172,7 +172,7 @@
     <string name="save_shuffle_and_repeat_mode">Save shuffle and repeat mode</string>
     <string name="skip_silent">Skip Silent</string>
     <string name="skip_no_music_part">Skip no music part</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Time out, check internet connection or change Piped instance in Settings</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Time out, check internet connection</string>
     <string name="save_last_played">Save Last Played</string>
     <string name="save_last_played_track_and_queue">Save last played track and queue</string>
     <string name="update_available">New update available</string>
@@ -244,6 +244,8 @@
     <string name="added_to_youtube_playlist">Added to YouTube Playlist</string>
     <string name="removed_from_YouTube_playlist">Removed from YouTube Playlist</string>
     <string name="update_playlist">Update playlist from YouTube Music</string>
+    <string name="backup_create_success">Backup create success</string>
+    <string name="backup_create_failed">Backup create failed</string>
     <plurals name="n_song">
         <item quantity="one">%d song</item>
         <item quantity="other">%d songs</item>

@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
+import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.databinding.ItemPopularSongBinding
@@ -58,7 +59,9 @@ class PlaylistItemAdapter(private var playlistItemList: ArrayList<Any>): Recycle
             binding.tvSongArtist.text = song.artistName?.connectArtists()
             binding.tvSongTitle.isSelected = true
             binding.tvSongArtist.isSelected = true
-            binding.ivThumbnail.load(song.thumbnails)
+            binding.ivThumbnail.load(song.thumbnails) {
+                placeholder(R.drawable.holder)
+            }
         }
     }
     fun updateList(newList: ArrayList<Any>){

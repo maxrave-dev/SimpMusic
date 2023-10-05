@@ -19,12 +19,14 @@ import com.maxrave.simpmusic.common.DB_NAME
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.QUALITY
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
+import com.maxrave.simpmusic.common.SETTINGS_FILENAME
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.DatabaseDao
 import com.maxrave.simpmusic.data.db.MusicDatabase
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.di.DownloadCache
 import com.maxrave.simpmusic.di.PlayerCache
+import com.maxrave.simpmusic.extension.div
 import com.maxrave.simpmusic.extension.zipInputStream
 import com.maxrave.simpmusic.extension.zipOutputStream
 import com.maxrave.simpmusic.service.SimpleMediaService
@@ -262,11 +264,13 @@ class SettingsViewModel @Inject constructor(
         kotlin.runCatching {
             context.applicationContext.contentResolver.openOutputStream(uri)?.use {
                 it.buffered().zipOutputStream().use { outputStream ->
-//                    (context.filesDir / "datastore" / SETTINGS_FILENAME).inputStream().buffered()
-//                        .use { inputStream ->
-//                            outputStream.putNextEntry(ZipEntry(SETTINGS_FILENAME))
-//                            inputStream.copyTo(outputStream)
-//                        }
+                    if (context.filesDir.div("datastore").div(SETTINGS_FILENAME).exists()) {
+                        (context.filesDir / "datastore" / SETTINGS_FILENAME).inputStream().buffered()
+                            .use { inputStream ->
+                                outputStream.putNextEntry(ZipEntry(SETTINGS_FILENAME))
+                                inputStream.copyTo(outputStream)
+                            }
+                    }
                     runBlocking((Dispatchers.Main)) {
                         databaseDao.checkpoint()
                     }
@@ -277,10 +281,12 @@ class SettingsViewModel @Inject constructor(
                 }
             }
         }.onSuccess {
-            Toast.makeText(context, "Backup Create Success", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context,
+                context.getString(R.string.backup_create_success), Toast.LENGTH_SHORT).show()
         }.onFailure {
             it.printStackTrace()
-            Toast.makeText(context, "Backup Create Failed", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context,
+                context.getString(R.string.backup_create_failed), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -292,11 +298,11 @@ class SettingsViewModel @Inject constructor(
                     var entry = inputStream.nextEntry
                     while (entry != null) {
                         when (entry.name) {
-//                            SETTINGS_FILENAME -> {
-//                                (context.filesDir / "datastore" / SETTINGS_FILENAME).outputStream().use { outputStream ->
-//                                    inputStream.copyTo(outputStream)
-//                                }
-//                            }
+                            SETTINGS_FILENAME -> {
+                                (context.filesDir / "datastore" / SETTINGS_FILENAME).outputStream().use { outputStream ->
+                                    inputStream.copyTo(outputStream)
+                                }
+                            }
 
                             DB_NAME -> {
                                 runBlocking((Dispatchers.Main)) {

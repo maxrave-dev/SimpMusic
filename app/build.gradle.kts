@@ -21,7 +21,7 @@ android {
             arg("room.schemaLocation", "$projectDir/schemas")
         }
 
-        resourceConfigurations += listOf("en", "vi", "it")
+        resourceConfigurations += listOf("en", "vi", "it", "de")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
     }
@@ -93,8 +93,8 @@ dependencies {
     //Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     //Navigation
-    implementation("androidx.navigation:navigation-fragment-ktx:2.7.2")
-    implementation("androidx.navigation:navigation-ui-ktx:2.7.2")
+    implementation("androidx.navigation:navigation-fragment-ktx:2.7.3")
+    implementation("androidx.navigation:navigation-ui-ktx:2.7.3")
 
     implementation("com.google.code.gson:gson:2.10.1")
 
