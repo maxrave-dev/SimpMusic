@@ -9,6 +9,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.Download
+import com.maxrave.kotlinytmusicscraper.models.SearchSuggestions
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
@@ -67,8 +68,8 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
 
     var loading = MutableLiveData<Boolean>()
 
-    private var _suggestQuery: MutableLiveData<Resource<ArrayList<String>>> = MutableLiveData()
-    val suggestQuery : LiveData<Resource<ArrayList<String>>> = _suggestQuery
+    private var _suggestQuery: MutableLiveData<Resource<SearchSuggestions>> = MutableLiveData()
+    val suggestQuery : LiveData<Resource<SearchSuggestions>> = _suggestQuery
 
     var errorMessage = MutableLiveData<String>()
 

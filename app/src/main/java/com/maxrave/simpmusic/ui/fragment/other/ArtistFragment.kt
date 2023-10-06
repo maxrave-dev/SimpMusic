@@ -404,7 +404,7 @@ class ArtistFragment: Fragment(){
                             else {
                                 tvViews.text = it.views.toString()
                             }
-                            tvDescription.text = (it.description ?: getString(R.string.no_description)).toString()
+                            tvDescription.originalText = (it.description ?: getString(R.string.no_description)).toString()
                             if (it.songs?.results != null) {
                                 popularAdapter.updateList(it.songs.results as ArrayList<ResultSong>)
                             }

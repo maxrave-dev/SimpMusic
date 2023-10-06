@@ -96,7 +96,7 @@
                                 android:focusableInTouchMode="true"
                                 android:scrollHorizontally="true"
                                 android:text=""
-                                android:textSize="@dimen/_16ssp"
+                                android:textSize="@dimen/_15ssp"
                                 android:textStyle="bold"
                                 android:id="@+id/tvSongTitle" />
 
@@ -112,7 +112,7 @@
                                 android:fontFamily="@font/roboto"
                                 android:text=""
                                 android:textColor="@android:color/white"
-                                android:textSize="@dimen/_11ssp"
+                                android:textSize="@dimen/_10ssp"
                                 android:textStyle="normal"
                                 android:id="@+id/tvSongArtist" />
                         </LinearLayout>

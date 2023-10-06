@@ -23,12 +23,19 @@ import coil.load
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.snackbar.Snackbar
+import com.maxrave.kotlinytmusicscraper.models.AlbumItem
+import com.maxrave.kotlinytmusicscraper.models.ArtistItem
+import com.maxrave.kotlinytmusicscraper.models.PlaylistItem
+import com.maxrave.kotlinytmusicscraper.models.SongItem
+import com.maxrave.kotlinytmusicscraper.models.VideoItem
+import com.maxrave.kotlinytmusicscraper.models.YTItem
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.adapter.artist.SeeArtistOfNowPlayingAdapter
 import com.maxrave.simpmusic.adapter.playlist.AddToAPlaylistAdapter
 import com.maxrave.simpmusic.adapter.search.SearchHistoryItemAdapter
 import com.maxrave.simpmusic.adapter.search.SearchItemAdapter
 import com.maxrave.simpmusic.adapter.search.SuggestQueryAdapter
+import com.maxrave.simpmusic.adapter.search.SuggestYTItemAdapter
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
@@ -73,11 +80,13 @@ class SearchFragment : Fragment() {
     private lateinit var resultList: ArrayList<Any>
     private lateinit var suggestList: ArrayList<String>
     private lateinit var searchAllResult: ArrayList<Any>
+    private lateinit var suggestYTItemList: ArrayList<YTItem>
 
     private val viewModel by activityViewModels<SearchViewModel>()
     private lateinit var resultAdapter: SearchItemAdapter
     private lateinit var searchHistoryAdapter: SearchHistoryItemAdapter
     private lateinit var suggestAdapter: SuggestQueryAdapter
+    private lateinit var suggestYTItemAdapter: SuggestYTItemAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -121,6 +130,7 @@ class SearchFragment : Fragment() {
                     setEnabledAll(binding.chipGroupTypeSearch, false)
                     binding.svSearch.clearFocus()
                     binding.suggestList.visibility = View.GONE
+                    binding.suggestListYtItem.visibility = View.GONE
                     binding.recentlyQueryView.visibility = View.GONE
                     binding.defaultLayout.visibility = View.GONE
                     binding.resultView.visibility = View.VISIBLE
@@ -187,12 +197,14 @@ class SearchFragment : Fragment() {
                 if (newText.isNullOrEmpty())
                 {
                     binding.suggestList.visibility = View.GONE
+                    binding.suggestListYtItem.visibility = View.GONE
                     binding.recentlyQueryView.visibility = View.VISIBLE
                     binding.resultView.visibility = View.GONE
                     binding.defaultLayout.visibility = View.GONE
                 }
                 else {
                     binding.suggestList.visibility = View.VISIBLE
+                    binding.suggestListYtItem.visibility = View.VISIBLE
                     binding.recentlyQueryView.visibility = View.GONE
                     binding.defaultLayout.visibility = View.GONE
                     binding.resultView.visibility = View.GONE
@@ -221,6 +233,7 @@ class SearchFragment : Fragment() {
         resultAdapter = SearchItemAdapter(arrayListOf(), requireContext())
         searchHistory = ArrayList()
         suggestList = ArrayList<String>()
+        suggestYTItemList = ArrayList<YTItem>()
         searchHistoryAdapter = SearchHistoryItemAdapter(arrayListOf())
         binding.recentlyList.apply {
             adapter = searchHistoryAdapter
@@ -228,8 +241,13 @@ class SearchFragment : Fragment() {
         }
         observeSearchHistory()
         suggestAdapter = SuggestQueryAdapter(arrayListOf())
+        suggestYTItemAdapter = SuggestYTItemAdapter(arrayListOf(), requireContext())
         binding.suggestList.apply {
             adapter = suggestAdapter
+            layoutManager = LinearLayoutManager(context)
+        }
+        binding.suggestListYtItem.apply {
+            adapter = suggestYTItemAdapter
             layoutManager = LinearLayoutManager(context)
         }
         binding.resultList.apply {
@@ -238,6 +256,7 @@ class SearchFragment : Fragment() {
         }
 
         binding.suggestList.visibility = View.GONE
+        binding.suggestListYtItem.visibility = View.GONE
         if (viewModel.searchAllResult.value == null || viewModel.searchAllResult.value!!.isEmpty()){
             if (searchHistory.isEmpty()) {
                 binding.recentlyQueryView.visibility = View.GONE
@@ -263,6 +282,52 @@ class SearchFragment : Fragment() {
                 observeSearchHistory()
             }
         }
+        suggestYTItemAdapter.setOnClickListener(object : SuggestYTItemAdapter.onItemClickListener{
+            override fun onItemClick(position: Int, type: String) {
+                if (type == "artist"){
+                    val channelId = (suggestYTItemAdapter.getCurrentList()[position] as ArtistItem).id
+                    val args = Bundle()
+                    args.putString("channelId", channelId)
+                    findNavController().navigate(R.id.action_bottom_navigation_item_search_to_artistFragment, args)
+                }
+                if (type == Config.ALBUM_CLICK){
+                    val browseId = (suggestYTItemAdapter.getCurrentList()[position] as AlbumItem).browseId
+                    val args = Bundle()
+                    args.putString("browseId", browseId)
+                    findNavController().navigate(R.id.action_global_albumFragment, args)
+                }
+                if (type == Config.PLAYLIST_CLICK){
+                    val id = (suggestYTItemAdapter.getCurrentList()[position] as PlaylistItem).id
+                    val args = Bundle()
+                    args.putString("id", id)
+                    findNavController().navigate(R.id.action_global_playlistFragment, args)
+                }
+                if (type == Config.SONG_CLICK){
+                    val songClicked = suggestYTItemAdapter.getCurrentList()[position] as SongItem
+                    val videoId = (suggestYTItemAdapter.getCurrentList()[position] as SongItem).id
+                    Queue.clear()
+                    val firstQueue: Track = songClicked.toTrack()
+                    Queue.setNowPlaying(firstQueue)
+                    val args = Bundle()
+                    args.putString("videoId", videoId)
+                    args.putString("from", "\"${binding.svSearch.query}\" ${getString(R.string.in_search)}")
+                    args.putString("type", Config.SONG_CLICK)
+                    findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                }
+                if (type == Config.VIDEO_CLICK) {
+                    val videoClicked = suggestYTItemAdapter.getCurrentList()[position] as VideoItem
+                    val videoId = videoClicked.id
+                    Queue.clear()
+                    val firstQueue = videoClicked.toTrack()
+                    Queue.setNowPlaying(firstQueue)
+                    val args = Bundle()
+                    args.putString("videoId", videoId)
+                    args.putString("from", "\"${binding.svSearch.query}\" ${getString(R.string.in_search)}")
+                    args.putString("type", Config.VIDEO_CLICK)
+                    findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                }
+            }
+        })
 
         resultAdapter.setOnClickListener(object : SearchItemAdapter.onItemClickListener{
             override fun onItemClick(position: Int, type: String) {
@@ -1102,9 +1167,12 @@ class SearchFragment : Fragment() {
             when (response) {
                 is Resource.Success -> {
                     response.data.let {
-                        print(it)
+                        Log.d("Suggest", it.toString())
                         suggestList.clear()
-                        suggestList.addAll(it!!)
+                        suggestList.addAll(it!!.queries)
+                        suggestYTItemList.clear()
+                        suggestYTItemList.addAll(it.recommendedItems)
+                        suggestYTItemAdapter.updateList(suggestYTItemList)
                         suggestAdapter.updateData(suggestList)
                     }
                 }

@@ -302,13 +302,18 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:padding="15sp">
-                        <TextView
+                        <io.github.giangpham96.expandable_textview.ExpandableTextView
                             android:autoLink="web"
                             android:id="@+id/tvDescription"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            style="@style/TextAppearance.Material3.BodyMedium">
-                        </TextView>
+                            android:fontFamily="@font/roboto"
+                            android:textStyle="normal"
+                            app:limitedMaxLines="5"
+                            app:expandAction="@string/more"
+                            app:expandActionColor="@color/md_theme_dark_outlineVariant">
+
+                        </io.github.giangpham96.expandable_textview.ExpandableTextView>
 
                     </LinearLayout>
 
