@@ -272,11 +272,12 @@ class PlaylistFragment: Fragment() {
                 if (Queue.getQueue().size >= 1) {
                     Queue.removeFirstTrackForPlaylistAndAlbum()
                 }
+                Log.d("PlaylistFragment", "Queue: ${Queue.getQueue().size}")
                 findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
             }
             else if (viewModel.playlistEntity.value != null && viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED){
                 val args = Bundle()
-                args.putString("type", Config.ALBUM_CLICK)
+                args.putString("type", Config.PLAYLIST_CLICK)
                 args.putString("videoId", viewModel.playlistEntity.value?.tracks?.get(0))
                 args.putString("from", "Playlist \"${viewModel.playlistEntity.value?.title}\"")
                 if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
@@ -288,6 +289,7 @@ class PlaylistFragment: Fragment() {
                 if (Queue.getQueue().size >= 1) {
                     Queue.removeFirstTrackForPlaylistAndAlbum()
                 }
+                Log.d("PlaylistFragment", "Queue: ${Queue.getQueue().size}")
                 findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
             }
             else {
@@ -300,9 +302,9 @@ class PlaylistFragment: Fragment() {
             override fun onItemClick(position: Int) {
                 if (viewModel.playlistBrowse.value is Resource.Success && viewModel.playlistBrowse.value?.data != null){
                     val args = Bundle()
-                    args.putString("type", Config.ALBUM_CLICK)
+                    args.putString("type", Config.PLAYLIST_CLICK)
                     args.putString("videoId", viewModel.playlistBrowse.value?.data!!.tracks[position].videoId)
-                    args.putString("from", "Album \"${viewModel.playlistBrowse.value?.data!!.title}\"")
+                    args.putString("from", "Playlist \"${viewModel.playlistBrowse.value?.data!!.title}\"")
                     args.putInt("index", position)
                     if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                         args.putInt("downloaded", 1)
@@ -313,11 +315,12 @@ class PlaylistFragment: Fragment() {
                     if (Queue.getQueue().size >= 1) {
                         Queue.removeTrackWithIndex(position)
                     }
+                    Log.d("PlaylistFragment", "Queue: ${Queue.getQueue().size}")
                     findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
                 }
                 else if (viewModel.playlistEntity.value != null && viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED){
                     val args = Bundle()
-                    args.putString("type", Config.ALBUM_CLICK)
+                    args.putString("type", Config.PLAYLIST_CLICK)
                     args.putString("videoId", viewModel.playlistEntity.value?.tracks?.get(position))
                     args.putString("from", "Playlist \"${viewModel.playlistEntity.value?.title}\"")
                     if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
@@ -329,6 +332,7 @@ class PlaylistFragment: Fragment() {
                     if (Queue.getQueue().size >= 1) {
                         Queue.removeTrackWithIndex(position)
                     }
+                    Log.d("PlaylistFragment", "Queue: ${Queue.getQueue().size}")
                     findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
                 }
                 else {
@@ -665,6 +669,9 @@ class PlaylistFragment: Fragment() {
                 is Resource.Success -> {
                     response.data.let {
                         with(binding){
+                            if (it != null) {
+                                viewModel.insertRadioPlaylist(it.toPlaylistEntity())
+                            }
                             topAppBar.title = it?.title
                             tvPlaylistAuthor.text = it?.author?.name
                             if (it?.year != "") {

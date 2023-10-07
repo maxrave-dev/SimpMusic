@@ -157,7 +157,7 @@ class NowPlayingFragment : Fragment() {
                     metadataCurSong = viewModel.metadata.value?.data
                     updateUIfromCurrentMediaItem(viewModel.getCurrentMediaItem())
                 } else {
-                    Log.i("Now Playing Fragment", "Bên trên")
+                    Log.i("Now Playing Fragment", "Song Click")
                     binding.ivArt.visibility = View.GONE
                     binding.loadingArt.visibility = View.VISIBLE
                     viewModel.gradientDrawable.postValue(null)
@@ -165,17 +165,17 @@ class NowPlayingFragment : Fragment() {
                     binding.tvSongTitle.visibility = View.GONE
                     binding.tvSongArtist.visibility = View.GONE
                     Queue.getNowPlaying()?.let {
-                        lifecycleScope.launch {
-                            repeatOnLifecycle(Lifecycle.State.CREATED) {
-                                viewModel.firstTrackAdded.collect { added ->
-                                    if (added) {
-                                        viewModel.changeFirstTrackAddedToFalse()
-//                                        viewModel.getFormat(it.videoId)
-                                        getRelated(it.videoId)
-                                    }
-                                }
-                            }
-                        }
+//                        lifecycleScope.launch {
+//                            repeatOnLifecycle(Lifecycle.State.CREATED) {
+//                                viewModel.firstTrackAdded.collect { added ->
+//                                    if (added && type == Config.SONG_CLICK) {
+//                                        viewModel.changeFirstTrackAddedToFalse()
+////                                        viewModel.getFormat(it.videoId)
+//                                        getRelated(it.videoId)
+//                                    }
+//                                }
+//                            }
+//                        }
                         musicSource.reset()
                         if (requireContext().isMyServiceRunning(FetchQueue::class.java)) {
                             requireActivity().stopService(
@@ -225,17 +225,17 @@ class NowPlayingFragment : Fragment() {
                             updateUIfromQueueNowPlaying()
                             miniplayer.visibility = View.GONE
                             bottom.visibility = View.GONE
-                            lifecycleScope.launch {
-                                repeatOnLifecycle(Lifecycle.State.CREATED) {
-                                    viewModel.firstTrackAdded.collect { added ->
-                                        if (added) {
-                                            viewModel.changeFirstTrackAddedToFalse()
-//                                            viewModel.getFormat(track.videoId)
-                                            getRelated(track.videoId)
-                                        }
-                                    }
-                                }
-                            }
+//                            lifecycleScope.launch {
+//                                repeatOnLifecycle(Lifecycle.State.CREATED) {
+//                                    viewModel.firstTrackAdded.collect { added ->
+//                                        if (added && type == Config.SHARE) {
+//                                            viewModel.changeFirstTrackAddedToFalse()
+////                                            viewModel.getFormat(track.videoId)
+//                                            getRelated(track.videoId)
+//                                        }
+//                                    }
+//                                }
+//                            }
                         }
                     }
                 }
@@ -249,7 +249,7 @@ class NowPlayingFragment : Fragment() {
                     updateUIfromCurrentMediaItem(viewModel.getCurrentMediaItem())
                 } else {
 //                if (!viewModel.songTransitions.value){
-                    Log.i("Now Playing Fragment", "Bên trên")
+                    Log.i("Now Playing Fragment", "Video Click")
                     binding.ivArt.visibility = View.GONE
                     binding.loadingArt.visibility = View.VISIBLE
                     viewModel.gradientDrawable.postValue(null)
@@ -257,17 +257,6 @@ class NowPlayingFragment : Fragment() {
                     binding.tvSongTitle.visibility = View.GONE
                     binding.tvSongArtist.visibility = View.GONE
                     Queue.getNowPlaying()?.let {
-                        lifecycleScope.launch {
-                            repeatOnLifecycle(Lifecycle.State.CREATED) {
-                                viewModel.firstTrackAdded.collect { added ->
-                                    if (added) {
-                                        viewModel.changeFirstTrackAddedToFalse()
-//                                        viewModel.getFormat(it.videoId)
-                                        getRelated(it.videoId)
-                                    }
-                                }
-                            }
-                        }
                         musicSource.reset()
                         if (requireContext().isMyServiceRunning(FetchQueue::class.java)) {
                             requireActivity().stopService(
@@ -281,6 +270,17 @@ class NowPlayingFragment : Fragment() {
                         viewModel.videoId.postValue(it.videoId)
                         viewModel.from.postValue(from)
                         updateUIfromQueueNowPlaying()
+//                        lifecycleScope.launch {
+//                            repeatOnLifecycle(Lifecycle.State.CREATED) {
+//                                viewModel.firstTrackAdded.collect { added ->
+//                                    if (added && type == Config.VIDEO_CLICK) {
+//                                        viewModel.changeFirstTrackAddedToFalse()
+////                                        viewModel.getFormat(it.videoId)
+//                                        getRelated(it.videoId)
+//                                    }
+//                                }
+//                            }
+//                        }
                     }
                     //}
 //                viewModel.loadMediaItems(videoId!!)
@@ -295,7 +295,7 @@ class NowPlayingFragment : Fragment() {
                     updateUIfromCurrentMediaItem(viewModel.getCurrentMediaItem())
                 } else {
 //                if (!viewModel.songTransitions.value){
-                    Log.i("Now Playing Fragment", "Bên trên")
+                    Log.i("Now Playing Fragment", "Album Click")
                     binding.ivArt.visibility = View.GONE
                     binding.loadingArt.visibility = View.VISIBLE
                     viewModel.gradientDrawable.postValue(null)
@@ -332,21 +332,21 @@ class NowPlayingFragment : Fragment() {
 //                            }
 //                        }
                         Log.d("check index", index.toString())
-                        lifecycleScope.launch {
-                            repeatOnLifecycle(Lifecycle.State.CREATED) {
-                                viewModel.firstTrackAdded.collect { added ->
-                                    if (added) {
-                                        viewModel.changeFirstTrackAddedToFalse()
-//                                        viewModel.getFormat(it.videoId)
-                                        if (index == null) {
-                                            fetchSourceFromQueue(downloaded = downloaded ?: 0)
-                                        } else {
-                                            fetchSourceFromQueue(index!!, downloaded = downloaded ?: 0)
-                                        }
-                                    }
-                                }
-                            }
-                        }
+//                        lifecycleScope.launch {
+//                            repeatOnLifecycle(Lifecycle.State.CREATED) {
+//                                viewModel.firstTrackAdded.collect { added ->
+//                                    if (added && type == Config.ALBUM_CLICK) {
+//                                        viewModel.changeFirstTrackAddedToFalse()
+////                                        viewModel.getFormat(it.videoId)
+//                                        if (index == null) {
+//                                            fetchSourceFromQueue(downloaded = downloaded ?: 0)
+//                                        } else {
+//                                            fetchSourceFromQueue(index!!, downloaded = downloaded ?: 0)
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
                     }
                 }
             }
@@ -358,7 +358,7 @@ class NowPlayingFragment : Fragment() {
                     metadataCurSong = viewModel.metadata.value?.data
                     updateUIfromCurrentMediaItem(viewModel.getCurrentMediaItem())
                 } else {
-                    Log.i("Now Playing Fragment", "Bên trên")
+                    Log.i("Now Playing Fragment", "Playlist Click")
                     binding.ivArt.visibility = View.GONE
                     binding.loadingArt.visibility = View.VISIBLE
                     viewModel.gradientDrawable.postValue(null)
@@ -395,21 +395,21 @@ class NowPlayingFragment : Fragment() {
 //                            }
 //                        }
                         Log.d("check index", index.toString())
-                        lifecycleScope.launch {
-                            repeatOnLifecycle(Lifecycle.State.CREATED) {
-                                viewModel.firstTrackAdded.collect { added ->
-                                    if (added) {
-                                        viewModel.changeFirstTrackAddedToFalse()
-//                                        viewModel.getFormat(it.videoId)
-                                        if (index == null) {
-                                            fetchSourceFromQueue(downloaded = downloaded ?: 0)
-                                        } else {
-                                            fetchSourceFromQueue(index!!, downloaded = downloaded ?: 0)
-                                        }
-                                    }
-                                }
-                            }
-                        }
+//                        lifecycleScope.launch {
+//                            repeatOnLifecycle(Lifecycle.State.CREATED) {
+//                                viewModel.firstTrackAdded.collect { added ->
+//                                    if (added && type == Config.PLAYLIST_CLICK) {
+//                                        viewModel.changeFirstTrackAddedToFalse()
+////                                        viewModel.getFormat(it.videoId)
+//                                        if (index == null) {
+//                                            fetchSourceFromQueue(downloaded = downloaded ?: 0)
+//                                        } else {
+//                                            fetchSourceFromQueue(index!!, downloaded = downloaded ?: 0)
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
                     }
                 }
             }
@@ -636,6 +636,93 @@ class NowPlayingFragment : Fragment() {
                         }
                     }
                 }
+                val job15 = launch {
+                    viewModel.related.collectLatest { response ->
+                        when (response) {
+                            is Resource.Success -> {
+                                val data = response.data!!
+                                data.add(Queue.getNowPlaying()!!)
+                                val listWithoutDuplicateElements: ArrayList<Track> = ArrayList()
+                                for (element in data) {
+                                    // Check if element not exist in list, perform add element to list
+                                    if (!listWithoutDuplicateElements.contains(element)) {
+                                        listWithoutDuplicateElements.add(element)
+                                    }
+                                }
+                                Log.d("Queue", "getRelated: ${listWithoutDuplicateElements.size}")
+                                Queue.clear()
+                                Queue.addAll(listWithoutDuplicateElements)
+                                Log.d("Queue", "getRelated: ${Queue.getQueue().size}")
+                                if (!requireContext().isMyServiceRunning(FetchQueue::class.java)) {
+                                    requireActivity().startService(
+                                        Intent(
+                                            requireContext(),
+                                            FetchQueue::class.java
+                                        )
+                                    )
+                                } else {
+                                    requireActivity().stopService(
+                                        Intent(
+                                            requireContext(),
+                                            FetchQueue::class.java
+                                        )
+                                    )
+                                    requireActivity().startService(
+                                        Intent(
+                                            requireContext(),
+                                            FetchQueue::class.java
+                                        )
+                                    )
+                                }
+                            }
+
+                            is Resource.Error -> {
+                                if (response.message != "null") {
+                                    Toast.makeText(requireContext(), response.message, Toast.LENGTH_SHORT).show()
+                                    Log.d("Error", "${response.message}")
+                                }
+                            }
+                        }
+                    }
+                }
+                val job16 = launch {
+                    viewModel.firstTrackAdded.collectLatest { added ->
+                        if (added) {
+                            when(type) {
+                                Config.SONG_CLICK -> {
+                                    viewModel.nowPLaying.first()?.let { getRelated(it.mediaId) }
+                                    viewModel.changeFirstTrackAddedToFalse()
+                                }
+                                Config.SHARE -> {
+                                    viewModel.nowPLaying.first()?.let { getRelated(it.mediaId) }
+                                    viewModel.changeFirstTrackAddedToFalse()
+                                }
+                                Config.VIDEO_CLICK -> {
+
+//                                        viewModel.getFormat(it.videoId)
+                                    viewModel.nowPLaying.first()?.let { getRelated(it.mediaId) }
+                                    viewModel.changeFirstTrackAddedToFalse()
+                                }
+                                Config.ALBUM_CLICK -> {
+                                    if (index == null) {
+                                        fetchSourceFromQueue(downloaded = downloaded ?: 0)
+                                    } else {
+                                        fetchSourceFromQueue(index!!, downloaded = downloaded ?: 0)
+                                    }
+                                    viewModel.changeFirstTrackAddedToFalse()
+                                }
+                                Config.PLAYLIST_CLICK -> {
+                                    if (index == null) {
+                                        fetchSourceFromQueue(downloaded = downloaded ?: 0)
+                                    } else {
+                                        fetchSourceFromQueue(index!!, downloaded = downloaded ?: 0)
+                                    }
+                                    viewModel.changeFirstTrackAddedToFalse()
+                                }
+                            }
+                        }
+                    }
+                }
                 job1.join()
                 job2.join()
                 job3.join()
@@ -650,6 +737,8 @@ class NowPlayingFragment : Fragment() {
                 job11.join()
                 job12.join()
                 job14.join()
+                job15.join()
+                job16.join()
             }
         }
         binding.btFull.setOnClickListener {
@@ -1050,55 +1139,6 @@ class NowPlayingFragment : Fragment() {
 
     private fun getRelated(videoId: String) {
         viewModel.getRelated(videoId)
-        lifecycleScope.launch {
-            viewModel.related.collectLatest { response ->
-                when (response) {
-                    is Resource.Success -> {
-                        val data = response.data!!
-                        data.add(Queue.getNowPlaying()!!)
-                        val listWithoutDuplicateElements: ArrayList<Track> = ArrayList()
-                        for (element in data) {
-                            // Check if element not exist in list, perform add element to list
-                            if (!listWithoutDuplicateElements.contains(element)) {
-                                listWithoutDuplicateElements.add(element)
-                            }
-                        }
-                        Log.d("Queue", "getRelated: ${listWithoutDuplicateElements.size}")
-                        Queue.clear()
-                        Queue.addAll(listWithoutDuplicateElements)
-                        Log.d("Queue", "getRelated: ${Queue.getQueue().size}")
-                        if (!requireContext().isMyServiceRunning(FetchQueue::class.java)) {
-                            requireActivity().startService(
-                                Intent(
-                                    requireContext(),
-                                    FetchQueue::class.java
-                                )
-                            )
-                        } else {
-                            requireActivity().stopService(
-                                Intent(
-                                    requireContext(),
-                                    FetchQueue::class.java
-                                )
-                            )
-                            requireActivity().startService(
-                                Intent(
-                                    requireContext(),
-                                    FetchQueue::class.java
-                                )
-                            )
-                        }
-                    }
-
-                    is Resource.Error -> {
-                        if (response.message != "null") {
-                            Toast.makeText(requireContext(), response.message, Toast.LENGTH_SHORT).show()
-                            Log.d("Error", "${response.message}")
-                        }
-                    }
-                }
-            }
-        }
     }
 
 

@@ -77,7 +77,6 @@ class FetchQueue: Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        job.cancel()
         scope.cancel()
         Log.d("FetchQueue", "onDestroy: ")
     }

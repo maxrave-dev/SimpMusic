@@ -192,6 +192,9 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
     suspend fun insertPlaylist(playlistEntity: PlaylistEntity) =
         withContext(Dispatchers.IO) { localDataSource.insertPlaylist(playlistEntity) }
 
+    suspend fun insertRadioPlaylist(playlistEntity: PlaylistEntity) =
+        withContext(Dispatchers.IO) { localDataSource.insertRadioPlaylist(playlistEntity) }
+
     suspend fun updatePlaylistLiked(playlistId: String, likeStatus: Int) =
         withContext(Dispatchers.Main) {
             localDataSource.updatePlaylistLiked(

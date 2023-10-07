@@ -55,6 +55,7 @@ class LocalDataSource @Inject constructor(private val databaseDao: DatabaseDao) 
 
     suspend fun getAllPlaylists() = databaseDao.getAllPlaylists()
     suspend fun insertPlaylist(playlist: PlaylistEntity) = databaseDao.insertPlaylist(playlist)
+    suspend fun insertRadioPlaylist(playlist: PlaylistEntity) = databaseDao.insertRadioPlaylist(playlist)
     suspend fun updatePlaylistLiked(liked: Int, playlistId: String) = databaseDao.updatePlaylistLiked(liked, playlistId)
     suspend fun getPlaylist(playlistId: String) = databaseDao.getPlaylist(playlistId)
     suspend fun getLikedPlaylists() = databaseDao.getLikedPlaylists()

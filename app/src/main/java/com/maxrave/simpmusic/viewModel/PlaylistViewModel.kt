@@ -1,7 +1,6 @@
 package com.maxrave.simpmusic.viewModel
 
 import android.app.Application
-import android.content.Context
 import android.graphics.drawable.GradientDrawable
 import android.util.Log
 import android.widget.Toast
@@ -25,7 +24,6 @@ import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -38,8 +36,7 @@ import javax.inject.Inject
 @HiltViewModel
 class PlaylistViewModel @Inject constructor(
     private val mainRepository: MainRepository,
-    @ApplicationContext private val context: Context,
-    application: Application,
+    private val application: Application,
     private var dataStoreManager: DataStoreManager
 ): AndroidViewModel(application) {
     @Inject
@@ -336,7 +333,7 @@ class PlaylistViewModel @Inject constructor(
                     }
                 }
                 mainRepository.updateLocalPlaylistTracks(list, id)
-                Toast.makeText(getApplication(), context.getString(R.string.added_to_playlist), Toast.LENGTH_SHORT).show()
+                Toast.makeText(getApplication(), application.getString(R.string.added_to_playlist), Toast.LENGTH_SHORT).show()
                 if (count == values.size) {
                     mainRepository.updateLocalPlaylistDownloadState(DownloadState.STATE_DOWNLOADED, id)
                 }
@@ -397,7 +394,7 @@ class PlaylistViewModel @Inject constructor(
                     }
                 }
             }
-            Toast.makeText(context, context.getString(R.string.added_local_playlist), Toast.LENGTH_SHORT).show()
+            Toast.makeText(application, application.getString(R.string.added_local_playlist), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -419,11 +416,23 @@ class PlaylistViewModel @Inject constructor(
             mainRepository.addYouTubePlaylistItem(youtubePlaylistId, videoId).collect { response ->
                 if (response == "STATUS_SUCCEEDED") {
                     mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylistId, LocalPlaylistEntity.YouTubeSyncState.Synced)
-                    Toast.makeText(context, context.getString(R.string.added_to_youtube_playlist), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(application, application.getString(R.string.added_to_youtube_playlist), Toast.LENGTH_SHORT).show()
                 }
                 else {
                     mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylistId, LocalPlaylistEntity.YouTubeSyncState.NotSynced)
-                    Toast.makeText(context, context.getString(R.string.error), Toast.LENGTH_SHORT).show()
+                    Toast.makeText(application, application.getString(R.string.error), Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    fun insertRadioPlaylist(playlistEntity: PlaylistEntity) {
+        viewModelScope.launch {
+            mainRepository.insertRadioPlaylist(playlistEntity)
+            mainRepository.getPlaylist(playlistEntity.id).collect{ values ->
+                _playlistEntity.value = values
+                if (values != null) {
+                    _liked.value = values.liked
                 }
             }
         }

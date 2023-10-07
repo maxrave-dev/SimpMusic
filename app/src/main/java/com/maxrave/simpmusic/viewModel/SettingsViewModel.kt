@@ -249,17 +249,14 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun backup(context: Context, uri: Uri) {
-        kotlin.runCatching {
+        runCatching {
             context.applicationContext.contentResolver.openOutputStream(uri)?.use {
                 it.buffered().zipOutputStream().use { outputStream ->
-                    if (context.filesDir.div("datastore").div(SETTINGS_FILENAME).exists()) {
-                        (context.filesDir / "datastore" / SETTINGS_FILENAME).inputStream().buffered()
-                            .use { inputStream ->
-                                outputStream.putNextEntry(ZipEntry(SETTINGS_FILENAME))
-                                inputStream.copyTo(outputStream)
-                            }
+                    (context.filesDir/"datastore"/"$SETTINGS_FILENAME.preferences_pb").inputStream().buffered().use { inputStream ->
+                        outputStream.putNextEntry(ZipEntry("$SETTINGS_FILENAME.preferences_pb"))
+                        inputStream.copyTo(outputStream)
                     }
-                    runBlocking((Dispatchers.Main)) {
+                    runBlocking(Dispatchers.IO) {
                         databaseDao.checkpoint()
                     }
                     FileInputStream(database.openHelper.writableDatabase.path).use { inputStream ->
@@ -286,8 +283,8 @@ class SettingsViewModel @Inject constructor(
                     var entry = inputStream.nextEntry
                     while (entry != null) {
                         when (entry.name) {
-                            SETTINGS_FILENAME -> {
-                                (context.filesDir / "datastore" / SETTINGS_FILENAME).outputStream().use { outputStream ->
+                            "$SETTINGS_FILENAME.preferences_pb" -> {
+                                (context.filesDir /"datastore"/"$SETTINGS_FILENAME.preferences_pb").outputStream().use { outputStream ->
                                     inputStream.copyTo(outputStream)
                                 }
                             }
