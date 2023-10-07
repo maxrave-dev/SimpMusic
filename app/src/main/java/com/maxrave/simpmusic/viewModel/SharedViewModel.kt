@@ -406,6 +406,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                 isRestoring.value = restoring == TRUE
                 isRestoring.collect() { it ->
                     if (it) {
+                        Toast.makeText(context, context.getString(R.string.restore_success), Toast.LENGTH_SHORT).show()
                         mainRepository.getDownloadedSongs().collect { songs ->
                             songs.forEach { song ->
                                 if (!downloadedCache.keys.contains(song.videoId)) {

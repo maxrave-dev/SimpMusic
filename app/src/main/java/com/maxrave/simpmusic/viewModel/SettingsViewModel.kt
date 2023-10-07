@@ -278,19 +278,21 @@ class SettingsViewModel @Inject constructor(
     @UnstableApi
     fun restore(context: Context, uri: Uri) {
         runCatching {
+            runBlocking { dataStoreManager.restore(true)}
             context.applicationContext.contentResolver.openInputStream(uri)?.use {
                 it.zipInputStream().use { inputStream ->
                     var entry = inputStream.nextEntry
-                    while (entry != null) {
+                    var count = 0
+                    while (entry != null && count < 2) {
                         when (entry.name) {
                             "$SETTINGS_FILENAME.preferences_pb" -> {
-                                (context.filesDir /"datastore"/"$SETTINGS_FILENAME.preferences_pb").outputStream().use { outputStream ->
+                                (context.filesDir/"datastore"/"$SETTINGS_FILENAME.preferences_pb").outputStream().use { outputStream ->
                                     inputStream.copyTo(outputStream)
                                 }
                             }
 
                             DB_NAME -> {
-                                runBlocking((Dispatchers.Main)) {
+                                runBlocking(Dispatchers.IO) {
                                     databaseDao.checkpoint()
                                 }
                                 database.close()
@@ -299,16 +301,14 @@ class SettingsViewModel @Inject constructor(
                                 }
                             }
                         }
+                        count++
                         entry = inputStream.nextEntry
                     }
                 }
             }
-            runBlocking { dataStoreManager.restore(true)}
             context.stopService(Intent(context, SimpleMediaService::class.java))
             context.startActivity(Intent(context, MainActivity::class.java))
             exitProcess(0)
-        }.onSuccess {
-            Toast.makeText(context, context.getString(R.string.restore_success), Toast.LENGTH_SHORT).show()
         }.onFailure {
             it.printStackTrace()
             Toast.makeText(context, context.getString(R.string.restore_failed), Toast.LENGTH_SHORT).show()
