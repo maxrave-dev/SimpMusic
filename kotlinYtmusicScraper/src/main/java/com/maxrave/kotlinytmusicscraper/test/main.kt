@@ -7,29 +7,33 @@ import com.maxrave.kotlinytmusicscraper.models.MusicResponsiveListItemRenderer
 import com.maxrave.kotlinytmusicscraper.models.MusicTwoRowItemRenderer
 import com.maxrave.kotlinytmusicscraper.models.Run
 import com.maxrave.kotlinytmusicscraper.models.SectionListRenderer
-import com.maxrave.kotlinytmusicscraper.models.SongItem
 import com.maxrave.kotlinytmusicscraper.models.Thumbnail
-import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
 import kotlinx.coroutines.runBlocking
 
 fun main() {
     runBlocking {
-        YouTube.spotifyCookie =
-            "sp_t=a910acb941e990e349d79e8170f2dafe; _scid=e96b060c-30fc-4c59-9e44-25f376482edd; _ga=GA1.2.2112854199.1671017821; sp_adid=95e621d6-b86c-4ce5-bed4-6b03ab65155b; _ga_ZWG1NSHWD8=GS1.1.1671017821.1.0.1671017823.0.0.0; sp_dc=AQAYI79gjZIRlNjJUDXJLIq1yw5Nb_E85T55B8jgHOVWOseGrnhlVuEKRziSRV1XA8Ca2d7bx7RAQ-6hjGLWNlsxHrZ6DP6Jmn_Joz-6djb05evRb31kKFGrTXhRzFBRMr5MePVo2pujxkVtOjCZp_qNP1J3ryQ; sp_key=595700a0-212b-4ce5-a497-0f7eea005f35; OptanonAlertBoxClosed=2022-12-27T15:05:03.114Z; sp_m=vn-vi; sp_landing=https%3A%2F%2Fopen.spotify.com%2Ftrack%2F1GPRHgVXzRfzoc44HEZZQI%3Fsp_cid%3Da910acb941e990e349d79e8170f2dafe%26device%3Ddesktop; OptanonConsent=isIABGlobal=false&datestamp=Sat+Sep+30+2023+22%3A30%3A16+GMT%2B0700+(Indochina+Time)&version=6.26.0&hosts=&landingPath=NotLandingPage&groups=s00%3A1%2Cf00%3A1%2Cm00%3A1%2Ct00%3A1%2Ci00%3A1%2Cf11%3A0&AwaitingReconsent=false&geolocation=VN%3BSG"
-        YouTube.cookie =
-            "VISITOR_INFO1_LIVE=zhhx1-pXFL0; __utmz=27069237.1673094830.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); VISITOR_PRIVACY_METADATA=CgJWThICGgA%3D; __utma=27069237.597876058.1673094830.1691393097.1693037834.24; LOGIN_INFO=AFmmF2swRQIhALlK-GIKSX-_-wAq3MR4LiZxDEyZau-CdERSaDCSToolAiBHixfkKWkvAOsMjXax7ia-Nsld97BRcVkrl0mP4wkxNA:QUQ3MjNmeVBBcWJNVnp1cWNLVnFnNVhCdTQ5d3JzaTNsaUVLZWwzNUFFM21Gd3BaWTZHdTh6VzJDZDhaR09UTDVHYkpORWdudXFwNVNybE1wWVVKM3p5ZFpoODgyQWc2OUlISnc1TUJpU09DXzVJR3FUVWdhVGxZT3RLcTBXcThZdGhjVENjMmI4ZnJZWGtrQ29UejhRMVl0N1NTVUxRYnl3; SID=bAiHuOSAVkOcHMA4cuCGz3Esa2qGLgDbdsMbk5UHs0UUkVJkLIWqC4og39fPQOPkDMu2xg.; __Secure-1PSID=bAiHuOSAVkOcHMA4cuCGz3Esa2qGLgDbdsMbk5UHs0UUkVJkk5EjmxcjfH2pbmn4iPwjuw.; __Secure-3PSID=bAiHuOSAVkOcHMA4cuCGz3Esa2qGLgDbdsMbk5UHs0UUkVJkYXoKeyvKnENZHS6ubzdUJg.; HSID=Anikjx73sQ4s47Hjp; SSID=AKVpi9FZspt0u7zj8; APISID=GF09QQoyirI05dF7/ALTs2_GFCeABgB3sQ; SAPISID=T_NjR_vKV6wufMQH/A1MpNmKnmYUpD9ALL; __Secure-1PAPISID=T_NjR_vKV6wufMQH/A1MpNmKnmYUpD9ALL; __Secure-3PAPISID=T_NjR_vKV6wufMQH/A1MpNmKnmYUpD9ALL; PREF=f6=40000000&tz=Asia.Saigon&f7=100&autoplay=true&volume=56&gl=VN&hl=vi&guide_collapsed=false&f5=20000; YSC=zlOmTzYFmfA; __Secure-1PSIDTS=sidts-CjEB3e41hVMGhnny0RrJ_9Xo7vlv9Snp5RI0Os4UJf3o0eTVQpu6XIgu1WiB4h-85ieZEAA; __Secure-3PSIDTS=sidts-CjEB3e41hVMGhnny0RrJ_9Xo7vlv9Snp5RI0Os4UJf3o0eTVQpu6XIgu1WiB4h-85ieZEAA; SIDCC=ACA-OxNYWmgFXxZbBBCm28QjtcfRwJ-5KptqbNeVrmmzSTfn17hF36FVWfNBS-xsXZZQ2MtFaAWJ; __Secure-1PSIDCC=ACA-OxMd3YwVX5FAZmRVz9dag48RWH8hv-WvzziDAcc4aYGNDEfK7OXwf3N_uMe7Z7KeBEBpvbn3; __Secure-3PSIDCC=ACA-OxP0D1K8y4lhUZR35NgHhmj3PZ_1o51V9gUcB8X-SChuTiQF7gyOCq9cTx5Orr483Owq2_U"
-        YouTube.next(endpoint = WatchEndpoint(playlistId = "RDEMgtw3oC9Zt7NLrWZyopXq4Q"))
-            .onSuccess {
-                val songs = ArrayList<SongItem>()
-                songs.addAll(it.items)
-                println(songs.size)
-                if (it.continuation != null) {
-                    YouTube.next(endpoint = WatchEndpoint(playlistId = "RDEMgtw3oC9Zt7NLrWZyopXq4Q"), continuation = it.continuation).onSuccess { value ->
-                        songs.addAll(value.items)
-                        println(songs.size)
-                        println(songs)
-                    }
-                }
+//        YouTube.spotifyCookie =
+//            "sp_t=a910acb941e990e349d79e8170f2dafe; _scid=e96b060c-30fc-4c59-9e44-25f376482edd; _ga=GA1.2.2112854199.1671017821; sp_adid=95e621d6-b86c-4ce5-bed4-6b03ab65155b; _ga_ZWG1NSHWD8=GS1.1.1671017821.1.0.1671017823.0.0.0; sp_dc=AQAYI79gjZIRlNjJUDXJLIq1yw5Nb_E85T55B8jgHOVWOseGrnhlVuEKRziSRV1XA8Ca2d7bx7RAQ-6hjGLWNlsxHrZ6DP6Jmn_Joz-6djb05evRb31kKFGrTXhRzFBRMr5MePVo2pujxkVtOjCZp_qNP1J3ryQ; sp_key=595700a0-212b-4ce5-a497-0f7eea005f35; OptanonAlertBoxClosed=2022-12-27T15:05:03.114Z; sp_m=vn-vi; sp_landing=https%3A%2F%2Fopen.spotify.com%2Ftrack%2F1GPRHgVXzRfzoc44HEZZQI%3Fsp_cid%3Da910acb941e990e349d79e8170f2dafe%26device%3Ddesktop; OptanonConsent=isIABGlobal=false&datestamp=Sat+Sep+30+2023+22%3A30%3A16+GMT%2B0700+(Indochina+Time)&version=6.26.0&hosts=&landingPath=NotLandingPage&groups=s00%3A1%2Cf00%3A1%2Cm00%3A1%2Ct00%3A1%2Ci00%3A1%2Cf11%3A0&AwaitingReconsent=false&geolocation=VN%3BSG"
+//        YouTube.cookie =
+//            "VISITOR_INFO1_LIVE=zhhx1-pXFL0; __utmz=27069237.1673094830.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); VISITOR_PRIVACY_METADATA=CgJWThICGgA%3D; __utma=27069237.597876058.1673094830.1691393097.1693037834.24; LOGIN_INFO=AFmmF2swRQIhALlK-GIKSX-_-wAq3MR4LiZxDEyZau-CdERSaDCSToolAiBHixfkKWkvAOsMjXax7ia-Nsld97BRcVkrl0mP4wkxNA:QUQ3MjNmeVBBcWJNVnp1cWNLVnFnNVhCdTQ5d3JzaTNsaUVLZWwzNUFFM21Gd3BaWTZHdTh6VzJDZDhaR09UTDVHYkpORWdudXFwNVNybE1wWVVKM3p5ZFpoODgyQWc2OUlISnc1TUJpU09DXzVJR3FUVWdhVGxZT3RLcTBXcThZdGhjVENjMmI4ZnJZWGtrQ29UejhRMVl0N1NTVUxRYnl3; SID=bAiHuOSAVkOcHMA4cuCGz3Esa2qGLgDbdsMbk5UHs0UUkVJkLIWqC4og39fPQOPkDMu2xg.; __Secure-1PSID=bAiHuOSAVkOcHMA4cuCGz3Esa2qGLgDbdsMbk5UHs0UUkVJkk5EjmxcjfH2pbmn4iPwjuw.; __Secure-3PSID=bAiHuOSAVkOcHMA4cuCGz3Esa2qGLgDbdsMbk5UHs0UUkVJkYXoKeyvKnENZHS6ubzdUJg.; HSID=Anikjx73sQ4s47Hjp; SSID=AKVpi9FZspt0u7zj8; APISID=GF09QQoyirI05dF7/ALTs2_GFCeABgB3sQ; SAPISID=T_NjR_vKV6wufMQH/A1MpNmKnmYUpD9ALL; __Secure-1PAPISID=T_NjR_vKV6wufMQH/A1MpNmKnmYUpD9ALL; __Secure-3PAPISID=T_NjR_vKV6wufMQH/A1MpNmKnmYUpD9ALL; PREF=f6=40000000&tz=Asia.Saigon&f7=100&autoplay=true&volume=56&gl=VN&hl=vi&guide_collapsed=false&f5=20000; YSC=zlOmTzYFmfA; __Secure-1PSIDTS=sidts-CjEB3e41hVMGhnny0RrJ_9Xo7vlv9Snp5RI0Os4UJf3o0eTVQpu6XIgu1WiB4h-85ieZEAA; __Secure-3PSIDTS=sidts-CjEB3e41hVMGhnny0RrJ_9Xo7vlv9Snp5RI0Os4UJf3o0eTVQpu6XIgu1WiB4h-85ieZEAA; SIDCC=ACA-OxNYWmgFXxZbBBCm28QjtcfRwJ-5KptqbNeVrmmzSTfn17hF36FVWfNBS-xsXZZQ2MtFaAWJ; __Secure-1PSIDCC=ACA-OxMd3YwVX5FAZmRVz9dag48RWH8hv-WvzziDAcc4aYGNDEfK7OXwf3N_uMe7Z7KeBEBpvbn3; __Secure-3PSIDCC=ACA-OxP0D1K8y4lhUZR35NgHhmj3PZ_1o51V9gUcB8X-SChuTiQF7gyOCq9cTx5Orr483Owq2_U"
+//        YouTube.next(endpoint = WatchEndpoint(playlistId = "RDEMgtw3oC9Zt7NLrWZyopXq4Q"))
+//            .onSuccess {
+//                val songs = ArrayList<SongItem>()
+//                songs.addAll(it.items)
+//                println(songs.size)
+//                if (it.continuation != null) {
+//                    YouTube.next(endpoint = WatchEndpoint(playlistId = "RDEMgtw3oC9Zt7NLrWZyopXq4Q"), continuation = it.continuation).onSuccess { value ->
+//                        songs.addAll(value.items)
+//                        println(songs.size)
+//                        println(songs)
+//                    }
+//                }
+//            }
+        YouTube.getMusixmatchUserToken().onSuccess { 
+            println(it.message.body.user_token)
+        }
+            .onFailure {
+                it.printStackTrace()
             }
     }
 //      YouTube.authentication().onSuccess { token ->

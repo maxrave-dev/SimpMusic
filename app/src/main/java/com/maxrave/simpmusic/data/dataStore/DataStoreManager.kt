@@ -5,7 +5,6 @@ import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.media3.common.Player
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
@@ -128,30 +127,6 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
                 settingsDataStore.edit { settings ->
                     settings[SPOTIFY_LOGGED_IN] = FALSE
                 }
-            }
-        }
-    }
-
-    val spotifyAccessToken = settingsDataStore.data.map { preferences ->
-        preferences[stringPreferencesKey("spotify_access_token")] ?: ""
-    }
-
-    suspend fun setSpotifyAccessToken(token: String) {
-        withContext(Dispatchers.IO) {
-            settingsDataStore.edit { settings ->
-                settings[stringPreferencesKey("spotify_access_token")] = token
-            }
-        }
-    }
-
-    val spotifyAccessTokenExpire = settingsDataStore.data.map { preferences ->
-        preferences[longPreferencesKey("spotify_access_token_expire")] ?: 0L
-    }
-
-    suspend fun setSpotifyAccessTokenExpire(token: Long) {
-        withContext(Dispatchers.IO) {
-            settingsDataStore.edit { settings ->
-                settings[longPreferencesKey("spotify_access_token_expire")] = token
             }
         }
     }
@@ -347,12 +322,12 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
         val REPEAT_KEY = stringPreferencesKey("repeat_key")
         val SEND_BACK_TO_GOOGLE = stringPreferencesKey("send_back_to_google")
         val FROM_SAVED_PLAYLIST = stringPreferencesKey("from_saved_playlist")
-        val RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE = "RestoreLastPlayedTrackAndQueueDone"
+        const val RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE = "RestoreLastPlayedTrackAndQueueDone"
         val SPONSOR_BLOCK_ENABLED = stringPreferencesKey("sponsor_block_enabled")
-        val REPEAT_MODE_OFF = "REPEAT_MODE_OFF"
-        val REPEAT_ONE = "REPEAT_ONE"
-        val REPEAT_ALL = "REPEAT_ALL"
-        val TRUE = "TRUE"
-        val FALSE = "FALSE"
+        const val REPEAT_MODE_OFF = "REPEAT_MODE_OFF"
+        const val REPEAT_ONE = "REPEAT_ONE"
+        const val REPEAT_ALL = "REPEAT_ALL"
+        const val TRUE = "TRUE"
+        const val FALSE = "FALSE"
     }
 }

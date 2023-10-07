@@ -8,7 +8,6 @@
     <string name="year_and_category">%1$s • %2$s</string>
     <string name="album_length">%1$s Lieder %2$s</string>
     <string name="view_count">%1$s Aufrufe</string>
-    <string name="lyrics_provider">Songtexte bereitgestellt von Spotify (Musixmatch)</string>
     <string name="clear_search_history">Suchverlauf löschen</string>
     <string name="liked">Gemocht</string>
     <string name="like">Gefällt mir</string>
@@ -146,7 +145,6 @@
     <string name="log_in_to_get_personally_data">Melde dich an, um personalisierte Daten zu erhalten</string>
     <string name="login_success">Erfolgreich angemeldet</string>
     <string name="log_out">Melden Sie sich von YouTube ab</string>
-    <string name="log_out_from_spotity">Melden Sie sich von Spotify ab</string>
     <string name="logged_in">Angemeldet</string>
     <string name="logged_out">Abgemeldet</string>
     <string name="playlist">Playlist</string>
@@ -157,7 +155,6 @@
     <string name="no_equalizer">Dein Gerät hat keinen Equalizer</string>
     <string name="open_system_equalizer">System-Equalizer öffnen</string>
     <string name="use_your_system_equalizer">Verwende deinen System-Equalizer</string>
-    <string name="version_name">v0.1.4-beta</string>
     <string name="streaming_data_provider_piped">Streaming-Daten von... (Piped)</string>
     <string name="itag">Itag</string>
     <string name="mime_type">Mime Typ</string>
@@ -216,7 +213,6 @@
     <string name="sleep_timer_set_error">Bitte gib das korrekte Zeitformat an</string>
     <string name="sleep_timer_warning">Sleep-Timer entfernen?</string>
     <string name="yes">Ja</string>
-    <string name="notification_channel_name">SimpMusik Wiedergabebenachrichtigung</string>
     <string name="welcome_back">Willkommen zurück,</string>
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">Laden Sie Ihren Hörverlauf auf den YouTube Music-Server hoch. Dadurch wird das YT Music-Empfehlungssystem verbessert. Funktioniert nur, wenn Sie angemeldet sind</string>
     <string name="send_back_listening_data_to_google">Hördaten an Google zurücksenden</string>
@@ -224,8 +220,6 @@
     <string name="your_youtube_playlists">Deine YouTube-Playlists</string>
     <string name="no_YouTube_playlists">Keine YouTube-Playlists</string>
     <string name="track">lied</string>
-    <string name="log_in_to_get_spotify_lyrics">Melden Sie sich an, um Spotify-Liedtexte zu erhalten</string>
-    <string name="log_in_to_Spotify">Melden Sie sich bei Spotify an</string>
     <string name="save_to_local_playlist">In lokaler Playlist speichern</string>
     <string name="added_local_playlist">Lokale Playlist hinzugefügt</string>
     <string name="sync">Mit YouTube Music synchronisieren</string>
@@ -250,4 +244,5 @@
         <item quantity="one">%d Lied</item>
         <item quantity="other">%d Lieder</item>
     </plurals>
+    <string name="lyrics_provider">Songtexte von Musixmatch</string>
 </resources>

@@ -258,199 +258,81 @@ class PlaylistFragment: Fragment() {
         }
 
         binding.btPlayPause.setOnClickListener {
-            if (viewModel.isRadio.value == true) {
-                if (viewModel.playlistBrowse.value is Resource.Success && viewModel.playlistBrowse.value?.data != null){
-                    if (!viewModel.playlistBrowse.value?.data?.tracks.isNullOrEmpty()) {
-                        val args = Bundle()
-                        args.putString("type", Config.PLAYLIST_CLICK)
-                        args.putString("videoId", viewModel.playlistBrowse.value?.data?.tracks?.get(0)?.videoId)
-                        args.putString("from", "${viewModel.playlistBrowse.value?.data?.title}")
-                        if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
-                            args.putInt("downloaded", 1)
-                        }
-                        Queue.clear()
-                        Queue.setNowPlaying(viewModel.playlistBrowse.value?.data!!.tracks[0])
-                        Queue.addAll(viewModel.playlistBrowse.value?.data!!.tracks as ArrayList<Track>)
-                        if (Queue.getQueue().size >= 1) {
-                            Queue.removeFirstTrackForPlaylistAndAlbum()
-                        }
-                        findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
-                    }
-                    else {
-                        Snackbar.make(requireView(),
-                            getString(R.string.playlist_is_empty), Snackbar.LENGTH_SHORT).show()
-                    }
+            if (viewModel.playlistBrowse.value is Resource.Success && viewModel.playlistBrowse.value?.data != null){
+                val args = Bundle()
+                args.putString("type", Config.PLAYLIST_CLICK)
+                args.putString("videoId", viewModel.playlistBrowse.value?.data?.tracks?.get(0)?.videoId)
+                args.putString("from", "Playlist \"${viewModel.playlistBrowse.value?.data?.title}\"")
+                if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
+                    args.putInt("downloaded", 1)
                 }
-                else {
-                    Snackbar.make(requireView(),
-                        getString(R.string.playlist_is_empty), Snackbar.LENGTH_SHORT).show()
+                Queue.clear()
+                Queue.setNowPlaying(viewModel.playlistBrowse.value?.data!!.tracks[0])
+                Queue.addAll(viewModel.playlistBrowse.value?.data!!.tracks as ArrayList<Track>)
+                if (Queue.getQueue().size >= 1) {
+                    Queue.removeFirstTrackForPlaylistAndAlbum()
                 }
+                findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+            }
+            else if (viewModel.playlistEntity.value != null && viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED){
+                val args = Bundle()
+                args.putString("type", Config.ALBUM_CLICK)
+                args.putString("videoId", viewModel.playlistEntity.value?.tracks?.get(0))
+                args.putString("from", "Playlist \"${viewModel.playlistEntity.value?.title}\"")
+                if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
+                    args.putInt("downloaded", 1)
+                }
+                Queue.clear()
+                Queue.setNowPlaying(viewModel.listTrack.value?.get(0)!!.toTrack())
+                Queue.addAll(viewModel.listTrack.value.toArrayListTrack())
+                if (Queue.getQueue().size >= 1) {
+                    Queue.removeFirstTrackForPlaylistAndAlbum()
+                }
+                findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
             }
             else {
-                if (viewModel.playlistBrowse.value is Resource.Success && viewModel.playlistBrowse.value?.data != null){
-                    if (!viewModel.playlistBrowse.value?.data?.tracks.isNullOrEmpty()) {
-                        val args = Bundle()
-                        args.putString("type", Config.PLAYLIST_CLICK)
-                        args.putString("videoId", viewModel.playlistBrowse.value?.data?.tracks?.get(0)?.videoId)
-                        args.putString("from", "Playlist \"${viewModel.playlistBrowse.value?.data?.title}\"")
-                        if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
-                            args.putInt("downloaded", 1)
-                        }
-                        Queue.clear()
-                        Queue.setNowPlaying(viewModel.playlistBrowse.value?.data!!.tracks[0])
-                        Queue.addAll(viewModel.playlistBrowse.value?.data!!.tracks as ArrayList<Track>)
-                        if (Queue.getQueue().size >= 1) {
-                            Queue.removeFirstTrackForPlaylistAndAlbum()
-                        }
-                        findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
-                    }
-                    else {
-                        Snackbar.make(requireView(),
-                            getString(R.string.playlist_is_empty), Snackbar.LENGTH_SHORT).show()
-                    }
-                }
-                else if (viewModel.playlistEntity.value != null && viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED){
-                    if (!viewModel.playlistEntity.value?.tracks.isNullOrEmpty()) {
-                        val args = Bundle()
-                        args.putString("type", Config.PLAYLIST_CLICK)
-                        args.putString("videoId", viewModel.playlistEntity.value?.tracks?.get(0))
-                        args.putString("from", "Playlist \"${viewModel.playlistEntity.value?.title}\"")
-                        if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
-                            args.putInt("downloaded", 1)
-                        }
-                        Queue.clear()
-                        Queue.setNowPlaying(viewModel.listTrack.value?.get(0)!!.toTrack())
-                        Queue.addAll(viewModel.listTrack.value.toArrayListTrack())
-                        if (Queue.getQueue().size >= 1) {
-                            Queue.removeFirstTrackForPlaylistAndAlbum()
-                        }
-                        findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
-                    }
-                    else {
-                        Snackbar.make(requireView(),
-                            getString(R.string.playlist_is_empty), Snackbar.LENGTH_SHORT).show()
-                    }
-                }
-                else {
-                    Snackbar.make(requireView(),
-                        getString(R.string.playlist_is_empty), Snackbar.LENGTH_SHORT).show()
-                }
+                Snackbar.make(requireView(),
+                    getString(R.string.playlist_is_empty), Snackbar.LENGTH_SHORT).show()
             }
         }
 
         playlistItemAdapter.setOnClickListener(object: PlaylistItemAdapter.OnItemClickListener{
             override fun onItemClick(position: Int) {
-                if (viewModel.isRadio.value == true) {
-                    if (viewModel.playlistBrowse.value is Resource.Success && viewModel.playlistBrowse.value?.data != null) {
-                        if (!viewModel.playlistBrowse.value?.data?.tracks.isNullOrEmpty()) {
-                            val args = Bundle()
-                            args.putString("type", Config.PLAYLIST_CLICK)
-                            args.putString(
-                                "videoId",
-                                viewModel.playlistBrowse.value?.data!!.tracks[position].videoId
-                            )
-                            args.putString(
-                                "from",
-                                "Playlist \"${viewModel.playlistBrowse.value?.data!!.title}\""
-                            )
-                            args.putInt("index", position)
-                            if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
-                                args.putInt("downloaded", 1)
-                            }
-                            Queue.clear()
-                            Queue.setNowPlaying(viewModel.playlistBrowse.value?.data!!.tracks[position])
-                            Queue.addAll(viewModel.playlistBrowse.value?.data!!.tracks as ArrayList<Track>)
-                            if (Queue.getQueue().size >= 1) {
-                                Queue.removeTrackWithIndex(position)
-                            }
-                            findNavController().navigate(
-                                R.id.action_global_nowPlayingFragment,
-                                args
-                            )
-                        } else {
-                            Snackbar.make(
-                                requireView(),
-                                getString(R.string.playlist_is_empty), Snackbar.LENGTH_SHORT
-                            ).show()
-                        }
-                    } else {
-                        Snackbar.make(
-                            requireView(),
-                            getString(R.string.playlist_is_empty), Snackbar.LENGTH_SHORT
-                        ).show()
+                if (viewModel.playlistBrowse.value is Resource.Success && viewModel.playlistBrowse.value?.data != null){
+                    val args = Bundle()
+                    args.putString("type", Config.ALBUM_CLICK)
+                    args.putString("videoId", viewModel.playlistBrowse.value?.data!!.tracks[position].videoId)
+                    args.putString("from", "Album \"${viewModel.playlistBrowse.value?.data!!.title}\"")
+                    args.putInt("index", position)
+                    if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
+                        args.putInt("downloaded", 1)
                     }
-                } else {
-                    if (viewModel.playlistBrowse.value is Resource.Success && viewModel.playlistBrowse.value?.data != null) {
-                        if (!viewModel.playlistBrowse.value?.data?.tracks.isNullOrEmpty()) {
-                            val args = Bundle()
-                            args.putString("type", Config.PLAYLIST_CLICK)
-                            args.putString(
-                                "videoId",
-                                viewModel.playlistBrowse.value?.data!!.tracks[position].videoId
-                            )
-                            args.putString(
-                                "from",
-                                "Playlist \"${viewModel.playlistBrowse.value?.data!!.title}\""
-                            )
-                            args.putInt("index", position)
-                            if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
-                                args.putInt("downloaded", 1)
-                            }
-                            Queue.clear()
-                            Queue.setNowPlaying(viewModel.playlistBrowse.value?.data!!.tracks[position])
-                            Queue.addAll(viewModel.playlistBrowse.value?.data!!.tracks as ArrayList<Track>)
-                            if (Queue.getQueue().size >= 1) {
-                                Queue.removeTrackWithIndex(position)
-                            }
-                            findNavController().navigate(
-                                R.id.action_global_nowPlayingFragment,
-                                args
-                            )
-                        } else {
-                            Snackbar.make(
-                                requireView(),
-                                getString(R.string.playlist_is_empty), Snackbar.LENGTH_SHORT
-                            ).show()
-                        }
-                    } else if (viewModel.playlistEntity.value != null && viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
-                        if (!viewModel.playlistEntity.value?.tracks.isNullOrEmpty()) {
-                            val args = Bundle()
-                            args.putString("type", Config.PLAYLIST_CLICK)
-                            args.putString(
-                                "videoId",
-                                viewModel.playlistEntity.value?.tracks?.get(position)
-                            )
-                            args.putString(
-                                "from",
-                                "Playlist \"${viewModel.playlistEntity.value?.title}\""
-                            )
-                            if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
-                                args.putInt("downloaded", 1)
-                            }
-                            Queue.clear()
-                            Queue.setNowPlaying(
-                                viewModel.listTrack.value?.get(position)!!.toTrack()
-                            )
-                            Queue.addAll(viewModel.listTrack.value.toArrayListTrack())
-                            if (Queue.getQueue().size >= 1) {
-                                Queue.removeTrackWithIndex(position)
-                            }
-                            findNavController().navigate(
-                                R.id.action_global_nowPlayingFragment,
-                                args
-                            )
-                        } else {
-                            Snackbar.make(
-                                requireView(),
-                                getString(R.string.playlist_is_empty), Snackbar.LENGTH_SHORT
-                            ).show()
-                        }
-                    } else {
-                        Snackbar.make(
-                            requireView(),
-                            getString(R.string.playlist_is_empty), Snackbar.LENGTH_SHORT
-                        ).show()
+                    Queue.clear()
+                    Queue.setNowPlaying(viewModel.playlistBrowse.value?.data!!.tracks[position])
+                    Queue.addAll(viewModel.playlistBrowse.value?.data!!.tracks as ArrayList<Track>)
+                    if (Queue.getQueue().size >= 1) {
+                        Queue.removeTrackWithIndex(position)
                     }
+                    findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                }
+                else if (viewModel.playlistEntity.value != null && viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED){
+                    val args = Bundle()
+                    args.putString("type", Config.ALBUM_CLICK)
+                    args.putString("videoId", viewModel.playlistEntity.value?.tracks?.get(position))
+                    args.putString("from", "Playlist \"${viewModel.playlistEntity.value?.title}\"")
+                    if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
+                        args.putInt("downloaded", 1)
+                    }
+                    Queue.clear()
+                    Queue.setNowPlaying(viewModel.listTrack.value?.get(position)!!.toTrack())
+                    Queue.addAll(viewModel.listTrack.value.toArrayListTrack())
+                    if (Queue.getQueue().size >= 1) {
+                        Queue.removeTrackWithIndex(position)
+                    }
+                    findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                }
+                else {
+                    Snackbar.make(requireView(), getString(R.string.error), Snackbar.LENGTH_SHORT).show()
                 }
             }
         })

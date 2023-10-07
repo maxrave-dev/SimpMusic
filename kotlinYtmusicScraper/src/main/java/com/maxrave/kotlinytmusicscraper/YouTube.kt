@@ -19,6 +19,9 @@ import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.WEB_REMIX
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
 import com.maxrave.kotlinytmusicscraper.models.getContinuation
 import com.maxrave.kotlinytmusicscraper.models.lyrics.Lyrics
+import com.maxrave.kotlinytmusicscraper.models.musixmatch.MusixmatchLyricsReponse
+import com.maxrave.kotlinytmusicscraper.models.musixmatch.SearchMusixmatchResponse
+import com.maxrave.kotlinytmusicscraper.models.musixmatch.UserTokenResponse
 import com.maxrave.kotlinytmusicscraper.models.oddElements
 import com.maxrave.kotlinytmusicscraper.models.response.AccountMenuResponse
 import com.maxrave.kotlinytmusicscraper.models.response.AddItemYouTubePlaylistResponse
@@ -52,6 +55,8 @@ import com.maxrave.kotlinytmusicscraper.pages.RelatedPage
 import com.maxrave.kotlinytmusicscraper.pages.SearchPage
 import com.maxrave.kotlinytmusicscraper.pages.SearchResult
 import com.maxrave.kotlinytmusicscraper.pages.SearchSuggestionPage
+import com.maxrave.kotlinytmusicscraper.parser.parseMusixmatchLyrics
+import com.maxrave.kotlinytmusicscraper.parser.parseUnsyncedLyrics
 import com.mohamedrejeb.ksoup.html.parser.KsoupHtmlHandler
 import com.mohamedrejeb.ksoup.html.parser.KsoupHtmlParser
 import io.ktor.client.call.body
@@ -106,6 +111,12 @@ object YouTube {
         get() = ytMusic.spotifyCookie
         set(value) {
             ytMusic.spotifyCookie = value
+        }
+
+    var musixmatchUserToken: String?
+        get() = ytMusic.musixmatchUserToken
+        set(value) {
+            ytMusic.musixmatchUserToken = value
         }
 
     /**
@@ -336,6 +347,28 @@ object YouTube {
 
     suspend fun getAccessToken() = runCatching {
         ytMusic.getAccessToken().body<AccessToken>()
+    }
+
+    suspend fun getMusixmatchUserToken() = runCatching {
+        ytMusic.getMusixmatchUserToken().body<UserTokenResponse>()
+    }
+    suspend fun searchMusixmatchTrackId(query: String, userToken: String) = runCatching {
+        ytMusic.searchMusixmatchTrackId(query, userToken).body<SearchMusixmatchResponse>()
+    }
+    suspend fun getMusixmatchLyrics(trackId: String, userToken: String) = runCatching {
+        val response = ytMusic.getMusixmatchLyrics(trackId, userToken).body<MusixmatchLyricsReponse>()
+        if (response.message.body.subtitle != null) {
+            return@runCatching parseMusixmatchLyrics(response.message.body.subtitle.subtitle_body)
+        }
+        else {
+            val unsyncedResponse = ytMusic.getMusixmatchUnsyncedLyrics(trackId, userToken).body<MusixmatchLyricsReponse>()
+            if (unsyncedResponse.message.body.lyrics != null) {
+                return@runCatching parseUnsyncedLyrics(unsyncedResponse.message.body.lyrics.lyrics_body)
+            }
+            else {
+                null
+            }
+        }
     }
 
     /**

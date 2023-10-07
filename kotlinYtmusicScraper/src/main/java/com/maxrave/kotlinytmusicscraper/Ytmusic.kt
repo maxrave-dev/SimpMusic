@@ -15,6 +15,7 @@ import com.maxrave.kotlinytmusicscraper.models.body.GetSearchSuggestionsBody
 import com.maxrave.kotlinytmusicscraper.models.body.NextBody
 import com.maxrave.kotlinytmusicscraper.models.body.PlayerBody
 import com.maxrave.kotlinytmusicscraper.models.body.SearchBody
+import com.maxrave.kotlinytmusicscraper.test.CustomRedirectConfig
 import com.maxrave.kotlinytmusicscraper.utils.parseCookieString
 import com.maxrave.kotlinytmusicscraper.utils.sha1
 import io.ktor.client.*
@@ -22,9 +23,12 @@ import io.ktor.client.engine.okhttp.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.compression.*
 import io.ktor.client.plugins.contentnegotiation.*
+import io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
+import io.ktor.client.plugins.cookies.HttpCookies
 import io.ktor.client.request.*
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.*
+import io.ktor.serialization.kotlinx.KotlinxSerializationConverter
 import io.ktor.serialization.kotlinx.json.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
@@ -33,6 +37,7 @@ import java.util.*
 
 class Ytmusic {
     private var httpClient = createClient()
+    private var musixmatchClient = createMusixmatchClient()
 
     var locale = YouTubeLocale(
         gl = Locale.getDefault().country,
@@ -50,6 +55,10 @@ class Ytmusic {
         set(value) {
             field = value
         }
+    var musixmatchUserToken: String? = null
+        set(value) {
+            field = value
+        }
 
     var proxy: Proxy? = null
         set(value) {
@@ -57,6 +66,51 @@ class Ytmusic {
             httpClient.close()
             httpClient = createClient()
         }
+    @OptIn(ExperimentalSerializationApi::class)
+    private fun createMusixmatchClient() = HttpClient(OkHttp) {
+        expectSuccess = true
+        followRedirects = false
+
+        install(HttpSend) {
+            maxSendCount = 100
+        }
+        install(HttpCookies) {
+            storage = AcceptAllCookiesStorage()
+        }
+        install(CustomRedirectConfig) {
+            checkHttpMethod = false
+            allowHttpsDowngrade = true
+            defaultHostUrl = "https://apic-desktop.musixmatch.com"
+        }
+        install(ContentNegotiation) {
+            register(
+                ContentType.Text.Plain, KotlinxSerializationConverter(
+                    Json {
+                        prettyPrint = true
+                        isLenient = true
+                        ignoreUnknownKeys = true
+                        explicitNulls = false
+                        encodeDefaults = true
+                    }
+                )
+            )
+            json(Json {
+                prettyPrint = true
+                isLenient = true
+                ignoreUnknownKeys = true
+                explicitNulls = false
+                encodeDefaults = true
+            })
+        }
+        install(ContentEncoding) {
+            brotli(1.0F)
+            gzip(0.9F)
+            deflate(0.8F)
+        }
+        defaultRequest {
+            url("https://apic-desktop.musixmatch.com/ws/1.1/")
+        }
+    }
 
     @OptIn(ExperimentalSerializationApi::class)
     private fun createClient() = HttpClient(OkHttp) {
@@ -205,6 +259,51 @@ class Ytmusic {
             parameter("ds", "yt")
             parameter("q", query)
         }
+
+    suspend fun getMusixmatchUserToken() = musixmatchClient.get("token.get?app_id=web-desktop-app-v1.0") {
+        contentType(ContentType.Application.Json)
+        headers {
+            header(HttpHeaders.UserAgent, "PostmanRuntime/7.33.0")
+            header(HttpHeaders.Accept, "*/*")
+            header(HttpHeaders.AcceptEncoding, "gzip, deflate, br")
+            header(HttpHeaders.Connection, "keep-alive")
+        }
+    }
+
+    suspend fun searchMusixmatchTrackId(q: String, userToken: String) = musixmatchClient.get("track.search?app_id=web-desktop-app-v1.0&page_size=5&page=1&s_track_rating=desc&quorum_factor=1.0") {
+        contentType(ContentType.Application.Json)
+        headers {
+            header(HttpHeaders.UserAgent, "PostmanRuntime/7.33.0")
+            header(HttpHeaders.Accept, "*/*")
+            header(HttpHeaders.AcceptEncoding, "gzip, deflate, br")
+            header(HttpHeaders.Connection, "keep-alive")
+        }
+        parameter("q", q)
+        parameter("usertoken", userToken)
+    }
+
+    suspend fun getMusixmatchLyrics(trackId: String, userToken: String) = musixmatchClient.get("track.subtitle.get?app_id=web-desktop-app-v1.0&subtitle_format=id3") {
+        contentType(ContentType.Application.Json)
+        headers {
+            header(HttpHeaders.UserAgent, "PostmanRuntime/7.33.0")
+            header(HttpHeaders.Accept, "*/*")
+            header(HttpHeaders.AcceptEncoding, "gzip, deflate, br")
+            header(HttpHeaders.Connection, "keep-alive")
+        }
+        parameter("usertoken", userToken)
+        parameter("track_id", trackId)
+    }
+    suspend fun getMusixmatchUnsyncedLyrics(trackId: String, userToken: String) = musixmatchClient.get("track.lyrics.get?app_id=web-desktop-app-v1.0&subtitle_format=id3") {
+        contentType(ContentType.Application.Json)
+        headers {
+            header(HttpHeaders.UserAgent, "PostmanRuntime/7.33.0")
+            header(HttpHeaders.Accept, "*/*")
+            header(HttpHeaders.AcceptEncoding, "gzip, deflate, br")
+            header(HttpHeaders.Connection, "keep-alive")
+        }
+        parameter("usertoken", userToken)
+        parameter("track_id", trackId)
+    }
 
     suspend fun createYouTubePlaylist(title: String, listVideoId: List<String>?) =
         httpClient.post("playlist/create") {

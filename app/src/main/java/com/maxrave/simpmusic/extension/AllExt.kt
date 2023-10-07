@@ -13,6 +13,7 @@ import androidx.sqlite.db.SimpleSQLiteQuery
 import com.maxrave.kotlinytmusicscraper.models.SongItem
 import com.maxrave.kotlinytmusicscraper.models.VideoItem
 import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
+import com.maxrave.kotlinytmusicscraper.models.spotify.ArtistX
 import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
 import com.maxrave.simpmusic.common.SETTINGS_FILENAME
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
@@ -476,6 +477,21 @@ fun PipedResponse.toTrack(videoId: String): Track {
         resultType = null,
         year = ""
     )
+}
+fun List<ArtistX?>?.connectArtistsSpotify(): String {
+    val stringBuilder = StringBuilder()
+
+    if (this != null) {
+        for ((index, artist) in this.withIndex()) {
+            stringBuilder.append(artist?.name)
+
+            if (index < this.size - 1) {
+                stringBuilder.append(" ")
+            }
+        }
+    }
+
+    return stringBuilder.toString()
 }
 fun YouTubeInitialPage.toTrack(): Track {
     val initialPage = this

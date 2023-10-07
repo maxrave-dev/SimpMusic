@@ -77,7 +77,6 @@ class SettingsFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         viewModel.getLoggedIn()
-        viewModel.getSpotifyLoggedIn()
         viewModel.loggedIn.observe(viewLifecycleOwner) {
             if (it == DataStoreManager.TRUE) {
                 binding.tvLogInTitle.text = getString(R.string.log_out)
@@ -85,15 +84,6 @@ class SettingsFragment : Fragment() {
             } else if (it == DataStoreManager.FALSE) {
                 binding.tvLogInTitle.text = getString(R.string.log_in)
                 binding.tvLogIn.text = getString(R.string.log_in_to_get_personally_data)
-            }
-        }
-        viewModel.spotifyLoggedIn.observe(viewLifecycleOwner) {
-            if (it == DataStoreManager.TRUE) {
-                binding.tvSpotifyLogInTitle.text = getString(R.string.log_out_from_spotity)
-                binding.tvSpotifyLogIn.text = getString(R.string.logged_in)
-            } else if (it == DataStoreManager.FALSE) {
-                binding.tvSpotifyLogInTitle.text = getString(R.string.log_in)
-                binding.tvSpotifyLogIn.text = getString(R.string.log_in_to_get_spotify_lyrics)
             }
         }
     }
@@ -111,7 +101,6 @@ class SettingsFragment : Fragment() {
         viewModel.getPlayerCacheSize()
         viewModel.getDownloadedCacheSize()
         viewModel.getLoggedIn()
-        viewModel.getSpotifyLoggedIn()
         viewModel.getNormalizeVolume()
         viewModel.getSkipSilent()
         viewModel.getSavedPlaybackState()
@@ -132,15 +121,6 @@ class SettingsFragment : Fragment() {
                 binding.tvLogInTitle.text = getString(R.string.log_in)
                 binding.tvLogIn.text = getString(R.string.log_in_to_get_personally_data)
                 setEnabledAll(binding.swSaveHistory, false)
-            }
-        }
-        viewModel.spotifyLoggedIn.observe(viewLifecycleOwner) {
-            if (it == DataStoreManager.TRUE) {
-                binding.tvSpotifyLogInTitle.text = getString(R.string.log_out_from_spotity)
-                binding.tvSpotifyLogIn.text = getString(R.string.logged_in)
-            } else if (it == DataStoreManager.FALSE) {
-                binding.tvSpotifyLogInTitle.text = getString(R.string.log_in)
-                binding.tvSpotifyLogIn.text = getString(R.string.log_in_to_get_spotify_lyrics)
             }
         }
         viewModel.sendBackToGoogle.observe(viewLifecycleOwner) {
@@ -239,15 +219,6 @@ class SettingsFragment : Fragment() {
             }
             else if (viewModel.loggedIn.value == DataStoreManager.FALSE) {
                 findNavController().navigate(R.id.action_global_logInFragment)
-            }
-        }
-        binding.btSpotifyLogin.setOnClickListener {
-            if (viewModel.spotifyLoggedIn.value == DataStoreManager.TRUE) {
-                viewModel.clearSpotifyCookie()
-                Toast.makeText(requireContext(), getString(R.string.logged_out), Toast.LENGTH_SHORT).show()
-            }
-            else if (viewModel.spotifyLoggedIn.value == DataStoreManager.FALSE) {
-                findNavController().navigate(R.id.action_global_spotifyLogInFragment)
             }
         }
 

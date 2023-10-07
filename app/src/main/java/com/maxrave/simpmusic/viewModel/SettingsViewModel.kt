@@ -64,8 +64,6 @@ class SettingsViewModel @Inject constructor(
     val language: LiveData<String> = _language
     private var _loggedIn: MutableLiveData<String> = MutableLiveData()
     val loggedIn: LiveData<String> = _loggedIn
-    private var _spotifyLoggedIn: MutableLiveData<String> = MutableLiveData()
-    val spotifyLoggedIn: LiveData<String> = _spotifyLoggedIn
     private var _normalizeVolume: MutableLiveData<String> = MutableLiveData()
     val normalizeVolume: LiveData<String> = _normalizeVolume
     private var _skipSilent: MutableLiveData<String> = MutableLiveData()
@@ -110,16 +108,6 @@ class SettingsViewModel @Inject constructor(
             withContext(Dispatchers.Main) {
                 dataStoreManager.loggedIn.collect { loggedIn ->
                     _loggedIn.postValue(loggedIn)
-                }
-            }
-        }
-    }
-
-    fun getSpotifyLoggedIn() {
-        viewModelScope.launch {
-            withContext(Dispatchers.Main) {
-                dataStoreManager.spotifyLoggedIn.collect { spotifyLoggedIn ->
-                    _spotifyLoggedIn.postValue(spotifyLoggedIn)
                 }
             }
         }

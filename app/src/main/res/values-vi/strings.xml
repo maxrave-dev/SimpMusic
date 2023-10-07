@@ -9,7 +9,7 @@
     <string name="year_and_category">%1$s • %2$s</string>
     <string name="album_length">%1$s bài hát  %2$s</string>
     <string name="view_count">%1$s lượt xem</string>
-    <string name="lyrics_provider">Lời bát hát được cung cấp bởi Spotify (Musixmatch)</string>
+    <string name="lyrics_provider">Lời bát hát được cung cấp bởi Musixmatch</string>
     <string name="clear_search_history">Xoá lịch sử tìm kiếm</string>
     <string name="liked">Đã thích</string>
     <string name="like">Thích</string>
@@ -151,7 +151,6 @@
     <string name="log_in_to_get_personally_data">Đăng nhập để cá nhân hoá nguồn dữ liệu</string>
     <string name="login_success">Đăng nhập thành công</string>
     <string name="log_out">Đăng xuất khỏi YouTube</string>
-    <string name="log_out_from_spotity">Đăng xuất khỏi Spotify</string>
     <string name="logged_in">Đã đăng nhập</string>
     <string name="logged_out">Đăng xuất thành công</string>
     <string name="playlist">Danh sách phát</string>
@@ -227,8 +226,6 @@
     <string name="your_youtube_playlists">Danh sách phát YouTube của bạn</string>
     <string name="no_YouTube_playlists">Không có danh sách phát YouTube nào</string>
     <string name="track">bài hát</string>
-    <string name="log_in_to_get_spotify_lyrics">Đăng nhập vào Spotify để tải lời bài hát</string>
-    <string name="log_in_to_Spotify">Đăng nhập vào Spotify</string>
     <string name="save_to_local_playlist">Lưu vào danh sách phát nội bộ</string>
     <string name="added_local_playlist">Đã thêm danh sách phát nội bộ</string>
     <string name="sync">Đồng bộ đến YouTube Music</string>

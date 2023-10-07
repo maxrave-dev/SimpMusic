@@ -9,7 +9,7 @@
     <string name="year_and_category">%1$s • %2$s</string>
     <string name="album_length">%1$s треки  %2$s</string>
     <string name="view_count">%1$s просмотров</string>
-    <string name="lyrics_provider">Текст предоставлен Spotify (Musixmatch)</string>
+    <string name="lyrics_provider">Текст предоставлен Musixmatch</string>
     <string name="clear_search_history">Очистить историю поиска</string>
     <string name="liked">Понравилось</string>
     <string name="like">Нравится</string>
@@ -147,7 +147,6 @@
     <string name="log_in_to_get_personally_data">Войдите, чтобы получить личные данные</string>
     <string name="login_success">Вход успешно выполнен</string>
     <string name="log_out">Выйти из YouTube</string>
-    <string name="log_out_from_spotity">Выйти из Spotify</string>
     <string name="logged_in">Вход выполнен</string>
     <string name="logged_out">Выход выполнен</string>
     <string name="playlist">Плейлист</string>
@@ -158,7 +157,6 @@
     <string name="no_equalizer">Ваше устройство не имеет эквалайзера</string>
     <string name="open_system_equalizer">Открыть системный эквалайзер</string>
     <string name="use_your_system_equalizer">Использовать системный эквалайзер</string>
-    <string name="version_name">v0.1.4-beta</string>
     <string name="streaming_data_provider_piped">Поставщик потоковых данных (пустой)</string>
     <string name="itag">Итег</string>
     <string name="mime_type">Mime тип</string>
@@ -217,7 +215,6 @@
     <string name="sleep_timer_set_error">Пожалуйста, укажите корректный формат времени</string>
     <string name="sleep_timer_warning">Убрать таймер сна?</string>
     <string name="yes">Да</string>
-    <string name="notification_channel_name">Уведомление о воспроизведении SimpMusic</string>
     <string name="welcome_back">Добро пожаловать,</string>
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">Загрузите свою историю прослушивания на сервер YouTube Music, это улучшит систему рекомендаций YT Music. Работает только если авторизован</string>
     <string name="send_back_listening_data_to_google">Отправьте данные о прослушивании обратно в Google</string>
@@ -225,8 +222,6 @@
     <string name="your_youtube_playlists">Ваши плейлисты YouTube</string>
     <string name="no_YouTube_playlists">Нет плейлистов YouTube</string>
     <string name="track">песня</string>
-    <string name="log_in_to_get_spotify_lyrics">Войдите, чтобы получить тексты песен Spotify</string>
-    <string name="log_in_to_Spotify">Войдите в Spotify</string>
     <string name="save_to_local_playlist">Сохранить в локальный плейлист</string>
     <string name="added_local_playlist">Добавлен локальный плейлист</string>
     <string name="sync">Синхронизировать с YouTube Music</string>

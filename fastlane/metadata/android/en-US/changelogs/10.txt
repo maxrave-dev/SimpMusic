@@ -1,0 +1,9 @@
+- Support for low dpi screens
+- Sync between local playlist and YouTube Music playlist
+- Add Radio feature based on song and artist
+- Fix UI on Home page
+- Add suggestion result when searching
+- Remove dependency on Piped
+- Get lyrics from Musixmatch
+- Save listening history to YouTube Music (optional)
+- Add Russian, Deutsch languages
