@@ -28,6 +28,7 @@ import com.maxrave.simpmusic.adapter.artist.PopularAdapter
 import com.maxrave.simpmusic.adapter.artist.RelatedArtistsAdapter
 import com.maxrave.simpmusic.adapter.artist.SeeArtistOfNowPlayingAdapter
 import com.maxrave.simpmusic.adapter.artist.SinglesAdapter
+import com.maxrave.simpmusic.adapter.artist.VideoAdapter
 import com.maxrave.simpmusic.adapter.playlist.AddToAPlaylistAdapter
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
@@ -37,6 +38,7 @@ import com.maxrave.simpmusic.data.model.browse.artist.ResultAlbum
 import com.maxrave.simpmusic.data.model.browse.artist.ResultRelated
 import com.maxrave.simpmusic.data.model.browse.artist.ResultSingle
 import com.maxrave.simpmusic.data.model.browse.artist.ResultSong
+import com.maxrave.simpmusic.data.model.browse.artist.ResultVideo
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.BottomSheetAddToAPlaylistBinding
 import com.maxrave.simpmusic.databinding.BottomSheetNowPlayingBinding
@@ -62,6 +64,7 @@ class ArtistFragment: Fragment(){
     private lateinit var popularAdapter: PopularAdapter
     private lateinit var singlesAdapter: SinglesAdapter
     private lateinit var albumsAdapter: AlbumsAdapter
+    private lateinit var videoAdapter: VideoAdapter
     private lateinit var relatedArtistsAdapter: RelatedArtistsAdapter
 
     private var gradientDrawable: GradientDrawable? = null
@@ -92,6 +95,7 @@ class ArtistFragment: Fragment(){
         popularAdapter = PopularAdapter(arrayListOf())
         singlesAdapter = SinglesAdapter(arrayListOf())
         albumsAdapter = AlbumsAdapter(arrayListOf())
+        videoAdapter = VideoAdapter(arrayListOf())
         relatedArtistsAdapter = RelatedArtistsAdapter(arrayListOf(), requireContext())
         binding.rvPopularSongs.apply {
             adapter = popularAdapter
@@ -103,6 +107,10 @@ class ArtistFragment: Fragment(){
         }
         binding.rvAlbum.apply {
             adapter = albumsAdapter
+            layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        }
+        binding.rvVideo.apply {
+            adapter = videoAdapter
             layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         }
         binding.rvRelatedArtists.apply {
@@ -161,6 +169,20 @@ class ArtistFragment: Fragment(){
                 findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
             }
         })
+        videoAdapter.setOnClickListener(object : VideoAdapter.OnItemClickListener{
+            override fun onItemClick(position: Int, type: String) {
+                val songClicked = videoAdapter.getCurrentList()[position]
+                val videoId = songClicked.videoId
+                Queue.clear()
+                val firstQueue: Track = songClicked.toTrack()
+                Queue.setNowPlaying(firstQueue)
+                val args = Bundle()
+                args.putString("videoId", videoId)
+                args.putString("from", "\"${viewModel.artistBrowse.value?.data?.name}\" ${getString(R.string.videos)}")
+                args.putString("type", Config.VIDEO_CLICK)
+                findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+            }
+        })
         popularAdapter.setOnOptionsClickListener(object : PopularAdapter.OnOptionsClickListener{
             override fun onOptionsClick(position: Int) {
                 val song = popularAdapter.getCurrentList()[position]
@@ -168,6 +190,7 @@ class ArtistFragment: Fragment(){
                 val dialog = BottomSheetDialog(requireContext())
                 val bottomSheetView = BottomSheetNowPlayingBinding.inflate(layoutInflater)
                 with(bottomSheetView) {
+                    btSleepTimer.visibility = View.GONE
                     viewModel.songEntity.observe(viewLifecycleOwner) { songEntity ->
                         if (songEntity.liked) {
                             tvFavorite.text = getString(R.string.liked)
@@ -181,8 +204,15 @@ class ArtistFragment: Fragment(){
                     tvSongTitle.isSelected = true
                     tvSongArtist.text = song.artists.toListName().connectArtists()
                     tvSongArtist.isSelected = true
-                    ivThumbnail.load(song.thumbnails)
-
+                    ivThumbnail.load(song.thumbnails.lastOrNull()?.url)
+                    btRadio.setOnClickListener {
+                        val args = Bundle()
+                        args.putString("radioId", "RDAMVM${song.videoId}")
+                        args.putString("title", "${song.title} ${context?.getString(R.string.radio)}")
+                        args.putString("thumbnails", song.thumbnails.lastOrNull()?.url)
+                        dialog.dismiss()
+                        findNavController().navigate(R.id.action_global_playlistFragment, args)
+                    }
                     btLike.setOnClickListener {
                         if (cbFavorite.isChecked) {
                             cbFavorite.isChecked = false
@@ -251,6 +281,9 @@ class ArtistFragment: Fragment(){
                                 if (playlist.tracks != null) {
                                     tempTrack.addAll(playlist.tracks)
                                 }
+                                if (!tempTrack.contains(song.videoId) && playlist.syncedWithYouTubePlaylist == 1 && playlist.youtubePlaylistId != null) {
+                                    viewModel.addToYouTubePlaylist(playlist.id, playlist.youtubePlaylistId, song.videoId)
+                                }
                                 tempTrack.add(song.videoId)
                                 tempTrack.removeConflicts()
                                 viewModel.updateLocalPlaylistTracks(tempTrack, playlist.id)
@@ -294,6 +327,19 @@ class ArtistFragment: Fragment(){
                     Log.d("ArtistFragment", "Expanded")
                 }
             }
+        binding.btRadio.setOnClickListener {
+            val radioId = viewModel.artistBrowse.value?.data?.radioId
+            if (radioId != null){
+                val args = Bundle()
+                args.putString("radioId", radioId)
+                args.putString("title", "${viewModel.artistBrowse.value?.data?.name} ${context?.getString(R.string.radio)}")
+                args.putString("thumbnails", viewModel.artistBrowse.value?.data?.thumbnails?.lastOrNull()?.url)
+                findNavController().navigate(R.id.action_global_playlistFragment, args)
+            }
+            else {
+                Snackbar.make(binding.root, getString(R.string.error), Snackbar.LENGTH_LONG).show()
+            }
+        }
         binding.btFollow.setOnClickListener {
             val id = viewModel.artistEntity.value?.channelId
             if (id  != null) {
@@ -358,7 +404,7 @@ class ArtistFragment: Fragment(){
                             else {
                                 tvViews.text = it.views.toString()
                             }
-                            tvDescription.text = (it.description ?: getString(R.string.no_description)).toString()
+                            tvDescription.originalText = (it.description ?: getString(R.string.no_description)).toString()
                             if (it.songs?.results != null) {
                                 popularAdapter.updateList(it.songs.results as ArrayList<ResultSong>)
                             }
@@ -367,6 +413,9 @@ class ArtistFragment: Fragment(){
                             }
                             if (it.albums?.results != null) {
                                 albumsAdapter.updateList(it.albums.results as ArrayList<ResultAlbum>)
+                            }
+                            if (it.video != null) {
+                                videoAdapter.updateList(it.video as ArrayList<ResultVideo>)
                             }
                             if (it.related?.results != null) {
                                 relatedArtistsAdapter.updateList(it.related.results as ArrayList<ResultRelated>)

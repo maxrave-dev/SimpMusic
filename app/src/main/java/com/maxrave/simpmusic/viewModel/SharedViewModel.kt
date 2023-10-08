@@ -17,13 +17,18 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.exoplayer.offline.Download
 import com.maxrave.kotlinytmusicscraper.YouTube
-import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
+import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
+import com.maxrave.simpmusic.common.Config.ALBUM_CLICK
+import com.maxrave.simpmusic.common.Config.PLAYLIST_CLICK
+import com.maxrave.simpmusic.common.Config.RECOVER_TRACK_QUEUE
+import com.maxrave.simpmusic.common.Config.SHARE
+import com.maxrave.simpmusic.common.Config.SONG_CLICK
+import com.maxrave.simpmusic.common.Config.VIDEO_CLICK
 import com.maxrave.simpmusic.common.DownloadState
-import com.maxrave.simpmusic.common.QUALITY
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE
@@ -51,9 +56,11 @@ import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
 import com.maxrave.simpmusic.service.SimpleMediaState
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.service.test.source.MusicSource
+import com.maxrave.simpmusic.service.test.source.StateSource
 import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -75,7 +82,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     @Inject
     lateinit var downloadUtils: DownloadUtils
 
-    var restoreLastPlayedTrackDone: Boolean = false
+    private var restoreLastPlayedTrackDone: Boolean = false
 
     private var _allSongsDB: MutableLiveData<List<SongEntity>> = MutableLiveData()
     val allSongsDB: LiveData<List<SongEntity>> = _allSongsDB
@@ -85,16 +92,15 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     private var _liked: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val liked: SharedFlow<Boolean> = _liked.asSharedFlow()
 
-    private var _firstTrackAdded: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val firstTrackAdded: SharedFlow<Boolean> = _firstTrackAdded.asSharedFlow()
+    private var loadMusicSourceJob: Job? = null
 
     protected val context
         get() = getApplication<Application>()
 
     val isServiceRunning = MutableLiveData<Boolean>(false)
 
-    private var _related = MutableLiveData<Resource<ArrayList<Track>>>()
-    val related: LiveData<Resource<ArrayList<Track>>> = _related
+    private var _related = MutableStateFlow<Resource<ArrayList<Track>>?>(null)
+    val related: StateFlow<Resource<ArrayList<Track>>?> = _related
 
     val listItag = listOf(171,249,250,251,140,141,256,258)
     var videoId = MutableLiveData<String>()
@@ -168,8 +174,8 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     var from_backup: String? = null
     private var isRestoring = MutableStateFlow(false)
 
-    private var _format: MutableLiveData<FormatEntity?> = MutableLiveData()
-    val format: LiveData<FormatEntity?> = _format
+    private var _format: MutableStateFlow<FormatEntity?> = MutableStateFlow(null)
+    val format: StateFlow<FormatEntity?> = _format
 
     private var _saveLastPlayedSong: MutableLiveData<Boolean> = MutableLiveData()
     val saveLastPlayedSong: LiveData<Boolean> = _saveLastPlayedSong
@@ -189,6 +195,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
 //            }
 //            recentPosition = runBlocking { (dataStoreManager.recentPosition.first()) }
 //        }
+        loadMusicSourceJob = Job()
         viewModelScope.launch {
             val job1 = launch {
                 simpleMediaServiceHandler.simpleMediaState.collect { mediaState ->
@@ -216,6 +223,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                             notReady.value = false
                             _duration.value = mediaState.duration
                             _uiState.value = UIState.Ready
+                            getFormat(nowPLaying.first()?.mediaId)
                         }
                     }
                 }
@@ -224,6 +232,13 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                 simpleMediaServiceHandler.nowPlaying.collectLatest { nowPlaying ->
                     nowPlaying?.let { now ->
                         getSkipSegments(now.mediaId)
+                        if (dataStoreManager.sendBackToGoogle.first() == TRUE) {
+                            mainRepository.getFormat(now.mediaId).collect { formatTemp ->
+                                if (formatTemp != null) {
+                                    initPlayback(formatTemp.playbackTrackingVideostatsPlaybackUrl, formatTemp.playbackTrackingAtrUrl, formatTemp.playbackTrackingVideostatsWatchtimeUrl)
+                                }
+                            }
+                        }
                     }
                     if (nowPlaying != null && getCurrentMediaItemIndex() > 0) {
                         _nowPlayingMediaItem.postValue(nowPlaying)
@@ -320,6 +335,16 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
         }
     }
 
+    private fun initPlayback(playback: String?, atr: String?, watchTime: String?) {
+        viewModelScope.launch {
+            if (playback != null && atr != null && watchTime != null) {
+                mainRepository.initPlayback(playback, atr, watchTime).collect {
+                    Log.w("Check initPlayback code", it.toString())
+                }
+            }
+        }
+    }
+
     fun getString(key: String): String? {
         return runBlocking { dataStoreManager.getString(key).first() }
     }
@@ -389,6 +414,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                 isRestoring.value = restoring == TRUE
                 isRestoring.collect() { it ->
                     if (it) {
+                        Toast.makeText(context, context.getString(R.string.restore_success), Toast.LENGTH_SHORT).show()
                         mainRepository.getDownloadedSongs().collect { songs ->
                             songs.forEach { song ->
                                 if (!downloadedCache.keys.contains(song.videoId)) {
@@ -479,10 +505,9 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
         simpleMediaServiceHandler.playMediaItemInMediaSource(index)
     }
     @UnstableApi
-    fun loadMediaItemFromTrack(track: Track) {
+    fun loadMediaItemFromTrack(track: Track, type: String, index: Int? = null) {
         quality = runBlocking { dataStoreManager.quality.first() }
         viewModelScope.launch {
-            _firstTrackAdded.value = false
             simpleMediaServiceHandler.clearMediaItems()
             var uri = ""
             mainRepository.insertSong(track.toSongEntity())
@@ -497,15 +522,15 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
             mainRepository.updateListenCount(track.videoId)
             if (songDB.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                 Log.d("Check Downloaded", "Downloaded")
-                musicSource.downloadUrl.add(0, "")
                 var thumbUrl = track.thumbnails?.last()?.url!!
                 if (thumbUrl.contains("w120")) {
                     thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
                 }
                 simpleMediaServiceHandler.addMediaItem(
                     MediaItem.Builder()
-                        .setUri(track.videoId.toUri())
+                        .setUri(track.videoId)
                         .setMediaId(track.videoId)
+                        .setCustomCacheKey(track.videoId)
                         .setMediaMetadata(
                             MediaMetadata.Builder()
                                 .setTitle(track.title)
@@ -514,30 +539,30 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                                 .setAlbumTitle(track.album?.name)
                                 .build()
                         )
-                        .build()
+                        .build(),
+                    type != RECOVER_TRACK_QUEUE
                 )
                 _nowPlayingMediaItem.value = getCurrentMediaItem()
                 Log.d(
                     "Check MediaItem Thumbnail",
                     getCurrentMediaItem()?.mediaMetadata?.artworkUri.toString()
                 )
-                _firstTrackAdded.value = true
                 musicSource.addFirstMetadata(track)
                 getSavedLyrics(track.videoId, "${track.title} ${track.artists?.firstOrNull()?.name}")
             } else {
-                var itag = 0
-                when (quality) {
-                    QUALITY.items[0].toString() -> {
-                        itag = QUALITY.itags[0]
-                    }
-
-                    QUALITY.items[1].toString() -> {
-                        itag = QUALITY.itags[1]
-                    }
-                }
-                mainRepository.getStream(track.videoId, itag).collect{ stream ->
-                    if (stream != null){
-                        uri = stream
+//                var itag = 0
+//                when (quality) {
+//                    QUALITY.items[0].toString() -> {
+//                        itag = QUALITY.itags[0]
+//                    }
+//
+//                    QUALITY.items[1].toString() -> {
+//                        itag = QUALITY.itags[1]
+//                    }
+//                }
+//                mainRepository.getStream(track.videoId, itag).collect{ stream ->
+//                    if (stream != null){
+//                        uri = stream
                         Log.d("Check URI", uri)
                         val artistName: String = track.artists.toListName().connectArtists()
                         var thumbUrl = track.thumbnails?.last()?.url!!
@@ -545,10 +570,11 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                             thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
                         }
                         Log.d("Check URI", uri)
-                        musicSource.downloadUrl.add(0, uri.toUri().toString())
                         simpleMediaServiceHandler.addMediaItem(
-                            MediaItem.Builder().setUri(uri.toUri())
+                            MediaItem.Builder()
+                                .setUri(track.videoId)
                                 .setMediaId(track.videoId)
+                                .setCustomCacheKey(track.videoId)
                                 .setMediaMetadata(
                                     MediaMetadata.Builder()
                                         .setTitle(track.title)
@@ -557,14 +583,14 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                                         .setAlbumTitle(track.album?.name)
                                         .build()
                                 )
-                                .build()
+                                .build(),
+                            type != RECOVER_TRACK_QUEUE
                         )
                         _nowPlayingMediaItem.value = getCurrentMediaItem()
                         Log.d(
                             "Check MediaItem Thumbnail",
                             getCurrentMediaItem()?.mediaMetadata?.artworkUri.toString()
                         )
-                        _firstTrackAdded.value = true
                         musicSource.addFirstMetadata(track)
                         resetLyrics()
                         mainRepository.getLyricsData("${track.title} ${track.artists?.firstOrNull()?.name}").collect { response ->
@@ -586,7 +612,54 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                                     Log.d("Check lyrics", "Loading")
                                 }
                             }
+//                        }
+//                    }
+                }
+            }
+            when (type) {
+                SONG_CLICK -> {
+                    getRelated(track.videoId)
+                }
+                VIDEO_CLICK -> {
+                    getRelated(track.videoId)
+                }
+                SHARE -> {
+                    getRelated(track.videoId)
+                }
+                PLAYLIST_CLICK -> {
+                    if (index == null) {
+//                                        fetchSourceFromQueue(downloaded = downloaded ?: 0)
+                        loadPlaylistOrAlbum()
+                    } else {
+//                                        fetchSourceFromQueue(index!!, downloaded = downloaded ?: 0)
+                        loadPlaylistOrAlbum(index = index)
+                    }
+                }
+                ALBUM_CLICK -> {
+                    if (index == null) {
+//                                        fetchSourceFromQueue(downloaded = downloaded ?: 0)
+                        loadPlaylistOrAlbum()
+                    } else {
+//                                        fetchSourceFromQueue(index!!, downloaded = downloaded ?: 0)
+                        loadPlaylistOrAlbum(index = index)
+                    }
+                }
+                RECOVER_TRACK_QUEUE -> {
+                    if (getString(RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE) == DataStoreManager.FALSE) {
+                        restoreLastPLayedTrackDone()
+                        from.postValue(from_backup)
+                        simpleMediaServiceHandler.seekTo(recentPosition)
+                        Log.d("Check recentPosition", recentPosition)
+                        songDB.value?.duration?.let {
+                            if (it != "" && it.contains(":")) {
+                                it.split(":").let { split ->
+                                    _duration.emit(((split[0].toInt() * 60) + split[1].toInt())*1000.toLong())
+                                    Log.d("Check Duration", _duration.value.toString())
+                                    calculateProgressValues(recentPosition.toLong())
+                                }
+                            }
                         }
+                        getSaveQueue()
                     }
                 }
             }
@@ -762,10 +835,6 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
         _songTransitions.value = false
     }
 
-    fun changeFirstTrackAddedToFalse() {
-        _firstTrackAdded.value = false
-    }
-
     fun resetLyrics() {
         _lyrics.postValue(Resource.Error<Lyrics>("reset"))
         lyricsFormat.postValue(arrayListOf())
@@ -817,12 +886,12 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
             }
         }
     }
-    private val _songFull: MutableLiveData<PipedResponse?> = MutableLiveData()
-    var songFull: LiveData<PipedResponse?> = _songFull
+    private val _songFull: MutableLiveData<YouTubeInitialPage?> = MutableLiveData()
+    var songFull: LiveData<YouTubeInitialPage?> = _songFull
 
     fun getSongFull(videoId: String) {
         viewModelScope.launch {
-            mainRepository.getSongFull(videoId).collect {
+            mainRepository.getFullMetadata(videoId).collect {
                 _songFull.postValue(it)
             }
         }
@@ -863,28 +932,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                     if (song != null) {
                         Queue.clear()
                         Queue.setNowPlaying(song.toTrack())
-                        loadMediaItemFromTrack(song.toTrack())
-                        firstTrackAdded.collectLatest { added ->
-                            if (added) {
-                                if (_nowPlaying.value?.mediaId == mediaId && getString(RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE) == DataStoreManager.FALSE) {
-                                    restoreLastPLayedTrackDone()
-                                    from.postValue(from_backup)
-                                    changeFirstTrackAddedToFalse()
-                                    simpleMediaServiceHandler.seekTo(recentPosition)
-                                    Log.d("Check recentPosition", recentPosition)
-                                    songDB.value?.duration?.let {
-                                        if (it != "" && it.contains(":")) {
-                                            it.split(":").let { split ->
-                                                _duration.emit(((split[0].toInt() * 60) + split[1].toInt())*1000.toLong())
-                                                Log.d("Check Duration", _duration.value.toString())
-                                                calculateProgressValues(recentPosition.toLong())
-                                            }
-                                        }
-                                    }
-                                    getSaveQueue()
-                                }
-                            }
-                        }
+                        loadMediaItemFromTrack(song.toTrack(), RECOVER_TRACK_QUEUE)
                     }
                 }
             }
@@ -928,6 +976,15 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                     Log.e("Cookie", "Cookie is empty")
                 }
             }
+            dataStoreManager.spotifyCookie.first().let { cookie ->
+                if (cookie != "") {
+                    YouTube.spotifyCookie = cookie
+                    Log.d("Spotify Cookie", "Cookie is not empty")
+                }
+                else {
+                    Log.e("Spotify Cookie", "Cookie is empty")
+                }
+            }
         }
     }
 
@@ -936,10 +993,10 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
             if (mediaId != null){
                 mainRepository.getFormat(mediaId).collect { f ->
                     if (f != null){
-                        _format.postValue(f)
+                        _format.emit(f)
                     }
                     else {
-                        _format.postValue(null)
+                        _format.emit(null)
                     }
                 }
             }
@@ -947,7 +1004,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     }
 
     fun restoreLastPLayedTrackDone() {
-        putString(DataStoreManager.RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE, TRUE)
+        putString(RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE, TRUE)
     }
     fun removeSaveQueue() {
         viewModelScope.launch {
@@ -972,6 +1029,61 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     fun sponsorBlockCategories() = runBlocking { dataStoreManager.getSponsorBlockCategories() }
     fun stopPlayer() {
         onUIEvent(UIEvent.Stop)
+    }
+
+    fun addToYouTubePlaylist(localPlaylistId: Long, youtubePlaylistId: String, videoId: String) {
+        viewModelScope.launch {
+            mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylistId, LocalPlaylistEntity.YouTubeSyncState.Syncing)
+            mainRepository.addYouTubePlaylistItem(youtubePlaylistId, videoId).collect { response ->
+                if (response == "STATUS_SUCCEEDED") {
+                    mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylistId, LocalPlaylistEntity.YouTubeSyncState.Synced)
+                    Toast.makeText(getApplication(), application.getString(R.string.added_to_youtube_playlist), Toast.LENGTH_SHORT).show()
+                }
+                else {
+                    mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylistId, LocalPlaylistEntity.YouTubeSyncState.NotSynced)
+                    Toast.makeText(getApplication(), application.getString(R.string.error), Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    fun addQueueToPlayer() {
+        loadMusicSourceJob?.cancel()
+        loadMusicSourceJob = viewModelScope.launch {
+            musicSource.load()
+        }
+    }
+
+    private fun loadPlaylistOrAlbum(index: Int? = null) {
+        loadMusicSourceJob?.cancel()
+        loadMusicSourceJob = viewModelScope.launch {
+            musicSource.load()
+            musicSource.stateFlow.collect{ state ->
+                if (state == StateSource.STATE_INITIALIZED) {
+                    when (index) {
+                        null -> {
+                            musicSource.addFirstMediaItem(simpleMediaServiceHandler.getMediaItemWithIndex(0))
+                        }
+                        -1 -> {
+
+                        }
+                        else -> {
+                            musicSource.addFirstMediaItemToIndex(simpleMediaServiceHandler.getMediaItemWithIndex(0), index)
+                            Queue.getNowPlaying().let { song ->
+                                if (song != null) {
+                                    musicSource.catalogMetadata.removeAt(0)
+                                    musicSource.catalogMetadata.add(index, song)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fun resetRelated() {
+        _related.value = null
     }
 }
 sealed class UIEvent {

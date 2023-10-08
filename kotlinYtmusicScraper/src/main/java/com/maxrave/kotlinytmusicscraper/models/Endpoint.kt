@@ -87,3 +87,17 @@ data class QueueAddEndpoint(
 data class ShareEntityEndpoint(
     val serializedShareEntity: String,
 ) : Endpoint()
+
+@Serializable
+data class PlaylistEditEndpoint(
+    val playlistId: String,
+    val actions: List<Action>,
+) : Endpoint() {
+    @Serializable
+    data class Action(
+        val addedVideoId: String? = null,
+        val action: String,
+        val removedVideoId: String? = null,
+        val setVideoId: String? = null,
+    )
+}

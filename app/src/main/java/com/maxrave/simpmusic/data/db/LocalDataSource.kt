@@ -8,6 +8,7 @@ import com.maxrave.simpmusic.data.db.entities.LyricsEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.QueueEntity
 import com.maxrave.simpmusic.data.db.entities.SearchHistory
+import com.maxrave.simpmusic.data.db.entities.SetVideoIdEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import java.time.LocalDateTime
 import javax.inject.Inject
@@ -54,6 +55,7 @@ class LocalDataSource @Inject constructor(private val databaseDao: DatabaseDao) 
 
     suspend fun getAllPlaylists() = databaseDao.getAllPlaylists()
     suspend fun insertPlaylist(playlist: PlaylistEntity) = databaseDao.insertPlaylist(playlist)
+    suspend fun insertRadioPlaylist(playlist: PlaylistEntity) = databaseDao.insertRadioPlaylist(playlist)
     suspend fun updatePlaylistLiked(liked: Int, playlistId: String) = databaseDao.updatePlaylistLiked(liked, playlistId)
     suspend fun getPlaylist(playlistId: String) = databaseDao.getPlaylist(playlistId)
     suspend fun getLikedPlaylists() = databaseDao.getLikedPlaylists()
@@ -70,6 +72,9 @@ class LocalDataSource @Inject constructor(private val databaseDao: DatabaseDao) 
     suspend fun updateLocalPlaylistInLibrary(inLibrary: LocalDateTime, id: Long) = databaseDao.updateLocalPlaylistInLibrary(inLibrary, id)
     suspend fun updateLocalPlaylistDownloadState(downloadState: Int, id: Long) = databaseDao.updateLocalPlaylistDownloadState(downloadState, id)
     suspend fun getDownloadedLocalPlaylists() = databaseDao.getDownloadedLocalPlaylists()
+    suspend fun updateLocalPlaylistYouTubePlaylistId(id: Long, ytId: String?) = databaseDao.updateLocalPlaylistYouTubePlaylistId(id, ytId)
+    suspend fun updateLocalPlaylistYouTubePlaylistSynced(id: Long, synced: Int) = databaseDao.updateLocalPlaylistYouTubePlaylistSynced(id, synced)
+    suspend fun updateLocalPlaylistYouTubePlaylistSyncState(id: Long, syncState: Int) = databaseDao.updateLocalPlaylistYouTubePlaylistSyncState(id, syncState)
 
     suspend fun getSavedLyrics(videoId: String) = databaseDao.getLyrics(videoId)
     suspend fun insertLyrics(lyrics: LyricsEntity) = databaseDao.insertLyrics(lyrics)
@@ -81,4 +86,9 @@ class LocalDataSource @Inject constructor(private val databaseDao: DatabaseDao) 
     suspend fun recoverQueue(queueEntity: QueueEntity) = databaseDao.recoverQueue(queueEntity)
     suspend fun getQueue() = databaseDao.getQueue()
     suspend fun deleteQueue() = databaseDao.deleteQueue()
+
+    suspend fun getLocalPlaylistByYoutubePlaylistId(playlistId: String) = databaseDao.getLocalPlaylistByYoutubePlaylistId(playlistId)
+
+    suspend fun insertSetVideoId(setVideoIdEntity: SetVideoIdEntity) = databaseDao.insertSetVideoId(setVideoIdEntity)
+    suspend fun getSetVideoId(videoId: String) = databaseDao.getSetVideoId(videoId)
 }

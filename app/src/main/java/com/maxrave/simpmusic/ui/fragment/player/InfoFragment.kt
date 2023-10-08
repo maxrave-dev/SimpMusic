@@ -2,7 +2,6 @@ package com.maxrave.simpmusic.ui.fragment.player
 
 import android.app.Dialog
 import android.os.Bundle
-import android.text.Html
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -76,20 +75,18 @@ class InfoFragment: BottomSheetDialogFragment(){
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         if (viewModel.nowPlayingMediaItem.value != null) {
             val data = musicSource.catalogMetadata[viewModel.getCurrentMediaItemIndex()]
-            val downloadUrl = musicSource.downloadUrl[viewModel.getCurrentMediaItemIndex()]
             with(binding){
                 toolbar.title = data.title
                 artistsName.text = data.artists.toListName().connectArtists()
                 "https://www.youtube.com/watch?v=${data.videoId}".also { youtubeUrl.text = it }
                 title.text = data.title
                 albumName.text = data.album?.name
-                binding.downloadUrl .text = downloadUrl
                 if (viewModel.format.value != null){
                     val format = viewModel.format.value
-                    itag.text = (format?.itag ?: context?.getString(androidx.media3.ui.R.string.exo_track_unknown)).toString()
-                    mimeType.text = (format?.mimeType ?: context?.getString(androidx.media3.ui.R.string.exo_track_unknown)).toString()
+                    itag.text = format?.itag.toString()
+                    mimeType.text = format?.mimeType ?: context?.getString(androidx.media3.ui.R.string.exo_track_unknown)
                     bitrate.text = (format?.bitrate ?: context?.getString(androidx.media3.ui.R.string.exo_track_unknown)).toString()
-                    description.text = (Html.fromHtml(format?.description ?: context?.getString(androidx.media3.ui.R.string.exo_track_unknown), Html.FROM_HTML_MODE_COMPACT) ?: context?.getString(androidx.media3.ui.R.string.exo_track_unknown)).toString()
+                    description.text = format?.description ?: context?.getString(androidx.media3.ui.R.string.exo_track_unknown)
                 }
             }
         }

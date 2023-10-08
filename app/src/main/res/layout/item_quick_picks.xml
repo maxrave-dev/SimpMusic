@@ -15,8 +15,8 @@
             android:layout_height="wrap_content">
 
             <com.google.android.material.imageview.ShapeableImageView
-                android:layout_width="60sp"
-                android:layout_height="60sp"
+                android:layout_width="50sp"
+                android:layout_height="50sp"
                 android:id="@+id/ivThumbnail"
                 android:scaleType="centerCrop"
                 app:shapeAppearanceOverlay="@style/rounded_corner_for_quick_pick"
@@ -37,7 +37,7 @@
                     android:id="@+id/tvSongTitle"
                     android:fontFamily="@font/roboto"
                     android:textStyle="bold"
-                    android:textSize="18sp"
+                    android:textSize="15sp"
                     android:singleLine="true"
                     android:ellipsize="marquee"
                     android:marqueeRepeatLimit="marquee_forever"
@@ -54,7 +54,7 @@
                     android:id="@+id/tvSongArtist"
                     android:fontFamily="@font/roboto"
                     android:textStyle="normal"
-                    android:textSize="14sp"
+                    android:textSize="11sp"
                     android:singleLine="true"
                     android:ellipsize="marquee"
                     android:marqueeRepeatLimit="marquee_forever"

@@ -59,4 +59,12 @@ dependencies {
 
     implementation(kotlin("reflect"))
     implementation("com.google.code.gson:gson:2.10.1")
+
+    val version = "0.2.1"
+
+// For parsing HTML
+    implementation("com.mohamedrejeb.ksoup:ksoup-html:$version")
+
+// Only for encoding and decoding HTML entities
+    implementation("com.mohamedrejeb.ksoup:ksoup-entites:$version")
 }

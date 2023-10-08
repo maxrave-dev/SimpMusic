@@ -101,6 +101,36 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
         }
     }
 
+    val spotifyCookie = settingsDataStore.data.map { preferences ->
+        preferences[SPOTIFY_COOKIE] ?: ""
+    }
+
+    suspend fun setSpotifyCookie(cookie: String) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[SPOTIFY_COOKIE] = cookie
+            }
+        }
+    }
+
+    val spotifyLoggedIn = settingsDataStore.data.map { preferences ->
+        preferences[SPOTIFY_LOGGED_IN] ?: FALSE
+    }
+
+    suspend fun setSpotifyLoggedIn(logged: Boolean) {
+        withContext(Dispatchers.IO) {
+            if (logged) {
+                settingsDataStore.edit { settings ->
+                    settings[SPOTIFY_LOGGED_IN] = TRUE
+                }
+            } else {
+                settingsDataStore.edit { settings ->
+                    settings[SPOTIFY_LOGGED_IN] = FALSE
+                }
+            }
+        }
+    }
+
     val normalizeVolume: Flow<String> = settingsDataStore.data.map { preferences ->
         preferences[NORMALIZE_VOLUME] ?: FALSE
     }
@@ -131,18 +161,6 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
                 settingsDataStore.edit { settings ->
                     settings[SKIP_SILENT] = FALSE
                 }
-            }
-        }
-    }
-
-    val pipedInstance: Flow<String> = settingsDataStore.data.map { preferences ->
-        preferences[PIPED] ?: "pipedapi-libre.kavin.rocks"
-    }
-
-    suspend fun setPipedInstance(instance: String) {
-        withContext(Dispatchers.IO) {
-            settingsDataStore.edit { settings ->
-                settings[PIPED] = instance
             }
         }
     }
@@ -235,6 +253,23 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
         }
     }
 
+    val sendBackToGoogle = settingsDataStore.data.map { preferences ->
+        preferences[SEND_BACK_TO_GOOGLE] ?: FALSE
+    }
+    suspend fun setSendBackToGoogle(send: Boolean) {
+        withContext(Dispatchers.IO) {
+            if (send) {
+                settingsDataStore.edit { settings ->
+                    settings[SEND_BACK_TO_GOOGLE] = TRUE
+                }
+            } else {
+                settingsDataStore.edit { settings ->
+                    settings[SEND_BACK_TO_GOOGLE] = FALSE
+                }
+            }
+        }
+    }
+
     val sponsorBlockEnabled = settingsDataStore.data.map { preferences ->
         preferences[SPONSOR_BLOCK_ENABLED] ?: FALSE
     }
@@ -272,11 +307,12 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
     companion object Settings {
         val COOKIE = stringPreferencesKey("cookie")
         val LOGGED_IN = stringPreferencesKey("logged_in")
+        val SPOTIFY_COOKIE = stringPreferencesKey("spotify_cookie")
+        val SPOTIFY_LOGGED_IN = stringPreferencesKey("spotify_logged_in")
         val LOCATION = stringPreferencesKey("location")
         val QUALITY = stringPreferencesKey("quality")
         val NORMALIZE_VOLUME = stringPreferencesKey("normalize_volume")
         val IS_RESTORING_DATABASE = stringPreferencesKey("is_restoring_database")
-        val PIPED = stringPreferencesKey("piped")
         val SKIP_SILENT = stringPreferencesKey("skip_silent")
         val SAVE_STATE_OF_PLAYBACK = stringPreferencesKey("save_state_of_playback")
         val SAVE_RECENT_SONG = stringPreferencesKey("save_recent_song")
@@ -284,13 +320,14 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
         val RECENT_SONG_POSITION_KEY = stringPreferencesKey("recent_song_position")
         val SHUFFLE_KEY = stringPreferencesKey("shuffle_key")
         val REPEAT_KEY = stringPreferencesKey("repeat_key")
+        val SEND_BACK_TO_GOOGLE = stringPreferencesKey("send_back_to_google")
         val FROM_SAVED_PLAYLIST = stringPreferencesKey("from_saved_playlist")
-        val RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE = "RestoreLastPlayedTrackAndQueueDone"
+        const val RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE = "RestoreLastPlayedTrackAndQueueDone"
         val SPONSOR_BLOCK_ENABLED = stringPreferencesKey("sponsor_block_enabled")
-        val REPEAT_MODE_OFF = "REPEAT_MODE_OFF"
-        val REPEAT_ONE = "REPEAT_ONE"
-        val REPEAT_ALL = "REPEAT_ALL"
-        val TRUE = "TRUE"
-        val FALSE = "FALSE"
+        const val REPEAT_MODE_OFF = "REPEAT_MODE_OFF"
+        const val REPEAT_ONE = "REPEAT_ONE"
+        const val REPEAT_ALL = "REPEAT_ALL"
+        const val TRUE = "TRUE"
+        const val FALSE = "FALSE"
     }
 }

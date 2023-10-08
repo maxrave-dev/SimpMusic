@@ -8,19 +8,22 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
+import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.repository.MainRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.time.LocalDateTime
 import javax.inject.Inject
 
 
 @HiltViewModel
-class LibraryViewModel @Inject constructor(private val mainRepository: MainRepository, private val application: Application) : AndroidViewModel(application) {
+class LibraryViewModel @Inject constructor(private val mainRepository: MainRepository, private val application: Application, private val dataStoreManager: DataStoreManager) : AndroidViewModel(application) {
     private var _listRecentlyAdded: MutableLiveData<List<Any>> = MutableLiveData()
     val listRecentlyAdded: LiveData<List<Any>> = _listRecentlyAdded
 
@@ -32,6 +35,9 @@ class LibraryViewModel @Inject constructor(private val mainRepository: MainRepos
 
     private var _listLocalPlaylist: MutableLiveData<List<LocalPlaylistEntity>> = MutableLiveData()
     val listLocalPlaylist: LiveData<List<LocalPlaylistEntity>> = _listLocalPlaylist
+
+    private var _listYouTubePlaylist: MutableLiveData<List<Any>> = MutableLiveData()
+    val listYouTubePlaylist: LiveData<List<Any>> = _listYouTubePlaylist
 
     private var _songEntity: MutableLiveData<SongEntity> = MutableLiveData()
     val songEntity: LiveData<SongEntity> = _songEntity
@@ -47,6 +53,18 @@ class LibraryViewModel @Inject constructor(private val mainRepository: MainRepos
                 _listRecentlyAdded.postValue(temp)
             }
         }
+    }
+
+    fun getYouTubePlaylist() {
+        viewModelScope.launch {
+            mainRepository.getLibraryPlaylist().collect { data ->
+                _listYouTubePlaylist.postValue(data)
+            }
+        }
+    }
+
+    fun getYouTubeLoggedIn(): Boolean {
+        return runBlocking { dataStoreManager.loggedIn.first() } == DataStoreManager.TRUE
     }
 
     fun getPlaylistFavorite() {
@@ -134,6 +152,21 @@ class LibraryViewModel @Inject constructor(private val mainRepository: MainRepos
                 }
                 else {
                     mainRepository.updateLocalPlaylistDownloadState(DownloadState.STATE_NOT_DOWNLOADED, id)
+                }
+            }
+        }
+    }
+    fun addToYouTubePlaylist(localPlaylistId: Long, youtubePlaylistId: String, videoId: String) {
+        viewModelScope.launch {
+            mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylistId, LocalPlaylistEntity.YouTubeSyncState.Syncing)
+            mainRepository.addYouTubePlaylistItem(youtubePlaylistId, videoId).collect { response ->
+                if (response == "STATUS_SUCCEEDED") {
+                    mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylistId, LocalPlaylistEntity.YouTubeSyncState.Synced)
+                    Toast.makeText(getApplication(), application.getString(R.string.added_to_youtube_playlist), Toast.LENGTH_SHORT).show()
+                }
+                else {
+                    mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylistId, LocalPlaylistEntity.YouTubeSyncState.NotSynced)
+                    Toast.makeText(getApplication(), application.getString(R.string.error), Toast.LENGTH_SHORT).show()
                 }
             }
         }

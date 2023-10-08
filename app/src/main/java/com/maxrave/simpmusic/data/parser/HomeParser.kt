@@ -1,11 +1,20 @@
 package com.maxrave.simpmusic.data.parser
 
+import android.content.Context
 import android.util.Log
+import com.maxrave.kotlinytmusicscraper.models.AlbumItem
+import com.maxrave.kotlinytmusicscraper.models.ArtistItem
 import com.maxrave.kotlinytmusicscraper.models.MusicResponsiveListItemRenderer
 import com.maxrave.kotlinytmusicscraper.models.MusicTwoRowItemRenderer
+import com.maxrave.kotlinytmusicscraper.models.PlaylistItem
 import com.maxrave.kotlinytmusicscraper.models.Run
 import com.maxrave.kotlinytmusicscraper.models.SectionListRenderer
+import com.maxrave.kotlinytmusicscraper.models.SongItem
 import com.maxrave.kotlinytmusicscraper.models.Thumbnail
+import com.maxrave.kotlinytmusicscraper.models.VideoItem
+import com.maxrave.kotlinytmusicscraper.pages.ArtistPage
+import com.maxrave.kotlinytmusicscraper.pages.RelatedPage
+import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.data.model.home.Content
 import com.maxrave.simpmusic.data.model.home.HomeItem
 import com.maxrave.simpmusic.data.model.searchResult.songs.Album
@@ -17,8 +26,8 @@ fun parseMixedContent(data: List<SectionListRenderer.Content>?): List<HomeItem> 
         for (row in data) {
             val results = row.musicDescriptionShelfRenderer
             if (results != null) {
-                val title = results.header?.runs?.get(0)?.text
-                val content = results.description.runs?.get(0)?.text
+                val title = results.header?.runs?.get(0)?.text ?: ""
+                val content = results.description.runs?.get(0)?.text ?: ""
                 list.add(HomeItem(contents = listOf(Content(
                     album = null,
                     artists = listOf(),
@@ -27,56 +36,249 @@ fun parseMixedContent(data: List<SectionListRenderer.Content>?): List<HomeItem> 
                     playlistId = null,
                     browseId = null,
                     thumbnails = listOf(),
-                    title = content ?: " ",
+                    title = content,
                     videoId = null,
                     views = null
-                )), title = title ?: ""))
+                )), title = title
+                ))
             }
             else {
                 val results1 = row.musicCarouselShelfRenderer
-                val title = results1?.header?.musicCarouselShelfBasicHeaderRenderer?.title?.runs?.get(0)?.text
+                Log.w("parse_mixed_content", results1.toString())
+                val contentList = results1?.contents
+                Log.w("parse_mixed_content", results1?.contents?.size.toString())
+                val title = results1?.header?.musicCarouselShelfBasicHeaderRenderer?.title?.runs?.get(0)?.text ?: ""
+                Log.w("parse_mixed_content", title)
                 val listContent = mutableListOf<Content?>()
-                results1?.contents?.forEach { result1 ->
-                    if (result1.musicTwoRowItemRenderer != null) {
-                        val pageType = result1.musicTwoRowItemRenderer!!.title.runs?.get(0)?.navigationEndpoint?.browseEndpoint?.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType
-                        if (pageType == null) {
-                            if (result1.musicTwoRowItemRenderer!!.navigationEndpoint.watchEndpoint?.playlistId != null && result1.musicTwoRowItemRenderer!!.navigationEndpoint.watchEndpoint?.videoId == null){
-                                val content = parseWatchPlaylist(result1.musicTwoRowItemRenderer!!)
-                                listContent.add(content)
+                if (!contentList.isNullOrEmpty()) {
+                    for (result1 in contentList) {
+                        val musicTwoRowItemRenderer = result1.musicTwoRowItemRenderer
+                        if (musicTwoRowItemRenderer != null) {
+                            //                        if (pageType == null) {
+//                            if (result1.musicTwoRowItemRenderer!!.navigationEndpoint.watchEndpoint?.playlistId != null && result1.musicTwoRowItemRenderer!!.navigationEndpoint.watchEndpoint?.videoId == null){
+//                                val content = parseWatchPlaylist(result1.musicTwoRowItemRenderer!!)
+//                                listContent.add(content)
+//                            }
+//                            else if (result1.musicTwoRowItemRenderer!!.navigationEndpoint.watchEndpoint?.playlistId == null && result1.musicTwoRowItemRenderer!!.navigationEndpoint.watchEndpoint?.videoId != null){
+//                                val content = parseSong(result1.musicTwoRowItemRenderer!!)
+//                                listContent.add(content)
+//                            }
+//                        }
+//                        else if (pageType == "MUSIC_PAGE_TYPE_ALBUM"){
+//                            val content = parseAlbum(result1.musicTwoRowItemRenderer!!)
+//                            listContent.add(content)
+//                        }
+//                        else if (pageType == "MUSIC_PAGE_TYPE_ARTIST"){
+//                            val content = parseRelatedArtists(result1.musicTwoRowItemRenderer!!)
+//                            listContent.add(content)
+//                        }
+//                        else if (pageType == "MUSIC_PAGE_TYPE_PLAYLIST") {
+//                            if (result1.musicTwoRowItemRenderer!!.navigationEndpoint.browseEndpoint?.browseId?.startsWith("MPRE") == true) {
+//                                val content = parseAlbum(result1.musicTwoRowItemRenderer!!)
+//                                listContent.add(content)
+//                            }
+//                            else {
+//                                val content = parsePlaylist(result1.musicTwoRowItemRenderer!!)
+//                                listContent.add(content)
+//                            }
+//                        }
+//                        when (result1.musicTwoRowItemRenderer!!.title.runs?.get(0)?.navigationEndpoint?.browseEndpoint?.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType) {
+//                            "MUSIC_PAGE_TYPE_ALBUM" -> {
+//                                val content = parseAlbum(result1.musicTwoRowItemRenderer!!)
+//                                listContent.add(content)
+//                            }
+//                            "MUSIC_PAGE_TYPE_ARTIST" -> {
+//                                val content = parseRelatedArtists(result1.musicTwoRowItemRenderer!!)
+//                                listContent.add(content)
+//                            }
+//                            "MUSIC_PAGE_TYPE_PLAYLIST" -> {
+//                                if (result1.musicTwoRowItemRenderer!!.navigationEndpoint.browseEndpoint?.browseId?.startsWith("MPRE") == true) {
+//                                    val content = parseAlbum(result1.musicTwoRowItemRenderer!!)
+//                                    listContent.add(content)
+//                                }
+//                                else {
+//                                    val content = parsePlaylist(result1.musicTwoRowItemRenderer!!)
+//                                    listContent.add(content)
+//                                }
+//                            }
+//                            null -> {
+//                                if (result1.musicTwoRowItemRenderer!!.navigationEndpoint.watchEndpoint?.playlistId != null && result1.musicTwoRowItemRenderer!!.navigationEndpoint.watchEndpoint?.videoId == null){
+//                                    val content = parseWatchPlaylist(result1.musicTwoRowItemRenderer!!)
+//                                    listContent.add(content)
+//                                }
+//                                else if (result1.musicTwoRowItemRenderer!!.navigationEndpoint.watchEndpoint?.playlistId == null && result1.musicTwoRowItemRenderer!!.navigationEndpoint.watchEndpoint?.videoId != null){
+//                                    val content = parseSong(result1.musicTwoRowItemRenderer!!, context)
+//                                    listContent.add(content)
+//                                }
+//                            }
+//                        }
+                            if (musicTwoRowItemRenderer.isSong) {
+                                val ytItem = RelatedPage.fromMusicTwoRowItemRenderer(musicTwoRowItemRenderer) as SongItem?
+                                Log.w("Song", ytItem.toString())
+                                if (ytItem != null) {
+                                    listContent.add(
+                                        Content(
+                                            album = ytItem.album?.let { Album(name = it.name, id = it.id) },
+                                            artists = ytItem.artists.map { Artist(name = it.name, id = it.id) },
+                                            description = null,
+                                            isExplicit = ytItem.explicit,
+                                            playlistId = null,
+                                            browseId = null,
+                                            thumbnails = musicTwoRowItemRenderer.thumbnailRenderer.musicThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail() ?: listOf(),
+                                            title = ytItem.title,
+                                            videoId = ytItem.id,
+                                            views = null,
+                                            radio = null
+                                        )
+                                    )
+                                }
                             }
-                            else if (result1.musicTwoRowItemRenderer!!.navigationEndpoint.watchEndpoint?.videoId != null){
-                                val content = parseSong(result1.musicTwoRowItemRenderer!!)
-                                listContent.add(content)
+                            else if (musicTwoRowItemRenderer.isVideo) {
+                                val ytItem = ArtistPage.fromMusicTwoRowItemRenderer(musicTwoRowItemRenderer) as VideoItem?
+                                Log.w("Video", ytItem.toString())
+                                if (ytItem != null) {
+                                    listContent.add(
+                                        Content(
+                                            album = ytItem.album?.let { Album(name = it.name, id = it.id) },
+                                            artists = ytItem.artists.map { Artist(name = it.name, id = it.id) },
+                                            description = null,
+                                            isExplicit = ytItem.explicit,
+                                            playlistId = null,
+                                            browseId = null,
+                                            thumbnails = musicTwoRowItemRenderer.thumbnailRenderer.musicThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail() ?: listOf(),
+                                            title = ytItem.title,
+                                            videoId = ytItem.id,
+                                            views = ytItem.view,
+                                            radio = null
+                                        )
+                                    )
+                                }
                             }
-                        }
-                        else if (pageType == "MUSIC_PAGE_TYPE_ALBUM"){
-                            val content = parseAlbum(result1.musicTwoRowItemRenderer!!)
-                            listContent.add(content)
-                        }
-                        else if (pageType == "MUSIC_PAGE_TYPE_ARTIST"){
-                            val content = parseRelatedArtists(result1.musicTwoRowItemRenderer!!)
-                            listContent.add(content)
-                        }
-                        else if (pageType == "MUSIC_PAGE_TYPE_PLAYLIST") {
-                            if (result1.musicTwoRowItemRenderer!!.navigationEndpoint.browseEndpoint?.browseId?.startsWith("MPRE") == true) {
-                                val content = parseAlbum(result1.musicTwoRowItemRenderer!!)
-                                listContent.add(content)
+                            else if (musicTwoRowItemRenderer.isArtist) {
+                                val ytItem = RelatedPage.fromMusicTwoRowItemRenderer(musicTwoRowItemRenderer) as ArtistItem?
+                                Log.w("Artists", ytItem.toString())
+                                if (ytItem != null) {
+                                    listContent.add(
+                                        Content(
+                                            album = null,
+                                            artists = listOf(),
+                                            description = null,
+                                            isExplicit = null,
+                                            playlistId = null,
+                                            browseId = ytItem.id,
+                                            thumbnails = musicTwoRowItemRenderer.thumbnailRenderer.musicThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail() ?: listOf(),
+                                            title = ytItem.title,
+                                            videoId = null,
+                                            views = null,
+                                            radio = null
+                                        )
+                                    )
+                                }
+                            }
+                            else if (musicTwoRowItemRenderer.isAlbum) {
+                                val ytItem = RelatedPage.fromMusicTwoRowItemRenderer(musicTwoRowItemRenderer) as AlbumItem?
+                                Log.w("Album", ytItem.toString())
+                                if (ytItem != null) {
+                                    listContent.add(
+                                        Content(
+                                            album = Album( id = musicTwoRowItemRenderer.navigationEndpoint.browseEndpoint?.browseId ?: "", name = title ?: ""),
+                                            artists = listOf(),
+                                            description = null,
+                                            isExplicit = false,
+                                            playlistId = null,
+                                            browseId = musicTwoRowItemRenderer.navigationEndpoint.browseEndpoint?.browseId,
+                                            thumbnails = musicTwoRowItemRenderer.thumbnailRenderer.musicThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail() ?: listOf(),
+                                            title = musicTwoRowItemRenderer.title.runs?.get(0)?.text ?: "",
+                                            videoId = "",
+                                            views = ""
+                                        )
+                                    )
+                                }
+                            }
+                            else if (musicTwoRowItemRenderer.isPlaylist) {
+                                val ytItem = RelatedPage.fromMusicTwoRowItemRenderer(musicTwoRowItemRenderer) as PlaylistItem?
+                                if (ytItem != null) {
+                                    Log.w("Playlist", ytItem.toString())
+                                    val subtitle = musicTwoRowItemRenderer.subtitle
+                                    var description = ""
+                                    if (subtitle != null) {
+                                        if (subtitle.runs != null) {
+                                            for (run in subtitle.runs!!) {
+                                                description += run.text
+                                            }
+                                        }
+                                    }
+                                    if (ytItem.id.startsWith("MPRE")) {
+                                        val ytItemAlbum = RelatedPage.fromMusicTwoRowItemRenderer(musicTwoRowItemRenderer) as AlbumItem?
+                                        Log.w("Album", ytItem.toString())
+                                        if (ytItemAlbum != null) {
+                                            listContent.add(
+                                                Content(
+                                                    album = Album( id = musicTwoRowItemRenderer.navigationEndpoint.browseEndpoint?.browseId ?: "", name = title ?: ""),
+                                                    artists = listOf(),
+                                                    description = null,
+                                                    isExplicit = false,
+                                                    playlistId = null,
+                                                    browseId = musicTwoRowItemRenderer.navigationEndpoint.browseEndpoint?.browseId,
+                                                    thumbnails = musicTwoRowItemRenderer.thumbnailRenderer.musicThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail() ?: listOf(),
+                                                    title = musicTwoRowItemRenderer.title.runs?.get(0)?.text ?: "",
+                                                    videoId = "",
+                                                    views = ""
+                                                )
+                                            )
+                                        }
+                                    }
+                                    else {
+                                        listContent.add(
+                                            Content(
+                                                album = null,
+                                                artists = listOf(Artist(id = ytItem.author?.id ?: "", name = ytItem.author?.name ?: "")),
+                                                description = description,
+                                                isExplicit = ytItem.explicit,
+                                                playlistId = ytItem.id,
+                                                browseId = ytItem.id,
+                                                thumbnails = musicTwoRowItemRenderer.thumbnailRenderer.musicThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail() ?: listOf(),
+                                                title = ytItem.title,
+                                                videoId = null,
+                                                views = null,
+                                                radio = null
+                                            )
+                                        )
+                                    }
+                                }
                             }
                             else {
-                                val content = parsePlaylist(result1.musicTwoRowItemRenderer!!)
+                                continue
+                            }
+                        }
+                        else if (result1.musicResponsiveListItemRenderer != null)
+                        {
+                            Log.w("parse Song flat", result1.musicResponsiveListItemRenderer.toString())
+                            val ytItem = RelatedPage.fromMusicResponsiveListItemRenderer(result1.musicResponsiveListItemRenderer!!)
+                            if (ytItem != null) {
+                                val content = Content(
+                                    album = ytItem.album?.let { Album(name = it.name, id = it.id) },
+                                    artists = parseSongArtists(result1.musicResponsiveListItemRenderer!!, 1) ?: listOf(),
+                                    description = null,
+                                    isExplicit = false,
+                                    playlistId = null,
+                                    browseId = null,
+                                    thumbnails = result1.musicResponsiveListItemRenderer!!.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail() ?: listOf(),
+                                    title = ytItem.title ?: "",
+                                    videoId = ytItem.id ?: "",
+                                    views = "",
+                                    radio = null
+                                )
                                 listContent.add(content)
                             }
                         }
-                    }
-                    else
-                    {
-                        val content = parseSongFlat(result1.musicResponsiveListItemRenderer)
-                        listContent.add(content)
+                        else {
+                            break
+                        }
                     }
                 }
-                if (title != null){
-                    list.add(HomeItem(contents = listContent, title = title))
-                }
+                list.add(HomeItem(contents = listContent, title = title))
+                Log.w("parse_mixed_content", list.toString())
             }
         }
     }
@@ -89,22 +291,6 @@ fun parseSongFlat(data: MusicResponsiveListItemRenderer?): Content? {
         for (i in 0..data.flexColumns.size){
             column.add(getFlexColumnItem(data, i))
         }
-//        val song = mapOf(
-//            "title" to column[0]?.text?.runs?.get(0)?.text,
-//            "videoId" to column[0]?.text?.runs?.get(0)?.navigationEndpoint?.watchEndpoint?.videoId,
-//            "thumbnails" to data.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails,
-//            "isExplicit" to null,
-//            "artists" to parseSongArtists(data, 1),
-//        )
-//        if (column.size > 2 && column[2] != null && column[2]?.text?.runs?.get(0)?.text != null) {
-//            song.plus("album" to mapOf(
-//                "name" to column[2]?.text?.runs?.get(0)?.text,
-//                "id" to column[2]?.text?.runs?.get(0)?.navigationEndpoint?.browseEndpoint?.browseId
-//            ))
-//        }
-//        else {
-//            song.plus("views" to column[1]?.text?.runs?.last()?.text?.split(" ")?.get(0))
-//        }
         return Content(
             album = if (column.size > 2 && column[2] != null && column[2]?.text?.runs?.get(0)?.text != null) {
                 Album(
@@ -115,16 +301,16 @@ fun parseSongFlat(data: MusicResponsiveListItemRenderer?): Content? {
             else {
                 null
             },
-            artists = parseSongArtists(data, 1),
+            artists = parseSongArtists(data, 1) ?: listOf(),
             description = null,
             isExplicit = null,
             playlistId = null,
             browseId = null,
             thumbnails = data.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail() ?: listOf(),
             title = column[0]?.text?.runs?.get(0)?.text ?: "",
-            videoId = column[0]?.text?.runs?.get(0)?.navigationEndpoint?.watchEndpoint?.videoId,
+            videoId = column[0]?.text?.runs?.get(0)?.navigationEndpoint?.watchEndpoint?.videoId ?: "",
             views = if (column.size <= 2 || column[2] == null || column[2]?.text?.runs?.get(0)?.text == null) {
-                column[1]?.text?.runs?.last()?.text?.split(" ")?.get(0)
+                column[1]?.text?.runs?.last()?.text?.split(" ")?.get(0) ?: ""
             }
             else {
                 null
@@ -138,20 +324,22 @@ fun parseSongFlat(data: MusicResponsiveListItemRenderer?): Content? {
 
 fun parseSongArtists(data: MusicResponsiveListItemRenderer, index: Int): List<Artist>? {
     val flexItem = getFlexColumnItem(data, index)
-    if (flexItem == null){
-        return null
+    return if (flexItem == null){
+        null
     }
     else {
         val runs = flexItem.text?.runs
-        return runs?.let { parseSongArtistsRuns(it) }
+        runs?.let { parseSongArtistsRuns(it) }
     }
 }
 
 fun getFlexColumnItem(data: MusicResponsiveListItemRenderer, index: Int): MusicResponsiveListItemRenderer.FlexColumn.MusicResponsiveListItemFlexColumnRenderer? {
-    if (data.flexColumns.size <= index || data.flexColumns[index].musicResponsiveListItemFlexColumnRenderer.text == null || data.flexColumns[index].musicResponsiveListItemFlexColumnRenderer.text?.runs == null){
-        return null
+    return if (data.flexColumns.size <= index || data.flexColumns[index].musicResponsiveListItemFlexColumnRenderer.text == null || data.flexColumns[index].musicResponsiveListItemFlexColumnRenderer.text?.runs == null){
+        null
     }
-    return data.flexColumns[index].musicResponsiveListItemFlexColumnRenderer
+    else {
+        data.flexColumns[index].musicResponsiveListItemFlexColumnRenderer
+    }
 }
 
 fun parsePlaylist(data: MusicTwoRowItemRenderer): Content {
@@ -160,15 +348,20 @@ fun parsePlaylist(data: MusicTwoRowItemRenderer): Content {
     var count = ""
     val author: MutableList<Artist> = mutableListOf()
     val thumbnails = data.thumbnailRenderer.musicThumbnailRenderer?.thumbnail?.thumbnails
-    if (subtitle?.runs != null) {
-        for (run in subtitle.runs!!) {
-            description += run.text
-        }
-        if (subtitle.runs!!.size == 3) {
-            count += data.subtitle!!.runs?.get(2)?.text?.split(" ")?.get(0)
-            author.addAll(parseSongArtistsRuns(subtitle.runs!!.take(1)))
+    if (subtitle != null) {
+        if (subtitle.runs != null) {
+            for (run in subtitle.runs!!) {
+                description += run.text
+            }
+            if (subtitle.runs!!.size == 3) {
+                if (data.subtitle!!.runs?.get(2)?.text?.split(" ")?.get(0) != null) {
+                    count += data.subtitle!!.runs?.get(2)?.text?.split(" ")?.get(0)
+                }
+                author.addAll(parseSongArtistsRuns(subtitle.runs!!.take(1)))
+            }
         }
     }
+    Log.w("parse_playlist", description)
     return Content(
         album = null,
         artists = author,
@@ -186,7 +379,9 @@ fun parsePlaylist(data: MusicTwoRowItemRenderer): Content {
 fun parseSongArtistsRuns(runs: List<Run>): List<Artist> {
     val artists = mutableListOf<Artist>()
     for (i in 0..(runs.size/2)) {
-        artists.add(Artist(name = runs[i * 2].text, id = runs[i * 2].navigationEndpoint?.browseEndpoint?.browseId))
+        if (runs[i * 2].navigationEndpoint?.browseEndpoint?.browseId != null) {
+            artists.add(Artist(name = runs[i * 2].text, id = runs[i * 2].navigationEndpoint?.browseEndpoint?.browseId))
+        }
     }
     Log.d("artists_log", artists.toString())
     return artists
@@ -196,7 +391,7 @@ fun parseRelatedArtists(data: MusicTwoRowItemRenderer): Content {
     return Content(
         album = null,
         artists = listOf(),
-        description = data.subtitle?.runs?.get(0)?.text?.split(" ")?.get(0),
+        description = data.subtitle?.runs?.get(0)?.text?.split(" ")?.get(0) ?: "",
         isExplicit = false,
         playlistId = null,
         browseId = data.title.runs?.get(0)?.navigationEndpoint?.browseEndpoint?.browseId,
@@ -209,7 +404,6 @@ fun parseRelatedArtists(data: MusicTwoRowItemRenderer): Content {
 
 fun parseAlbum(data: MusicTwoRowItemRenderer): Content {
     val title = data.title.runs?.get(0)?.text
-    val year = data.subtitle?.runs?.get(2)?.text
     val browseId = data.navigationEndpoint.browseEndpoint?.browseId
     val thumbnails = data.thumbnailRenderer.musicThumbnailRenderer?.thumbnail?.thumbnails
     return Content(
@@ -226,7 +420,7 @@ fun parseAlbum(data: MusicTwoRowItemRenderer): Content {
     )
 }
 
-fun parseSong(data: MusicTwoRowItemRenderer): Content {
+fun parseSong(data: MusicTwoRowItemRenderer, context: Context): Content {
     val title = data.title.runs?.get(0)?.text
     val videoId = data.navigationEndpoint.watchEndpoint?.videoId
     val thumbnails = data.thumbnailRenderer.musicThumbnailRenderer?.thumbnail?.thumbnails
@@ -240,7 +434,7 @@ fun parseSong(data: MusicTwoRowItemRenderer): Content {
     Log.d("parse_runs", runs.toString())
     if (runs != null) {
         for (i in runs.indices) {
-            if (runs[0].text == "Song" || runs[0].text == "Bài hát") {
+            if (runs[0].text == context.getString(R.string.song)) {
                 if (i.rem(2) == 0) {
                     if (i == runs.size -1) {
                         listArtist.add(Artist(name = runs[i].text, id = runs[i].navigationEndpoint?.browseEndpoint?.browseId))
@@ -336,6 +530,7 @@ fun parseWatchPlaylist(data: MusicTwoRowItemRenderer): Content {
     val title = data.title.runs?.get(0)?.text
     val playlistId = data.navigationEndpoint.watchPlaylistEndpoint?.playlistId
     val thumbnails = data.thumbnailRenderer.musicThumbnailRenderer?.thumbnail?.thumbnails
+    Log.w("parse_watch_playlist", title.toString())
     return Content(
         album = null,
         artists = listOf(),

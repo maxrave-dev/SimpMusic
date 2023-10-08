@@ -110,6 +110,7 @@ class FavoriteFragment : Fragment() {
                 val dialog = BottomSheetDialog(requireContext())
                 val bottomSheetView = BottomSheetNowPlayingBinding.inflate(layoutInflater)
                 with(bottomSheetView) {
+                    btSleepTimer.visibility = View.GONE
                     tvFavorite.text = getString(R.string.liked)
                     cbFavorite.isChecked = true
                     val song = listLiked[position] as SongEntity
@@ -143,7 +144,14 @@ class FavoriteFragment : Fragment() {
                             setEnabledAll(btDownload, true)
                         }
                     }
-
+                    btRadio.setOnClickListener {
+                        val args = Bundle()
+                        args.putString("radioId", "RDAMVM${song.videoId}")
+                        args.putString("title", "${song.title} ${context?.getString(R.string.radio)}")
+                        args.putString("thumbnails", song.thumbnails)
+                        dialog.dismiss()
+                        findNavController().navigate(R.id.action_global_playlistFragment, args)
+                    }
                     btLike.setOnClickListener {
                         if (cbFavorite.isChecked){
                             cbFavorite.isChecked = false
@@ -225,6 +233,9 @@ class FavoriteFragment : Fragment() {
                                 val tempTrack = ArrayList<String>()
                                 if (playlist.tracks != null) {
                                     tempTrack.addAll(playlist.tracks)
+                                }
+                                if (!tempTrack.contains(song.videoId) && playlist.syncedWithYouTubePlaylist == 1 && playlist.youtubePlaylistId != null) {
+                                    viewModel.addToYouTubePlaylist(playlist.id, playlist.youtubePlaylistId, song.videoId)
                                 }
                                 tempTrack.add(song.videoId)
                                 tempTrack.removeConflicts()

@@ -5,9 +5,9 @@ A simple music app using YouTube Music for backend
 - Play music from YouTube Music or YouTube free without ads in the background
 - Browsing Home, Charts, Moods & Genre with YouTube Music data with high speed
 - Search everything on YouTube
-- Analyze your playing data and create custom playlists ...
+- Analyze your playing data, create custom playlists and sync with YouTube Music ...
 - Caching and can save data for offline playback
-- Synced lyrics
+- Synced lyrics from Musixmatch
 - Support SponsorBlock
 - Sleep Timer
 - And many more

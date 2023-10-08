@@ -4,7 +4,6 @@ import android.content.Intent
 import android.media.audiofx.AudioEffect
 import android.net.Uri
 import android.os.Bundle
-import android.text.Html
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -22,13 +21,13 @@ import coil.annotation.ExperimentalCoilApi
 import coil.imageLoader
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.PIPED_INSTANCE
 import com.maxrave.simpmusic.common.QUALITY
 import com.maxrave.simpmusic.common.SPONSOR_BLOCK
 import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.common.SUPPORTED_LOCATION
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.databinding.FragmentSettingsBinding
+import com.maxrave.simpmusic.extension.setEnabledAll
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
@@ -105,7 +104,7 @@ class SettingsFragment : Fragment() {
         viewModel.getNormalizeVolume()
         viewModel.getSkipSilent()
         viewModel.getSavedPlaybackState()
-        viewModel.getPipedInstance()
+        viewModel.getSendBackToGoogle()
         viewModel.getSaveRecentSongAndQueue()
         viewModel.getLastCheckForUpdate()
         viewModel.getSponsorBlockEnabled()
@@ -117,10 +116,15 @@ class SettingsFragment : Fragment() {
             if (it == DataStoreManager.TRUE) {
                 binding.tvLogInTitle.text = getString(R.string.log_out)
                 binding.tvLogIn.text = getString(R.string.logged_in)
+                setEnabledAll(binding.swSaveHistory, true)
             } else if (it == DataStoreManager.FALSE) {
                 binding.tvLogInTitle.text = getString(R.string.log_in)
                 binding.tvLogIn.text = getString(R.string.log_in_to_get_personally_data)
+                setEnabledAll(binding.swSaveHistory, false)
             }
+        }
+        viewModel.sendBackToGoogle.observe(viewLifecycleOwner) {
+            binding.swSaveHistory.isChecked = it == DataStoreManager.TRUE
         }
         viewModel.location.observe(viewLifecycleOwner) {
             binding.tvContentCountry.text = it
@@ -161,9 +165,6 @@ class SettingsFragment : Fragment() {
         viewModel.sponsorBlockEnabled.observe(viewLifecycleOwner) {
             binding.swEnableSponsorBlock.isChecked = it == DataStoreManager.TRUE
         }
-        viewModel.pipedInstance.observe(viewLifecycleOwner) {
-            binding.tvPipedInstance.text = it
-        }
         viewModel.lastCheckForUpdate.observe(viewLifecycleOwner) {
             binding.tvCheckForUpdate.text = getString(R.string.last_checked_at, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
                 .withZone(ZoneId.systemDefault())
@@ -186,7 +187,7 @@ class SettingsFragment : Fragment() {
                         }
                         MaterialAlertDialogBuilder(requireContext())
                             .setTitle(getString(R.string.update_available))
-                            .setMessage(getString(R.string.update_message, response.tagName, formatted, Html.fromHtml(response.body, Html.FROM_HTML_MODE_COMPACT)))
+                            .setMessage(getString(R.string.update_message, response.tagName, formatted, response.body))
                             .setPositiveButton(getString(R.string.download)) { _, _ ->
                                 val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(response.assets?.firstOrNull()?.browserDownloadUrl))
                                 startActivity(browserIntent)
@@ -198,6 +199,12 @@ class SettingsFragment : Fragment() {
                     }
                     else {
                         Toast.makeText(requireContext(), getString(R.string.no_update), Toast.LENGTH_SHORT).show()
+                        viewModel.getLastCheckForUpdate()
+                        viewModel.lastCheckForUpdate.observe(viewLifecycleOwner) {
+                            binding.tvCheckForUpdate.text = getString(R.string.last_checked_at, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                                .withZone(ZoneId.systemDefault())
+                                .format(Instant.ofEpochMilli(it.toLong())))
+                        }
                     }
                 }
             }
@@ -280,27 +287,6 @@ class SettingsFragment : Fragment() {
                         viewModel.changeLocation(SUPPORTED_LOCATION.items[checkedIndex].toString())
                         viewModel.location.observe(viewLifecycleOwner) {
                             binding.tvContentCountry.text = it
-                        }
-                    }
-                    dialog.dismiss()
-                }
-            dialog.show()
-        }
-        binding.btPipedInstance.setOnClickListener {
-            var checkedIndex = -1
-            val dialog = MaterialAlertDialogBuilder(requireContext())
-                .setSingleChoiceItems(PIPED_INSTANCE.listPiped, -1) { _, which ->
-                    checkedIndex = which
-                }
-                .setTitle(requireContext().getString(R.string.streaming_data_provider_piped))
-                .setNegativeButton(requireContext().getString(R.string.cancel)) { dialog, _ ->
-                    dialog.dismiss()
-                }
-                .setPositiveButton(requireContext().getString(R.string.change)) { dialog, _ ->
-                    if (checkedIndex != -1) {
-                        viewModel.setPipedInstance(PIPED_INSTANCE.listPiped[checkedIndex].toString())
-                        viewModel.pipedInstance.observe(viewLifecycleOwner) {
-                            binding.tvPipedInstance.text = it
                         }
                     }
                     dialog.dismiss()
@@ -493,6 +479,13 @@ class SettingsFragment : Fragment() {
             }
             else {
                 viewModel.setSponsorBlockEnabled(false)
+            }
+        }
+        binding.swSaveHistory.setOnCheckedChangeListener { compoundButton, checked ->
+            if (checked) {
+                viewModel.setSendBackToGoogle(true)
+            } else {
+                viewModel.setSendBackToGoogle(false)
             }
         }
     }

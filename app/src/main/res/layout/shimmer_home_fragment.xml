@@ -6,7 +6,7 @@
     android:orientation="vertical">
     <androidx.cardview.widget.CardView
         android:layout_width="150sp"
-        android:layout_height="25sp"
+        android:layout_height="20sp"
         android:layout_marginBottom="8sp"
         android:layout_marginTop="8sp"
         app:cardBackgroundColor="@color/shimmerBackground"
@@ -19,12 +19,12 @@
         android:orientation="horizontal">
         <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="280sp"
+            android:layout_height="230sp"
             android:padding="10sp"
             android:orientation="vertical">
             <androidx.cardview.widget.CardView
-                android:layout_width="160sp"
-                android:layout_height="160sp"
+                android:layout_width="140sp"
+                android:layout_height="140sp"
                 android:scaleType="centerCrop"
                 app:cardBackgroundColor="@color/shimmerBackground"
                 app:cardCornerRadius="5sp"
@@ -49,12 +49,12 @@
         </LinearLayout>
         <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="280sp"
+            android:layout_height="230sp"
             android:padding="10sp"
             android:orientation="vertical">
             <androidx.cardview.widget.CardView
-                android:layout_width="160sp"
-                android:layout_height="160sp"
+                android:layout_width="140sp"
+                android:layout_height="140sp"
                 android:scaleType="centerCrop"
                 app:cardBackgroundColor="@color/shimmerBackground"
                 app:cardCornerRadius="5sp"
@@ -79,12 +79,12 @@
         </LinearLayout>
         <LinearLayout
             android:layout_width="wrap_content"
-            android:layout_height="280sp"
+            android:layout_height="230sp"
             android:padding="10sp"
             android:orientation="vertical">
             <androidx.cardview.widget.CardView
-                android:layout_width="160sp"
-                android:layout_height="160sp"
+                android:layout_width="140sp"
+                android:layout_height="140sp"
                 android:scaleType="centerCrop"
                 app:cardBackgroundColor="@color/shimmerBackground"
                 app:cardCornerRadius="5sp"

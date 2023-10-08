@@ -1,5 +1,6 @@
 package com.maxrave.kotlinytmusicscraper.pages
 
+import android.util.Log
 import com.maxrave.kotlinytmusicscraper.models.Album
 import com.maxrave.kotlinytmusicscraper.models.AlbumItem
 import com.maxrave.kotlinytmusicscraper.models.Artist
@@ -12,6 +13,7 @@ import com.maxrave.kotlinytmusicscraper.models.MusicTwoRowItemRenderer
 import com.maxrave.kotlinytmusicscraper.models.PlaylistItem
 import com.maxrave.kotlinytmusicscraper.models.SectionListRenderer
 import com.maxrave.kotlinytmusicscraper.models.SongItem
+import com.maxrave.kotlinytmusicscraper.models.VideoItem
 import com.maxrave.kotlinytmusicscraper.models.YTItem
 import com.maxrave.kotlinytmusicscraper.models.oddElements
 
@@ -85,7 +87,7 @@ data class ArtistPage(
             )
         }
 
-        private fun fromMusicTwoRowItemRenderer(renderer: MusicTwoRowItemRenderer): YTItem? {
+        fun fromMusicTwoRowItemRenderer(renderer: MusicTwoRowItemRenderer): YTItem? {
             return when {
                 renderer.isSong -> {
                     SongItem(
@@ -158,6 +160,28 @@ data class ArtistPage(
                             it.menuNavigationItemRenderer?.icon?.iconType == "MIX"
                         }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint ?: return null,
                         subscribers = renderer.subtitle?.runs?.firstOrNull()?.text ?: return null,
+                    )
+                }
+                renderer.isVideo -> {
+                    Log.d("ArtistPage", "isVideo")
+                    VideoItem(
+                        id = renderer.navigationEndpoint.watchEndpoint?.videoId ?: return null,
+                        title = renderer.title.runs?.get(0)?.text ?: return null,
+                        thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
+                        endpoint = renderer.navigationEndpoint.watchEndpoint,
+                        thumbnails = renderer.thumbnailRenderer.musicThumbnailRenderer.thumbnail,
+                        artists = renderer.subtitle?.runs?.let {list ->
+                            val artist = mutableListOf<Artist>()
+                            for (i in list.indices) {
+                                if (i % 2 == 0 && i != list.lastIndex) {
+                                    artist.add(Artist(list[i].text, list[i].navigationEndpoint?.browseEndpoint?.browseId))
+                                }
+                            }
+                            artist
+                        } ?: listOf(),
+                        album = null,
+                        duration = null,
+                        view = renderer.subtitle?.runs?.lastOrNull()?.text
                     )
                 }
 

@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    app:cardCornerRadius="8sp"
+    app:cardBackgroundColor="#242424"
+    style="@style/Widget.Material3.CardView.Filled">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical">
+        <com.google.android.material.card.MaterialCardView
+            android:layout_width="60sp"
+            android:layout_height="4sp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="5sp"
+            app:cardBackgroundColor="#474545"
+            style="@style/Widget.Material3.CardView.Filled"
+            android:layout_marginBottom="5sp">
+
+        </com.google.android.material.card.MaterialCardView>
+        <LinearLayout
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:orientation="vertical">
+
+            <RelativeLayout
+                android:padding="10sp"
+                android:layout_width="match_parent"
+                android:layout_height="65sp">
+
+                <ImageView
+                    android:layout_width="60sp"
+                    android:layout_height="60sp"
+                    android:id="@+id/ivThumbnail"
+                    android:layout_alignParentStart="true">
+
+                </ImageView>
+
+                <LinearLayout
+                    android:layout_height="wrap_content"
+                    android:layout_width="match_parent"
+                    android:layout_toEndOf="@+id/ivThumbnail"
+                    android:layout_marginStart="20sp"
+                    android:layout_centerVertical="true"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:text=""
+                        android:id="@+id/tvSongTitle"
+                        android:fontFamily="@font/roboto"
+                        android:textStyle="bold"
+                        android:textSize="16sp"
+                        android:singleLine="true"
+                        android:ellipsize="marquee"
+                        android:marqueeRepeatLimit="marquee_forever"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:scrollHorizontally="true"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                    </TextView>
+
+                    <TextView
+                        android:text=""
+                        android:id="@+id/tvSongArtist"
+                        android:fontFamily="@font/roboto"
+                        android:textStyle="normal"
+                        android:textSize="13sp"
+                        android:singleLine="true"
+                        android:ellipsize="marquee"
+                        android:marqueeRepeatLimit="marquee_forever"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:scrollHorizontally="true"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                    </TextView>
+                </LinearLayout>
+            </RelativeLayout>
+        </LinearLayout>
+        <com.google.android.material.divider.MaterialDivider
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:dividerThickness="1sp"
+            android:layout_marginTop="5sp"
+            android:layout_marginBottom="2sp"
+            android:layout_marginHorizontal="20sp">
+
+        </com.google.android.material.divider.MaterialDivider>
+        <RelativeLayout
+            android:id="@+id/btSync"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:clickable="true"
+            android:foreground="?android:attr/selectableItemBackground"
+            android:paddingHorizontal="20sp">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:id="@+id/ivSync"
+                android:padding="12sp"
+                android:src="@drawable/baseline_sync_24">
+
+            </ImageView>
+            <TextView
+                android:id="@+id/tvSync"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toEndOf="@+id/ivSync"
+                android:text="@string/save_to_local_playlist"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="10sp"
+                android:textSize="16sp">
+
+            </TextView>
+        </RelativeLayout>
+        <RelativeLayout
+            android:id="@+id/btShare"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:clickable="true"
+            android:foreground="?android:attr/selectableItemBackground"
+            android:paddingHorizontal="20sp">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:id="@+id/ivShare"
+                android:padding="12sp"
+                android:src="@drawable/baseline_share_24">
+
+            </ImageView>
+            <TextView
+                android:id="@+id/tvShare"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toEndOf="@+id/ivShare"
+                android:text="@string/share"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="10sp"
+                android:textSize="16sp">
+
+            </TextView>
+        </RelativeLayout>
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

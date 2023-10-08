@@ -1,0 +1,9 @@
+- Hỗ trợ màn hình nhỏ
+- Đồng bộ giữa danh sách phát nội bộ vào YouTube Music
+- Thêm tính năng Radio dựa vào bài hát và nghệ sĩ
+- Sửa UI ở phần trang chủ
+- Thêm đề xuất kết quả khi tìm kiếm
+- Xoá phụ thuộc vào Piped
+- Lấy lời bài hát từ Musixmatch
+- Lưu lịch sử phát vào YouTube Music (tuỳ chọn)
+- Thêm tiếng Nga và tiếng Đức

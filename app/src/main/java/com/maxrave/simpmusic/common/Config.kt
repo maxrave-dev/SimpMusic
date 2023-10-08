@@ -11,6 +11,8 @@ object Config {
 
     const val YOUTUBE_MUSIC_MAIN_URL = "https://music.youtube.com/"
     const val LOG_IN_URL = "https://accounts.google.com/ServiceLogin?ltmpl=music&service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3Dhttps%253A%252F%252Fmusic.youtube.com%252F%26feature%3D__FEATURE__&hl=en"
+    const val SPOTIFY_URL = "https://open.spotify.com/"
+    const val SPOTIFY_LOG_IN_URL = "https://accounts.spotify.com/en/login?continue=https:%2F%2Fopen.spotify.com%2F"
 
     const val SONG_CLICK = "SONG_CLICK"
     const val VIDEO_CLICK = "VIDEO_CLICK"
@@ -19,6 +21,7 @@ object Config {
     const val RADIO_CLICK = "RADIO_CLICK"
     const val MINIPLAYER_CLICK = "MINIPLAYER_CLICK"
     const val SHARE = "SHARE"
+    const val RECOVER_TRACK_QUEUE = "RECOVER_TRACK_QUEUE"
 
     const val VN = "VN"
 
@@ -44,8 +47,8 @@ object SUPPORTED_LOCATION {
         "TN", "TR", "TW", "TZ", "UA", "UG", "US", "UY", "VE", "VN", "YE", "ZA", "ZW")
 }
 object SUPPORTED_LANGUAGE {
-    val items: Array<CharSequence> = arrayOf("English", "Vietnamese", "Italiano")
-    val codes: Array<String> = arrayOf("en-US", "vi-VN", "it-IT")
+    val items: Array<CharSequence> = arrayOf("English", "Tiếng Việt", "Italiano", "Deutsch", "Русский")
+    val codes: Array<String> = arrayOf("en-US", "vi-VN", "it-IT", "de-DE", "ru-RU")
 }
 object QUALITY {
     val items: Array<CharSequence> = arrayOf("Low - 66kps", "High - 129kps")

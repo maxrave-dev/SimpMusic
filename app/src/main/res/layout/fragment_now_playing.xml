@@ -40,15 +40,15 @@
 
                 <RelativeLayout
                     android:layout_width="wrap_content"
-                    android:layout_height="350sp"
-                    android:layout_marginHorizontal="30sp"
+                    android:layout_height="@dimen/_260sdp"
+                    android:layout_marginHorizontal="@dimen/_25sdp"
                     android:layout_gravity="center_horizontal"
-                    android:layout_marginTop="80sp">
+                    android:layout_marginTop="@dimen/_60sdp">
 
                     <ImageView
                         android:id="@+id/ivArt"
                         android:layout_width="match_parent"
-                        android:layout_height="350sp"
+                        android:layout_height="@dimen/_260sdp"
                         android:layout_centerInParent="true"
                         android:scaleType="fitCenter">
 
@@ -68,8 +68,8 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical"
-                    android:layout_marginTop="100sp"
-                    android:layout_marginHorizontal="30sp">
+                    android:layout_marginTop="@dimen/_75sdp"
+                    android:layout_marginHorizontal="@dimen/_25sdp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
@@ -82,7 +82,7 @@
                             android:orientation="vertical"
                             android:id="@+id/meta_data_layout"
                             android:layout_weight="1"
-                            android:layout_marginStart="10sp">
+                            android:layout_marginStart="@dimen/_6sdp">
 
                             <TextView
                                 android:textColor="@android:color/white"
@@ -96,7 +96,7 @@
                                 android:focusableInTouchMode="true"
                                 android:scrollHorizontally="true"
                                 android:text=""
-                                android:textSize="20sp"
+                                android:textSize="@dimen/_15ssp"
                                 android:textStyle="bold"
                                 android:id="@+id/tvSongTitle" />
 
@@ -112,7 +112,7 @@
                                 android:fontFamily="@font/roboto"
                                 android:text=""
                                 android:textColor="@android:color/white"
-                                android:textSize="13sp"
+                                android:textSize="@dimen/_10ssp"
                                 android:textStyle="normal"
                                 android:id="@+id/tvSongArtist" />
                         </LinearLayout>
@@ -139,8 +139,8 @@
                         <RelativeLayout
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:layout_marginStart="15sp"
-                            android:layout_marginEnd="15sp">
+                            android:layout_marginStart="@dimen/_11sdp"
+                            android:layout_marginEnd="@dimen/_11sdp">
 
                             <com.google.android.material.progressindicator.LinearProgressIndicator
                                 android:id="@+id/buffered"
@@ -150,9 +150,9 @@
                                 android:max="100"
                                 android:min="0"
                                 android:progress="0"
+                                android:shadowRadius="0.2"
                                 app:indicatorColor="@android:color/darker_gray"
-                                app:trackCornerRadius="5sp"
-                                android:shadowRadius="0.2">
+                                app:trackCornerRadius="5sp">
 
                             </com.google.android.material.progressindicator.LinearProgressIndicator>
                         </RelativeLayout>
@@ -215,8 +215,8 @@
 
                         <ImageButton
                             android:id="@+id/btPlayPause"
-                            android:layout_width="80dp"
-                            android:layout_height="80sp"
+                            android:layout_width="@dimen/_60sdp"
+                            android:layout_height="@dimen/_60sdp"
                             android:layout_centerInParent="true"
                             android:background="?attr/actionBarItemBackground"
                             android:scaleType="fitCenter"
@@ -224,8 +224,8 @@
 
                         <ImageButton
                             android:id="@+id/btNext"
-                            android:layout_width="50sp"
-                            android:layout_height="50sp"
+                            android:layout_width="@dimen/_40sdp"
+                            android:layout_height="@dimen/_40sdp"
                             android:background="?attr/actionBarItemBackground"
                             android:layout_centerVertical="true"
                             android:layout_marginStart="20sp"
@@ -237,8 +237,8 @@
 
                         <ImageButton
                             android:id="@+id/btRepeat"
-                            android:layout_width="30sp"
-                            android:layout_height="30sp"
+                            android:layout_width="@dimen/_25sdp"
+                            android:layout_height="@dimen/_25sdp"
                             android:background="?attr/actionBarItemBackground"
                             android:layout_centerVertical="true"
                             android:layout_marginStart="20sp"
@@ -250,8 +250,8 @@
 
                         <ImageButton
                             android:id="@+id/btPrevious"
-                            android:layout_width="50sp"
-                            android:layout_height="50sp"
+                            android:layout_width="@dimen/_40sdp"
+                            android:layout_height="@dimen/_40sdp"
                             android:background="?attr/actionBarItemBackground"
                             android:layout_centerVertical="true"
                             android:layout_marginEnd="20sp"
@@ -263,8 +263,8 @@
 
                         <ImageButton
                             android:id="@+id/btShuffle"
-                            android:layout_width="30sp"
-                            android:layout_height="30sp"
+                            android:layout_width="@dimen/_25sdp"
+                            android:layout_height="@dimen/_25sdp"
                             android:background="?attr/actionBarItemBackground"
                             android:layout_centerVertical="true"
                             android:layout_marginEnd="20sp"
@@ -279,7 +279,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:layout_marginTop="5sp">
+                        android:layout_marginTop="@dimen/_4sdp">
                         <ImageButton
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"

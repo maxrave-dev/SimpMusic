@@ -10,7 +10,7 @@ import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
-import com.maxrave.simpmusic.data.model.thumbnailUrl
+import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.simpmusic.databinding.ItemYourPlaylistBinding
 import com.maxrave.simpmusic.extension.connectArtists
 
@@ -103,6 +103,24 @@ class FavoritePlaylistAdapter(private var listPlaylist: ArrayList<Any>, private 
             }
         }
     }
+    inner class YouTubePlaylistViewHolder(val binding: ItemYourPlaylistBinding, listener: OnItemClickListener): RecyclerView.ViewHolder(binding.root) {
+        init {
+            binding.root.setOnClickListener {
+                listener.onItemClick(bindingAdapterPosition, "youtube_playlist")
+            }
+        }
+        fun bind(playlistsResult: PlaylistsResult) {
+            with(binding) {
+                ivArt.load(playlistsResult.thumbnails[0].url)
+                tvPlaylistName.text = playlistsResult.title
+                tvPlaylistName.isSelected = true
+                tvArtistName.text = playlistsResult.author
+                tvArtistName.isSelected = true
+                tvStatus.text = context.getString(R.string.your_youtube_playlists)
+                tvStatus.isSelected = true
+            }
+        }
+    }
     fun updateList(list: List<Any>){
         listPlaylist.clear()
         listPlaylist.addAll(list)
@@ -114,6 +132,7 @@ class FavoritePlaylistAdapter(private var listPlaylist: ArrayList<Any>, private 
             is AlbumEntity -> VIEW_TYPE_ALBUM
             is PlaylistEntity -> VIEW_TYPE_PLAYLIST
             is LocalPlaylistEntity -> VIEW_TYPE_LOCAL_PLAYLIST
+            is PlaylistsResult -> VIEW_TYPE_YOUTUBE_PLAYLIST
             else -> throw IllegalArgumentException("Invalid type of data $position")
         }
     }
@@ -127,6 +146,7 @@ class FavoritePlaylistAdapter(private var listPlaylist: ArrayList<Any>, private 
             VIEW_TYPE_ALBUM -> AlbumViewHolder(ItemYourPlaylistBinding.inflate(inflater, parent, false), mListener)
             VIEW_TYPE_PLAYLIST -> PlaylistViewHolder(ItemYourPlaylistBinding.inflate(inflater, parent, false), mListener)
             VIEW_TYPE_LOCAL_PLAYLIST -> LocalPlaylistViewHolder(ItemYourPlaylistBinding.inflate(inflater, parent, false), mListener)
+            VIEW_TYPE_YOUTUBE_PLAYLIST -> YouTubePlaylistViewHolder(ItemYourPlaylistBinding.inflate(inflater, parent, false), mListener)
             else -> throw IllegalArgumentException("Invalid type of data $viewType")
         }
     }
@@ -136,6 +156,7 @@ class FavoritePlaylistAdapter(private var listPlaylist: ArrayList<Any>, private 
             is AlbumViewHolder -> holder.bind(listPlaylist[position] as AlbumEntity)
             is PlaylistViewHolder -> holder.bind(listPlaylist[position] as PlaylistEntity)
             is LocalPlaylistViewHolder -> holder.bind(listPlaylist[position] as LocalPlaylistEntity)
+            is YouTubePlaylistViewHolder -> holder.bind(listPlaylist[position] as PlaylistsResult)
         }
     }
 
@@ -145,6 +166,7 @@ class FavoritePlaylistAdapter(private var listPlaylist: ArrayList<Any>, private 
         private const val VIEW_TYPE_ALBUM = 0
         private const val VIEW_TYPE_PLAYLIST = 1
         private const val VIEW_TYPE_LOCAL_PLAYLIST = 2
+        private const val VIEW_TYPE_YOUTUBE_PLAYLIST = 3
     }
 
 }

@@ -80,6 +80,64 @@
             </TextView>
         </RelativeLayout>
         <RelativeLayout
+            android:id="@+id/btSync"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:clickable="true"
+            android:foreground="?android:attr/selectableItemBackground"
+            android:paddingHorizontal="20sp">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:id="@+id/ivSync"
+                android:padding="12sp"
+                android:src="@drawable/baseline_sync_24">
+
+            </ImageView>
+            <TextView
+                android:id="@+id/tvSync"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toEndOf="@+id/ivSync"
+                android:text="@string/sync"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="10sp"
+                android:textSize="16sp">
+
+            </TextView>
+        </RelativeLayout>
+        <RelativeLayout
+            android:id="@+id/btUpdate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:clickable="true"
+            android:foreground="?android:attr/selectableItemBackground"
+            android:paddingHorizontal="20sp">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:id="@+id/ivUpdate"
+                android:padding="12sp"
+                android:src="@drawable/baseline_update_24">
+
+            </ImageView>
+            <TextView
+                android:id="@+id/tvUpdate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toEndOf="@+id/ivUpdate"
+                android:text="@string/update_playlist"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="10sp"
+                android:textSize="16sp">
+
+            </TextView>
+        </RelativeLayout>
+        <RelativeLayout
             android:id="@+id/btDelete"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

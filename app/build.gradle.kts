@@ -14,14 +14,14 @@ android {
         applicationId = "com.maxrave.simpmusic"
         minSdk = 26
         targetSdk = 34
-        versionCode = 9
-        versionName = "0.1.3-beta"
+        versionCode = 10
+        versionName = "0.1.4-beta"
 
         ksp {
             arg("room.schemaLocation", "$projectDir/schemas")
         }
 
-        resourceConfigurations += listOf("en", "vi", "it")
+        resourceConfigurations += listOf("en", "vi", "it", "de", "ru")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
     }
@@ -93,8 +93,8 @@ dependencies {
     //Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     //Navigation
-    implementation("androidx.navigation:navigation-fragment-ktx:2.7.2")
-    implementation("androidx.navigation:navigation-ui-ktx:2.7.2")
+    implementation("androidx.navigation:navigation-fragment-ktx:2.7.3")
+    implementation("androidx.navigation:navigation-ui-ktx:2.7.3")
 
     implementation("com.google.code.gson:gson:2.10.1")
 
@@ -141,6 +141,8 @@ dependencies {
     //Custom Activity On Crash
     implementation ("cat.ereza:customactivityoncrash:2.4.0")
 
+    implementation("com.intuit.sdp:sdp-android:1.1.0")
+    implementation("com.intuit.ssp:ssp-android:1.1.0")
 
 }
 hilt {

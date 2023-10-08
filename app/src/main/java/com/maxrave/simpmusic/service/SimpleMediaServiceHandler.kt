@@ -167,11 +167,11 @@ class SimpleMediaServiceHandler @Inject constructor(
         player.removeMediaItem(position)
     }
 
-    fun addMediaItem(mediaItem: MediaItem) {
+    fun addMediaItem(mediaItem: MediaItem, playWhenReady: Boolean = true) {
         player.clearMediaItems()
         player.setMediaItem(mediaItem)
         player.prepare()
-        player.playWhenReady = true
+        player.playWhenReady = playWhenReady
     }
 
     fun addMediaItemNotSet(mediaItem: MediaItem) {
@@ -510,13 +510,14 @@ class SimpleMediaServiceHandler @Inject constructor(
         )
     }
     fun release() {
+        stopBufferedUpdate()
+        stopProgressUpdate()
         sendCloseEqualizerIntent()
         player.removeListener(this)
         job?.cancel()
         sleepTimerJob?.cancel()
         volumeNormalizationJob?.cancel()
         updateNotificationJob?.cancel()
-        GlobalScope.cancel()
     }
 
     private fun updateNotification() {

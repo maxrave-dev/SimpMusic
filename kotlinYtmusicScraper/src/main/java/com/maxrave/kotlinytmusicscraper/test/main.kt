@@ -1,30 +1,234 @@
 package com.maxrave.kotlinytmusicscraper.test
 
+import com.google.gson.annotations.SerializedName
 import com.maxrave.kotlinytmusicscraper.YouTube
+import com.maxrave.kotlinytmusicscraper.models.GridRenderer
 import com.maxrave.kotlinytmusicscraper.models.MusicResponsiveListItemRenderer
 import com.maxrave.kotlinytmusicscraper.models.MusicTwoRowItemRenderer
 import com.maxrave.kotlinytmusicscraper.models.Run
 import com.maxrave.kotlinytmusicscraper.models.SectionListRenderer
+import com.maxrave.kotlinytmusicscraper.models.Thumbnail
 import kotlinx.coroutines.runBlocking
 
 fun main() {
     runBlocking {
-        YouTube.customQuery("FEmusic_home").onSuccess { result ->
-            val list = mutableListOf<Map<String, Any?>?>()
-            val limit = 5
-            var continueParam = result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(0)?.tabRenderer?.content?.sectionListRenderer?.continuations?.get(0)?.nextContinuationData?.continuation
-            list.addAll(parseMixedContent(result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(0)?.tabRenderer?.content?.sectionListRenderer?.contents))
-            var count = 0
-            while (count < limit && continueParam != null){
-                YouTube.customQuery("", continueParam).onSuccess {
-                    list.addAll(parseMixedContent(it.continuationContents?.sectionListContinuation?.contents))
-                    continueParam = it.continuationContents?.sectionListContinuation?.continuations?.get(0)?.nextContinuationData?.continuation
-                    count++
-                    println(count)
+//        YouTube.spotifyCookie =
+//            "sp_t=a910acb941e990e349d79e8170f2dafe; _scid=e96b060c-30fc-4c59-9e44-25f376482edd; _ga=GA1.2.2112854199.1671017821; sp_adid=95e621d6-b86c-4ce5-bed4-6b03ab65155b; _ga_ZWG1NSHWD8=GS1.1.1671017821.1.0.1671017823.0.0.0; sp_dc=AQAYI79gjZIRlNjJUDXJLIq1yw5Nb_E85T55B8jgHOVWOseGrnhlVuEKRziSRV1XA8Ca2d7bx7RAQ-6hjGLWNlsxHrZ6DP6Jmn_Joz-6djb05evRb31kKFGrTXhRzFBRMr5MePVo2pujxkVtOjCZp_qNP1J3ryQ; sp_key=595700a0-212b-4ce5-a497-0f7eea005f35; OptanonAlertBoxClosed=2022-12-27T15:05:03.114Z; sp_m=vn-vi; sp_landing=https%3A%2F%2Fopen.spotify.com%2Ftrack%2F1GPRHgVXzRfzoc44HEZZQI%3Fsp_cid%3Da910acb941e990e349d79e8170f2dafe%26device%3Ddesktop; OptanonConsent=isIABGlobal=false&datestamp=Sat+Sep+30+2023+22%3A30%3A16+GMT%2B0700+(Indochina+Time)&version=6.26.0&hosts=&landingPath=NotLandingPage&groups=s00%3A1%2Cf00%3A1%2Cm00%3A1%2Ct00%3A1%2Ci00%3A1%2Cf11%3A0&AwaitingReconsent=false&geolocation=VN%3BSG"
+//        YouTube.cookie =
+//            "VISITOR_INFO1_LIVE=zhhx1-pXFL0; __utmz=27069237.1673094830.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); VISITOR_PRIVACY_METADATA=CgJWThICGgA%3D; __utma=27069237.597876058.1673094830.1691393097.1693037834.24; LOGIN_INFO=AFmmF2swRQIhALlK-GIKSX-_-wAq3MR4LiZxDEyZau-CdERSaDCSToolAiBHixfkKWkvAOsMjXax7ia-Nsld97BRcVkrl0mP4wkxNA:QUQ3MjNmeVBBcWJNVnp1cWNLVnFnNVhCdTQ5d3JzaTNsaUVLZWwzNUFFM21Gd3BaWTZHdTh6VzJDZDhaR09UTDVHYkpORWdudXFwNVNybE1wWVVKM3p5ZFpoODgyQWc2OUlISnc1TUJpU09DXzVJR3FUVWdhVGxZT3RLcTBXcThZdGhjVENjMmI4ZnJZWGtrQ29UejhRMVl0N1NTVUxRYnl3; SID=bAiHuOSAVkOcHMA4cuCGz3Esa2qGLgDbdsMbk5UHs0UUkVJkLIWqC4og39fPQOPkDMu2xg.; __Secure-1PSID=bAiHuOSAVkOcHMA4cuCGz3Esa2qGLgDbdsMbk5UHs0UUkVJkk5EjmxcjfH2pbmn4iPwjuw.; __Secure-3PSID=bAiHuOSAVkOcHMA4cuCGz3Esa2qGLgDbdsMbk5UHs0UUkVJkYXoKeyvKnENZHS6ubzdUJg.; HSID=Anikjx73sQ4s47Hjp; SSID=AKVpi9FZspt0u7zj8; APISID=GF09QQoyirI05dF7/ALTs2_GFCeABgB3sQ; SAPISID=T_NjR_vKV6wufMQH/A1MpNmKnmYUpD9ALL; __Secure-1PAPISID=T_NjR_vKV6wufMQH/A1MpNmKnmYUpD9ALL; __Secure-3PAPISID=T_NjR_vKV6wufMQH/A1MpNmKnmYUpD9ALL; PREF=f6=40000000&tz=Asia.Saigon&f7=100&autoplay=true&volume=56&gl=VN&hl=vi&guide_collapsed=false&f5=20000; YSC=zlOmTzYFmfA; __Secure-1PSIDTS=sidts-CjEB3e41hVMGhnny0RrJ_9Xo7vlv9Snp5RI0Os4UJf3o0eTVQpu6XIgu1WiB4h-85ieZEAA; __Secure-3PSIDTS=sidts-CjEB3e41hVMGhnny0RrJ_9Xo7vlv9Snp5RI0Os4UJf3o0eTVQpu6XIgu1WiB4h-85ieZEAA; SIDCC=ACA-OxNYWmgFXxZbBBCm28QjtcfRwJ-5KptqbNeVrmmzSTfn17hF36FVWfNBS-xsXZZQ2MtFaAWJ; __Secure-1PSIDCC=ACA-OxMd3YwVX5FAZmRVz9dag48RWH8hv-WvzziDAcc4aYGNDEfK7OXwf3N_uMe7Z7KeBEBpvbn3; __Secure-3PSIDCC=ACA-OxP0D1K8y4lhUZR35NgHhmj3PZ_1o51V9gUcB8X-SChuTiQF7gyOCq9cTx5Orr483Owq2_U"
+//        YouTube.next(endpoint = WatchEndpoint(playlistId = "RDEMgtw3oC9Zt7NLrWZyopXq4Q"))
+//            .onSuccess {
+//                val songs = ArrayList<SongItem>()
+//                songs.addAll(it.items)
+//                println(songs.size)
+//                if (it.continuation != null) {
+//                    YouTube.next(endpoint = WatchEndpoint(playlistId = "RDEMgtw3oC9Zt7NLrWZyopXq4Q"), continuation = it.continuation).onSuccess { value ->
+//                        songs.addAll(value.items)
+//                        println(songs.size)
+//                        println(songs)
+//                    }
+//                }
+//            }
+        YouTube.getMusixmatchUserToken().onSuccess { 
+            println(it.message.body.user_token)
+        }
+            .onFailure {
+                it.printStackTrace()
+            }
+    }
+//      YouTube.authentication().onSuccess { token ->
+//            if (token.accessToken != null) {
+//
+//                YouTube.getSongId(token.accessToken, "Feel Good Gryffin").onSuccess { spotifyResult ->
+//                    if (!spotifyResult.tracks?.items.isNullOrEmpty()) {
+//                        val list = arrayListOf<String>()
+//                        for (index in spotifyResult.tracks?.items!!.indices) {
+//                            list.add(spotifyResult.tracks?.items?.get(index)?.name + spotifyResult.tracks?.items?.get(index)?.artists?.get(0)?.name)
+//                        }
+//                        bestMatchingIndex("Feel Good Gryffin", list).let {
+//                            spotifyResult.tracks?.items?.get(it)?.let {item ->
+//                                item.id?.let { it1 ->
+//                                    YouTube.getAccessToken().onSuccess { value: AccessToken ->
+//                                        println(value)
+//                                        YouTube.getLyrics(it1, value.accessToken).onSuccess { lyrics ->
+//                                            println(lyrics)
+//                                        }.onFailure {
+//                                            it.printStackTrace()
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                }.onFailure {
+//                    it.printStackTrace()
+//                }
+//            }
+//
+//        }
+//    }.onFailure {
+//        it.printStackTrace()
+//    }
+    //        YouTube.player("cPcGnUJmcFg", "").onSuccess { player ->
+////            player.playbackTracking?.videostatsPlaybackUrl?.baseUrl?.let { url ->
+////                YouTube.initPlayback(url).onSuccess { playback ->
+////                    println(playback)
+////                    delay(5000)
+////                    player.playbackTracking.atrUrl?.baseUrl?.let {
+////                        YouTube.initPlayback(it).onSuccess { atr ->
+////                            println(atr)
+////                        }
+////                    }
+////                }
+////            }
+//            if (player.playbackTracking?.videostatsPlaybackUrl?.baseUrl != null && player.playbackTracking.atrUrl?.baseUrl != null && player.playbackTracking.videostatsWatchtimeUrl?.baseUrl != null) {
+//                YouTube.initPlayback(player.playbackTracking.videostatsPlaybackUrl.baseUrl,
+//                    player.playbackTracking.atrUrl.baseUrl, player.playbackTracking.videostatsWatchtimeUrl.baseUrl
+//                ).onSuccess { playback ->
+//
+//                }
+//            }
+//        }
+//            .onFailure { error ->
+//                error.printStackTrace()
+//            }
+//        YouTube.getLibraryPlaylists().onSuccess {data ->
+//            val input = data.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(0)?.tabRenderer?.content?.sectionListRenderer?.contents?.get(0)?.gridRenderer?.items ?: null
+//            if (input != null) {
+//                val list = parseLibraryPlaylist(input)
+//                println(list)
+//            }
+//            else {
+//                println("null")
+//            }
+//        }
+//            .onFailure { error ->
+//                error.printStackTrace()
+//            }
+//        }
+//        YouTube.customQuery("FEmusic_history", setLogin = true).onSuccess {
+//            println(Json.encodeToString(it))
+//        }
+//            .onFailure { error ->
+//                error.printStackTrace()
+//            }
+//        YouTube.scrapeYouTube("XLbiC-ly7v8").onSuccess { scrape ->
+//            var response = ""
+//            var data = ""
+//            val ksoupHtmlParser = KsoupHtmlParser(
+//                object : KsoupHtmlHandler {
+//                    override fun onText(text: String) {
+//                        super.onText(text)
+//                        if (text.contains("var ytInitialPlayerResponse")) {
+//                            val temp = text.replace("var ytInitialPlayerResponse = ", "").dropLast(1)
+//                            response = temp.trimIndent()
+//                        }
+//                        else if (text.contains("var ytInitialData")) {
+//                            val temp = text.replace("var ytInitialData = ", "").dropLast(1)
+//                            data = temp.trimIndent()
+//                        }
+//                    }
+//                }
+//            )
+//            ksoupHtmlParser.write(scrape)
+//            ksoupHtmlParser.end()
+//            val json = Json {ignoreUnknownKeys = true}
+//            val ytScrapeData = json.decodeFromString<YouTubeDataPage>(data)
+//            val ytScrapeInitial = json.decodeFromString<YouTubeInitialPage>(response)
+//            println(ytScrapeInitial.playbackTracking.toString())
+//
+//        }
+//            .onFailure { error ->
+//                error.printStackTrace()
+//            }
+    }
+
+fun parseLibraryPlaylist(input: List<GridRenderer.Item>): ArrayList<PlaylistsResult> {
+    val list : ArrayList<PlaylistsResult> = arrayListOf()
+    if (input.isNotEmpty()) {
+        if (input.size >= 2) {
+            input[1].musicTwoRowItemRenderer?.let {
+                list.add(PlaylistsResult(
+                    author = it.subtitle?.runs?.get(0)?.text ?: "",
+                    browseId = it.navigationEndpoint.browseEndpoint?.browseId ?: "",
+                    category = "",
+                    itemCount = "",
+                    resultType = "",
+                    thumbnails = it.thumbnailRenderer.musicThumbnailRenderer?.thumbnail?.thumbnails ?: listOf(),
+                    title = it.title.runs?.get(0)?.text ?: ""
+                ))
+            }
+            if (input.size >= 3) {
+                for (i in 2 until input.size) {
+                    input[i].musicTwoRowItemRenderer?.let {
+                        list.add(PlaylistsResult(
+                            author = it.subtitle?.runs?.get(0)?.text ?: "",
+                            browseId = it.navigationEndpoint.browseEndpoint?.browseId ?: "",
+                            category = "",
+                            itemCount = "",
+                            resultType = "",
+                            thumbnails = it.thumbnailRenderer.musicThumbnailRenderer?.thumbnail?.thumbnails ?: listOf(),
+                            title = it.title.runs?.get(0)?.text ?: ""
+                        ))
+                    }
                 }
             }
         }
     }
+    return list
+}
+
+data class PlaylistsResult(
+    @SerializedName("author")
+    val author: String,
+    @SerializedName("browseId")
+    val browseId: String,
+    @SerializedName("category")
+    val category: String,
+    @SerializedName("itemCount")
+    val itemCount: String,
+    @SerializedName("resultType")
+    val resultType: String,
+    @SerializedName("thumbnails")
+    val thumbnails: List<Thumbnail>,
+    @SerializedName("title")
+    val title: String
+)
+
+fun levenshtein(lhs : CharSequence, rhs : CharSequence) : Int {
+    val lhsLength = lhs.length
+    val rhsLength = rhs.length
+
+    var cost = IntArray(lhsLength + 1) { it }
+    var newCost = IntArray(lhsLength + 1) { 0 }
+
+    for (i in 1..rhsLength) {
+        newCost[0] = i
+
+        for (j in 1..lhsLength) {
+            val editCost= if(lhs[j - 1] == rhs[i - 1]) 0 else 1
+
+            val costReplace = cost[j - 1] + editCost
+            val costInsert = cost[j] + 1
+            val costDelete = newCost[j - 1] + 1
+
+            newCost[j] = minOf(costInsert, costDelete, costReplace)
+        }
+
+        val swap = cost
+        cost = newCost
+        newCost = swap
+    }
+
+    return cost[lhsLength]
+}
+
+fun bestMatchingIndex(s: String, list: List<String>): Int {
+    val listCost = ArrayList<Int>()
+    for (i in list.indices){
+        listCost.add(levenshtein(s, list[i]))
+    }
+    return listCost.indexOf(listCost.minOrNull())
 }
 
 fun parseMixedContent(data: List<SectionListRenderer.Content>?): List<Map<String, Any?>> {

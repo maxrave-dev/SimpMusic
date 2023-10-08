@@ -19,12 +19,14 @@ import com.maxrave.simpmusic.common.DB_NAME
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.QUALITY
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
+import com.maxrave.simpmusic.common.SETTINGS_FILENAME
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.DatabaseDao
 import com.maxrave.simpmusic.data.db.MusicDatabase
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.di.DownloadCache
 import com.maxrave.simpmusic.di.PlayerCache
+import com.maxrave.simpmusic.extension.div
 import com.maxrave.simpmusic.extension.zipInputStream
 import com.maxrave.simpmusic.extension.zipOutputStream
 import com.maxrave.simpmusic.service.SimpleMediaService
@@ -80,6 +82,8 @@ class SettingsViewModel @Inject constructor(
     val sponsorBlockEnabled: LiveData<String> = _sponsorBlockEnabled
     private var _sponsorBlockCategories: MutableLiveData<ArrayList<String>> = MutableLiveData()
     val sponsorBlockCategories: LiveData<ArrayList<String>> = _sponsorBlockCategories
+    private var _sendBackToGoogle: MutableLiveData<String> = MutableLiveData()
+    val sendBackToGoogle: LiveData<String> = _sendBackToGoogle
 
     fun checkForUpdate() {
         viewModelScope.launch {
@@ -245,15 +249,14 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun backup(context: Context, uri: Uri) {
-        kotlin.runCatching {
+        runCatching {
             context.applicationContext.contentResolver.openOutputStream(uri)?.use {
                 it.buffered().zipOutputStream().use { outputStream ->
-//                    (context.filesDir / "datastore" / SETTINGS_FILENAME).inputStream().buffered()
-//                        .use { inputStream ->
-//                            outputStream.putNextEntry(ZipEntry(SETTINGS_FILENAME))
-//                            inputStream.copyTo(outputStream)
-//                        }
-                    runBlocking((Dispatchers.Main)) {
+                    (context.filesDir/"datastore"/"$SETTINGS_FILENAME.preferences_pb").inputStream().buffered().use { inputStream ->
+                        outputStream.putNextEntry(ZipEntry("$SETTINGS_FILENAME.preferences_pb"))
+                        inputStream.copyTo(outputStream)
+                    }
+                    runBlocking(Dispatchers.IO) {
                         databaseDao.checkpoint()
                     }
                     FileInputStream(database.openHelper.writableDatabase.path).use { inputStream ->
@@ -263,29 +266,33 @@ class SettingsViewModel @Inject constructor(
                 }
             }
         }.onSuccess {
-            Toast.makeText(context, "Backup Create Success", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context,
+                context.getString(R.string.backup_create_success), Toast.LENGTH_SHORT).show()
         }.onFailure {
             it.printStackTrace()
-            Toast.makeText(context, "Backup Create Failed", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context,
+                context.getString(R.string.backup_create_failed), Toast.LENGTH_SHORT).show()
         }
     }
 
     @UnstableApi
     fun restore(context: Context, uri: Uri) {
         runCatching {
+            runBlocking { dataStoreManager.restore(true)}
             context.applicationContext.contentResolver.openInputStream(uri)?.use {
                 it.zipInputStream().use { inputStream ->
                     var entry = inputStream.nextEntry
-                    while (entry != null) {
+                    var count = 0
+                    while (entry != null && count < 2) {
                         when (entry.name) {
-//                            SETTINGS_FILENAME -> {
-//                                (context.filesDir / "datastore" / SETTINGS_FILENAME).outputStream().use { outputStream ->
-//                                    inputStream.copyTo(outputStream)
-//                                }
-//                            }
+                            "$SETTINGS_FILENAME.preferences_pb" -> {
+                                (context.filesDir/"datastore"/"$SETTINGS_FILENAME.preferences_pb").outputStream().use { outputStream ->
+                                    inputStream.copyTo(outputStream)
+                                }
+                            }
 
                             DB_NAME -> {
-                                runBlocking((Dispatchers.Main)) {
+                                runBlocking(Dispatchers.IO) {
                                     databaseDao.checkpoint()
                                 }
                                 database.close()
@@ -294,16 +301,14 @@ class SettingsViewModel @Inject constructor(
                                 }
                             }
                         }
+                        count++
                         entry = inputStream.nextEntry
                     }
                 }
             }
-            runBlocking { dataStoreManager.restore(true)}
             context.stopService(Intent(context, SimpleMediaService::class.java))
             context.startActivity(Intent(context, MainActivity::class.java))
             exitProcess(0)
-        }.onSuccess {
-            Toast.makeText(context, context.getString(R.string.restore_success), Toast.LENGTH_SHORT).show()
         }.onFailure {
             it.printStackTrace()
             Toast.makeText(context, context.getString(R.string.restore_failed), Toast.LENGTH_SHORT).show()
@@ -341,6 +346,15 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun clearSpotifyCookie() {
+        viewModelScope.launch {
+            withContext((Dispatchers.Main)) {
+                dataStoreManager.setSpotifyCookie("")
+                dataStoreManager.setSpotifyLoggedIn(false)
+            }
+        }
+    }
+
     fun getNormalizeVolume() {
         viewModelScope.launch {
             withContext(Dispatchers.Main) {
@@ -360,22 +374,20 @@ class SettingsViewModel @Inject constructor(
             }
         }
     }
-
-    fun getPipedInstance() {
+    fun getSendBackToGoogle() {
         viewModelScope.launch {
             withContext(Dispatchers.Main) {
-                dataStoreManager.pipedInstance.collect { pipedInstance ->
-                    _pipedInstance.postValue(pipedInstance)
+                dataStoreManager.sendBackToGoogle.collect { sendBackToGoogle ->
+                    _sendBackToGoogle.postValue(sendBackToGoogle)
                 }
             }
         }
     }
-
-    fun setPipedInstance(pipedInstance: String) {
+    fun setSendBackToGoogle(sendBackToGoogle: Boolean) {
         viewModelScope.launch {
             withContext((Dispatchers.Main)) {
-                dataStoreManager.setPipedInstance(pipedInstance)
-                getPipedInstance()
+                dataStoreManager.setSendBackToGoogle(sendBackToGoogle)
+                getSendBackToGoogle()
             }
         }
     }

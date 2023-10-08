@@ -23,6 +23,8 @@ data class ArtistBrowse(
     val singles: Singles?,
     @SerializedName("songs")
     val songs: Songs?,
+    @SerializedName("video")
+    val video: List<ResultVideo>?,
     @SerializedName("subscribed")
     val subscribed: Boolean?,
     @SerializedName("subscribers")

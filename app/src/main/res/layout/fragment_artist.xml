@@ -124,24 +124,29 @@
 
                             <Button
                                 android:id="@+id/btFollow"
-                                android:layout_width="120sp"
+                                android:layout_width="130sp"
                                 android:layout_height="50sp"
                                 android:textColor="?attr/colorOnSecondaryContainer"
                                 style="?attr/materialButtonOutlinedStyle"
                                 android:layout_alignParentStart="true">
 
                             </Button>
-                            <ImageButton
+                            <Button
+                                style="@style/Widget.Material3.Button.OutlinedButton.Icon"
                                 android:layout_width="wrap_content"
-                                android:id="@+id/btMore"
-                                android:layout_height="match_parent"
-                                android:background="@android:color/transparent"
+                                android:id="@+id/btRadio"
+                                app:iconPadding="8sp"
+                                android:layout_height="50sp"
+                                android:textColor="?attr/colorOnSecondaryContainer"
                                 android:layout_centerVertical="true"
-                                android:visibility="gone"
-                                android:src="@drawable/baseline_more_vert_24"
+                                android:visibility="visible"
+                                app:icon ="@drawable/baseline_sensors_24"
+                                app:strokeColor="@android:color/transparent"
+                                app:strokeWidth="0sp"
+                                android:text="@string/start_radio"
                                 android:layout_alignParentEnd="true">
 
-                            </ImageButton>
+                            </Button>
                         </RelativeLayout>
 
                     </LinearLayout>
@@ -232,7 +237,28 @@
                     tools:listitem="@layout/item_singles">
 
                 </androidx.recyclerview.widget.RecyclerView>
+                <TextView
+                    android:padding="15sp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/videos"
+                    android:textSize="18sp"
+                    android:textStyle="bold">
 
+                </TextView>
+                <androidx.recyclerview.widget.RecyclerView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="15sp"
+                    android:layout_marginEnd="15sp"
+                    android:id="@+id/rvVideo"
+                    android:scrollbars="horizontal"
+                    android:orientation="horizontal"
+                    app:reverseLayout="true"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    tools:listitem="@layout/item_singles">
+
+                </androidx.recyclerview.widget.RecyclerView>
                 <TextView
                     android:padding="15sp"
                     android:layout_width="match_parent"
@@ -276,13 +302,18 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                         android:padding="15sp">
-                        <TextView
+                        <io.github.giangpham96.expandable_textview.ExpandableTextView
                             android:autoLink="web"
                             android:id="@+id/tvDescription"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            style="@style/TextAppearance.Material3.BodyMedium">
-                        </TextView>
+                            android:fontFamily="@font/roboto"
+                            android:textStyle="normal"
+                            app:limitedMaxLines="5"
+                            app:expandAction="@string/more"
+                            app:expandActionColor="@color/md_theme_dark_outlineVariant">
+
+                        </io.github.giangpham96.expandable_textview.ExpandableTextView>
 
                     </LinearLayout>
 

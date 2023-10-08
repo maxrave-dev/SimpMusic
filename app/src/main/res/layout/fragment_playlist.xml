@@ -169,7 +169,7 @@
                                 android:layout_height="35sp"
                                 android:layout_alignParentEnd="true"
                                 android:layout_centerVertical="true"
-                                android:visibility="gone"
+                                android:visibility="visible"
                                 android:background="?attr/actionBarItemBackground"
                                 android:src="@drawable/baseline_more_vert_24">
 
@@ -182,8 +182,8 @@
                             android:layout_height="wrap_content"
                             android:paddingTop="10sp"
                             android:layout_marginBottom="10sp"
-                            android:maxLines="10"
-                            app:expandAction="More"
+                            app:expandAction="@string/more"
+                            app:expandActionColor="@color/md_theme_dark_outlineVariant"
                             app:limitedMaxLines="3"
                             app:originalText="@string/demo_description"
                             android:fontFamily="@font/roboto"
@@ -207,6 +207,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:id="@+id/rvListSong"
+                        android:overScrollMode="never"
                         tools:listitem="@layout/item_popular_song"
                         android:layout_marginStart="10sp"
                         android:layout_marginEnd="10sp">

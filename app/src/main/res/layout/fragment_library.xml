@@ -17,9 +17,8 @@
                 android:id="@+id/topAppBar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
-                app:title="SimpMusic"
+                app:title="@string/app_name"
                 app:titleTextAppearance="@style/TextAppearance.Material3.TitleMedium"
-                app:menu="@menu/add_playlist"
                 app:layout_scrollFlags="scroll|enterAlways|snap"/>
         </com.google.android.material.appbar.AppBarLayout>
         <androidx.core.widget.NestedScrollView
@@ -169,6 +168,110 @@
                         </LinearLayout>
                     </com.google.android.material.card.MaterialCardView>
                 </LinearLayout>
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10sp"
+                    android:layout_marginTop="25sp">
+                    <TextView
+                        android:layout_alignParentStart="true"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:fontFamily="@font/roboto"
+                        android:text="@string/your_youtube_playlists"
+                        android:layout_centerVertical="true"
+                        android:layout_toStartOf="@id/btAddYouTubePlaylist">
+
+                    </TextView>
+                    <Button
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_width="wrap_content"
+                        android:id="@+id/btAddYouTubePlaylist"
+                        android:layout_height="wrap_content"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:text="@string/add"
+                        android:textColor="?attr/colorOnSecondaryContainer"
+                        android:background="@android:color/transparent"
+                        android:src="@drawable/baseline_shuffle_24"
+                        android:visibility="gone"
+                        android:focusable="true"
+                        android:clickable="true"
+                        android:foreground="?android:attr/selectableItemBackground">
+
+                    </Button>
+
+                </RelativeLayout>
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvYouTubePlaylists"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="10sp"
+                    android:clipToPadding="false" />
+
+                <TextView
+                    android:id="@+id/tvYouTubePlaylistsStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:text="@string/no_YouTube_playlists"
+                    android:visibility="gone">
+
+                </TextView>
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="10sp"
+                    android:layout_marginTop="25sp">
+                    <TextView
+                        android:layout_alignParentStart="true"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:fontFamily="@font/roboto"
+                        android:text="@string/your_playlists"
+                        android:layout_centerVertical="true"
+                        android:layout_toStartOf="@id/btAddLocalPlaylist">
+
+                    </TextView>
+                    <Button
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_width="wrap_content"
+                        android:id="@+id/btAddLocalPlaylist"
+                        android:layout_height="wrap_content"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:text="@string/add"
+                        android:textColor="?attr/colorOnSecondaryContainer"
+                        android:background="@android:color/transparent"
+                        android:src="@drawable/baseline_shuffle_24"
+                        android:focusable="true"
+                        android:clickable="true"
+                        android:foreground="?android:attr/selectableItemBackground">
+
+                    </Button>
+
+                </RelativeLayout>
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rvYourPlaylists"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:layout_marginBottom="10sp"
+                    android:clipToPadding="false"/>
+                <TextView
+                    android:id="@+id/tvYourPlaylistsStatus"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_horizontal"
+                    android:text="@string/no_playlists_added"
+                    android:visibility="gone">
+
+                </TextView>
                 <TextView
                     android:id="@+id/tvFavoritePlaylists"
                     android:layout_width="match_parent"
@@ -222,35 +325,6 @@
                     android:layout_height="wrap_content"
                     android:gravity="center_horizontal"
                     android:text="@string/no_playlists_downloaded"
-                    android:visibility="gone">
-
-                </TextView>
-                <TextView
-                    android:id="@+id/tvYourPlaylists"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:textSize="20sp"
-                    android:textStyle="bold"
-                    android:fontFamily="@font/roboto"
-                    android:text="@string/your_playlists"
-                    android:layout_marginBottom="10sp"
-                    android:layout_marginTop="25sp">
-
-                </TextView>
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rvYourPlaylists"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginBottom="10sp"
-                    android:clipToPadding="false"
-                    tools:listitem="@layout/item_your_playlist"/>
-                <TextView
-                    android:id="@+id/tvYourPlaylistsStatus"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_horizontal"
-                    android:text="@string/no_playlists_added"
                     android:visibility="gone">
 
                 </TextView>

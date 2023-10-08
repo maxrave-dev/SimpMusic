@@ -7,10 +7,17 @@ import android.graphics.Color
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
+import androidx.core.net.toUri
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
+import androidx.media3.common.util.UnstableApi
 import androidx.sqlite.db.SimpleSQLiteQuery
+import com.maxrave.kotlinytmusicscraper.models.SongItem
+import com.maxrave.kotlinytmusicscraper.models.VideoItem
 import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
+import com.maxrave.kotlinytmusicscraper.models.spotify.ArtistX
+import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
 import com.maxrave.simpmusic.common.SETTINGS_FILENAME
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.LyricsEntity
@@ -20,6 +27,7 @@ import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.AlbumBrowse
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.browse.artist.ResultSong
+import com.maxrave.simpmusic.data.model.browse.artist.ResultVideo
 import com.maxrave.simpmusic.data.model.browse.playlist.PlaylistBrowse
 import com.maxrave.simpmusic.data.model.home.Content
 import com.maxrave.simpmusic.data.model.metadata.Line
@@ -29,7 +37,7 @@ import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import com.maxrave.simpmusic.data.parser.toListThumbnail
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -75,6 +83,25 @@ fun ResultSong.toTrack(): Track {
         year = ""
     )
 }
+fun ResultVideo.toTrack(): Track {
+    return Track(
+        album = null,
+        artists = this.artists ?: listOf(),
+        duration = this.duration,
+        durationSeconds = this.durationSeconds,
+        isAvailable = false,
+        isExplicit = false,
+        likeStatus = null,
+        thumbnails = this.thumbnails,
+        title = this.title,
+        videoId = this.videoId,
+        videoType = null,
+        category = null,
+        feedbackTokens = null,
+        resultType = null,
+        year = ""
+    )
+}
 
 fun SongsResult.toTrack(): Track {
     return Track(
@@ -94,6 +121,53 @@ fun SongsResult.toTrack(): Track {
         this.resultType,
         ""
     )
+}
+fun SongItem.toTrack(): Track {
+    return Track(
+        album = this.album.let { Album(it?.id ?: "", it?.name ?: "")},
+        artists = this.artists.map { artist -> Artist(id = artist.id ?: "", name = artist.name)  },
+        duration = this.duration.toString(),
+        durationSeconds = this.duration,
+        isAvailable = false,
+        isExplicit = this.explicit,
+        likeStatus = null,
+        thumbnails = this.thumbnails?.thumbnails?.toListThumbnail() ?: listOf(),
+        title = this.title,
+        videoId = this.id,
+        videoType = null,
+        category = null,
+        feedbackTokens = null,
+        resultType = null,
+        year = null
+    )
+}
+fun VideoItem.toTrack(): Track {
+    return Track(
+        album = this.album.let { Album(it?.id ?: "", it?.name ?: "")} ,
+        artists = this.artists.map { artist -> Artist(id = artist.id ?: "", name = artist.name)  },
+        duration = this.duration.toString(),
+        durationSeconds = this.duration,
+        isAvailable = false,
+        isExplicit = false,
+        likeStatus = null,
+        thumbnails = this.thumbnails?.thumbnails?.toListThumbnail() ?: listOf(),
+        title = this.title,
+        videoId = this.id,
+        videoType = null,
+        category = null,
+        feedbackTokens = null,
+        resultType = null,
+        year = null
+    )
+}
+fun List<SongItem>?.toListTrack(): ArrayList<Track> {
+    val listTrack = arrayListOf<Track>()
+    if (this != null) {
+        for (item in this) {
+            listTrack.add(item.toTrack())
+        }
+    }
+    return listTrack
 }
 fun List<Artist>?.toListName(): List<String> {
     val list = mutableListOf<String>()
@@ -205,6 +279,31 @@ fun MediaItem?.toSongEntity(): SongEntity? {
         totalPlayTime = 0,
         downloadState = 0
     ) else null
+}
+@UnstableApi
+fun Track.toMediaItem() : MediaItem {
+    return MediaItem.Builder()
+        .setMediaId(this.videoId)
+        .setUri(this.videoId)
+        .setCustomCacheKey(this.videoId)
+        .setMediaMetadata(
+            MediaMetadata.Builder()
+                .setTitle(this.title)
+                .setArtist(this.artists.toListName().connectArtists())
+                .setArtworkUri(this.thumbnails?.lastOrNull()?.url?.toUri())
+                .setAlbumTitle(this.album?.name)
+                .build()
+        )
+        .build()
+}
+
+@UnstableApi
+fun List<Track>.toMediaItems(): List<MediaItem> {
+    val listMediaItem = mutableListOf<MediaItem>()
+    for (item in this) {
+        listMediaItem.add(item.toMediaItem())
+    }
+    return listMediaItem
 }
 
 @JvmName("SongResulttoListTrack")
@@ -367,16 +466,26 @@ fun ArrayList<String>.removeConflicts(): ArrayList<String> {
 
 fun com.maxrave.kotlinytmusicscraper.models.lyrics.Lyrics.toLyrics(): Lyrics {
     val lines : ArrayList<Line> = arrayListOf()
-    this.lines?.forEach {
-        lines.add(Line(
-            endTimeMs = it.endTimeMs, startTimeMs = it.startTimeMs, syllables = it.syllables ?: listOf(), words = it.words
-        ))
+    if (this.lyrics != null) {
+        this.lyrics?.lines?.forEach {
+            lines.add(Line(
+                endTimeMs = it.endTimeMs, startTimeMs = it.startTimeMs, syllables = it.syllables ?: listOf(), words = it.words
+            ))
+        }
+        return Lyrics(
+            error = false,
+            lines = lines,
+            syncType = this.lyrics!!.syncType
+        )
     }
-    return Lyrics(
-        error = this.error,
-        lines = lines,
-        syncType = this.syncType
-    )
+    else {
+        return Lyrics(
+            error = true,
+            lines = null,
+            syncType = null
+        )
+    }
+
 }
 fun PipedResponse.toTrack(videoId: String): Track {
     return Track(
@@ -397,18 +506,42 @@ fun PipedResponse.toTrack(videoId: String): Track {
         year = ""
     )
 }
-fun replaceHostAndRemoveHostParameter(url: String?, unwrap: Boolean = true) = url?.toHttpUrlOrNull()
-        ?.takeIf { unwrap }?.let {
-            val host = it.queryParameter("host")
-            // if there's no host parameter specified, there's no way to unwrap the URL
-            // and the proxied one must be used. That's the case if using LBRY.
-            if (host.isNullOrEmpty()) return@let url
-            it.newBuilder()
-                .host(host)
-                .removeAllQueryParameters("host")
-                .build()
-                .toString()
-        } ?: url
+fun List<ArtistX?>?.connectArtistsSpotify(): String {
+    val stringBuilder = StringBuilder()
+
+    if (this != null) {
+        for ((index, artist) in this.withIndex()) {
+            stringBuilder.append(artist?.name)
+
+            if (index < this.size - 1) {
+                stringBuilder.append(" ")
+            }
+        }
+    }
+
+    return stringBuilder.toString()
+}
+fun YouTubeInitialPage.toTrack(): Track {
+    val initialPage = this
+
+    return Track(
+        album = null,
+        artists = listOf(Artist(initialPage.videoDetails?.author, initialPage.videoDetails?.channelId ?: "")),
+        duration = initialPage.videoDetails?.lengthSeconds,
+        durationSeconds = initialPage.videoDetails?.lengthSeconds?.toInt() ?: 0,
+        isAvailable = false,
+        isExplicit = false,
+        likeStatus = null,
+        thumbnails = initialPage.videoDetails?.thumbnail?.thumbnails?.toListThumbnail() ?: listOf(),
+        title = initialPage.videoDetails?.title ?: "",
+        videoId = initialPage.videoDetails?.videoId ?: "",
+        videoType = "",
+        category = "",
+        feedbackTokens = null,
+        resultType = "",
+        year = ""
+    )
+}
 
 operator fun File.div(child: String): File = File(this, child)
 fun String.toSQLiteQuery(): SimpleSQLiteQuery = SimpleSQLiteQuery(this)

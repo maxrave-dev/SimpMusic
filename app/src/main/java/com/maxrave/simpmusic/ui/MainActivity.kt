@@ -8,7 +8,6 @@ import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.text.Html
 import android.util.Log
 import android.view.View
 import android.view.animation.AnimationUtils
@@ -53,9 +52,7 @@ import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.ActivityMainBinding
 import com.maxrave.simpmusic.extension.isMyServiceRunning
-import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.SimpleMediaService
-import com.maxrave.simpmusic.service.test.source.FetchQueue
 import com.maxrave.simpmusic.service.test.source.MusicSource
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
@@ -195,6 +192,27 @@ class MainActivity : AppCompatActivity() {
                 binding.bottomNavigationView.selectedItemId = R.id.bottom_navigation_item_library
             }
             else -> {}
+        }
+
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            when (destination.id) {
+                R.id.bottom_navigation_item_home, R.id.settingsFragment, R.id.recentlySongsFragment -> {
+                    binding.bottomNavigationView.menu.findItem(R.id.bottom_navigation_item_home)?.isChecked =
+                        true
+                }
+
+                R.id.bottom_navigation_item_search -> {
+                    binding.bottomNavigationView.menu.findItem(R.id.bottom_navigation_item_search)?.isChecked =
+                        true
+                }
+
+                R.id.bottom_navigation_item_library, R.id.downloadedFragment, R.id.mostPlayedFragment, R.id.followedFragment, R.id.favoriteFragment -> {
+                    binding.bottomNavigationView.menu.findItem(R.id.bottom_navigation_item_library)?.isChecked =
+                        true
+                }
+
+                else -> {}
+            }
         }
 
         binding.miniplayer.showMode = SwipeLayout.ShowMode.PullOut
@@ -432,7 +450,6 @@ class MainActivity : AppCompatActivity() {
                              }
                          }
                      }
-                     delay(500)
                  }
              }
 
@@ -503,28 +520,8 @@ class MainActivity : AppCompatActivity() {
                     }
                     Queue.clear()
                     Queue.addAll(queueData)
-                    viewModel.removeSaveQueue()
-                    if (!isMyServiceRunning(FetchQueue::class.java)) {
-                        startService(
-                            Intent(
-                                this,
-                                FetchQueue::class.java
-                            )
-                        )
-                    } else {
-                        stopService(
-                            Intent(
-                                this,
-                                FetchQueue::class.java
-                            )
-                        )
-                        startService(
-                            Intent(
-                                this,
-                                FetchQueue::class.java
-                            )
-                        )
-                    }
+                    viewModel.resetRelated()
+                    viewModel.addQueueToPlayer()
                     checkForUpdate()
                 }
             }
@@ -552,10 +549,6 @@ class MainActivity : AppCompatActivity() {
         if (viewModel.isServiceRunning.value == true){
             stopService(Intent(this, SimpleMediaService::class.java))
             Log.d("Service", "Service stopped")
-            if (this.isMyServiceRunning(FetchQueue:: class.java)){
-                stopService(Intent(this, FetchQueue::class.java))
-                Log.d("Service", "FetchQueue stopped")
-            }
             if (this.isMyServiceRunning(DownloadService:: class.java)){
                 this.stopService(Intent(this, DownloadService::class.java))
                 viewModel.changeAllDownloadingToError()
@@ -627,7 +620,7 @@ class MainActivity : AppCompatActivity() {
 
                     MaterialAlertDialogBuilder(this)
                         .setTitle(getString(R.string.update_available))
-                        .setMessage(getString(R.string.update_message, response.tagName, formatted, Html.fromHtml(response.body, Html.FROM_HTML_MODE_COMPACT)))
+                        .setMessage(getString(R.string.update_message, response.tagName, formatted, response.body))
                         .setPositiveButton(getString(R.string.download)) { _, _ ->
                             val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(response.assets?.firstOrNull()?.browserDownloadUrl))
                             startActivity(browserIntent)

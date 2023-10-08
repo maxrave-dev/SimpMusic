@@ -1,7 +1,6 @@
 package com.maxrave.simpmusic.viewModel
 
 import android.app.Application
-import android.content.Context
 import android.graphics.drawable.GradientDrawable
 import android.util.Log
 import android.widget.Toast
@@ -21,10 +20,10 @@ import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.browse.playlist.PlaylistBrowse
 import com.maxrave.simpmusic.data.repository.MainRepository
+import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -37,8 +36,7 @@ import javax.inject.Inject
 @HiltViewModel
 class PlaylistViewModel @Inject constructor(
     private val mainRepository: MainRepository,
-    @ApplicationContext private val context: Context,
-    application: Application,
+    private val application: Application,
     private var dataStoreManager: DataStoreManager
 ): AndroidViewModel(application) {
     @Inject
@@ -52,6 +50,9 @@ class PlaylistViewModel @Inject constructor(
 
     private val _id: MutableLiveData<String> = MutableLiveData()
     var id: LiveData<String> = _id
+
+    private val _isRadio: MutableLiveData<Boolean> = MutableLiveData()
+    var isRadio: LiveData<Boolean> = _isRadio
 
     private var _playlistEntity: MutableLiveData<PlaylistEntity> = MutableLiveData()
     var playlistEntity: LiveData<PlaylistEntity> = _playlistEntity
@@ -75,6 +76,9 @@ class PlaylistViewModel @Inject constructor(
     fun updateId(id: String){
         _id.value = id
     }
+    fun updateIsRadio(isRadio: Boolean) {
+        _isRadio.value = isRadio
+    }
 
     fun browsePlaylist(id: String) {
         loading.value = true
@@ -86,6 +90,18 @@ class PlaylistViewModel @Inject constructor(
                 _playlistBrowse.value = it
             }
             withContext(Dispatchers.Main){
+                loading.value = false
+            }
+        }
+    }
+
+    fun getRadio(radioId: String, title: String?, thumbnails: String?) {
+        loading.value = true
+        viewModelScope.launch {
+            mainRepository.getRadio(radioId, title, thumbnails).collect {
+                _playlistBrowse.value = it
+            }
+            withContext(Dispatchers.Main) {
                 loading.value = false
             }
         }
@@ -317,7 +333,7 @@ class PlaylistViewModel @Inject constructor(
                     }
                 }
                 mainRepository.updateLocalPlaylistTracks(list, id)
-                Toast.makeText(getApplication(), context.getString(R.string.added_to_playlist), Toast.LENGTH_SHORT).show()
+                Toast.makeText(getApplication(), application.getString(R.string.added_to_playlist), Toast.LENGTH_SHORT).show()
                 if (count == values.size) {
                     mainRepository.updateLocalPlaylistDownloadState(DownloadState.STATE_DOWNLOADED, id)
                 }
@@ -364,6 +380,60 @@ class PlaylistViewModel @Inject constructor(
                         mainRepository.updatePlaylistDownloadState(id, DownloadState.STATE_NOT_DOWNLOADED)
                         DownloadState.STATE_NOT_DOWNLOADED
                     }
+            }
+        }
+    }
+
+    fun insertLocalPlaylist(localPlaylistEntity: LocalPlaylistEntity, listTrack: List<Track>) {
+        viewModelScope.launch {
+            mainRepository.insertLocalPlaylist(localPlaylistEntity)
+            mainRepository.getLocalPlaylistByYoutubePlaylistId(localPlaylistEntity.youtubePlaylistId!!).collect { playlist ->
+                if (playlist != null && playlist.youtubePlaylistId == localPlaylistEntity.youtubePlaylistId) {
+                    for (track in listTrack) {
+                        mainRepository.insertSong(track.toSongEntity())
+                    }
+                }
+            }
+            Toast.makeText(application, application.getString(R.string.added_local_playlist), Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private var _localPlaylistIfYouTubePlaylist: MutableStateFlow<LocalPlaylistEntity?> = MutableStateFlow(null)
+    var localPlaylistIfYouTubePlaylist: MutableStateFlow<LocalPlaylistEntity?> = _localPlaylistIfYouTubePlaylist
+
+    fun checkSyncedPlaylist(value: String?) {
+        viewModelScope.launch {
+            if (value != null) {
+                mainRepository.getLocalPlaylistByYoutubePlaylistId(value).collect {
+                    _localPlaylistIfYouTubePlaylist.value = it
+                }
+            }
+        }
+    }
+    fun addToYouTubePlaylist(localPlaylistId: Long, youtubePlaylistId: String, videoId: String) {
+        viewModelScope.launch {
+            mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylistId, LocalPlaylistEntity.YouTubeSyncState.Syncing)
+            mainRepository.addYouTubePlaylistItem(youtubePlaylistId, videoId).collect { response ->
+                if (response == "STATUS_SUCCEEDED") {
+                    mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylistId, LocalPlaylistEntity.YouTubeSyncState.Synced)
+                    Toast.makeText(application, application.getString(R.string.added_to_youtube_playlist), Toast.LENGTH_SHORT).show()
+                }
+                else {
+                    mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylistId, LocalPlaylistEntity.YouTubeSyncState.NotSynced)
+                    Toast.makeText(application, application.getString(R.string.error), Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    fun insertRadioPlaylist(playlistEntity: PlaylistEntity) {
+        viewModelScope.launch {
+            mainRepository.insertRadioPlaylist(playlistEntity)
+            mainRepository.getPlaylist(playlistEntity.id).collect{ values ->
+                _playlistEntity.value = values
+                if (values != null) {
+                    _liked.value = values.liked
+                }
             }
         }
     }
