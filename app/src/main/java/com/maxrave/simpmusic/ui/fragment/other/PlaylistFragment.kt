@@ -107,10 +107,9 @@ class PlaylistFragment: Fragment() {
         playlistItemAdapter = PlaylistItemAdapter(arrayListOf())
         binding.rvListSong.apply {
             adapter = playlistItemAdapter
-            layoutManager = LinearLayoutManager(requireContext()).also {
-                it.initialPrefetchItemCount = 20
-            }
+            layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
             setHasFixedSize(false)
+            isNestedScrollingEnabled = false
         }
         var id = requireArguments().getString("id")
         val downloaded = arguments?.getInt("downloaded")

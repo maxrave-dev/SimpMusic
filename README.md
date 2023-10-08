@@ -17,18 +17,17 @@ A simple music app using YouTube Music for backend
 - Play music from YouTube Music or YouTube free without ads in the background
 - Browsing Home, Charts, Moods & Genre with YouTube Music data with high speed
 - Search everything on YouTube
-- Analyze your playing data and create custom playlists ...
+- Analyze your playing data, create custom playlists and sync with YouTube Music ...
 - Caching and can save data for offline playback
-- Synced lyrics (log in to Spotify to get lyrics)
-- Sleep Timer
+- Synced lyrics from Musixmatch
 - Support SponsorBlock
-- Google Login
-- And many more ...
+- Sleep Timer
+- And many more
 ## Screenshot
 <p float="left">
   <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/miniplayer_top.jpg" width="200" />
   <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/miniplayer_bottom.jpg" width="200" />
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/home.jpg" width="200" />
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/new_home_ui.jpg" width="200" />
 </p>
 <p float="left">
   <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/moodmoment.jpg" width="200" />
@@ -36,7 +35,7 @@ A simple music app using YouTube Music for backend
   <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/artist_top.jpg" width="200" />
 </p>
 <p float="left">
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/search.jpg" width="200" />
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/radio.jpg" width="200" />
   <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/search_suggest.jpg" width="200" />
   <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/search_result.jpg" width="200" />
 </p>
@@ -44,7 +43,7 @@ A simple music app using YouTube Music for backend
 More [screenshot](https://photos.app.goo.gl/AbieoXG5ctDrpwzp7) here.
 
 ## Data
-- This app using public api from YouTube Music with some tricks to get data from YouTube Music.
+- This app using hidden API from YouTube Music with some tricks to get data from YouTube Music.
 - Thanks for [InnerTune](https://github.com/z-huang/InnerTune/) for the idea to get data from YouTube Music. This repo is my inspiration to create this app.
 - My app is using [@SponsorBlock](https://sponsor.ajay.app/) to skip sponsor in YouTube videos. Thanks for this great service.
 ## Translation

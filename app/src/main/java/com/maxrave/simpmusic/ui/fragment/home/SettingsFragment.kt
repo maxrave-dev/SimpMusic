@@ -199,6 +199,12 @@ class SettingsFragment : Fragment() {
                     }
                     else {
                         Toast.makeText(requireContext(), getString(R.string.no_update), Toast.LENGTH_SHORT).show()
+                        viewModel.getLastCheckForUpdate()
+                        viewModel.lastCheckForUpdate.observe(viewLifecycleOwner) {
+                            binding.tvCheckForUpdate.text = getString(R.string.last_checked_at, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                                .withZone(ZoneId.systemDefault())
+                                .format(Instant.ofEpochMilli(it.toLong())))
+                        }
                     }
                 }
             }

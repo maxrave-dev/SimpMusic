@@ -207,6 +207,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:id="@+id/rvListSong"
+                        android:overScrollMode="never"
                         tools:listitem="@layout/item_popular_song"
                         android:layout_marginStart="10sp"
                         android:layout_marginEnd="10sp">

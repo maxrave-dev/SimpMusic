@@ -539,7 +539,8 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                                 .setAlbumTitle(track.album?.name)
                                 .build()
                         )
-                        .build()
+                        .build(),
+                    type != RECOVER_TRACK_QUEUE
                 )
                 _nowPlayingMediaItem.value = getCurrentMediaItem()
                 Log.d(
@@ -582,7 +583,8 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                                         .setAlbumTitle(track.album?.name)
                                         .build()
                                 )
-                                .build()
+                                .build(),
+                            type != RECOVER_TRACK_QUEUE
                         )
                         _nowPlayingMediaItem.value = getCurrentMediaItem()
                         Log.d(
