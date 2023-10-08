@@ -5,7 +5,6 @@ import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
-import com.maxrave.simpmusic.common.QUALITY
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
@@ -20,14 +19,11 @@ import com.maxrave.simpmusic.service.test.source.StateSource.STATE_INITIALIZED
 import com.maxrave.simpmusic.service.test.source.StateSource.STATE_INITIALIZING
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 class MusicSource @Inject constructor(private val simpleMediaServiceHandler: SimpleMediaServiceHandler, private val dataStoreManager: DataStoreManager, private val mainRepository: MainRepository) {
 
     var catalogMetadata: ArrayList<Track> = (arrayListOf())
-    var downloadUrl: ArrayList<String> = arrayListOf()
 
     var added: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
@@ -69,7 +65,6 @@ class MusicSource @Inject constructor(private val simpleMediaServiceHandler: Sim
     fun reset() {
         _currentSongIndex.value = 0
         catalogMetadata.clear()
-        downloadUrl.clear()
         state = STATE_CREATED
     }
     fun setCurrentSongIndex(index: Int) {
@@ -88,12 +83,6 @@ class MusicSource @Inject constructor(private val simpleMediaServiceHandler: Sim
         state = STATE_INITIALIZING
         val tempQueue: ArrayList<Track> = arrayListOf()
         tempQueue.addAll(Queue.getQueue())
-        val quality = runBlocking { dataStoreManager.quality.first() }
-        val itag = when (quality) {
-            QUALITY.items[0].toString() -> 250
-            QUALITY.items[1].toString() -> 251
-            else -> 251
-        }
         for (i in 0 until tempQueue.size){
             val track = tempQueue[i]
             var thumbUrl = track.thumbnails?.last()?.url ?: "http://i.ytimg.com/vi/${track.videoId}/maxresdefault.jpg"
@@ -107,7 +96,8 @@ class MusicSource @Inject constructor(private val simpleMediaServiceHandler: Sim
                         if (format != null) {
                             val mediaItem = MediaItem.Builder()
                                 .setMediaId(track.videoId)
-                                .setUri(track.videoId.toUri())
+                                .setUri(track.videoId)
+                                .setCustomCacheKey(track.videoId)
                                 .setMediaMetadata(
                                     MediaMetadata.Builder()
                                         .setArtworkUri(thumbUrl.toUri())
@@ -122,12 +112,32 @@ class MusicSource @Inject constructor(private val simpleMediaServiceHandler: Sim
                                 artists = listOf(Artist(format.uploaderId, format.uploader?: "" ))
                             ))
                         }
+                        else {
+                            val mediaItem = MediaItem.Builder()
+                                .setMediaId(track.videoId)
+                                .setUri(track.videoId)
+                                .setCustomCacheKey(track.videoId)
+                                .setMediaMetadata(
+                                    MediaMetadata.Builder()
+                                        .setArtworkUri(thumbUrl.toUri())
+                                        .setAlbumTitle(track.album?.name)
+                                        .setTitle(track.title)
+                                        .setArtist("Various Artists")
+                                        .build()
+                                )
+                                .build()
+                            simpleMediaServiceHandler.addMediaItemNotSet(mediaItem)
+                            catalogMetadata.add(track.copy(
+                                artists = listOf(Artist("", "Various Artists" ))
+                            ))
+                        }
                     }
                 }
                 else {
                     val mediaItem = MediaItem.Builder()
                         .setMediaId(track.videoId)
-                        .setUri(track.videoId.toUri())
+                        .setUri(track.videoId)
+                        .setCustomCacheKey(track.videoId)
                         .setMediaMetadata(
                             MediaMetadata.Builder()
                                 .setArtworkUri(thumbUrl.toUri())
@@ -141,65 +151,77 @@ class MusicSource @Inject constructor(private val simpleMediaServiceHandler: Sim
                     catalogMetadata.add(track)
                 }
                 Log.d("MusicSource", "updateCatalog: ${track.title}, ${catalogMetadata.size}")
-                downloadUrl.add(" ")
                 added.value = true
             }
             else {
-                mainRepository.getStream(track.videoId, itag).collect { stream ->
-                    if (stream != null) {
-                        val uri = stream
-                        val artistName: String = track.artists.toListName().connectArtists()
-                        if (uri != null) {
-                            if (!catalogMetadata.contains(track)) {
-                                if (track.artists.isNullOrEmpty())
-                                {
-                                    mainRepository.getFormat(track.videoId).collect { format ->
-                                        if (format != null) {
-                                            catalogMetadata.add(track.copy(
-                                                artists = listOf(Artist(format.uploaderId, format.uploader?: "" ))
-                                            ))
-                                            simpleMediaServiceHandler.addMediaItemNotSet(
-                                                MediaItem.Builder().setUri(uri)
-                                                    .setMediaId(track.videoId)
-                                                    .setMediaMetadata(
-                                                        MediaMetadata.Builder()
-                                                            .setTitle(track.title)
-                                                            .setArtist(format.uploader)
-                                                            .setArtworkUri(thumbUrl.toUri())
-                                                            .setAlbumTitle(track.album?.name)
-                                                            .build()
-                                                    )
-                                                    .build()
-                                            )
-                                        }
-                                    }
-                                }
-                                else {
-                                    simpleMediaServiceHandler.addMediaItemNotSet(
-                                        MediaItem.Builder().setUri(uri)
-                                            .setMediaId(track.videoId)
-                                            .setMediaMetadata(
-                                                MediaMetadata.Builder()
-                                                    .setTitle(track.title)
-                                                    .setArtist(artistName)
-                                                    .setArtworkUri(thumbUrl.toUri())
-                                                    .setAlbumTitle(track.album?.name)
-                                                    .build()
-                                            )
+                val artistName: String = track.artists.toListName().connectArtists()
+                if (!catalogMetadata.contains(track)) {
+                    if (track.artists.isNullOrEmpty())
+                    {
+                        mainRepository.getFormat(track.videoId).collect { format ->
+                            if (format != null) {
+                                catalogMetadata.add(track.copy(
+                                    artists = listOf(Artist(format.uploaderId, format.uploader?: "" ))
+                                ))
+                                simpleMediaServiceHandler.addMediaItemNotSet(
+                                    MediaItem.Builder().setUri(track.videoId)
+                                        .setMediaId(track.videoId)
+                                        .setCustomCacheKey(track.videoId)
+                                        .setMediaMetadata(
+                                            MediaMetadata.Builder()
+                                                .setTitle(track.title)
+                                                .setArtist(format.uploader)
+                                                .setArtworkUri(thumbUrl.toUri())
+                                                .setAlbumTitle(track.album?.name)
+                                                .build()
+                                        )
+                                        .build()
+                                )
+                            }
+                            else {
+                                val mediaItem = MediaItem.Builder()
+                                    .setMediaId(track.videoId)
+                                    .setUri(track.videoId)
+                                    .setCustomCacheKey(track.videoId)
+                                    .setMediaMetadata(
+                                        MediaMetadata.Builder()
+                                            .setArtworkUri(thumbUrl.toUri())
+                                            .setAlbumTitle(track.album?.name)
+                                            .setTitle(track.title)
+                                            .setArtist("Various Artists")
                                             .build()
                                     )
-                                    catalogMetadata.add(track)
-                                }
-                                Log.d(
-                                    "MusicSource",
-                                    "updateCatalog: ${track.title}, ${catalogMetadata.size}"
-                                )
-                                downloadUrl.add(uri.toString())
-                                added.value = true
-                                Log.d("MusicSource", "updateCatalog: ${track.title}")
+                                    .build()
+                                simpleMediaServiceHandler.addMediaItemNotSet(mediaItem)
+                                catalogMetadata.add(track.copy(
+                                    artists = listOf(Artist("", "Various Artists" ))
+                                ))
                             }
                         }
                     }
+                    else {
+                        simpleMediaServiceHandler.addMediaItemNotSet(
+                            MediaItem.Builder().setUri(track.videoId)
+                                .setMediaId(track.videoId)
+                                .setCustomCacheKey(track.videoId)
+                                .setMediaMetadata(
+                                    MediaMetadata.Builder()
+                                        .setTitle(track.title)
+                                        .setArtist(artistName)
+                                        .setArtworkUri(thumbUrl.toUri())
+                                        .setAlbumTitle(track.album?.name)
+                                        .build()
+                                )
+                                .build()
+                        )
+                        catalogMetadata.add(track)
+                    }
+                    Log.d(
+                        "MusicSource",
+                        "updateCatalog: ${track.title}, ${catalogMetadata.size}"
+                    )
+                    added.value = true
+                    Log.d("MusicSource", "updateCatalog: ${track.title}")
                 }
             }
         }

@@ -7,8 +7,11 @@ import android.graphics.Color
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
+import androidx.core.net.toUri
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
+import androidx.media3.common.util.UnstableApi
 import androidx.sqlite.db.SimpleSQLiteQuery
 import com.maxrave.kotlinytmusicscraper.models.SongItem
 import com.maxrave.kotlinytmusicscraper.models.VideoItem
@@ -276,6 +279,31 @@ fun MediaItem?.toSongEntity(): SongEntity? {
         totalPlayTime = 0,
         downloadState = 0
     ) else null
+}
+@UnstableApi
+fun Track.toMediaItem() : MediaItem {
+    return MediaItem.Builder()
+        .setMediaId(this.videoId)
+        .setUri(this.videoId)
+        .setCustomCacheKey(this.videoId)
+        .setMediaMetadata(
+            MediaMetadata.Builder()
+                .setTitle(this.title)
+                .setArtist(this.artists.toListName().connectArtists())
+                .setArtworkUri(this.thumbnails?.lastOrNull()?.url?.toUri())
+                .setAlbumTitle(this.album?.name)
+                .build()
+        )
+        .build()
+}
+
+@UnstableApi
+fun List<Track>.toMediaItems(): List<MediaItem> {
+    val listMediaItem = mutableListOf<MediaItem>()
+    for (item in this) {
+        listMediaItem.add(item.toMediaItem())
+    }
+    return listMediaItem
 }
 
 @JvmName("SongResulttoListTrack")

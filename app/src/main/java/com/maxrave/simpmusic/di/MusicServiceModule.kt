@@ -3,12 +3,16 @@ package com.maxrave.simpmusic.di
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import androidx.core.net.toUri
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.database.DatabaseProvider
 import androidx.media3.database.StandaloneDatabaseProvider
+import androidx.media3.datasource.DataSource
+import androidx.media3.datasource.DataSpec
 import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.datasource.ResolvingDataSource
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR
 import androidx.media3.datasource.cache.NoOpCacheEvictor
@@ -16,7 +20,10 @@ import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
+import androidx.media3.extractor.mkv.MatroskaExtractor
+import androidx.media3.extractor.mp4.FragmentedMp4Extractor
 import androidx.media3.session.MediaSession
+import com.maxrave.simpmusic.common.QUALITY
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
@@ -28,6 +35,8 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import javax.inject.Qualifier
 import javax.inject.Singleton
 
@@ -100,14 +109,53 @@ object MusicServiceModule {
             .setFlags(FLAG_IGNORE_CACHE_ON_ERROR)
     }
 
+//    @Provides
+//    @Singleton
+//    @UnstableApi
+//    fun provideMediaSourceFactory(
+//        @ApplicationContext context: Context,
+//        cacheDataSourceFactory: CacheDataSource.Factory
+//    ): DefaultMediaSourceFactory =
+//        DefaultMediaSourceFactory(context).setDataSourceFactory(cacheDataSourceFactory)
+
+    @Provides
+    @Singleton
+    @UnstableApi
+    fun provideResolvingDataSourceFactory(
+        cacheDataSourceFactory: CacheDataSource.Factory,
+        @DownloadCache downloadCache: SimpleCache, @PlayerCache playerCache: SimpleCache, mainRepository: MainRepository, dataStoreManager: DataStoreManager
+    ): DataSource.Factory {
+        return ResolvingDataSource.Factory(cacheDataSourceFactory) { dataSpec ->
+            val mediaId = dataSpec.key ?: error("No media id")
+            val CHUNK_LENGTH = 512 * 1024L
+            if (downloadCache.isCached(mediaId, dataSpec.position,  if (dataSpec.length >= 0) dataSpec.length else 1) || playerCache.isCached(mediaId, dataSpec.position, CHUNK_LENGTH)) {
+                return@Factory dataSpec
+            }
+            var dataSpecReturn: DataSpec? = null
+            runBlocking {
+                val itag = dataStoreManager.quality.first()
+
+                mainRepository.getStream(mediaId, if (itag == QUALITY.items[0].toString()) QUALITY.itags[0] else QUALITY.itags[1]).collect {
+                    if (it != null) {
+                        dataSpecReturn = dataSpec.withUri(it.toUri())
+                    }
+                }
+            }
+            return@Factory dataSpecReturn!!
+        }
+    }
+
     @Provides
     @Singleton
     @UnstableApi
     fun provideMediaSourceFactory(
-        @ApplicationContext context: Context,
-        cacheDataSourceFactory: CacheDataSource.Factory
+        dataSourceFactory: DataSource.Factory
     ): DefaultMediaSourceFactory =
-        DefaultMediaSourceFactory(context).setDataSourceFactory(cacheDataSourceFactory)
+        DefaultMediaSourceFactory(
+            dataSourceFactory
+        ) {
+            arrayOf(MatroskaExtractor(), FragmentedMp4Extractor())
+        }
 
     @Provides
     @Singleton

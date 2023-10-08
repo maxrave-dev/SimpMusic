@@ -8,7 +8,6 @@ import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.text.Html
 import android.util.Log
 import android.view.View
 import android.view.animation.AnimationUtils
@@ -53,9 +52,7 @@ import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.ActivityMainBinding
 import com.maxrave.simpmusic.extension.isMyServiceRunning
-import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.SimpleMediaService
-import com.maxrave.simpmusic.service.test.source.FetchQueue
 import com.maxrave.simpmusic.service.test.source.MusicSource
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
@@ -523,28 +520,8 @@ class MainActivity : AppCompatActivity() {
                     }
                     Queue.clear()
                     Queue.addAll(queueData)
-                    viewModel.removeSaveQueue()
-                    if (!isMyServiceRunning(FetchQueue::class.java)) {
-                        startService(
-                            Intent(
-                                this,
-                                FetchQueue::class.java
-                            )
-                        )
-                    } else {
-                        stopService(
-                            Intent(
-                                this,
-                                FetchQueue::class.java
-                            )
-                        )
-                        startService(
-                            Intent(
-                                this,
-                                FetchQueue::class.java
-                            )
-                        )
-                    }
+                    viewModel.resetRelated()
+                    viewModel.addQueueToPlayer()
                     checkForUpdate()
                 }
             }
@@ -572,10 +549,6 @@ class MainActivity : AppCompatActivity() {
         if (viewModel.isServiceRunning.value == true){
             stopService(Intent(this, SimpleMediaService::class.java))
             Log.d("Service", "Service stopped")
-            if (this.isMyServiceRunning(FetchQueue:: class.java)){
-                stopService(Intent(this, FetchQueue::class.java))
-                Log.d("Service", "FetchQueue stopped")
-            }
             if (this.isMyServiceRunning(DownloadService:: class.java)){
                 this.stopService(Intent(this, DownloadService::class.java))
                 viewModel.changeAllDownloadingToError()

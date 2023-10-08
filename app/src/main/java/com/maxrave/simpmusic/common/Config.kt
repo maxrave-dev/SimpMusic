@@ -21,6 +21,7 @@ object Config {
     const val RADIO_CLICK = "RADIO_CLICK"
     const val MINIPLAYER_CLICK = "MINIPLAYER_CLICK"
     const val SHARE = "SHARE"
+    const val RECOVER_TRACK_QUEUE = "RECOVER_TRACK_QUEUE"
 
     const val VN = "VN"
 

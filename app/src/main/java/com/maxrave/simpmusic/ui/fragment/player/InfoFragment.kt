@@ -75,14 +75,12 @@ class InfoFragment: BottomSheetDialogFragment(){
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         if (viewModel.nowPlayingMediaItem.value != null) {
             val data = musicSource.catalogMetadata[viewModel.getCurrentMediaItemIndex()]
-            val downloadUrl = musicSource.downloadUrl[viewModel.getCurrentMediaItemIndex()]
             with(binding){
                 toolbar.title = data.title
                 artistsName.text = data.artists.toListName().connectArtists()
                 "https://www.youtube.com/watch?v=${data.videoId}".also { youtubeUrl.text = it }
                 title.text = data.title
                 albumName.text = data.album?.name
-                binding.downloadUrl .text = downloadUrl
                 if (viewModel.format.value != null){
                     val format = viewModel.format.value
                     itag.text = format?.itag.toString()

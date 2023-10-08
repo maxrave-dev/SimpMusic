@@ -510,13 +510,14 @@ class SimpleMediaServiceHandler @Inject constructor(
         )
     }
     fun release() {
+        stopBufferedUpdate()
+        stopProgressUpdate()
         sendCloseEqualizerIntent()
         player.removeListener(this)
         job?.cancel()
         sleepTimerJob?.cancel()
         volumeNormalizationJob?.cancel()
         updateNotificationJob?.cancel()
-        GlobalScope.cancel()
     }
 
     private fun updateNotification() {
