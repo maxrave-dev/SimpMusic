@@ -30,7 +30,6 @@ import com.maxrave.simpmusic.extension.div
 import com.maxrave.simpmusic.extension.zipInputStream
 import com.maxrave.simpmusic.extension.zipOutputStream
 import com.maxrave.simpmusic.service.SimpleMediaService
-import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
 import com.maxrave.simpmusic.ui.MainActivity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -52,7 +51,6 @@ class SettingsViewModel @Inject constructor(
     private var databaseDao: DatabaseDao,
     @PlayerCache private val playerCache: SimpleCache,
     @DownloadCache private val downloadCache: SimpleCache,
-    private val simpleMediaServiceHandler: SimpleMediaServiceHandler
     ) : AndroidViewModel(application) {
 
     @Inject
@@ -369,7 +367,6 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             withContext((Dispatchers.Main)) {
                 dataStoreManager.setNormalizeVolume(normalizeVolume)
-                simpleMediaServiceHandler.editNormalizeVolume(normalizeVolume)
                 getNormalizeVolume()
             }
         }
@@ -407,7 +404,6 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             withContext((Dispatchers.Main)) {
                 dataStoreManager.setSkipSilent(skip)
-                simpleMediaServiceHandler.editSkipSilent(skip)
                 getSkipSilent()
             }
         }

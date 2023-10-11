@@ -375,7 +375,7 @@ class AlbumFragment: Fragment() {
                             binding.loadingLayout.visibility = View.GONE
                             val albumEntity = viewModel.albumEntity.value
                             if (albumEntity != null) {
-                                viewModel.checkAllSongDownloaded(it?.tracks as ArrayList<Track>)
+                                viewModel.checkAllSongDownloaded(it.tracks as ArrayList<Track>)
                                 viewModel.albumEntity.observe(viewLifecycleOwner){albumEntity2 ->
                                     when (albumEntity2.downloadState) {
                                         DownloadState.STATE_DOWNLOADED -> {

@@ -15,19 +15,14 @@ import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.databinding.InfoFragmentBinding
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.toListName
-import com.maxrave.simpmusic.service.test.source.MusicSource
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class InfoFragment: BottomSheetDialogFragment(){
     private var _binding: InfoFragmentBinding? = null
     private val binding get() = _binding!!
     private val viewModel by activityViewModels<SharedViewModel>()
-
-    @Inject
-    lateinit var musicSource: MusicSource
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -74,19 +69,21 @@ class InfoFragment: BottomSheetDialogFragment(){
     @UnstableApi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         if (viewModel.nowPlayingMediaItem.value != null) {
-            val data = musicSource.catalogMetadata[viewModel.getCurrentMediaItemIndex()]
-            with(binding){
-                toolbar.title = data.title
-                artistsName.text = data.artists.toListName().connectArtists()
-                "https://www.youtube.com/watch?v=${data.videoId}".also { youtubeUrl.text = it }
-                title.text = data.title
-                albumName.text = data.album?.name
-                if (viewModel.format.value != null){
-                    val format = viewModel.format.value
-                    itag.text = format?.itag.toString()
-                    mimeType.text = format?.mimeType ?: context?.getString(androidx.media3.ui.R.string.exo_track_unknown)
-                    bitrate.text = (format?.bitrate ?: context?.getString(androidx.media3.ui.R.string.exo_track_unknown)).toString()
-                    description.text = format?.description ?: context?.getString(androidx.media3.ui.R.string.exo_track_unknown)
+            if (viewModel.simpleMediaServiceHandler != null) {
+                val data = viewModel.simpleMediaServiceHandler!!.catalogMetadata[viewModel.getCurrentMediaItemIndex()]
+                with(binding){
+                    toolbar.title = data.title
+                    artistsName.text = data.artists.toListName().connectArtists()
+                    "https://www.youtube.com/watch?v=${data.videoId}".also { youtubeUrl.text = it }
+                    title.text = data.title
+                    albumName.text = data.album?.name
+                    if (viewModel.format.value != null){
+                        val format = viewModel.format.value
+                        itag.text = format?.itag.toString()
+                        mimeType.text = format?.mimeType ?: context?.getString(androidx.media3.ui.R.string.exo_track_unknown)
+                        bitrate.text = (format?.bitrate ?: context?.getString(androidx.media3.ui.R.string.exo_track_unknown)).toString()
+                        description.text = format?.description ?: context?.getString(androidx.media3.ui.R.string.exo_track_unknown)
+                    }
                 }
             }
         }

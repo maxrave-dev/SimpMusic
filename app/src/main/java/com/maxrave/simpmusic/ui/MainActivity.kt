@@ -1,13 +1,16 @@
 package com.maxrave.simpmusic.ui
 
 import android.Manifest
+import android.content.ComponentName
 import android.content.Intent
+import android.content.ServiceConnection
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.IBinder
 import android.util.Log
 import android.view.View
 import android.view.animation.AnimationUtils
@@ -50,10 +53,11 @@ import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.queue.Queue
+import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.databinding.ActivityMainBinding
 import com.maxrave.simpmusic.extension.isMyServiceRunning
 import com.maxrave.simpmusic.service.SimpleMediaService
-import com.maxrave.simpmusic.service.test.source.MusicSource
+import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import dagger.hilt.android.AndroidEntryPoint
@@ -71,13 +75,151 @@ import javax.inject.Inject
 @UnstableApi
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
-    @Inject
-    lateinit var musicSource: MusicSource
 
     private lateinit var binding: ActivityMainBinding
     val viewModel by viewModels<SharedViewModel>()
     private var action: String? = null
     private var data: Uri? = null
+
+    @Inject
+    lateinit var dataStoreManager: DataStoreManager
+
+    @Inject
+    lateinit var mainRepository: MainRepository
+
+    private val serviceConnection = object : ServiceConnection {
+        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+            if (service is SimpleMediaService.MusicBinder) {
+                Log.w("MainActivity", "onServiceConnected: ")
+
+                viewModel.simpleMediaServiceHandler = SimpleMediaServiceHandler(
+                    player = service.service.player,
+                    mediaSession = service.service.mediaSession,
+                    mediaSessionCallback = service.service.simpleMediaSessionCallback,
+                    dataStoreManager = dataStoreManager,
+                    mainRepository = mainRepository,
+                    context = service.service,
+                    coroutineScope = lifecycleScope
+                )
+
+                viewModel.init()
+                mayBeRestoreLastPlayedTrackAndQueue()
+                runCollect()
+                Log.w("TEST", viewModel.simpleMediaServiceHandler?.player.toString())
+            }
+        }
+
+        override fun onServiceDisconnected(name: ComponentName?) {
+            Log.w("MainActivity", "onServiceDisconnected: ")
+            viewModel.simpleMediaServiceHandler = null
+        }
+    }
+
+    private fun runCollect() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.CREATED) {
+                val job5 = launch {
+                    viewModel.simpleMediaServiceHandler?.nowPlaying?.collect {
+                        if (it != null){
+                            Log.w("Test service", viewModel.simpleMediaServiceHandler?.getCurrentMediaItem()?.mediaMetadata?.title.toString())
+                            binding.songTitle.text = it.mediaMetadata.title
+                            binding.songTitle.isSelected = true
+                            binding.songArtist.text = it.mediaMetadata.artist
+                            binding.songArtist.isSelected = true
+                            val request = ImageRequest.Builder(this@MainActivity)
+                                .data(it.mediaMetadata.artworkUri)
+                                .target(
+                                    onSuccess = { result ->
+                                        binding.ivArt.setImageDrawable(result)
+                                    },
+                                )
+                                .transformations(object : Transformation {
+                                    override val cacheKey: String
+                                        get() = it.mediaMetadata.artworkUri.toString()
+
+                                    override suspend fun transform(input: Bitmap, size: Size): Bitmap {
+                                        val p = Palette.from(input).generate()
+                                        val defaultColor = 0x000000
+                                        var startColor = p.getDarkVibrantColor(defaultColor)
+                                        Log.d("Check Start Color", "transform: $startColor")
+                                        if (startColor == defaultColor){
+                                            startColor = p.getDarkMutedColor(defaultColor)
+                                            if (startColor == defaultColor){
+                                                startColor = p.getVibrantColor(defaultColor)
+                                                if (startColor == defaultColor){
+                                                    startColor = p.getMutedColor(defaultColor)
+                                                    if (startColor == defaultColor){
+                                                        startColor = p.getLightVibrantColor(defaultColor)
+                                                        if (startColor == defaultColor){
+                                                            startColor = p.getLightMutedColor(defaultColor)
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                            Log.d("Check Start Color", "transform: $startColor")
+                                        }
+                                        val endColor = 0x1b1a1f
+                                        val gd = GradientDrawable(
+                                            GradientDrawable.Orientation.TOP_BOTTOM,
+                                            intArrayOf(startColor, endColor)
+                                        )
+                                        gd.cornerRadius = 0f
+                                        gd.gradientType = GradientDrawable.LINEAR_GRADIENT
+                                        gd.gradientRadius = 0.5f
+                                        gd.alpha = 150
+                                        val bg = ColorUtils.setAlphaComponent(startColor, 255)
+                                        binding.card.setCardBackgroundColor(bg)
+                                        binding.cardBottom.setCardBackgroundColor(bg)
+                                        return input
+                                    }
+
+                                })
+                                .build()
+                            ImageLoader(this@MainActivity).execute(request)
+                        }
+                    }
+                }
+                val job2 = launch {
+                    viewModel.progress.collect{
+                        binding.progressBar.progress = (it * 100).toInt()
+                    }
+                }
+
+                val job6 = launch {
+                    viewModel.simpleMediaServiceHandler?.liked?.collect{ liked ->
+                        binding.cbFavorite.isChecked = liked
+                    }
+                }
+                val job3 = launch {
+                    viewModel.isPlaying.collect {
+                        if (it){
+                            binding.btPlayPause.setImageResource(R.drawable.baseline_pause_24)
+                        }else{
+                            binding.btPlayPause.setImageResource(R.drawable.baseline_play_arrow_24)
+                        }
+                    }
+                }
+                val job4 = launch {
+                    viewModel.simpleMediaServiceHandler?.sleepDone?.collect { done ->
+                        if (done) {
+                            MaterialAlertDialogBuilder(this@MainActivity)
+                                .setTitle(getString(R.string.sleep_timer_off))
+                                .setMessage(getString(R.string.good_night))
+                                .setPositiveButton(getString(R.string.yes)) { d, _ ->
+                                    d.dismiss()
+                                }
+                                .show()
+                        }
+                    }
+                }
+                job2.join()
+                job3.join()
+                job5.join()
+                job6.join()
+                job4.join()
+            }
+        }
+    }
 
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
@@ -99,6 +241,11 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         Log.d("MainActivity", "onResume: ")
+    }
+
+    override fun onStart() {
+        super.onStart()
+        startMusicService()
     }
 
     @UnstableApi
@@ -340,94 +487,7 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 }
-                val job5 = launch {
-                    viewModel.nowPLaying.collect {
-                        if (it != null){
-                            if (viewModel.isServiceRunning.value == false){
-                                startMusicService()
-                            }
-                            binding.songTitle.text = it.mediaMetadata.title
-                            binding.songTitle.isSelected = true
-                            binding.songArtist.text = it.mediaMetadata.artist
-                            binding.songArtist.isSelected = true
-                            val request = ImageRequest.Builder(this@MainActivity)
-                                .data(it.mediaMetadata.artworkUri)
-                                .target(
-                                    onSuccess = { result ->
-                                        binding.ivArt.setImageDrawable(result)
-                                    },
-                                )
-                                .transformations(object : Transformation {
-                                    override val cacheKey: String
-                                        get() = it.mediaMetadata.artworkUri.toString()
-
-                                    override suspend fun transform(input: Bitmap, size: Size): Bitmap {
-                                        val p = Palette.from(input).generate()
-                                        val defaultColor = 0x000000
-                                        var startColor = p.getDarkVibrantColor(defaultColor)
-                                        Log.d("Check Start Color", "transform: $startColor")
-                                        if (startColor == defaultColor){
-                                            startColor = p.getDarkMutedColor(defaultColor)
-                                            if (startColor == defaultColor){
-                                                startColor = p.getVibrantColor(defaultColor)
-                                                if (startColor == defaultColor){
-                                                    startColor = p.getMutedColor(defaultColor)
-                                                    if (startColor == defaultColor){
-                                                        startColor = p.getLightVibrantColor(defaultColor)
-                                                        if (startColor == defaultColor){
-                                                            startColor = p.getLightMutedColor(defaultColor)
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                            Log.d("Check Start Color", "transform: $startColor")
-                                        }
-                                        val endColor = 0x1b1a1f
-                                        val gd = GradientDrawable(
-                                            GradientDrawable.Orientation.TOP_BOTTOM,
-                                            intArrayOf(startColor, endColor)
-                                        )
-                                        gd.cornerRadius = 0f
-                                        gd.gradientType = GradientDrawable.LINEAR_GRADIENT
-                                        gd.gradientRadius = 0.5f
-                                        gd.alpha = 150
-                                        val bg = ColorUtils.setAlphaComponent(startColor, 255)
-                                        binding.card.setCardBackgroundColor(bg)
-                                        binding.cardBottom.setCardBackgroundColor(bg)
-                                        return input
-                                    }
-
-                                })
-                                .build()
-                            ImageLoader(this@MainActivity).execute(request)
-                        }
-                    }
-                }
-                val job2 = launch {
-                    viewModel.progress.collect{
-                        binding.progressBar.progress = (it * 100).toInt()
-                    }
-                }
-
-                val job6 = launch {
-                    viewModel.liked.collect{ liked ->
-                        binding.cbFavorite.isChecked = liked
-                    }
-                }
-                val job3 = launch {
-                    viewModel.isPlaying.observe(this@MainActivity){
-                        if (it){
-                            binding.btPlayPause.setImageResource(R.drawable.baseline_pause_24)
-                        }else{
-                            binding.btPlayPause.setImageResource(R.drawable.baseline_play_arrow_24)
-                        }
-                    }
-                }
                 job1.join()
-                job2.join()
-                job3.join()
-                job5.join()
-                job6.join()
             }
         }
         lifecycleScope.launch {
@@ -453,21 +513,8 @@ class MainActivity : AppCompatActivity() {
                  }
              }
 
-             val job2 = launch {
-                viewModel.sleepTimerDone.collect { done ->
-                    if (done) {
-                        MaterialAlertDialogBuilder(this@MainActivity)
-                            .setTitle(getString(R.string.sleep_timer_off))
-                            .setMessage(getString(R.string.good_night))
-                            .setPositiveButton(getString(R.string.yes)) { d, _ ->
-                                d.dismiss()
-                            }
-                            .show()
-                    }
-                }
-             }
+
             job1.join()
-            job2.join()
         }
         binding.card.animation = AnimationUtils.loadAnimation(this, R.anim.bottom_to_top)
         binding.cbFavorite.setOnCheckedChangeListener{ _, isChecked ->
@@ -486,7 +533,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        mayBeRestoreLastPlayedTrackAndQueue()
     }
 
     private fun mayBeRestoreLastPlayedTrackAndQueue() {
@@ -496,7 +542,7 @@ class MainActivity : AppCompatActivity() {
             val queue = viewModel.saveLastPlayedSong.switchMap { saved: Boolean ->
                 if (saved) {
                     viewModel.from.postValue(viewModel.from_backup)
-                    musicSource.reset()
+                    viewModel.simpleMediaServiceHandler?.reset()
                     viewModel.getSavedSongAndQueue()
                     return@switchMap viewModel.savedQueue
                 } else {
@@ -534,12 +580,17 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         stopService()
+        runBlocking {
+            delay(1000)
+            Log.e("service running ?", this@MainActivity.isMyServiceRunning(SimpleMediaService::class.java).toString())
+        }
+        Log.w("MainActivity", "onDestroy: ")
     }
     private fun startMusicService() {
         if (viewModel.isServiceRunning.value == false) {
             if (!isMyServiceRunning(SimpleMediaService::class.java)) {
                 val intent = Intent(this, SimpleMediaService::class.java)
-                startForegroundService(intent)
+                bindService(intent, serviceConnection, BIND_AUTO_CREATE)
                 viewModel.isServiceRunning.postValue(true)
                 Log.d("Service", "Service started")
             }
@@ -547,10 +598,13 @@ class MainActivity : AppCompatActivity() {
     }
     private fun stopService(){
         if (viewModel.isServiceRunning.value == true){
-            stopService(Intent(this, SimpleMediaService::class.java))
+            viewModel.simpleMediaServiceHandler?.mayBeSaveRecentSong()
+            viewModel.simpleMediaServiceHandler?.mayBeSavePlaybackState()
+            viewModel.simpleMediaServiceHandler?.release()
+            unbindService(serviceConnection)
             Log.d("Service", "Service stopped")
             if (this.isMyServiceRunning(DownloadService:: class.java)){
-                this.stopService(Intent(this, DownloadService::class.java))
+                stopService(Intent(this, DownloadService::class.java))
                 viewModel.changeAllDownloadingToError()
                 Log.d("Service", "DownloadService stopped")
             }

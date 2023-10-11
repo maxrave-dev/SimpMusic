@@ -9,5 +9,4 @@ data class HomeResponse(
     val homeItem: Resource<ArrayList<HomeItem>>,
     val exploreMood: Resource<Mood>,
     val exploreChart: Resource<Chart>
-) {
-}
+)

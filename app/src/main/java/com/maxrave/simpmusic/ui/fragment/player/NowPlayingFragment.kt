@@ -64,9 +64,7 @@ import com.maxrave.simpmusic.extension.setEnabledAll
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.RepeatState
-import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService
-import com.maxrave.simpmusic.service.test.source.MusicSource
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
@@ -76,19 +74,11 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import javax.inject.Inject
 
 
 @UnstableApi
 @AndroidEntryPoint
 class NowPlayingFragment : Fragment() {
-
-    @Inject
-    lateinit var musicSource: MusicSource
-
-    @Inject
-    lateinit var simpleMediaServiceHandler: SimpleMediaServiceHandler
-
 
     val viewModel by activityViewModels<SharedViewModel>()
     private var _binding: FragmentNowPlayingBinding? = null
@@ -180,7 +170,7 @@ class NowPlayingFragment : Fragment() {
 //                                }
 //                            }
 //                        }
-                        musicSource.reset()
+                        viewModel.simpleMediaServiceHandler?.reset()
                         viewModel.resetRelated()
 //                        if (requireContext().isMyServiceRunning(FetchQueue::class.java)) {
 //                            requireActivity().stopService(
@@ -215,7 +205,7 @@ class NowPlayingFragment : Fragment() {
                             val track = it.toTrack()
                             Queue.clear()
                             Queue.setNowPlaying(track)
-                            musicSource.reset()
+                            viewModel.simpleMediaServiceHandler?.reset()
                             viewModel.resetRelated()
 //                            if (requireContext().isMyServiceRunning(FetchQueue::class.java)) {
 //                                requireActivity().stopService(
@@ -263,7 +253,7 @@ class NowPlayingFragment : Fragment() {
                     binding.tvSongTitle.visibility = View.GONE
                     binding.tvSongArtist.visibility = View.GONE
                     Queue.getNowPlaying()?.let {
-                        musicSource.reset()
+                        viewModel.simpleMediaServiceHandler?.reset()
                         viewModel.resetRelated()
 //                        if (requireContext().isMyServiceRunning(FetchQueue::class.java)) {
 //                            requireActivity().stopService(
@@ -310,7 +300,7 @@ class NowPlayingFragment : Fragment() {
                     binding.tvSongTitle.visibility = View.GONE
                     binding.tvSongArtist.visibility = View.GONE
                     Queue.getNowPlaying()?.let {
-                        musicSource.reset()
+                        viewModel.simpleMediaServiceHandler?.reset()
                         viewModel.resetRelated()
 //                        if (requireContext().isMyServiceRunning(FetchQueue::class.java)) {
 //                            requireActivity().stopService(
@@ -374,7 +364,7 @@ class NowPlayingFragment : Fragment() {
                     binding.tvSongTitle.visibility = View.GONE
                     binding.tvSongArtist.visibility = View.GONE
                     Queue.getNowPlaying()?.let {
-                        musicSource.reset()
+                        viewModel.simpleMediaServiceHandler?.reset()
                         viewModel.resetRelated()
 //                        if (requireContext().isMyServiceRunning(FetchQueue::class.java)) {
 //                            requireActivity().stopService(
@@ -453,7 +443,7 @@ class NowPlayingFragment : Fragment() {
 //                            binding.loadingArt.visibility = View.VISIBLE
 //                            Log.d("Check Lyrics", viewModel._lyrics.value?.data.toString())
 //                            updateUIfromCurrentMediaItem(song)
-//                            musicSource.setCurrentSongIndex(viewModel.getCurrentMediaItemIndex())
+//                            simpleMediaServiceHandler.setCurrentSongIndex(viewModel.getCurrentMediaItemIndex())
 //                            viewModel.changeSongTransitionToFalse()
 //                        }
 //                    }
@@ -463,7 +453,7 @@ class NowPlayingFragment : Fragment() {
 
                 val job7 =
                     launch {
-                        viewModel.nowPLaying.collectLatest { song ->
+                        viewModel.simpleMediaServiceHandler?.nowPlaying?.collectLatest { song ->
                             if (song != null) {
                                 viewModel.getFormat(song.mediaId)
                                 Log.i("Now Playing Fragment", "song ${song.mediaMetadata.title}")
@@ -472,7 +462,7 @@ class NowPlayingFragment : Fragment() {
                                 binding.loadingArt.visibility = View.VISIBLE
                                 Log.d("Check Lyrics", viewModel._lyrics.value?.data.toString())
                                 updateUIfromCurrentMediaItem(song)
-                                musicSource.setCurrentSongIndex(viewModel.getCurrentMediaItemIndex())
+                                viewModel.simpleMediaServiceHandler?.setCurrentSongIndex(viewModel.getCurrentMediaItemIndex())
                                 viewModel.changeSongTransitionToFalse()
                             }
                         }
@@ -501,7 +491,7 @@ class NowPlayingFragment : Fragment() {
                     }
                 }
                 val job2 = launch {
-                    viewModel.isPlaying.observe(viewLifecycleOwner) {
+                    viewModel.isPlaying.collect {
                         Log.d("Check Song Transistion", "${viewModel.songTransitions.value}")
                         if (it) {
                             binding.btPlayPause.setImageResource(R.drawable.baseline_pause_circle_24)
@@ -622,12 +612,12 @@ class NowPlayingFragment : Fragment() {
                     }
                 }
                 val job11 = launch {
-                    viewModel.previousTrackAvailable.collect { available ->
+                    viewModel.simpleMediaServiceHandler?.previousTrackAvailable?.collect { available ->
                         setEnabledAll(binding.btPrevious, available)
                     }
                 }
                 val job12 = launch {
-                    viewModel.nextTrackAvailable.collect { available ->
+                    viewModel.simpleMediaServiceHandler?.nextTrackAvailable?.collect { available ->
                         setEnabledAll(binding.btNext, available)
                     }
                 }
@@ -832,18 +822,18 @@ class NowPlayingFragment : Fragment() {
         binding.topAppBar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.now_playing_dialog_menu_item_more -> {
-                    if (musicSource.catalogMetadata.isNotEmpty()) {
+                    if (!viewModel.simpleMediaServiceHandler?.catalogMetadata.isNullOrEmpty()) {
                         viewModel.refreshSongDB()
                         val dialog = BottomSheetDialog(requireContext())
                         val bottomSheetView = BottomSheetNowPlayingBinding.inflate(layoutInflater)
                         with(bottomSheetView) {
                             lifecycleScope.launch {
-                                viewModel.sleepTimerMinutes.collect { min ->
+                                viewModel.simpleMediaServiceHandler?.sleepMinutes?.collect { min ->
                                     if (min > 0) {
-                                        tvSleepTimer.text = getString(R.string.sleep_timer, min.toString())
+                                        tvSleepTimer.text =
+                                            getString(R.string.sleep_timer, min.toString())
                                         ivSleepTimer.setImageResource(R.drawable.alarm_enable)
-                                    }
-                                    else {
+                                    } else {
                                         tvSleepTimer.text = getString(R.string.sleep_timer_off)
                                         ivSleepTimer.setImageResource(R.drawable.baseline_access_alarm_24)
                                     }
@@ -881,238 +871,280 @@ class NowPlayingFragment : Fragment() {
                                     setEnabledAll(btDownload, true)
                                 }
                             }
-                            val song =
-                                musicSource.catalogMetadata[viewModel.getCurrentMediaItemIndex()]
-                            tvSongTitle.text = song.title
-                            tvSongTitle.isSelected = true
-                            tvSongArtist.text = song.artists.toListName().connectArtists()
-                            tvSongArtist.isSelected = true
-                            ivThumbnail.load(song.thumbnails?.last()?.url)
+                            if (!viewModel.simpleMediaServiceHandler?.catalogMetadata.isNullOrEmpty()) {
+                                val song =
+                                    viewModel.simpleMediaServiceHandler!!.catalogMetadata[viewModel.getCurrentMediaItemIndex()]
+                                tvSongTitle.text = song.title
+                                tvSongTitle.isSelected = true
+                                tvSongArtist.text = song.artists.toListName().connectArtists()
+                                tvSongArtist.isSelected = true
+                                ivThumbnail.load(song.thumbnails?.last()?.url)
 
-                            btLike.setOnClickListener {
-                                if (cbFavorite.isChecked) {
-                                    cbFavorite.isChecked = false
-                                    tvFavorite.text = getString(R.string.like)
-                                    viewModel.updateLikeStatus(song.videoId, false)
-                                } else {
-                                    cbFavorite.isChecked = true
-                                    tvFavorite.text = getString(R.string.liked)
-                                    viewModel.updateLikeStatus(song.videoId, true)
-                                }
-                            }
-                            btRadio.setOnClickListener {
-                                val args = Bundle()
-                                args.putString("radioId", "RDAMVM${song.videoId}")
-                                args.putString("title", "${song.title} ${context?.getString(R.string.radio)}")
-                                args.putString("thumbnails", song.thumbnails?.lastOrNull()?.url)
-                                dialog.dismiss()
-                                findNavController().navigate(R.id.action_global_playlistFragment, args)
-                            }
-                            btSleepTimer.setOnClickListener {
-                                Log.w("Sleep Timer", "onClick")
-                                if(viewModel.sleepTimerRunning.value == true) {
-                                    MaterialAlertDialogBuilder(requireContext())
-                                        .setTitle(getString(R.string.warning))
-                                        .setMessage(getString(R.string.sleep_timer_warning))
-                                        .setPositiveButton(getString(R.string.yes)) { d, _ ->
-                                            viewModel.stopSleepTimer()
-                                            Toast.makeText(requireContext(), getString(R.string.sleep_timer_off_done), Toast.LENGTH_SHORT).show()
-                                            d.dismiss()
-                                        }
-                                        .setNegativeButton(getString(R.string.cancel)) { d, _ ->
-                                            d.dismiss()
-                                        }
-                                        .show()
-                                }
-                                else {
-                                    val d = BottomSheetDialog(requireContext())
-                                    val v = BottomSheetSleepTimerBinding.inflate(layoutInflater)
-                                    v.btSet.setOnClickListener {
-                                        val min = v.etTime.editText?.text.toString()
-                                        if (min.isNotBlank() && min.toInt() > 0){
-                                            viewModel.setSleepTimer(min.toInt())
-                                            d.dismiss()
-                                        }
-                                        else {
-                                            Toast.makeText(requireContext(), getString(R.string.sleep_timer_set_error), Toast.LENGTH_SHORT).show()
-                                        }
+                                btLike.setOnClickListener {
+                                    if (cbFavorite.isChecked) {
+                                        cbFavorite.isChecked = false
+                                        tvFavorite.text = getString(R.string.like)
+                                        viewModel.updateLikeStatus(song.videoId, false)
+                                    } else {
+                                        cbFavorite.isChecked = true
+                                        tvFavorite.text = getString(R.string.liked)
+                                        viewModel.updateLikeStatus(song.videoId, true)
                                     }
-                                    d.setContentView(v.root)
-                                    d.setCancelable(true)
-                                    d.show()
                                 }
-                            }
-                            btAddPlaylist.setOnClickListener {
-                                viewModel.getAllLocalPlaylist()
-                                val listLocalPlaylist: ArrayList<LocalPlaylistEntity> = arrayListOf()
-                                val addPlaylistDialog = BottomSheetDialog(requireContext())
-                                val viewAddPlaylist = BottomSheetAddToAPlaylistBinding.inflate(layoutInflater)
-                                val addToAPlaylistAdapter = AddToAPlaylistAdapter(arrayListOf())
-                                viewAddPlaylist.rvLocalPlaylists.apply {
-                                    adapter = addToAPlaylistAdapter
-                                    layoutManager = LinearLayoutManager(requireContext())
+                                btRadio.setOnClickListener {
+                                    val args = Bundle()
+                                    args.putString("radioId", "RDAMVM${song.videoId}")
+                                    args.putString(
+                                        "title",
+                                        "${song.title} ${context?.getString(R.string.radio)}"
+                                    )
+                                    args.putString("thumbnails", song.thumbnails?.lastOrNull()?.url)
+                                    dialog.dismiss()
+                                    findNavController().navigate(
+                                        R.id.action_global_playlistFragment,
+                                        args
+                                    )
                                 }
-                                viewModel.localPlaylist.observe(viewLifecycleOwner) {list ->
-                                    Log.d("Check Local Playlist", list.toString())
-                                    listLocalPlaylist.clear()
-                                    listLocalPlaylist.addAll(list)
-                                    addToAPlaylistAdapter.updateList(listLocalPlaylist)
-                                }
-                                addToAPlaylistAdapter.setOnItemClickListener(object : AddToAPlaylistAdapter.OnItemClickListener{
-                                    override fun onItemClick(position: Int) {
-                                        val playlist = listLocalPlaylist[position]
-                                        val tempTrack = ArrayList<String>()
-                                        if (playlist.tracks != null) {
-                                            tempTrack.addAll(playlist.tracks)
-                                        }
-                                        if (!tempTrack.contains(song.videoId) && playlist.syncedWithYouTubePlaylist == 1 && playlist.youtubePlaylistId != null) {
-                                            viewModel.addToYouTubePlaylist(playlist.id, playlist.youtubePlaylistId, song.videoId)
-                                        }
-                                        tempTrack.add(song.videoId)
-                                        tempTrack.removeConflicts()
-                                        viewModel.updateLocalPlaylistTracks(tempTrack, playlist.id)
-                                        addPlaylistDialog.dismiss()
-                                        dialog.dismiss()
-                                    }
-                                })
-                                addPlaylistDialog.setContentView(viewAddPlaylist.root)
-                                addPlaylistDialog.setCancelable(true)
-                                addPlaylistDialog.show()
-                            }
-
-                            btSeeArtists.setOnClickListener {
-                                val subDialog = BottomSheetDialog(requireContext())
-                                val subBottomSheetView =
-                                    BottomSheetSeeArtistOfNowPlayingBinding.inflate(layoutInflater)
-                                if (song.artists != null) {
-                                    val artistAdapter = SeeArtistOfNowPlayingAdapter(song.artists)
-                                    subBottomSheetView.rvArtists.apply {
-                                        adapter = artistAdapter
-                                        layoutManager = LinearLayoutManager(requireContext())
-                                    }
-                                    artistAdapter.setOnClickListener(object :
-                                        SeeArtistOfNowPlayingAdapter.OnItemClickListener {
-                                        override fun onItemClick(position: Int) {
-                                            val artist = song.artists[position]
-                                            if (artist.id != null) {
-                                                findNavController().navigate(
-                                                    R.id.action_global_artistFragment,
-                                                    Bundle().apply {
-                                                        putString("channelId", artist.id)
-                                                    })
-                                                subDialog.dismiss()
-                                                dialog.dismiss()
+                                btSleepTimer.setOnClickListener {
+                                    Log.w("Sleep Timer", "onClick")
+                                    if (viewModel.sleepTimerRunning.value == true) {
+                                        MaterialAlertDialogBuilder(requireContext())
+                                            .setTitle(getString(R.string.warning))
+                                            .setMessage(getString(R.string.sleep_timer_warning))
+                                            .setPositiveButton(getString(R.string.yes)) { d, _ ->
+                                                viewModel.stopSleepTimer()
+                                                Toast.makeText(
+                                                    requireContext(),
+                                                    getString(R.string.sleep_timer_off_done),
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                                d.dismiss()
+                                            }
+                                            .setNegativeButton(getString(R.string.cancel)) { d, _ ->
+                                                d.dismiss()
+                                            }
+                                            .show()
+                                    } else {
+                                        val d = BottomSheetDialog(requireContext())
+                                        val v = BottomSheetSleepTimerBinding.inflate(layoutInflater)
+                                        v.btSet.setOnClickListener {
+                                            val min = v.etTime.editText?.text.toString()
+                                            if (min.isNotBlank() && min.toInt() > 0) {
+                                                viewModel.setSleepTimer(min.toInt())
+                                                d.dismiss()
+                                            } else {
+                                                Toast.makeText(
+                                                    requireContext(),
+                                                    getString(R.string.sleep_timer_set_error),
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
                                             }
                                         }
-
+                                        d.setContentView(v.root)
+                                        d.setCancelable(true)
+                                        d.show()
+                                    }
+                                }
+                                btAddPlaylist.setOnClickListener {
+                                    viewModel.getAllLocalPlaylist()
+                                    val listLocalPlaylist: ArrayList<LocalPlaylistEntity> =
+                                        arrayListOf()
+                                    val addPlaylistDialog = BottomSheetDialog(requireContext())
+                                    val viewAddPlaylist =
+                                        BottomSheetAddToAPlaylistBinding.inflate(layoutInflater)
+                                    val addToAPlaylistAdapter = AddToAPlaylistAdapter(arrayListOf())
+                                    viewAddPlaylist.rvLocalPlaylists.apply {
+                                        adapter = addToAPlaylistAdapter
+                                        layoutManager = LinearLayoutManager(requireContext())
+                                    }
+                                    viewModel.localPlaylist.observe(viewLifecycleOwner) { list ->
+                                        Log.d("Check Local Playlist", list.toString())
+                                        listLocalPlaylist.clear()
+                                        listLocalPlaylist.addAll(list)
+                                        addToAPlaylistAdapter.updateList(listLocalPlaylist)
+                                    }
+                                    addToAPlaylistAdapter.setOnItemClickListener(object :
+                                        AddToAPlaylistAdapter.OnItemClickListener {
+                                        override fun onItemClick(position: Int) {
+                                            val playlist = listLocalPlaylist[position]
+                                            val tempTrack = ArrayList<String>()
+                                            if (playlist.tracks != null) {
+                                                tempTrack.addAll(playlist.tracks)
+                                            }
+                                            if (!tempTrack.contains(song.videoId) && playlist.syncedWithYouTubePlaylist == 1 && playlist.youtubePlaylistId != null) {
+                                                viewModel.addToYouTubePlaylist(
+                                                    playlist.id,
+                                                    playlist.youtubePlaylistId,
+                                                    song.videoId
+                                                )
+                                            }
+                                            tempTrack.add(song.videoId)
+                                            tempTrack.removeConflicts()
+                                            viewModel.updateLocalPlaylistTracks(
+                                                tempTrack,
+                                                playlist.id
+                                            )
+                                            addPlaylistDialog.dismiss()
+                                            dialog.dismiss()
+                                        }
                                     })
+                                    addPlaylistDialog.setContentView(viewAddPlaylist.root)
+                                    addPlaylistDialog.setCancelable(true)
+                                    addPlaylistDialog.show()
                                 }
 
-                                subDialog.setCancelable(true)
-                                subDialog.setContentView(subBottomSheetView.root)
-                                subDialog.show()
-                            }
-                            btShare.setOnClickListener {
-                                val shareIntent = Intent(Intent.ACTION_SEND)
-                                shareIntent.type = "text/plain"
-                                val url = "https://youtube.com/watch?v=${song.videoId}"
-                                shareIntent.putExtra(Intent.EXTRA_TEXT, url)
-                                val chooserIntent = Intent.createChooser(shareIntent, getString(R.string.share_url))
-                                startActivity(chooserIntent)
-                            }
-                            btDownload.setOnClickListener {
-                                if (tvDownload.text == getString(R.string.download)) {
-                                    Log.d("Download", "onClick: ${song.videoId}")
-                                    viewModel.updateDownloadState(
-                                        song.videoId,
-                                        DownloadState.STATE_PREPARING
-                                    )
-                                    val downloadRequest =
-                                        DownloadRequest.Builder(song.videoId, song.videoId.toUri())
-                                            .setData(song.title.toByteArray())
-                                            .setCustomCacheKey(song.videoId)
-                                            .build()
-                                    viewModel.updateDownloadState(
-                                        song.videoId,
-                                        DownloadState.STATE_DOWNLOADING
-                                    )
-                                    viewModel.getDownloadStateFromService(song.videoId)
-                                    DownloadService.sendAddDownload(
-                                        requireContext(),
-                                        MusicDownloadService::class.java,
-                                        downloadRequest,
-                                        false
-                                    )
-                                    lifecycleScope.launch {
-                                        viewModel.downloadState.collect { download ->
-                                            if (download != null) {
-                                                when (download.state) {
-                                                    Download.STATE_DOWNLOADING -> {
-                                                        viewModel.updateDownloadState(
-                                                            song.videoId,
-                                                            DownloadState.STATE_DOWNLOADING
-                                                        )
-                                                        tvDownload.text = getString(R.string.downloading)
-                                                        ivDownload.setImageResource(R.drawable.baseline_downloading_white)
-                                                        setEnabledAll(btDownload, true)
-                                                    }
+                                btSeeArtists.setOnClickListener {
+                                    val subDialog = BottomSheetDialog(requireContext())
+                                    val subBottomSheetView =
+                                        BottomSheetSeeArtistOfNowPlayingBinding.inflate(
+                                            layoutInflater
+                                        )
+                                    if (song.artists != null) {
+                                        val artistAdapter =
+                                            SeeArtistOfNowPlayingAdapter(song.artists)
+                                        subBottomSheetView.rvArtists.apply {
+                                            adapter = artistAdapter
+                                            layoutManager = LinearLayoutManager(requireContext())
+                                        }
+                                        artistAdapter.setOnClickListener(object :
+                                            SeeArtistOfNowPlayingAdapter.OnItemClickListener {
+                                            override fun onItemClick(position: Int) {
+                                                val artist = song.artists[position]
+                                                if (artist.id != null) {
+                                                    findNavController().navigate(
+                                                        R.id.action_global_artistFragment,
+                                                        Bundle().apply {
+                                                            putString("channelId", artist.id)
+                                                        })
+                                                    subDialog.dismiss()
+                                                    dialog.dismiss()
+                                                }
+                                            }
 
-                                                    Download.STATE_FAILED -> {
-                                                        viewModel.updateDownloadState(
-                                                            song.videoId,
-                                                            DownloadState.STATE_NOT_DOWNLOADED
-                                                        )
-                                                        tvDownload.text = getString(R.string.download)
-                                                        ivDownload.setImageResource(R.drawable.outline_download_for_offline_24)
-                                                        setEnabledAll(btDownload, true)
-                                                        Toast.makeText(
-                                                            requireContext(),
-                                                            getString(androidx.media3.exoplayer.R.string.exo_download_failed),
-                                                            Toast.LENGTH_SHORT
-                                                        ).show()
-                                                    }
+                                        })
+                                    }
 
-                                                    Download.STATE_COMPLETED -> {
-                                                        viewModel.updateDownloadState(
-                                                            song.videoId,
-                                                            DownloadState.STATE_DOWNLOADED
-                                                        )
-                                                        Toast.makeText(
-                                                            requireContext(),
-                                                            getString(androidx.media3.exoplayer.R.string.exo_download_completed),
-                                                            Toast.LENGTH_SHORT
-                                                        ).show()
-                                                        tvDownload.text = getString(R.string.downloaded)
-                                                        ivDownload.setImageResource(R.drawable.baseline_downloaded)
-                                                        setEnabledAll(btDownload, true)
-                                                    }
-                                                    else -> {
-                                                        Log.d("Download", "onCreate: ${download.state}")
+                                    subDialog.setCancelable(true)
+                                    subDialog.setContentView(subBottomSheetView.root)
+                                    subDialog.show()
+                                }
+                                btShare.setOnClickListener {
+                                    val shareIntent = Intent(Intent.ACTION_SEND)
+                                    shareIntent.type = "text/plain"
+                                    val url = "https://youtube.com/watch?v=${song.videoId}"
+                                    shareIntent.putExtra(Intent.EXTRA_TEXT, url)
+                                    val chooserIntent = Intent.createChooser(
+                                        shareIntent,
+                                        getString(R.string.share_url)
+                                    )
+                                    startActivity(chooserIntent)
+                                }
+                                btDownload.setOnClickListener {
+                                    if (tvDownload.text == getString(R.string.download)) {
+                                        Log.d("Download", "onClick: ${song.videoId}")
+                                        viewModel.updateDownloadState(
+                                            song.videoId,
+                                            DownloadState.STATE_PREPARING
+                                        )
+                                        val downloadRequest =
+                                            DownloadRequest.Builder(
+                                                song.videoId,
+                                                song.videoId.toUri()
+                                            )
+                                                .setData(song.title.toByteArray())
+                                                .setCustomCacheKey(song.videoId)
+                                                .build()
+                                        viewModel.updateDownloadState(
+                                            song.videoId,
+                                            DownloadState.STATE_DOWNLOADING
+                                        )
+                                        viewModel.getDownloadStateFromService(song.videoId)
+                                        DownloadService.sendAddDownload(
+                                            requireContext(),
+                                            MusicDownloadService::class.java,
+                                            downloadRequest,
+                                            false
+                                        )
+                                        lifecycleScope.launch {
+                                            viewModel.downloadState.collect { download ->
+                                                if (download != null) {
+                                                    when (download.state) {
+                                                        Download.STATE_DOWNLOADING -> {
+                                                            viewModel.updateDownloadState(
+                                                                song.videoId,
+                                                                DownloadState.STATE_DOWNLOADING
+                                                            )
+                                                            tvDownload.text =
+                                                                getString(R.string.downloading)
+                                                            ivDownload.setImageResource(R.drawable.baseline_downloading_white)
+                                                            setEnabledAll(btDownload, true)
+                                                        }
+
+                                                        Download.STATE_FAILED -> {
+                                                            viewModel.updateDownloadState(
+                                                                song.videoId,
+                                                                DownloadState.STATE_NOT_DOWNLOADED
+                                                            )
+                                                            tvDownload.text =
+                                                                getString(R.string.download)
+                                                            ivDownload.setImageResource(R.drawable.outline_download_for_offline_24)
+                                                            setEnabledAll(btDownload, true)
+                                                            Toast.makeText(
+                                                                requireContext(),
+                                                                getString(androidx.media3.exoplayer.R.string.exo_download_failed),
+                                                                Toast.LENGTH_SHORT
+                                                            ).show()
+                                                        }
+
+                                                        Download.STATE_COMPLETED -> {
+                                                            viewModel.updateDownloadState(
+                                                                song.videoId,
+                                                                DownloadState.STATE_DOWNLOADED
+                                                            )
+                                                            Toast.makeText(
+                                                                requireContext(),
+                                                                getString(androidx.media3.exoplayer.R.string.exo_download_completed),
+                                                                Toast.LENGTH_SHORT
+                                                            ).show()
+                                                            tvDownload.text =
+                                                                getString(R.string.downloaded)
+                                                            ivDownload.setImageResource(R.drawable.baseline_downloaded)
+                                                            setEnabledAll(btDownload, true)
+                                                        }
+
+                                                        else -> {
+                                                            Log.d(
+                                                                "Download",
+                                                                "onCreate: ${download.state}"
+                                                            )
+                                                        }
                                                     }
                                                 }
                                             }
                                         }
+                                    } else if (tvDownload.text == getString(R.string.downloaded) || tvDownload.text == getString(
+                                            R.string.downloading
+                                        )
+                                    ) {
+                                        DownloadService.sendRemoveDownload(
+                                            requireContext(),
+                                            MusicDownloadService::class.java,
+                                            song.videoId,
+                                            false
+                                        )
+                                        viewModel.updateDownloadState(
+                                            song.videoId,
+                                            DownloadState.STATE_NOT_DOWNLOADED
+                                        )
+                                        tvDownload.text = getString(R.string.download)
+                                        ivDownload.setImageResource(R.drawable.outline_download_for_offline_24)
+                                        setEnabledAll(btDownload, true)
+                                        Toast.makeText(
+                                            requireContext(),
+                                            getString(R.string.removed_download),
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                     }
-                                }
-                                else if (tvDownload.text == getString(R.string.downloaded) || tvDownload.text == getString(R.string.downloading)) {
-                                    DownloadService.sendRemoveDownload(
-                                        requireContext(),
-                                        MusicDownloadService::class.java,
-                                        song.videoId,
-                                        false
-                                    )
-                                    viewModel.updateDownloadState(
-                                        song.videoId,
-                                        DownloadState.STATE_NOT_DOWNLOADED
-                                    )
-                                    tvDownload.text = getString(R.string.download)
-                                    ivDownload.setImageResource(R.drawable.outline_download_for_offline_24)
-                                    setEnabledAll(btDownload, true)
-                                    Toast.makeText(
-                                        requireContext(),
-                                        getString(R.string.removed_download),
-                                        Toast.LENGTH_SHORT
-                                    ).show()
                                 }
                             }
                         }

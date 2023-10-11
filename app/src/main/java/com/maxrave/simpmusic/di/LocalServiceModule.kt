@@ -37,5 +37,7 @@ object LocalServiceModule {
 
     @Provides
     @Singleton
-    fun provideDatastoreManager(@ApplicationContext context: Context, settingsDataStore: DataStore<Preferences>): DataStoreManager = DataStoreManager(context, settingsDataStore)
+    fun provideDatastoreManager(settingsDataStore: DataStore<Preferences>): DataStoreManager = DataStoreManager(
+        settingsDataStore
+    )
 }

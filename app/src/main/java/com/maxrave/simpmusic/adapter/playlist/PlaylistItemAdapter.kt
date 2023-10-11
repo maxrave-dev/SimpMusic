@@ -65,12 +65,12 @@ class PlaylistItemAdapter(private var playlistItemList: ArrayList<Any>): Recycle
         }
     }
     fun updateList(newList: ArrayList<Any>){
-        Log.d("PlaylistItemAdapter", "updateList: ${newList.toString()}")
+        Log.d("PlaylistItemAdapter", "updateList: $newList")
         playlistItemList.clear()
         newList.forEach {
             playlistItemList.add(it)
         }
-        Log.d("PlaylistItemAdapter", "updateList: ${playlistItemList.toString()}")
+        Log.d("PlaylistItemAdapter", "updateList: $playlistItemList")
         notifyDataSetChanged()
     }
 

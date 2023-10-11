@@ -273,7 +273,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
         withContext(Dispatchers.IO) { localDataSource.insertFormat(format) }
 
     suspend fun getFormat(videoId: String): Flow<FormatEntity?> =
-        flow { emit(localDataSource.getFormat(videoId)) }.flowOn(Dispatchers.IO)
+        flow { emit(localDataSource.getFormat(videoId)) }.flowOn(Dispatchers.Main)
 
 
     suspend fun recoverQueue(temp: List<Track>) {
@@ -1166,7 +1166,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
 
     suspend fun removeYouTubePlaylistItem(youtubePlaylistId: String, videoId: String) = flow {
         runCatching {
-            getSetVideoId(videoId).collect() { setVideoId ->
+            getSetVideoId(videoId).collect { setVideoId ->
                 if (setVideoId?.setVideoId != null) {
                     YouTube.removeItemYouTubePlaylist(youtubePlaylistId, videoId, setVideoId.setVideoId).onSuccess {
                         emit(it)

@@ -56,7 +56,6 @@ import com.maxrave.simpmusic.extension.setEnabledAll
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService
-import com.maxrave.simpmusic.service.test.source.MusicSource
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.SearchViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -66,8 +65,6 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class SearchFragment : Fragment() {
-    @Inject
-    lateinit var musicSource: MusicSource
 
     @Inject
     lateinit var application: Application

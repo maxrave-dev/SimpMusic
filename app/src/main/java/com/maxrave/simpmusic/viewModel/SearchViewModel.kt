@@ -183,10 +183,6 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
     }
 
 
-    override fun onCleared() {
-        super.onCleared()
-    }
-
     fun searchAlbums(query: String) {
         if (loading.value == false){
             loading.value = true

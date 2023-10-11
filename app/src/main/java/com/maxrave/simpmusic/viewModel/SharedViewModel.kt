@@ -55,12 +55,9 @@ import com.maxrave.simpmusic.service.RepeatState
 import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
 import com.maxrave.simpmusic.service.SimpleMediaState
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
-import com.maxrave.simpmusic.service.test.source.MusicSource
-import com.maxrave.simpmusic.service.test.source.StateSource
 import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -78,21 +75,18 @@ import javax.inject.Inject
 
 @HiltViewModel
 @UnstableApi
-class SharedViewModel @Inject constructor(private var dataStoreManager: DataStoreManager, @DownloadCache private val downloadedCache: SimpleCache, private val musicSource: MusicSource, private val mainRepository: MainRepository, private val simpleMediaServiceHandler: SimpleMediaServiceHandler, private val application: Application) : AndroidViewModel(application){
+class SharedViewModel @Inject constructor(private var dataStoreManager: DataStoreManager, @DownloadCache private val downloadedCache: SimpleCache, private val mainRepository: MainRepository, private val application: Application) : AndroidViewModel(application){
     @Inject
     lateinit var downloadUtils: DownloadUtils
 
     private var restoreLastPlayedTrackDone: Boolean = false
 
-    private var _allSongsDB: MutableLiveData<List<SongEntity>> = MutableLiveData()
-    val allSongsDB: LiveData<List<SongEntity>> = _allSongsDB
+    var simpleMediaServiceHandler: SimpleMediaServiceHandler? = null
 
     private var _songDB: MutableLiveData<SongEntity> = MutableLiveData()
     val songDB: LiveData<SongEntity> = _songDB
     private var _liked: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val liked: SharedFlow<Boolean> = _liked.asSharedFlow()
-
-    private var loadMusicSourceJob: Job? = null
 
     protected val context
         get() = getApplication<Application>()
@@ -124,7 +118,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     private val _uiState = MutableStateFlow<UIState>(UIState.Initial)
     val uiState = _uiState.asStateFlow()
 
-    var isPlaying = MutableLiveData<Boolean>(false)
+    var isPlaying = MutableStateFlow<Boolean>(false)
     var notReady = MutableLiveData<Boolean>(true)
 
     var _lyrics = MutableLiveData<Resource<Lyrics>>()
@@ -135,17 +129,8 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     private var _nowPlayingMediaItem = MutableLiveData<MediaItem?>()
     val nowPlayingMediaItem: LiveData<MediaItem?> = _nowPlayingMediaItem
 
-    private var _nowPlaying = simpleMediaServiceHandler.nowPlaying
-    val nowPLaying = _nowPlaying.asSharedFlow()
-
     private var _songTransitions = MutableStateFlow<Boolean>(false)
     val songTransitions: StateFlow<Boolean> = _songTransitions
-
-    private var _nextTrackAvailable = simpleMediaServiceHandler.nextTrackAvailable
-    val nextTrackAvailable: StateFlow<Boolean> = _nextTrackAvailable
-
-    private var _previousTrackAvailable = simpleMediaServiceHandler.previousTrackAvailable
-    val previousTrackAvailable: StateFlow<Boolean> = _previousTrackAvailable
 
     private var _shuffleModeEnabled = MutableStateFlow<Boolean>(false)
     val shuffleModeEnabled: StateFlow<Boolean> = _shuffleModeEnabled
@@ -156,13 +141,6 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     //SponsorBlock
     private var _skipSegments: MutableStateFlow<List<SkipSegments>?> = MutableStateFlow(null)
     val skipSegments: StateFlow<List<SkipSegments>?> = _skipSegments
-
-    //Sleep Timer
-    private var _sleepTimerMinutes = simpleMediaServiceHandler.sleepMinutes
-    val sleepTimerMinutes: SharedFlow<Int> = _sleepTimerMinutes
-
-    private var _sleepTimerDone = simpleMediaServiceHandler.sleepDone
-    val sleepTimerDone: SharedFlow<Boolean> = _sleepTimerDone
 
     private var _sleepTimerRunning: MutableLiveData<Boolean> = MutableLiveData(false)
     val sleepTimerRunning: LiveData<Boolean> = _sleepTimerRunning
@@ -184,154 +162,152 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
 
     val intent: MutableStateFlow<Intent?> = MutableStateFlow(null)
 
-    init {
-//        regionCode = runBlocking { dataStoreManager.location.first() }
-//        quality = runBlocking { dataStoreManager.quality.first() }
-//        language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
-//        val from_backup = runBlocking { dataStoreManager.playlistFromSaved.first() }
-//        if (runBlocking { dataStoreManager.saveRecentSongAndQueue.first() == TRUE }) {
-//            if (from_backup != null) {
-//                from.postValue(from_backup)
-//            }
-//            recentPosition = runBlocking { (dataStoreManager.recentPosition.first()) }
-//        }
-        loadMusicSourceJob = Job()
-        viewModelScope.launch {
-            val job1 = launch {
-                simpleMediaServiceHandler.simpleMediaState.collect { mediaState ->
-                    when (mediaState) {
-                        is SimpleMediaState.Buffering -> {
-                            notReady.value = true
-                        }
-                        SimpleMediaState.Initial -> _uiState.value = UIState.Initial
-                        SimpleMediaState.Ended -> {
-                            _uiState.value = UIState.Ended
-                            Log.d("Check lại videoId", videoId.value.toString())
-                        }
-                        is SimpleMediaState.Playing -> isPlaying.value = mediaState.isPlaying
-                        is SimpleMediaState.Progress -> {
-                            if (_duration.value > 0){
-                                calculateProgressValues(mediaState.progress)
-                                _progressMillis.value = mediaState.progress
+//    init {
+//        Log.w("Check SharedViewModel init", (simpleMediaServiceHandler != null).toString())
+////        regionCode = runBlocking { dataStoreManager.location.first() }
+////        quality = runBlocking { dataStoreManager.quality.first() }
+////        language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
+////        val from_backup = runBlocking { dataStoreManager.playlistFromSaved.first() }
+////        if (runBlocking { dataStoreManager.saveRecentSongAndQueue.first() == TRUE }) {
+////            if (from_backup != null) {
+////                from.postValue(from_backup)
+////            }
+////            recentPosition = runBlocking { (dataStoreManager.recentPosition.first()) }
+////        }
+//
+//    }
+    fun init() {
+        if (simpleMediaServiceHandler != null) {
+            viewModelScope.launch {
+                val job1 = launch {
+                    simpleMediaServiceHandler!!.simpleMediaState.collect { mediaState ->
+                        when (mediaState) {
+                            is SimpleMediaState.Buffering -> {
+                                notReady.value = true
                             }
-                        }
-                        is SimpleMediaState.Loading -> {
-                            _bufferedPercentage.value = mediaState.bufferedPercentage
-                            _duration.value = mediaState.duration
-                        }
-                        is SimpleMediaState.Ready -> {
-                            notReady.value = false
-                            _duration.value = mediaState.duration
-                            _uiState.value = UIState.Ready
-                            getFormat(nowPLaying.first()?.mediaId)
+                            SimpleMediaState.Initial -> _uiState.value = UIState.Initial
+                            SimpleMediaState.Ended -> {
+                                _uiState.value = UIState.Ended
+                                Log.d("Check lại videoId", videoId.value.toString())
+                            }
+                            is SimpleMediaState.Playing -> isPlaying.value = mediaState.isPlaying
+                            is SimpleMediaState.Progress -> {
+                                if (_duration.value > 0){
+                                    calculateProgressValues(mediaState.progress)
+                                    _progressMillis.value = mediaState.progress
+                                }
+                            }
+                            is SimpleMediaState.Loading -> {
+                                _bufferedPercentage.value = mediaState.bufferedPercentage
+                                _duration.value = mediaState.duration
+                            }
+                            is SimpleMediaState.Ready -> {
+                                notReady.value = false
+                                _duration.value = mediaState.duration
+                                calculateProgressValues(simpleMediaServiceHandler!!.getProgress())
+                                _uiState.value = UIState.Ready
+                                getFormat(simpleMediaServiceHandler!!.nowPlaying.first()?.mediaId)
+                            }
                         }
                     }
                 }
-            }
-            val job2 = launch {
-                simpleMediaServiceHandler.nowPlaying.collectLatest { nowPlaying ->
-                    nowPlaying?.let { now ->
-                        getSkipSegments(now.mediaId)
-                        if (dataStoreManager.sendBackToGoogle.first() == TRUE) {
-                            mainRepository.getFormat(now.mediaId).collect { formatTemp ->
-                                if (formatTemp != null) {
-                                    initPlayback(formatTemp.playbackTrackingVideostatsPlaybackUrl, formatTemp.playbackTrackingAtrUrl, formatTemp.playbackTrackingVideostatsWatchtimeUrl)
-                                }
-                            }
-                        }
-                    }
-                    if (nowPlaying != null && getCurrentMediaItemIndex() > 0) {
-                        _nowPlayingMediaItem.postValue(nowPlaying)
-                        var downloaded = false
-                        val tempSong = musicSource.catalogMetadata[getCurrentMediaItemIndex()]
-                        Log.d("Check tempSong", tempSong.toString())
-                        mainRepository.insertSong(tempSong.toSongEntity())
-                        mainRepository.getSongById(tempSong.videoId)
-                            .collectLatest { songEntity ->
-                                _songDB.value = songEntity
-                                if (songEntity != null) {
-                                    _liked.value = songEntity.liked
-                                    simpleMediaServiceHandler.like(songEntity.liked)
-                                    downloaded =
-                                        songEntity.downloadState == DownloadState.STATE_DOWNLOADED
-                                    Log.d("Check like", songEntity.toString())
-                                }
-                            }
-                        mainRepository.updateSongInLibrary(LocalDateTime.now(), tempSong.videoId)
-                        mainRepository.updateListenCount(tempSong.videoId)
-                        videoId.postValue(tempSong.videoId)
-                        _nowPlayingMediaItem.value = nowPlaying
-                        resetLyrics()
-                        if (!downloaded) {
-                            mainRepository.getLyricsData("${tempSong.title} ${tempSong.artists?.firstOrNull()?.name}")
-                                .collect { response ->
-                                    _lyrics.value = response
-                                    when (_lyrics.value) {
-                                        is Resource.Success -> {
-                                            if (_lyrics.value?.data != null) {
-                                                insertLyrics(
-                                                    _lyrics.value?.data!!.toLyricsEntity(
-                                                        nowPlaying.mediaId
-                                                    )
-                                                )
-                                                parseLyrics(_lyrics.value?.data)
-                                            }
-                                        }
-
-                                        is Resource.Error -> {
-                                            if (_lyrics.value?.message != "reset") {
-                                                getSavedLyrics(
-                                                    tempSong.videoId,
-                                                    "${tempSong.title} ${tempSong.artists?.firstOrNull()?.name}"
-                                                )
-                                            }
-                                        }
-
-                                        else -> {
-                                            Log.d("Check lyrics", "Loading")
-                                        }
+                val job2 = launch {
+                    simpleMediaServiceHandler!!.nowPlaying.collectLatest { nowPlaying ->
+                        nowPlaying?.let { now ->
+                            getSkipSegments(now.mediaId)
+                            if (dataStoreManager.sendBackToGoogle.first() == TRUE) {
+                                mainRepository.getFormat(now.mediaId).collect { formatTemp ->
+                                    if (formatTemp != null) {
+                                        initPlayback(formatTemp.playbackTrackingVideostatsPlaybackUrl, formatTemp.playbackTrackingAtrUrl, formatTemp.playbackTrackingVideostatsWatchtimeUrl)
                                     }
                                 }
-                        } else {
-                            getSavedLyrics(
-                                tempSong.videoId,
-                                "${tempSong.title} ${tempSong.artists?.firstOrNull()?.name}"
-                            )
+                            }
+                        }
+                        if (nowPlaying != null && getCurrentMediaItemIndex() > 0) {
+                            _nowPlayingMediaItem.postValue(nowPlaying)
+                            var downloaded = false
+                            val tempSong = simpleMediaServiceHandler!!.catalogMetadata.get(getCurrentMediaItemIndex())
+                            Log.d("Check tempSong", tempSong.toString())
+                            mainRepository.insertSong(tempSong.toSongEntity())
+                            mainRepository.getSongById(tempSong.videoId)
+                                .collectLatest { songEntity ->
+                                    _songDB.value = songEntity
+                                    if (songEntity != null) {
+                                        _liked.value = songEntity.liked
+                                        simpleMediaServiceHandler!!.like(songEntity.liked)
+                                        downloaded =
+                                            songEntity.downloadState == DownloadState.STATE_DOWNLOADED
+                                        Log.d("Check like", songEntity.toString())
+                                    }
+                                }
+                            mainRepository.updateSongInLibrary(LocalDateTime.now(), tempSong.videoId)
+                            mainRepository.updateListenCount(tempSong.videoId)
+                            videoId.postValue(tempSong.videoId)
+                            _nowPlayingMediaItem.value = nowPlaying
+                            resetLyrics()
+                            if (!downloaded) {
+                                mainRepository.getLyricsData("${tempSong.title} ${tempSong.artists?.firstOrNull()?.name}")
+                                    .collect { response ->
+                                        _lyrics.value = response
+                                        when (_lyrics.value) {
+                                            is Resource.Success -> {
+                                                if (_lyrics.value?.data != null) {
+                                                    insertLyrics(
+                                                        _lyrics.value?.data!!.toLyricsEntity(
+                                                            nowPlaying.mediaId
+                                                        )
+                                                    )
+                                                    parseLyrics(_lyrics.value?.data)
+                                                }
+                                            }
+
+                                            is Resource.Error -> {
+                                                if (_lyrics.value?.message != "reset") {
+                                                    getSavedLyrics(
+                                                        tempSong.videoId,
+                                                        "${tempSong.title} ${tempSong.artists?.firstOrNull()?.name}"
+                                                    )
+                                                }
+                                            }
+
+                                            else -> {
+                                                Log.d("Check lyrics", "Loading")
+                                            }
+                                        }
+                                    }
+                            } else {
+                                getSavedLyrics(
+                                    tempSong.videoId,
+                                    "${tempSong.title} ${tempSong.artists?.firstOrNull()?.name}"
+                                )
+                            }
                         }
                     }
                 }
-            }
-            val job3 = launch {
-                simpleMediaServiceHandler.shuffle.collect { shuffle ->
-                    _shuffleModeEnabled.value = shuffle
-                }
-            }
-            val job4 = launch {
-                simpleMediaServiceHandler.repeat.collect { repeat ->
-                    _repeatMode.value = repeat
-                }
-            }
-            val job5 = launch {
-                sleepTimerDone.collect { done ->
-                    if (done) {
-                        _sleepTimerRunning.value = false
+                val job3 = launch {
+                    simpleMediaServiceHandler!!.shuffle.collect { shuffle ->
+                        _shuffleModeEnabled.value = shuffle
                     }
                 }
-            }
-            val job6 = launch {
-                simpleMediaServiceHandler.liked.collect { liked ->
-                    if (liked != _liked.value) {
-                        videoId.value?.let { updateLikeStatus(it, liked) }
+                val job4 = launch {
+                    simpleMediaServiceHandler!!.repeat.collect { repeat ->
+                        _repeatMode.value = repeat
                     }
                 }
-            }
+                val job6 = launch {
+                    simpleMediaServiceHandler!!.liked.collect { liked ->
+                        if (liked != _liked.value) {
+                            videoId.value?.let { updateLikeStatus(it, liked) }
+                        }
+                    }
+                }
 
-            job1.join()
-            job2.join()
-            job3.join()
-            job4.join()
-            job5.join()
-            job6.join()
+                job1.join()
+                job2.join()
+                job3.join()
+                job4.join()
+                job6.join()
+            }
         }
     }
 
@@ -355,15 +331,15 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
 
     fun setSleepTimer(minutes: Int) {
         _sleepTimerRunning.value = true
-        simpleMediaServiceHandler.sleepStart(minutes)
+        simpleMediaServiceHandler!!.sleepStart(minutes)
     }
     fun stopSleepTimer() {
         _sleepTimerRunning.value = false
-        simpleMediaServiceHandler.sleepStop()
+        simpleMediaServiceHandler!!.sleepStop()
     }
 
     fun updateLikeInNotification(liked: Boolean) {
-        simpleMediaServiceHandler.like(liked)
+        simpleMediaServiceHandler!!.like(liked)
     }
 
     private var _downloadState: MutableStateFlow<Download?> = MutableStateFlow(null)
@@ -412,7 +388,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
         viewModelScope.launch {
             dataStoreManager.isRestoringDatabase.first().let { restoring ->
                 isRestoring.value = restoring == TRUE
-                isRestoring.collect() { it ->
+                isRestoring.collect { it ->
                     if (it) {
                         Toast.makeText(context, context.getString(R.string.restore_success), Toast.LENGTH_SHORT).show()
                         mainRepository.getDownloadedSongs().collect { songs ->
@@ -493,22 +469,22 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
         }
     }
     fun getCurrentMediaItem(): MediaItem? {
-        _nowPlayingMediaItem.value = simpleMediaServiceHandler.getCurrentMediaItem()
-        return simpleMediaServiceHandler.getCurrentMediaItem()
+        _nowPlayingMediaItem.value = simpleMediaServiceHandler?.getCurrentMediaItem()
+        return simpleMediaServiceHandler?.getCurrentMediaItem()
     }
 
     fun getCurrentMediaItemIndex(): Int {
-        return simpleMediaServiceHandler.currentIndex()
+        return simpleMediaServiceHandler?.currentIndex() ?: 0
     }
     @UnstableApi
     fun playMediaItemInMediaSource(index: Int){
-        simpleMediaServiceHandler.playMediaItemInMediaSource(index)
+        simpleMediaServiceHandler?.playMediaItemInMediaSource(index)
     }
     @UnstableApi
     fun loadMediaItemFromTrack(track: Track, type: String, index: Int? = null) {
         quality = runBlocking { dataStoreManager.quality.first() }
         viewModelScope.launch {
-            simpleMediaServiceHandler.clearMediaItems()
+            simpleMediaServiceHandler?.clearMediaItems()
             var uri = ""
             mainRepository.insertSong(track.toSongEntity())
             mainRepository.getSongById(track.videoId)
@@ -526,7 +502,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                 if (thumbUrl.contains("w120")) {
                     thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
                 }
-                simpleMediaServiceHandler.addMediaItem(
+                simpleMediaServiceHandler?.addMediaItem(
                     MediaItem.Builder()
                         .setUri(track.videoId)
                         .setMediaId(track.videoId)
@@ -547,7 +523,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                     "Check MediaItem Thumbnail",
                     getCurrentMediaItem()?.mediaMetadata?.artworkUri.toString()
                 )
-                musicSource.addFirstMetadata(track)
+                simpleMediaServiceHandler?.addFirstMetadata(track)
                 getSavedLyrics(track.videoId, "${track.title} ${track.artists?.firstOrNull()?.name}")
             } else {
 //                var itag = 0
@@ -570,7 +546,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                             thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
                         }
                         Log.d("Check URI", uri)
-                        simpleMediaServiceHandler.addMediaItem(
+                        simpleMediaServiceHandler?.addMediaItem(
                             MediaItem.Builder()
                                 .setUri(track.videoId)
                                 .setMediaId(track.videoId)
@@ -591,7 +567,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                             "Check MediaItem Thumbnail",
                             getCurrentMediaItem()?.mediaMetadata?.artworkUri.toString()
                         )
-                        musicSource.addFirstMetadata(track)
+                        simpleMediaServiceHandler?.addFirstMetadata(track)
                         resetLyrics()
                         mainRepository.getLyricsData("${track.title} ${track.artists?.firstOrNull()?.name}").collect { response ->
                             _lyrics.value = response
@@ -646,17 +622,24 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                 }
                 RECOVER_TRACK_QUEUE -> {
                     if (getString(RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE) == DataStoreManager.FALSE) {
+                        recentPosition = runBlocking { dataStoreManager.recentPosition.first() }
                         restoreLastPLayedTrackDone()
                         from.postValue(from_backup)
-                        simpleMediaServiceHandler.seekTo(recentPosition)
+                        simpleMediaServiceHandler?.seekTo(recentPosition)
                         Log.d("Check recentPosition", recentPosition)
-                        songDB.value?.duration?.let {
-                            if (it != "" && it.contains(":")) {
-                                it.split(":").let { split ->
+                        if (songDB.value?.duration != null) {
+                            if (songDB.value?.duration != "" && songDB.value?.duration?.contains(":") == true) {
+                                songDB.value?.duration?.split(":")?.let { split ->
                                     _duration.emit(((split[0].toInt() * 60) + split[1].toInt())*1000.toLong())
                                     Log.d("Check Duration", _duration.value.toString())
                                     calculateProgressValues(recentPosition.toLong())
                                 }
+                            }
+                        }
+                        else {
+                            simpleMediaServiceHandler?.getPlayerDuration()?.let {
+                                _duration.emit(it)
+                                calculateProgressValues(recentPosition.toLong())
                             }
                         }
                         getSaveQueue()
@@ -670,22 +653,22 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     @UnstableApi
     fun onUIEvent(uiEvent: UIEvent) = viewModelScope.launch {
         when (uiEvent) {
-            UIEvent.Backward -> simpleMediaServiceHandler.onPlayerEvent(PlayerEvent.Backward)
-            UIEvent.Forward -> simpleMediaServiceHandler.onPlayerEvent(PlayerEvent.Forward)
-            UIEvent.PlayPause -> simpleMediaServiceHandler.onPlayerEvent(PlayerEvent.PlayPause)
-            UIEvent.Next -> simpleMediaServiceHandler.onPlayerEvent(PlayerEvent.Next)
-            UIEvent.Previous -> simpleMediaServiceHandler.onPlayerEvent(PlayerEvent.Previous)
-            UIEvent.Stop -> simpleMediaServiceHandler.onPlayerEvent(PlayerEvent.Stop)
+            UIEvent.Backward -> simpleMediaServiceHandler?.onPlayerEvent(PlayerEvent.Backward)
+            UIEvent.Forward -> simpleMediaServiceHandler?.onPlayerEvent(PlayerEvent.Forward)
+            UIEvent.PlayPause -> simpleMediaServiceHandler?.onPlayerEvent(PlayerEvent.PlayPause)
+            UIEvent.Next -> simpleMediaServiceHandler?.onPlayerEvent(PlayerEvent.Next)
+            UIEvent.Previous -> simpleMediaServiceHandler?.onPlayerEvent(PlayerEvent.Previous)
+            UIEvent.Stop -> simpleMediaServiceHandler?.onPlayerEvent(PlayerEvent.Stop)
             is UIEvent.UpdateProgress -> {
                 _progress.value = uiEvent.newProgress
-                simpleMediaServiceHandler.onPlayerEvent(
+                simpleMediaServiceHandler?.onPlayerEvent(
                     PlayerEvent.UpdateProgress(
                         uiEvent.newProgress
                     )
                 )
             }
-            UIEvent.Repeat -> simpleMediaServiceHandler.onPlayerEvent(PlayerEvent.Repeat)
-            UIEvent.Shuffle -> simpleMediaServiceHandler.onPlayerEvent(PlayerEvent.Shuffle)
+            UIEvent.Repeat -> simpleMediaServiceHandler?.onPlayerEvent(PlayerEvent.Repeat)
+            UIEvent.Shuffle -> simpleMediaServiceHandler?.onPlayerEvent(PlayerEvent.Shuffle)
         }
     }
     fun formatDuration(duration: Long): String {
@@ -827,8 +810,9 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                 Log.d("Check from", from.value!!)
                 dataStoreManager.setPlaylistFromSaved(from.value!!)
             }
-            simpleMediaServiceHandler.onPlayerEvent(PlayerEvent.Stop)
+            simpleMediaServiceHandler?.onPlayerEvent(PlayerEvent.Stop)
         }
+        Log.w("Check onCleared", "onCleared")
     }
 
     fun changeSongTransitionToFalse() {
@@ -1023,7 +1007,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
         }
     }
     fun skipSegment(position: Long) {
-        simpleMediaServiceHandler.skipSegment(position)
+        simpleMediaServiceHandler?.skipSegment(position)
     }
     fun sponsorBlockEnabled() = runBlocking { dataStoreManager.sponsorBlockEnabled.first() }
     fun sponsorBlockCategories() = runBlocking { dataStoreManager.getSponsorBlockCategories() }
@@ -1048,38 +1032,11 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     }
 
     fun addQueueToPlayer() {
-        loadMusicSourceJob?.cancel()
-        loadMusicSourceJob = viewModelScope.launch {
-            musicSource.load()
-        }
+        simpleMediaServiceHandler?.addQueueToPlayer()
     }
 
     private fun loadPlaylistOrAlbum(index: Int? = null) {
-        loadMusicSourceJob?.cancel()
-        loadMusicSourceJob = viewModelScope.launch {
-            musicSource.load()
-            musicSource.stateFlow.collect{ state ->
-                if (state == StateSource.STATE_INITIALIZED) {
-                    when (index) {
-                        null -> {
-                            musicSource.addFirstMediaItem(simpleMediaServiceHandler.getMediaItemWithIndex(0))
-                        }
-                        -1 -> {
-
-                        }
-                        else -> {
-                            musicSource.addFirstMediaItemToIndex(simpleMediaServiceHandler.getMediaItemWithIndex(0), index)
-                            Queue.getNowPlaying().let { song ->
-                                if (song != null) {
-                                    musicSource.catalogMetadata.removeAt(0)
-                                    musicSource.catalogMetadata.add(index, song)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        simpleMediaServiceHandler?.loadPlaylistOrAlbum(index)
     }
 
     fun resetRelated() {

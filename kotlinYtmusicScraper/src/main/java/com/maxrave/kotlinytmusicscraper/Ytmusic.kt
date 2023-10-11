@@ -52,13 +52,7 @@ class Ytmusic {
     private var cookieMap = emptyMap<String, String>()
 
     var spotifyCookie: String? = null
-        set(value) {
-            field = value
-        }
     var musixmatchUserToken: String? = null
-        set(value) {
-            field = value
-        }
 
     var proxy: Proxy? = null
         set(value) {

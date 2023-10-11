@@ -50,7 +50,7 @@ fun parseSongChart(contents: List<MusicCarouselShelfRenderer.Content>): ArrayLis
         var view = ""
         val artists: ArrayList<Artist> = arrayListOf()
         val albums: ArrayList<Album> = arrayListOf()
-            if (runs != null) {
+        if (runs != null) {
             for (i in runs.indices) {
                 if (i.rem(2) == 0) {
                     if (i == runs.size -1) {
