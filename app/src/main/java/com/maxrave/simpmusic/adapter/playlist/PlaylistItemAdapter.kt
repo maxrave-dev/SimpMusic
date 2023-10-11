@@ -3,8 +3,10 @@ package com.maxrave.simpmusic.adapter.playlist
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
-import coil.load
+import coil.ImageLoader
+import coil.request.ImageRequest
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
@@ -59,9 +61,7 @@ class PlaylistItemAdapter(private var playlistItemList: ArrayList<Any>): Recycle
             binding.tvSongArtist.text = song.artistName?.connectArtists()
             binding.tvSongTitle.isSelected = true
             binding.tvSongArtist.isSelected = true
-            binding.ivThumbnail.load(song.thumbnails) {
-                placeholder(R.drawable.holder)
-            }
+            binding.ivThumbnail.load(song.thumbnails)
         }
     }
     fun updateList(newList: ArrayList<Any>){
@@ -112,5 +112,18 @@ class PlaylistItemAdapter(private var playlistItemList: ArrayList<Any>): Recycle
     companion object {
         private const val VIEW_TYPE_TRACK = 0
         private const val VIEW_TYPE_LOCAL_PLAYLIST_TRACK = 1
+    }
+
+    fun ImageView.load(url: String?) {
+        if (url != null) {
+            ImageLoader(context).enqueue(
+                ImageRequest.Builder(context)
+                    .placeholder(R.drawable.holder)
+                    .data(url)
+                    .diskCacheKey(url)
+                    .target(this)
+                    .build()
+            )
+        }
     }
 }

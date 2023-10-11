@@ -113,8 +113,8 @@ dependencies {
     //fragment ktx
     implementation("androidx.fragment:fragment-ktx:1.6.1")
     //Hilt
-    implementation("com.google.dagger:hilt-android:2.48")
-    ksp("com.google.dagger:hilt-compiler:2.48")
+    implementation("com.google.dagger:hilt-android:2.48.1")
+    ksp("com.google.dagger:hilt-compiler:2.48.1")
     ksp("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.7.0")
     //DataStore
     implementation("androidx.datastore:datastore-preferences:1.0.0")

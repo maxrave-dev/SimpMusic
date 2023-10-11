@@ -24,6 +24,8 @@ private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.HttpRedirect")
 
 /**
  * An [HttpClient] plugin that handles HTTP redirects
+ * Use only for Musixmatch API
+ * @author maxrave-dev
  */
 class CustomRedirectConfig private constructor(
     private val checkHttpMethod: Boolean,
