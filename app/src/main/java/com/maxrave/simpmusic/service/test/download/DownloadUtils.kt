@@ -21,6 +21,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
@@ -61,7 +62,7 @@ class DownloadUtils @Inject constructor(
             runBlocking(Dispatchers.IO) {
                 Log.w("DownloadUtils", "Not cached: $mediaId")
                 var extract: DataSpec? = null
-                mainRepository.getStream(mediaId, 251).collect { values ->
+                mainRepository.getStream(mediaId, 251).cancellable().collect { values ->
                     if (values != null){
                         extract = dataSpec.withUri((values).toUri())
                     }

@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.data.dataStore
 
-import android.content.Context
 import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
@@ -10,7 +9,6 @@ import androidx.media3.common.Player
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.common.SPONSOR_BLOCK
 import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
@@ -19,7 +17,7 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import com.maxrave.simpmusic.common.QUALITY as COMMON_QUALITY
 
-class DataStoreManager @Inject constructor(@ApplicationContext appContext: Context, private val settingsDataStore: DataStore<Preferences>) {
+class DataStoreManager @Inject constructor(private val settingsDataStore: DataStore<Preferences>) {
 
     val location: Flow<String> = settingsDataStore.data.map { preferences ->
         preferences[LOCATION] ?: "VN"
@@ -234,6 +232,7 @@ class DataStoreManager @Inject constructor(@ApplicationContext appContext: Conte
         preferences[RECENT_SONG_POSITION_KEY] ?: "0"
     }
     suspend fun saveRecentSong (mediaId: String, position: Long) {
+        Log.w("saveRecentSong", "$mediaId $position")
         withContext(Dispatchers.IO) {
             settingsDataStore.edit { settings ->
                 settings[RECENT_SONG_MEDIA_ID_KEY] = mediaId

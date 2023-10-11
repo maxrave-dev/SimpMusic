@@ -20,18 +20,14 @@ import com.maxrave.simpmusic.adapter.queue.QueueAdapter
 import com.maxrave.simpmusic.databinding.BottomSheetQueueTrackOptionBinding
 import com.maxrave.simpmusic.databinding.QueueBottomSheetBinding
 import com.maxrave.simpmusic.extension.setEnabledAll
-import com.maxrave.simpmusic.service.test.source.MusicSource
-import com.maxrave.simpmusic.service.test.source.StateSource
+import com.maxrave.simpmusic.service.StateSource
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class QueueFragment: BottomSheetDialogFragment() {
-
-    @Inject
-    lateinit var musicSource: MusicSource
 
     private val viewModel by activityViewModels<SharedViewModel>()
     private var _binding: QueueBottomSheetBinding? = null
@@ -94,13 +90,13 @@ class QueueFragment: BottomSheetDialogFragment() {
             adapter = queueAdapter
             layoutManager = LinearLayoutManager(requireContext())
         }
-        if (musicSource.catalogMetadata.isNotEmpty()) {
-            queueAdapter.updateList(musicSource.catalogMetadata)
+        if (!viewModel.simpleMediaServiceHandler?.catalogMetadata.isNullOrEmpty()) {
+            queueAdapter.updateList(viewModel.simpleMediaServiceHandler!!.catalogMetadata)
         }
 
         lifecycleScope.launch {
             val job1 = launch {
-                musicSource.stateFlow.collect{ state ->
+                viewModel.simpleMediaServiceHandler?.stateFlow?.collect{ state ->
                     when(state) {
                         StateSource.STATE_INITIALIZING -> {
                             binding.loadingQueue.visibility = View.VISIBLE
@@ -113,7 +109,7 @@ class QueueFragment: BottomSheetDialogFragment() {
                         StateSource.STATE_INITIALIZED -> {
                             binding.loadingQueue.visibility = View.GONE
                             binding.rvQueue.visibility = View.VISIBLE
-                            queueAdapter.updateList(musicSource.catalogMetadata)
+                            queueAdapter.updateList(viewModel.simpleMediaServiceHandler!!.catalogMetadata)
                         }
                         else -> {
                             binding.loadingQueue.visibility = View.VISIBLE
@@ -126,21 +122,20 @@ class QueueFragment: BottomSheetDialogFragment() {
                 updateNowPlaying()
             }
             val job3 = launch {
-                musicSource.currentSongIndex.collect{ index ->
+                viewModel.simpleMediaServiceHandler?.currentSongIndex?.collect{ index ->
                     Log.d("QueueFragment", "onViewCreated: $index")
-                    if (musicSource.stateFlow.value == StateSource.STATE_INITIALIZED || musicSource.stateFlow.value == StateSource.STATE_INITIALIZING){
+                    if (viewModel.simpleMediaServiceHandler?.stateFlow?.first() == StateSource.STATE_INITIALIZED || viewModel.simpleMediaServiceHandler?.stateFlow?.first() == StateSource.STATE_INITIALIZING){
                         binding.rvQueue.smoothScrollToPosition(index)
                         queueAdapter.setCurrentPlaying(index)
                     }
                 }
             }
             val job4 = launch {
-                musicSource.added.collect{ isAdded ->
+                viewModel.simpleMediaServiceHandler?.added?.collect{ isAdded ->
                     Log.d("Check Added in Queue", "$isAdded")
                     if (isAdded){
-                        Log.d("Check Queue", "${musicSource.catalogMetadata}")
-                        queueAdapter.updateList(musicSource.catalogMetadata)
-                        musicSource.changeAddedState()
+                        queueAdapter.updateList(viewModel.simpleMediaServiceHandler!!.catalogMetadata)
+                        viewModel.simpleMediaServiceHandler?.changeAddedState()
                     }
                 }
             }
@@ -163,37 +158,46 @@ class QueueFragment: BottomSheetDialogFragment() {
             override fun onOptionClick(position: Int) {
                 val dialog = BottomSheetDialog(requireContext())
                 val dialogView = BottomSheetQueueTrackOptionBinding.inflate(layoutInflater)
-                with(dialogView) {
-                    btMoveUp.setOnClickListener { musicSource.moveItemUp(position)
-                        queueAdapter.updateList(musicSource.catalogMetadata)
-                        dialog.dismiss() }
-                    btMoveDown.setOnClickListener { musicSource.moveItemDown(position)
-                        queueAdapter.updateList(musicSource.catalogMetadata)
-                        dialog.dismiss() }
-                    btDelete.setOnClickListener { musicSource.removeMediaItem(position)
-                        queueAdapter.updateList(musicSource.catalogMetadata)
-                        dialog.dismiss() }
-                }
-                if (musicSource.catalogMetadata.size > 1) {
-                    when (position) {
-                        0 -> {
-                            setEnabledAll(dialogView.btMoveUp, false)
-                            setEnabledAll(dialogView.btMoveDown, true)
+                if (viewModel.simpleMediaServiceHandler != null) {
+                    with(dialogView) {
+                        btMoveUp.setOnClickListener {
+                            viewModel.simpleMediaServiceHandler?.moveItemUp(position)
+                            queueAdapter.updateList(viewModel.simpleMediaServiceHandler!!.catalogMetadata)
+                            dialog.dismiss()
                         }
-                        musicSource.catalogMetadata.size - 1 -> {
-                            setEnabledAll(dialogView.btMoveUp, true)
-                            setEnabledAll(dialogView.btMoveDown, false)
+                        btMoveDown.setOnClickListener {
+                            viewModel.simpleMediaServiceHandler?.moveItemDown(position)
+                            queueAdapter.updateList(viewModel.simpleMediaServiceHandler!!.catalogMetadata)
+                            dialog.dismiss()
                         }
-                        else -> {
-                            setEnabledAll(dialogView.btMoveUp, true)
-                            setEnabledAll(dialogView.btMoveDown, true)
+                        btDelete.setOnClickListener {
+                            viewModel.simpleMediaServiceHandler?.removeMediaItem(position)
+                            queueAdapter.updateList(viewModel.simpleMediaServiceHandler!!.catalogMetadata)
+                            dialog.dismiss()
                         }
                     }
-                }
-                else {
-                    setEnabledAll(dialogView.btMoveUp, false)
-                    setEnabledAll(dialogView.btMoveDown, false)
-                    setEnabledAll(dialogView.btDelete, false)
+                    if (viewModel.simpleMediaServiceHandler!!.catalogMetadata.size > 1) {
+                        when (position) {
+                            0 -> {
+                                setEnabledAll(dialogView.btMoveUp, false)
+                                setEnabledAll(dialogView.btMoveDown, true)
+                            }
+
+                            viewModel.simpleMediaServiceHandler!!.catalogMetadata.size - 1 -> {
+                                setEnabledAll(dialogView.btMoveUp, true)
+                                setEnabledAll(dialogView.btMoveDown, false)
+                            }
+
+                            else -> {
+                                setEnabledAll(dialogView.btMoveUp, true)
+                                setEnabledAll(dialogView.btMoveDown, true)
+                            }
+                        }
+                    } else {
+                        setEnabledAll(dialogView.btMoveUp, false)
+                        setEnabledAll(dialogView.btMoveDown, false)
+                        setEnabledAll(dialogView.btDelete, false)
+                    }
                 }
                 dialog.setCancelable(true)
                 dialog.setContentView(dialogView.root)

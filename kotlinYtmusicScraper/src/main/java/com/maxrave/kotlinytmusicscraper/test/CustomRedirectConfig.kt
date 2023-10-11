@@ -24,15 +24,17 @@ private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.HttpRedirect")
 
 /**
  * An [HttpClient] plugin that handles HTTP redirects
+ * Use only for Musixmatch API
+ * @author maxrave-dev
  */
-public class CustomRedirectConfig private constructor(
+class CustomRedirectConfig private constructor(
     private val checkHttpMethod: Boolean,
     private val allowHttpsDowngrade: Boolean,
     private val defaultHostUrl : String? = null
 ) {
 
     @KtorDsl
-    public class Config {
+    class Config {
 
         /**
          * Checks whether the HTTP method is allowed for the redirect.
@@ -40,23 +42,23 @@ public class CustomRedirectConfig private constructor(
          *
          * Please note: changing this flag could lead to security issues, consider changing the request URL instead.
          */
-        public var checkHttpMethod: Boolean = true
+        var checkHttpMethod: Boolean = true
 
         /**
          * `true` allows a client to make a redirect with downgrading from HTTPS to plain HTTP.
          */
-        public var allowHttpsDowngrade: Boolean = false
+        var allowHttpsDowngrade: Boolean = false
 
-        public var defaultHostUrl: String? = null
+        var defaultHostUrl: String? = null
     }
 
-    public companion object Plugin : HttpClientPlugin<Config, CustomRedirectConfig> {
+    companion object Plugin : HttpClientPlugin<Config, CustomRedirectConfig> {
         override val key: AttributeKey<CustomRedirectConfig> = AttributeKey("HttpRedirect")
 
         /**
          * Occurs when receiving a response with a redirect message.
          */
-        public val HttpResponseRedirect: EventDefinition<HttpResponse> = EventDefinition()
+        val HttpResponseRedirect: EventDefinition<HttpResponse> = EventDefinition()
 
         override fun prepare(block: Config.() -> Unit): CustomRedirectConfig {
             val config = Config().apply(block)

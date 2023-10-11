@@ -77,14 +77,14 @@ fun parseMoodsMomentObject(data: BrowseResponse?): MoodsMomentObject? {
                             val contentTitle =
                                 content.musicTwoRowItemRenderer?.title?.runs?.get(0)?.text
                             val playlistBrowseId = content.musicTwoRowItemRenderer?.navigationEndpoint?.browseEndpoint?.browseId
-                                listContent.add(
-                                    Content(
-                                        playlistBrowseId = playlistBrowseId ?: "",
-                                        subtitle = subtitle,
-                                        thumbnails = thumbnails ?: listOf(),
-                                        title = contentTitle ?: ""
-                                    )
+                            listContent.add(
+                                Content(
+                                    playlistBrowseId = playlistBrowseId ?: "",
+                                    subtitle = subtitle,
+                                    thumbnails = thumbnails ?: listOf(),
+                                    title = contentTitle ?: ""
                                 )
+                            )
                             }
                         }
                     }

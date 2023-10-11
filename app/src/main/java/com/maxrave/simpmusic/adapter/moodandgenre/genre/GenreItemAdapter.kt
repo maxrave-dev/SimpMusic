@@ -13,9 +13,8 @@ import com.maxrave.simpmusic.data.model.explore.mood.genre.ItemsPlaylist
 import com.maxrave.simpmusic.databinding.ItemMoodMomentPlaylistBinding
 
 class GenreItemAdapter(private var genreList: ArrayList<ItemsPlaylist>, val context: Context, val navController: NavController): RecyclerView.Adapter<GenreItemAdapter.ViewHolder>() {
-    inner class ViewHolder(val binding: ItemMoodMomentPlaylistBinding): RecyclerView.ViewHolder(binding.root) {
+    inner class ViewHolder(val binding: ItemMoodMomentPlaylistBinding): RecyclerView.ViewHolder(binding.root)
 
-    }
     fun updateData(newList: ArrayList<ItemsPlaylist>){
         genreList.clear()
         genreList.addAll(newList)

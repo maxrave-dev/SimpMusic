@@ -23,7 +23,7 @@
             </ImageView>
 
             <LinearLayout
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_width="wrap_content"
                 android:layout_toEndOf="@+id/ivThumbnail"
                 android:layout_toStartOf="@id/btMore"

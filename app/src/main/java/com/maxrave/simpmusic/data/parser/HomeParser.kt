@@ -181,7 +181,7 @@ fun parseMixedContent(data: List<SectionListRenderer.Content>?): List<HomeItem> 
                                 if (ytItem != null) {
                                     listContent.add(
                                         Content(
-                                            album = Album( id = musicTwoRowItemRenderer.navigationEndpoint.browseEndpoint?.browseId ?: "", name = title ?: ""),
+                                            album = Album( id = musicTwoRowItemRenderer.navigationEndpoint.browseEndpoint?.browseId ?: "", name = title),
                                             artists = listOf(),
                                             description = null,
                                             isExplicit = false,
@@ -214,7 +214,7 @@ fun parseMixedContent(data: List<SectionListRenderer.Content>?): List<HomeItem> 
                                         if (ytItemAlbum != null) {
                                             listContent.add(
                                                 Content(
-                                                    album = Album( id = musicTwoRowItemRenderer.navigationEndpoint.browseEndpoint?.browseId ?: "", name = title ?: ""),
+                                                    album = Album( id = musicTwoRowItemRenderer.navigationEndpoint.browseEndpoint?.browseId ?: "", name = title),
                                                     artists = listOf(),
                                                     description = null,
                                                     isExplicit = false,
@@ -264,8 +264,8 @@ fun parseMixedContent(data: List<SectionListRenderer.Content>?): List<HomeItem> 
                                     playlistId = null,
                                     browseId = null,
                                     thumbnails = result1.musicResponsiveListItemRenderer!!.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail() ?: listOf(),
-                                    title = ytItem.title ?: "",
-                                    videoId = ytItem.id ?: "",
+                                    title = ytItem.title,
+                                    videoId = ytItem.id,
                                     views = "",
                                     radio = null
                                 )
