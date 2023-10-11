@@ -549,23 +549,21 @@ class MainActivity : AppCompatActivity() {
                     return@switchMap null
                 }
             }
-            val result: MediatorLiveData<Pair<List<Track>, Boolean>> = MediatorLiveData<Pair<List<Track>, Boolean>>().apply {
+            val result: MediatorLiveData<List<Track>> = MediatorLiveData<List<Track>>().apply {
                 addSource(queue) {
-                    value = Pair(it ?: listOf(), viewModel.isServiceRunning.value ?: false)
-                }
-                addSource(viewModel.isServiceRunning) {
-                    value = Pair(queue.value ?: listOf(), it ?: false)
+                    value = it ?: listOf()
                 }
             }
+            binding.miniplayer.visibility = View.GONE
             result.observe(this) {data ->
-                val isMusicServiceRunning = data.second
-                val queueData = data.first
+                val queueData = data
+                Log.w("Check queue saved", queueData.toString())
+                binding.miniplayer.visibility = View.VISIBLE
                 if (queueData.isNotEmpty()) {
-                    if (isMusicServiceRunning) {
-                        binding.miniplayer.visibility = View.VISIBLE
-                    }
+                    Log.w("Check queue saved", queueData.toString())
                     Queue.clear()
                     Queue.addAll(queueData)
+                    viewModel.removeSaveQueue()
                     viewModel.resetRelated()
                     viewModel.addQueueToPlayer()
                     checkForUpdate()
@@ -573,6 +571,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
         else {
+            binding.miniplayer.visibility = View.GONE
             checkForUpdate()
         }
     }
@@ -580,20 +579,14 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         stopService()
-        runBlocking {
-            delay(1000)
-            Log.e("service running ?", this@MainActivity.isMyServiceRunning(SimpleMediaService::class.java).toString())
-        }
         Log.w("MainActivity", "onDestroy: ")
     }
     private fun startMusicService() {
-        if (viewModel.isServiceRunning.value == false) {
-            if (!isMyServiceRunning(SimpleMediaService::class.java)) {
-                val intent = Intent(this, SimpleMediaService::class.java)
-                bindService(intent, serviceConnection, BIND_AUTO_CREATE)
-                viewModel.isServiceRunning.postValue(true)
-                Log.d("Service", "Service started")
-            }
+        if (viewModel.isServiceRunning.value != true) {
+            val intent = Intent(this, SimpleMediaService::class.java)
+            bindService(intent, serviceConnection, BIND_AUTO_CREATE)
+            viewModel.isServiceRunning.postValue(true)
+            Log.d("Service", "Service started")
         }
     }
     private fun stopService(){
