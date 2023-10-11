@@ -562,7 +562,10 @@ class MainActivity : AppCompatActivity() {
                 val queueData = data.first
                 if (queueData.isNotEmpty()) {
                     if (isMusicServiceRunning) {
-                        binding.miniplayer.visibility = View.VISIBLE
+                        if (runBlocking { viewModel.simpleMediaServiceHandler?.nowPlaying?.first() } != null) {
+                            Log.w("what is it", runBlocking { viewModel.simpleMediaServiceHandler?.nowPlaying?.first() }?.mediaMetadata?.title.toString())
+                            binding.miniplayer.visibility = View.VISIBLE
+                        }
                     }
                     Queue.clear()
                     Queue.addAll(queueData)
