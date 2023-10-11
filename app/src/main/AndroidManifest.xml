@@ -149,4 +149,12 @@
             <action android:name="android.media.action.DISPLAY_AUDIO_EFFECT_CONTROL_PANEL" />
         </intent>
     </queries>
+    <queries>
+        <package android:name="com.maxrave.simpmusic" />
+    </queries>
+    <queries>
+        <intent>
+            <action android:name="androidx.media3.session.MediaSessionService"/>
+        </intent>
+    </queries>
 </manifest>

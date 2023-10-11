@@ -554,11 +554,13 @@ class MainActivity : AppCompatActivity() {
                     value = it ?: listOf()
                 }
             }
+            binding.miniplayer.visibility = View.GONE
             result.observe(this) {data ->
                 val queueData = data
+                Log.w("Check queue saved", queueData.toString())
+                binding.miniplayer.visibility = View.VISIBLE
                 if (queueData.isNotEmpty()) {
                     Log.w("Check queue saved", queueData.toString())
-                    binding.miniplayer.visibility = View.VISIBLE
                     Queue.clear()
                     Queue.addAll(queueData)
                     viewModel.removeSaveQueue()
@@ -569,6 +571,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
         else {
+            binding.miniplayer.visibility = View.GONE
             checkForUpdate()
         }
     }
@@ -579,13 +582,11 @@ class MainActivity : AppCompatActivity() {
         Log.w("MainActivity", "onDestroy: ")
     }
     private fun startMusicService() {
-        if (viewModel.isServiceRunning.value == false) {
-            if (!isMyServiceRunning(SimpleMediaService::class.java)) {
-                val intent = Intent(this, SimpleMediaService::class.java)
-                bindService(intent, serviceConnection, BIND_AUTO_CREATE)
-                viewModel.isServiceRunning.postValue(true)
-                Log.d("Service", "Service started")
-            }
+        if (viewModel.isServiceRunning.value != true) {
+            val intent = Intent(this, SimpleMediaService::class.java)
+            bindService(intent, serviceConnection, BIND_AUTO_CREATE)
+            viewModel.isServiceRunning.postValue(true)
+            Log.d("Service", "Service started")
         }
     }
     private fun stopService(){
