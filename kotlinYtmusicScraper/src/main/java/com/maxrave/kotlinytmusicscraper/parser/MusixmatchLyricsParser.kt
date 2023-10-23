@@ -4,7 +4,7 @@ import com.maxrave.kotlinytmusicscraper.models.lyrics.Line
 import com.maxrave.kotlinytmusicscraper.models.lyrics.Lyrics
 
 fun parseMusixmatchLyrics(data: String): Lyrics {
-    val regex = Regex("\\[(\\d{2}):(\\d{2})\\.(\\d{2})\\] (.+)")
+    val regex = Regex("\\[(\\d{2}):(\\d{2})\\.(\\d{2})\\](.+)")
     val lines = data.lines()
     val linesLyrics = ArrayList<Line>()
     lines.map { line ->
@@ -14,7 +14,7 @@ fun parseMusixmatchLyrics(data: String): Lyrics {
             val seconds = matchResult.groupValues[2].toLong()
             val milliseconds = matchResult.groupValues[3].toLong()
             val timeInMillis = minutes * 60_000L + seconds * 1000L + milliseconds
-            val content = matchResult.groupValues[4]
+            val content = (if (matchResult.groupValues[4] == " ") " ♫" else matchResult.groupValues[4]).removeRange(0, 1)
             linesLyrics.add(
                 Line(
                     endTimeMs = "0",

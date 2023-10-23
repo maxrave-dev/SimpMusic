@@ -21,6 +21,10 @@
         <item name="android:textStyle">bold</item>
         <item name="android:fontFamily">@font/roboto_bold</item>
     </style>
+    <style name="collapsingTitleTransparent"
+        parent="@android:style/TextAppearance">
+        <item name="android:textColor">#00000000</item>
+    </style>
     <style name="ShapeAppearanceOverlay.MaterialCardView.Cut" parent="">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSizeTopRight">8dp</item>

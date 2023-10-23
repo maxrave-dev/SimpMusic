@@ -2,7 +2,6 @@ package com.maxrave.simpmusic.ui.fragment.other
 
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.util.Log
@@ -109,7 +108,6 @@ class PlaylistFragment: Fragment() {
             adapter = playlistItemAdapter
             layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
             setHasFixedSize(false)
-            isNestedScrollingEnabled = false
         }
         var id = requireArguments().getString("id")
         val downloaded = arguments?.getInt("downloaded")
@@ -473,6 +471,7 @@ class PlaylistFragment: Fragment() {
         binding.topAppBarLayout.addOnOffsetChangedListener { it, verticalOffset ->
             if(abs(it.totalScrollRange) == abs(verticalOffset)) {
                 binding.topAppBar.background = viewModel.gradientDrawable.value
+                binding.collapsingToolbarLayout.isTitleEnabled = true
                 if (viewModel.gradientDrawable.value != null ){
                     if (viewModel.gradientDrawable.value?.colors != null){
                         requireActivity().window.statusBarColor = viewModel.gradientDrawable.value?.colors!!.first()
@@ -481,6 +480,7 @@ class PlaylistFragment: Fragment() {
             }
             else
             {
+                binding.collapsingToolbarLayout.isTitleEnabled = false
                 binding.topAppBar.background = null
                 requireActivity().window.statusBarColor = ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark)
             }
@@ -590,7 +590,8 @@ class PlaylistFragment: Fragment() {
                             if (it?.id?.startsWith("RDEM") == true || it?.id?.startsWith("RDAMVM") == true) {
                                 btDownload.visibility = View.GONE
                             }
-                            topAppBar.title = it?.title
+                            collapsingToolbarLayout.title = it?.title
+                            tvTitle.text = it?.title
                             tvPlaylistAuthor.text = it?.author?.name
                             if (it?.year != "") {
                                 tvYearAndCategory.text = requireContext().getString(R.string.year_and_category, it?.year.toString(), "Playlist")
@@ -610,14 +611,15 @@ class PlaylistFragment: Fragment() {
                             playlistItemAdapter.updateList(list)
                             if (viewModel.gradientDrawable.value == null) {
                                 viewModel.gradientDrawable.observe(viewLifecycleOwner) { gradient ->
-                                    fullRootLayout.background = gradient
-                                    toolbarBackground = gradient?.colors?.get(0)
-                                    topAppBarLayout.background = ColorDrawable(toolbarBackground!!)
+                                    //fullRootLayout.background = gradient
+//                                    toolbarBackground = gradient?.colors?.get(0)
+                                    topAppBarLayout.background = gradient
                                 }
                             }
                             else {
-                                fullRootLayout.background = gradientDrawable
-                                topAppBarLayout.background = ColorDrawable(toolbarBackground!!)
+//                                fullRootLayout.background = gradientDrawable
+//                                topAppBarLayout.background = ColorDrawable(toolbarBackground!!)
+                                topAppBarLayout.background = gradientDrawable
                             }
                             binding.rootLayout.visibility = View.VISIBLE
                             binding.loadingLayout.visibility = View.GONE
@@ -674,7 +676,8 @@ class PlaylistFragment: Fragment() {
                             if (it != null) {
                                 viewModel.insertRadioPlaylist(it.toPlaylistEntity())
                             }
-                            topAppBar.title = it?.title
+                            collapsingToolbarLayout.title = it?.title
+                            tvTitle.text = it?.title
                             tvPlaylistAuthor.text = it?.author?.name
                             if (it?.year != "") {
                                 tvYearAndCategory.text = requireContext().getString(R.string.year_and_category, it?.year.toString(), "Playlist")
@@ -695,14 +698,15 @@ class PlaylistFragment: Fragment() {
                             if (viewModel.gradientDrawable.value == null) {
                                 viewModel.gradientDrawable.observe(viewLifecycleOwner)
                                 { gradient ->
-                                    fullRootLayout.background = gradient
-                                    toolbarBackground = gradient?.colors?.get(0)
-                                    topAppBarLayout.background = ColorDrawable(toolbarBackground!!)
+//                                    fullRootLayout.background = gradient
+//                                    toolbarBackground = gradient?.colors?.get(0)
+                                    topAppBarLayout.background = gradient
                                 }
                             }
                             else {
-                                fullRootLayout.background = gradientDrawable
-                                topAppBarLayout.background = ColorDrawable(toolbarBackground!!)
+//                                fullRootLayout.background = gradientDrawable
+//                                topAppBarLayout.background = ColorDrawable(toolbarBackground!!)
+                                topAppBarLayout.background = gradientDrawable
                             }
                             binding.rootLayout.visibility = View.VISIBLE
                             binding.loadingLayout.visibility = View.GONE
@@ -732,7 +736,8 @@ class PlaylistFragment: Fragment() {
                                 if (it != null) {
                                     viewModel.insertPlaylist(it.toPlaylistEntity())
                                 }
-                                topAppBar.title = it?.title
+                                collapsingToolbarLayout.title = it?.title
+                                tvTitle.text = it?.title
                                 tvPlaylistAuthor.text = it?.author?.name
                                 if (it?.year != "") {
                                     tvYearAndCategory.text = requireContext().getString(R.string.year_and_category, it?.year.toString(), "Playlist")
@@ -753,14 +758,16 @@ class PlaylistFragment: Fragment() {
                                 if (viewModel.gradientDrawable.value == null) {
                                     viewModel.gradientDrawable.observe(viewLifecycleOwner)
                                         { gradient ->
-                                            fullRootLayout.background = gradient
-                                            toolbarBackground = gradient?.colors?.get(0)
-                                            topAppBarLayout.background = ColorDrawable(toolbarBackground!!)
+//                                            fullRootLayout.background = gradient
+//                                            toolbarBackground = gradient?.colors?.get(0)
+//                                            topAppBarLayout.background = ColorDrawable(toolbarBackground!!)
+                                            topAppBarLayout.background = gradient
                                         }
                                 }
                                 else {
-                                    fullRootLayout.background = gradientDrawable
-                                    topAppBarLayout.background = ColorDrawable(toolbarBackground!!)
+//                                    fullRootLayout.background = gradientDrawable
+//                                    topAppBarLayout.background = ColorDrawable(toolbarBackground!!)
+                                    topAppBarLayout.background = gradientDrawable
                                 }
                                 binding.rootLayout.visibility = View.VISIBLE
                                 binding.loadingLayout.visibility = View.GONE
@@ -819,7 +826,8 @@ class PlaylistFragment: Fragment() {
                                 btDownload.setImageResource(R.drawable.download_button)
                             }
                         }
-                        topAppBar.title = playlistEntity.title
+                        collapsingToolbarLayout.title = playlistEntity.title
+                        tvTitle.text = playlistEntity.title
                         tvPlaylistAuthor.text = playlistEntity.author
                         tvYearAndCategory.text = requireContext().getString(R.string.year_and_category, playlistEntity.year.toString(), "Playlist")
                         tvTrackCountAndDuration.text = requireContext().getString(R.string.album_length, playlistEntity.trackCount.toString(),
@@ -833,14 +841,16 @@ class PlaylistFragment: Fragment() {
                         loadImage(playlistEntity.thumbnails)
                         if (viewModel.gradientDrawable.value == null) {
                             viewModel.gradientDrawable.observe(viewLifecycleOwner) { gradient ->
-                                fullRootLayout.background = gradient
-                                toolbarBackground = gradient?.colors?.get(0)
-                                topAppBarLayout.background = ColorDrawable(toolbarBackground!!)
+//                                fullRootLayout.background = gradient
+//                                toolbarBackground = gradient?.colors?.get(0)
+//                                topAppBarLayout.background = ColorDrawable(toolbarBackground!!)
+                                topAppBarLayout.background = gradient
                             }
                         }
                         else {
-                            fullRootLayout.background = gradientDrawable
-                            topAppBarLayout.background = ColorDrawable(toolbarBackground!!)
+//                            fullRootLayout.background = gradientDrawable
+//                            topAppBarLayout.background = ColorDrawable(toolbarBackground!!)
+                            topAppBarLayout.background = gradientDrawable
                         }
                         viewModel.getListTrack(playlistEntity.tracks)
                         viewModel.listTrack.observe(viewLifecycleOwner) { listTrack ->
