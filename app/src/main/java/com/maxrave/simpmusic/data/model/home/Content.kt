@@ -28,5 +28,7 @@ data class Content(
     val videoId: String?,
     @SerializedName("views")
     val views: String?,
+    @SerializedName("durationSeconds")
+    val durationSeconds: Int? = null,
     val radio: String? = null,
 )

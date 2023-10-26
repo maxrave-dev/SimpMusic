@@ -128,6 +128,7 @@ fun parseMixedContent(data: List<SectionListRenderer.Content>?): List<HomeItem> 
                                             title = ytItem.title,
                                             videoId = ytItem.id,
                                             views = null,
+                                            durationSeconds = ytItem.duration,
                                             radio = null
                                         )
                                     )
@@ -149,6 +150,7 @@ fun parseMixedContent(data: List<SectionListRenderer.Content>?): List<HomeItem> 
                                             title = ytItem.title,
                                             videoId = ytItem.id,
                                             views = ytItem.view,
+                                            durationSeconds = ytItem.duration,
                                             radio = null
                                         )
                                     )

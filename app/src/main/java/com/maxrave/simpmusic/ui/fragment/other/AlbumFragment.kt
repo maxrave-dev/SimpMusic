@@ -39,6 +39,7 @@ import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.FragmentAlbumBinding
+import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.toAlbumEntity
 import com.maxrave.simpmusic.extension.toArrayListTrack
 import com.maxrave.simpmusic.extension.toListVideoId
@@ -130,7 +131,7 @@ class AlbumFragment: Fragment() {
                 Log.d("TAG", "Artist name clicked: ${viewModel.albumBrowse.value?.data?.artists?.get(0)?.id}")
                 val args = Bundle()
                 args.putString("channelId", viewModel.albumBrowse.value?.data?.artists?.get(0)?.id)
-                findNavController().navigate(R.id.action_global_artistFragment, args)
+                findNavController().navigateSafe(R.id.action_global_artistFragment, args)
             }
         }
         binding.cbLove.setOnCheckedChangeListener { cb, isChecked ->
@@ -156,7 +157,7 @@ class AlbumFragment: Fragment() {
                 if (Queue.getQueue().size >= 1) {
                     Queue.removeFirstTrackForPlaylistAndAlbum()
                 }
-                findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
             }
             else if (viewModel.albumEntity.value != null && viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED){
                 val args = Bundle()
@@ -172,7 +173,7 @@ class AlbumFragment: Fragment() {
                 if (Queue.getQueue().size >= 1) {
                     Queue.removeFirstTrackForPlaylistAndAlbum()
                 }
-                findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
             }
             else {
                 Snackbar.make(requireView(), "Error", Snackbar.LENGTH_SHORT).show()
@@ -194,7 +195,7 @@ class AlbumFragment: Fragment() {
                     if (Queue.getQueue().size >= 1) {
                         Queue.removeTrackWithIndex(position)
                     }
-                    findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                    findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
                 }
                 else if (viewModel.albumEntity.value != null && viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED){
                     val args = Bundle()
@@ -210,7 +211,7 @@ class AlbumFragment: Fragment() {
                     if (Queue.getQueue().size >= 1) {
                         Queue.removeTrackWithIndex(position)
                     }
-                    findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                    findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
                 }
                 else {
                     Snackbar.make(requireView(), "Error", Snackbar.LENGTH_SHORT).show()

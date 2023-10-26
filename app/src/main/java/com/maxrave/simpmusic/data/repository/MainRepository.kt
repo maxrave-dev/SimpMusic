@@ -7,6 +7,8 @@ import com.maxrave.kotlinytmusicscraper.models.MusicShelfRenderer
 import com.maxrave.kotlinytmusicscraper.models.SearchSuggestions
 import com.maxrave.kotlinytmusicscraper.models.SongItem
 import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
+import com.maxrave.kotlinytmusicscraper.models.musixmatch.MusixmatchCredential
+import com.maxrave.kotlinytmusicscraper.models.musixmatch.MusixmatchTranslationLyricsResponse
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
 import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
@@ -60,10 +62,13 @@ import com.maxrave.simpmusic.data.parser.search.parseSearchVideo
 import com.maxrave.simpmusic.extension.bestMatchingIndex
 import com.maxrave.simpmusic.extension.toListTrack
 import com.maxrave.simpmusic.extension.toLyrics
+import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.runBlocking
@@ -119,6 +124,9 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
 
     suspend fun updateSongInLibrary(inLibrary: LocalDateTime, videoId: String) =
         withContext(Dispatchers.Main) { localDataSource.updateSongInLibrary(inLibrary, videoId) }
+
+    suspend fun updateDurationSeconds(durationSeconds: Int, videoId: String) =
+        withContext(Dispatchers.Main) { localDataSource.updateDurationSeconds(durationSeconds, videoId) }
 
     suspend fun getMostPlayedSongs(): Flow<List<SongEntity>> =
         flow { emit(localDataSource.getMostPlayedSongs()) }.flowOn(Dispatchers.IO)
@@ -437,7 +445,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                 }
         }
     }.flowOn(Dispatchers.IO)
-    suspend fun getRadio(radioId: String, title: String?, thumbnail: String?): Flow<Resource<PlaylistBrowse>> = flow {
+    suspend fun getRadio(radioId: String, originalTrack: SongEntity): Flow<Resource<PlaylistBrowse>> = flow {
         runCatching {
             YouTube.next(endpoint = WatchEndpoint(playlistId = radioId)).onSuccess { next ->
                 val data: ArrayList<SongItem> = arrayListOf()
@@ -459,6 +467,8 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                         count++
                     }
                 }
+                val listTrackResult = data.toListTrack()
+                listTrackResult.add(0, originalTrack.toTrack())
                 Log.w("Repository", "data: ${data.size}")
                 val playlistBrowse = PlaylistBrowse(
                     author = Author(id = "", name = "YouTube Music"),
@@ -467,10 +477,10 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                     durationSeconds = 0,
                     id = radioId,
                     privacy = "PRIVATE",
-                    thumbnails = listOf(Thumbnail(544, thumbnail ?: "", 544)),
-                    title = title ?: "",
-                    trackCount = data.size,
-                    tracks = data.toListTrack(),
+                    thumbnails = listOf(Thumbnail(544, originalTrack.thumbnails ?: "", 544)),
+                    title = " ${originalTrack.title} ${context.getString(R.string.radio)}",
+                    trackCount = listTrackResult.size,
+                    tracks = listTrackResult,
                     year = LocalDateTime.now().year.toString()
                 )
                 Log.w("Repository", "playlistBrowse: $playlistBrowse")
@@ -729,7 +739,21 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
             }
         }
     }.flowOn(Dispatchers.IO)
-    suspend fun getLyricsData(query: String): Flow<Resource<Lyrics>> = flow {
+    suspend fun getYouTubeCaption(videoId: String): Flow<Resource<Lyrics>> = flow {
+        runCatching {
+            getFormat(videoId).first()?.youtubeCaptionsUrl?.let { url ->
+                Log.w("Lyrics", "url: $url")
+                YouTube.getYouTubeCaption(url).onSuccess { lyrics ->
+                    Log.w("Lyrics", "lyrics: ${lyrics.toLyrics()}")
+                    emit(Resource.Success<Lyrics>(lyrics.toLyrics()))
+                }.onFailure { e ->
+                    Log.d("Lyrics", "Error: ${e.message}")
+                    emit(Resource.Error<Lyrics>(e.message.toString()))
+                }
+            }
+        }
+    }
+    suspend fun getLyricsData(query: String, durationInt: Int? = null): Flow<Pair<String, Resource<Lyrics>>> = flow {
         runCatching {
 //            val q = query.replace(Regex("\\([^)]*?(feat.|ft.|cùng với|con)[^)]*?\\)"), "")
 //                .replace("  ", " ")
@@ -744,7 +768,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                 }
                     .onFailure { throwable ->
                         throwable.printStackTrace()
-                        emit(Resource.Error<Lyrics>("Not found"))
+                        emit(Pair("", Resource.Error<Lyrics>("Not found")))
                     }
             }
             YouTube.searchMusixmatchTrackId(q, musixMatchUserToken!!).onSuccess { searchResult ->
@@ -753,26 +777,43 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                     list.add(i.track.track_name + " " + i.track.artist_name)
                 }
                 var id = ""
-                val bestMatchingIndex = bestMatchingIndex(q, list)
-                if (list.get(bestMatchingIndex).contains(searchResult.message.body.track_list.get(bestMatchingIndex).track.track_name)) {
-                    Log.w("Lyrics", "item: ${searchResult.message.body.track_list.get(bestMatchingIndex).track.track_name}")
-                    id += searchResult.message.body.track_list.get(bestMatchingIndex).track.track_id.toString()
+                Log.d("DURATION", "duration: $durationInt")
+                if (durationInt == null || durationInt == 0) {
+                    val bestMatchingIndex = bestMatchingIndex(q, list)
+                    if (list.get(bestMatchingIndex).contains(searchResult.message.body.track_list.get(bestMatchingIndex).track.track_name)) {
+                        Log.w("Lyrics", "item: ${searchResult.message.body.track_list.get(bestMatchingIndex).track.track_name}")
+                        id += searchResult.message.body.track_list.get(bestMatchingIndex).track.track_id.toString()
+                    }
+                    else {
+                        Log.w("Lyrics", "item: ${searchResult.message.body.track_list.get(0).track.track_name}")
+                        id += searchResult.message.body.track_list.get(0).track.track_id.toString()
+                    }
                 }
                 else {
-                    Log.w("Lyrics", "item: ${searchResult.message.body.track_list.get(0).track.track_name}")
-                    id += searchResult.message.body.track_list.get(0).track.track_id.toString()
+                    val trackLengthList = arrayListOf<Int>()
+                    for (i in searchResult.message.body.track_list) {
+                        trackLengthList.add(i.track.track_length)
+                    }
+                    val closestIndex = trackLengthList.minByOrNull { kotlin.math.abs(it - durationInt) }
+                    id += if (closestIndex != null) {
+                        searchResult.message.body.track_list.find { it.track.track_length == closestIndex }?.track?.track_id.toString()
+                    } else {
+                        searchResult.message.body.track_list.get(0).track.track_id.toString()
+                    }
                 }
+                Log.d("DURATION", "id: $id")
+                Log.w("item lyrics", searchResult.message.body.track_list.find { it.track.track_id == id.toInt() }?.track?.track_name + " " + searchResult.message.body.track_list.find { it.track.track_id == id.toInt() }?.track?.artist_name)
                 YouTube.getMusixmatchLyrics(id, musixMatchUserToken!!).onSuccess {
                     if (it != null) {
-                        emit(Resource.Success<Lyrics>(it.toLyrics()))
+                        emit(Pair(id, Resource.Success<Lyrics>(it.toLyrics())))
                     }
                     else {
                         Log.w("Lyrics", "Error: Lỗi getLyrics ${it.toString()}")
-                        emit(Resource.Error<Lyrics>("Not found"))
+                        emit(Pair(id, Resource.Error<Lyrics>("Not found")))
                     }
                 }.onFailure {
                     it.printStackTrace()
-                    emit(Resource.Error<Lyrics>("Not found"))
+                    emit(Pair(id, Resource.Error<Lyrics>("Not found")))
                 }
 //                bestMatchingIndex(q, list).let { index ->
 //                    Log.w("Lyrics", "item: ${searchResult.message.body.track_list.get(index).track.track_name}")
@@ -783,7 +824,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
             }
                 .onFailure { throwable ->
                     throwable.printStackTrace()
-                    emit(Resource.Error<Lyrics>("Not found"))
+                    emit(Pair("", Resource.Error<Lyrics>("Not found")))
                 }
 
 //            YouTube.authentication().onSuccess { token ->
@@ -1004,6 +1045,21 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
 //            }
         }
     }.flowOn(Dispatchers.IO)
+    suspend fun getTranslateLyrics(id: String): Flow<MusixmatchTranslationLyricsResponse?> = flow {
+        runCatching {
+            YouTube.musixmatchUserToken?.let {
+                YouTube.getMusixmatchTranslateLyrics(id,
+                    it, dataStoreManager.translationLanguage.first())
+                    .onSuccess { lyrics ->
+                        emit(lyrics)
+                    }
+                    .onFailure {
+                        it.printStackTrace()
+                        emit(null)
+                    }
+            }
+        }
+    }.flowOn(Dispatchers.IO)
     suspend fun getStream(videoId: String, itag: Int): Flow<String?> = flow{
         YouTube.player(videoId).onSuccess { response ->
             val format = response.streamingData?.adaptiveFormats?.find { it.itag == itag}
@@ -1022,6 +1078,8 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                             uploaderThumbnail = response.videoDetails?.authorAvatar,
                             uploaderSubCount = response.videoDetails?.authorSubCount,
                             description = response.videoDetails?.description,
+                            youtubeCaptionsUrl = response.captions?.playerCaptionsTracklistRenderer?.captionTracks?.get(0)?.baseUrl?.replace("&fmt=srv3", ""),
+                            lengthSeconds = response.videoDetails?.lengthSeconds?.toInt(),
                             playbackTrackingVideostatsPlaybackUrl = response.playbackTracking?.videostatsPlaybackUrl?.baseUrl,
                             playbackTrackingAtrUrl = response.playbackTracking?.atrUrl?.baseUrl,
                             playbackTrackingVideostatsWatchtimeUrl = response.playbackTracking?.videostatsWatchtimeUrl?.baseUrl,
@@ -1195,6 +1253,35 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                 }
             }.onFailure {
                 emit("FAILED")
+            }
+        }
+    }
+
+    suspend fun loginToMusixMatch(email: String, password: String): Flow<MusixmatchCredential?> = flow {
+        runCatching {
+            if (YouTube.musixmatchUserToken != null && YouTube.musixmatchUserToken != "") {
+                YouTube.postMusixmatchCredentials(email, password, YouTube.musixmatchUserToken!!).onSuccess { response ->
+                    emit(response)
+                }.onFailure {
+                    it.printStackTrace()
+                    emit(null)
+                }
+            }
+            else {
+                YouTube.getMusixmatchUserToken().onSuccess { usertoken ->
+                    YouTube.musixmatchUserToken = usertoken.message.body.user_token
+                    delay(2000)
+                    YouTube.postMusixmatchCredentials(email, password, YouTube.musixmatchUserToken!!).onSuccess { response ->
+                        emit(response)
+                    }.onFailure {
+                        it.printStackTrace()
+                        emit(null)
+                    }
+                }
+                    .onFailure { throwable ->
+                        throwable.printStackTrace()
+                        emit(null)
+                    }
             }
         }
     }

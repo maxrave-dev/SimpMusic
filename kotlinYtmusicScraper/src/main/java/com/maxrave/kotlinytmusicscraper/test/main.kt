@@ -8,7 +8,12 @@ import com.maxrave.kotlinytmusicscraper.models.MusicTwoRowItemRenderer
 import com.maxrave.kotlinytmusicscraper.models.Run
 import com.maxrave.kotlinytmusicscraper.models.SectionListRenderer
 import com.maxrave.kotlinytmusicscraper.models.Thumbnail
+import com.maxrave.kotlinytmusicscraper.models.youtube.Transcript
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.decodeFromString
+import nl.adaptivity.xmlutil.serialization.XML
+
 
 fun main() {
     runBlocking {
@@ -29,12 +34,40 @@ fun main() {
 //                    }
 //                }
 //            }
-        YouTube.getMusixmatchUserToken().onSuccess { 
-            println(it.message.body.user_token)
-        }
-            .onFailure {
-                it.printStackTrace()
+//        YouTube.getMusixmatchUserToken().onSuccess {
+//            println(it.message.body.user_token)
+//            YouTube.postMusixmatchCredentials("ndtminh2608@gmail.com", "minh123456", it.message.body.user_token).onSuccess { value ->
+//                println(value)
+//                YouTube.musixmatchUserToken = it.message.body.user_token
+//                delay(2000)
+//                YouTube.getMusixmatchTranslateLyrics("144114431", it.message.body.user_token, "vi").onSuccess { lyrics ->
+//                    println(lyrics)
+//                }.onFailure {
+//                    it.printStackTrace()
+//                }
+//
+//            }
+//                .onFailure {
+//                    it.printStackTrace()
+//                }
+//        }
+//            .onFailure {
+//                it.printStackTrace()
+//            }
+        YouTube.player("d2X7VnUNJXk").onSuccess { player ->
+            player.captions?.playerCaptionsTracklistRenderer?.captionTracks?.get(0)?.baseUrl?.let { url ->
+                println(url)
+                if (url.contains("&fmt=srv3")) {
+                    YouTube.getYouTubeCaption(url.replace("&fmt=srv3", "")).onSuccess { transcript ->
+                        println(transcript)
+                    }.onFailure {
+                        it.printStackTrace()
+                    }
+                }
             }
+        }.onFailure {
+            it.printStackTrace()
+        }
     }
 //      YouTube.authentication().onSuccess { token ->
 //            if (token.accessToken != null) {

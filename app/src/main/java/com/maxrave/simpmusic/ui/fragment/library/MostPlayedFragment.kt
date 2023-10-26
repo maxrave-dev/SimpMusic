@@ -35,6 +35,7 @@ import com.maxrave.simpmusic.databinding.BottomSheetNowPlayingBinding
 import com.maxrave.simpmusic.databinding.BottomSheetSeeArtistOfNowPlayingBinding
 import com.maxrave.simpmusic.databinding.FragmentMostPlayedBinding
 import com.maxrave.simpmusic.extension.connectArtists
+import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.removeConflicts
 import com.maxrave.simpmusic.extension.setEnabledAll
 import com.maxrave.simpmusic.extension.toTrack
@@ -97,7 +98,7 @@ class MostPlayedFragment: Fragment() {
                     args.putString("videoId", videoId)
                     args.putString("from", getString(R.string.most_played))
                     args.putString("type", Config.SONG_CLICK)
-                    findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                    findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
                 }
             }
 
@@ -152,10 +153,12 @@ class MostPlayedFragment: Fragment() {
                     btRadio.setOnClickListener {
                         val args = Bundle()
                         args.putString("radioId", "RDAMVM${song.videoId}")
-                        args.putString("title", "${song.title} ${context?.getString(R.string.radio)}")
-                        args.putString("thumbnails", song.thumbnails)
+                        args.putString(
+                            "videoId",
+                            song.videoId
+                        )
                         dialog.dismiss()
-                        findNavController().navigate(R.id.action_global_playlistFragment, args)
+                        findNavController().navigateSafe(R.id.action_global_playlistFragment, args)
                     }
                     btLike.setOnClickListener {
                         if (cbFavorite.isChecked){
@@ -209,7 +212,7 @@ class MostPlayedFragment: Fragment() {
                                 override fun onItemClick(position: Int) {
                                     val artist = tempArtist[position]
                                     if (artist.id != null) {
-                                        findNavController().navigate(R.id.action_global_artistFragment, Bundle().apply {
+                                        findNavController().navigateSafe(R.id.action_global_artistFragment, Bundle().apply {
                                             putString("channelId", artist.id)
                                         })
                                         subDialog.dismiss()

@@ -32,8 +32,8 @@ import javax.inject.Inject
 @HiltViewModel
 class ArtistViewModel @Inject constructor(private val application: Application, private val mainRepository: MainRepository, private var dataStoreManager: DataStoreManager): AndroidViewModel(application){
     var gradientDrawable: MutableLiveData<GradientDrawable> = MutableLiveData()
-    private val _artistBrowse: MutableLiveData<Resource<ArtistBrowse>> = MutableLiveData()
-    var artistBrowse: LiveData<Resource<ArtistBrowse>> = _artistBrowse
+    private val _artistBrowse: MutableStateFlow<Resource<ArtistBrowse>?> = MutableStateFlow(null)
+    var artistBrowse: StateFlow<Resource<ArtistBrowse>?> = _artistBrowse
     var loading = MutableLiveData<Boolean>()
     private var _artistEntity: MutableLiveData<ArtistEntity> = MutableLiveData()
     var artistEntity: LiveData<ArtistEntity> = _artistEntity
@@ -55,13 +55,14 @@ class ArtistViewModel @Inject constructor(private val application: Application, 
 
     fun browseArtist(channelId: String){
         loading.value = true
+        _artistBrowse.value = null
         viewModelScope.launch {
             Log.d("ArtistViewModel", "lang: $language")
 //            mainRepository.browseArtist(channelId, regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect { values ->
 //                _artistBrowse.value = values
 //            }
             mainRepository.getArtistData(channelId).collect {
-                _artistBrowse.value = it
+                _artistBrowse.emit(it)
             }
             withContext(Dispatchers.Main){
                 loading.value = false

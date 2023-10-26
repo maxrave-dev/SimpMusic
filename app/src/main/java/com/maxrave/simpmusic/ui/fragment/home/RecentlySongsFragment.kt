@@ -18,6 +18,7 @@ import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.FragmentRecentlySongsBinding
+import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.pagination.RecentLoadStateAdapter
 import com.maxrave.simpmusic.pagination.RecentPagingAdapter
@@ -79,19 +80,19 @@ class RecentlySongsFragment: Fragment() {
                     val channelId = (mainAdapter.getItemByIndex(position) as ArtistEntity).channelId
                     val args = Bundle()
                     args.putString("channelId", channelId)
-                    findNavController().navigate(R.id.action_global_artistFragment, args)
+                    findNavController().navigateSafe(R.id.action_global_artistFragment, args)
                 }
                 if (type == Config.ALBUM_CLICK){
                     val browseId = (mainAdapter.getItemByIndex(position) as AlbumEntity).browseId
                     val args = Bundle()
                     args.putString("browseId", browseId)
-                    findNavController().navigate(R.id.action_global_albumFragment, args)
+                    findNavController().navigateSafe(R.id.action_global_albumFragment, args)
                 }
                 if (type == Config.PLAYLIST_CLICK){
                     val id = (mainAdapter.getItemByIndex(position) as PlaylistEntity).id
                     val args = Bundle()
                     args.putString("id", id)
-                    findNavController().navigate(R.id.action_global_playlistFragment, args)
+                    findNavController().navigateSafe(R.id.action_global_playlistFragment, args)
                 }
                 if (type == Config.SONG_CLICK){
                     val songClicked = mainAdapter.getItemByIndex(position) as SongEntity
@@ -103,7 +104,7 @@ class RecentlySongsFragment: Fragment() {
                     args.putString("videoId", videoId)
                     args.putString("from", getString(R.string.recently_added))
                     args.putString("type", Config.SONG_CLICK)
-                    findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                    findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
                 }
             }
         })

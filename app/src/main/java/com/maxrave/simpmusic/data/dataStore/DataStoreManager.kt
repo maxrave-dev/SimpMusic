@@ -99,36 +99,6 @@ class DataStoreManager @Inject constructor(private val settingsDataStore: DataSt
         }
     }
 
-    val spotifyCookie = settingsDataStore.data.map { preferences ->
-        preferences[SPOTIFY_COOKIE] ?: ""
-    }
-
-    suspend fun setSpotifyCookie(cookie: String) {
-        withContext(Dispatchers.IO) {
-            settingsDataStore.edit { settings ->
-                settings[SPOTIFY_COOKIE] = cookie
-            }
-        }
-    }
-
-    val spotifyLoggedIn = settingsDataStore.data.map { preferences ->
-        preferences[SPOTIFY_LOGGED_IN] ?: FALSE
-    }
-
-    suspend fun setSpotifyLoggedIn(logged: Boolean) {
-        withContext(Dispatchers.IO) {
-            if (logged) {
-                settingsDataStore.edit { settings ->
-                    settings[SPOTIFY_LOGGED_IN] = TRUE
-                }
-            } else {
-                settingsDataStore.edit { settings ->
-                    settings[SPOTIFY_LOGGED_IN] = FALSE
-                }
-            }
-        }
-    }
-
     val normalizeVolume: Flow<String> = settingsDataStore.data.map { preferences ->
         preferences[NORMALIZE_VOLUME] ?: FALSE
     }
@@ -302,12 +272,72 @@ class DataStoreManager @Inject constructor(private val settingsDataStore: DataSt
             }
         }
     }
+    val enableTranslateLyric = settingsDataStore.data.map { preferences ->
+        preferences[USE_TRANSLATION_LANGUAGE] ?: FALSE
+    }
+    suspend fun setEnableTranslateLyric(enable: Boolean) {
+        withContext(Dispatchers.IO) {
+            if (enable) {
+                settingsDataStore.edit { settings ->
+                    settings[USE_TRANSLATION_LANGUAGE] = TRUE
+                }
+            } else {
+                settingsDataStore.edit { settings ->
+                    settings[USE_TRANSLATION_LANGUAGE] = FALSE
+                }
+            }
+        }
+    }
+    val lyricsProvider = settingsDataStore.data.map { preferences ->
+        preferences[LYRICS_PROVIDER] ?: MUSIXMATCH
+    }
+    suspend fun setLyricsProvider(provider: String) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[LYRICS_PROVIDER] = provider
+            }
+        }
+    }
+    val musixmatchLoggedIn = settingsDataStore.data.map { preferences ->
+        preferences[MUSIXMATCH_LOGGED_IN] ?: FALSE
+    }
+    suspend fun setMusixmatchLoggedIn(loggedIn: Boolean) {
+        withContext(Dispatchers.IO) {
+            if (loggedIn) {
+                settingsDataStore.edit { settings ->
+                    settings[MUSIXMATCH_LOGGED_IN] = TRUE
+                }
+            } else {
+                settingsDataStore.edit { settings ->
+                    settings[MUSIXMATCH_LOGGED_IN] = FALSE
+                }
+            }
+        }
+    }
+    val translationLanguage = settingsDataStore.data.map { preferences ->
+        preferences[TRANSLATION_LANGUAGE] ?: language.first().slice(0..1)
+    }
+    suspend fun setTranslationLanguage(language: String) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[TRANSLATION_LANGUAGE] = language
+            }
+        }
+    }
+    val musixmatchCookie = settingsDataStore.data.map { preferences ->
+        preferences[MUSIXMATCH_COOKIE] ?: ""
+    }
+    suspend fun setMusixmatchCookie(cookie: String) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[MUSIXMATCH_COOKIE] = cookie
+            }
+        }
+    }
 
     companion object Settings {
         val COOKIE = stringPreferencesKey("cookie")
         val LOGGED_IN = stringPreferencesKey("logged_in")
-        val SPOTIFY_COOKIE = stringPreferencesKey("spotify_cookie")
-        val SPOTIFY_LOGGED_IN = stringPreferencesKey("spotify_logged_in")
         val LOCATION = stringPreferencesKey("location")
         val QUALITY = stringPreferencesKey("quality")
         val NORMALIZE_VOLUME = stringPreferencesKey("normalize_volume")
@@ -321,6 +351,13 @@ class DataStoreManager @Inject constructor(private val settingsDataStore: DataSt
         val REPEAT_KEY = stringPreferencesKey("repeat_key")
         val SEND_BACK_TO_GOOGLE = stringPreferencesKey("send_back_to_google")
         val FROM_SAVED_PLAYLIST = stringPreferencesKey("from_saved_playlist")
+        val MUSIXMATCH_LOGGED_IN = stringPreferencesKey("musixmatch_logged_in")
+        val YOUTUBE = "youtube"
+        val MUSIXMATCH = "musixmatch"
+        val LYRICS_PROVIDER = stringPreferencesKey("lyrics_provider")
+        val TRANSLATION_LANGUAGE = stringPreferencesKey("translation_language")
+        val USE_TRANSLATION_LANGUAGE = stringPreferencesKey("use_translation_language")
+        val MUSIXMATCH_COOKIE = stringPreferencesKey("musixmatch_cookie")
         const val RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE = "RestoreLastPlayedTrackAndQueueDone"
         val SPONSOR_BLOCK_ENABLED = stringPreferencesKey("sponsor_block_enabled")
         const val REPEAT_MODE_OFF = "REPEAT_MODE_OFF"

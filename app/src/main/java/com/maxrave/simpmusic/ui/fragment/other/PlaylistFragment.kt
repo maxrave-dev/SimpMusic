@@ -44,6 +44,7 @@ import com.maxrave.simpmusic.databinding.BottomSheetPlaylistMoreBinding
 import com.maxrave.simpmusic.databinding.BottomSheetSeeArtistOfNowPlayingBinding
 import com.maxrave.simpmusic.databinding.FragmentPlaylistBinding
 import com.maxrave.simpmusic.extension.connectArtists
+import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.removeConflicts
 import com.maxrave.simpmusic.extension.setEnabledAll
 import com.maxrave.simpmusic.extension.toArrayListTrack
@@ -113,8 +114,7 @@ class PlaylistFragment: Fragment() {
         val downloaded = arguments?.getInt("downloaded")
         val radioId = arguments?.getString("radioId")
         Log.w("PlaylistFragment", "radioId: $radioId")
-        val title = arguments?.getString("title")
-        val thumbnails = arguments?.getString("thumbnails")
+        val videoId = arguments?.getString("videoId")
         if (id == null && radioId == null || id == viewModel.id.value && radioId == null || id == null && radioId == viewModel.id.value){
             id = viewModel.id.value
             if (id?.startsWith("RDEM") == true || id?.startsWith("RDAMVM") == true) {
@@ -141,13 +141,15 @@ class PlaylistFragment: Fragment() {
         else if (radioId != null && id == null) {
             viewModel.clearPlaylistBrowse()
             viewModel.updateIsRadio(true)
-            fetchDataWithRadio(radioId, title, thumbnails)
+            if (videoId !=  null) {
+                fetchDataWithRadio(radioId, videoId)
+            }
         }
         else if (id != null && id.startsWith("RDEM") || id != null && id.startsWith("RDAMVM")) {
             viewModel.getPlaylist(id)
             viewModel.playlistEntity.observe(viewLifecycleOwner) {
-                if (it != null) {
-                    fetchDataWithRadio(id, it.title, it.thumbnails)
+                if (it != null && it.tracks?.first() != null) {
+                    fetchDataWithRadio(id, it.tracks.first())
                 }
             }
         }
@@ -273,7 +275,7 @@ class PlaylistFragment: Fragment() {
                     Queue.removeFirstTrackForPlaylistAndAlbum()
                 }
                 Log.d("PlaylistFragment", "Queue: ${Queue.getQueue().size}")
-                findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
             }
             else if (viewModel.playlistEntity.value != null && viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED){
                 val args = Bundle()
@@ -290,7 +292,7 @@ class PlaylistFragment: Fragment() {
                     Queue.removeFirstTrackForPlaylistAndAlbum()
                 }
                 Log.d("PlaylistFragment", "Queue: ${Queue.getQueue().size}")
-                findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
             }
             else {
                 Snackbar.make(requireView(),
@@ -316,7 +318,7 @@ class PlaylistFragment: Fragment() {
                         Queue.removeTrackWithIndex(position)
                     }
                     Log.d("PlaylistFragment", "Queue: ${Queue.getQueue().size}")
-                    findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                    findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
                 }
                 else if (viewModel.playlistEntity.value != null && viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED){
                     val args = Bundle()
@@ -333,7 +335,7 @@ class PlaylistFragment: Fragment() {
                         Queue.removeTrackWithIndex(position)
                     }
                     Log.d("PlaylistFragment", "Queue: ${Queue.getQueue().size}")
-                    findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                    findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
                 }
                 else {
                     Snackbar.make(requireView(), getString(R.string.error), Snackbar.LENGTH_SHORT).show()
@@ -365,10 +367,12 @@ class PlaylistFragment: Fragment() {
                     btRadio.setOnClickListener {
                         val args = Bundle()
                         args.putString("radioId", "RDAMVM${song.videoId}")
-                        args.putString("title", "${song.title} ${context?.getString(R.string.radio)}")
-                        args.putString("thumbnails", song.thumbnails?.lastOrNull()?.url)
+                        args.putString(
+                            "videoId",
+                            song.videoId
+                        )
                         dialog.dismiss()
-                        findNavController().navigate(R.id.action_global_playlistFragment, args)
+                        findNavController().navigateSafe(R.id.action_global_playlistFragment, args)
                     }
                     btLike.setOnClickListener {
                         if (cbFavorite.isChecked) {
@@ -396,7 +400,7 @@ class PlaylistFragment: Fragment() {
                                 override fun onItemClick(position: Int) {
                                     val artist = song.artists[position]
                                     if (artist.id != null) {
-                                        findNavController().navigate(
+                                        findNavController().navigateSafe(
                                             R.id.action_global_artistFragment,
                                             Bundle().apply {
                                                 putString("channelId", artist.id)
@@ -664,10 +668,10 @@ class PlaylistFragment: Fragment() {
 
     }
 
-    private fun fetchDataWithRadio(radioId: String, title: String?, thumbnails: String?) {
+    private fun fetchDataWithRadio(radioId: String, videoId: String) {
         viewModel.clearPlaylistBrowse()
         viewModel.updateId(radioId)
-        viewModel.getRadio(radioId, title, thumbnails)
+        viewModel.getRadio(radioId, videoId)
         viewModel.playlistBrowse.observe(viewLifecycleOwner) {response ->
             when (response) {
                 is Resource.Success -> {

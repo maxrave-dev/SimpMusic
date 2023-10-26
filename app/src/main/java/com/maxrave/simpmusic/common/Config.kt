@@ -54,6 +54,9 @@ object QUALITY {
     val items: Array<CharSequence> = arrayOf("Low - 66kps", "High - 129kps")
     val itags: Array<Int> = arrayOf(250, 251)
 }
+object LYRICS_PROVIDER {
+    val items: Array<CharSequence> = arrayOf("Musixmatch", "YouTube Transcript")
+}
 
 object PIPED_INSTANCE {
     val listPiped: Array<CharSequence> = arrayOf("pipedapi.kavin.rocks", "pipedapi.tokhmi.xyz", "pipedapi.moomoo.me", "pipedapi.syncpundit.io",

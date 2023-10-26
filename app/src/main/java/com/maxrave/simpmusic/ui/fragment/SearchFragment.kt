@@ -51,6 +51,7 @@ import com.maxrave.simpmusic.databinding.BottomSheetNowPlayingBinding
 import com.maxrave.simpmusic.databinding.BottomSheetSeeArtistOfNowPlayingBinding
 import com.maxrave.simpmusic.databinding.FragmentSearchBinding
 import com.maxrave.simpmusic.extension.connectArtists
+import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.removeConflicts
 import com.maxrave.simpmusic.extension.setEnabledAll
 import com.maxrave.simpmusic.extension.toListName
@@ -285,19 +286,19 @@ class SearchFragment : Fragment() {
                     val channelId = (suggestYTItemAdapter.getCurrentList()[position] as ArtistItem).id
                     val args = Bundle()
                     args.putString("channelId", channelId)
-                    findNavController().navigate(R.id.action_bottom_navigation_item_search_to_artistFragment, args)
+                    findNavController().navigateSafe(R.id.action_bottom_navigation_item_search_to_artistFragment, args)
                 }
                 if (type == Config.ALBUM_CLICK){
                     val browseId = (suggestYTItemAdapter.getCurrentList()[position] as AlbumItem).browseId
                     val args = Bundle()
                     args.putString("browseId", browseId)
-                    findNavController().navigate(R.id.action_global_albumFragment, args)
+                    findNavController().navigateSafe(R.id.action_global_albumFragment, args)
                 }
                 if (type == Config.PLAYLIST_CLICK){
                     val id = (suggestYTItemAdapter.getCurrentList()[position] as PlaylistItem).id
                     val args = Bundle()
                     args.putString("id", id)
-                    findNavController().navigate(R.id.action_global_playlistFragment, args)
+                    findNavController().navigateSafe(R.id.action_global_playlistFragment, args)
                 }
                 if (type == Config.SONG_CLICK){
                     val songClicked = suggestYTItemAdapter.getCurrentList()[position] as SongItem
@@ -309,7 +310,7 @@ class SearchFragment : Fragment() {
                     args.putString("videoId", videoId)
                     args.putString("from", "\"${binding.svSearch.query}\" ${getString(R.string.in_search)}")
                     args.putString("type", Config.SONG_CLICK)
-                    findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                    findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
                 }
                 if (type == Config.VIDEO_CLICK) {
                     val videoClicked = suggestYTItemAdapter.getCurrentList()[position] as VideoItem
@@ -321,7 +322,7 @@ class SearchFragment : Fragment() {
                     args.putString("videoId", videoId)
                     args.putString("from", "\"${binding.svSearch.query}\" ${getString(R.string.in_search)}")
                     args.putString("type", Config.VIDEO_CLICK)
-                    findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                    findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
                 }
             }
         })
@@ -332,19 +333,19 @@ class SearchFragment : Fragment() {
                     val channelId = (resultAdapter.getCurrentList()[position] as ArtistsResult).browseId
                     val args = Bundle()
                     args.putString("channelId", channelId)
-                    findNavController().navigate(R.id.action_bottom_navigation_item_search_to_artistFragment, args)
+                    findNavController().navigateSafe(R.id.action_bottom_navigation_item_search_to_artistFragment, args)
                 }
                 if (type == Config.ALBUM_CLICK){
                     val browseId = (resultAdapter.getCurrentList()[position] as AlbumsResult).browseId
                     val args = Bundle()
                     args.putString("browseId", browseId)
-                    findNavController().navigate(R.id.action_global_albumFragment, args)
+                    findNavController().navigateSafe(R.id.action_global_albumFragment, args)
                 }
                 if (type == Config.PLAYLIST_CLICK){
                     val id = (resultAdapter.getCurrentList()[position] as PlaylistsResult).browseId
                     val args = Bundle()
                     args.putString("id", id)
-                    findNavController().navigate(R.id.action_global_playlistFragment, args)
+                    findNavController().navigateSafe(R.id.action_global_playlistFragment, args)
                 }
                 if (type == Config.SONG_CLICK){
                     val songClicked = resultAdapter.getCurrentList()[position] as SongsResult
@@ -356,7 +357,7 @@ class SearchFragment : Fragment() {
                     args.putString("videoId", videoId)
                     args.putString("from", "\"${binding.svSearch.query}\" ${getString(R.string.in_search)}")
                     args.putString("type", Config.SONG_CLICK)
-                    findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                    findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
                 }
                 if (type == Config.VIDEO_CLICK) {
                     val videoClicked = resultAdapter.getCurrentList()[position] as VideosResult
@@ -368,7 +369,7 @@ class SearchFragment : Fragment() {
                     args.putString("videoId", videoId)
                     args.putString("from", "\"${binding.svSearch.query}\" ${getString(R.string.in_search)}")
                     args.putString("type", Config.VIDEO_CLICK)
-                    findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                    findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
                 }
             }
 
@@ -425,10 +426,12 @@ class SearchFragment : Fragment() {
                         btRadio.setOnClickListener {
                             val args = Bundle()
                             args.putString("radioId", "RDAMVM${track.videoId}")
-                            args.putString("title", "${track.title} ${context?.getString(R.string.radio)}")
-                            args.putString("thumbnails", track.thumbnails?.lastOrNull()?.url)
+                            args.putString(
+                                "videoId",
+                                track.videoId
+                            )
                             dialog.dismiss()
-                            findNavController().navigate(R.id.action_global_playlistFragment, args)
+                            findNavController().navigateSafe(R.id.action_global_playlistFragment, args)
                         }
                         btLike.setOnClickListener {
                             if (cbFavorite.isChecked){
@@ -456,7 +459,7 @@ class SearchFragment : Fragment() {
                                     override fun onItemClick(position: Int) {
                                         val artist = track.artists[position]
                                         if (artist.id != null) {
-                                            findNavController().navigate(R.id.action_global_artistFragment, Bundle().apply {
+                                            findNavController().navigateSafe(R.id.action_global_artistFragment, Bundle().apply {
                                                 putString("channelId", artist.id)
                                             })
                                             subDialog.dismiss()

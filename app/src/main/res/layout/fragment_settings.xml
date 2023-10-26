@@ -417,6 +417,153 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:text="@string/lyrics"
+                    android:textColor="@android:color/white"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:layout_marginVertical="15sp">
+
+                </TextView>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginVertical="5sp"
+                    android:layout_marginStart="15sp"
+                    android:id="@+id/btMainLyricsProvider"
+                    android:focusable="true"
+                    android:clickable="true"
+                    android:foreground="?android:attr/selectableItemBackground">
+                    <TextView
+                        android:textSize = "16sp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@android:color/white"
+                        android:text = "@string/main_lyrics_provider">
+
+                    </TextView>
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:id="@+id/tvMainLyricsProvider"
+                        android:text="@string/musixmatch">
+
+                    </TextView>
+
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginVertical="5sp"
+                    android:layout_marginStart="15sp"
+                    android:id="@+id/btMusixmatchLogin"
+                    android:focusable="true"
+                    android:clickable="true"
+                    android:foreground="?android:attr/selectableItemBackground">
+                    <TextView
+                        android:id="@+id/tvMusixmatchLoginTitle"
+                        android:textSize = "16sp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@android:color/white"
+                        android:text = "@string/log_in_to_Musixmatch">
+
+                    </TextView>
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:id="@+id/tvMusixmatchLogin"
+                        android:text="@string/only_support_email_and_password_type">
+
+                    </TextView>
+
+                </LinearLayout>
+                <TextView
+                    android:autoLink="web"
+                    android:layout_marginVertical="5sp"
+                    android:layout_marginStart="15sp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="11sp"
+                    android:text="@string/musixmatch_login_description">
+
+                </TextView>
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                    <LinearLayout
+                        android:layout_alignParentStart="true"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginVertical="5sp"
+                        android:layout_marginStart="15sp"
+                        android:id="@+id/btUseMusixmatchTranslation"
+                        android:focusable="true"
+                        android:clickable="true"
+                        android:foreground="?android:attr/selectableItemBackground"
+                        android:layout_toStartOf="@+id/swUseMusixmatchTranslation">
+                        <TextView
+                            android:textSize = "16sp"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textColor="@android:color/white"
+                            android:text = "@string/use_musixmatch_translation">
+
+                        </TextView>
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textSize="13sp"
+                            android:id="@+id/tvUseMusixmatchTranslation"
+                            android:text="@string/use_musixmatch_translation_description">
+
+                        </TextView>
+                    </LinearLayout>
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/swUseMusixmatchTranslation"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true">
+
+                    </com.google.android.material.switchmaterial.SwitchMaterial>
+                </RelativeLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginVertical="5sp"
+                    android:layout_marginStart="15sp"
+                    android:id="@+id/btTranslationLanguage"
+                    android:focusable="true"
+                    android:clickable="true"
+                    android:foreground="?android:attr/selectableItemBackground">
+                    <TextView
+                        android:textSize = "16sp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@android:color/white"
+                        android:text = "@string/translation_language">
+
+                    </TextView>
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:id="@+id/tvTranslationLanguage"
+                        android:text="@string/follow_app_language">
+
+                    </TextView>
+
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:text="@string/sponsorBlock"
                     android:textColor="@android:color/white"
                     android:textStyle="bold"

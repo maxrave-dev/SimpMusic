@@ -40,6 +40,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.slider.Slider
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.adapter.artist.SeeArtistOfNowPlayingAdapter
+import com.maxrave.simpmusic.adapter.lyrics.LyricsAdapter
 import com.maxrave.simpmusic.adapter.playlist.AddToAPlaylistAdapter
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.Config.ALBUM_CLICK
@@ -49,6 +50,7 @@ import com.maxrave.simpmusic.common.Config.SHARE
 import com.maxrave.simpmusic.common.Config.SONG_CLICK
 import com.maxrave.simpmusic.common.Config.VIDEO_CLICK
 import com.maxrave.simpmusic.common.DownloadState
+import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.metadata.MetadataSong
@@ -59,17 +61,21 @@ import com.maxrave.simpmusic.databinding.BottomSheetSeeArtistOfNowPlayingBinding
 import com.maxrave.simpmusic.databinding.BottomSheetSleepTimerBinding
 import com.maxrave.simpmusic.databinding.FragmentNowPlayingBinding
 import com.maxrave.simpmusic.extension.connectArtists
+import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.removeConflicts
 import com.maxrave.simpmusic.extension.setEnabledAll
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.RepeatState
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService
+import com.maxrave.simpmusic.utils.CenterLayoutManager
+import com.maxrave.simpmusic.utils.DisableTouchEventRecyclerView
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -93,6 +99,8 @@ class NowPlayingFragment : Fragment() {
 
     private var gradientDrawable: GradientDrawable? = null
     private var lyricsBackground: Int? = null
+
+    lateinit var lyricsAdapter: LyricsAdapter
 
 //    private lateinit var songChangeListener: OnNowPlayingSongChangeListener
 //    override fun onAttach(context: Context) {
@@ -143,6 +151,14 @@ class NowPlayingFragment : Fragment() {
         downloaded = arguments?.getInt("downloaded")
 
         Log.d("check Video ID in Fragment", videoId.toString())
+
+        lyricsAdapter = LyricsAdapter(null)
+        binding.rvLyrics.apply {
+            adapter = lyricsAdapter
+            layoutManager = CenterLayoutManager(requireContext())
+            addOnItemTouchListener(DisableTouchEventRecyclerView())
+        }
+
         when (type) {
             SONG_CLICK -> {
                 if (viewModel.videoId.value == videoId) {
@@ -285,12 +301,6 @@ class NowPlayingFragment : Fragment() {
             }
 
             ALBUM_CLICK -> {
-                if (viewModel.videoId.value == videoId) {
-                    gradientDrawable = viewModel.gradientDrawable.value
-                    lyricsBackground = viewModel.lyricsBackground.value
-                    metadataCurSong = viewModel.metadata.value?.data
-                    updateUIfromCurrentMediaItem(viewModel.getCurrentMediaItem())
-                } else {
 //                if (!viewModel.songTransitions.value){
                     Log.i("Now Playing Fragment", "Album Click")
                     binding.ivArt.visibility = View.GONE
@@ -345,17 +355,10 @@ class NowPlayingFragment : Fragment() {
 //                                }
 //                            }
 //                        }
-                    }
                 }
             }
 
             PLAYLIST_CLICK -> {
-                if (viewModel.videoId.value == videoId) {
-                    gradientDrawable = viewModel.gradientDrawable.value
-                    lyricsBackground = viewModel.lyricsBackground.value
-                    metadataCurSong = viewModel.metadata.value?.data
-                    updateUIfromCurrentMediaItem(viewModel.getCurrentMediaItem())
-                } else {
                     Log.i("Now Playing Fragment", "Playlist Click")
                     binding.ivArt.visibility = View.GONE
                     binding.loadingArt.visibility = View.VISIBLE
@@ -409,7 +412,6 @@ class NowPlayingFragment : Fragment() {
 //                                }
 //                            }
 //                        }
-                    }
                 }
             }
 
@@ -518,49 +520,71 @@ class NowPlayingFragment : Fragment() {
                 val job5 = launch {
                     viewModel.progressMillis.collect {
                         if (viewModel._lyrics.value?.data != null) {
-                            val temp = viewModel.getLyricsString(it)
+//                            val temp = viewModel.getLyricsString(it)
+                            val lyrics = viewModel._lyrics.value!!.data
                             binding.tvSyncState.text = when (viewModel.getLyricsSyncState()) {
                                 Config.SyncState.NOT_FOUND -> null
                                 Config.SyncState.LINE_SYNCED -> getString(R.string.line_synced)
                                 Config.SyncState.UNSYNCED -> getString(R.string.unsynced)
                             }
-                            if (temp != null) {
-                                if (temp.nowLyric == "Lyrics not found") {
+                            val index = viewModel.getActiveLyrics(it)
+                            if (index != null) {
+                                if (lyrics?.lines?.get(0)?.words == "Lyrics not found") {
                                     binding.lyricsLayout.visibility = View.GONE
                                     binding.lyricsTextLayout.visibility = View.GONE
                                 } else {
+                                    viewModel._lyrics.value!!.data?.let { it1 ->
+                                        lyricsAdapter.updateOriginalLyrics(
+                                            it1
+                                        )
+                                        if (viewModel.getLyricsSyncState() == Config.SyncState.LINE_SYNCED) {
+                                            lyricsAdapter.setActiveLyrics(index)
+                                            if (index == -1) {
+                                                binding.rvLyrics.smoothScrollToPosition(0)
+                                            }
+                                            else {
+                                                binding.rvLyrics.smoothScrollToPosition(index)
+                                            }
+                                        }
+//                                        it1.lines?.find { line -> line.words == temp.nowLyric }
+//                                            ?.let { it2 ->
+//                                                lyricsAdapter.setActiveLyrics(it2)
+//                                                binding.rvLyrics.smoothScrollToPosition(it1.lines.indexOf(it2))
+//                                            }
+                                    }
+
                                     if (binding.btFull.text == getString(R.string.show)) {
                                         binding.lyricsTextLayout.visibility = View.VISIBLE
                                     }
                                     binding.lyricsLayout.visibility = View.VISIBLE
-                                    if (temp.nowLyric != null) {
-                                        binding.tvNowLyrics.visibility = View.VISIBLE
-                                        binding.tvNowLyrics.text = temp.nowLyric
-                                    } else {
-                                        binding.tvNowLyrics.visibility = View.GONE
-                                    }
-                                    if (temp.prevLyrics != null) {
-                                        binding.tvPrevLyrics.visibility = View.VISIBLE
-                                        if (temp.prevLyrics.size > 1) {
-                                            val txt = temp.prevLyrics[0] + "\n" + temp.prevLyrics[1]
-                                            binding.tvPrevLyrics.text = txt
-                                        } else {
-                                            binding.tvPrevLyrics.text = temp.prevLyrics[0]
-                                        }
-                                    } else {
-                                        binding.tvPrevLyrics.visibility = View.GONE
-                                    }
-                                    if (temp.nextLyric != null) {
-                                        binding.tvNextLyrics.visibility = View.VISIBLE
-                                        if (temp.nextLyric.size > 1) {
-                                            val txt = temp.nextLyric[0] + "\n" + temp.nextLyric[1]
-                                            binding.tvNextLyrics.text = txt
-                                        } else {
-                                            binding.tvNextLyrics.text = temp.nextLyric[0]
-                                        }
-                                    } else {
-                                        binding.tvNextLyrics.visibility = View.GONE
-                                    }
+//                                    if (temp.nowLyric != null) {
+//                                        binding.tvNowLyrics.visibility = View.VISIBLE
+//                                        binding.tvNowLyrics.text = temp.nowLyric
+//                                    } else {
+//                                        binding.tvNowLyrics.visibility = View.GONE
+//                                    }
+//                                    if (temp.prevLyrics != null) {
+//                                        binding.tvPrevLyrics.visibility = View.VISIBLE
+//                                        if (temp.prevLyrics.size > 1) {
+//                                            val txt = temp.prevLyrics[0] + "\n" + temp.prevLyrics[1]
+//                                            binding.tvPrevLyrics.text = txt
+//                                        } else {
+//                                            binding.tvPrevLyrics.text = temp.prevLyrics[0]
+//                                        }
+//                                    } else {
+//                                        binding.tvPrevLyrics.visibility = View.GONE
+//                                    }
+//                                    if (temp.nextLyric != null) {
+//                                        binding.tvNextLyrics.visibility = View.VISIBLE
+//                                        if (temp.nextLyric.size > 1) {
+//                                            val txt = temp.nextLyric[0] + "\n" + temp.nextLyric[1]
+//                                            binding.tvNextLyrics.text = txt
+//                                        } else {
+//                                            binding.tvNextLyrics.text = temp.nextLyric[0]
+//                                        }
+//                                    } else {
+//                                        binding.tvNextLyrics.visibility = View.GONE
+//                                    }
                                 }
                             }
                         } else {
@@ -628,6 +652,11 @@ class NowPlayingFragment : Fragment() {
                             binding.tvUploader.text = format.uploader
                             binding.ivAuthor.load(format.uploaderThumbnail)
                             binding.tvSubCount.text = format.uploaderSubCount
+                            viewModel.resetLyrics()
+                            Log.w("Check Format", format.youtubeCaptionsUrl.toString())
+                            format.lengthSeconds?.let {
+                                viewModel.getLyricsFromFormat(format.videoId, it)
+                            }
                         }
                         else {
                             binding.uploaderLayout.visibility = View.GONE
@@ -729,6 +758,23 @@ class NowPlayingFragment : Fragment() {
 //                        }
 //                    }
 //                }
+                val job16 = launch {
+                    viewModel.translateLyrics.collect {
+                        lyricsAdapter.updateTranslatedLyrics(it)
+                    }
+                }
+                val job17 = launch {
+                    viewModel._lyrics.collectLatest { lyrics ->
+                        if (lyrics != null && lyrics is Resource.Success) {
+                            if (viewModel.getLyricsProvier() == DataStoreManager.MUSIXMATCH) {
+                                binding.tvLyricsProvider.text = getString(R.string.lyrics_provider)
+                            }
+                            else if (viewModel.getLyricsProvier() == DataStoreManager.YOUTUBE) {
+                                binding.tvLyricsProvider.text = getString(R.string.lyrics_provider_youtube)
+                            }
+                        }
+                    }
+                }
                 job1.join()
                 job2.join()
                 job3.join()
@@ -744,6 +790,7 @@ class NowPlayingFragment : Fragment() {
                 job12.join()
                 job14.join()
                 job15.join()
+                job16.join()
             }
         }
         binding.btFull.setOnClickListener {
@@ -788,10 +835,10 @@ class NowPlayingFragment : Fragment() {
             findNavController().popBackStack()
         }
         binding.btQueue.setOnClickListener {
-            findNavController().navigate(R.id.action_nowPlayingFragment_to_queueFragment)
+            findNavController().navigateSafe(R.id.action_global_queueFragment)
         }
         binding.btSongInfo.setOnClickListener {
-            findNavController().navigate(R.id.action_nowPlayingFragment_to_infoFragment)
+            findNavController().navigateSafe(R.id.action_global_infoFragment)
         }
         binding.cbFavorite.setOnCheckedChangeListener { _, isChecked ->
             if (!isChecked) {
@@ -813,7 +860,7 @@ class NowPlayingFragment : Fragment() {
             }
         }
         binding.uploaderLayout.setOnClickListener {
-            findNavController().navigate(
+            findNavController().navigateSafe(
                 R.id.action_global_artistFragment,
                 Bundle().apply {
                     putString("channelId", viewModel.format.value?.uploaderId)
@@ -895,12 +942,11 @@ class NowPlayingFragment : Fragment() {
                                     val args = Bundle()
                                     args.putString("radioId", "RDAMVM${song.videoId}")
                                     args.putString(
-                                        "title",
-                                        "${song.title} ${context?.getString(R.string.radio)}"
+                                        "videoId",
+                                        song.videoId
                                     )
-                                    args.putString("thumbnails", song.thumbnails?.lastOrNull()?.url)
                                     dialog.dismiss()
-                                    findNavController().navigate(
+                                    findNavController().navigateSafe(
                                         R.id.action_global_playlistFragment,
                                         args
                                     )
@@ -1011,7 +1057,7 @@ class NowPlayingFragment : Fragment() {
                                             override fun onItemClick(position: Int) {
                                                 val artist = song.artists[position]
                                                 if (artist.id != null) {
-                                                    findNavController().navigate(
+                                                    findNavController().navigateSafe(
                                                         R.id.action_global_artistFragment,
                                                         Bundle().apply {
                                                             putString("channelId", artist.id)

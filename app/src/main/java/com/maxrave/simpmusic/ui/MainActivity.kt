@@ -56,6 +56,7 @@ import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.databinding.ActivityMainBinding
 import com.maxrave.simpmusic.extension.isMyServiceRunning
+import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -398,7 +399,7 @@ class MainActivity : AppCompatActivity() {
         binding.card.setOnClickListener {
             val bundle = Bundle()
             bundle.putString("type", Config.MINIPLAYER_CLICK)
-            navController.navigate(R.id.action_global_nowPlayingFragment, bundle)
+            navController.navigateSafe(R.id.action_global_nowPlayingFragment, bundle)
         }
         binding.btPlayPause.setOnClickListener {
             viewModel.onUIEvent(UIEvent.PlayPause)
@@ -415,19 +416,19 @@ class MainActivity : AppCompatActivity() {
                                     "playlist" -> data!!.getQueryParameter("list")?.let { playlistId ->
                                         if (playlistId.startsWith("OLAK5uy_")) {
                                             viewModel.intent.value = null
-                                            navController.navigate(R.id.action_global_albumFragment, Bundle().apply {
+                                            navController.navigateSafe(R.id.action_global_albumFragment, Bundle().apply {
                                                 putString("browseId", playlistId)
                                             })
                                         }
                                         else if (playlistId.startsWith("VL")) {
                                             viewModel.intent.value = null
-                                            navController.navigate(R.id.action_global_playlistFragment, Bundle().apply {
+                                            navController.navigateSafe(R.id.action_global_playlistFragment, Bundle().apply {
                                                 putString("id", playlistId)
                                             })
                                         }
                                         else {
                                             viewModel.intent.value = null
-                                            navController.navigate(R.id.action_global_playlistFragment, Bundle().apply {
+                                            navController.navigateSafe(R.id.action_global_playlistFragment, Bundle().apply {
                                                 putString("id", "VL$playlistId")
                                             })
                                         }
@@ -436,7 +437,7 @@ class MainActivity : AppCompatActivity() {
                                     "channel", "c" -> data!!.lastPathSegment?.let { artistId ->
                                         if (artistId.startsWith("UC")) {
                                             viewModel.intent.value = null
-                                            navController.navigate(R.id.action_global_artistFragment, Bundle().apply {
+                                            navController.navigateSafe(R.id.action_global_artistFragment, Bundle().apply {
                                                 putString("channelId", artistId)
                                             })
                                         }
@@ -450,7 +451,7 @@ class MainActivity : AppCompatActivity() {
 //                                            when (channelId) {
 //                                                is Resource.Success -> {
 //                                                    viewModel.intent.value = null
-//                                                    navController.navigate(R.id.action_global_artistFragment, Bundle().apply {
+//                                                    navController.navigateSafe(R.id.action_global_artistFragment, Bundle().apply {
 //                                                        putString("channelId", channelId.data?.id)
 //                                                    })
 //                                                }
@@ -476,10 +477,10 @@ class MainActivity : AppCompatActivity() {
                                         hideBottomNav()
                                         if (navController.currentDestination?.id == R.id.nowPlayingFragment) {
                                             findNavController(R.id.fragment_container_view).popBackStack()
-                                            navController.navigate(R.id.action_global_nowPlayingFragment, args)
+                                            navController.navigateSafe(R.id.action_global_nowPlayingFragment, args)
                                         }
                                         else {
-                                            navController.navigate(R.id.action_global_nowPlayingFragment, args)
+                                            navController.navigateSafe(R.id.action_global_nowPlayingFragment, args)
                                         }
                                     }
                                 }

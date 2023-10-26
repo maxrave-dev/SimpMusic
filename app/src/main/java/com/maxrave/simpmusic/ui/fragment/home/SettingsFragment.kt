@@ -8,6 +8,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
@@ -21,12 +22,14 @@ import coil.annotation.ExperimentalCoilApi
 import coil.imageLoader
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.common.LYRICS_PROVIDER
 import com.maxrave.simpmusic.common.QUALITY
 import com.maxrave.simpmusic.common.SPONSOR_BLOCK
 import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.common.SUPPORTED_LOCATION
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.databinding.FragmentSettingsBinding
+import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.setEnabledAll
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -107,6 +110,10 @@ class SettingsFragment : Fragment() {
         viewModel.getLastCheckForUpdate()
         viewModel.getSponsorBlockEnabled()
         viewModel.getSponsorBlockCategories()
+        viewModel.getTranslationLanguage() //
+        viewModel.getLyricsProvider() //
+        viewModel.getUseTranslation() //
+        viewModel.getMusixmatchLoggedIn() //
 
         val diskCache = context?.imageLoader?.diskCache
 
@@ -120,6 +127,32 @@ class SettingsFragment : Fragment() {
                 binding.tvLogIn.text = getString(R.string.log_in_to_get_personally_data)
                 setEnabledAll(binding.swSaveHistory, false)
             }
+        }
+        viewModel.musixmatchLoggedIn.observe(viewLifecycleOwner) {
+            if (it == DataStoreManager.TRUE) {
+                binding.tvMusixmatchLoginTitle.text = getString(R.string.log_out_from_musixmatch)
+                binding.tvMusixmatchLogin.text = getString(R.string.logged_in)
+                setEnabledAll(binding.swUseMusixmatchTranslation, true)
+                setEnabledAll(binding.btTranslationLanguage, true)
+            } else if (it == DataStoreManager.FALSE) {
+                binding.tvMusixmatchLoginTitle.text = getString(R.string.log_in_to_Musixmatch)
+                binding.tvMusixmatchLogin.text = getString(R.string.only_support_email_and_password_type)
+                setEnabledAll(binding.swUseMusixmatchTranslation, false)
+                setEnabledAll(binding.btTranslationLanguage, false)
+            }
+        }
+        viewModel.mainLyricsProvider.observe(viewLifecycleOwner) {
+            if (it == DataStoreManager.YOUTUBE) {
+                binding.tvMainLyricsProvider.text = LYRICS_PROVIDER.items.get(1)
+            } else if (it == DataStoreManager.MUSIXMATCH) {
+                binding.tvMainLyricsProvider.text = LYRICS_PROVIDER.items.get(0)
+            }
+        }
+        viewModel.translationLanguage.observe(viewLifecycleOwner) {
+            binding.tvTranslationLanguage.text = it
+        }
+        viewModel.useTranslation.observe(viewLifecycleOwner) {
+            binding.swUseMusixmatchTranslation.isChecked = it == DataStoreManager.TRUE
         }
         viewModel.sendBackToGoogle.observe(viewLifecycleOwner) {
             binding.swSaveHistory.isChecked = it == DataStoreManager.TRUE
@@ -222,7 +255,17 @@ class SettingsFragment : Fragment() {
                 Toast.makeText(requireContext(), getString(R.string.logged_out), Toast.LENGTH_SHORT).show()
             }
             else if (viewModel.loggedIn.value == DataStoreManager.FALSE) {
-                findNavController().navigate(R.id.action_global_logInFragment)
+                findNavController().navigateSafe(R.id.action_global_logInFragment)
+            }
+        }
+        
+        binding.btMusixmatchLogin.setOnClickListener {
+            if (viewModel.musixmatchLoggedIn.value == DataStoreManager.TRUE) {
+                viewModel.clearMusixmatchCookie()
+                Toast.makeText(requireContext(), getString(R.string.logged_out), Toast.LENGTH_SHORT).show()
+            }
+            else if (viewModel.musixmatchLoggedIn.value == DataStoreManager.FALSE) {
+                findNavController().navigateSafe(R.id.action_global_musixmatchFragment)
             }
         }
 
@@ -350,6 +393,70 @@ class SettingsFragment : Fragment() {
                 }
             dialog.show()
 
+        }
+        binding.btMainLyricsProvider.setOnClickListener {
+            var checkedIndex = -1
+            val dialog = MaterialAlertDialogBuilder(requireContext())
+                .setTitle(getString(R.string.main_lyrics_provider))
+                .setSingleChoiceItems(LYRICS_PROVIDER.items, -1) { _, which ->
+                    checkedIndex = which
+                }
+                .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                    dialog.dismiss()
+                }
+                .setPositiveButton(getString(R.string.change)) { dialog, _ ->
+                    if (checkedIndex != -1) {
+                        if (checkedIndex == 0) {
+                            viewModel.setLyricsProvider(DataStoreManager.MUSIXMATCH)
+                            binding.tvMainLyricsProvider.text = DataStoreManager.MUSIXMATCH
+                        } else if (checkedIndex == 1){
+                            viewModel.setLyricsProvider(DataStoreManager.YOUTUBE)
+                            binding.tvMainLyricsProvider.text = DataStoreManager.YOUTUBE
+                        }
+                    }
+                    viewModel.getLyricsProvider()
+                    viewModel.mainLyricsProvider.observe(viewLifecycleOwner) {
+                        if (it == DataStoreManager.YOUTUBE) {
+                            binding.tvMainLyricsProvider.text = LYRICS_PROVIDER.items.get(1)
+                        } else if (it == DataStoreManager.MUSIXMATCH) {
+                            binding.tvMainLyricsProvider.text = LYRICS_PROVIDER.items.get(0)
+                        }
+                    }
+                    dialog.dismiss()
+                }
+            dialog.show()
+        }
+
+        binding.btTranslationLanguage.setOnClickListener{
+            val materialAlertDialogBuilder = MaterialAlertDialogBuilder(requireContext())
+            materialAlertDialogBuilder.setTitle(getString(R.string.translation_language))
+            materialAlertDialogBuilder.setMessage(getString(R.string.translation_language_message))
+            val editText = EditText(requireContext())
+            materialAlertDialogBuilder.setView(editText)
+            materialAlertDialogBuilder.setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                dialog.dismiss()
+            }
+            materialAlertDialogBuilder.setPositiveButton(getString(R.string.change)) { dialog, _ ->
+                if (editText.text.toString().isNotEmpty()) {
+                    if (editText.text.toString().length == 2) {
+                        viewModel.setTranslationLanguage(editText.text.toString())
+                        viewModel.translationLanguage.observe(viewLifecycleOwner) {
+                            binding.tvTranslationLanguage.text = it
+                        }
+                    }
+                    else {
+                        Toast.makeText(requireContext(), getString(R.string.invalid_language_code), Toast.LENGTH_SHORT).show()
+                    }
+                }
+                else {
+                    if (viewModel.language.value != null && viewModel.language.value!!.length >= 2) {
+                        viewModel.language.value?.slice(0..1)
+                            ?.let { it1 -> viewModel.setTranslationLanguage(it1) }
+                    }
+                }
+                dialog.dismiss()
+            }
+            materialAlertDialogBuilder.show()
         }
 
         binding.btStorageDownloadedCache.setOnClickListener {
@@ -484,6 +591,13 @@ class SettingsFragment : Fragment() {
                 viewModel.setSendBackToGoogle(true)
             } else {
                 viewModel.setSendBackToGoogle(false)
+            }
+        }
+        binding.swUseMusixmatchTranslation.setOnCheckedChangeListener {_, checked ->
+            if (checked) {
+                viewModel.setUseTranslation(true)
+            } else {
+                viewModel.setUseTranslation(false)
             }
         }
     }

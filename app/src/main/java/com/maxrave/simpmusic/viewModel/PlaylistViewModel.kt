@@ -26,6 +26,7 @@ import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -95,14 +96,18 @@ class PlaylistViewModel @Inject constructor(
         }
     }
 
-    fun getRadio(radioId: String, title: String?, thumbnails: String?) {
+    fun getRadio(radioId: String, videoId: String) {
         loading.value = true
         viewModelScope.launch {
-            mainRepository.getRadio(radioId, title, thumbnails).collect {
-                _playlistBrowse.value = it
-            }
-            withContext(Dispatchers.Main) {
-                loading.value = false
+            mainRepository.getSongById(videoId).collectLatest { song ->
+                if (song != null) {
+                    mainRepository.getRadio(radioId, song).collect {
+                        _playlistBrowse.value = it
+                    }
+                    withContext(Dispatchers.Main) {
+                        loading.value = false
+                    }
+                }
             }
         }
     }

@@ -15,6 +15,7 @@ import com.maxrave.simpmusic.data.model.home.Content
 import com.maxrave.simpmusic.data.model.home.HomeItem
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.ItemHomeBinding
+import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.toTrack
 
 class HomeItemAdapter(private var homeItemList: ArrayList<HomeItem>, var context: Context, val navController: NavController): RecyclerView.Adapter<HomeItemAdapter.ViewHolder>() {
@@ -56,7 +57,7 @@ class HomeItemAdapter(private var homeItemList: ArrayList<HomeItem>, var context
                 val firstQueue: Track = homeItemList[holder.bindingAdapterPosition].contents[position]!!.toTrack()
                 Queue.setNowPlaying(firstQueue)
                 args.putString("type", Config.SONG_CLICK)
-                navController.navigate(R.id.action_global_nowPlayingFragment, args)
+                navController.navigateSafe(R.id.action_global_nowPlayingFragment, args)
             }
         })
         itemAdapter.setOnPlaylistClickListener(object : HomeItemContentAdapter.onPlaylistItemClickListener{
@@ -64,7 +65,7 @@ class HomeItemAdapter(private var homeItemList: ArrayList<HomeItem>, var context
                 val args = Bundle()
                 Log.d("HomeItemAdapter", "onPlaylistItemClick: ${homeItemList[holder.bindingAdapterPosition].contents[position]?.playlistId}")
                 args.putString("id", homeItemList[holder.bindingAdapterPosition].contents[position]?.playlistId)
-                navController.navigate(R.id.action_global_playlistFragment, args)
+                navController.navigateSafe(R.id.action_global_playlistFragment, args)
             }
         })
         itemAdapter.setOnAlbumClickListener(object : HomeItemContentAdapter.onAlbumItemClickListener{
@@ -72,7 +73,7 @@ class HomeItemAdapter(private var homeItemList: ArrayList<HomeItem>, var context
                 val args = Bundle()
                 Log.d("HomeItemAdapter", "onAlbumItemClick: ${homeItemList[holder.bindingAdapterPosition].contents[position]?.browseId}")
                 args.putString("browseId", homeItemList[holder.bindingAdapterPosition].contents[position]?.browseId)
-                navController.navigate(R.id.action_global_albumFragment, args)
+                navController.navigateSafe(R.id.action_global_albumFragment, args)
             }
         })
         itemAdapter.setOnArtistClickListener(object : HomeItemContentAdapter.onArtistItemClickListener {
@@ -81,7 +82,7 @@ class HomeItemAdapter(private var homeItemList: ArrayList<HomeItem>, var context
                 val channelId = homeItemList[holder.bindingAdapterPosition].contents[position]?.browseId ?: homeItemList[holder.bindingAdapterPosition].contents[position]?.playlistId
                 Log.d("HomeItemAdapter", "onArtistItemClick: $channelId")
                 args.putString("channelId", channelId)
-                navController.navigate(R.id.action_global_artistFragment, args)
+                navController.navigateSafe(R.id.action_global_artistFragment, args)
             }
         })
     }

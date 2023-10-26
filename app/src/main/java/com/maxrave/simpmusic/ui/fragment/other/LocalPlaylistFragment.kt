@@ -46,6 +46,7 @@ import com.maxrave.simpmusic.databinding.BottomSheetEditPlaylistTitleBinding
 import com.maxrave.simpmusic.databinding.BottomSheetLocalPlaylistBinding
 import com.maxrave.simpmusic.databinding.BottomSheetLocalPlaylistItemBinding
 import com.maxrave.simpmusic.databinding.FragmentLocalPlaylistBinding
+import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.viewModel.LocalPlaylistViewModel
@@ -145,7 +146,7 @@ class LocalPlaylistFragment : Fragment() {
                 if (Queue.getQueue().size >= 1) {
                     Queue.removeTrackWithIndex(position)
                 }
-                findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
             }
         })
         playlistAdapter.setOnOptionClickListener(object : PlaylistItemAdapter.OnOptionClickListener{
@@ -210,7 +211,7 @@ class LocalPlaylistFragment : Fragment() {
                 if (Queue.getQueue().size >= 1) {
                     Queue.removeFirstTrackForPlaylistAndAlbum()
                 }
-                findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
             }
             else {
                 Snackbar.make(requireView(), getString(R.string.playlist_is_empty), Snackbar.LENGTH_SHORT).show()

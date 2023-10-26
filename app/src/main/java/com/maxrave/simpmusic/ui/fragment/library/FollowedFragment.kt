@@ -12,6 +12,7 @@ import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.adapter.search.SearchItemAdapter
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
 import com.maxrave.simpmusic.databinding.FragmentFollowedBinding
+import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.viewModel.FollowedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
@@ -63,7 +64,7 @@ class FollowedFragment: Fragment() {
             override fun onItemClick(position: Int, type: String) {
                 if (type == "artist") {
                     val data = listFollowed[position] as ArtistEntity
-                    findNavController().navigate(R.id.action_global_artistFragment, Bundle().apply {
+                    findNavController().navigateSafe(R.id.action_global_artistFragment, Bundle().apply {
                         putString("channelId", data.channelId)
                     })
                 }

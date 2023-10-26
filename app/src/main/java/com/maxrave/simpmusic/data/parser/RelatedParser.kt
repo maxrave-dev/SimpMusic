@@ -1,6 +1,7 @@
 package com.maxrave.simpmusic.data.parser
 
 import com.maxrave.kotlinytmusicscraper.models.PlaylistPanelRenderer
+import com.maxrave.kotlinytmusicscraper.utils.parseTime
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.searchResult.songs.Album
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
@@ -11,6 +12,7 @@ fun parseRelated(data:  List<PlaylistPanelRenderer.Content>?): ArrayList<Track>?
         data.forEach { track ->
             val title = track.playlistPanelVideoRenderer?.title?.runs?.get(0)?.text
             val duration = track.playlistPanelVideoRenderer?.lengthText?.runs?.get(0)?.text
+            val durationSeconds = track.playlistPanelVideoRenderer?.lengthText?.runs?.firstOrNull()?.text?.parseTime()
             val longByTextRuns = track.playlistPanelVideoRenderer?.longBylineText?.runs
             val artist: ArrayList<Artist> = arrayListOf()
             val album: ArrayList<Album> = arrayListOf()
@@ -36,7 +38,7 @@ fun parseRelated(data:  List<PlaylistPanelRenderer.Content>?): ArrayList<Track>?
                 album = album.firstOrNull(),
                 artists = artist,
                 duration = duration ?: "",
-                durationSeconds = 0,
+                durationSeconds = durationSeconds,
                 isAvailable = true,
                 isExplicit = false,
                 likeStatus = "INDIFFERENT",

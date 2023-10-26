@@ -2,6 +2,7 @@ package com.maxrave.kotlinytmusicscraper.models.response
 
 import com.maxrave.kotlinytmusicscraper.models.ResponseContext
 import com.maxrave.kotlinytmusicscraper.models.Thumbnails
+import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -17,6 +18,8 @@ data class PlayerResponse(
     val videoDetails: VideoDetails?,
     @SerialName("playbackTracking")
     val playbackTracking: PlaybackTracking?,
+    @SerialName("captions")
+    val captions: YouTubeInitialPage.Captions?,
 ) {
     @Serializable
     data class PlayabilityStatus(
@@ -106,4 +109,5 @@ data class PlayerResponse(
             val baseUrl: String?,
         )
     }
+
 }

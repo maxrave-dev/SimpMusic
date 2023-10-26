@@ -68,7 +68,8 @@ fun parseArtistData(data: ArtistPage, context: Context): ArtistBrowse {
                 thumbnails = listOf(Thumbnail(544, song.thumbnail, 544)),
                 isAvailable = true,
                 isExplicit = false,
-                videoType = "Song"
+                videoType = "Song",
+                durationSeconds = song.duration ?: 0
             )
         )
     }
@@ -87,14 +88,15 @@ fun parseArtistData(data: ArtistPage, context: Context): ArtistBrowse {
                 artists = video.artists.map { artist -> Artist(id = artist.id ?: "", name = artist.name) },
                 category = null,
                 duration = null,
-                durationSeconds = null,
+                durationSeconds = video.duration,
                 resultType = null,
                 thumbnails = video.thumbnails?.thumbnails?.toListThumbnail(),
                 title = video.title,
                 videoId = video.id,
                 videoType = null,
                 views = video.view,
-                year = ""
+                year = "",
+
             )
         )
     }

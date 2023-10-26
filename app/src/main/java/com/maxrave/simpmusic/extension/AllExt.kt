@@ -4,6 +4,8 @@ import android.app.ActivityManager
 import android.app.Service
 import android.content.Context
 import android.graphics.Color
+import android.os.Bundle
+import android.text.Html
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
@@ -12,11 +14,14 @@ import androidx.datastore.preferences.preferencesDataStore
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
+import androidx.navigation.NavController
 import androidx.sqlite.db.SimpleSQLiteQuery
 import com.maxrave.kotlinytmusicscraper.models.SongItem
 import com.maxrave.kotlinytmusicscraper.models.VideoItem
+import com.maxrave.kotlinytmusicscraper.models.musixmatch.MusixmatchTranslationLyricsResponse
 import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
 import com.maxrave.kotlinytmusicscraper.models.spotify.ArtistX
+import com.maxrave.kotlinytmusicscraper.models.youtube.Transcript
 import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
 import com.maxrave.simpmusic.common.SETTINGS_FILENAME
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
@@ -69,7 +74,7 @@ fun ResultSong.toTrack(): Track {
         album = album,
         artists = artists,
         duration = "",
-        durationSeconds = 0,
+        durationSeconds = this.durationSeconds,
         isAvailable = isAvailable,
         isExplicit = isExplicit,
         likeStatus = likeStatus,
@@ -351,7 +356,7 @@ fun Content.toTrack(): Track {
         album = album,
         artists = artists ?: listOf(Artist("", "")),
         duration = "",
-        durationSeconds = 0,
+        durationSeconds = durationSeconds,
         isAvailable = false,
         isExplicit = false,
         likeStatus = "INDIFFERENT",
@@ -541,6 +546,49 @@ fun YouTubeInitialPage.toTrack(): Track {
         resultType = "",
         year = ""
     )
+}
+fun MusixmatchTranslationLyricsResponse.toLyrics(originalLyrics: Lyrics): Lyrics? {
+    if (this.message.body.translations_list.isEmpty()) {
+        return null
+    }
+    else {
+        val listTranslation = this.message.body.translations_list
+        val translation = originalLyrics.copy(
+            lines = originalLyrics.lines?.mapIndexed { index, line ->
+                line.copy(
+                    words = if (!line.words.contains("♫")) {listTranslation.find { it.translation.matched_line == line.words || it.translation.subtitle_matched_line == line.words || it.translation.snippet == line.words }?.translation?.description ?: ""} else {line.words}
+                )
+            }
+        )
+        return translation
+    }
+}
+
+fun Transcript.toLyrics(): Lyrics {
+    val lines = this.text.map {
+        Line(
+            endTimeMs = "0",
+            startTimeMs = (it.start.toFloat() * 1000).toInt().toString(),
+            syllables = listOf(),
+            words = Html.fromHtml(it.content, Html.FROM_HTML_MODE_COMPACT).toString()
+        )
+    }
+    val sortedLine = lines.sortedBy { it.startTimeMs.toInt() }
+    return Lyrics(
+        error = false,
+        lines = sortedLine,
+        syncType = "LINE_SYNCED"
+    )
+}
+
+fun NavController.navigateSafe(resId: Int, bundle: Bundle? = null) {
+    if (currentDestination?.id != resId) {
+        if (bundle != null) {
+            navigate(resId, bundle)
+        } else {
+            navigate(resId)
+        }
+    }
 }
 
 operator fun File.div(child: String): File = File(this, child)

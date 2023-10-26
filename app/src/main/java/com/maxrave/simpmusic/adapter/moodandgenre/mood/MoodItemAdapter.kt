@@ -11,6 +11,7 @@ import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.data.model.explore.mood.moodmoments.Content
 import com.maxrave.simpmusic.data.model.explore.mood.moodmoments.Item
 import com.maxrave.simpmusic.databinding.ItemMoodMomentPlaylistBinding
+import com.maxrave.simpmusic.extension.navigateSafe
 
 class MoodItemAdapter(private var itemList: ArrayList<Item>, val context: Context, val navController: NavController): RecyclerView.Adapter<MoodItemAdapter.ViewHolder>() {
     inner class ViewHolder(val binding: ItemMoodMomentPlaylistBinding): RecyclerView.ViewHolder(binding.root)
@@ -43,7 +44,7 @@ class MoodItemAdapter(private var itemList: ArrayList<Item>, val context: Contex
                 override fun onClick(position: Int) {
                     val args = Bundle()
                     args.putString("id", playlistContent[position].playlistBrowseId)
-                    navController.navigate(R.id.action_global_playlistFragment, args)
+                    navController.navigateSafe(R.id.action_global_playlistFragment, args)
                 }
             })
         }

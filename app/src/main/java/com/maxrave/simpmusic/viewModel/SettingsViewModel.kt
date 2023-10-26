@@ -82,6 +82,82 @@ class SettingsViewModel @Inject constructor(
     val sponsorBlockCategories: LiveData<ArrayList<String>> = _sponsorBlockCategories
     private var _sendBackToGoogle: MutableLiveData<String> = MutableLiveData()
     val sendBackToGoogle: LiveData<String> = _sendBackToGoogle
+    private var _mainLyricsProvider: MutableLiveData<String> = MutableLiveData()
+    val mainLyricsProvider: LiveData<String> = _mainLyricsProvider
+    private var _musixmatchLoggedIn: MutableLiveData<String> = MutableLiveData()
+    val musixmatchLoggedIn: LiveData<String> = _musixmatchLoggedIn
+    private var _translationLanguage: MutableLiveData<String> = MutableLiveData()
+    val translationLanguage: LiveData<String> = _translationLanguage
+    private var _useTranslation: MutableLiveData<String> = MutableLiveData()
+    val useTranslation: LiveData<String> = _useTranslation
+    fun getTranslationLanguage() {
+        viewModelScope.launch {
+            withContext(Dispatchers.Main) {
+                dataStoreManager.translationLanguage.collect { translationLanguage ->
+                    _translationLanguage.postValue(translationLanguage)
+                }
+            }
+        }
+    }
+    fun setTranslationLanguage(language: String) {
+        viewModelScope.launch {
+            withContext(Dispatchers.Main) {
+                dataStoreManager.setTranslationLanguage(language)
+                getTranslationLanguage()
+            }
+        }
+    }
+    fun getUseTranslation() {
+        viewModelScope.launch {
+            withContext(Dispatchers.Main) {
+                dataStoreManager.enableTranslateLyric.collect { useTranslation ->
+                    _useTranslation.postValue(useTranslation)
+                }
+            }
+        }
+    }
+    fun setUseTranslation(useTranslation: Boolean) {
+        viewModelScope.launch {
+            withContext(Dispatchers.Main) {
+                dataStoreManager.setEnableTranslateLyric(useTranslation)
+                getUseTranslation()
+            }
+        }
+    }
+    fun getMusixmatchLoggedIn() {
+        viewModelScope.launch {
+            withContext(Dispatchers.Main) {
+                dataStoreManager.musixmatchLoggedIn.collect { musixmatchLoggedIn ->
+                    _musixmatchLoggedIn.postValue(musixmatchLoggedIn)
+                }
+            }
+        }
+    }
+    fun setMusixmatchLoggedIn(loggedIn: Boolean) {
+        viewModelScope.launch {
+            withContext(Dispatchers.Main) {
+                dataStoreManager.setMusixmatchLoggedIn(loggedIn)
+                getMusixmatchLoggedIn()
+            }
+        }
+    }
+    fun getLyricsProvider() {
+        viewModelScope.launch {
+            withContext(Dispatchers.Main) {
+                dataStoreManager.lyricsProvider.collect { mainLyricsProvider ->
+                    _mainLyricsProvider.postValue(mainLyricsProvider)
+                }
+            }
+        }
+    }
+    fun setLyricsProvider(provider: String) {
+        viewModelScope.launch {
+            withContext(Dispatchers.Main) {
+                dataStoreManager.setLyricsProvider(provider)
+                getLyricsProvider()
+            }
+        }
+    }
 
     fun checkForUpdate() {
         viewModelScope.launch {
@@ -344,15 +420,6 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun clearSpotifyCookie() {
-        viewModelScope.launch {
-            withContext((Dispatchers.Main)) {
-                dataStoreManager.setSpotifyCookie("")
-                dataStoreManager.setSpotifyLoggedIn(false)
-            }
-        }
-    }
-
     fun getNormalizeVolume() {
         viewModelScope.launch {
             withContext(Dispatchers.Main) {
@@ -431,6 +498,16 @@ class SettingsViewModel @Inject constructor(
             withContext((Dispatchers.Main)) {
                 dataStoreManager.setSaveRecentSongAndQueue(b)
                 getSaveRecentSongAndQueue()
+            }
+        }
+    }
+
+    fun clearMusixmatchCookie() {
+        viewModelScope.launch {
+            withContext((Dispatchers.Main)) {
+                dataStoreManager.setMusixmatchCookie("")
+                YouTube.musixMatchCookie = null
+                dataStoreManager.setMusixmatchLoggedIn(false)
             }
         }
     }

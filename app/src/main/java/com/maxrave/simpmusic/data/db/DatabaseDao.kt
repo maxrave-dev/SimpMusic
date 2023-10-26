@@ -124,6 +124,9 @@ interface DatabaseDao {
     @Query("UPDATE song SET downloadState = :downloadState WHERE videoId = :videoId")
     suspend fun updateDownloadState(downloadState: Int, videoId: String)
 
+    @Query("UPDATE song SET durationSeconds = :durationSeconds WHERE videoId = :videoId")
+    suspend fun updateDurationSeconds(durationSeconds: Int, videoId: String)
+
     @Query("SELECT * FROM song WHERE downloadState = 3")
     suspend fun getDownloadedSongs(): List<SongEntity>
 
