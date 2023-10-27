@@ -12,6 +12,7 @@ import com.maxrave.kotlinytmusicscraper.models.youtube.Transcript
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import nl.adaptivity.xmlutil.serialization.XML
 
 
@@ -54,20 +55,11 @@ fun main() {
 //            .onFailure {
 //                it.printStackTrace()
 //            }
-        YouTube.player("d2X7VnUNJXk").onSuccess { player ->
-            player.captions?.playerCaptionsTracklistRenderer?.captionTracks?.get(0)?.baseUrl?.let { url ->
-                println(url)
-                if (url.contains("&fmt=srv3")) {
-                    YouTube.getYouTubeCaption(url.replace("&fmt=srv3", "")).onSuccess { transcript ->
-                        println(transcript)
-                    }.onFailure {
-                        it.printStackTrace()
-                    }
-                }
-            }
-        }.onFailure {
-            it.printStackTrace()
-        }
+//            YouTube.browse(browseId = "VLOLAK5uy_nX6nwnLobDcXKOKCk2gH-xql7B6aU1Ta4", params = "ggMCCAI%3D").onSuccess { result ->
+//                println(result.items)
+//            }.onFailure { error ->
+//                error.printStackTrace()
+//            }
     }
 //      YouTube.authentication().onSuccess { token ->
 //            if (token.accessToken != null) {

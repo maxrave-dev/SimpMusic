@@ -118,6 +118,7 @@ fun parseArtistData(data: ArtistPage, context: Context): ArtistBrowse {
         subscribers = data.subscribers,
         thumbnails = listOf(Thumbnail(2880, data.artist.thumbnail,1200)),
         views = data.view,
-        video = listVideo
+        video = listVideo,
+        videoList = videoSection?.moreEndpoint?.browseId
     )
 }

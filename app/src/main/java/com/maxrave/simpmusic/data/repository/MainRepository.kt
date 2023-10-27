@@ -9,9 +9,12 @@ import com.maxrave.kotlinytmusicscraper.models.SongItem
 import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
 import com.maxrave.kotlinytmusicscraper.models.musixmatch.MusixmatchCredential
 import com.maxrave.kotlinytmusicscraper.models.musixmatch.MusixmatchTranslationLyricsResponse
+import com.maxrave.kotlinytmusicscraper.models.musixmatch.SearchMusixmatchResponse
+import com.maxrave.kotlinytmusicscraper.models.response.BrowseResponse
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
 import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
+import com.maxrave.kotlinytmusicscraper.pages.BrowseResult
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.LocalDataSource
@@ -445,7 +448,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                 }
         }
     }.flowOn(Dispatchers.IO)
-    suspend fun getRadio(radioId: String, originalTrack: SongEntity): Flow<Resource<PlaylistBrowse>> = flow {
+    suspend fun getRadio(radioId: String, originalTrack: SongEntity? = null, artist: ArtistEntity? = null): Flow<Resource<PlaylistBrowse>> = flow {
         runCatching {
             YouTube.next(endpoint = WatchEndpoint(playlistId = radioId)).onSuccess { next ->
                 val data: ArrayList<SongItem> = arrayListOf()
@@ -468,7 +471,9 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                     }
                 }
                 val listTrackResult = data.toListTrack()
-                listTrackResult.add(0, originalTrack.toTrack())
+                if (originalTrack != null) {
+                    listTrackResult.add(0, originalTrack.toTrack())
+                }
                 Log.w("Repository", "data: ${data.size}")
                 val playlistBrowse = PlaylistBrowse(
                     author = Author(id = "", name = "YouTube Music"),
@@ -477,8 +482,8 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                     durationSeconds = 0,
                     id = radioId,
                     privacy = "PRIVATE",
-                    thumbnails = listOf(Thumbnail(544, originalTrack.thumbnails ?: "", 544)),
-                    title = " ${originalTrack.title} ${context.getString(R.string.radio)}",
+                    thumbnails = listOf(Thumbnail(544, originalTrack?.thumbnails ?: artist?.thumbnails ?: "", 544)),
+                    title = " ${originalTrack?.title ?: artist?.name} ${context.getString(R.string.radio)}",
                     trackCount = listTrackResult.size,
                     tracks = listTrackResult,
                     year = LocalDateTime.now().year.toString()
@@ -548,6 +553,17 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
             }.onFailure { e ->
                 Log.d("Album", "Error: ${e.message}")
                 emit(Resource.Error<AlbumBrowse>(e.message.toString()))
+            }
+        }
+    }.flowOn(Dispatchers.IO)
+    suspend fun getAlbumMore(browseId: String, params: String): Flow<BrowseResult?> = flow {
+        runCatching {
+            YouTube.browse(browseId = browseId, params = params).onSuccess { result ->
+                Log.w("Album More", "result: $result")
+                emit(result)
+            }.onFailure {
+                it.printStackTrace()
+                emit(null)
             }
         }
     }.flowOn(Dispatchers.IO)
@@ -742,7 +758,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
     suspend fun getYouTubeCaption(videoId: String): Flow<Resource<Lyrics>> = flow {
         runCatching {
             getFormat(videoId).first()?.youtubeCaptionsUrl?.let { url ->
-                Log.w("Lyrics", "url: $url")
+                Log.w("DURATION", "url: $url")
                 YouTube.getYouTubeCaption(url).onSuccess { lyrics ->
                     Log.w("Lyrics", "lyrics: ${lyrics.toLyrics()}")
                     emit(Resource.Success<Lyrics>(lyrics.toLyrics()))
@@ -758,7 +774,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
 //            val q = query.replace(Regex("\\([^)]*?(feat.|ft.|cùng với|con)[^)]*?\\)"), "")
 //                .replace("  ", " ")
             val q = query.replace(Regex("\\((feat\\.|ft.|cùng với|con) "), " ").replace(
-                Regex("( và | & | и | e | und |, )"), " ").replace("  ", " ").replace(Regex("([()])"), "")
+                Regex("( và | & | и | e | und |, )"), " ").replace("  ", " ").replace(Regex("([()])"), "").replace(".", " ")
             Log.d("Lyrics", "query: $q")
             var musixMatchUserToken = YouTube.musixmatchUserToken
             if (musixMatchUserToken == null) {
@@ -777,19 +793,10 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                     list.add(i.track.track_name + " " + i.track.artist_name)
                 }
                 var id = ""
+                var track: SearchMusixmatchResponse.Message.Body.Track.TrackX? = null
                 Log.d("DURATION", "duration: $durationInt")
-                if (durationInt == null || durationInt == 0) {
-                    val bestMatchingIndex = bestMatchingIndex(q, list)
-                    if (list.get(bestMatchingIndex).contains(searchResult.message.body.track_list.get(bestMatchingIndex).track.track_name)) {
-                        Log.w("Lyrics", "item: ${searchResult.message.body.track_list.get(bestMatchingIndex).track.track_name}")
-                        id += searchResult.message.body.track_list.get(bestMatchingIndex).track.track_id.toString()
-                    }
-                    else {
-                        Log.w("Lyrics", "item: ${searchResult.message.body.track_list.get(0).track.track_name}")
-                        id += searchResult.message.body.track_list.get(0).track.track_id.toString()
-                    }
-                }
-                else {
+                val bestMatchingIndex = bestMatchingIndex(q, list)
+                if (durationInt != null && durationInt != 0) {
                     val trackLengthList = arrayListOf<Int>()
                     for (i in searchResult.message.body.track_list) {
                         trackLengthList.add(i.track.track_length)
@@ -797,12 +804,39 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                     val closestIndex = trackLengthList.minByOrNull { kotlin.math.abs(it - durationInt) }
                     if (closestIndex != null && kotlin.math.abs(closestIndex - durationInt) < 2) {
                         id += searchResult.message.body.track_list.find { it.track.track_length == closestIndex }?.track?.track_id.toString()
+                        track = searchResult.message.body.track_list.find { it.track.track_length == closestIndex }?.track
+                    }
+                    if (id == "") {
+                        if (list.get(bestMatchingIndex).contains(searchResult.message.body.track_list.get(bestMatchingIndex).track.track_name)) {
+                            Log.w("Lyrics", "item: ${searchResult.message.body.track_list.get(bestMatchingIndex).track.track_name}")
+                            id += searchResult.message.body.track_list.get(bestMatchingIndex).track.track_id.toString()
+                            track = searchResult.message.body.track_list.get(bestMatchingIndex).track
+                        }
+                    }
+                }
+                else {
+                    if (list.get(bestMatchingIndex).contains(searchResult.message.body.track_list.get(bestMatchingIndex).track.track_name)) {
+                        Log.w("Lyrics", "item: ${searchResult.message.body.track_list.get(bestMatchingIndex).track.track_name}")
+                        id += searchResult.message.body.track_list.get(bestMatchingIndex).track.track_id.toString()
+                        track = searchResult.message.body.track_list.get(bestMatchingIndex).track
                     }
                 }
                 Log.d("DURATION", "id: $id")
                 Log.w("item lyrics", searchResult.message.body.track_list.find { it.track.track_id == id.toInt() }?.track?.track_name + " " + searchResult.message.body.track_list.find { it.track.track_id == id.toInt() }?.track?.artist_name)
-                if (id != "") {
-                    YouTube.getMusixmatchLyrics(id, musixMatchUserToken!!).onSuccess {
+                if (id != "" && track != null) {
+//                    YouTube.getMusixmatchLyrics(id, musixMatchUserToken!!).onSuccess {
+//                        if (it != null) {
+//                            emit(Pair(id, Resource.Success<Lyrics>(it.toLyrics())))
+//                        }
+//                        else {
+//                            Log.w("Lyrics", "Error: Lỗi getLyrics ${it.toString()}")
+//                            emit(Pair(id, Resource.Error<Lyrics>("Not found")))
+//                        }
+//                    }.onFailure {
+//                        it.printStackTrace()
+//                        emit(Pair(id, Resource.Error<Lyrics>("Not found")))
+//                    }
+                    YouTube.getMusixmatchLyricsByQ(track, musixMatchUserToken!!).onSuccess {
                         if (it != null) {
                             emit(Pair(id, Resource.Success<Lyrics>(it.toLyrics())))
                         }
@@ -810,8 +844,8 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                             Log.w("Lyrics", "Error: Lỗi getLyrics ${it.toString()}")
                             emit(Pair(id, Resource.Error<Lyrics>("Not found")))
                         }
-                    }.onFailure {
-                        it.printStackTrace()
+                    }.onFailure { throwable ->
+                        throwable.printStackTrace()
                         emit(Pair(id, Resource.Error<Lyrics>("Not found")))
                     }
                 }

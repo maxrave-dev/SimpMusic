@@ -96,12 +96,24 @@ class PlaylistViewModel @Inject constructor(
         }
     }
 
-    fun getRadio(radioId: String, videoId: String) {
+    fun getRadio(radioId: String, videoId: String? = null, channelId: String? = null) {
         loading.value = true
         viewModelScope.launch {
-            mainRepository.getSongById(videoId).collectLatest { song ->
-                if (song != null) {
-                    mainRepository.getRadio(radioId, song).collect {
+            if (videoId != null) {
+                mainRepository.getSongById(videoId).collectLatest { song ->
+                    if (song != null) {
+                        mainRepository.getRadio(radioId, song).collect {
+                            _playlistBrowse.value = it
+                        }
+                        withContext(Dispatchers.Main) {
+                            loading.value = false
+                        }
+                    }
+                }
+            }
+            else if (channelId != null) {
+                mainRepository.getArtistById(channelId).collectLatest { artist ->
+                    mainRepository.getRadio(radioId = radioId, artist = artist).collect {
                         _playlistBrowse.value = it
                     }
                     withContext(Dispatchers.Main) {

@@ -1020,6 +1020,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     }
     fun getLyricsFromFormat(videoId: String, duration: Int) {
         viewModelScope.launch {
+            resetLyrics()
             if (dataStoreManager.lyricsProvider.first() == DataStoreManager.MUSIXMATCH) {
                 mainRepository.getSongById(videoId).first().let { song ->
                     song?.let {

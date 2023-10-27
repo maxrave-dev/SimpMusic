@@ -113,6 +113,7 @@ class PlaylistFragment: Fragment() {
         var id = requireArguments().getString("id")
         val downloaded = arguments?.getInt("downloaded")
         val radioId = arguments?.getString("radioId")
+        val channelId = arguments?.getString("channelId")
         Log.w("PlaylistFragment", "radioId: $radioId")
         val videoId = arguments?.getString("videoId")
         if (id == null && radioId == null || id == viewModel.id.value && radioId == null || id == null && radioId == viewModel.id.value){
@@ -143,6 +144,9 @@ class PlaylistFragment: Fragment() {
             viewModel.updateIsRadio(true)
             if (videoId !=  null) {
                 fetchDataWithRadio(radioId, videoId)
+            }
+            else if (channelId != null){
+                fetchDataWithRadio(radioId, null, channelId)
             }
         }
         else if (id != null && id.startsWith("RDEM") || id != null && id.startsWith("RDAMVM")) {
@@ -670,10 +674,10 @@ class PlaylistFragment: Fragment() {
 
     }
 
-    private fun fetchDataWithRadio(radioId: String, videoId: String) {
+    private fun fetchDataWithRadio(radioId: String, videoId: String? = null, channelId: String? = null) {
         viewModel.clearPlaylistBrowse()
         viewModel.updateId(radioId)
-        viewModel.getRadio(radioId, videoId)
+        viewModel.getRadio(radioId, videoId, channelId)
         viewModel.playlistBrowse.observe(viewLifecycleOwner) {response ->
             when (response) {
                 is Resource.Success -> {

@@ -138,6 +138,41 @@ class ArtistFragment: Fragment(){
                 Snackbar.make(binding.root, getString(R.string.error), Snackbar.LENGTH_LONG).show()
             }
         }
+        binding.btMoreAlbum.setOnClickListener {
+            if  (viewModel.artistBrowse.value?.data?.channelId != null) {
+                val id = "MPAD${viewModel.artistBrowse.value?.data?.channelId}"
+                val args = Bundle()
+                args.putString("id", id)
+                args.putString("type", "album")
+                findNavController().navigateSafe(R.id.action_global_moreAlbumsFragment, args)
+            }
+            else {
+                Snackbar.make(binding.root, getString(R.string.error), Snackbar.LENGTH_LONG).show()
+            }
+        }
+        binding.btMoreSingles.setOnClickListener {
+            if (viewModel.artistBrowse.value?.data?.channelId != null) {
+                val id = "MPAD${viewModel.artistBrowse.value?.data?.channelId}"
+                val args = Bundle()
+                args.putString("id", id)
+                args.putString("type", "single")
+                findNavController().navigateSafe(R.id.action_global_moreAlbumsFragment, args)
+            }
+            else {
+                Snackbar.make(binding.root, getString(R.string.error), Snackbar.LENGTH_LONG).show()
+            }
+        }
+        binding.btMoreVideos.setOnClickListener {
+            val id = viewModel.artistBrowse.value?.data?.videoList
+            if (id != null){
+                val args = Bundle()
+                args.putString("id", id)
+                findNavController().navigateSafe(R.id.action_global_playlistFragment, args)
+            }
+            else {
+                Snackbar.make(binding.root, getString(R.string.error), Snackbar.LENGTH_LONG).show()
+            }
+        }
         relatedArtistsAdapter.setOnClickListener(object: RelatedArtistsAdapter.OnItemClickListener{
             override fun onItemClick(position: Int) {
                 val bundle = Bundle()
@@ -339,8 +374,7 @@ class ArtistFragment: Fragment(){
             if (radioId != null){
                 val args = Bundle()
                 args.putString("radioId", radioId)
-                args.putString("title", "${viewModel.artistBrowse.value?.data?.name} ${context?.getString(R.string.radio)}")
-                args.putString("thumbnails", viewModel.artistBrowse.value?.data?.thumbnails?.lastOrNull()?.url)
+                args.putString("channelId", viewModel.artistBrowse.value?.data?.channelId)
                 findNavController().navigateSafe(R.id.action_global_playlistFragment, args)
             }
             else {

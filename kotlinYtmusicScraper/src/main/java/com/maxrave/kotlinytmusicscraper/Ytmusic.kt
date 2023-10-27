@@ -18,6 +18,7 @@ import com.maxrave.kotlinytmusicscraper.models.body.MusixmatchCredentialsBody
 import com.maxrave.kotlinytmusicscraper.models.body.NextBody
 import com.maxrave.kotlinytmusicscraper.models.body.PlayerBody
 import com.maxrave.kotlinytmusicscraper.models.body.SearchBody
+import com.maxrave.kotlinytmusicscraper.models.musixmatch.SearchMusixmatchResponse
 import com.maxrave.kotlinytmusicscraper.test.CustomRedirectConfig
 import com.maxrave.kotlinytmusicscraper.utils.parseCookieString
 import com.maxrave.kotlinytmusicscraper.utils.sha1
@@ -327,6 +328,38 @@ class Ytmusic {
 
         parameter("usertoken", userToken)
         parameter("track_id", trackId)
+    }
+    suspend fun getMusixmatchLyricsByQ(track: SearchMusixmatchResponse.Message.Body.Track.TrackX, userToken: String) = musixmatchClient.get("https://apic.musixmatch.com/ws/1.1/track.subtitles.get") {
+        contentType(ContentType.Application.Json)
+        headers {
+            header(HttpHeaders.UserAgent, "PostmanRuntime/7.33.0")
+            header(HttpHeaders.Accept, "*/*")
+            header(HttpHeaders.AcceptEncoding, "gzip, deflate, br")
+            header(HttpHeaders.Connection, "keep-alive")
+            if (musixMatchCookie != null) {
+                val listCookies = fromString(musixMatchCookie)
+                if (!listCookies.isNullOrEmpty()) {
+                    val appendCookie = listCookies.joinToString(separator = "; ") { eachCookie ->
+                        eachCookie
+                    }
+                    header(HttpHeaders.Cookie, appendCookie)
+                }
+            }
+        }
+
+        parameter("usertoken", userToken)
+        parameter("track_id", track.track_id)
+        parameter("f_subtitle_length_max_deviation", "1")
+        parameter("page_size", "1")
+        parameter("questions_id_list", "track_esync_action%2Ctrack_sync_action%2Ctrack_translation_action%2Clyrics_ai_mood_analysis_v3")
+        parameter("optional_calls", "track.richsync%2Ccrowd.track.actions")
+        parameter("q_artist", track.artist_name)
+        parameter("q_track", track.track_name)
+        parameter("app_id", "android-player-v1.0")
+        parameter("part", "lyrics_crowd%2Cuser%2Clyrics_vote%2Clyrics_poll%2Ctrack_lyrics_translation_status%2Clyrics_verified_by%2Clabels%2Ctrack_structure%2Ctrack_performer_tagging%2C")
+        parameter("language_iso_code", "1")
+        parameter("format", "json")
+        parameter("q_duration", track.track_length)
     }
     suspend fun getMusixmatchUnsyncedLyrics(trackId: String, userToken: String) = musixmatchClient.get("track.lyrics.get?app_id=android-player-v1.0&subtitle_format=id3") {
         contentType(ContentType.Application.Json)

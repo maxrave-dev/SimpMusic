@@ -48,7 +48,7 @@ class LyricsAdapter(private var originalLyrics: Lyrics?, var translated: Lyrics?
     inner class ActiveViewHolder(val binding: ItemLyricsActiveBinding): RecyclerView.ViewHolder(binding.root) {
         fun bind(line: Line) {
             binding.tvNowLyrics.text = line.words
-            if (translated != null) {
+            if (translated != null && translated?.lines?.find { it.startTimeMs == line.startTimeMs }?.words != null) {
                 translated?.lines?.find { it.startTimeMs == line.startTimeMs }?.words?.let {
                     binding.tvTranslatedLyrics.visibility = View.VISIBLE
                     binding.tvTranslatedLyrics.text = it
@@ -62,7 +62,7 @@ class LyricsAdapter(private var originalLyrics: Lyrics?, var translated: Lyrics?
     inner class NormalViewHolder(val binding: ItemLyricsNormalBinding): RecyclerView.ViewHolder(binding.root) {
         fun bind(line: Line) {
             binding.tvLyrics.text = line.words
-            if (translated != null) {
+            if (translated != null && translated?.lines?.find { it.startTimeMs == line.startTimeMs }?.words != null) {
                 translated?.lines?.find { it.startTimeMs == line.startTimeMs }?.words?.let {
                     binding.tvTranslatedLyrics.visibility = View.VISIBLE
                     binding.tvTranslatedLyrics.text = it
