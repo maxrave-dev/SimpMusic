@@ -4,14 +4,20 @@ import android.content.Context
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.database.DatabaseProvider
 import androidx.media3.database.StandaloneDatabaseProvider
+import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor
 import androidx.media3.datasource.cache.NoOpCacheEvictor
 import androidx.media3.datasource.cache.SimpleCache
+import com.maxrave.simpmusic.data.dataStore.DataStoreManager
+import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.MAX_SONG_CACHE_SIZE
+import com.maxrave.simpmusic.extension.dataStore
 import com.maxrave.simpmusic.service.SimpleMediaSessionCallback
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 import javax.inject.Qualifier
 import javax.inject.Singleton
 
@@ -37,11 +43,15 @@ object MusicServiceModule {
     @PlayerCache
     fun providePlayerCache(
         @ApplicationContext context: Context,
-        databaseProvider: DatabaseProvider
+        databaseProvider: DatabaseProvider,
+        dataStoreManager: DataStoreManager
     ): SimpleCache =
         SimpleCache(
             context.filesDir.resolve("exoplayer"),
-            NoOpCacheEvictor(),
+            when (val cacheSize = runBlocking { dataStoreManager.maxSongCacheSize.first() }) {
+                -1 -> NoOpCacheEvictor()
+                else -> LeastRecentlyUsedCacheEvictor(cacheSize * 1024 * 1024L)
+            },
             databaseProvider
         )
 

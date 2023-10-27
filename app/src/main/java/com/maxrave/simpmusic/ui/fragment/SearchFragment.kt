@@ -194,6 +194,7 @@ class SearchFragment : Fragment() {
             override fun onQueryTextChange(newText: String?): Boolean {
                 if (newText.isNullOrEmpty())
                 {
+                    observeSearchHistory()
                     binding.suggestList.visibility = View.GONE
                     binding.suggestListYtItem.visibility = View.GONE
                     binding.recentlyQueryView.visibility = View.VISIBLE
@@ -237,7 +238,6 @@ class SearchFragment : Fragment() {
             adapter = searchHistoryAdapter
             layoutManager = LinearLayoutManager(context)
         }
-        observeSearchHistory()
         suggestAdapter = SuggestQueryAdapter(arrayListOf())
         suggestYTItemAdapter = SuggestYTItemAdapter(arrayListOf(), requireContext())
         binding.suggestList.apply {
@@ -277,7 +277,14 @@ class SearchFragment : Fragment() {
         binding.svSearch.setOnQueryTextFocusChangeListener{ v, hasFocus ->
             if (hasFocus){
                 Log.d("Check History in ViewModel", viewModel.searchHistory.value.toString())
-                observeSearchHistory()
+                if (binding.svSearch.query.isNullOrEmpty()) {
+                    observeSearchHistory()
+                    binding.suggestList.visibility = View.GONE
+                    binding.suggestListYtItem.visibility = View.GONE
+                    binding.recentlyQueryView.visibility = View.VISIBLE
+                    binding.defaultLayout.visibility = View.GONE
+                    binding.resultView.visibility = View.GONE
+                }
             }
         }
         suggestYTItemAdapter.setOnClickListener(object : SuggestYTItemAdapter.onItemClickListener{
@@ -418,6 +425,7 @@ class SearchFragment : Fragment() {
                                 }
                             }
                         }
+                        btChangeLyricsProvider.visibility = View.GONE
                         tvSongTitle.text = track.title
                         tvSongTitle.isSelected = true
                         tvSongArtist.text = track.artists.toListName().connectArtists()

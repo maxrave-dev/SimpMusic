@@ -55,10 +55,10 @@ import com.maxrave.simpmusic.service.RepeatState
 import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
 import com.maxrave.simpmusic.service.SimpleMediaState
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
-import com.maxrave.simpmusic.test.main
 import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -1099,6 +1099,16 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
 
     fun getLyricsProvier(): String {
         return runBlocking { dataStoreManager.lyricsProvider.first() }
+    }
+
+    fun setLyricsProvider(provider: String) {
+        viewModelScope.launch {
+            dataStoreManager.setLyricsProvider(provider)
+            delay(500)
+            _format.value?.let { format ->
+                getLyricsFromFormat(format.videoId, format.lengthSeconds ?: 0)
+            }
+        }
     }
 }
 sealed class UIEvent {

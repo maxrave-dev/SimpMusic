@@ -145,6 +145,7 @@ class FavoriteFragment : Fragment() {
                             setEnabledAll(btDownload, true)
                         }
                     }
+                    btChangeLyricsProvider.visibility = View.GONE
                     btRadio.setOnClickListener {
                         val args = Bundle()
                         args.putString("radioId", "RDAMVM${song.videoId}")

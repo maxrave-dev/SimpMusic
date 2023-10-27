@@ -239,6 +239,35 @@
             </TextView>
         </RelativeLayout>
         <RelativeLayout
+            android:id="@+id/btChangeLyricsProvider"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:focusable="true"
+            android:clickable="true"
+            android:foreground="?android:attr/selectableItemBackground"
+            android:paddingHorizontal="20sp">
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:id="@+id/ivChangeLyricsProvider"
+                android:padding="12sp"
+                android:src="@drawable/baseline_lyrics_24">
+
+            </ImageView>
+            <TextView
+                android:id="@+id/tvChangeLyricsProvider"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toEndOf="@+id/ivChangeLyricsProvider"
+                android:text="@string/main_lyrics_provider"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="10sp"
+                android:textSize="16sp">
+
+            </TextView>
+        </RelativeLayout>
+        <RelativeLayout
             android:id="@+id/btSleepTimer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

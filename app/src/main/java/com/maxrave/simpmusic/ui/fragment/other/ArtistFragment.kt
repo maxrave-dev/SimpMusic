@@ -204,6 +204,7 @@ class ArtistFragment: Fragment(){
                             cbFavorite.isChecked = false
                         }
                     }
+                    btChangeLyricsProvider.visibility = View.GONE
                     tvSongTitle.text = song.title
                     tvSongTitle.isSelected = true
                     tvSongArtist.text = song.artists.toListName().connectArtists()

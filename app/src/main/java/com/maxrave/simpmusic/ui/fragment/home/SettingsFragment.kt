@@ -22,6 +22,7 @@ import coil.annotation.ExperimentalCoilApi
 import coil.imageLoader
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.common.LIMIT_CACHE_SIZE
 import com.maxrave.simpmusic.common.LYRICS_PROVIDER
 import com.maxrave.simpmusic.common.QUALITY
 import com.maxrave.simpmusic.common.SPONSOR_BLOCK
@@ -101,6 +102,7 @@ class SettingsFragment : Fragment() {
         viewModel.getQuality()
         viewModel.getPlayerCacheSize()
         viewModel.getDownloadedCacheSize()
+        viewModel.getPlayerCacheLimit()
         viewModel.getLoggedIn()
         viewModel.getNormalizeVolume()
         viewModel.getSkipSilent()
@@ -200,6 +202,31 @@ class SettingsFragment : Fragment() {
             binding.tvCheckForUpdate.text = getString(R.string.last_checked_at, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
                 .withZone(ZoneId.systemDefault())
                 .format(Instant.ofEpochMilli(it.toLong())))
+        }
+        viewModel.playerCacheLimit.observe(viewLifecycleOwner) {
+            binding.tvLimitPlayerCache.text = if (it != -1) "$it MB" else getString(R.string.unlimited)
+        }
+        binding.btLimitPlayerCache.setOnClickListener {
+            var checkedIndex = -1
+            val dialog = MaterialAlertDialogBuilder(requireContext())
+                .setSingleChoiceItems(LIMIT_CACHE_SIZE.items, -1) { _, which ->
+                    checkedIndex = which
+                }
+                .setTitle(getString(R.string.limit_player_cache))
+                .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                    dialog.dismiss()
+                }
+                .setPositiveButton(getString(R.string.change)) { dialog, _ ->
+                    if (checkedIndex != -1) {
+                        viewModel.setPlayerCacheLimit(LIMIT_CACHE_SIZE.data[checkedIndex])
+                        viewModel.playerCacheLimit.observe(viewLifecycleOwner) {
+                            binding.tvLimitPlayerCache.text = if (it != -1) "$it MB" else getString(R.string.unlimited)
+                            Toast.makeText(requireContext(), getString(R.string.restart_app), Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    dialog.dismiss()
+                }
+            dialog.show()
         }
         binding.btCheckForUpdate.setOnClickListener {
             binding.tvCheckForUpdate.text = getString(R.string.checking)

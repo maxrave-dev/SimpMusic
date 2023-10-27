@@ -186,6 +186,7 @@ class AlbumFragment: Fragment() {
                     args.putString("type", Config.ALBUM_CLICK)
                     args.putString("videoId", viewModel.albumBrowse.value?.data!!.tracks[position].videoId)
                     args.putString("from", "Album \"${viewModel.albumBrowse.value?.data!!.title}\"")
+                    args.putInt("index", position)
                     if (viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                         args.putInt("downloaded", 1)
                     }
@@ -202,6 +203,7 @@ class AlbumFragment: Fragment() {
                     args.putString("type", Config.ALBUM_CLICK)
                     args.putString("videoId", viewModel.albumEntity.value?.tracks?.get(position))
                     args.putString("from", "Album \"${viewModel.albumEntity.value?.title}\"")
+                    args.putInt("index", position)
                     if (viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                         args.putInt("downloaded", 1)
                     }

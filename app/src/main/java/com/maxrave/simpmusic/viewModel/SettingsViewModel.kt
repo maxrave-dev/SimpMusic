@@ -33,6 +33,7 @@ import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.ui.MainActivity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -90,6 +91,8 @@ class SettingsViewModel @Inject constructor(
     val translationLanguage: LiveData<String> = _translationLanguage
     private var _useTranslation: MutableLiveData<String> = MutableLiveData()
     val useTranslation: LiveData<String> = _useTranslation
+    private var _playerCacheLimit: MutableLiveData<Int> = MutableLiveData()
+    val playerCacheLimit: LiveData<Int> = _playerCacheLimit
     fun getTranslationLanguage() {
         viewModelScope.launch {
             withContext(Dispatchers.Main) {
@@ -509,6 +512,20 @@ class SettingsViewModel @Inject constructor(
                 YouTube.musixMatchCookie = null
                 dataStoreManager.setMusixmatchLoggedIn(false)
             }
+        }
+    }
+
+    fun getPlayerCacheLimit() {
+        viewModelScope.launch {
+            dataStoreManager.maxSongCacheSize.collect {
+                _playerCacheLimit.postValue(it)
+            }
+        }
+    }
+    fun setPlayerCacheLimit(size: Int) {
+        viewModelScope.launch {
+            dataStoreManager.setMaxSongCacheSize(size)
+            getPlayerCacheLimit()
         }
     }
 }

@@ -325,6 +325,7 @@ class PlaylistFragment: Fragment() {
                     args.putString("type", Config.PLAYLIST_CLICK)
                     args.putString("videoId", viewModel.playlistEntity.value?.tracks?.get(position))
                     args.putString("from", "Playlist \"${viewModel.playlistEntity.value?.title}\"")
+                    args.putInt("index", position)
                     if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                         args.putInt("downloaded", 1)
                     }
@@ -359,6 +360,7 @@ class PlaylistFragment: Fragment() {
                             cbFavorite.isChecked = false
                         }
                     }
+                    btChangeLyricsProvider.visibility = View.GONE
                     tvSongTitle.text = song.title
                     tvSongTitle.isSelected = true
                     tvSongArtist.text = song.artists.toListName().connectArtists()

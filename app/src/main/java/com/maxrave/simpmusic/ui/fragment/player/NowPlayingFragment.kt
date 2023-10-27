@@ -50,6 +50,7 @@ import com.maxrave.simpmusic.common.Config.SHARE
 import com.maxrave.simpmusic.common.Config.SONG_CLICK
 import com.maxrave.simpmusic.common.Config.VIDEO_CLICK
 import com.maxrave.simpmusic.common.DownloadState
+import com.maxrave.simpmusic.common.LYRICS_PROVIDER
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
@@ -101,6 +102,8 @@ class NowPlayingFragment : Fragment() {
     private var lyricsBackground: Int? = null
 
     lateinit var lyricsAdapter: LyricsAdapter
+    lateinit var lyricsFullAdapter: LyricsAdapter
+    lateinit var disableScrolling: DisableTouchEventRecyclerView
 
 //    private lateinit var songChangeListener: OnNowPlayingSongChangeListener
 //    override fun onAttach(context: Context) {
@@ -152,11 +155,17 @@ class NowPlayingFragment : Fragment() {
 
         Log.d("check Video ID in Fragment", videoId.toString())
 
+        disableScrolling = DisableTouchEventRecyclerView()
+
         lyricsAdapter = LyricsAdapter(null)
+        lyricsFullAdapter = LyricsAdapter(null)
         binding.rvLyrics.apply {
             adapter = lyricsAdapter
             layoutManager = CenterLayoutManager(requireContext())
-            addOnItemTouchListener(DisableTouchEventRecyclerView())
+        }
+        binding.rvFullLyrics.apply {
+            adapter = lyricsFullAdapter
+            layoutManager = LinearLayoutManager(requireContext())
         }
 
         when (type) {
@@ -377,6 +386,7 @@ class NowPlayingFragment : Fragment() {
 //                                )
 //                            )
 //                        }
+                        Log.d("check index", index.toString())
                         viewModel.loadMediaItemFromTrack(it, PLAYLIST_CLICK, index)
                         viewModel.videoId.postValue(it.videoId)
                         viewModel.from.postValue(from)
@@ -396,7 +406,6 @@ class NowPlayingFragment : Fragment() {
 //                                }
 //                            }
 //                        }
-                        Log.d("check index", index.toString())
 //                        lifecycleScope.launch {
 //                            repeatOnLifecycle(Lifecycle.State.CREATED) {
 //                                viewModel.firstTrackAdded.collect { added ->
@@ -527,6 +536,10 @@ class NowPlayingFragment : Fragment() {
                                 Config.SyncState.LINE_SYNCED -> getString(R.string.line_synced)
                                 Config.SyncState.UNSYNCED -> getString(R.string.unsynced)
                             }
+                            viewModel._lyrics.value?.data?.let {
+                                lyricsFullAdapter.updateOriginalLyrics(it)
+                                lyricsFullAdapter.setActiveLyrics(-1)
+                            }
                             val index = viewModel.getActiveLyrics(it)
                             if (index != null) {
                                 if (lyrics?.lines?.get(0)?.words == "Lyrics not found") {
@@ -538,13 +551,19 @@ class NowPlayingFragment : Fragment() {
                                             it1
                                         )
                                         if (viewModel.getLyricsSyncState() == Config.SyncState.LINE_SYNCED) {
+                                            binding.rvLyrics.addOnItemTouchListener(disableScrolling)
                                             lyricsAdapter.setActiveLyrics(index)
+                                            lyricsFullAdapter.setActiveLyrics(index)
                                             if (index == -1) {
                                                 binding.rvLyrics.smoothScrollToPosition(0)
                                             }
                                             else {
                                                 binding.rvLyrics.smoothScrollToPosition(index)
                                             }
+                                        }
+                                        else if (viewModel.getLyricsSyncState() == Config.SyncState.UNSYNCED) {
+                                            lyricsAdapter.setActiveLyrics(-1)
+                                            binding.rvLyrics.removeOnItemTouchListener(disableScrolling)
                                         }
 //                                        it1.lines?.find { line -> line.words == temp.nowLyric }
 //                                            ?.let { it2 ->
@@ -596,7 +615,7 @@ class NowPlayingFragment : Fragment() {
                 val job6 = launch {
                     viewModel.lyricsFull.observe(viewLifecycleOwner) {
                         if (it != null) {
-                            binding.tvFullLyrics.text = it
+//                            binding.tvFullLyrics.text = it
                         }
                     }
                 }
@@ -761,6 +780,7 @@ class NowPlayingFragment : Fragment() {
                 val job16 = launch {
                     viewModel.translateLyrics.collect {
                         lyricsAdapter.updateTranslatedLyrics(it)
+                        lyricsFullAdapter.updateTranslatedLyrics(it)
                     }
                 }
                 val job17 = launch {
@@ -865,6 +885,18 @@ class NowPlayingFragment : Fragment() {
                 Bundle().apply {
                     putString("channelId", viewModel.format.value?.uploaderId)
                 })
+        }
+        binding.tvSongArtist.setOnClickListener {
+            if (!viewModel.simpleMediaServiceHandler?.catalogMetadata.isNullOrEmpty()) {
+                val song = viewModel.simpleMediaServiceHandler!!.catalogMetadata[viewModel.getCurrentMediaItemIndex()]
+                if (song.artists?.firstOrNull()?.id != null) {
+                    findNavController().navigateSafe(
+                        R.id.action_global_artistFragment,
+                        Bundle().apply {
+                            putString("channelId", song.artists.firstOrNull()?.id)
+                        })
+                }
+            }
         }
         binding.topAppBar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
@@ -1073,6 +1105,33 @@ class NowPlayingFragment : Fragment() {
                                     subDialog.setCancelable(true)
                                     subDialog.setContentView(subBottomSheetView.root)
                                     subDialog.show()
+                                }
+                                btChangeLyricsProvider.setOnClickListener {
+                                    var mainLyricsProvider = viewModel.getLyricsProvier()
+                                    var checkedIndex = if (mainLyricsProvider == DataStoreManager.MUSIXMATCH) 0 else 1
+                                    val dialogChange = MaterialAlertDialogBuilder(requireContext())
+                                        .setTitle(getString(R.string.main_lyrics_provider))
+                                        .setSingleChoiceItems(LYRICS_PROVIDER.items, checkedIndex) { _, which ->
+                                            checkedIndex = which
+                                        }
+                                        .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                                            dialog.dismiss()
+                                        }
+                                        .setPositiveButton(getString(R.string.change)) { dialog, _ ->
+                                            if (checkedIndex != -1) {
+                                                if (checkedIndex == 0) {
+                                                    if (mainLyricsProvider != DataStoreManager.MUSIXMATCH) {
+                                                        viewModel.setLyricsProvider(DataStoreManager.MUSIXMATCH)
+                                                    }
+                                                } else if (checkedIndex == 1){
+                                                    if (mainLyricsProvider != DataStoreManager.YOUTUBE) {
+                                                        viewModel.setLyricsProvider(DataStoreManager.YOUTUBE)
+                                                    }
+                                                }
+                                            }
+                                            dialog.dismiss()
+                                        }
+                                    dialogChange.show()
                                 }
                                 btShare.setOnClickListener {
                                     val shareIntent = Intent(Intent.ACTION_SEND)

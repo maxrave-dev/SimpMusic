@@ -795,25 +795,25 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                         trackLengthList.add(i.track.track_length)
                     }
                     val closestIndex = trackLengthList.minByOrNull { kotlin.math.abs(it - durationInt) }
-                    id += if (closestIndex != null) {
-                        searchResult.message.body.track_list.find { it.track.track_length == closestIndex }?.track?.track_id.toString()
-                    } else {
-                        searchResult.message.body.track_list.get(0).track.track_id.toString()
+                    if (closestIndex != null && kotlin.math.abs(closestIndex - durationInt) < 2) {
+                        id += searchResult.message.body.track_list.find { it.track.track_length == closestIndex }?.track?.track_id.toString()
                     }
                 }
                 Log.d("DURATION", "id: $id")
                 Log.w("item lyrics", searchResult.message.body.track_list.find { it.track.track_id == id.toInt() }?.track?.track_name + " " + searchResult.message.body.track_list.find { it.track.track_id == id.toInt() }?.track?.artist_name)
-                YouTube.getMusixmatchLyrics(id, musixMatchUserToken!!).onSuccess {
-                    if (it != null) {
-                        emit(Pair(id, Resource.Success<Lyrics>(it.toLyrics())))
-                    }
-                    else {
-                        Log.w("Lyrics", "Error: Lỗi getLyrics ${it.toString()}")
+                if (id != "") {
+                    YouTube.getMusixmatchLyrics(id, musixMatchUserToken!!).onSuccess {
+                        if (it != null) {
+                            emit(Pair(id, Resource.Success<Lyrics>(it.toLyrics())))
+                        }
+                        else {
+                            Log.w("Lyrics", "Error: Lỗi getLyrics ${it.toString()}")
+                            emit(Pair(id, Resource.Error<Lyrics>("Not found")))
+                        }
+                    }.onFailure {
+                        it.printStackTrace()
                         emit(Pair(id, Resource.Error<Lyrics>("Not found")))
                     }
-                }.onFailure {
-                    it.printStackTrace()
-                    emit(Pair(id, Resource.Error<Lyrics>("Not found")))
                 }
 //                bestMatchingIndex(q, list).let { index ->
 //                    Log.w("Lyrics", "item: ${searchResult.message.body.track_list.get(index).track.track_name}")
@@ -821,6 +821,9 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
 //
 //                    }
 //                }
+                else {
+                    emit(Pair("", Resource.Error<Lyrics>("Not found")))
+                }
             }
                 .onFailure { throwable ->
                     throwable.printStackTrace()

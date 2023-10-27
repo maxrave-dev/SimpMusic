@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.media3.common.Player
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
@@ -334,6 +335,16 @@ class DataStoreManager @Inject constructor(private val settingsDataStore: DataSt
             }
         }
     }
+    val maxSongCacheSize = settingsDataStore.data.map { preferences ->
+        preferences[MAX_SONG_CACHE_SIZE] ?: -1
+    }
+    suspend fun setMaxSongCacheSize(size: Int) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[MAX_SONG_CACHE_SIZE] = size
+            }
+        }
+    }
 
     companion object Settings {
         val COOKIE = stringPreferencesKey("cookie")
@@ -360,6 +371,7 @@ class DataStoreManager @Inject constructor(private val settingsDataStore: DataSt
         val MUSIXMATCH_COOKIE = stringPreferencesKey("musixmatch_cookie")
         const val RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE = "RestoreLastPlayedTrackAndQueueDone"
         val SPONSOR_BLOCK_ENABLED = stringPreferencesKey("sponsor_block_enabled")
+        val MAX_SONG_CACHE_SIZE = intPreferencesKey("maxSongCacheSize")
         const val REPEAT_MODE_OFF = "REPEAT_MODE_OFF"
         const val REPEAT_ONE = "REPEAT_ONE"
         const val REPEAT_ALL = "REPEAT_ALL"

@@ -57,6 +57,10 @@ object QUALITY {
 object LYRICS_PROVIDER {
     val items: Array<CharSequence> = arrayOf("Musixmatch", "YouTube Transcript")
 }
+object LIMIT_CACHE_SIZE {
+    val items: Array<CharSequence> = arrayOf("100MB", "250MB", "500MB", "1GB", "2GB", "5GB", "8GB", "∞")
+    val data: Array<Int> = arrayOf(100, 250, 500, 1000, 2000, 5000, 8000, -1)
+}
 
 object PIPED_INSTANCE {
     val listPiped: Array<CharSequence> = arrayOf("pipedapi.kavin.rocks", "pipedapi.tokhmi.xyz", "pipedapi.moomoo.me", "pipedapi.syncpundit.io",

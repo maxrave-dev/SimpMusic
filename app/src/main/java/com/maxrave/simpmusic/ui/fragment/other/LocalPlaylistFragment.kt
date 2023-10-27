@@ -133,6 +133,7 @@ class LocalPlaylistFragment : Fragment() {
                 args.putString("type", Config.ALBUM_CLICK)
                 args.putString("videoId", (listTrack[position] as SongEntity).videoId)
                 args.putString("from", "Playlist \"${(viewModel.localPlaylist.value)?.title}\"")
+                args.putInt("index", position)
                 if (viewModel.localPlaylist.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                     args.putInt("downloaded", 1)
                 }

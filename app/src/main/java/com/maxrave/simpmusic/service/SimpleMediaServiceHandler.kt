@@ -225,6 +225,7 @@ class SimpleMediaServiceHandler constructor(
 
     fun moveMediaItem(fromIndex: Int, newIndex: Int) {
         player.moveMediaItem(fromIndex, newIndex)
+        _currentSongIndex.value = currentIndex()
     }
 
     suspend fun onPlayerEvent(playerEvent: PlayerEvent) {
@@ -662,6 +663,7 @@ class SimpleMediaServiceHandler constructor(
 
                     }
                     else -> {
+                        Log.w("Check index", "load: $index")
                         addFirstMediaItemToIndex(getMediaItemWithIndex(0), index)
                         Queue.getNowPlaying().let { song ->
                             if (song != null) {

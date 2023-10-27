@@ -396,28 +396,34 @@
                             <RelativeLayout
                                 android:id="@+id/lyricsFullLayout"
                                 android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
+                                android:layout_height="500dp"
                                 android:padding="10sp">
-
-                                <androidx.core.widget.NestedScrollView
+                                <androidx.recyclerview.widget.RecyclerView
+                                    android:id="@+id/rvFullLyrics"
                                     android:layout_width="match_parent"
-                                    android:layout_height="300sp"
-                                    android:layout_centerInParent="true">
+                                    android:layout_height="wrap_content">
 
-                                    <LinearLayout
-                                        android:layout_width="match_parent"
-                                        android:layout_height="wrap_content"
-                                        android:orientation="vertical">
+                                </androidx.recyclerview.widget.RecyclerView>
 
-                                        <TextView
-                                            android:id="@+id/tvFullLyrics"
-                                            android:layout_width="match_parent"
-                                            android:layout_height="wrap_content"
-                                            android:textSize="22sp"
-                                            android:textStyle="bold" />
+<!--                                <androidx.core.widget.NestedScrollView-->
+<!--                                    android:layout_width="match_parent"-->
+<!--                                    android:layout_height="300sp"-->
+<!--                                    android:layout_centerInParent="true">-->
 
-                                    </LinearLayout>
-                                </androidx.core.widget.NestedScrollView>
+<!--                                    <LinearLayout-->
+<!--                                        android:layout_width="match_parent"-->
+<!--                                        android:layout_height="wrap_content"-->
+<!--                                        android:orientation="vertical">-->
+
+<!--                                        <TextView-->
+<!--                                            android:id="@+id/tvFullLyrics"-->
+<!--                                            android:layout_width="match_parent"-->
+<!--                                            android:layout_height="wrap_content"-->
+<!--                                            android:textSize="22sp"-->
+<!--                                            android:textStyle="bold" />-->
+
+<!--                                    </LinearLayout>-->
+<!--                                </androidx.core.widget.NestedScrollView>-->
 
                             </RelativeLayout>
                             <LinearLayout

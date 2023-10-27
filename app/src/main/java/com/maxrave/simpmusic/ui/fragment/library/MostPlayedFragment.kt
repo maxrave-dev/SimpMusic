@@ -145,6 +145,7 @@ class MostPlayedFragment: Fragment() {
                             }
                         }
                     }
+                    btChangeLyricsProvider.visibility = View.GONE
                     tvSongTitle.text = song.title
                     tvSongTitle.isSelected = true
                     tvSongArtist.text = song.artistName?.connectArtists()
