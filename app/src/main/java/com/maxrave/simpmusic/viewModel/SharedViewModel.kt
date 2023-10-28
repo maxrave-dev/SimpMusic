@@ -1021,16 +1021,21 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
         viewModelScope.launch {
             if (dataStoreManager.lyricsProvider.first() == DataStoreManager.MUSIXMATCH) {
                 mainRepository.getSongById(videoId).first().let { song ->
+                    val artist = if (song?.artistName?.firstOrNull() != null && song.artistName.firstOrNull()?.contains("Various Artists") == false) {
+                        song.artistName.firstOrNull()
+                    } else {
+                        simpleMediaServiceHandler?.nowPlaying?.first()?.mediaMetadata?.artist ?: ""
+                    }
                     song?.let {
                         if (song.downloadState == DownloadState.STATE_DOWNLOADED) {
                             getSavedLyrics(
                                 song.toTrack().copy(
                                     durationSeconds = duration
-                                ), "${song.title} ${song.artistName?.firstOrNull()}"
+                                ), "${song.title} $artist"
                             )
                         } else {
                             mainRepository.getLyricsData(
-                                "${song.title} ${song.artistName?.firstOrNull()}",
+                                "${song.title} $artist",
                                 duration
                             ).collect { response ->
                                 _lyrics.value = response.second
@@ -1055,7 +1060,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                                             getSavedLyrics(
                                                 song.toTrack().copy(
                                                     durationSeconds = duration
-                                                ), "${song.title} ${song.artistName?.firstOrNull()}"
+                                                ), "${song.title} $artist"
                                             )
                                         }
                                     }
@@ -1084,7 +1089,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                                     getSavedLyrics(
                                         song.toTrack().copy(
                                             durationSeconds = duration
-                                        ), "${song.title} ${song.artistName?.firstOrNull()}"
+                                        ), "${song.title} ${song.artistName?.firstOrNull() ?: simpleMediaServiceHandler?.nowPlaying?.first()?.mediaMetadata?.artist ?: ""}"
                                     )
                                 }
                             }

@@ -602,6 +602,7 @@ class PlaylistFragment: Fragment() {
                             }
                             collapsingToolbarLayout.title = it?.title
                             tvTitle.text = it?.title
+                            tvTitle.isSelected = true
                             tvPlaylistAuthor.text = it?.author?.name
                             if (it?.year != "") {
                                 tvYearAndCategory.text = requireContext().getString(R.string.year_and_category, it?.year.toString(), "Playlist")
@@ -688,6 +689,7 @@ class PlaylistFragment: Fragment() {
                             }
                             collapsingToolbarLayout.title = it?.title
                             tvTitle.text = it?.title
+                            tvTitle.isSelected = true
                             tvPlaylistAuthor.text = it?.author?.name
                             if (it?.year != "") {
                                 tvYearAndCategory.text = requireContext().getString(R.string.year_and_category, it?.year.toString(), "Playlist")
@@ -748,6 +750,7 @@ class PlaylistFragment: Fragment() {
                                 }
                                 collapsingToolbarLayout.title = it?.title
                                 tvTitle.text = it?.title
+                                tvTitle.isSelected = true
                                 tvPlaylistAuthor.text = it?.author?.name
                                 if (it?.year != "") {
                                     tvYearAndCategory.text = requireContext().getString(R.string.year_and_category, it?.year.toString(), "Playlist")
@@ -838,6 +841,7 @@ class PlaylistFragment: Fragment() {
                         }
                         collapsingToolbarLayout.title = playlistEntity.title
                         tvTitle.text = playlistEntity.title
+                        tvTitle.isSelected = true
                         tvPlaylistAuthor.text = playlistEntity.author
                         tvYearAndCategory.text = requireContext().getString(R.string.year_and_category, playlistEntity.year.toString(), "Playlist")
                         tvTrackCountAndDuration.text = requireContext().getString(R.string.album_length, playlistEntity.trackCount.toString(),

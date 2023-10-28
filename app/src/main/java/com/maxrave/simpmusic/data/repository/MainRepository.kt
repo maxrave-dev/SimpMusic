@@ -62,6 +62,7 @@ import com.maxrave.simpmusic.data.parser.search.parseSearchPlaylist
 import com.maxrave.simpmusic.data.parser.search.parseSearchSong
 import com.maxrave.simpmusic.data.parser.search.parseSearchVideo
 import com.maxrave.simpmusic.extension.bestMatchingIndex
+import com.maxrave.simpmusic.extension.removeDuplicateWords
 import com.maxrave.simpmusic.extension.toListTrack
 import com.maxrave.simpmusic.extension.toLyrics
 import com.maxrave.simpmusic.extension.toTrack
@@ -1116,9 +1117,9 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                             description = response.videoDetails?.description,
                             youtubeCaptionsUrl = response.captions?.playerCaptionsTracklistRenderer?.captionTracks?.get(0)?.baseUrl?.replace("&fmt=srv3", ""),
                             lengthSeconds = response.videoDetails?.lengthSeconds?.toInt(),
-                            playbackTrackingVideostatsPlaybackUrl = response.playbackTracking?.videostatsPlaybackUrl?.baseUrl,
-                            playbackTrackingAtrUrl = response.playbackTracking?.atrUrl?.baseUrl,
-                            playbackTrackingVideostatsWatchtimeUrl = response.playbackTracking?.videostatsWatchtimeUrl?.baseUrl,
+                            playbackTrackingVideostatsPlaybackUrl = response.playbackTracking?.videostatsPlaybackUrl?.baseUrl?.replace("https://s.youtube.com", "https://music.youtube.com"),
+                            playbackTrackingAtrUrl = response.playbackTracking?.atrUrl?.baseUrl?.replace("https://s.youtube.com", "https://music.youtube.com"),
+                            playbackTrackingVideostatsWatchtimeUrl = response.playbackTracking?.videostatsWatchtimeUrl?.baseUrl?.replace("https://s.youtube.com", "https://music.youtube.com"),
                         )
                     )
                 }

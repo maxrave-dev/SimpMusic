@@ -49,8 +49,8 @@ class SettingsViewModel @Inject constructor(
     private var mainRepository: MainRepository,
     private var database: MusicDatabase,
     private var databaseDao: DatabaseDao,
-    @PlayerCache private val playerCache: SimpleCache,
-    @DownloadCache private val downloadCache: SimpleCache,
+    @PlayerCache val playerCache: SimpleCache,
+    @DownloadCache val downloadCache: SimpleCache,
     ) : AndroidViewModel(application) {
 
     @Inject

@@ -133,10 +133,6 @@
     <string name="now_playing_upper">ĐANG PHÁT</string>
     <string name="language">Ngôn ngữ</string>
     <string name="what_do_you_want_to_listen_to">Bạn đang muốn nghe gì?</string>
-    <plurals name="n_song">
-        <item quantity="one">%d bài hát</item>
-        <item quantity="other">%d bài hát</item>
-    </plurals>
     <string name="songs_inArtist">Bài hát</string>
     <string name="albums_inArtist">Đĩa nhạc</string>
     <string name="singles_inArtist">Đĩa đơn</string>
@@ -146,8 +142,8 @@
     <string name="send">Gửi</string>
     <string name="mail_subject">Báo cáo</string>
     <string name="delete_song_from_playlist">Xoá bài hát này khỏi danh sách phát</string>
-    <string name="log_in_to_YouTube">Đăng nhập vào YouTube</string>
     <string name="log_in">Đăng nhập</string>
+    <string name="log_in_to_YouTube">Đăng nhập vào YouTube</string>
     <string name="log_in_to_get_personally_data">Đăng nhập để cá nhân hoá nguồn dữ liệu</string>
     <string name="login_success">Đăng nhập thành công</string>
     <string name="log_out">Đăng xuất khỏi YouTube</string>
@@ -175,7 +171,7 @@
     <string name="save_shuffle_and_repeat_mode">Lưu chế độ trộn và phát lại</string>
     <string name="skip_silent">Bỏ qua im lặng</string>
     <string name="skip_no_music_part">Bỏ qua phần không có nhạc</string>
-    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Quá thời gian, kiểm tra kết nối internet</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Quá thời gian, kiểm qua kết nối internet</string>
     <string name="save_last_played">Lưu phiên phát lại cuối cùng</string>
     <string name="save_last_played_track_and_queue">Lưu bài hát đang phát và danh sách chờ cuối cùng</string>
     <string name="update_available">Phiên bản mới có sẵn</string>
@@ -239,11 +235,38 @@
     <string name="log_in_to_get_YouTube_playlist">Đăng nhập để tải danh sách phát YouTube của bạn</string>
     <string name="sync_playlist_warning">SimpMusic sẽ tự động tạo một danh sách phát trên YouTube Music. Bạn có chắc chắn?</string>
     <string name="syncing">Đang đồng bộ</string>
-    <string name="unsync_playlist_warning">Huỷ đồng bộ danh sách phát này? Điều này sẽ không xoá danh sách phát này trên YouTube Music</string>
+    <string name="unsync_playlist_warning">"Huỷ đồng bộ danh sách phát này? Điều này sẽ không xoá danh sách phát này trên YouTube Music"</string>
     <string name="unsyncing">Đang huỷ đồng bộ</string>
     <string name="added_to_youtube_playlist">Đã thêm vào danh sách phát YouTube</string>
     <string name="removed_from_YouTube_playlist">Đã xoá khỏi danh sách phát YouTube</string>
     <string name="update_playlist">Cập nhật danh sách phát từ YouTube Music</string>
     <string name="backup_create_success">Sao lưu thành công</string>
     <string name="backup_create_failed">Sao lưu thất bại</string>
+    <string name="musixmatch">Musixmatch</string>
+    <string name="main_lyrics_provider">Nguồn cung cấp lời bài hát chính</string>
+    <string name="log_in_to_Musixmatch">Đăng nhập vào Musixmatch</string>
+    <string name="only_support_email_and_password_type">Chỉ hỗ trợ đăng nhập bằng email và mật khẩu</string>
+    <string name="musixmatch_login_description">API dịch của Musixmatch chỉ hoạt động với người dùng đã đăng nhập. SimpMusic sử dụng một vài mẹo để tìm ra các API đã được Musixmatch ẩn. Xem thêm thông tin, đi đến https://github.com/maxrave-dev/SimpMusic</string>
+    <string name="use_musixmatch_translation">Sử dụng hệ thống dịch của Musixmatch</string>
+    <string name="use_musixmatch_translation_description">Bật dịch bài hát sử dụng Musixmatch. Yêu cầu đăng nhập</string>
+    <string name="translation_language">Ngôn ngữ dịch</string>
+    <string name="follow_app_language">Theo ngôn ngữ của ứng dụng</string>
+    <string name="email">Email</string>
+    <string name="password">Mật khẩu</string>
+    <string name="please_enter_your_email_and_password">Hãy nhập email và mật khẩu của bạn</string>
+    <string name="log_out_from_musixmatch">Đăng xuất tài khoản Musixmatch</string>
+    <string name="translation_language_message">Nhập mã ngôn ngữ (Ví dụ: vi) (2 kí tự). Nếu bạn muốn để theo ngôn ngữ chính của SimpMusic, hãy để trống</string>
+    <string name="invalid_language_code">Mã ngôn ngữ không hợp lệ</string>
+    <string name="lyrics_provider_youtube">Lời bài hát được cung cấp bởi YouTube</string>
+    <string name="limit_player_cache">Giới hạn cache của trình phát nhạc</string>
+    <string name="unlimited">Không giới hạn</string>
+    <string name="third_party_libraries">Thư viện bên thứ ba</string>
+    <string name="description_and_licenses">Mô tả và giấy phép</string>
+    <string name="author">Tác giả</string>
+    <string name="other_app">Ứng dụng khác</string>
+    <string name="database">Cơ sở dữ liệu của ứng dụng</string>
+    <string name="free_space">Còn trống</string>
+    <plurals name="n_song">
+        <item quantity="other">%d bài hát</item>
+    </plurals>
 </resources>

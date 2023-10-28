@@ -578,28 +578,39 @@ object YouTube {
         }
     }
     suspend fun initPlayback(playbackUrl: String, atrUrl: String, watchtimeUrl: String): Result<Int> {
+        println("playbackUrl $playbackUrl")
+        println("atrUrl $atrUrl")
+        println("watchtimeUrl $watchtimeUrl")
         return runCatching {
             val cpn = (1..16).map { "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"[Random.Default.nextInt(0, 64)] }.joinToString("")
             ytMusic.initPlayback(playbackUrl, cpn).status.value.let { status ->
                 if (status == 204) {
                     println("playback done")
-                    delay(5000)
-                    ytMusic.initPlayback(atrUrl, cpn).status.value.let { atr ->
-                        if (atr == 204) {
-                            println("atr done")
-                            delay(500)
-                            ytMusic.initPlayback(watchtimeUrl, cpn).status.value.let { watchtime ->
-                                if (watchtime == 204) {
-                                    println("watchtime done")
-                                    return@runCatching 204
+                    ytMusic.initPlayback(watchtimeUrl, cpn, mapOf<String, String>("st" to "0", "et" to (Math.round(Random.nextFloat()*100)/100 + 2f).toString())).status.value.let { firstWatchTime ->
+                        if (firstWatchTime == 204) {
+                            println("first watchtime done")
+                            delay(5000)
+                            ytMusic.atr(atrUrl, cpn).status.value.let { atr ->
+                                if (atr == 204) {
+                                    println("atr done")
+                                    delay(500)
+                                    ytMusic.initPlayback(watchtimeUrl, cpn, mapOf<String, String>("st" to "0,5.54", "et" to "5.54,${(Math.round(Random.nextFloat()*100)/100 + 12f)}")).status.value.let { watchtime ->
+                                        if (watchtime == 204) {
+                                            println("watchtime done")
+                                            return@runCatching 204
+                                        }
+                                        else {
+                                            return@runCatching watchtime
+                                        }
+                                    }
                                 }
                                 else {
-                                    return@runCatching watchtime
+                                    return@runCatching atr
                                 }
                             }
                         }
                         else {
-                            return@runCatching atr
+                            return@runCatching firstWatchTime
                         }
                     }
                 }

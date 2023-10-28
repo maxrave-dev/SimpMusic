@@ -1,9 +1,11 @@
 package com.maxrave.simpmusic.ui.fragment.home
 
+import android.app.usage.StorageStatsManager
 import android.content.Intent
 import android.media.audiofx.AudioEffect
 import android.net.Uri
 import android.os.Bundle
+import android.os.storage.StorageManager
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -12,14 +14,17 @@ import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.os.LocaleListCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
 import coil.annotation.ExperimentalCoilApi
 import coil.imageLoader
+import com.google.android.flexbox.FlexboxLayout
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.LIMIT_CACHE_SIZE
@@ -37,12 +42,15 @@ import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.mikepenz.aboutlibraries.LibsBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
+import kotlinx.coroutines.launch
+import java.io.File
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+
 
 @UnstableApi
 @AndroidEntryPoint
@@ -173,9 +181,11 @@ class SettingsFragment : Fragment() {
             binding.tvQuality.text = it
         }
         viewModel.cacheSize.observe(viewLifecycleOwner) {
+            drawDataStat()
             binding.tvPlayerCache.text = getString(R.string.cache_size, bytesToMB(it).toString())
         }
         viewModel.downloadedCacheSize.observe(viewLifecycleOwner) {
+            drawDataStat()
             binding.tvDownloadedCache.text = getString(R.string.cache_size, bytesToMB(it).toString())
         }
         binding.tvThumbnailCache.text = getString(R.string.cache_size, if (diskCache?.size != null) {
@@ -335,6 +345,7 @@ class SettingsFragment : Fragment() {
                 .setPositiveButton(getString(R.string.clear)) { dialog, _ ->
                     viewModel.clearPlayerCache()
                     viewModel.cacheSize.observe(viewLifecycleOwner) {
+                        drawDataStat()
                         binding.tvPlayerCache.text = getString(R.string.cache_size, bytesToMB(it).toString())
                     }
                     dialog.dismiss()
@@ -497,6 +508,7 @@ class SettingsFragment : Fragment() {
                     viewModel.clearDownloadedCache()
                     viewModel.downloadedCacheSize.observe(viewLifecycleOwner) {
                         binding.tvPlayerCache.text = getString(R.string.cache_size, bytesToMB(it).toString())
+                        drawDataStat()
                     }
                     dialog.dismiss()
                 }
@@ -631,6 +643,50 @@ class SettingsFragment : Fragment() {
         binding.bt3rdPartyLibraries.setOnClickListener {
             LibsBuilder()
                 .start(requireContext())
+        }
+
+
+    }
+    private fun browseFiles(dir: File): Long {
+        var dirSize: Long = 0
+        if (!dir.listFiles().isNullOrEmpty()) {
+            for (f in dir.listFiles()!!) {
+                dirSize += f.length()
+                Log.d("STORAGE_TAG", dir.absolutePath + "/" + f.name + " uses " + f.length() + " bytes")
+                if (f.isDirectory) {
+                    dirSize += browseFiles(f)
+                }
+            }
+        }
+        Log.d("STORAGE_TAG", dir.absolutePath + " uses " + dirSize + " bytes")
+        return dirSize
+    }
+    private fun drawDataStat() {
+        val mStorageStatsManager = getSystemService(requireContext(), StorageStatsManager::class.java)
+        if (mStorageStatsManager != null) {
+            lifecycleScope.launch {
+                val totalByte = mStorageStatsManager.getTotalBytes(StorageManager.UUID_DEFAULT)
+                Log.w("Total", bytesToMB(totalByte).toString())
+                val freeSpace = mStorageStatsManager.getFreeBytes(StorageManager.UUID_DEFAULT)
+                Log.w("Free", bytesToMB(freeSpace).toString())
+                val usedSpace = totalByte - freeSpace
+                Log.w("Used", bytesToMB(usedSpace).toString())
+                val simpMusicSize = browseFiles(requireContext().filesDir)
+                Log.w("SimpMusic", bytesToMB(simpMusicSize).toString())
+                val otherApp = simpMusicSize.let { usedSpace.minus(it) }
+                Log.w("Other", bytesToMB(otherApp).toString())
+                val databaseSize = simpMusicSize - viewModel.playerCache.cacheSpace - viewModel.downloadCache.cacheSpace
+                Log.w("Database", databaseSize.toString())
+                Log.w("Player", viewModel.playerCache.cacheSpace.toString())
+                Log.w("Download", viewModel.downloadCache.cacheSpace.toString())
+                if (totalByte == freeSpace + otherApp + databaseSize + viewModel.playerCache.cacheSpace + viewModel.downloadCache.cacheSpace) {
+                    (binding.flexBox.getChildAt(0).layoutParams as FlexboxLayout.LayoutParams).flexBasisPercent = otherApp.toFloat().div(totalByte.toFloat())
+                    (binding.flexBox.getChildAt(1).layoutParams as FlexboxLayout.LayoutParams).flexBasisPercent = viewModel.downloadCache.cacheSpace.toFloat().div(totalByte.toFloat())
+                    (binding.flexBox.getChildAt(2).layoutParams as FlexboxLayout.LayoutParams).flexBasisPercent = viewModel.playerCache.cacheSpace.toFloat().div(totalByte.toFloat())
+                    (binding.flexBox.getChildAt(3).layoutParams as FlexboxLayout.LayoutParams).flexBasisPercent = databaseSize.toFloat().div(totalByte.toFloat())
+                    (binding.flexBox.getChildAt(4).layoutParams as FlexboxLayout.LayoutParams).flexBasisPercent = freeSpace.toFloat().div(totalByte.toFloat())
+                }
+            }
         }
     }
 

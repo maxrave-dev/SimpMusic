@@ -148,6 +148,8 @@ dependencies {
     val latestAboutLibsRelease = "10.9.1"
     implementation ("com.mikepenz:aboutlibraries:${latestAboutLibsRelease}")
 
+    implementation("com.google.android.flexbox:flexbox:3.0.0")
+
 }
 hilt {
     enableAggregatingTask = true

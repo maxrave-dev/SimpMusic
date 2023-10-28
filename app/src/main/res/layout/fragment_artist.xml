@@ -379,7 +379,7 @@
                 </com.google.android.material.card.MaterialCardView>
                 <RelativeLayout
                     android:layout_width="match_parent"
-                    android:layout_height="150sp">
+                    android:layout_height="180sp">
 
                 </RelativeLayout>
             </LinearLayout>

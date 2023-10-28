@@ -227,6 +227,14 @@ fun Track.toSongEntity(): SongEntity {
     )
 }
 
+fun String?.removeDuplicateWords(): String {
+    if (this == null) return "null"
+    else {
+        val regex = Regex("\\b(\\w+)\\b\\s*(?=.*\\b\\1\\b)")
+        return this.replace(regex, "")
+    }
+}
+
 fun SongEntity.toTrack(): Track {
     val listArtist = mutableListOf<Artist>()
     if (this.artistName != null ) {

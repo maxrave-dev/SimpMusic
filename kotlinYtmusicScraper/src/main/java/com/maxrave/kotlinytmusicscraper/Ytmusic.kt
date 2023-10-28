@@ -634,12 +634,24 @@ class Ytmusic {
         }
     }
 
-    suspend fun initPlayback(url: String, cpn: String)
+    suspend fun initPlayback(url: String, cpn: String, customParams: Map<String, String>? = null)
     = httpClient.get(url) {
         ytClient(YouTubeClient.ANDROID_MUSIC, true)
         parameter("ver", "2")
         parameter("c", "ANDROID_MUSIC")
         parameter("cpn", cpn)
+        customParams?.forEach { (key, value) ->
+            parameter(key, value)
+        }
+    }
+
+    suspend fun atr(url: String, cpn: String, customParams: Map<String, String>? = null) = httpClient.post(url) {
+        ytClient(YouTubeClient.ANDROID_MUSIC, true)
+        parameter("c", "ANDROID_MUSIC")
+        parameter("cpn", cpn)
+        customParams?.forEach { (key, value) ->
+            parameter(key, value)
+        }
     }
 
 

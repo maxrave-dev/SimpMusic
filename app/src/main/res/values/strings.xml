@@ -264,6 +264,9 @@
     <string name="third_party_libraries">Third party libraries</string>
     <string name="description_and_licenses">Description and licenses</string>
     <string name="author">Author</string>
+    <string name="other_app">Other app</string>
+    <string name="database">App database</string>
+    <string name="free_space">Free space</string>
     <plurals name="n_song">
         <item quantity="one">%d song</item>
         <item quantity="other">%d songs</item>
