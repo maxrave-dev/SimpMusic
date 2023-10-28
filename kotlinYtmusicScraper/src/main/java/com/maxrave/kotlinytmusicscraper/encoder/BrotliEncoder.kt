@@ -1,8 +1,10 @@
 package com.maxrave.kotlinytmusicscraper.encoder
 
-import io.ktor.client.plugins.compression.*
-import io.ktor.utils.io.*
-import io.ktor.utils.io.jvm.javaio.*
+import io.ktor.client.plugins.compression.ContentEncoder
+import io.ktor.client.plugins.compression.ContentEncoding
+import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.jvm.javaio.toByteReadChannel
+import io.ktor.utils.io.jvm.javaio.toInputStream
 import kotlinx.coroutines.CoroutineScope
 import org.brotli.dec.BrotliInputStream
 

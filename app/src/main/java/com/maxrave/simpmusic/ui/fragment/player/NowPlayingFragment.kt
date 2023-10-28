@@ -76,7 +76,6 @@ import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -466,6 +465,7 @@ class NowPlayingFragment : Fragment() {
                     launch {
                         viewModel.simpleMediaServiceHandler?.nowPlaying?.collectLatest { song ->
                             if (song != null) {
+                                viewModel.resetLyrics()
                                 viewModel.getFormat(song.mediaId)
                                 Log.i("Now Playing Fragment", "song ${song.mediaMetadata.title}")
                                 videoId = viewModel.videoId.value

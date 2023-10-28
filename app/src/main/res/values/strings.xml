@@ -156,7 +156,7 @@
     <string name="no_equalizer">Your device doesn\'t have equalizer</string>
     <string name="open_system_equalizer">Open system equalizer</string>
     <string name="use_your_system_equalizer">Use your system equalizer</string>
-    <string name="version_name" translatable="false">v0.1.4-beta</string>
+    <string name="version_name" translatable="false">v0.1.5-beta</string>
     <string name="streaming_data_provider_piped">Streaming data provider (Piped)</string>
     <string name="itag">Itag</string>
     <string name="mime_type">Mime Type</string>
@@ -261,6 +261,9 @@
     <string name="lyrics_provider_youtube">Lyrics provided by YouTube</string>
     <string name="limit_player_cache">Limit Player Cache</string>
     <string name="unlimited">Unlimited</string>
+    <string name="third_party_libraries">Third party libraries</string>
+    <string name="description_and_licenses">Description and licenses</string>
+    <string name="author">Author</string>
     <plurals name="n_song">
         <item quantity="one">%d song</item>
         <item quantity="other">%d songs</item>

@@ -1,16 +1,13 @@
 package com.maxrave.simpmusic.adapter.queue
 
-import android.animation.ValueAnimator
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.media3.common.MediaItem
 import androidx.recyclerview.widget.RecyclerView
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.databinding.ItemQueueTrackBinding
 import com.maxrave.simpmusic.extension.connectArtists
-import com.maxrave.simpmusic.extension.toListId
 import com.maxrave.simpmusic.extension.toListName
 
 

@@ -2,7 +2,6 @@ package com.maxrave.simpmusic.viewModel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.maxrave.kotlinytmusicscraper.pages.BrowseResult
 import com.maxrave.simpmusic.data.repository.MainRepository

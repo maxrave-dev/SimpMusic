@@ -11,7 +11,6 @@ import com.maxrave.kotlinytmusicscraper.models.SubscriptionButton
 import com.maxrave.kotlinytmusicscraper.models.Tabs
 import com.maxrave.kotlinytmusicscraper.models.ThumbnailRenderer
 import kotlinx.serialization.Serializable
-import java.util.concurrent.Flow.Subscription
 
 @Serializable
 data class BrowseResponse(

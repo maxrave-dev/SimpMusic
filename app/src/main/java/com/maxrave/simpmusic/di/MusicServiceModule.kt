@@ -8,8 +8,6 @@ import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor
 import androidx.media3.datasource.cache.NoOpCacheEvictor
 import androidx.media3.datasource.cache.SimpleCache
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
-import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.MAX_SONG_CACHE_SIZE
-import com.maxrave.simpmusic.extension.dataStore
 import com.maxrave.simpmusic.service.SimpleMediaSessionCallback
 import dagger.Module
 import dagger.Provides

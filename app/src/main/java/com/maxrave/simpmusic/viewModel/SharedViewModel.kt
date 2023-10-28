@@ -64,7 +64,6 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
@@ -1020,7 +1019,6 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     }
     fun getLyricsFromFormat(videoId: String, duration: Int) {
         viewModelScope.launch {
-            resetLyrics()
             if (dataStoreManager.lyricsProvider.first() == DataStoreManager.MUSIXMATCH) {
                 mainRepository.getSongById(videoId).first().let { song ->
                     song?.let {

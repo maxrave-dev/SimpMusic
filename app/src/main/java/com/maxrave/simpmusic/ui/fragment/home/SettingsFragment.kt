@@ -34,6 +34,7 @@ import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.setEnabledAll
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
+import com.mikepenz.aboutlibraries.LibsBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import java.text.SimpleDateFormat
@@ -626,6 +627,10 @@ class SettingsFragment : Fragment() {
             } else {
                 viewModel.setUseTranslation(false)
             }
+        }
+        binding.bt3rdPartyLibraries.setOnClickListener {
+            LibsBuilder()
+                .start(requireContext())
         }
     }
 

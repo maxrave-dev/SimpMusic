@@ -1,8 +1,8 @@
 package com.maxrave.kotlinytmusicscraper.models.response
 
+import com.maxrave.kotlinytmusicscraper.models.NavigationEndpoint
 import com.maxrave.kotlinytmusicscraper.models.PlaylistPanelRenderer
 import com.maxrave.kotlinytmusicscraper.models.Tabs
-import com.maxrave.kotlinytmusicscraper.models.NavigationEndpoint
 import kotlinx.serialization.Serializable
 
 @Serializable

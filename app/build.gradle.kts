@@ -4,6 +4,7 @@ plugins {
     id ("androidx.navigation.safeargs")
     id ("com.google.dagger.hilt.android")
     id("com.google.devtools.ksp")
+    id ("com.mikepenz.aboutlibraries.plugin")
 }
 
 android {
@@ -14,8 +15,8 @@ android {
         applicationId = "com.maxrave.simpmusic"
         minSdk = 26
         targetSdk = 34
-        versionCode = 10
-        versionName = "0.1.4-beta"
+        versionCode = 11
+        versionName = "0.1.5-beta"
 
         ksp {
             arg("room.schemaLocation", "$projectDir/schemas")
@@ -143,6 +144,9 @@ dependencies {
 
     implementation("com.intuit.sdp:sdp-android:1.1.0")
     implementation("com.intuit.ssp:ssp-android:1.1.0")
+
+    val latestAboutLibsRelease = "10.9.1"
+    implementation ("com.mikepenz:aboutlibraries:${latestAboutLibsRelease}")
 
 }
 hilt {
