@@ -55,13 +55,15 @@ class LocalPlaylistViewModel @Inject constructor(
     fun getListTrack(list: List<String>) {
         viewModelScope.launch {
             mainRepository.getSongsByListVideoId(list).collect {
-                _listTrack.postValue(it)
+                val temp: ArrayList<SongEntity> = arrayListOf()
                 var count = 0
                 it.forEach { track ->
+                    temp.add(track)
                     if (track.downloadState == DownloadState.STATE_DOWNLOADED) {
                         count++
                     }
                 }
+                _listTrack.postValue(temp)
                 if (count == it.size && localPlaylist.value?.downloadState != DownloadState.STATE_DOWNLOADED) {
                     updatePlaylistDownloadState(id.value!!, DownloadState.STATE_DOWNLOADED)
                     getLocalPlaylist(id.value!!)

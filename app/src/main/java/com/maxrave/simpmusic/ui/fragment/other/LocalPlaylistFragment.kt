@@ -55,6 +55,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
 import kotlin.math.abs
+import kotlin.random.Random
 
 @AndroidEntryPoint
 class LocalPlaylistFragment : Fragment() {
@@ -218,6 +219,32 @@ class LocalPlaylistFragment : Fragment() {
                 Snackbar.make(requireView(), getString(R.string.playlist_is_empty), Snackbar.LENGTH_SHORT).show()
             }
         }
+        binding.btShuffle.setOnClickListener {
+            if (listTrack.isNotEmpty()) {
+                val args = Bundle()
+                val index = Random.nextInt(listTrack.size)
+                args.putString("type", Config.ALBUM_CLICK)
+                args.putString("videoId", (listTrack[index] as SongEntity).videoId)
+                args.putString("from", "Playlist \"${(viewModel.localPlaylist.value)?.title}\"")
+                if (viewModel.localPlaylist.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
+                    args.putInt("downloaded", 1)
+                }
+                Queue.clear()
+                Queue.setNowPlaying((listTrack[index] as SongEntity).toTrack())
+                val tempList: ArrayList<Track> = arrayListOf()
+                for (i in listTrack) {
+                    if (i != listTrack[index]) {
+                        tempList.add((i as SongEntity).toTrack())
+                    }
+                }
+                tempList.shuffle()
+                Queue.addAll(tempList)
+                findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
+            }
+            else {
+                Snackbar.make(requireView(), getString(R.string.playlist_is_empty), Snackbar.LENGTH_SHORT).show()
+            }
+        }
 
         binding.btDownload.setOnClickListener {
             if (viewModel.localPlaylist.value?.downloadState == DownloadState.STATE_NOT_DOWNLOADED) {
@@ -311,7 +338,9 @@ class LocalPlaylistFragment : Fragment() {
                             }
                         }
                         if (localPlaylist != null) {
-                            binding.topAppBar.title = localPlaylist.title
+                            binding.collapsingToolbarLayout.title = localPlaylist.title
+                            binding.tvTitle.text = localPlaylist.title
+                            binding.tvTitle.isSelected = true
                             if (localPlaylist.syncedWithYouTubePlaylist == 1 && localPlaylist.youtubePlaylistId != null) {
                                 if (!localPlaylist.tracks.isNullOrEmpty()) {
                                     viewModel.getSetVideoId(localPlaylist.youtubePlaylistId)
@@ -425,6 +454,23 @@ class LocalPlaylistFragment : Fragment() {
             moreDialog.setContentView(moreDialogView.root)
             moreDialog.show()
         }
+        binding.topAppBarLayout.addOnOffsetChangedListener { it, verticalOffset ->
+            if(abs(it.totalScrollRange) == abs(verticalOffset)) {
+                binding.topAppBar.background = viewModel.gradientDrawable.value
+                binding.collapsingToolbarLayout.isTitleEnabled = true
+                if (viewModel.gradientDrawable.value != null ){
+                    if (viewModel.gradientDrawable.value?.colors != null){
+                        requireActivity().window.statusBarColor = viewModel.gradientDrawable.value?.colors!!.first()
+                    }
+                }
+            }
+            else
+            {
+                binding.collapsingToolbarLayout.isTitleEnabled = false
+                binding.topAppBar.background = null
+                requireActivity().window.statusBarColor = ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark)
+            }
+        }
 
         lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
@@ -482,7 +528,9 @@ class LocalPlaylistFragment : Fragment() {
                 }
             }
             if (localPlaylist != null) {
-                binding.topAppBar.title = localPlaylist.title
+                binding.collapsingToolbarLayout.title = localPlaylist.title
+                binding.tvTitle.text = localPlaylist.title
+                binding.tvTitle.isSelected = true
                 if (localPlaylist.syncedWithYouTubePlaylist == 1 && localPlaylist.youtubePlaylistId != null) {
                     if (!localPlaylist.tracks.isNullOrEmpty()) {
                         viewModel.getSetVideoId(localPlaylist.youtubePlaylistId)
@@ -527,7 +575,9 @@ class LocalPlaylistFragment : Fragment() {
     private fun fetchDataFromViewModel() {
         Log.d("Check", "fetchDataFromViewModel: ${viewModel.localPlaylist.value}")
         val localPlaylist = viewModel.localPlaylist.value!!
-        binding.topAppBar.title = localPlaylist.title
+        binding.collapsingToolbarLayout.title = localPlaylist.title
+        binding.tvTitle.text = localPlaylist.title
+        binding.tvTitle.isSelected = true
         binding.tvTrackCountAndTimeCreated.text = getString(R.string.album_length, localPlaylist.tracks?.size.toString(), localPlaylist.inLibrary.format(
             DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy")
         ))

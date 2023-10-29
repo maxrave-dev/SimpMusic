@@ -535,7 +535,7 @@ object YouTube {
                     authorSubCount = ytScrapeData.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.subscriberCountText?.simpleText ?: "0",
                     description = ytScrapeInitial.videoDetails?.shortDescription,
                 ),
-                captions = playerResponse.captions,
+                captions = ytScrapeInitial.captions,
             ))
         }
         val safePlayerResponse = ytMusic.player(TVHTML5, videoId, playlistId, cpn).body<PlayerResponse>()
@@ -549,7 +549,7 @@ object YouTube {
                     authorSubCount = ytScrapeData.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.subscriberCountText?.simpleText ?: "0",
                     description = ytScrapeInitial.videoDetails?.shortDescription,
                 ),
-                captions = playerResponse.captions,
+                captions = ytScrapeInitial.captions,
             ))
         }
         else {
@@ -574,7 +574,7 @@ object YouTube {
                     authorSubCount = ytScrapeData.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.subscriberCountText?.simpleText ?: "0",
                     description = ytScrapeInitial.videoDetails?.shortDescription,
                 ),
-                captions = playerResponse.captions,
+                captions = ytScrapeInitial.captions,
             ))
         }
     }

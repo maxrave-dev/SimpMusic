@@ -54,6 +54,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlin.math.abs
+import kotlin.random.Random
 
 @AndroidEntryPoint
 @UnstableApi
@@ -140,6 +141,47 @@ class AlbumFragment: Fragment() {
             }
             else {
                 viewModel.albumEntity.value?.let { album -> viewModel.updateAlbumLiked(true, album.browseId) }
+            }
+        }
+        binding.btShuffle.setOnClickListener {
+            if (viewModel.albumBrowse.value is Resource.Success && viewModel.albumBrowse.value?.data != null){
+                val args = Bundle()
+                val index = Random.nextInt(viewModel.albumBrowse.value?.data!!.tracks.size)
+                args.putString("type", Config.ALBUM_CLICK)
+                args.putString("videoId", viewModel.albumBrowse.value?.data!!.tracks[index].videoId)
+                args.putString("from", "Album \"${viewModel.albumBrowse.value?.data!!.title}\"")
+                if (viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
+                    args.putInt("downloaded", 1)
+                }
+                Queue.clear()
+                Queue.setNowPlaying(viewModel.albumBrowse.value?.data!!.tracks[index])
+                val shuffleList: ArrayList<Track> = arrayListOf()
+                shuffleList.addAll(viewModel.albumBrowse.value?.data!!.tracks)
+                shuffleList.remove(viewModel.albumBrowse.value?.data!!.tracks[index])
+                shuffleList.shuffle()
+                Queue.addAll(shuffleList)
+                findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
+            }
+            else if (viewModel.albumEntity.value != null && viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED){
+                val args = Bundle()
+                val index = Random.nextInt(viewModel.albumEntity.value?.tracks?.size!!)
+                args.putString("type", Config.ALBUM_CLICK)
+                args.putString("videoId", viewModel.albumEntity.value?.tracks?.get(index))
+                args.putString("from", "Album \"${viewModel.albumEntity.value?.title}\"")
+                if (viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
+                    args.putInt("downloaded", 1)
+                }
+                Queue.clear()
+                Queue.setNowPlaying(viewModel.listTrack.value?.get(index)!!.toTrack())
+                val shuffleList: ArrayList<Track> = arrayListOf()
+                shuffleList.addAll(viewModel.listTrack.value.toArrayListTrack())
+                shuffleList.remove(viewModel.listTrack.value?.get(index)!!.toTrack())
+                shuffleList.shuffle()
+                Queue.addAll(shuffleList)
+                findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
+            }
+            else {
+                Snackbar.make(requireView(), "Error", Snackbar.LENGTH_SHORT).show()
             }
         }
         binding.btPlayPause.setOnClickListener {

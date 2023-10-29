@@ -465,8 +465,7 @@ class NowPlayingFragment : Fragment() {
                     launch {
                         viewModel.simpleMediaServiceHandler?.nowPlaying?.collectLatest { song ->
                             if (song != null) {
-                                viewModel.resetLyrics()
-                                viewModel.getFormat(song.mediaId)
+//                                viewModel.getFormat(song.mediaId)
                                 Log.i("Now Playing Fragment", "song ${song.mediaMetadata.title}")
                                 videoId = viewModel.videoId.value
                                 binding.ivArt.visibility = View.GONE
@@ -671,12 +670,6 @@ class NowPlayingFragment : Fragment() {
                             binding.tvUploader.text = format.uploader
                             binding.ivAuthor.load(format.uploaderThumbnail)
                             binding.tvSubCount.text = format.uploaderSubCount
-                            viewModel.resetLyrics()
-                            Log.w("Check Youtube Captions URL", format.youtubeCaptionsUrl.toString())
-                            Log.w("Check CPN", format.cpn.toString())
-                            format.lengthSeconds?.let {
-                                viewModel.getLyricsFromFormat(format.videoId, it)
-                            }
                         }
                         else {
                             binding.uploaderLayout.visibility = View.GONE
@@ -1272,7 +1265,7 @@ class NowPlayingFragment : Fragment() {
         Log.d("CHECK QUEUE", "updateUIfromQueueNowPlaying: ${Queue.getQueue()}")
         val nowPlaying = Queue.getNowPlaying()
         if (nowPlaying != null) {
-            viewModel.getFormat(nowPlaying.videoId)
+//            viewModel.getFormat(nowPlaying.videoId)
             binding.ivArt.visibility = View.GONE
             binding.loadingArt.visibility = View.VISIBLE
             Log.d("Update UI", "current: ${nowPlaying.title}")

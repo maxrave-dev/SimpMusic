@@ -50,6 +50,11 @@ class LibraryViewModel @Inject constructor(private val mainRepository: MainRepos
             val temp: MutableList<Any> = mutableListOf<Any>()
             mainRepository.getAllRecentData().collect {data ->
                 temp.addAll(data)
+                temp.find {
+                    it is PlaylistEntity && (it.id.contains("RDEM") ||  it.id.contains("RDAMVM"))
+                }.let {
+                    temp.remove(it)
+                }
                 _listRecentlyAdded.postValue(temp)
             }
         }

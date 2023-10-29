@@ -216,9 +216,6 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                                 _duration.value = mediaState.duration
                                 calculateProgressValues(simpleMediaServiceHandler!!.getProgress())
                                 _uiState.value = UIState.Ready
-                                if (_format.value == null || _format.value?.videoId != simpleMediaServiceHandler!!.nowPlaying.first()?.mediaId) {
-                                    getFormat(simpleMediaServiceHandler!!.nowPlaying.first()?.mediaId)
-                                }
                             }
                         }
                     }
@@ -271,6 +268,13 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                         }
                     }
                 }
+                val job8 = launch {
+                    duration.collect {
+                        if (it > 0) {
+                            getFormat(simpleMediaServiceHandler!!.nowPlaying.first()?.mediaId)
+                        }
+                    }
+                }
                 val job7 = launch {
                     format.collect {formatTemp ->
                         if (dataStoreManager.sendBackToGoogle.first() == TRUE) {
@@ -278,6 +282,12 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                                 println("format in viewModel: $formatTemp")
                                 initPlayback(formatTemp.playbackTrackingVideostatsPlaybackUrl, formatTemp.playbackTrackingAtrUrl, formatTemp.playbackTrackingVideostatsWatchtimeUrl, formatTemp.cpn)
                             }
+                        }
+                        resetLyrics()
+                        Log.w("Check Youtube Captions URL", formatTemp?.youtubeCaptionsUrl.toString())
+                        Log.w("Check CPN", formatTemp?.cpn.toString())
+                        formatTemp?.lengthSeconds?.let {
+                            getLyricsFromFormat(formatTemp.videoId, it)
                         }
                     }
                 }
@@ -288,6 +298,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                 job4.join()
                 job6.join()
                 job7.join()
+                job8.join()
             }
         }
     }
