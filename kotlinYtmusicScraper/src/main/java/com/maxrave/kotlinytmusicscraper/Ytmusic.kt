@@ -205,6 +205,7 @@ class Ytmusic {
         client: YouTubeClient,
         videoId: String,
         playlistId: String?,
+        cpn: String?,
     ) = httpClient.post("player") {
         ytClient(client, setLogin = true)
         setBody(
@@ -219,7 +220,8 @@ class Ytmusic {
                     } else it
                 },
                 videoId = videoId,
-                playlistId = playlistId
+                playlistId = playlistId,
+                cpn = cpn
             )
         )
     }

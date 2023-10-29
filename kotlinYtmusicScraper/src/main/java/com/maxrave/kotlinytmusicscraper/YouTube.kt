@@ -494,7 +494,7 @@ object YouTube {
         return@runCatching json.decodeFromString<YouTubeInitialPage>(response)
     }
 
-    suspend fun player(videoId: String, playlistId: String? = null): Result<PlayerResponse> = runCatching {
+    suspend fun player(videoId: String, playlistId: String? = null): Result<Pair<String, PlayerResponse>> = runCatching {
         val ytScrape = ytMusic.scrapeYouTube(videoId).body<String>()
         var response = ""
         var data = ""
@@ -522,10 +522,11 @@ object YouTube {
 //        println(data)
         val ytScrapeData = json.decodeFromString<YouTubeDataPage>(data)
         val ytScrapeInitial = json.decodeFromString<YouTubeInitialPage>(response)
-        val playerResponse = ytMusic.player(ANDROID_MUSIC, videoId, playlistId).body<PlayerResponse>()
+        val cpn = (1..16).map { "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"[Random.Default.nextInt(0, 64)] }.joinToString("")
+        val playerResponse = ytMusic.player(ANDROID_MUSIC, videoId, playlistId, cpn).body<PlayerResponse>()
 //        println( playerResponse.streamingData?.adaptiveFormats?.findLast { it.itag == 251 }?.mimeType.toString())
         if (playerResponse.playabilityStatus.status == "OK") {
-            return@runCatching playerResponse.copy(
+            return@runCatching Pair(cpn, playerResponse.copy(
                 videoDetails = playerResponse.videoDetails?.copy(
 //                    authorAvatar = piped.uploaderAvatar?.replace(Regex("s48"), "s960"),
                     author = ytScrapeInitial.videoDetails?.author ?: playerResponse.videoDetails.author,
@@ -534,12 +535,12 @@ object YouTube {
                     authorSubCount = ytScrapeData.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.subscriberCountText?.simpleText ?: "0",
                     description = ytScrapeInitial.videoDetails?.shortDescription,
                 ),
-                captions = playerResponse.captions
-            )
+                captions = playerResponse.captions,
+            ))
         }
-        val safePlayerResponse = ytMusic.player(TVHTML5, videoId, playlistId).body<PlayerResponse>()
+        val safePlayerResponse = ytMusic.player(TVHTML5, videoId, playlistId, cpn).body<PlayerResponse>()
         if (safePlayerResponse.playabilityStatus.status != "OK") {
-            return@runCatching playerResponse.copy(
+            return@runCatching Pair(cpn, playerResponse.copy(
                 videoDetails = safePlayerResponse.videoDetails?.copy(
 //                    authorAvatar = piped.uploaderAvatar?.replace(Regex("s48"), "s960"),
                     author = ytScrapeInitial.videoDetails?.author ?: safePlayerResponse.videoDetails.author,
@@ -547,15 +548,15 @@ object YouTube {
 //                    authorSubCount = piped.uploaderSubscriberCount,
                     authorSubCount = ytScrapeData.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.subscriberCountText?.simpleText ?: "0",
                     description = ytScrapeInitial.videoDetails?.shortDescription,
-                    ),
-                captions = playerResponse.captions
-            )
+                ),
+                captions = playerResponse.captions,
+            ))
         }
         else {
             val piped = ytMusic.pipedStreams(videoId, "pipedapi.kavin.rocks").body<PipedResponse>()
             Log.w("use Piped?", piped.audioStreams.toString())
             val audioStreams = piped.audioStreams
-            return@runCatching safePlayerResponse.copy(
+            return@runCatching Pair(cpn, safePlayerResponse.copy(
                 streamingData = safePlayerResponse.streamingData?.copy(
                     adaptiveFormats = safePlayerResponse.streamingData.adaptiveFormats.mapNotNull { adaptiveFormat ->
                         audioStreams.find { it.itag == adaptiveFormat.itag }?.let {
@@ -573,20 +574,49 @@ object YouTube {
                     authorSubCount = ytScrapeData.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.subscriberCountText?.simpleText ?: "0",
                     description = ytScrapeInitial.videoDetails?.shortDescription,
                 ),
-                captions = playerResponse.captions
-            )
+                captions = playerResponse.captions,
+            ))
         }
     }
-    suspend fun initPlayback(playbackUrl: String, atrUrl: String, watchtimeUrl: String): Result<Int> {
+    suspend fun updateWatchTime(watchtimeUrl: String, watchtimeList: ArrayList<Float>, cpn: String): Result<Int> =
+        runCatching {
+            val et = watchtimeList.takeLast(2).joinToString(",")
+            val watchtime = watchtimeList.dropLast(1).takeLast(2).joinToString(",")
+            ytMusic.initPlayback(watchtimeUrl, cpn, mapOf("st" to watchtime, "et" to et)).status.value.let { status ->
+                if (status == 204) {
+                    println("watchtime done")
+                }
+                return@runCatching status
+            }
+        }
+    suspend fun updateWatchTimeFull(watchtimeUrl: String, cpn: String): Result<Int> =
+        runCatching {
+            val regex = Regex("len=([^&]+)")
+            val length = regex.find(watchtimeUrl)?.groupValues?.firstOrNull()?.drop(4) ?: "0"
+            println(length)
+            ytMusic.initPlayback(watchtimeUrl, cpn, mapOf("st" to length, "et" to length)).status.value.let { status ->
+                if (status == 204) {
+                    println("watchtime full done")
+                }
+                return@runCatching status
+            }
+        }
+
+    /**
+     * @return [Pair<Int, Float>]
+     * Int: status code
+     * Float: second watchtime
+     * First watchtime is 5.54
+     */
+    suspend fun initPlayback(playbackUrl: String, atrUrl: String, watchtimeUrl: String, cpn: String): Result<Pair<Int, Float>> {
         println("playbackUrl $playbackUrl")
         println("atrUrl $atrUrl")
         println("watchtimeUrl $watchtimeUrl")
         return runCatching {
-            val cpn = (1..16).map { "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"[Random.Default.nextInt(0, 64)] }.joinToString("")
             ytMusic.initPlayback(playbackUrl, cpn).status.value.let { status ->
                 if (status == 204) {
                     println("playback done")
-                    ytMusic.initPlayback(watchtimeUrl, cpn, mapOf<String, String>("st" to "0", "et" to (Math.round(Random.nextFloat()*100)/100 + 2f).toString())).status.value.let { firstWatchTime ->
+                    ytMusic.initPlayback(watchtimeUrl, cpn, mapOf("st" to "0", "et" to "5.54")).status.value.let { firstWatchTime ->
                         if (firstWatchTime == 204) {
                             println("first watchtime done")
                             delay(5000)
@@ -594,28 +624,29 @@ object YouTube {
                                 if (atr == 204) {
                                     println("atr done")
                                     delay(500)
-                                    ytMusic.initPlayback(watchtimeUrl, cpn, mapOf<String, String>("st" to "0,5.54", "et" to "5.54,${(Math.round(Random.nextFloat()*100)/100 + 12f)}")).status.value.let { watchtime ->
+                                    val secondWatchTime = (Math.round(Random.nextFloat()*100.0)/100.0).toFloat() + 12f
+                                    ytMusic.initPlayback(watchtimeUrl, cpn, mapOf<String, String>("st" to "0,5.54", "et" to "5.54,$secondWatchTime")).status.value.let { watchtime ->
                                         if (watchtime == 204) {
                                             println("watchtime done")
-                                            return@runCatching 204
+                                            return@runCatching Pair(watchtime, secondWatchTime)
                                         }
                                         else {
-                                            return@runCatching watchtime
+                                            return@runCatching Pair(watchtime, secondWatchTime)
                                         }
                                     }
                                 }
                                 else {
-                                    return@runCatching atr
+                                    return@runCatching Pair(atr, 0f)
                                 }
                             }
                         }
                         else {
-                            return@runCatching firstWatchTime
+                            return@runCatching Pair(firstWatchTime, 0f)
                         }
                     }
                 }
                 else {
-                    return@runCatching status
+                    return@runCatching Pair(status, 0f)
                 }
             }
         }

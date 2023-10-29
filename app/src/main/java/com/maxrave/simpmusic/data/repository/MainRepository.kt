@@ -1098,8 +1098,9 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
         }
     }.flowOn(Dispatchers.IO)
     suspend fun getStream(videoId: String, itag: Int): Flow<String?> = flow{
-        YouTube.player(videoId).onSuccess { response ->
-            val format = response.streamingData?.adaptiveFormats?.find { it.itag == itag}
+        YouTube.player(videoId).onSuccess { data ->
+            val response = data.second
+            val format = response.streamingData?.adaptiveFormats?.find { it.itag == itag }
                 runBlocking {
                     insertFormat(
                         FormatEntity(
@@ -1120,10 +1121,11 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                             playbackTrackingVideostatsPlaybackUrl = response.playbackTracking?.videostatsPlaybackUrl?.baseUrl?.replace("https://s.youtube.com", "https://music.youtube.com"),
                             playbackTrackingAtrUrl = response.playbackTracking?.atrUrl?.baseUrl?.replace("https://s.youtube.com", "https://music.youtube.com"),
                             playbackTrackingVideostatsWatchtimeUrl = response.playbackTracking?.videostatsWatchtimeUrl?.baseUrl?.replace("https://s.youtube.com", "https://music.youtube.com"),
+                            cpn = data.first,
                         )
                     )
                 }
-                emit(response.streamingData?.adaptiveFormats?.find { it.itag == itag }?.url)
+                emit(response.streamingData?.adaptiveFormats?.find { it.itag == itag }?.url?.plus("&cpn=${data.first}"))
             }.onFailure {
                 it.printStackTrace()
             Log.e("Stream", "Error: ${it.message}")
@@ -1148,12 +1150,12 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                 emit(null)
             }
     }
-    suspend fun initPlayback(playback: String, atr: String, watchTime: String): Flow<Int> = flow {
-        YouTube.initPlayback(playback, atr, watchTime).onSuccess { response ->
+    suspend fun initPlayback(playback: String, atr: String, watchTime: String, cpn: String): Flow<Pair<Int, Float>> = flow {
+        YouTube.initPlayback(playback, atr, watchTime, cpn).onSuccess { response ->
             emit(response)
         }.onFailure {
             Log.e("InitPlayback", "Error: ${it.message}")
-            emit(0)
+            emit(Pair(0, 0f))
         }
     }.flowOn(Dispatchers.IO)
     suspend fun getSkipSegments(videoId: String): Flow<List<SkipSegments>?> = flow {
@@ -1322,4 +1324,25 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
             }
         }
     }
+
+    suspend fun updateWatchTime(playbackTrackingVideostatsWatchtimeUrl: String, watchTimeList: ArrayList<Float>, cpn: String): Flow<Int> = flow {
+        runCatching {
+            YouTube.updateWatchTime(playbackTrackingVideostatsWatchtimeUrl, watchTimeList, cpn).onSuccess { response ->
+                emit(response)
+            }.onFailure {
+                it.printStackTrace()
+                emit(0)
+            }
+        }
+    }.flowOn(Dispatchers.IO)
+    suspend fun updateWatchTimeFull(watchTime: String, cpn: String): Flow<Int> = flow {
+        runCatching {
+            YouTube.updateWatchTimeFull(watchTime, cpn).onSuccess { response ->
+                emit(response)
+            }.onFailure {
+                it.printStackTrace()
+                emit(0)
+            }
+        }
+    }.flowOn(Dispatchers.IO)
 }

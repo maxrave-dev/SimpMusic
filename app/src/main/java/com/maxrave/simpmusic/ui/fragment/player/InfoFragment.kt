@@ -17,6 +17,8 @@ import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 
 @AndroidEntryPoint
 class InfoFragment: BottomSheetDialogFragment(){
@@ -77,12 +79,12 @@ class InfoFragment: BottomSheetDialogFragment(){
                     "https://www.youtube.com/watch?v=${data.videoId}".also { youtubeUrl.text = it }
                     title.text = data.title
                     albumName.text = data.album?.name
-                    if (viewModel.format.value != null){
-                        val format = viewModel.format.value
-                        itag.text = format?.itag.toString()
-                        mimeType.text = format?.mimeType ?: context?.getString(androidx.media3.ui.R.string.exo_track_unknown)
-                        bitrate.text = (format?.bitrate ?: context?.getString(androidx.media3.ui.R.string.exo_track_unknown)).toString()
-                        description.text = format?.description ?: context?.getString(androidx.media3.ui.R.string.exo_track_unknown)
+                    val format = runBlocking { viewModel.format.first() }
+                    if (format != null){
+                        itag.text = format.itag.toString()
+                        mimeType.text = format.mimeType ?: context?.getString(androidx.media3.ui.R.string.exo_track_unknown)
+                        bitrate.text = (format.bitrate ?: context?.getString(androidx.media3.ui.R.string.exo_track_unknown)).toString()
+                        description.text = format.description ?: context?.getString(androidx.media3.ui.R.string.exo_track_unknown)
                     }
                 }
             }

@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 6,
-    "identityHash": "6d70c486de413554c59061d0a7350d97",
+    "identityHash": "5b16c1d32b8303934cd27109849e633e",
     "entities": [
       {
         "tableName": "search_history",
@@ -514,7 +514,7 @@
       },
       {
         "tableName": "format",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`videoId` TEXT NOT NULL, `itag` INTEGER, `mimeType` TEXT, `bitrate` INTEGER, `contentLength` INTEGER, `lastModified` INTEGER, `loudnessDb` REAL, `uploader` TEXT, `uploaderId` TEXT, `uploaderSubCount` TEXT, `uploaderThumbnail` TEXT, `lengthSeconds` INTEGER, `description` TEXT, `youtubeCaptionsUrl` TEXT, `playbackTrackingVideostatsPlaybackUrl` TEXT, `playbackTrackingAtrUrl` TEXT, `playbackTrackingVideostatsWatchtimeUrl` TEXT, PRIMARY KEY(`videoId`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`videoId` TEXT NOT NULL, `itag` INTEGER, `mimeType` TEXT, `bitrate` INTEGER, `contentLength` INTEGER, `lastModified` INTEGER, `loudnessDb` REAL, `uploader` TEXT, `uploaderId` TEXT, `uploaderSubCount` TEXT, `uploaderThumbnail` TEXT, `lengthSeconds` INTEGER, `description` TEXT, `youtubeCaptionsUrl` TEXT, `playbackTrackingVideostatsPlaybackUrl` TEXT, `playbackTrackingAtrUrl` TEXT, `playbackTrackingVideostatsWatchtimeUrl` TEXT, `cpn` TEXT, PRIMARY KEY(`videoId`))",
         "fields": [
           {
             "fieldPath": "videoId",
@@ -617,6 +617,12 @@
             "columnName": "playbackTrackingVideostatsWatchtimeUrl",
             "affinity": "TEXT",
             "notNull": false
+          },
+          {
+            "fieldPath": "cpn",
+            "columnName": "cpn",
+            "affinity": "TEXT",
+            "notNull": false
           }
         ],
         "primaryKey": {
@@ -684,7 +690,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '6d70c486de413554c59061d0a7350d97')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '5b16c1d32b8303934cd27109849e633e')"
     ]
   }
 }

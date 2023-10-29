@@ -58,12 +58,14 @@ import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
@@ -149,6 +151,8 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     private var _sleepTimerRunning: MutableLiveData<Boolean> = MutableLiveData(false)
     val sleepTimerRunning: LiveData<Boolean> = _sleepTimerRunning
 
+    private var watchTimeList: ArrayList<Float> = arrayListOf()
+
 
     private var regionCode: String? = null
     private var language: String? = null
@@ -157,7 +161,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     private var isRestoring = MutableStateFlow(false)
 
     private var _format: MutableStateFlow<FormatEntity?> = MutableStateFlow(null)
-    val format: StateFlow<FormatEntity?> = _format
+    val format: SharedFlow<FormatEntity?> = _format.asSharedFlow()
 
     private var _saveLastPlayedSong: MutableLiveData<Boolean> = MutableLiveData()
     val saveLastPlayedSong: LiveData<Boolean> = _saveLastPlayedSong
@@ -165,6 +169,8 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     var recentPosition: String = 0L.toString()
 
     val intent: MutableStateFlow<Intent?> = MutableStateFlow(null)
+
+    private var jobWatchtime: Job? = null
 
 //    init {
 //        Log.w("Check SharedViewModel init", (simpleMediaServiceHandler != null).toString())
@@ -210,7 +216,9 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                                 _duration.value = mediaState.duration
                                 calculateProgressValues(simpleMediaServiceHandler!!.getProgress())
                                 _uiState.value = UIState.Ready
-                                getFormat(simpleMediaServiceHandler!!.nowPlaying.first()?.mediaId)
+                                if (_format.value == null || _format.value?.videoId != simpleMediaServiceHandler!!.nowPlaying.first()?.mediaId) {
+                                    getFormat(simpleMediaServiceHandler!!.nowPlaying.first()?.mediaId)
+                                }
                             }
                         }
                     }
@@ -220,13 +228,6 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                         nowPlaying?.let { now ->
                             _format.value = null
                             getSkipSegments(now.mediaId)
-                            if (dataStoreManager.sendBackToGoogle.first() == TRUE) {
-                                mainRepository.getFormat(now.mediaId).collect { formatTemp ->
-                                    if (formatTemp != null) {
-                                        initPlayback(formatTemp.playbackTrackingVideostatsPlaybackUrl, formatTemp.playbackTrackingAtrUrl, formatTemp.playbackTrackingVideostatsWatchtimeUrl)
-                                    }
-                                }
-                            }
                         }
                         if (nowPlaying != null && getCurrentMediaItemIndex() > 0) {
                             _nowPlayingMediaItem.postValue(nowPlaying)
@@ -270,23 +271,82 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                         }
                     }
                 }
+                val job7 = launch {
+                    format.collect {formatTemp ->
+                        if (dataStoreManager.sendBackToGoogle.first() == TRUE) {
+                            if (formatTemp != null) {
+                                println("format in viewModel: $formatTemp")
+                                initPlayback(formatTemp.playbackTrackingVideostatsPlaybackUrl, formatTemp.playbackTrackingAtrUrl, formatTemp.playbackTrackingVideostatsWatchtimeUrl, formatTemp.cpn)
+                            }
+                        }
+                    }
+                }
 
                 job1.join()
                 job2.join()
                 job3.join()
                 job4.join()
                 job6.join()
+                job7.join()
             }
         }
     }
 
-    private fun initPlayback(playback: String?, atr: String?, watchTime: String?) {
+    private fun initPlayback(playback: String?, atr: String?, watchTime: String?, cpn: String?) {
+        jobWatchtime?.cancel()
         viewModelScope.launch {
-            if (playback != null && atr != null && watchTime != null) {
-                mainRepository.initPlayback(playback, atr, watchTime).collect {
-                    Log.w("Check initPlayback code", it.toString())
+            if (playback != null && atr != null && watchTime != null && cpn != null) {
+                watchTimeList.clear()
+                mainRepository.initPlayback(playback, atr, watchTime, cpn).collect {
+                    if (it.first == 204) {
+                        Log.d("Check initPlayback", "Success")
+                        watchTimeList.add(0f)
+                        watchTimeList.add(5.54f)
+                        watchTimeList.add(it.second)
+                        updateWatchTime()
+                    }
                 }
             }
+        }
+    }
+
+    private fun updateWatchTime() {
+        viewModelScope.launch {
+            jobWatchtime = launch {
+                progressMillis.collect { value ->
+                    if (value > 0 && watchTimeList.isNotEmpty()) {
+                        val second = (value / 1000).toFloat()
+                        if (second in watchTimeList.last()..watchTimeList.last() + 1.2f) {
+                            val watchTimeUrl = _format.value?.playbackTrackingVideostatsWatchtimeUrl
+                            val cpn = _format.value?.cpn
+                            if (second + 20.23f < (duration.first()/1000).toFloat()) {
+                                watchTimeList.add(second + 20.23f)
+                                if (watchTimeUrl != null && cpn != null) {
+                                    Log.w("Check updateWatchTime", _format.value?.uploader.toString())
+                                    mainRepository.updateWatchTime(watchTimeUrl, watchTimeList, cpn).collect { response ->
+                                        if (response == 204) {
+                                            Log.d("Check updateWatchTime", "Success")
+                                        }
+                                    }
+                                }
+                            }
+                            else {
+                                watchTimeList.clear()
+                                if (watchTimeUrl != null && cpn != null) {
+                                    Log.w("Check updateWatchTime", _format.value?.uploader.toString())
+                                    mainRepository.updateWatchTimeFull(watchTimeUrl, cpn).collect { response ->
+                                        if (response == 204) {
+                                            Log.d("Check updateWatchTimeFull", "Success")
+                                        }
+                                    }
+                                }
+                            }
+                            Log.w("Check updateWatchTime", watchTimeList.toString())
+                        }
+                    }
+                }
+            }
+            jobWatchtime?.join()
         }
     }
 
@@ -739,47 +799,11 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
         return null
     }
 
-    fun getLyricsString(current: Long): LyricDict? {
-        val lyricsFormat = lyricsFormat.value
-        lyricsFormat?.indices?.forEach { i ->
-            val sentence = lyricsFormat[i]
-            val next = if (i > 1) listOf(
-                lyricsFormat[i - 2].words,
-                lyricsFormat[i - 1].words
-            ) else if (i > 0)
-                listOf(lyricsFormat[0].words) else null
-            val prev = if (i < lyricsFormat.size - 2) listOf(
-                lyricsFormat[i + 1].words,
-                lyricsFormat[i + 2].words
-            ) else if (i < lyricsFormat.size - 1)
-                listOf(lyricsFormat[i + 1].words)
-            else
-                null
-            // get the start time of the current sentence
-            val startTimeMs = sentence.startTimeMs.toLong()
-
-            // estimate the end time of the current sentence based on the start time of the next sentence
-            val endTimeMs = if (i < lyricsFormat.size - 1) {
-                lyricsFormat[i + 1].startTimeMs.toLong()
-            } else {
-                // if this is the last sentence, set the end time to be some default value (e.g., 1 minute after the start time)
-                startTimeMs + 60000
-            }
-            if (current in startTimeMs..endTimeMs) {
-                val lyric = if (sentence.words != "") sentence.words else null
-                return LyricDict(lyric, prev, next)
-//                Log.d("Check Lyric", listLyricDict.toString())
-            }
-        }
-        return null
-    }
-
-
-
 
     @UnstableApi
     override fun onCleared() {
         runBlocking {
+            jobWatchtime?.cancel()
             if (from.value != null) {
                 Log.d("Check from", from.value!!)
                 dataStoreManager.setPlaylistFromSaved(from.value!!)

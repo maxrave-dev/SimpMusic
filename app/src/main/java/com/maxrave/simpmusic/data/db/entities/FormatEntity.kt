@@ -22,4 +22,5 @@ data class FormatEntity(
     val playbackTrackingVideostatsPlaybackUrl: String? = null,
     val playbackTrackingAtrUrl: String? = null,
     val playbackTrackingVideostatsWatchtimeUrl: String? = null,
+    val cpn: String? = null,
 )

@@ -672,7 +672,8 @@ class NowPlayingFragment : Fragment() {
                             binding.ivAuthor.load(format.uploaderThumbnail)
                             binding.tvSubCount.text = format.uploaderSubCount
                             viewModel.resetLyrics()
-                            Log.w("Check Format", format.youtubeCaptionsUrl.toString())
+                            Log.w("Check Youtube Captions URL", format.youtubeCaptionsUrl.toString())
+                            Log.w("Check CPN", format.cpn.toString())
                             format.lengthSeconds?.let {
                                 viewModel.getLyricsFromFormat(format.videoId, it)
                             }
@@ -883,7 +884,7 @@ class NowPlayingFragment : Fragment() {
             findNavController().navigateSafe(
                 R.id.action_global_artistFragment,
                 Bundle().apply {
-                    putString("channelId", viewModel.format.value?.uploaderId)
+                    putString("channelId", runBlocking { viewModel.format.first()?.uploaderId })
                 })
         }
         binding.tvSongArtist.setOnClickListener {
