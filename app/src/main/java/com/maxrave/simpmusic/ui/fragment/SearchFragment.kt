@@ -509,6 +509,7 @@ class SearchFragment : Fragment() {
                                 override fun onItemClick(position: Int) {
                                     val playlist = listLocalPlaylist[position]
                                     val tempTrack = ArrayList<String>()
+                                    viewModel.updateInLibrary(track.videoId)
                                     if (playlist.tracks != null) {
                                         tempTrack.addAll(playlist.tracks)
                                     }

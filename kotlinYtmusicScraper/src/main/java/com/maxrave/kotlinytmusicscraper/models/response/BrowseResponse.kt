@@ -30,6 +30,7 @@ data class BrowseResponse(
     data class ContinuationContents(
         val sectionListContinuation: SectionListContinuation?,
         val musicPlaylistShelfContinuation: MusicPlaylistShelfContinuation?,
+        val musicShelfContinuation: SearchResponse.ContinuationContents.MusicShelfContinuation?,
     ) {
         @Serializable
         data class SectionListContinuation(

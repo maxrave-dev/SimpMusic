@@ -153,4 +153,10 @@ class ArtistViewModel @Inject constructor(private val application: Application, 
         }
     }
 
+    fun updateInLibrary(videoId: String) {
+        viewModelScope.launch {
+            mainRepository.updateSongInLibrary(LocalDateTime.now(), videoId)
+        }
+    }
+
 }

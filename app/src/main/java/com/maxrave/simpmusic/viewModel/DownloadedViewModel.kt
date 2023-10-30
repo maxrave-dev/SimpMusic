@@ -13,6 +13,7 @@ import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.repository.MainRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
 import javax.inject.Inject
 
 @HiltViewModel
@@ -98,6 +99,12 @@ class DownloadedViewModel @Inject constructor(private val application: Applicati
                     Toast.makeText(getApplication(), application.getString(R.string.error), Toast.LENGTH_SHORT).show()
                 }
             }
+        }
+    }
+
+    fun updateInLibrary(videoId: String) {
+        viewModelScope.launch {
+            mainRepository.updateSongInLibrary(LocalDateTime.now(), videoId)
         }
     }
 }

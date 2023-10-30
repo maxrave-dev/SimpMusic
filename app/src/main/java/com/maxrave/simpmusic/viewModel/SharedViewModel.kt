@@ -1149,6 +1149,12 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
             }
         }
     }
+
+    fun updateInLibrary(videoId: String) {
+        viewModelScope.launch {
+            mainRepository.updateSongInLibrary(LocalDateTime.now(), videoId)
+        }
+    }
 }
 sealed class UIEvent {
     data object PlayPause : UIEvent()

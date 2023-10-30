@@ -21,6 +21,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
 import javax.inject.Inject
 
 @HiltViewModel
@@ -140,6 +141,12 @@ class FavoriteViewModel @Inject constructor(private val application: Application
                     Toast.makeText(getApplication(), application.getString(R.string.error), Toast.LENGTH_SHORT).show()
                 }
             }
+        }
+    }
+
+    fun updateInLibrary(videoId: String) {
+        viewModelScope.launch {
+            mainRepository.updateSongInLibrary(LocalDateTime.now(), videoId)
         }
     }
 }

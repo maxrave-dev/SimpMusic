@@ -371,6 +371,7 @@ class LibraryFragment : Fragment() {
                             override fun onItemClick(position: Int) {
                                 val playlist = listLocalPlaylist[position]
                                 val tempTrack = ArrayList<String>()
+                                viewModel.updateInLibrary(song.videoId)
                                 if (playlist.tracks != null) {
                                     tempTrack.addAll(playlist.tracks)
                                 }

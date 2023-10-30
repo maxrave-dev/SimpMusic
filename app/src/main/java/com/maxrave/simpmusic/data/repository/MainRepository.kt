@@ -6,14 +6,19 @@ import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.models.MusicShelfRenderer
 import com.maxrave.kotlinytmusicscraper.models.SearchSuggestions
 import com.maxrave.kotlinytmusicscraper.models.SongItem
+import com.maxrave.kotlinytmusicscraper.models.VideoItem
 import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
 import com.maxrave.kotlinytmusicscraper.models.musixmatch.MusixmatchCredential
 import com.maxrave.kotlinytmusicscraper.models.musixmatch.MusixmatchTranslationLyricsResponse
 import com.maxrave.kotlinytmusicscraper.models.musixmatch.SearchMusixmatchResponse
+import com.maxrave.kotlinytmusicscraper.models.response.SearchResponse
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
 import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
 import com.maxrave.kotlinytmusicscraper.pages.BrowseResult
+import com.maxrave.kotlinytmusicscraper.pages.PlaylistPage
+import com.maxrave.kotlinytmusicscraper.pages.SearchPage
+import com.maxrave.kotlinytmusicscraper.pages.SearchSuggestionPage
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.LocalDataSource
@@ -498,6 +503,92 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
             }
         }
     }.flowOn(Dispatchers.IO)
+    suspend fun reloadSuggestionPlaylist(reloadParams: String): Flow<Pair<String?, ArrayList<Track>?>?> = flow {
+        runCatching {
+            YouTube.customQuery(browseId = "", continuation = reloadParams, setLogin = true).onSuccess { values ->
+                val data = values.continuationContents?.musicShelfContinuation?.contents
+                val dataResult: ArrayList<SearchResponse.ContinuationContents.MusicShelfContinuation.Content> = arrayListOf()
+                if (!data.isNullOrEmpty()) {
+                    dataResult.addAll(data)
+                }
+                val reloadParamsNew = values.continuationContents?.musicShelfContinuation?.continuations?.get(0)?.nextContinuationData?.continuation
+                if (dataResult.isNotEmpty()) {
+                    val listTrack: ArrayList<Track> = arrayListOf()
+                    dataResult.forEach {
+                        listTrack.add(
+                            (SearchPage.toYTItem(
+                                it.musicResponsiveListItemRenderer
+                            ) as SongItem).toTrack()
+                        )
+                    }
+                    emit(Pair(reloadParamsNew, listTrack))
+                }
+                else {
+                    emit(null)
+                }
+            }.onFailure {
+                exception ->
+                exception.printStackTrace()
+                emit(null)
+            }
+        }
+    }
+    suspend fun getSuggestionPlaylist(ytPlaylistId: String): Flow<Pair<String?, ArrayList<Track>?>?> = flow {
+        runCatching {
+            var id = ""
+            if (!ytPlaylistId.startsWith("VL")) {
+                id += "VL$ytPlaylistId"
+            }
+            else {
+                id += ytPlaylistId
+            }
+            YouTube.customQuery(browseId = id, setLogin = true).onSuccess { result ->
+                println(result)
+                var continueParam = result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(0)?.tabRenderer?.content?.sectionListRenderer?.contents?.get(0)?.musicPlaylistShelfRenderer?.continuations?.get(0)?.nextContinuationData?.continuation ?: result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(0)?.tabRenderer?.content?.sectionListRenderer?.continuations?.get(0)?.nextContinuationData?.continuation
+                val dataResult: ArrayList<MusicShelfRenderer.Content> = arrayListOf()
+                var reloadParams : String? = null
+                println("continueParam: $continueParam")
+                while (continueParam != null) {
+                    YouTube.customQuery(browseId = "", continuation = continueParam, setLogin = true).onSuccess { values ->
+                        val data = values.continuationContents?.sectionListContinuation?.contents?.get(0)?.musicShelfRenderer?.contents
+                        println("data: $data")
+                        if (!data.isNullOrEmpty()) {
+                            dataResult.addAll(data)
+                        }
+                        reloadParams = values.continuationContents?.sectionListContinuation?.contents?.get(0)?.musicShelfRenderer?.continuations?.get(0)?.reloadContinuationData?.continuation
+                        continueParam = values.continuationContents?.musicPlaylistShelfContinuation?.continuations?.get(0)?.nextContinuationData?.continuation
+                        println("reloadParams: $reloadParams")
+                        println("continueParam: $continueParam")
+                    }.onFailure {
+                        Log.e("Repository", "Error: ${it.message}")
+                        continueParam = null
+                    }
+                }
+                println("dataResult: ${dataResult.size}")
+                if (dataResult.isNotEmpty()) {
+                    val listTrack: ArrayList<Track> = arrayListOf()
+                    dataResult.forEach {
+                        listTrack.add(
+                            (PlaylistPage.fromMusicResponsiveListItemRenderer(
+                                it.musicResponsiveListItemRenderer
+                            ) as SongItem).toTrack()
+                        )
+                    }
+                    println("listTrack: $listTrack")
+                    emit(Pair(reloadParams, listTrack))
+                }
+                else {
+                    emit(null)
+                }
+            }
+                .onFailure {
+                    exception ->
+                    exception.printStackTrace()
+                    emit(null)
+                }
+        }
+    }.flowOn(Dispatchers.IO)
+
     suspend fun getPlaylistData(playlistId: String): Flow<Resource<PlaylistBrowse>> = flow {
         runCatching {
             var id = ""

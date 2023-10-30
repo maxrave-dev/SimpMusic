@@ -1039,6 +1039,7 @@ class NowPlayingFragment : Fragment() {
                                         AddToAPlaylistAdapter.OnItemClickListener {
                                         override fun onItemClick(position: Int) {
                                             val playlist = listLocalPlaylist[position]
+                                            viewModel.updateInLibrary(song.videoId)
                                             val tempTrack = ArrayList<String>()
                                             if (playlist.tracks != null) {
                                                 tempTrack.addAll(playlist.tracks)

@@ -27,5 +27,5 @@ data class PlaylistBrowse(
     @SerializedName("tracks")
     val tracks: List<Track>,
     @SerializedName("year")
-    val year: String
+    val year: String,
 )

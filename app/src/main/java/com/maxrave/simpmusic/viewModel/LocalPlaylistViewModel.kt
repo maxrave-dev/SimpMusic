@@ -15,15 +15,18 @@ import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SetVideoIdEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
+import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.extension.toListVideoId
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -43,6 +46,48 @@ class LocalPlaylistViewModel @Inject constructor(
     val listTrack: LiveData<List<SongEntity>> = _listTrack
 
     var gradientDrawable: MutableLiveData<GradientDrawable> = MutableLiveData()
+
+    private var _listSuggestions: MutableStateFlow<ArrayList<Track>?> = MutableStateFlow(arrayListOf())
+    val listSuggestions: StateFlow<ArrayList<Track>?> = _listSuggestions
+
+    private var reloadParams: MutableStateFlow<String?> = MutableStateFlow(null)
+
+    var loading: MutableStateFlow<Boolean> = MutableStateFlow(false)
+
+    fun getSuggestions(ytPlaylistId: String) {
+        loading.value = true
+        viewModelScope.launch {
+            mainRepository.getSuggestionPlaylist(ytPlaylistId).collect {
+                _listSuggestions.value = it?.second
+                reloadParams.value = it?.first
+                withContext(Dispatchers.Main) {
+                    loading.value = false
+                }
+            }
+        }
+    }
+
+    fun reloadSuggestion() {
+        loading.value = true
+        viewModelScope.launch {
+            val param = reloadParams.value
+            if (param != null) {
+                mainRepository.reloadSuggestionPlaylist(param).collect {
+                    _listSuggestions.value = it?.second
+                    reloadParams.value = it?.first
+                    withContext(Dispatchers.Main) {
+                        loading.value = false
+                    }
+                }
+            }
+            else {
+                Toast.makeText(application, application.getString(R.string.error), Toast.LENGTH_SHORT).show()
+                withContext(Dispatchers.Main) {
+                    loading.value = false
+                }
+            }
+        }
+    }
 
     fun getLocalPlaylist(id: Long) {
         viewModelScope.launch {

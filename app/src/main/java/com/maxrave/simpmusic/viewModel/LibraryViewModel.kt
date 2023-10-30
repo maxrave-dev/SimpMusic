@@ -176,4 +176,10 @@ class LibraryViewModel @Inject constructor(private val mainRepository: MainRepos
             }
         }
     }
+
+    fun updateInLibrary(videoId: String) {
+        viewModelScope.launch {
+            mainRepository.updateSongInLibrary(LocalDateTime.now(), videoId)
+        }
+    }
 }

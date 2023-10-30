@@ -22,7 +22,7 @@ android {
             arg("room.schemaLocation", "$projectDir/schemas")
         }
 
-        resourceConfigurations += listOf("en", "vi", "it", "de", "ru")
+        resourceConfigurations += listOf("en", "vi", "it", "de", "ru", "tr")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
     }

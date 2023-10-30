@@ -5,4 +5,5 @@
     <locale android:name="it"/>
     <locale android:name="de"/>
     <locale android:name="ru"/>
+    <locale android:name="tr"/>
 </locale-config>

@@ -37,6 +37,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.adapter.playlist.PlaylistItemAdapter
+import com.maxrave.simpmusic.adapter.playlist.SuggestItemAdapter
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.data.db.entities.SongEntity
@@ -66,6 +67,9 @@ class LocalPlaylistFragment : Fragment() {
 
     lateinit var listTrack: ArrayList<Any>
     private lateinit var playlistAdapter: PlaylistItemAdapter
+
+    lateinit var listSuggestTrack: ArrayList<Track>
+    private lateinit var suggestAdapter: SuggestItemAdapter
 
     private var id: Long? = null
 
@@ -111,8 +115,16 @@ class LocalPlaylistFragment : Fragment() {
         listTrack = arrayListOf()
         playlistAdapter = PlaylistItemAdapter(arrayListOf())
 
+        listSuggestTrack = arrayListOf()
+        suggestAdapter = SuggestItemAdapter(arrayListOf())
+
         binding.rvListSong.apply {
             adapter = playlistAdapter
+            layoutManager = LinearLayoutManager(requireContext())
+        }
+
+        binding.rvSuggest.apply {
+            adapter = suggestAdapter
             layoutManager = LinearLayoutManager(requireContext())
         }
 
@@ -128,10 +140,16 @@ class LocalPlaylistFragment : Fragment() {
             binding.loadingLayout.visibility = View.GONE
             binding.rootLayout.visibility = View.VISIBLE
         }
+        if (viewModel.listSuggestions.value.isNullOrEmpty()) {
+            binding.suggestLayout.visibility = View.GONE
+        }
+        else {
+            binding.suggestLayout.visibility = View.VISIBLE
+        }
         playlistAdapter.setOnClickListener(object : PlaylistItemAdapter.OnItemClickListener{
             override fun onItemClick(position: Int) {
                 val args = Bundle()
-                args.putString("type", Config.ALBUM_CLICK)
+                args.putString("type", Config.PLAYLIST_CLICK)
                 args.putString("videoId", (listTrack[position] as SongEntity).videoId)
                 args.putString("from", "Playlist \"${(viewModel.localPlaylist.value)?.title}\"")
                 args.putInt("index", position)
@@ -172,6 +190,37 @@ class LocalPlaylistFragment : Fragment() {
                 dialog.setCancelable(true)
                 dialog.show()
             }
+        })
+        suggestAdapter.setOnItemClickListener(object : SuggestItemAdapter.OnItemClickListener{
+            override fun onItemClick(position: Int) {
+                if (listSuggestTrack.isNotEmpty()) {
+                    val args = Bundle()
+                    args.putString("type", Config.PLAYLIST_CLICK)
+                    args.putString("videoId", listSuggestTrack[position].videoId)
+                    args.putString("from", "${getString(R.string.playlist)} \"${(viewModel.localPlaylist.value)?.title}\" ${getString(R.string.suggest)}")
+                    args.putInt("index", position)
+                    Queue.clear()
+                    Queue.setNowPlaying(listSuggestTrack[position])
+                    val tempList: ArrayList<Track> = arrayListOf()
+                    for (i in listSuggestTrack) {
+                        tempList.add(i)
+                    }
+                    Queue.addAll(tempList)
+                    if (Queue.getQueue().size >= 1) {
+                        Queue.removeTrackWithIndex(position)
+                    }
+                    findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
+                }
+                else {
+                    Toast.makeText(requireContext(), getString(R.string.error), Toast.LENGTH_SHORT).show()
+                }
+            }
+        })
+        suggestAdapter.setOnAddItemClickListener(object : SuggestItemAdapter.OnAddItemClickListener{
+            override fun onAddItemClick(position: Int) {
+
+            }
+
         })
 
         binding.topAppBar.setNavigationOnClickListener {
@@ -284,6 +333,22 @@ class LocalPlaylistFragment : Fragment() {
             else if (viewModel.localPlaylist.value?.downloadState == DownloadState.STATE_DOWNLOADING) {
                 Toast.makeText(requireContext(), getString(R.string.downloading), Toast.LENGTH_SHORT).show()
             }
+        }
+        binding.btSuggest.setOnClickListener {
+            if (binding.suggestLayout.visibility == View.GONE) {
+                if (viewModel.localPlaylist.value?.syncedWithYouTubePlaylist == 1) {
+                    if (viewModel.localPlaylist.value?.youtubePlaylistId != null) {
+                        binding.suggestLayout.visibility = View.VISIBLE
+                        viewModel.getSuggestions(viewModel.localPlaylist.value?.youtubePlaylistId!!)
+                    }
+                }
+            }
+            else {
+                binding.suggestLayout.visibility = View.GONE
+            }
+        }
+        binding.btReload.setOnClickListener {
+            viewModel.reloadSuggestion()
         }
         binding.btMore.setOnClickListener {
             val moreDialog = BottomSheetDialog(requireContext())
@@ -503,6 +568,36 @@ class LocalPlaylistFragment : Fragment() {
                 }
             }
         }
+        lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.CREATED) {
+                val job1 = launch {
+                    viewModel.listSuggestions.collectLatest { list ->
+                        if (!list.isNullOrEmpty()) {
+                            listSuggestTrack.clear()
+                            listSuggestTrack.addAll(list)
+                            suggestAdapter.updateList(listSuggestTrack)
+                            binding.rvSuggest.visibility = View.VISIBLE
+                            binding.btReload.visibility = View.VISIBLE
+                        }
+                        else {
+                            binding.rvSuggest.visibility = View.GONE
+                            binding.btReload.visibility = View.GONE
+                        }
+                    }
+                }
+                val job2 = launch {
+                    viewModel.loading.collectLatest { loading ->
+                        if (loading) {
+                            binding.suggestLoading.visibility = View.VISIBLE
+                        } else {
+                            binding.suggestLoading.visibility = View.GONE
+                        }
+                    }
+                }
+                job1.join()
+                job2.join()
+            }
+        }
     }
     override fun onDestroyView() {
         super.onDestroyView()
@@ -535,6 +630,12 @@ class LocalPlaylistFragment : Fragment() {
                     if (!localPlaylist.tracks.isNullOrEmpty()) {
                         viewModel.getSetVideoId(localPlaylist.youtubePlaylistId)
                     }
+                }
+                if (localPlaylist.syncedWithYouTubePlaylist == 0) {
+                    binding.btSuggest.visibility = View.GONE
+                }
+                else if (localPlaylist.syncedWithYouTubePlaylist == 1) {
+                    binding.btSuggest.visibility = View.VISIBLE
                 }
             }
             binding.tvTrackCountAndTimeCreated.text = getString(R.string.album_length,
@@ -630,8 +731,7 @@ class LocalPlaylistFragment : Fragment() {
                     binding.ivPlaylistArt.setImageDrawable(result)
                     if (viewModel.gradientDrawable.value != null) {
                         viewModel.gradientDrawable.observe(viewLifecycleOwner) {
-                            binding.fullRootLayout.background = it
-                            binding.topAppBarLayout.background = ColorDrawable(it.colors?.get(0)!!)
+                            binding.topAppBarLayout.background = it
                         }
                     }
                 },
