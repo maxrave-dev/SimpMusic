@@ -143,6 +143,7 @@
                                         android:layout_width="35sp"
                                         android:layout_height="35sp"
                                         android:layout_centerVertical="true"
+                                        android:padding="3dp"
                                         android:background="@android:color/transparent"
                                         android:scaleType="centerCrop"
                                         android:src="@drawable/baseline_tips_and_updates_24"
@@ -155,6 +156,7 @@
                                         android:layout_width="35sp"
                                         android:layout_height="35sp"
                                         android:layout_centerVertical="true"
+                                        android:padding="3dp"
                                         android:background="@android:color/transparent"
                                         android:scaleType="centerCrop"
                                         android:src="@drawable/baseline_shuffle_24"
@@ -236,6 +238,21 @@
                                     android:text="@string/album_length"
                                     android:textSize="15sp"
                                     android:textStyle="bold" />
+                                <com.google.android.material.button.MaterialButton
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    style="@style/Widget.Material3.Button.TextButton.Icon"
+                                    android:text="@string/added_date"
+                                    android:id="@+id/btSort"
+                                    app:icon="@drawable/baseline_arrow_drop_down_24"
+                                    app:iconGravity="end"
+                                    app:iconPadding="5dp"
+                                    android:minWidth="0sp"
+                                    android:minHeight="0sp"
+                                    android:padding="0sp"
+                                    android:textColor="?attr/colorOnSurface">
+
+                                </com.google.android.material.button.MaterialButton>
                             </LinearLayout>
                         </com.google.android.material.card.MaterialCardView>
                     </LinearLayout>

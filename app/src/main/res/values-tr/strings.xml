@@ -246,8 +246,7 @@
     <string name="main_lyrics_provider">Ana Şarkı Sözü Sağlayıcısı</string>
     <string name="log_in_to_Musixmatch">Musixmatch ile giriş yap</string>
     <string name="only_support_email_and_password_type">Sadece e-posta ve şifre türünü destekler</string>
-    <string name="musixmatch_login_description">Musixmatch Çeviri API\'si yalnızca oturum açmış kullanıcıyla çalışır. SimpMusic, gizli Musixmatch Gizli API\'sini bulmak için bazı çözümler kullandı. Daha fazla bilgi için
-https://github.com/maxrave-dev/SimpMusic adresine gidin</string>
+    <string name="musixmatch_login_description">Musixmatch Çeviri API\'si yalnızca oturum açmış kullanıcıyla çalışır. SimpMusic, Musixmatch Geliştirici API\'sini kullandı. Daha fazla bilgi için https://github.com/maxrave-dev/SimpMusic veya https://developer.musixmatch.com/ adresine gidin.</string>
     <string name="use_musixmatch_translation">Musixmatch Çevirisini Kullan</string>
     <string name="use_musixmatch_translation_description">Musixmatch kullanarak şarkı sözleri çevirisini etkinleştirin. Musixmatch Girişi Gerektir</string>
     <string name="translation_language">Çeviri dili</string>
@@ -267,6 +266,9 @@ https://github.com/maxrave-dev/SimpMusic adresine gidin</string>
     <string name="other_app">Diğer uygulamalar</string>
     <string name="database">Uygulama veritabanı</string>
     <string name="free_space">Boş alan</string>
+    <string name="suggest">Telkin</string>
+    <string name="reload">Tekrar yükle</string>
+    <string name="added_date">Tarih eklendi</string>
     <plurals name="n_song">
         <item quantity="one">%d şarkılar</item>
         <item quantity="other">%d şarkılar</item>

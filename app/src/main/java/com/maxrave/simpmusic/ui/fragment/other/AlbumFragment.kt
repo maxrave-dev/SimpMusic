@@ -153,6 +153,7 @@ class AlbumFragment: Fragment() {
                 if (viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                     args.putInt("downloaded", 1)
                 }
+                args.putString("playlistId", viewModel.albumBrowse.value?.data?.audioPlaylistId?.replaceFirst("VL", ""))
                 Queue.clear()
                 Queue.setNowPlaying(viewModel.albumBrowse.value?.data!!.tracks[index])
                 val shuffleList: ArrayList<Track> = arrayListOf()
@@ -171,6 +172,7 @@ class AlbumFragment: Fragment() {
                 if (viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                     args.putInt("downloaded", 1)
                 }
+                args.putString("playlistId", viewModel.albumEntity.value?.browseId?.replaceFirst("VL", ""))
                 Queue.clear()
                 Queue.setNowPlaying(viewModel.listTrack.value?.get(index)!!.toTrack())
                 val shuffleList: ArrayList<Track> = arrayListOf()
@@ -193,6 +195,7 @@ class AlbumFragment: Fragment() {
                 if (viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                     args.putInt("downloaded", 1)
                 }
+                args.putString("playlistId", viewModel.albumBrowse.value?.data?.audioPlaylistId?.replaceFirst("VL", ""))
                 Queue.clear()
                 Queue.setNowPlaying(viewModel.albumBrowse.value?.data!!.tracks[0])
                 Queue.addAll(viewModel.albumBrowse.value?.data!!.tracks as ArrayList<Track>)
@@ -209,6 +212,7 @@ class AlbumFragment: Fragment() {
                 if (viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                     args.putInt("downloaded", 1)
                 }
+                args.putString("playlistId", viewModel.albumEntity.value?.browseId?.replaceFirst("VL", ""))
                 Queue.clear()
                 Queue.setNowPlaying(viewModel.listTrack.value?.get(0)!!.toTrack())
                 Queue.addAll(viewModel.listTrack.value.toArrayListTrack())
@@ -232,6 +236,7 @@ class AlbumFragment: Fragment() {
                     if (viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                         args.putInt("downloaded", 1)
                     }
+                    args.putString("playlistId", viewModel.albumBrowse.value?.data?.audioPlaylistId?.replaceFirst("VL", ""))
                     Queue.clear()
                     Queue.setNowPlaying(viewModel.albumBrowse.value?.data!!.tracks[position])
                     Queue.addAll(viewModel.albumBrowse.value?.data!!.tracks as ArrayList<Track>)
@@ -249,6 +254,7 @@ class AlbumFragment: Fragment() {
                     if (viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                         args.putInt("downloaded", 1)
                     }
+                    args.putString("playlistId", viewModel.albumEntity.value?.browseId?.replaceFirst("VL", ""))
                     Queue.clear()
                     Queue.setNowPlaying(viewModel.listTrack.value?.get(position)!!.toTrack())
                     Queue.addAll(viewModel.listTrack.value.toArrayListTrack())

@@ -53,6 +53,7 @@ import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.LYRICS_PROVIDER
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
+import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.metadata.MetadataSong
 import com.maxrave.simpmusic.data.queue.Queue
@@ -80,6 +81,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import java.time.LocalDateTime
 
 
 @UnstableApi
@@ -96,6 +98,7 @@ class NowPlayingFragment : Fragment() {
     private var type: String? = null
     private var index: Int? = null
     private var downloaded: Int? = null
+    private var playlistId: String? = null
 
     private var gradientDrawable: GradientDrawable? = null
     private var lyricsBackground: Int? = null
@@ -151,6 +154,8 @@ class NowPlayingFragment : Fragment() {
         from = arguments?.getString("from") ?: viewModel.from.value
         index = arguments?.getInt("index")
         downloaded = arguments?.getInt("downloaded")
+        playlistId = arguments?.getString("playlistId")
+
 
         Log.d("check Video ID in Fragment", videoId.toString())
 
@@ -169,6 +174,7 @@ class NowPlayingFragment : Fragment() {
 
         when (type) {
             SONG_CLICK -> {
+                viewModel.playlistId.value = null
                 if (viewModel.videoId.value == videoId) {
                     gradientDrawable = viewModel.gradientDrawable.value
                     lyricsBackground = viewModel.lyricsBackground.value
@@ -212,6 +218,7 @@ class NowPlayingFragment : Fragment() {
                 }
             }
             SHARE -> {
+                viewModel.playlistId.value = null
                 viewModel.stopPlayer()
                 binding.ivArt.visibility = View.GONE
                 binding.loadingArt.visibility = View.VISIBLE
@@ -262,6 +269,7 @@ class NowPlayingFragment : Fragment() {
             }
 
             VIDEO_CLICK -> {
+                viewModel.playlistId.value = null
                 if (viewModel.videoId.value == videoId) {
                     gradientDrawable = viewModel.gradientDrawable.value
                     lyricsBackground = viewModel.lyricsBackground.value
@@ -309,6 +317,9 @@ class NowPlayingFragment : Fragment() {
             }
 
             ALBUM_CLICK -> {
+                    if (playlistId != null) {
+                        viewModel.playlistId.value = playlistId
+                    }
 //                if (!viewModel.songTransitions.value){
                     Log.i("Now Playing Fragment", "Album Click")
                     binding.ivArt.visibility = View.GONE
@@ -367,6 +378,9 @@ class NowPlayingFragment : Fragment() {
             }
 
             PLAYLIST_CLICK -> {
+                    if (playlistId != null) {
+                        viewModel.playlistId.value = playlistId
+                    }
                     Log.i("Now Playing Fragment", "Playlist Click")
                     binding.ivArt.visibility = View.GONE
                     binding.loadingArt.visibility = View.VISIBLE
@@ -805,6 +819,7 @@ class NowPlayingFragment : Fragment() {
                 job14.join()
                 job15.join()
                 job16.join()
+                job17.join()
             }
         }
         binding.btFull.setOnClickListener {
@@ -1050,6 +1065,14 @@ class NowPlayingFragment : Fragment() {
                                                     playlist.youtubePlaylistId,
                                                     song.videoId
                                                 )
+                                            }
+                                            if (!tempTrack.contains(song.videoId)) {
+                                                viewModel.insertPairSongLocalPlaylist(
+                                                    PairSongLocalPlaylist(
+                                                        playlistId = playlist.id, songId = song.videoId, position = tempTrack.size, inPlaylist = LocalDateTime.now()
+                                                    )
+                                                )
+                                                tempTrack.add(song.videoId)
                                             }
                                             tempTrack.add(song.videoId)
                                             tempTrack.removeConflicts()

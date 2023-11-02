@@ -6,4 +6,7 @@
     <locale android:name="de"/>
     <locale android:name="ru"/>
     <locale android:name="tr"/>
+    <locale android:name="fi"/>
+    <locale android:name="pl"/>
+    <locale android:name="pt"/>
 </locale-config>

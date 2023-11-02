@@ -39,6 +39,7 @@ import com.maxrave.simpmusic.adapter.search.SuggestYTItemAdapter
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
+import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.searchResult.albums.AlbumsResult
 import com.maxrave.simpmusic.data.model.searchResult.artists.ArtistsResult
@@ -62,6 +63,7 @@ import com.maxrave.simpmusic.viewModel.SearchViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -515,6 +517,14 @@ class SearchFragment : Fragment() {
                                     }
                                     if (!tempTrack.contains(track.videoId) && playlist.syncedWithYouTubePlaylist == 1 && playlist.youtubePlaylistId != null) {
                                         viewModel.addToYouTubePlaylist(playlist.id, playlist.youtubePlaylistId, track.videoId)
+                                    }
+                                    if (!tempTrack.contains(track.videoId)) {
+                                        viewModel.insertPairSongLocalPlaylist(
+                                            PairSongLocalPlaylist(
+                                            playlistId = playlist.id, songId = track.videoId, position = tempTrack.size, inPlaylist = LocalDateTime.now()
+                                        )
+                                        )
+                                        tempTrack.add(track.videoId)
                                     }
                                     tempTrack.add(track.videoId)
                                     tempTrack.removeConflicts()

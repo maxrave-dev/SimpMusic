@@ -246,7 +246,7 @@
     <string name="main_lyrics_provider">Nguồn cung cấp lời bài hát chính</string>
     <string name="log_in_to_Musixmatch">Đăng nhập vào Musixmatch</string>
     <string name="only_support_email_and_password_type">Chỉ hỗ trợ đăng nhập bằng email và mật khẩu</string>
-    <string name="musixmatch_login_description">API dịch của Musixmatch chỉ hoạt động với người dùng đã đăng nhập. SimpMusic sử dụng một vài mẹo để tìm ra các API đã được Musixmatch ẩn. Xem thêm thông tin, đi đến https://github.com/maxrave-dev/SimpMusic</string>
+    <string name="musixmatch_login_description">Musixmatch Dịch API chỉ hoạt động cho người dùng đã đăng nhập. Thêm thông tin về Musixmatch Developer API, đi tới https://github.com/maxrave-dev/SimpMusic hoặc https://developer.musixmatch.com/</string>
     <string name="use_musixmatch_translation">Sử dụng hệ thống dịch của Musixmatch</string>
     <string name="use_musixmatch_translation_description">Bật dịch bài hát sử dụng Musixmatch. Yêu cầu đăng nhập</string>
     <string name="translation_language">Ngôn ngữ dịch</string>
@@ -266,6 +266,9 @@
     <string name="other_app">Ứng dụng khác</string>
     <string name="database">Cơ sở dữ liệu của ứng dụng</string>
     <string name="free_space">Còn trống</string>
+    <string name="suggest">Đề xuất</string>
+    <string name="reload">Làm mới</string>
+    <string name="added_date">Ngày thêm vào</string>
     <plurals name="n_song">
         <item quantity="other">%d bài hát</item>
     </plurals>

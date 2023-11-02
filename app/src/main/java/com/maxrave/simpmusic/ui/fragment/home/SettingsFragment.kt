@@ -280,11 +280,7 @@ class SettingsFragment : Fragment() {
         }
 
         binding.btVersion.setOnClickListener {
-            val urlIntent = Intent(
-                Intent.ACTION_VIEW,
-                Uri.parse("https://github.com/maxrave-dev/SimpMusic")
-            )
-            startActivity(urlIntent)
+            findNavController().navigateSafe(R.id.action_global_creditFragment)
         }
 
         binding.btLogin.setOnClickListener {

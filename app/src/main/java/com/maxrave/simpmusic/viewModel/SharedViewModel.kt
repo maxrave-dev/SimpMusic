@@ -36,6 +36,7 @@ import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.TRUE
 import com.maxrave.simpmusic.data.db.entities.FormatEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.LyricsEntity
+import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.metadata.Line
@@ -171,6 +172,8 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     val intent: MutableStateFlow<Intent?> = MutableStateFlow(null)
 
     private var jobWatchtime: Job? = null
+
+    var playlistId: MutableStateFlow<String?> = MutableStateFlow(null)
 
 //    init {
 //        Log.w("Check SharedViewModel init", (simpleMediaServiceHandler != null).toString())
@@ -308,7 +311,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
         viewModelScope.launch {
             if (playback != null && atr != null && watchTime != null && cpn != null) {
                 watchTimeList.clear()
-                mainRepository.initPlayback(playback, atr, watchTime, cpn).collect {
+                mainRepository.initPlayback(playback, atr, watchTime, cpn, playlistId.value).collect {
                     if (it.first == 204) {
                         Log.d("Check initPlayback", "Success")
                         watchTimeList.add(0f)
@@ -334,7 +337,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                                 watchTimeList.add(second + 20.23f)
                                 if (watchTimeUrl != null && cpn != null) {
                                     Log.w("Check updateWatchTime", _format.value?.uploader.toString())
-                                    mainRepository.updateWatchTime(watchTimeUrl, watchTimeList, cpn).collect { response ->
+                                    mainRepository.updateWatchTime(watchTimeUrl, watchTimeList, cpn, playlistId.value).collect { response ->
                                         if (response == 204) {
                                             Log.d("Check updateWatchTime", "Success")
                                         }
@@ -345,7 +348,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                                 watchTimeList.clear()
                                 if (watchTimeUrl != null && cpn != null) {
                                     Log.w("Check updateWatchTime", _format.value?.uploader.toString())
-                                    mainRepository.updateWatchTimeFull(watchTimeUrl, cpn).collect { response ->
+                                    mainRepository.updateWatchTimeFull(watchTimeUrl, cpn, playlistId.value).collect { response ->
                                         if (response == 204) {
                                             Log.d("Check updateWatchTimeFull", "Success")
                                         }
@@ -432,7 +435,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                     if (it) {
                         Toast.makeText(context, context.getString(R.string.restore_success), Toast.LENGTH_SHORT).show()
                         mainRepository.getDownloadedSongs().collect { songs ->
-                            songs.forEach { song ->
+                            songs?.forEach { song ->
                                 if (!downloadedCache.keys.contains(song.videoId)) {
                                     mainRepository.updateDownloadState(song.videoId, DownloadState.STATE_NOT_DOWNLOADED)
                                 }
@@ -482,16 +485,20 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                 else {
                     resetLyrics()
                     mainRepository.getLyricsData(query, track.durationSeconds).collect { response ->
-                        _lyrics.value = response.second!!
+                        _lyrics.value = response.second
                         when(_lyrics.value) {
                             is Resource.Success -> {
                                 if (_lyrics.value?.data != null) {
                                     insertLyrics(_lyrics.value?.data!!.toLyricsEntity(track.videoId))
                                     parseLyrics(_lyrics.value?.data)
-                                    mainRepository.getTranslateLyrics(response.first).collect { translate ->
-                                        if (translate != null) {
-                                            _translateLyrics.value = translate.toLyrics(_lyrics.value?.data!!)
-                                        }
+                                    if (dataStoreManager.enableTranslateLyric.first() == TRUE) {
+                                        mainRepository.getTranslateLyrics(response.first)
+                                            .collect { translate ->
+                                                if (translate != null) {
+                                                    _translateLyrics.value =
+                                                        translate.toLyrics(_lyrics.value?.data!!)
+                                                }
+                                            }
                                     }
                                 }
                             }
@@ -874,7 +881,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     fun changeAllDownloadingToError() {
         viewModelScope.launch {
             mainRepository.getDownloadingSongs().collect {songs ->
-                songs.forEach { song ->
+                songs?.forEach { song ->
                     mainRepository.updateDownloadState(song.videoId, DownloadState.STATE_NOT_DOWNLOADED)
                 }
             }
@@ -947,7 +954,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     fun checkAllDownloadingSongs() {
         viewModelScope.launch {
             mainRepository.getDownloadingSongs().collect {songs ->
-                songs.forEach { song ->
+                songs?.forEach { song ->
                     mainRepository.updateDownloadState(song.videoId, DownloadState.STATE_NOT_DOWNLOADED)
                 }
             }
@@ -1080,13 +1087,16 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                                         if (response.second.data != null) {
                                             insertLyrics(response.second.data!!.toLyricsEntity(videoId))
                                             parseLyrics(response.second.data)
-                                            mainRepository.getTranslateLyrics(response.first)
-                                                .collect { translate ->
-                                                    if (translate != null) {
-                                                        _translateLyrics.value =
-                                                            translate.toLyrics(response.second.data!!)
+                                            if (dataStoreManager.enableTranslateLyric.first() == TRUE) {
+                                                mainRepository.getTranslateLyrics(response.first)
+                                                    .collect { translate ->
+                                                        if (translate != null) {
+                                                            _translateLyrics.value =
+                                                                translate.toLyrics(response.second.data!!)
+                                                        }
                                                     }
-                                                }
+
+                                            }
                                         }
                                     }
 
@@ -1153,6 +1163,12 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     fun updateInLibrary(videoId: String) {
         viewModelScope.launch {
             mainRepository.updateSongInLibrary(LocalDateTime.now(), videoId)
+        }
+    }
+
+    fun insertPairSongLocalPlaylist(pairSongLocalPlaylist: PairSongLocalPlaylist) {
+        viewModelScope.launch {
+            mainRepository.insertPairSongLocalPlaylist(pairSongLocalPlaylist)
         }
     }
 }

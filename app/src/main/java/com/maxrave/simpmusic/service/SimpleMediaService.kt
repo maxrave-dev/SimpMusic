@@ -9,6 +9,9 @@ import android.os.Binder
 import android.os.IBinder
 import android.util.Log
 import androidx.core.net.toUri
+import androidx.media3.cast.CastPlayer
+import androidx.media3.cast.DefaultMediaItemConverter
+import androidx.media3.cast.SessionAvailabilityListener
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.Player
@@ -34,6 +37,7 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionToken
+import com.google.android.gms.cast.framework.CastContext
 import com.google.common.util.concurrent.MoreExecutors
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.MEDIA_NOTIFICATION
@@ -48,9 +52,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import java.util.concurrent.Executors
 import javax.inject.Inject
 
 @AndroidEntryPoint
+@UnstableApi
 class SimpleMediaService : MediaSessionService() {
 
     lateinit var player: ExoPlayer

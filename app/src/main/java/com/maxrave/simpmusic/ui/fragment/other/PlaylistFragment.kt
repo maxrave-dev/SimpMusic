@@ -35,6 +35,7 @@ import com.maxrave.simpmusic.adapter.playlist.PlaylistItemAdapter
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
+import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.queue.Queue
@@ -61,6 +62,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import java.time.LocalDateTime
 import kotlin.math.abs
 import kotlin.random.Random
 
@@ -270,6 +272,7 @@ class PlaylistFragment: Fragment() {
                 args.putString("type", Config.PLAYLIST_CLICK)
                 args.putString("videoId", viewModel.playlistBrowse.value?.data?.tracks?.get(0)?.videoId)
                 args.putString("from", "Playlist \"${viewModel.playlistBrowse.value?.data?.title}\"")
+                args.putString("playlistId", viewModel.playlistBrowse.value?.data?.id?.replaceFirst("VL", ""))
                 if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                     args.putInt("downloaded", 1)
                 }
@@ -287,6 +290,7 @@ class PlaylistFragment: Fragment() {
                 args.putString("type", Config.PLAYLIST_CLICK)
                 args.putString("videoId", viewModel.playlistEntity.value?.tracks?.get(0))
                 args.putString("from", "Playlist \"${viewModel.playlistEntity.value?.title}\"")
+                args.putString("playlistId", viewModel.playlistEntity.value?.id?.replaceFirst("VL", ""))
                 if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                     args.putInt("downloaded", 1)
                 }
@@ -312,6 +316,7 @@ class PlaylistFragment: Fragment() {
                     args.putString("type", Config.PLAYLIST_CLICK)
                     args.putString("videoId", viewModel.playlistBrowse.value?.data!!.tracks[position].videoId)
                     args.putString("from", "Playlist \"${viewModel.playlistBrowse.value?.data!!.title}\"")
+                    args.putString("playlistId", viewModel.playlistBrowse.value?.data?.id?.replaceFirst("VL", ""))
                     args.putInt("index", position)
                     if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                         args.putInt("downloaded", 1)
@@ -330,6 +335,7 @@ class PlaylistFragment: Fragment() {
                     args.putString("type", Config.PLAYLIST_CLICK)
                     args.putString("videoId", viewModel.playlistEntity.value?.tracks?.get(position))
                     args.putString("from", "Playlist \"${viewModel.playlistEntity.value?.title}\"")
+                    args.putString("playlistId", viewModel.playlistEntity.value?.id?.replaceFirst("VL", ""))
                     args.putInt("index", position)
                     if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                         args.putInt("downloaded", 1)
@@ -454,6 +460,14 @@ class PlaylistFragment: Fragment() {
                                 if (!tempTrack.contains(song.videoId) && playlist.syncedWithYouTubePlaylist == 1 && playlist.youtubePlaylistId != null) {
                                     viewModel.addToYouTubePlaylist(playlist.id, playlist.youtubePlaylistId, song.videoId)
                                 }
+                                if (!tempTrack.contains(song.videoId)) {
+                                    viewModel.insertPairSongLocalPlaylist(
+                                        PairSongLocalPlaylist(
+                                            playlistId = playlist.id, songId = song.videoId, position = tempTrack.size, inPlaylist = LocalDateTime.now()
+                                        )
+                                    )
+                                    tempTrack.add(song.videoId)
+                                }
                                 tempTrack.add(song.videoId)
                                 tempTrack.removeConflicts()
                                 viewModel.updateLocalPlaylistTracks(tempTrack, playlist.id)
@@ -504,6 +518,7 @@ class PlaylistFragment: Fragment() {
                 val index = Random.nextInt(0, viewModel.playlistBrowse.value?.data!!.tracks.size - 1)
                 args.putString("videoId", viewModel.playlistBrowse.value?.data?.tracks?.get(index)?.videoId)
                 args.putString("from", "Playlist \"${viewModel.playlistBrowse.value?.data?.title}\"")
+                args.putString("playlistId", viewModel.playlistBrowse.value?.data?.id?.replaceFirst("VL", ""))
                 if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                     args.putInt("downloaded", 1)
                 }
@@ -527,6 +542,7 @@ class PlaylistFragment: Fragment() {
                 )
                 args.putString("videoId", viewModel.playlistEntity.value?.tracks?.get(index))
                 args.putString("from", "Playlist \"${viewModel.playlistEntity.value?.title}\"")
+                args.putString("playlistId", viewModel.playlistEntity.value?.id?.replaceFirst("VL", ""))
                 if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                     args.putInt("downloaded", 1)
                 }

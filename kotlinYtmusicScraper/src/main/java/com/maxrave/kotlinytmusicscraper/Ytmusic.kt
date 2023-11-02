@@ -636,7 +636,7 @@ class Ytmusic {
         }
     }
 
-    suspend fun initPlayback(url: String, cpn: String, customParams: Map<String, String>? = null)
+    suspend fun initPlayback(url: String, cpn: String, customParams: Map<String, String>? = null, playlistId: String?)
     = httpClient.get(url) {
         ytClient(YouTubeClient.ANDROID_MUSIC, true)
         parameter("ver", "2")
@@ -645,14 +645,22 @@ class Ytmusic {
         customParams?.forEach { (key, value) ->
             parameter(key, value)
         }
+        if (playlistId != null) {
+            parameter("list", playlistId)
+            parameter("referrer", "https://music.youtube.com/playlist?list=$playlistId")
+        }
     }
 
-    suspend fun atr(url: String, cpn: String, customParams: Map<String, String>? = null) = httpClient.post(url) {
+    suspend fun atr(url: String, cpn: String, customParams: Map<String, String>? = null, playlistId: String?) = httpClient.post(url) {
         ytClient(YouTubeClient.ANDROID_MUSIC, true)
         parameter("c", "ANDROID_MUSIC")
         parameter("cpn", cpn)
         customParams?.forEach { (key, value) ->
             parameter(key, value)
+        }
+        if (playlistId != null) {
+            parameter("list", playlistId)
+            parameter("referrer", "https://music.youtube.com/playlist?list=$playlistId")
         }
     }
 

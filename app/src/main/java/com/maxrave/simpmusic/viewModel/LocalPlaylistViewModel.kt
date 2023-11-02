@@ -10,14 +10,17 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.Download
+import com.maxrave.kotlinytmusicscraper.test.main
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
+import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.SetVideoIdEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.extension.toListVideoId
+import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -27,6 +30,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.time.LocalDateTime
 import javax.inject.Inject
 
 @HiltViewModel
@@ -39,11 +43,16 @@ class LocalPlaylistViewModel @Inject constructor(
 
     val id: MutableLiveData<Long> = MutableLiveData()
 
+    var reverseLayout: Boolean = false
+
     private var _listLocalPlaylist: MutableLiveData<LocalPlaylistEntity?> = MutableLiveData()
     val localPlaylist: LiveData<LocalPlaylistEntity?> = _listLocalPlaylist
 
-    private var _listTrack: MutableLiveData<List<SongEntity>> = MutableLiveData()
-    val listTrack: LiveData<List<SongEntity>> = _listTrack
+    private var _listTrack: MutableStateFlow<List<SongEntity>?> = MutableStateFlow(null)
+    val listTrack: StateFlow<List<SongEntity>?> = _listTrack
+
+    private var _listPair: MutableStateFlow<List<PairSongLocalPlaylist>?> = MutableStateFlow(null)
+    val listPair : StateFlow<List<PairSongLocalPlaylist>?> = _listPair
 
     var gradientDrawable: MutableLiveData<GradientDrawable> = MutableLiveData()
 
@@ -108,7 +117,8 @@ class LocalPlaylistViewModel @Inject constructor(
                         count++
                     }
                 }
-                _listTrack.postValue(temp)
+                _listTrack.value = (temp)
+                getPairSongLocalPlaylist(id.value!!)
                 if (count == it.size && localPlaylist.value?.downloadState != DownloadState.STATE_DOWNLOADED) {
                     updatePlaylistDownloadState(id.value!!, DownloadState.STATE_DOWNLOADED)
                     getLocalPlaylist(id.value!!)
@@ -256,6 +266,19 @@ class LocalPlaylistViewModel @Inject constructor(
         viewModelScope.launch {
             val tempList: ArrayList<SongEntity> = arrayListOf()
             tempList.addAll(listTrack.value!!)
+            song?.videoId?.let {
+                mainRepository.deletePairSongLocalPlaylist(id, it)
+                for (i in tempList.indexOf(song) until tempList.size) {
+                    mainRepository.insertPairSongLocalPlaylist(
+                        PairSongLocalPlaylist(
+                            playlistId = id,
+                            songId = tempList[i].videoId,
+                            position = tempList.indexOf(tempList[i]) - 1,
+                            inPlaylist = LocalDateTime.now()
+                        )
+                    )
+                }
+            }
             tempList.remove(song)
             val listTrack: ArrayList<String> = arrayListOf()
             tempList.forEach {
@@ -264,6 +287,7 @@ class LocalPlaylistViewModel @Inject constructor(
             mainRepository.updateLocalPlaylistTracks(
                 listTrack, id
             )
+            getPairSongLocalPlaylist(id)
             mainRepository.getLocalPlaylist(id).collect { playlist ->
                 _listLocalPlaylist.value = playlist
                 if (!playlist.tracks.isNullOrEmpty()) {
@@ -272,7 +296,7 @@ class LocalPlaylistViewModel @Inject constructor(
                     }
                 }
                 else {
-                    _listTrack.postValue(arrayListOf())
+                    _listTrack.value = null
                 }
             }
         }
@@ -399,6 +423,13 @@ class LocalPlaylistViewModel @Inject constructor(
                         yt.data.tracks.forEach { track ->
                             if (!list.contains(track.videoId)) {
                                 listTrack.add(track.videoId)
+                                mainRepository.insertSong(track.toSongEntity())
+                                mainRepository.insertPairSongLocalPlaylist(PairSongLocalPlaylist(
+                                    playlistId = id,
+                                    songId = track.videoId,
+                                    position = yt.data.tracks.indexOf(track),
+                                    inPlaylist = LocalDateTime.now()
+                                ))
                             }
                         }
                         mainRepository.updateLocalPlaylistTracks(listTrack, id)
@@ -425,6 +456,82 @@ class LocalPlaylistViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun updateInLibrary(videoId: String) {
+        viewModelScope.launch {
+            mainRepository.updateSongInLibrary(LocalDateTime.now(), videoId )
+        }
+    }
+
+    fun addToYouTubePlaylist(localPlaylistId: Long, youtubePlaylistId: String, videoId: String) {
+        viewModelScope.launch {
+            mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylistId, LocalPlaylistEntity.YouTubeSyncState.Syncing)
+            mainRepository.addYouTubePlaylistItem(youtubePlaylistId, videoId).collect { response ->
+                if (response == "STATUS_SUCCEEDED") {
+                    mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylistId, LocalPlaylistEntity.YouTubeSyncState.Synced)
+                    Toast.makeText(getApplication(), application.getString(R.string.added_to_youtube_playlist), Toast.LENGTH_SHORT).show()
+                }
+                else {
+                    mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylistId, LocalPlaylistEntity.YouTubeSyncState.NotSynced)
+                    Toast.makeText(getApplication(), application.getString(R.string.error), Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    fun updateLocalPlaylistTracks(list: List<String>, id: Long) {
+        viewModelScope.launch {
+            mainRepository.getSongsByListVideoId(list).collect { values ->
+                var count = 0
+                values.forEach { song ->
+                    if (song.downloadState == DownloadState.STATE_DOWNLOADED){
+                        count++
+                    }
+                }
+                mainRepository.updateLocalPlaylistTracks(list, id)
+                Toast.makeText(application, application.getString(R.string.added_to_playlist), Toast.LENGTH_SHORT).show()
+                if (count == values.size) {
+                    mainRepository.updateLocalPlaylistDownloadState(DownloadState.STATE_DOWNLOADED, id)
+                }
+                else {
+                    mainRepository.updateLocalPlaylistDownloadState(DownloadState.STATE_NOT_DOWNLOADED, id)
+                }
+                getLocalPlaylist(id)
+                getPairSongLocalPlaylist(id)
+            }
+        }
+    }
+
+    fun insertSong(song: Track) {
+        viewModelScope.launch {
+            mainRepository.insertSong(song.toSongEntity())
+        }
+    }
+
+    fun insertPairSongLocalPlaylist(pairSongLocalPlaylist: PairSongLocalPlaylist) {
+        viewModelScope.launch {
+            mainRepository.insertPairSongLocalPlaylist(pairSongLocalPlaylist)
+        }
+    }
+
+    fun getPairSongLocalPlaylist(id: Long) {
+        viewModelScope.launch {
+            mainRepository.getPlaylistPairSong(id).collect {
+                _listPair.value = (it)
+                Log.w("Pair", "getPairSongLocalPlaylist: $it")
+            }
+        }
+    }
+
+    fun removeListSuggestion() {
+        _listSuggestions.value = null
+    }
+
+    fun removeData() {
+        _listLocalPlaylist.value = null
+        _listTrack.value = null
+        _listPair.value = null
     }
 
 }

@@ -315,7 +315,7 @@ class SettingsViewModel @Inject constructor(
                 downloadCache.removeResource(key)
             }
             mainRepository.getDownloadedSongs().collect {songs ->
-                songs.forEach { song ->
+                songs?.forEach { song ->
                     mainRepository.updateDownloadState(song.videoId, DownloadState.STATE_NOT_DOWNLOADED)
                 }
             }

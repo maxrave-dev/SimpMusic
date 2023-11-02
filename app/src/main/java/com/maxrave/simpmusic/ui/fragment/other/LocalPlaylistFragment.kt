@@ -3,7 +3,6 @@ package com.maxrave.simpmusic.ui.fragment.other
 import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
 import android.os.Build.ID
 import android.os.Bundle
@@ -40,6 +39,7 @@ import com.maxrave.simpmusic.adapter.playlist.PlaylistItemAdapter
 import com.maxrave.simpmusic.adapter.playlist.SuggestItemAdapter
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.DownloadState
+import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.queue.Queue
@@ -48,12 +48,16 @@ import com.maxrave.simpmusic.databinding.BottomSheetLocalPlaylistBinding
 import com.maxrave.simpmusic.databinding.BottomSheetLocalPlaylistItemBinding
 import com.maxrave.simpmusic.databinding.FragmentLocalPlaylistBinding
 import com.maxrave.simpmusic.extension.navigateSafe
+import com.maxrave.simpmusic.extension.removeConflicts
 import com.maxrave.simpmusic.extension.toTrack
+import com.maxrave.simpmusic.extension.zip
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.viewModel.LocalPlaylistViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.math.abs
 import kotlin.random.Random
@@ -120,7 +124,7 @@ class LocalPlaylistFragment : Fragment() {
 
         binding.rvListSong.apply {
             adapter = playlistAdapter
-            layoutManager = LinearLayoutManager(requireContext())
+            layoutManager = if (!viewModel.reverseLayout) LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false) else LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, true)
         }
 
         binding.rvSuggest.apply {
@@ -145,6 +149,18 @@ class LocalPlaylistFragment : Fragment() {
         }
         else {
             binding.suggestLayout.visibility = View.VISIBLE
+        }
+        binding.btSort.setOnClickListener {
+            if (viewModel.reverseLayout) {
+                binding.rvListSong.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
+                binding.btSort.setIconResource(R.drawable.baseline_arrow_drop_down_24)
+                viewModel.reverseLayout = false
+            }
+            else {
+                binding.rvListSong.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, true)
+                binding.btSort.setIconResource(R.drawable.baseline_arrow_drop_up_24)
+                viewModel.reverseLayout = true
+            }
         }
         playlistAdapter.setOnClickListener(object : PlaylistItemAdapter.OnItemClickListener{
             override fun onItemClick(position: Int) {
@@ -175,12 +191,6 @@ class LocalPlaylistFragment : Fragment() {
                 val viewDialog = BottomSheetLocalPlaylistItemBinding.inflate(layoutInflater)
                 viewDialog.btDelete.setOnClickListener {
                     viewModel.deleteItem(viewModel.listTrack.value?.get(position), id!!)
-                    viewModel.listTrack.observe(viewLifecycleOwner){
-                        listTrack.clear()
-                        listTrack.addAll(it)
-                        playlistAdapter.updateList(listTrack)
-                        dialog.dismiss()
-                    }
                     if (viewModel.localPlaylist.value?.syncedWithYouTubePlaylist == 1 && viewModel.localPlaylist.value?.youtubePlaylistId != null) {
                         val videoId = viewModel.listTrack.value?.get(position)?.videoId
                         viewModel.removeYouTubePlaylistItem(viewModel.localPlaylist.value?.youtubePlaylistId!!, videoId!!)
@@ -219,8 +229,38 @@ class LocalPlaylistFragment : Fragment() {
         suggestAdapter.setOnAddItemClickListener(object : SuggestItemAdapter.OnAddItemClickListener{
             override fun onAddItemClick(position: Int) {
 
+                if (listSuggestTrack.isNotEmpty()) {
+                    val song = listSuggestTrack.get(position)
+                    viewModel.insertSong(song)
+                    viewModel.updateInLibrary(song.videoId)
+                    val tempTrack = ArrayList<String>()
+                    if (viewModel.listTrack.value != null) {
+                        viewModel.listTrack.value?.forEach { track ->
+                            tempTrack.add(track.videoId)
+                        }
+                    }
+                    if (!tempTrack.contains(song.videoId) && viewModel.localPlaylist.value?.syncedWithYouTubePlaylist == 1 && viewModel.localPlaylist.value?.youtubePlaylistId != null) {
+                        viewModel.addToYouTubePlaylist(viewModel.localPlaylist.value?.id!!, viewModel.localPlaylist.value?.youtubePlaylistId!!, song.videoId)
+                    }
+                    if (!tempTrack.contains(song.videoId)) {
+                        viewModel.insertPairSongLocalPlaylist(PairSongLocalPlaylist(
+                            playlistId = viewModel.localPlaylist.value?.id!!, songId = song.videoId, position = tempTrack.size, inPlaylist = LocalDateTime.now()
+                        ))
+                        tempTrack.add(song.videoId)
+                    }
+                    tempTrack.removeConflicts()
+                    viewModel.localPlaylist.value?.id?.let {
+                        viewModel.updateLocalPlaylistTracks(tempTrack,
+                            it
+                        )
+                    }
+                    listSuggestTrack.remove(song)
+                    suggestAdapter.updateList(listSuggestTrack)
+                }
+                else {
+                    Toast.makeText(requireContext(), getString(R.string.error), Toast.LENGTH_SHORT).show()
+                }
             }
-
         })
 
         binding.topAppBar.setNavigationOnClickListener {
@@ -252,6 +292,9 @@ class LocalPlaylistFragment : Fragment() {
                 if (viewModel.localPlaylist.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                     args.putInt("downloaded", 1)
                 }
+                if (viewModel.localPlaylist.value?.syncedWithYouTubePlaylist == 1) {
+                    args.putString("playlistId", viewModel.localPlaylist.value?.youtubePlaylistId?.replaceFirst("VL", ""))
+                }
                 Queue.clear()
                 Queue.setNowPlaying((listTrack[0] as SongEntity).toTrack())
                 val tempList: ArrayList<Track> = arrayListOf()
@@ -277,6 +320,9 @@ class LocalPlaylistFragment : Fragment() {
                 args.putString("from", "Playlist \"${(viewModel.localPlaylist.value)?.title}\"")
                 if (viewModel.localPlaylist.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                     args.putInt("downloaded", 1)
+                }
+                if (viewModel.localPlaylist.value?.syncedWithYouTubePlaylist == 1) {
+                    args.putString("playlistId", viewModel.localPlaylist.value?.youtubePlaylistId?.replaceFirst("VL", ""))
                 }
                 Queue.clear()
                 Queue.setNowPlaying((listTrack[index] as SongEntity).toTrack())
@@ -394,12 +440,7 @@ class LocalPlaylistFragment : Fragment() {
                         if (localPlaylist != null) {
                             if (!localPlaylist.tracks.isNullOrEmpty()) {
                                 viewModel.getListTrack(localPlaylist.tracks)
-                                viewModel.listTrack.observe(viewLifecycleOwner) { list ->
-                                    Log.d("Check", "fetchData: ${viewModel.listTrack.value}")
-                                    listTrack.clear()
-                                    listTrack.addAll(list)
-                                    playlistAdapter.updateList(listTrack)
-                                }
+                                viewModel.getPairSongLocalPlaylist(localPlaylist.id)
                             }
                         }
                         if (localPlaylist != null) {
@@ -594,8 +635,30 @@ class LocalPlaylistFragment : Fragment() {
                         }
                     }
                 }
+                val job3 = launch {
+                    combine(
+                        viewModel.listTrack,
+                        viewModel.listPair
+                    ) {
+                            listSong, listPair ->
+                        Pair(listSong, listPair)
+                    }.collect {
+                        val listSong = it.first
+                        val listPair = it.second
+                        Log.w("Check", "combine: $listPair")
+                        if (listPair != null && listSong != null) {
+                            listTrack.clear()
+                            listTrack.addAll(listSong)
+                            listTrack.sortBy {
+                                viewModel.listPair.value?.find { pair -> pair.songId == (it as SongEntity).videoId }?.position
+                            }
+                            playlistAdapter.updateList(listTrack)
+                        }
+                    }
+                }
                 job1.join()
                 job2.join()
+                job3.join()
             }
         }
     }
@@ -614,15 +677,8 @@ class LocalPlaylistFragment : Fragment() {
             if (localPlaylist != null) {
                 if (!localPlaylist.tracks.isNullOrEmpty()) {
                     viewModel.getListTrack(localPlaylist.tracks)
-                    viewModel.listTrack.observe(viewLifecycleOwner) { list ->
-                        Log.d("Check", "fetchData: ${viewModel.listTrack.value}")
-                        listTrack.clear()
-                        listTrack.addAll(list)
-                        playlistAdapter.updateList(listTrack)
-                    }
+                    viewModel.getPairSongLocalPlaylist(localPlaylist.id)
                 }
-            }
-            if (localPlaylist != null) {
                 binding.collapsingToolbarLayout.title = localPlaylist.title
                 binding.tvTitle.text = localPlaylist.title
                 binding.tvTitle.isSelected = true
@@ -640,8 +696,8 @@ class LocalPlaylistFragment : Fragment() {
             }
             binding.tvTrackCountAndTimeCreated.text = getString(R.string.album_length,
                 localPlaylist?.tracks?.size?.toString() ?: "0", localPlaylist?.inLibrary?.format(
-                DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy")
-            ))
+                    DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy")
+                ))
             loadImage(localPlaylist?.thumbnail)
             with(binding){
                 if (localPlaylist != null) {
@@ -775,5 +831,11 @@ class LocalPlaylistFragment : Fragment() {
 
             }).build()
         ImageLoader(requireContext()).enqueue(request)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        viewModel.removeListSuggestion()
+        viewModel.removeData()
     }
 }

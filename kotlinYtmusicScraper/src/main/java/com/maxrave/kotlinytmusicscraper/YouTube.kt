@@ -578,23 +578,23 @@ object YouTube {
             ))
         }
     }
-    suspend fun updateWatchTime(watchtimeUrl: String, watchtimeList: ArrayList<Float>, cpn: String): Result<Int> =
+    suspend fun updateWatchTime(watchtimeUrl: String, watchtimeList: ArrayList<Float>, cpn: String, playlistId: String?): Result<Int> =
         runCatching {
             val et = watchtimeList.takeLast(2).joinToString(",")
             val watchtime = watchtimeList.dropLast(1).takeLast(2).joinToString(",")
-            ytMusic.initPlayback(watchtimeUrl, cpn, mapOf("st" to watchtime, "et" to et)).status.value.let { status ->
+            ytMusic.initPlayback(watchtimeUrl, cpn, mapOf("st" to watchtime, "et" to et), playlistId).status.value.let { status ->
                 if (status == 204) {
                     println("watchtime done")
                 }
                 return@runCatching status
             }
         }
-    suspend fun updateWatchTimeFull(watchtimeUrl: String, cpn: String): Result<Int> =
+    suspend fun updateWatchTimeFull(watchtimeUrl: String, cpn: String, playlistId: String?): Result<Int> =
         runCatching {
             val regex = Regex("len=([^&]+)")
             val length = regex.find(watchtimeUrl)?.groupValues?.firstOrNull()?.drop(4) ?: "0"
             println(length)
-            ytMusic.initPlayback(watchtimeUrl, cpn, mapOf("st" to length, "et" to length)).status.value.let { status ->
+            ytMusic.initPlayback(watchtimeUrl, cpn, mapOf("st" to length, "et" to length), playlistId).status.value.let { status ->
                 if (status == 204) {
                     println("watchtime full done")
                 }
@@ -608,24 +608,24 @@ object YouTube {
      * Float: second watchtime
      * First watchtime is 5.54
      */
-    suspend fun initPlayback(playbackUrl: String, atrUrl: String, watchtimeUrl: String, cpn: String): Result<Pair<Int, Float>> {
+    suspend fun initPlayback(playbackUrl: String, atrUrl: String, watchtimeUrl: String, cpn: String, playlistId: String?): Result<Pair<Int, Float>> {
         println("playbackUrl $playbackUrl")
         println("atrUrl $atrUrl")
         println("watchtimeUrl $watchtimeUrl")
         return runCatching {
-            ytMusic.initPlayback(playbackUrl, cpn).status.value.let { status ->
+            ytMusic.initPlayback(playbackUrl, cpn, null, playlistId).status.value.let { status ->
                 if (status == 204) {
                     println("playback done")
-                    ytMusic.initPlayback(watchtimeUrl, cpn, mapOf("st" to "0", "et" to "5.54")).status.value.let { firstWatchTime ->
+                    ytMusic.initPlayback(watchtimeUrl, cpn, mapOf("st" to "0", "et" to "5.54"), playlistId).status.value.let { firstWatchTime ->
                         if (firstWatchTime == 204) {
                             println("first watchtime done")
                             delay(5000)
-                            ytMusic.atr(atrUrl, cpn).status.value.let { atr ->
+                            ytMusic.atr(atrUrl, cpn, null, playlistId).status.value.let { atr ->
                                 if (atr == 204) {
                                     println("atr done")
                                     delay(500)
                                     val secondWatchTime = (Math.round(Random.nextFloat()*100.0)/100.0).toFloat() + 12f
-                                    ytMusic.initPlayback(watchtimeUrl, cpn, mapOf<String, String>("st" to "0,5.54", "et" to "5.54,$secondWatchTime")).status.value.let { watchtime ->
+                                    ytMusic.initPlayback(watchtimeUrl, cpn, mapOf<String, String>("st" to "0,5.54", "et" to "5.54,$secondWatchTime"), playlistId).status.value.let { watchtime ->
                                         if (watchtime == 204) {
                                             println("watchtime done")
                                             return@runCatching Pair(watchtime, secondWatchTime)

@@ -247,7 +247,7 @@
     <string name="main_lyrics_provider">Main Lyrics Provider</string>
     <string name="log_in_to_Musixmatch">Log in to Musixmatch</string>
     <string name="only_support_email_and_password_type">Only support email and password type</string>
-    <string name="musixmatch_login_description">Musixmatch Translation API works only with logged-in user. SimpMusic used some trick to find hidden Musixmatch Hidden API. More information, go to https://github.com/maxrave-dev/SimpMusic</string>
+    <string name="musixmatch_login_description">Musixmatch Translation API works only with logged-in user. SimpMusic used Musixmatch Developer API. More information, go to https://github.com/maxrave-dev/SimpMusic or https://developer.musixmatch.com/</string>
     <string name="use_musixmatch_translation">Use Musixmatch Translation</string>
     <string name="use_musixmatch_translation_description">Enable lyrics translation using Musixmatch. Require Musixmatch Login</string>
     <string name="translation_language">Translation Language</string>
@@ -269,6 +269,8 @@
     <string name="free_space">Free space</string>
     <string name="suggest">Suggestion</string>
     <string name="reload">Reload</string>
+    <string name="added_date">Added date</string>
+    <string name="credit_app">A simple music app using YouTube Music for backend \n\nSimpMusic is an open source project to stream music from YouTube and YouTube Music without ads and tracking. SimpMusic provides many features:\n\n - Streaming music \n - Synced lyrics\n - Personalize data\n - etc... \n\nSimpMusic is always free and no ads\n\nBuild with ❤️ from Tuan Minh Nguyen Duc (maxrave-dev)</string>
     <plurals name="n_song">
         <item quantity="one">%d song</item>
         <item quantity="other">%d songs</item>

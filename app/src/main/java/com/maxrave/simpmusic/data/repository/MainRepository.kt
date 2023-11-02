@@ -27,6 +27,7 @@ import com.maxrave.simpmusic.data.db.entities.ArtistEntity
 import com.maxrave.simpmusic.data.db.entities.FormatEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.LyricsEntity
+import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.QueueEntity
 import com.maxrave.simpmusic.data.db.entities.SearchHistory
@@ -104,10 +105,10 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
     suspend fun getSongsByListVideoId(listVideoId: List<String>): Flow<List<SongEntity>> =
         flow { emit(localDataSource.getSongByListVideoId(listVideoId)) }.flowOn(Dispatchers.IO)
 
-    suspend fun getDownloadedSongs(): Flow<List<SongEntity>> =
+    suspend fun getDownloadedSongs(): Flow<List<SongEntity>?> =
         flow { emit(localDataSource.getDownloadedSongs()) }.flowOn(Dispatchers.IO)
 
-    suspend fun getDownloadingSongs(): Flow<List<SongEntity>> =
+    suspend fun getDownloadingSongs(): Flow<List<SongEntity>?> =
         flow { emit(localDataSource.getDownloadingSongs()) }.flowOn(Dispatchers.IO)
     suspend fun getPreparingSongs(): Flow<List<SongEntity>> =
         flow { emit(localDataSource.getPreparingSongs()) }.flowOn(Dispatchers.IO)
@@ -314,6 +315,18 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
         flow { emit(localDataSource.getSetVideoId(videoId)) }.flowOn(Dispatchers.IO)
 
 
+    suspend fun insertPairSongLocalPlaylist(pairSongLocalPlaylist: PairSongLocalPlaylist) = withContext(Dispatchers.IO) {
+        localDataSource.insertPairSongLocalPlaylist(pairSongLocalPlaylist)
+    }
+
+    suspend fun getPlaylistPairSong(playlistId: Long): Flow<List<PairSongLocalPlaylist>?> = flow<List<PairSongLocalPlaylist>?> {
+        emit(localDataSource.getPlaylistPairSong(playlistId))
+    }.flowOn(Dispatchers.IO)
+
+    suspend fun deletePairSongLocalPlaylist(playlistId: Long, videoId: String) = withContext(Dispatchers.IO) {
+        localDataSource.deletePairSongLocalPlaylist(playlistId, videoId)
+    }
+
     suspend fun updateLocalPlaylistYouTubePlaylistId(id: Long, ytId: String?) = withContext(Dispatchers.IO) {
         localDataSource.updateLocalPlaylistYouTubePlaylistId(id, ytId)
     }
@@ -511,7 +524,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                 if (!data.isNullOrEmpty()) {
                     dataResult.addAll(data)
                 }
-                val reloadParamsNew = values.continuationContents?.musicShelfContinuation?.continuations?.get(0)?.nextContinuationData?.continuation
+                val reloadParamsNew = values.continuationContents?.musicShelfContinuation?.continuations?.get(0)?.reloadContinuationData?.continuation
                 if (dataResult.isNotEmpty()) {
                     val listTrack: ArrayList<Track> = arrayListOf()
                     dataResult.forEach {
@@ -898,7 +911,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                         track = searchResult.message.body.track_list.find { it.track.track_length == closestIndex }?.track
                     }
                     if (id == "") {
-                        if (list.get(bestMatchingIndex).contains(searchResult.message.body.track_list.get(bestMatchingIndex).track.track_name)) {
+                        if (list.get(bestMatchingIndex).contains(searchResult.message.body.track_list.get(bestMatchingIndex).track.track_name) && query.contains(searchResult.message.body.track_list.get(bestMatchingIndex).track.track_name)) {
                             Log.w("Lyrics", "item: ${searchResult.message.body.track_list.get(bestMatchingIndex).track.track_name}")
                             id += searchResult.message.body.track_list.get(bestMatchingIndex).track.track_id.toString()
                             track = searchResult.message.body.track_list.get(bestMatchingIndex).track
@@ -906,7 +919,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                     }
                 }
                 else {
-                    if (list.get(bestMatchingIndex).contains(searchResult.message.body.track_list.get(bestMatchingIndex).track.track_name)) {
+                    if (list.get(bestMatchingIndex).contains(searchResult.message.body.track_list.get(bestMatchingIndex).track.track_name) && query.contains(searchResult.message.body.track_list.get(bestMatchingIndex).track.track_name)) {
                         Log.w("Lyrics", "item: ${searchResult.message.body.track_list.get(bestMatchingIndex).track.track_name}")
                         id += searchResult.message.body.track_list.get(bestMatchingIndex).track.track_id.toString()
                         track = searchResult.message.body.track_list.get(bestMatchingIndex).track
@@ -1241,8 +1254,8 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                 emit(null)
             }
     }
-    suspend fun initPlayback(playback: String, atr: String, watchTime: String, cpn: String): Flow<Pair<Int, Float>> = flow {
-        YouTube.initPlayback(playback, atr, watchTime, cpn).onSuccess { response ->
+    suspend fun initPlayback(playback: String, atr: String, watchTime: String, cpn: String, playlistId: String?): Flow<Pair<Int, Float>> = flow {
+        YouTube.initPlayback(playback, atr, watchTime, cpn, playlistId).onSuccess { response ->
             emit(response)
         }.onFailure {
             Log.e("InitPlayback", "Error: ${it.message}")
@@ -1416,9 +1429,9 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
         }
     }
 
-    suspend fun updateWatchTime(playbackTrackingVideostatsWatchtimeUrl: String, watchTimeList: ArrayList<Float>, cpn: String): Flow<Int> = flow {
+    suspend fun updateWatchTime(playbackTrackingVideostatsWatchtimeUrl: String, watchTimeList: ArrayList<Float>, cpn: String, playlistId: String?): Flow<Int> = flow {
         runCatching {
-            YouTube.updateWatchTime(playbackTrackingVideostatsWatchtimeUrl, watchTimeList, cpn).onSuccess { response ->
+            YouTube.updateWatchTime(playbackTrackingVideostatsWatchtimeUrl, watchTimeList, cpn, playlistId).onSuccess { response ->
                 emit(response)
             }.onFailure {
                 it.printStackTrace()
@@ -1426,9 +1439,9 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
             }
         }
     }.flowOn(Dispatchers.IO)
-    suspend fun updateWatchTimeFull(watchTime: String, cpn: String): Flow<Int> = flow {
+    suspend fun updateWatchTimeFull(watchTime: String, cpn: String, playlistId: String?): Flow<Int> = flow {
         runCatching {
-            YouTube.updateWatchTimeFull(watchTime, cpn).onSuccess { response ->
+            YouTube.updateWatchTimeFull(watchTime, cpn, playlistId).onSuccess { response ->
                 emit(response)
             }.onFailure {
                 it.printStackTrace()

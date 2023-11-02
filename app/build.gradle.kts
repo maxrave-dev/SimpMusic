@@ -22,7 +22,7 @@ android {
             arg("room.schemaLocation", "$projectDir/schemas")
         }
 
-        resourceConfigurations += listOf("en", "vi", "it", "de", "ru", "tr")
+        resourceConfigurations += listOf("en", "vi", "it", "de", "ru", "tr", "fi", "pl", "pt")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
     }
@@ -62,6 +62,7 @@ dependencies {
     implementation(project(mapOf("path" to ":kotlinYtmusicScraper")))
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
+    implementation("androidx.media3:media3-cast:1.1.1")
     //ExoPlayer
     val media3_version= "1.1.1"
 

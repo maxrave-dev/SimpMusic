@@ -12,6 +12,7 @@ import androidx.media3.exoplayer.offline.Download
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
+import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
@@ -157,6 +158,11 @@ class MostPlayedViewModel @Inject constructor(private val mainRepository: MainRe
     fun updateInLibrary(videoId: String) {
         viewModelScope.launch {
             mainRepository.updateSongInLibrary(LocalDateTime.now(), videoId)
+        }
+    }
+    fun insertPairSongLocalPlaylist(pairSongLocalPlaylist: PairSongLocalPlaylist) {
+        viewModelScope.launch {
+            mainRepository.insertPairSongLocalPlaylist(pairSongLocalPlaylist)
         }
     }
 }
