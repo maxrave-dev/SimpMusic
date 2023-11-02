@@ -32,4 +32,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: app
-          path: app/build/outputs/apk/full/debug/*.apk
+          path: app/build/outputs/apk/debug/
