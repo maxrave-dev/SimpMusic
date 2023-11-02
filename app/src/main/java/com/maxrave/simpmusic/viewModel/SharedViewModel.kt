@@ -66,7 +66,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
@@ -115,7 +115,8 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     private var _progressMillis = MutableStateFlow<Long>(0L)
     val progressMillis: SharedFlow<Long> = _progressMillis.asSharedFlow()
     val progress: SharedFlow<Float> = _progress.asSharedFlow()
-    var progressString : MutableLiveData<String> = MutableLiveData("00:00")
+    private var _progressString : MutableStateFlow<String> = MutableStateFlow("00:00")
+    val progressString: SharedFlow<String> = _progressString.asSharedFlow()
 
     private val _duration = MutableStateFlow<Long>(0L)
     val duration: SharedFlow<Long> = _duration.asSharedFlow()
@@ -174,6 +175,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     private var jobWatchtime: Job? = null
 
     var playlistId: MutableStateFlow<String?> = MutableStateFlow(null)
+    private var initJob: Job? = null
 
 //    init {
 //        Log.w("Check SharedViewModel init", (simpleMediaServiceHandler != null).toString())
@@ -191,7 +193,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
 //    }
     fun init() {
         if (simpleMediaServiceHandler != null) {
-            viewModelScope.launch {
+            initJob = viewModelScope.launch {
                 val job1 = launch {
                     simpleMediaServiceHandler!!.simpleMediaState.collect { mediaState ->
                         when (mediaState) {
@@ -709,7 +711,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     }
     private fun calculateProgressValues(currentProgress: Long) {
         _progress.value = if (currentProgress > 0) (currentProgress.toFloat() / _duration.value) else 0f
-        progressString.value = formatDuration(currentProgress)
+        _progressString.value = formatDuration(currentProgress)
     }
 
     private var _listLocalPlaylist: MutableLiveData<List<LocalPlaylistEntity>> = MutableLiveData()
@@ -1049,6 +1051,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     }
 
     fun addQueueToPlayer() {
+        Log.d("Check Queue in viewmodel", Queue.getQueue().toString())
         simpleMediaServiceHandler?.addQueueToPlayer()
     }
 
@@ -1170,6 +1173,13 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
         viewModelScope.launch {
             mainRepository.insertPairSongLocalPlaylist(pairSongLocalPlaylist)
         }
+    }
+
+    private var _recreateActivity: MutableLiveData<Boolean> = MutableLiveData()
+    val recreateActivity: LiveData<Boolean> = _recreateActivity
+
+    fun activityRecreate() {
+        _recreateActivity.value = true
     }
 }
 sealed class UIEvent {

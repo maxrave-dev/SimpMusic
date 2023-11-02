@@ -37,6 +37,7 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionToken
+import coil.ImageLoader
 import com.google.android.gms.cast.framework.CastContext
 import com.google.common.util.concurrent.MoreExecutors
 import com.maxrave.simpmusic.R
@@ -46,6 +47,7 @@ import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.di.DownloadCache
 import com.maxrave.simpmusic.di.PlayerCache
+import com.maxrave.simpmusic.service.test.CoilBitmapLoader
 import com.maxrave.simpmusic.ui.MainActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -105,8 +107,7 @@ class SimpleMediaService : MediaSessionService() {
         mediaSession = provideMediaSession(
             context = this,
             player = player,
-            callback = simpleMediaSessionCallback
-
+            callback = simpleMediaSessionCallback,
         )
         val sessionToken = SessionToken(this, ComponentName(this, SimpleMediaService::class.java))
         val controllerFuture = MediaController.Builder(this, sessionToken).buildAsync()
@@ -281,6 +282,9 @@ class SimpleMediaService : MediaSessionService() {
         }
 
     @UnstableApi
+    fun provideCoilBitmapLoader(context: Context): CoilBitmapLoader = CoilBitmapLoader(context)
+
+    @UnstableApi
     fun provideMediaSession(
          context: Context,
         player: ExoPlayer,
@@ -293,6 +297,7 @@ class SimpleMediaService : MediaSessionService() {
                     PendingIntent.FLAG_IMMUTABLE
                 )
             )
+            .setBitmapLoader(provideCoilBitmapLoader(context))
             .build()
 
 }

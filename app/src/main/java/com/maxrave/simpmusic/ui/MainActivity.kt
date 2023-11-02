@@ -11,6 +11,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.os.PersistableBundle
 import android.util.Log
 import android.view.View
 import android.view.animation.AnimationUtils
@@ -244,14 +245,17 @@ class MainActivity : AppCompatActivity() {
         Log.d("MainActivity", "onResume: ")
     }
 
-    override fun onStart() {
-        super.onStart()
-        startMusicService()
-    }
-
     @UnstableApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+//        if (viewModel.simpleMediaServiceHandler == null) {
+//            startMusicService()
+//        }
+        if (viewModel.recreateActivity.value == true) {
+            viewModel.simpleMediaServiceHandler?.coroutineScope = lifecycleScope
+            runCollect()
+        }
+        startMusicService()
         Log.d("MainActivity", "onCreate: ")
         action = intent.action
         data = intent?.data ?: intent?.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
@@ -294,6 +298,14 @@ class MainActivity : AppCompatActivity() {
                 // Set the migration flag to ensure that this is executed only once
                 putString(FIRST_TIME_MIGRATION, STATUS_DONE)
             }
+        }
+        if (AppCompatDelegate.getApplicationLocales().toLanguageTags() != getString(SELECTED_LANGUAGE)) {
+            Log.d("Locale Key", "onCreate: ${AppCompatDelegate.getApplicationLocales().toLanguageTags()}")
+            putString(SELECTED_LANGUAGE, AppCompatDelegate.getApplicationLocales().toLanguageTags())
+            YouTube.locale = YouTubeLocale(
+                gl = getString("location") ?: "US",
+                hl = AppCompatDelegate.getApplicationLocales().toLanguageTags()
+            )
         }
 //
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -583,18 +595,22 @@ class MainActivity : AppCompatActivity() {
         Log.w("MainActivity", "onDestroy: ")
     }
     private fun startMusicService() {
-        if (viewModel.isServiceRunning.value != true) {
+        println("go to StartMusicService")
+        if (viewModel.recreateActivity.value != true) {
             val intent = Intent(this, SimpleMediaService::class.java)
+            startService(intent)
             bindService(intent, serviceConnection, BIND_AUTO_CREATE)
-            viewModel.isServiceRunning.postValue(true)
+            viewModel.isServiceRunning.value = true
             Log.d("Service", "Service started")
         }
     }
     private fun stopService(){
-        if (viewModel.isServiceRunning.value == true){
+        if (viewModel.recreateActivity.value != true){
+            viewModel.isServiceRunning.value = false
             viewModel.simpleMediaServiceHandler?.mayBeSaveRecentSong()
             viewModel.simpleMediaServiceHandler?.mayBeSavePlaybackState()
             viewModel.simpleMediaServiceHandler?.release()
+            viewModel.simpleMediaServiceHandler = null
             unbindService(serviceConnection)
             Log.d("Service", "Service stopped")
             if (this.isMyServiceRunning(DownloadService:: class.java)){
@@ -602,7 +618,6 @@ class MainActivity : AppCompatActivity() {
                 viewModel.changeAllDownloadingToError()
                 Log.d("Service", "DownloadService stopped")
             }
-            viewModel.isServiceRunning.postValue(false)
         }
     }
 

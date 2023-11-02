@@ -395,6 +395,7 @@ class SettingsFragment : Fragment() {
                                         val temp = SUPPORTED_LANGUAGE.items[SUPPORTED_LANGUAGE.codes.indexOf(it)]
                                         binding.tvLanguage.text = temp
                                         val localeList = LocaleListCompat.forLanguageTags(it)
+                                        sharedViewModel.activityRecreate()
                                         AppCompatDelegate.setApplicationLocales(localeList)
                                     }
                                 }
@@ -648,13 +649,11 @@ class SettingsFragment : Fragment() {
         if (!dir.listFiles().isNullOrEmpty()) {
             for (f in dir.listFiles()!!) {
                 dirSize += f.length()
-                Log.d("STORAGE_TAG", dir.absolutePath + "/" + f.name + " uses " + f.length() + " bytes")
                 if (f.isDirectory) {
                     dirSize += browseFiles(f)
                 }
             }
         }
-        Log.d("STORAGE_TAG", dir.absolutePath + " uses " + dirSize + " bytes")
         return dirSize
     }
     private fun drawDataStat() {
@@ -662,19 +661,11 @@ class SettingsFragment : Fragment() {
         if (mStorageStatsManager != null) {
             lifecycleScope.launch {
                 val totalByte = mStorageStatsManager.getTotalBytes(StorageManager.UUID_DEFAULT)
-                Log.w("Total", bytesToMB(totalByte).toString())
                 val freeSpace = mStorageStatsManager.getFreeBytes(StorageManager.UUID_DEFAULT)
-                Log.w("Free", bytesToMB(freeSpace).toString())
                 val usedSpace = totalByte - freeSpace
-                Log.w("Used", bytesToMB(usedSpace).toString())
                 val simpMusicSize = browseFiles(requireContext().filesDir)
-                Log.w("SimpMusic", bytesToMB(simpMusicSize).toString())
                 val otherApp = simpMusicSize.let { usedSpace.minus(it) }
-                Log.w("Other", bytesToMB(otherApp).toString())
                 val databaseSize = simpMusicSize - viewModel.playerCache.cacheSpace - viewModel.downloadCache.cacheSpace
-                Log.w("Database", databaseSize.toString())
-                Log.w("Player", viewModel.playerCache.cacheSpace.toString())
-                Log.w("Download", viewModel.downloadCache.cacheSpace.toString())
                 if (totalByte == freeSpace + otherApp + databaseSize + viewModel.playerCache.cacheSpace + viewModel.downloadCache.cacheSpace) {
                     (binding.flexBox.getChildAt(0).layoutParams as FlexboxLayout.LayoutParams).flexBasisPercent = otherApp.toFloat().div(totalByte.toFloat())
                     (binding.flexBox.getChildAt(1).layoutParams as FlexboxLayout.LayoutParams).flexBasisPercent = viewModel.downloadCache.cacheSpace.toFloat().div(totalByte.toFloat())

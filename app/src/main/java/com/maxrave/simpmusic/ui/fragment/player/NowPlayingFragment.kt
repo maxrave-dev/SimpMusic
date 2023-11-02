@@ -499,19 +499,12 @@ class NowPlayingFragment : Fragment() {
                     }
                 }
                 val job1 = launch {
-                    viewModel.progressString.observe(viewLifecycleOwner) {
+                    viewModel.progressString.collect {
                         binding.tvCurrentTime.text = it
 //                        if (viewModel.progress.value * 100 in 0f..100f) {
 //                            binding.progressSong.value = viewModel.progress.value * 100
 ////                        songChangeListener.onUpdateProgressBar(viewModel.progress.value * 100)
 //                        }
-                    }
-                    viewModel.duration.collect {
-                        if (viewModel.formatDuration(it).contains('-')) {
-                            binding.tvFullTime.text = getString(R.string.na_na)
-                        } else {
-                            binding.tvFullTime.text = viewModel.formatDuration(it)
-                        }
                     }
                 }
                 val job2 = launch {
@@ -803,6 +796,15 @@ class NowPlayingFragment : Fragment() {
                         }
                     }
                 }
+                val job18 = launch {
+                    viewModel.duration.collect {
+                        if (viewModel.formatDuration(it).contains('-')) {
+                            binding.tvFullTime.text = getString(R.string.na_na)
+                        } else {
+                            binding.tvFullTime.text = viewModel.formatDuration(it)
+                        }
+                    }
+                }
                 job1.join()
                 job2.join()
                 job3.join()
@@ -820,6 +822,7 @@ class NowPlayingFragment : Fragment() {
                 job15.join()
                 job16.join()
                 job17.join()
+                job18.join()
             }
         }
         binding.btFull.setOnClickListener {
