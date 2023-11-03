@@ -77,7 +77,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/credit_app"
-                android:layout_marginHorizontal="25dp">
+                android:layout_marginHorizontal="25dp"
+                android:layout_marginBottom="5dp">
 
             </TextView>
 
@@ -87,13 +88,48 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginHorizontal="25dp"
-                android:layout_marginVertical="10dp"
+                android:layout_marginVertical="5dp"
                 android:minWidth="0sp"
                 android:minHeight="0sp"
                 android:padding="0sp"
                 android:text="@string/github">
 
             </Button>
+            <Button
+                android:id="@+id/btIssue"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="25dp"
+                android:layout_marginVertical="5dp"
+                android:minWidth="0sp"
+                android:minHeight="0sp"
+                android:padding="0sp"
+                android:text="@string/issue_tracker">
+
+            </Button>
+            <Button
+                android:id="@+id/btBuyMeACoffee"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="25dp"
+                android:layout_marginVertical="5dp"
+                android:minWidth="0sp"
+                android:minHeight="0sp"
+                android:padding="0sp"
+                android:text="@string/buy_me_a_coffee">
+
+            </Button>
+            <TextView
+                android:layout_marginVertical="5dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/copyright"
+                android:layout_marginHorizontal="25dp"
+                android:textSize="11sp">
+
+            </TextView>
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="200dp">

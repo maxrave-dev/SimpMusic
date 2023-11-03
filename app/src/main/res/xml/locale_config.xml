@@ -9,4 +9,5 @@
     <locale android:name="fi"/>
     <locale android:name="pl"/>
     <locale android:name="pt"/>
+    <locale android:name="fr"/>
 </locale-config>

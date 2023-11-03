@@ -269,6 +269,8 @@
     <string name="suggest">Ehdotus</string>
     <string name="reload">Lataa uudelleen</string>
     <string name="added_date">Lisätty päivämäärä</string>
+    <string name="credit_app">Yksinkertainen musiikkisovellus, joka käyttää YouTube Musicin taustajärjestelmää \n\nSimpMusic on avoimen lähdekoodin projekti musiikin suoratoistoon YouTubesta ja YouTube Musicista ilman mainoksia ja seurantaa. SimpMusic tarjoaa monia ominaisuuksia:\n\n - Musiikin suoratoisto \n - Synkronoidut sanoitukset\n - Tietojen mukauttaminen\n - jne… \n\nSimpMusic on aina ilmainen eikä mainoksia\n\nRakenna kanssa ❤️ alkaen Tuan Minh Nguyen Duc (maxrave-dev)</string>
+    <string name="issue_tracker">Ongelman seuranta</string>
     <plurals name="n_song">
         <item quantity="one">%d kappale</item>
         <item quantity="other">%d kappaletta</item>
