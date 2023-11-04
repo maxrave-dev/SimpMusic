@@ -154,6 +154,7 @@
                 </com.google.android.material.card.MaterialCardView>
 
                 <RelativeLayout
+                    android:id="@+id/tvPopular"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
                     <TextView
@@ -193,6 +194,7 @@
 
                 </androidx.recyclerview.widget.RecyclerView>
                 <RelativeLayout
+                    android:id="@+id/tvSingles"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
                     <TextView
@@ -235,6 +237,7 @@
 
                 </androidx.recyclerview.widget.RecyclerView>
                 <RelativeLayout
+                    android:id="@+id/tvAlbums"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
                     <TextView
@@ -277,6 +280,7 @@
 
                 </androidx.recyclerview.widget.RecyclerView>
                 <RelativeLayout
+                    android:id="@+id/tvVideo"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
                     <TextView
@@ -318,7 +322,30 @@
                     tools:listitem="@layout/item_singles">
 
                 </androidx.recyclerview.widget.RecyclerView>
+
                 <TextView
+                    android:id="@+id/tvFeaturedOn"
+                    android:padding="15sp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/featured_inArtist"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="15sp"
+                    android:layout_marginEnd="15sp"
+                    android:id="@+id/rvFeaturedOn"
+                    android:scrollbars="horizontal"
+                    android:orientation="horizontal"
+                    app:reverseLayout="true"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    tools:listitem="@layout/item_related_artist" />
+
+                <TextView
+                    android:id="@+id/tvRelatedArtists"
                     android:padding="15sp"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -327,6 +354,7 @@
                     android:textStyle="bold">
 
                 </TextView>
+
                 <androidx.recyclerview.widget.RecyclerView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

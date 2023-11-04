@@ -26,6 +26,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.snackbar.Snackbar
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.adapter.artist.AlbumsAdapter
+import com.maxrave.simpmusic.adapter.artist.FeaturedOnAdapter
 import com.maxrave.simpmusic.adapter.artist.PopularAdapter
 import com.maxrave.simpmusic.adapter.artist.RelatedArtistsAdapter
 import com.maxrave.simpmusic.adapter.artist.SeeArtistOfNowPlayingAdapter
@@ -38,6 +39,7 @@ import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.browse.artist.ResultAlbum
+import com.maxrave.simpmusic.data.model.browse.artist.ResultPlaylist
 import com.maxrave.simpmusic.data.model.browse.artist.ResultRelated
 import com.maxrave.simpmusic.data.model.browse.artist.ResultSingle
 import com.maxrave.simpmusic.data.model.browse.artist.ResultSong
@@ -70,6 +72,7 @@ class ArtistFragment: Fragment(){
     private lateinit var popularAdapter: PopularAdapter
     private lateinit var singlesAdapter: SinglesAdapter
     private lateinit var albumsAdapter: AlbumsAdapter
+    private lateinit var featuredOnAdapter: FeaturedOnAdapter
     private lateinit var videoAdapter: VideoAdapter
     private lateinit var relatedArtistsAdapter: RelatedArtistsAdapter
 
@@ -102,6 +105,7 @@ class ArtistFragment: Fragment(){
         singlesAdapter = SinglesAdapter(arrayListOf())
         albumsAdapter = AlbumsAdapter(arrayListOf())
         videoAdapter = VideoAdapter(arrayListOf())
+        featuredOnAdapter = FeaturedOnAdapter(arrayListOf())
         relatedArtistsAdapter = RelatedArtistsAdapter(arrayListOf(), requireContext())
         binding.rvPopularSongs.apply {
             adapter = popularAdapter
@@ -117,6 +121,10 @@ class ArtistFragment: Fragment(){
         }
         binding.rvVideo.apply {
             adapter = videoAdapter
+            layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        }
+        binding.rvFeaturedOn.apply {
+            adapter = featuredOnAdapter
             layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         }
         binding.rvRelatedArtists.apply {
@@ -205,12 +213,22 @@ class ArtistFragment: Fragment(){
                 Queue.setNowPlaying(firstQueue)
                 val args = Bundle()
                 args.putString("videoId", videoId)
-                args.putString("from", "\"${viewModel.artistBrowse.value?.data?.name}\" ${getString(R.string.popular)}")
+                args.putString(
+                    "from",
+                    "\"${viewModel.artistBrowse.value?.data?.name}\" ${getString(R.string.popular)}"
+                )
                 args.putString("type", Config.SONG_CLICK)
                 findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
             }
         })
-        videoAdapter.setOnClickListener(object : VideoAdapter.OnItemClickListener{
+        featuredOnAdapter.setOnClickListener(object : FeaturedOnAdapter.OnItemClickListener {
+            override fun onItemClick(position: Int, type: String) {
+                val args = Bundle()
+                args.putString("id", featuredOnAdapter.getItem(position).id)
+                findNavController().navigateSafe(R.id.action_global_playlistFragment, args)
+            }
+        })
+        videoAdapter.setOnClickListener(object : VideoAdapter.OnItemClickListener {
             override fun onItemClick(position: Int, type: String) {
                 val songClicked = videoAdapter.getCurrentList()[position]
                 val videoId = songClicked.videoId
@@ -219,7 +237,10 @@ class ArtistFragment: Fragment(){
                 Queue.setNowPlaying(firstQueue)
                 val args = Bundle()
                 args.putString("videoId", videoId)
-                args.putString("from", "\"${viewModel.artistBrowse.value?.data?.name}\" ${getString(R.string.videos)}")
+                args.putString(
+                    "from",
+                    "\"${viewModel.artistBrowse.value?.data?.name}\" ${getString(R.string.videos)}"
+                )
                 args.putString("type", Config.VIDEO_CLICK)
                 findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
             }
@@ -458,18 +479,51 @@ class ArtistFragment: Fragment(){
                                         tvDescription.originalText = (it.description ?: getString(R.string.no_description)).toString()
                                         if (it.songs?.results != null) {
                                             popularAdapter.updateList(it.songs.results as ArrayList<ResultSong>)
+                                            if (it.songs.results.isEmpty()) {
+                                                binding.tvPopular.visibility = View.GONE
+                                            }
+                                        } else {
+                                            binding.tvPopular.visibility = View.GONE
                                         }
                                         if (it.singles?.results != null) {
                                             singlesAdapter.updateList(it.singles.results as ArrayList<ResultSingle>)
+                                            if (it.singles.results.isEmpty()) {
+                                                binding.tvSingles.visibility = View.GONE
+                                            }
+                                        } else {
+                                            binding.tvSingles.visibility = View.GONE
                                         }
                                         if (it.albums?.results != null) {
                                             albumsAdapter.updateList(it.albums.results as ArrayList<ResultAlbum>)
+                                            if (it.albums.results.isEmpty()) {
+                                                binding.tvAlbums.visibility = View.GONE
+                                            }
+                                        } else {
+                                            binding.tvAlbums.visibility = View.GONE
                                         }
                                         if (it.video != null) {
                                             videoAdapter.updateList(it.video as ArrayList<ResultVideo>)
+                                            if (it.video.isEmpty()) {
+                                                binding.tvVideo.visibility = View.GONE
+                                            }
+                                        } else {
+                                            binding.tvVideo.visibility = View.GONE
+                                        }
+                                        if (it.featuredOn != null) {
+                                            featuredOnAdapter.updateList(it.featuredOn as ArrayList<ResultPlaylist>)
+                                            if (it.featuredOn.isEmpty()) {
+                                                binding.tvFeaturedOn.visibility = View.GONE
+                                            }
+                                        } else {
+                                            binding.tvFeaturedOn.visibility = View.GONE
                                         }
                                         if (it.related?.results != null) {
                                             relatedArtistsAdapter.updateList(it.related.results as ArrayList<ResultRelated>)
+                                            if (it.related.results.isEmpty()) {
+                                                binding.tvRelatedArtists.visibility = View.GONE
+                                            }
+                                        } else {
+                                            binding.tvRelatedArtists.visibility = View.GONE
                                         }
                                     }
                                     binding.loadingLayout.visibility = View.GONE

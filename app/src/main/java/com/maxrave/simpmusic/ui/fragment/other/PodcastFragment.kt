@@ -3,6 +3,7 @@ package com.maxrave.simpmusic.ui.fragment.other
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.TransitionDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -15,17 +16,14 @@ import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.palette.graphics.Palette
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView.ItemDecoration
 import coil.load
 import coil.size.Size
 import coil.transform.Transformation
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.snackbar.Snackbar
 import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.adapter.playlist.PlaylistItemAdapter
 import com.maxrave.simpmusic.adapter.podcast.PodcastAdapter
 import com.maxrave.simpmusic.common.Config
-import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.podcast.PodcastBrowse
 import com.maxrave.simpmusic.data.queue.Queue
@@ -273,7 +271,14 @@ class PodcastFragment : Fragment() {
                             if (viewModel.gradientDrawable.value == null) {
                                 viewModel.gradientDrawable.observe(viewLifecycleOwner)
                                 { gradient ->
-                                    topAppBarLayout.background = gradient
+                                    if (gradient != null) {
+                                        val start = topAppBarLayout.background
+                                        val transition =
+                                            TransitionDrawable(arrayOf(start, gradient))
+                                        topAppBarLayout.background = transition
+                                        transition.isCrossFadeEnabled = true
+                                        transition.startTransition(500)
+                                    }
                                 }
                             } else {
                                 topAppBarLayout.background = gradientDrawable

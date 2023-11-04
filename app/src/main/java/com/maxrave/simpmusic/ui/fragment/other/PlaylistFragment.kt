@@ -3,6 +3,7 @@ package com.maxrave.simpmusic.ui.fragment.other
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.TransitionDrawable
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -691,7 +692,14 @@ class PlaylistFragment: Fragment() {
                                 viewModel.gradientDrawable.observe(viewLifecycleOwner) { gradient ->
                                     //fullRootLayout.background = gradient
 //                                    toolbarBackground = gradient?.colors?.get(0)
-                                    topAppBarLayout.background = gradient
+                                    if (gradient != null) {
+                                        val start = topAppBarLayout.background
+                                        val transition =
+                                            TransitionDrawable(arrayOf(start, gradient))
+                                        topAppBarLayout.background = transition
+                                        transition.isCrossFadeEnabled = true
+                                        transition.startTransition(500)
+                                    }
                                 }
                             }
                             else {
@@ -779,7 +787,14 @@ class PlaylistFragment: Fragment() {
                                 { gradient ->
 //                                    fullRootLayout.background = gradient
 //                                    toolbarBackground = gradient?.colors?.get(0)
-                                    topAppBarLayout.background = gradient
+                                    if (gradient != null) {
+                                        val start = topAppBarLayout.background
+                                        val transition =
+                                            TransitionDrawable(arrayOf(start, gradient))
+                                        topAppBarLayout.background = transition
+                                        transition.isCrossFadeEnabled = true
+                                        transition.startTransition(500)
+                                    }
                                 }
                             }
                             else {
@@ -841,7 +856,14 @@ class PlaylistFragment: Fragment() {
 //                                            fullRootLayout.background = gradient
 //                                            toolbarBackground = gradient?.colors?.get(0)
 //                                            topAppBarLayout.background = ColorDrawable(toolbarBackground!!)
-                                            topAppBarLayout.background = gradient
+                                            if (gradient != null) {
+                                                val start = topAppBarLayout.background
+                                                val transition =
+                                                    TransitionDrawable(arrayOf(start, gradient))
+                                                topAppBarLayout.background = transition
+                                                transition.isCrossFadeEnabled = true
+                                                transition.startTransition(500)
+                                            }
                                         }
                                 }
                                 else {
@@ -925,7 +947,13 @@ class PlaylistFragment: Fragment() {
 //                                fullRootLayout.background = gradient
 //                                toolbarBackground = gradient?.colors?.get(0)
 //                                topAppBarLayout.background = ColorDrawable(toolbarBackground!!)
-                                topAppBarLayout.background = gradient
+                                if (gradient != null) {
+                                    val start = topAppBarLayout.background
+                                    val transition = TransitionDrawable(arrayOf(start, gradient))
+                                    topAppBarLayout.background = transition
+                                    transition.isCrossFadeEnabled = true
+                                    transition.startTransition(500)
+                                }
                             }
                         }
                         else {

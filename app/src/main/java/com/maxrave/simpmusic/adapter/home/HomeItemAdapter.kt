@@ -4,10 +4,12 @@ import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.navigation.NavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import coil.load
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.data.model.browse.album.Track
@@ -39,6 +41,32 @@ class HomeItemAdapter(private var homeItemList: ArrayList<HomeItem>, var context
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val homeItem = homeItemList[position]
         holder.binding.tvTitle.text = homeItem.title
+        if (homeItem.subtitle == null) {
+            holder.binding.tvSubtitle.visibility = View.GONE
+            holder.binding.ivArtist.visibility = View.GONE
+        } else {
+            holder.binding.tvSubtitle.text = homeItem.subtitle
+            holder.binding.tvSubtitle.visibility = View.VISIBLE
+        }
+        if (!homeItem.thumbnail.isNullOrEmpty()) {
+            holder.binding.ivArtist.visibility = View.VISIBLE
+            holder.binding.ivArtist.load(homeItem.thumbnail.lastOrNull()?.url)
+        } else {
+            holder.binding.ivArtist.visibility = View.GONE
+        }
+        if (homeItem.channelId != null) {
+            holder.binding.tvTitle.isClickable = true
+            holder.binding.tvTitle.isFocusable = true
+            val attr =
+                context.obtainStyledAttributes(intArrayOf(android.R.attr.selectableItemBackgroundBorderless))
+            holder.binding.tvTitle.foreground = attr.getDrawable(0)
+            attr.recycle()
+            holder.binding.tvTitle.setOnClickListener {
+                val args = Bundle()
+                args.putString("channelId", homeItem.channelId)
+                navController.navigateSafe(R.id.action_global_artistFragment, args)
+            }
+        }
         val layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         val tempContentList = homeItem.contents.toCollection(ArrayList())
         tempContentList.removeIf { it == null }
@@ -47,7 +75,7 @@ class HomeItemAdapter(private var homeItemList: ArrayList<HomeItem>, var context
             this.adapter = itemAdapter
             this.layoutManager = layoutManager
         }
-        itemAdapter.setOnSongClickListener(object : HomeItemContentAdapter.onSongItemClickListener{
+        itemAdapter.setOnSongClickListener(object : HomeItemContentAdapter.onSongItemClickListener {
             override fun onSongItemClick(position: Int) {
                 val args = Bundle()
                 args.putString("videoId", homeItemList[holder.bindingAdapterPosition].contents[position]?.videoId)

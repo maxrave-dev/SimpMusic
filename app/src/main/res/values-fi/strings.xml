@@ -275,4 +275,6 @@
         <item quantity="one">%d kappale</item>
         <item quantity="other">%d kappaletta</item>
     </plurals>
+    <string name="featured_playlists">Suositellut soittolistat</string>
+    <string name="featured_inArtist">Mukana näissä</string>
 </resources>

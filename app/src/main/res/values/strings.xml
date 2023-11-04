@@ -274,7 +274,8 @@
     <string name="issue_tracker">Issue Tracker</string>
     <string name="copyright" translatable="false">©2023 Tuan Minh Nguyen Duc (maxrave-dev)</string>
     <string name="featured_playlists">Featured Playlists</string>
-    <string name="podcasts">Podcasts</string>
+    <string name="podcasts" translatable="false">Podcasts</string>
+    <string name="featured_inArtist">Featured on</string>
     <plurals name="n_song">
         <item quantity="one">%d song</item>
         <item quantity="other">%d songs</item>

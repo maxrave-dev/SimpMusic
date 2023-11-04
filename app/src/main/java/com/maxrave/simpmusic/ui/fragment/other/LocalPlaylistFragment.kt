@@ -4,6 +4,7 @@ import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.TransitionDrawable
 import android.os.Build.ID
 import android.os.Bundle
 import android.util.Log
@@ -50,7 +51,6 @@ import com.maxrave.simpmusic.databinding.FragmentLocalPlaylistBinding
 import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.removeConflicts
 import com.maxrave.simpmusic.extension.toTrack
-import com.maxrave.simpmusic.extension.zip
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.viewModel.LocalPlaylistViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -787,7 +787,13 @@ class LocalPlaylistFragment : Fragment() {
                     binding.ivPlaylistArt.setImageDrawable(result)
                     if (viewModel.gradientDrawable.value != null) {
                         viewModel.gradientDrawable.observe(viewLifecycleOwner) {
-                            binding.topAppBarLayout.background = it
+                            if (it != null) {
+                                val start = binding.topAppBarLayout.background
+                                val transition = TransitionDrawable(arrayOf(start, it))
+                                binding.topAppBarLayout.background = transition
+                                transition.isCrossFadeEnabled = true
+                                transition.startTransition(500)
+                            }
                         }
                     }
                 },

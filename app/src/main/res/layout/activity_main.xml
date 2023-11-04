@@ -64,7 +64,9 @@
                     android:layout_width="match_parent"
                     android:layout_height="60sp"
                     app:cardCornerRadius="8sp"
-                    style="?attr/materialCardViewFilledStyle"
+                    app:strokeColor="@color/md_theme_dark_inverseOnSurface"
+                    app:strokeWidth="0.1dp"
+                    app:cardElevation="1dp"
                     android:layout_gravity="bottom"
                     app:cardPreventCornerOverlap="true">
 

@@ -4,6 +4,7 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
+import android.graphics.drawable.TransitionDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
@@ -1428,6 +1429,13 @@ class NowPlayingFragment : Fragment() {
                         if (viewModel.gradientDrawable.value != null) {
                             viewModel.gradientDrawable.observe(viewLifecycleOwner) {
                                 binding.rootLayout.background = it
+                                if (it != null) {
+                                    val start = binding.rootLayout.background
+                                    val transition = TransitionDrawable(arrayOf(start, it))
+                                    binding.rootLayout.background = transition
+                                    transition.isCrossFadeEnabled = true
+                                    transition.startTransition(500)
+                                }
 //                            viewModel.lyricsBackground.observe(viewLifecycleOwner, Observer { color ->
 //                                binding.lyricsLayout.setCardBackgroundColor(color)
 //                                Log.d("Update UI", "Lyrics: $color")

@@ -6,7 +6,6 @@ import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.models.MusicShelfRenderer
 import com.maxrave.kotlinytmusicscraper.models.SearchSuggestions
 import com.maxrave.kotlinytmusicscraper.models.SongItem
-import com.maxrave.kotlinytmusicscraper.models.VideoItem
 import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
 import com.maxrave.kotlinytmusicscraper.models.musixmatch.MusixmatchCredential
 import com.maxrave.kotlinytmusicscraper.models.musixmatch.MusixmatchTranslationLyricsResponse
@@ -18,7 +17,6 @@ import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
 import com.maxrave.kotlinytmusicscraper.pages.BrowseResult
 import com.maxrave.kotlinytmusicscraper.pages.PlaylistPage
 import com.maxrave.kotlinytmusicscraper.pages.SearchPage
-import com.maxrave.kotlinytmusicscraper.pages.SearchSuggestionPage
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.LocalDataSource
@@ -74,7 +72,6 @@ import com.maxrave.simpmusic.data.parser.search.parseSearchSong
 import com.maxrave.simpmusic.data.parser.search.parseSearchVideo
 import com.maxrave.simpmusic.data.parser.toListThumbnail
 import com.maxrave.simpmusic.extension.bestMatchingIndex
-import com.maxrave.simpmusic.extension.removeDuplicateWords
 import com.maxrave.simpmusic.extension.toListTrack
 import com.maxrave.simpmusic.extension.toLyrics
 import com.maxrave.simpmusic.extension.toTrack
@@ -506,8 +503,14 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                     durationSeconds = 0,
                     id = radioId,
                     privacy = "PRIVATE",
-                    thumbnails = listOf(Thumbnail(544, originalTrack?.thumbnails ?: artist?.thumbnails ?: "", 544)),
-                    title = " ${originalTrack?.title ?: artist?.name} ${context.getString(R.string.radio)}",
+                    thumbnails = listOf(
+                        Thumbnail(
+                            544,
+                            originalTrack?.thumbnails ?: artist?.thumbnails ?: "",
+                            544
+                        )
+                    ),
+                    title = "${originalTrack?.title ?: artist?.name} ${context.getString(R.string.radio)}",
                     trackCount = listTrackResult.size,
                     tracks = listTrackResult,
                     year = LocalDateTime.now().year.toString()
