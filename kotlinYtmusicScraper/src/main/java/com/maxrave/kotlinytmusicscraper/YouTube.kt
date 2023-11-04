@@ -143,6 +143,11 @@ object YouTube {
                 ?.musicShelfRenderer?.contents?.mapNotNull {
                     SearchPage.toYTItem(it.musicResponsiveListItemRenderer)
                 }.orEmpty(),
+            listPodcast = response.contents?.tabbedSearchResultsRenderer?.tabs?.firstOrNull()
+                ?.tabRenderer?.content?.sectionListRenderer?.contents?.lastOrNull()
+                ?.musicShelfRenderer?.contents?.mapNotNull {
+                    SearchPage.toPodcast(it.musicResponsiveListItemRenderer)
+                }.orEmpty(),
             continuation = response.contents?.tabbedSearchResultsRenderer?.tabs?.firstOrNull()
                 ?.tabRenderer?.content?.sectionListRenderer?.contents?.lastOrNull()
                 ?.musicShelfRenderer?.continuations?.getContinuation()
@@ -161,6 +166,10 @@ object YouTube {
                 ?.mapNotNull {
                     SearchPage.toYTItem(it.musicResponsiveListItemRenderer)
                 }!!,
+            listPodcast = response.continuationContents.musicShelfContinuation.contents
+                .mapNotNull {
+                    SearchPage.toPodcast(it.musicResponsiveListItemRenderer)
+                }.orEmpty(),
             continuation = response.continuationContents.musicShelfContinuation.continuations?.getContinuation()
         )
     }
@@ -732,6 +741,7 @@ object YouTube {
             val FILTER_ARTIST = SearchFilter("EgWKAQIgAWoKEAkQChAFEAMQBA%3D%3D")
             val FILTER_FEATURED_PLAYLIST = SearchFilter("EgeKAQQoADgBagwQDhAKEAMQBRAJEAQ%3D")
             val FILTER_COMMUNITY_PLAYLIST = SearchFilter("EgeKAQQoAEABagoQAxAEEAoQCRAF")
+            val FILTER_PODCAST = SearchFilter("EgWKAQJQAWoIEBAQERADEBU%3D")
         }
     }
 

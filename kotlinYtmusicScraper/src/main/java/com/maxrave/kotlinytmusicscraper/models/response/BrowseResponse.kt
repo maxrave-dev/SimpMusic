@@ -19,12 +19,30 @@ data class BrowseResponse(
     val header: Header?,
     val microformat: Microformat?,
     val responseContext: ResponseContext,
+    val background: Background?,
 ) {
+    @Serializable
+    data class Background(
+        val musicThumbnailRenderer: ThumbnailRenderer.MusicThumbnailRenderer?,
+    )
+
     @Serializable
     data class Contents(
         val singleColumnBrowseResultsRenderer: Tabs?,
+        val twoColumnBrowseResultsRenderer: TwoColumnBrowseResultsRenderer?,
         val sectionListRenderer: SectionListRenderer?,
-    )
+    ) {
+        @Serializable
+        data class TwoColumnBrowseResultsRenderer(
+            val secondaryContents: SecondaryContents?,
+            val tabs: List<Tabs.Tab>?,
+        ) {
+            @Serializable
+            data class SecondaryContents(
+                val sectionListRenderer: SectionListRenderer?,
+            )
+        }
+    }
 
     @Serializable
     data class ContinuationContents(

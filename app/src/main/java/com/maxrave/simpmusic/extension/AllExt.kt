@@ -39,6 +39,7 @@ import com.maxrave.simpmusic.data.model.browse.playlist.PlaylistBrowse
 import com.maxrave.simpmusic.data.model.home.Content
 import com.maxrave.simpmusic.data.model.metadata.Line
 import com.maxrave.simpmusic.data.model.metadata.Lyrics
+import com.maxrave.simpmusic.data.model.podcast.PodcastBrowse
 import com.maxrave.simpmusic.data.model.searchResult.songs.Album
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
@@ -168,6 +169,8 @@ fun VideoItem.toTrack(): Track {
         year = null
     )
 }
+
+@JvmName("SongItemtoTrack")
 fun List<SongItem>?.toListTrack(): ArrayList<Track> {
     val listTrack = arrayListOf<Track>()
     if (this != null) {
@@ -615,6 +618,35 @@ fun <A, B> zip(first: LiveData<A>, second: LiveData<B>): Flow<Pair<A, B>> {
     }
 
     return mediatorLiveData.asFlow()
+}
+
+fun PodcastBrowse.EpisodeItem.toTrack(): Track {
+    return Track(
+        album = null,
+        artists = listOf(this.author),
+        duration = this.durationString,
+        durationSeconds = null,
+        isAvailable = true,
+        isExplicit = false,
+        likeStatus = "INDIFFERENT",
+        thumbnails = this.thumbnail,
+        title = this.title,
+        videoId = this.videoId,
+        videoType = "Podcast",
+        category = "Podcast",
+        feedbackTokens = null,
+        resultType = "Podcast",
+        year = this.createdDay
+    )
+}
+
+@JvmName("PodcastBrowseEpisodeItemtoListTrack")
+fun List<PodcastBrowse.EpisodeItem>.toListTrack(): ArrayList<Track> {
+    val listTrack = arrayListOf<Track>()
+    for (item in this) {
+        listTrack.add(item.toTrack())
+    }
+    return listTrack
 }
 
 operator fun File.div(child: String): File = File(this, child)

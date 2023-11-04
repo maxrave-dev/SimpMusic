@@ -136,7 +136,7 @@
     <string name="songs_inArtist">Titres</string>
     <string name="albums_inArtist">Albums</string>
     <string name="singles_inArtist">Singles</string>
-    <string name="fans_might_also_like_inArtist">Vous pourriez aussi aimer</string>
+    <string name="fans_might_also_like_inArtist">Vous aimerez peut-être aussi</string>
     <string name="crash_log">SimpMusic a planté. Désolé pour ce problème.\nEnvoyer le crash-log au développeur</string>
     <string name="crash">Plantage</string>
     <string name="send">Envoyer</string>
@@ -269,7 +269,6 @@
     <string name="suggest">Suggestion</string>
     <string name="reload">Recharger</string>
     <string name="added_date">Date d\'ajout</string>
-    <string name="copyright">©2023 Tuan Minh Nguyen Duc (maxrave-dev)</string>
     <plurals name="n_song">
         <item quantity="one">%d morceau</item>
         <item quantity="other">%d morceaux</item>

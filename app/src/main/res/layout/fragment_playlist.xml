@@ -46,9 +46,11 @@
                             android:fitsSystemWindows="true"
                             android:layout_marginTop="?attr/actionBarSize"
                             android:id="@+id/ivPlaylistArt"
-                            android:layout_width="250sp"
+                            android:layout_width="wrap_content"
+                            android:maxWidth="350dp"
                             android:layout_height="250sp"
                             android:layout_marginBottom="15dp"
+                            android:scaleType="centerCrop"
                             android:layout_gravity="center_horizontal">
 
                         </ImageView>

@@ -46,9 +46,11 @@ import com.maxrave.simpmusic.data.model.explore.mood.moodmoments.MoodsMomentObje
 import com.maxrave.simpmusic.data.model.home.HomeItem
 import com.maxrave.simpmusic.data.model.home.chart.Chart
 import com.maxrave.simpmusic.data.model.metadata.Lyrics
+import com.maxrave.simpmusic.data.model.podcast.PodcastBrowse
 import com.maxrave.simpmusic.data.model.searchResult.albums.AlbumsResult
 import com.maxrave.simpmusic.data.model.searchResult.artists.ArtistsResult
 import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
+import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
@@ -60,6 +62,9 @@ import com.maxrave.simpmusic.data.parser.parseLibraryPlaylist
 import com.maxrave.simpmusic.data.parser.parseMixedContent
 import com.maxrave.simpmusic.data.parser.parseMoodsMomentObject
 import com.maxrave.simpmusic.data.parser.parsePlaylistData
+import com.maxrave.simpmusic.data.parser.parsePodcast
+import com.maxrave.simpmusic.data.parser.parsePodcastContinueData
+import com.maxrave.simpmusic.data.parser.parsePodcastData
 import com.maxrave.simpmusic.data.parser.parseRelated
 import com.maxrave.simpmusic.data.parser.parseSetVideoId
 import com.maxrave.simpmusic.data.parser.search.parseSearchAlbum
@@ -67,6 +72,7 @@ import com.maxrave.simpmusic.data.parser.search.parseSearchArtist
 import com.maxrave.simpmusic.data.parser.search.parseSearchPlaylist
 import com.maxrave.simpmusic.data.parser.search.parseSearchSong
 import com.maxrave.simpmusic.data.parser.search.parseSearchVideo
+import com.maxrave.simpmusic.data.parser.toListThumbnail
 import com.maxrave.simpmusic.extension.bestMatchingIndex
 import com.maxrave.simpmusic.extension.removeDuplicateWords
 import com.maxrave.simpmusic.extension.toListTrack
@@ -594,21 +600,88 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                     emit(null)
                 }
             }
-                .onFailure {
-                    exception ->
+                .onFailure { exception ->
                     exception.printStackTrace()
                     emit(null)
                 }
         }
     }.flowOn(Dispatchers.IO)
 
+    suspend fun getPodcastData(podcastId: String): Flow<Resource<PodcastBrowse>> = flow {
+        runCatching {
+            YouTube.customQuery(browseId = podcastId).onSuccess { result ->
+                val listEpisode = arrayListOf<PodcastBrowse.EpisodeItem>()
+                val thumbnail =
+                    result.background?.musicThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail()
+                val title =
+                    result.contents?.twoColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()?.musicResponsiveHeaderRenderer?.title?.runs?.firstOrNull()?.text
+                val author =
+                    result.contents?.twoColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()?.musicResponsiveHeaderRenderer?.let {
+                        Artist(
+                            id = it.straplineTextOne?.runs?.firstOrNull()?.navigationEndpoint?.browseEndpoint?.browseId,
+                            name = it.straplineTextOne?.runs?.firstOrNull()?.text ?: "",
+                        )
+                    }
+                val authorThumbnail =
+                    result.contents?.twoColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()?.musicResponsiveHeaderRenderer?.let {
+                        it.straplineThumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.lastOrNull()?.url
+                    }
+                val description =
+                    result.contents?.twoColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()?.musicResponsiveHeaderRenderer?.description?.musicDescriptionShelfRenderer?.description?.runs?.mapNotNull {
+                        it.text
+                    }?.joinToString("")
+                val data =
+                    result.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer?.contents?.firstOrNull()?.musicShelfRenderer?.contents
+                parsePodcastData(data, author).let {
+                    listEpisode.addAll(it)
+                }
+                var continueParam =
+                    result.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer?.contents?.firstOrNull()?.musicShelfRenderer?.continuations?.firstOrNull()?.nextContinuationData?.continuation
+                while (continueParam != null) {
+                    YouTube.customQuery(continuation = continueParam, browseId = "")
+                        .onSuccess { continueData ->
+                            parsePodcastContinueData(
+                                continueData.continuationContents?.musicShelfContinuation?.contents,
+                                author
+                            ).let {
+                                listEpisode.addAll(it)
+                            }
+                            continueParam =
+                                continueData.continuationContents?.musicShelfContinuation?.continuations?.firstOrNull()?.nextContinuationData?.continuation
+                        }
+                        .onFailure {
+                            it.printStackTrace()
+                            continueParam = null
+                        }
+                }
+                if (author != null) {
+                    emit(
+                        Resource.Success<PodcastBrowse>(
+                            PodcastBrowse(
+                                title = title ?: "",
+                                author = author,
+                                authorThumbnail = authorThumbnail,
+                                thumbnail = thumbnail ?: emptyList<Thumbnail>(),
+                                description = description,
+                                listEpisode = listEpisode
+                            )
+                        )
+                    )
+                } else {
+                    emit(Resource.Error<PodcastBrowse>("Error"))
+                }
+            }.onFailure { error ->
+                emit(Resource.Error<PodcastBrowse>(error.message.toString()))
+            }
+        }
+    }
+
     suspend fun getPlaylistData(playlistId: String): Flow<Resource<PlaylistBrowse>> = flow {
         runCatching {
             var id = ""
             if (!playlistId.startsWith("VL")) {
                 id += "VL$playlistId"
-            }
-            else {
+            } else {
                 id += playlistId
             }
             Log.d("Repository", "playlist id: $id")
@@ -741,15 +814,82 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
             }
         }
     }.flowOn(Dispatchers.IO)
-    suspend fun getSearchDataArtist(query: String): Flow<Resource<ArrayList<ArtistsResult>>> = flow {
-        runCatching {
-            YouTube.search(query, YouTube.SearchFilter.FILTER_ARTIST).onSuccess { result ->
-                val listArtist: ArrayList<ArtistsResult> = arrayListOf()
-                var countinueParam = result.continuation
-                parseSearchArtist(result).let { list ->
-                    listArtist.addAll(list)
+
+    suspend fun getSearchDataPodcast(query: String): Flow<Resource<ArrayList<PlaylistsResult>>> =
+        flow {
+            runCatching {
+                YouTube.search(query, YouTube.SearchFilter.FILTER_PODCAST).onSuccess { result ->
+                    println(query)
+                    val listPlaylist: ArrayList<PlaylistsResult> = arrayListOf()
+                    var countinueParam = result.continuation
+                    Log.w("Podcast", "result: $result")
+                    parsePodcast(result.listPodcast).let { list ->
+                        listPlaylist.addAll(list)
+                    }
+                    var count = 0
+                    while (count < 2 && countinueParam != null) {
+                        YouTube.searchContinuation(countinueParam).onSuccess { values ->
+                            parsePodcast(values.listPodcast).let { list ->
+                                listPlaylist.addAll(list)
+                            }
+                            count++
+                            countinueParam = values.continuation
+                        }.onFailure {
+                            Log.e("Continue", "Error: ${it.message}")
+                            countinueParam = null
+                            count++
+                        }
+                    }
+                    emit(Resource.Success<ArrayList<PlaylistsResult>>(listPlaylist))
+                }.onFailure { e ->
+                    Log.d("Search", "Error: ${e.message}")
+                    emit(Resource.Error<ArrayList<PlaylistsResult>>(e.message.toString()))
                 }
-                var count = 0
+            }
+        }.flowOn(Dispatchers.IO)
+
+    suspend fun getSearchDataFeaturedPlaylist(query: String): Flow<Resource<ArrayList<PlaylistsResult>>> =
+        flow {
+            runCatching {
+                YouTube.search(query, YouTube.SearchFilter.FILTER_FEATURED_PLAYLIST)
+                    .onSuccess { result ->
+                        val listPlaylist: ArrayList<PlaylistsResult> = arrayListOf()
+                        var countinueParam = result.continuation
+                        parseSearchPlaylist(result).let { list ->
+                            listPlaylist.addAll(list)
+                        }
+                        var count = 0
+                        while (count < 2 && countinueParam != null) {
+                            YouTube.searchContinuation(countinueParam).onSuccess { values ->
+                                parseSearchPlaylist(values).let { list ->
+                                    listPlaylist.addAll(list)
+                                }
+                                count++
+                                countinueParam = values.continuation
+                            }.onFailure {
+                                Log.e("Continue", "Error: ${it.message}")
+                                countinueParam = null
+                                count++
+                            }
+                        }
+                        emit(Resource.Success<ArrayList<PlaylistsResult>>(listPlaylist))
+                    }.onFailure { e ->
+                    Log.d("Search", "Error: ${e.message}")
+                    emit(Resource.Error<ArrayList<PlaylistsResult>>(e.message.toString()))
+                }
+            }
+        }.flowOn(Dispatchers.IO)
+
+    suspend fun getSearchDataArtist(query: String): Flow<Resource<ArrayList<ArtistsResult>>> =
+        flow {
+            runCatching {
+                YouTube.search(query, YouTube.SearchFilter.FILTER_ARTIST).onSuccess { result ->
+                    val listArtist: ArrayList<ArtistsResult> = arrayListOf()
+                    var countinueParam = result.continuation
+                    parseSearchArtist(result).let { list ->
+                        listArtist.addAll(list)
+                    }
+                    var count = 0
                 while (count < 2 && countinueParam != null) {
                     YouTube.searchContinuation(countinueParam).onSuccess { values ->
                         parseSearchArtist(values).let { list ->

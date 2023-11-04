@@ -12,8 +12,44 @@ data class MusicShelfRenderer(
 ) {
     @Serializable
     data class Content(
-        val musicResponsiveListItemRenderer: MusicResponsiveListItemRenderer,
-    )
+        val musicResponsiveListItemRenderer: MusicResponsiveListItemRenderer?,
+        val musicMultiRowListItemRenderer: MusicMultiRowListItemRenderer?,
+    ) {
+        @Serializable
+        data class MusicMultiRowListItemRenderer(
+            val description: Description?,
+            val subtitle: Subtitle?,
+            val title: Title?,
+            val thumbnail: Thumbnail?,
+            val onTap: OnTap?,
+        ) {
+            @Serializable
+            data class Description(
+                val runs: List<Run>?,
+            )
+
+            @Serializable
+            data class Subtitle(
+                val runs: List<Run>?,
+            )
+
+            @Serializable
+            data class Title(
+                val runs: List<Run>?,
+            )
+
+            @Serializable
+            data class Thumbnail(
+                val musicThumbnailRenderer: ThumbnailRenderer.MusicThumbnailRenderer?,
+            )
+
+            @Serializable
+            data class OnTap(
+                val watchEndpoint: WatchEndpoint?,
+            )
+        }
+
+    }
 }
 
 fun List<Continuation>.getContinuation() =

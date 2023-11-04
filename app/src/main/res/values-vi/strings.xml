@@ -272,4 +272,6 @@
     <plurals name="n_song">
         <item quantity="other">%d bài hát</item>
     </plurals>
+    <string name="featured_playlists">Danh sách phát nổi bật</string>
+    <string name="podcasts">Podcasts</string>
 </resources>

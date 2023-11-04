@@ -133,10 +133,10 @@
     <string name="now_playing_upper">TERAZ GRA</string>
     <string name="language">Język</string>
     <string name="what_do_you_want_to_listen_to">Czego chcesz słuchać?</string>
-    <string name="songs_inArtist">Piosenki</string>
+    <string name="songs_inArtist">Utwory</string>
     <string name="albums_inArtist">Albumy</string>
-    <string name="singles_inArtist">Pojedyncze</string>
-    <string name="fans_might_also_like_inArtist">Może Ci się spodobać również</string>
+    <string name="singles_inArtist">Single</string>
+    <string name="fans_might_also_like_inArtist">Fanit saattavat pitää myös näistä</string>
     <string name="crash_log">SimpMusic uległ awarii. Przepraszamy za ten problem.\nWyślij dziennik awarii do dewelopera</string>
     <string name="crash">Awaria</string>
     <string name="send">Wyślij</string>

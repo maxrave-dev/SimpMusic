@@ -2,6 +2,7 @@ package com.maxrave.kotlinytmusicscraper.models.response
 
 import com.maxrave.kotlinytmusicscraper.models.Continuation
 import com.maxrave.kotlinytmusicscraper.models.MusicResponsiveListItemRenderer
+import com.maxrave.kotlinytmusicscraper.models.MusicShelfRenderer
 import com.maxrave.kotlinytmusicscraper.models.Tabs
 import kotlinx.serialization.Serializable
 
@@ -26,7 +27,8 @@ data class SearchResponse(
         ) {
             @Serializable
             data class Content(
-                val musicResponsiveListItemRenderer: MusicResponsiveListItemRenderer,
+                val musicResponsiveListItemRenderer: MusicResponsiveListItemRenderer?,
+                val musicMultiRowListItemRenderer: MusicShelfRenderer.Content.MusicMultiRowListItemRenderer?,
             )
         }
     }

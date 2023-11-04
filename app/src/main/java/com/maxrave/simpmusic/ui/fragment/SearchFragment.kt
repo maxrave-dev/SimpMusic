@@ -177,6 +177,7 @@ class SearchFragment : Fragment() {
                                 binding.chipGroupTypeSearch.isClickable = true
                                 Log.d("Check Artist", "Artist is checked")
                             }
+
                             "playlists" -> {
                                 resultList.clear()
                                 resultAdapter.updateList(resultList)
@@ -184,6 +185,24 @@ class SearchFragment : Fragment() {
                                 binding.chipGroupTypeSearch.isClickable = true
                                 Log.d("Check Playlist", "Playlist is checked")
                             }
+
+                            "featured_playlists" -> {
+                                resultList.clear()
+                                resultAdapter.updateList(resultList)
+                                fetchSearchFeaturedPlaylists(query)
+                                binding.chipGroupTypeSearch.isClickable = true
+                                Log.d("Check Search Type", "Search Type is featured_playlists")
+                            }
+
+                            "podcasts" -> {
+                                resultList.clear()
+                                resultAdapter.updateList(resultList)
+                                fetchSearchPodcasts(query)
+                                binding.chipGroupTypeSearch.isClickable = true
+                                Log.d("Check Search Type", "Search Type is featured_playlists")
+                                Log.d("Check Search Type", "Search Type is podcasts")
+                            }
+
                             else -> {
                                 Log.d("Check Search Type", "Search Type is null")
                             }
@@ -350,11 +369,18 @@ class SearchFragment : Fragment() {
                     args.putString("browseId", browseId)
                     findNavController().navigateSafe(R.id.action_global_albumFragment, args)
                 }
-                if (type == Config.PLAYLIST_CLICK){
+                if (type == Config.PLAYLIST_CLICK) {
+                    val data = (resultAdapter.getCurrentList()[position] as PlaylistsResult)
                     val id = (resultAdapter.getCurrentList()[position] as PlaylistsResult).browseId
-                    val args = Bundle()
-                    args.putString("id", id)
-                    findNavController().navigateSafe(R.id.action_global_playlistFragment, args)
+                    if (data.resultType == "Podcast") {
+                        val args = Bundle()
+                        args.putString("id", id)
+                        findNavController().navigateSafe(R.id.action_global_podcastFragment, args)
+                    } else {
+                        val args = Bundle()
+                        args.putString("id", id)
+                        findNavController().navigateSafe(R.id.action_global_playlistFragment, args)
+                    }
                 }
                 if (type == Config.SONG_CLICK){
                     val songClicked = resultAdapter.getCurrentList()[position] as SongsResult
@@ -677,8 +703,12 @@ class SearchFragment : Fragment() {
             else if (binding.chipArtists.isChecked){
                 fetchSearchArtists(binding.svSearch.query.toString())
             }
-            else if (binding.chipPlaylist.isChecked){
+            else if (binding.chipPlaylist.isChecked) {
                 fetchSearchPlaylists(binding.svSearch.query.toString())
+            } else if (binding.chipFeaturedPlaylist.isChecked) {
+                fetchSearchFeaturedPlaylists(binding.svSearch.query.toString())
+            } else if (binding.chipPodcast.isChecked) {
+                fetchSearchPodcasts(binding.svSearch.query.toString())
             }
         }
         binding.chipGroupTypeSearch.setOnCheckedStateChangeListener { _, checkedIds ->
@@ -728,12 +758,27 @@ class SearchFragment : Fragment() {
                 }
                 resultAdapter.updateList(resultList)
             }
-            else if (checkedIds.contains(binding.chipPlaylist.id))
-            {
+            else if (checkedIds.contains(binding.chipPlaylist.id)) {
                 viewModel.searchType.postValue("playlists")
                 resultList.clear()
                 val temp = viewModel.playlistSearchResult.value?.data
-                for (i in temp!!){
+                for (i in temp!!) {
+                    resultList.add(i)
+                }
+                resultAdapter.updateList(resultList)
+            } else if (checkedIds.contains(binding.chipFeaturedPlaylist.id)) {
+                viewModel.searchType.postValue("featured_playlists")
+                resultList.clear()
+                val temp = viewModel.featuredPlaylistSearchResult.value?.data
+                for (i in temp!!) {
+                    resultList.add(i)
+                }
+                resultAdapter.updateList(resultList)
+            } else if (checkedIds.contains(binding.chipPodcast.id)) {
+                viewModel.searchType.postValue("podcasts")
+                resultList.clear()
+                val temp = viewModel.podcastSearchResult.value?.data
+                for (i in temp!!) {
                     resultList.add(i)
                 }
                 resultAdapter.updateList(resultList)
@@ -859,14 +904,122 @@ class SearchFragment : Fragment() {
             }
         }
     }
+
+    private fun fetchSearchFeaturedPlaylists(query: String) {
+        setEnabledAll(binding.chipGroupTypeSearch, false)
+        binding.refreshSearch.isRefreshing = true
+        binding.shimmerLayout.startShimmer()
+        binding.shimmerLayout.visibility = View.VISIBLE
+        viewModel.searchFeaturedPlaylist(query)
+        viewModel.loading.observe(viewLifecycleOwner) {
+            if (it == false) {
+                viewModel.featuredPlaylistSearchResult.observe(viewLifecycleOwner) { response ->
+                    when (response) {
+                        is Resource.Success -> {
+                            response.data.let { playlistsResultArrayList ->
+                                Log.d(
+                                    "SearchFragment",
+                                    "observePlaylistsList: $playlistsResultArrayList"
+                                )
+                                resultList.clear()
+                                if (playlistsResultArrayList != null) {
+                                    for (i in playlistsResultArrayList) {
+                                        resultList += i
+                                    }
+                                }
+                                resultAdapter.updateList(resultList)
+                                binding.shimmerLayout.stopShimmer()
+                                binding.shimmerLayout.visibility = View.GONE
+                                binding.refreshSearch.isRefreshing = false
+                                setEnabledAll(binding.chipGroupTypeSearch, true)
+                                binding.resultList.smoothScrollToPosition(0)
+                            }
+                        }
+
+                        is Resource.Error -> {
+                            response.message?.let { message ->
+                                Snackbar.make(
+                                    requireActivity().findViewById(R.id.mini_player_container),
+                                    message,
+                                    Snackbar.LENGTH_LONG
+                                )
+                                    .setAction(R.string.retry) {
+                                        fetchSearchFeaturedPlaylists(query)
+                                    }
+                                    .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
+                                    .setDuration(3000)
+                                    .show()
+                            }
+                            binding.shimmerLayout.stopShimmer()
+                            binding.shimmerLayout.visibility = View.GONE
+                            setEnabledAll(binding.chipGroupTypeSearch, true)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun fetchSearchPodcasts(query: String) {
+        setEnabledAll(binding.chipGroupTypeSearch, false)
+        binding.refreshSearch.isRefreshing = true
+        binding.shimmerLayout.startShimmer()
+        binding.shimmerLayout.visibility = View.VISIBLE
+        viewModel.searchPodcast(query)
+        viewModel.loading.observe(viewLifecycleOwner) {
+            if (it == false) {
+                viewModel.podcastSearchResult.observe(viewLifecycleOwner) { response ->
+                    when (response) {
+                        is Resource.Success -> {
+                            response.data.let { playlistsResultArrayList ->
+                                Log.d("SearchFragment", "podcast: $playlistsResultArrayList")
+                                resultList.clear()
+                                if (playlistsResultArrayList != null) {
+                                    for (i in playlistsResultArrayList) {
+                                        resultList += i
+                                    }
+                                }
+                                resultAdapter.updateList(resultList)
+                                binding.shimmerLayout.stopShimmer()
+                                binding.shimmerLayout.visibility = View.GONE
+                                binding.refreshSearch.isRefreshing = false
+                                setEnabledAll(binding.chipGroupTypeSearch, true)
+                                binding.resultList.smoothScrollToPosition(0)
+                            }
+                        }
+
+                        is Resource.Error -> {
+                            response.message?.let { message ->
+                                Snackbar.make(
+                                    requireActivity().findViewById(R.id.mini_player_container),
+                                    message,
+                                    Snackbar.LENGTH_LONG
+                                )
+                                    .setAction(R.string.retry) {
+                                        fetchSearchPodcasts(query)
+                                    }
+                                    .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
+                                    .setDuration(3000)
+                                    .show()
+                            }
+                            binding.shimmerLayout.stopShimmer()
+                            binding.shimmerLayout.visibility = View.GONE
+                            setEnabledAll(binding.chipGroupTypeSearch, true)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     private fun fetchSearchPlaylists(query: String) {
         setEnabledAll(binding.chipGroupTypeSearch, false)
         binding.refreshSearch.isRefreshing = true
         binding.shimmerLayout.startShimmer()
         binding.shimmerLayout.visibility = View.VISIBLE
         viewModel.searchPlaylists(query)
-        viewModel.loading.observe(viewLifecycleOwner){
-            if (it == false){
+        viewModel.loading.observe(viewLifecycleOwner) {
+            if (it == false) {
                 viewModel.playlistSearchResult.observe(viewLifecycleOwner) { response ->
                     when (response) {
                         is Resource.Success -> {
@@ -1009,9 +1162,11 @@ class SearchFragment : Fragment() {
         var album = ArrayList<AlbumsResult>()
         var artist = ArrayList<ArtistsResult>()
         var playlist = ArrayList<PlaylistsResult>()
+        var featuredPlaylist = ArrayList<PlaylistsResult>()
+        var podcast = ArrayList<PlaylistsResult>()
         val temp: ArrayList<Any> = ArrayList()
-        viewModel.loading.observe(viewLifecycleOwner){ it ->
-            if (it == false){
+        viewModel.loading.observe(viewLifecycleOwner) { it ->
+            if (it == false) {
                 viewModel.songsSearchResult.observe(viewLifecycleOwner) { response ->
                     when (response) {
                         is Resource.Success -> {
@@ -1120,14 +1275,65 @@ class SearchFragment : Fragment() {
                         }
                     }
                 }
+                viewModel.featuredPlaylistSearchResult.observe(viewLifecycleOwner) { response ->
+                    when (response) {
+                        is Resource.Success -> {
+                            response.data.let { playlistsResultArrayList ->
+                                print(playlistsResultArrayList)
+                                featuredPlaylist = playlistsResultArrayList!!
+                            }
+                        }
+
+                        is Resource.Error -> {
+                            response.message?.let { message ->
+                                Snackbar.make(
+                                    requireActivity().findViewById(R.id.mini_player_container),
+                                    message,
+                                    Snackbar.LENGTH_LONG
+                                )
+                                    .setAction(getString(R.string.retry)) {
+                                        fetchSearchAll(query)
+                                    }
+                                    .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
+                                    .setDuration(3000)
+                                    .show()
+                            }
+                        }
+                    }
+                }
+                viewModel.podcastSearchResult.observe(viewLifecycleOwner) { response ->
+                    when (response) {
+                        is Resource.Success -> {
+                            response.data.let { playlistsResultArrayList ->
+                                print(playlistsResultArrayList)
+                                podcast = playlistsResultArrayList!!
+                            }
+                        }
+
+                        is Resource.Error -> {
+                            response.message?.let { message ->
+                                Snackbar.make(
+                                    requireActivity().findViewById(R.id.mini_player_container),
+                                    message,
+                                    Snackbar.LENGTH_LONG
+                                )
+                                    .setAction(getString(R.string.retry)) {
+                                        fetchSearchAll(query)
+                                    }
+                                    .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
+                                    .setDuration(3000)
+                                    .show()
+                            }
+                        }
+                    }
+                }
                 viewModel.loading.observe(viewLifecycleOwner) { loading ->
                     if (loading) {
                         binding.refreshSearch.isRefreshing = true
                     } else {
                         try {
                             if (artist.size >= 3) {
-                                for (i in 0..2)
-                                {
+                                for (i in 0..2) {
                                     temp += artist[i]
                                 }
                                 for (i in 0 until song.size)
@@ -1138,13 +1344,17 @@ class SearchFragment : Fragment() {
                                 {
                                     temp += video[i]
                                 }
-                                for (i in 0 until album.size)
-                                {
+                                for (i in 0 until album.size) {
                                     temp += album[i]
                                 }
-                                for (i in 0 until playlist.size)
-                                {
+                                for (i in 0 until playlist.size) {
                                     temp += playlist[i]
+                                }
+                                for (i in 0 until featuredPlaylist.size) {
+                                    temp += featuredPlaylist[i]
+                                }
+                                for (i in 0 until podcast.size) {
+                                    temp += podcast[i]
                                 }
                             }
                             else {
@@ -1153,6 +1363,8 @@ class SearchFragment : Fragment() {
                                 temp.addAll(artist)
                                 temp.addAll(album)
                                 temp.addAll(playlist)
+                                temp.addAll(featuredPlaylist)
+                                temp.addAll(podcast)
                             }
                         }
                         catch (e: Exception){

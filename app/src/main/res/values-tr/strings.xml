@@ -135,8 +135,8 @@
     <string name="what_do_you_want_to_listen_to">Ne dinlemek istiyorsun?</string>
     <string name="songs_inArtist">Şarkılar</string>
     <string name="albums_inArtist">Albümler</string>
-    <string name="singles_inArtist">Tekli</string>
-    <string name="fans_might_also_like_inArtist">Şunlar da hoşunuza gidebilir</string>
+    <string name="singles_inArtist">Single\'lar</string>
+    <string name="fans_might_also_like_inArtist">Benzer sanatçılar</string>
     <string name="crash_log">SimpMusic çöktü. Bu sorun için özür dileriz.\nÇökme günlüğünü geliştiriciye gönderin</string>
     <string name="crash">Çökme</string>
     <string name="send">Gönder</string>

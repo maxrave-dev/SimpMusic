@@ -136,7 +136,7 @@
     <string name="songs_inArtist">Músicas</string>
     <string name="albums_inArtist">Álbuns</string>
     <string name="singles_inArtist">Singles</string>
-    <string name="fans_might_also_like_inArtist">Você também pode gostar</string>
+    <string name="fans_might_also_like_inArtist">Os fãs também poderão gostar de…</string>
     <string name="crash_log">SimpMusic parou de funcionar. Lamentamos por este problema.\nEnviar informações do erro para o desenvolvedor</string>
     <string name="crash">Falha</string>
     <string name="send">Enviar</string>

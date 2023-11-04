@@ -45,7 +45,7 @@ class PlaylistViewModel @Inject constructor(
     @Inject
     lateinit var downloadUtils: DownloadUtils
 
-    var gradientDrawable: MutableLiveData<GradientDrawable> = MutableLiveData()
+    var gradientDrawable: MutableLiveData<GradientDrawable?> = MutableLiveData()
     var loading = MutableLiveData<Boolean>()
 
     private val _playlistBrowse: MutableLiveData<Resource<PlaylistBrowse>?> = MutableLiveData()
@@ -313,6 +313,7 @@ class PlaylistViewModel @Inject constructor(
 
     fun clearPlaylistBrowse() {
         _playlistBrowse.value = null
+        gradientDrawable.value = null
     }
 
     fun getLocation() {
