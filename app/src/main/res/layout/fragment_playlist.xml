@@ -48,7 +48,6 @@
                             android:layout_marginTop="?attr/actionBarSize"
                             android:id="@+id/ivPlaylistArt"
                             android:layout_width="wrap_content"
-                            android:maxWidth="350dp"
                             android:layout_height="250sp"
                             android:layout_marginBottom="15dp"
                             android:scaleType="centerCrop"

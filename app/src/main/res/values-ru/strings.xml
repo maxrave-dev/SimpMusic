@@ -57,7 +57,7 @@
     <string name="good_afternoon">Добрый день</string>
     <string name="good_evening">Добрый вечер</string>
     <string name="good_night">Доброй ночи</string>
-    <string name="quick_picks">Быстрый выбор</string>
+    <string name="quick_picks">Подборки по треку</string>
     <string name="this_song_is_not_available">Эта песня недоступна</string>
     <string name="in_charts">в чартах</string>
     <string name="playlist_name_cannot_be_empty">Название плейлиста не может быть пустым</string>

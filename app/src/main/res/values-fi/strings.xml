@@ -57,7 +57,7 @@
     <string name="good_afternoon">Hyvää iltapäivää</string>
     <string name="good_evening">Hyvää iltaa</string>
     <string name="good_night">Hyvää yötä</string>
-    <string name="quick_picks">Pikapoiminnat</string>
+    <string name="quick_picks">Pikalista</string>
     <string name="this_song_is_not_available">Tämä kappale ei ole saatavilla</string>
     <string name="in_charts">listoilla</string>
     <string name="playlist_name_cannot_be_empty">Soittolistan nimi ei voi olla tyhjä</string>

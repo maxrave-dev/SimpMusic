@@ -313,8 +313,10 @@ class HomeFragment : Fragment() {
                     binding.accountLayout.visibility = View.VISIBLE
                     binding.tvAccountName.text = accountName
                     binding.ivAccount.load(accountThumbUrl)
+                } else {
+                    binding.accountLayout.visibility = View.GONE
                 }
-                else {
+                if (viewModel.homeItemList.value?.data?.find { it.subtitle == accountName } != null) {
                     binding.accountLayout.visibility = View.GONE
                 }
             }

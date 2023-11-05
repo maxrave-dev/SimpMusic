@@ -21,8 +21,6 @@ object Config {
     const val SHARE = "SHARE"
     const val RECOVER_TRACK_QUEUE = "RECOVER_TRACK_QUEUE"
 
-    const val VN = "VN"
-
 }
 
 object DownloadState {
