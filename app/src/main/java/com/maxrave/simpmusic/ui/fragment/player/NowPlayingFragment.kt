@@ -3,6 +3,7 @@ package com.maxrave.simpmusic.ui.fragment.player
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.TransitionDrawable
 import android.net.Uri
@@ -28,10 +29,8 @@ import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.fragment.findNavController
 import androidx.palette.graphics.Palette
 import androidx.recyclerview.widget.LinearLayoutManager
-import coil.ImageLoader
 import coil.load
 import coil.request.CachePolicy
-import coil.request.ImageRequest
 import coil.size.Size
 import coil.transform.Transformation
 import com.daimajia.swipe.SwipeLayout
@@ -67,6 +66,7 @@ import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.removeConflicts
 import com.maxrave.simpmusic.extension.setEnabledAll
+import com.maxrave.simpmusic.extension.setTextAnimation
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.RepeatState
@@ -183,7 +183,7 @@ class NowPlayingFragment : Fragment() {
                     updateUIfromCurrentMediaItem(viewModel.getCurrentMediaItem())
                 } else {
                     Log.i("Now Playing Fragment", "Song Click")
-                    binding.ivArt.visibility = View.GONE
+                    binding.ivArt.setImageResource(0)
                     binding.loadingArt.visibility = View.VISIBLE
                     viewModel.gradientDrawable.postValue(null)
                     viewModel.lyricsBackground.postValue(null)
@@ -221,7 +221,7 @@ class NowPlayingFragment : Fragment() {
             SHARE -> {
                 viewModel.playlistId.value = null
                 viewModel.stopPlayer()
-                binding.ivArt.visibility = View.GONE
+                binding.ivArt.setImageResource(0)
                 binding.loadingArt.visibility = View.VISIBLE
                 viewModel.gradientDrawable.postValue(null)
                 viewModel.lyricsBackground.postValue(null)
@@ -279,7 +279,7 @@ class NowPlayingFragment : Fragment() {
                 } else {
 //                if (!viewModel.songTransitions.value){
                     Log.i("Now Playing Fragment", "Video Click")
-                    binding.ivArt.visibility = View.GONE
+                    binding.ivArt.setImageResource(0)
                     binding.loadingArt.visibility = View.VISIBLE
                     viewModel.gradientDrawable.postValue(null)
                     viewModel.lyricsBackground.postValue(null)
@@ -322,8 +322,8 @@ class NowPlayingFragment : Fragment() {
                         viewModel.playlistId.value = playlistId
                     }
 //                if (!viewModel.songTransitions.value){
-                    Log.i("Now Playing Fragment", "Album Click")
-                    binding.ivArt.visibility = View.GONE
+                Log.i("Now Playing Fragment", "Album Click")
+                binding.ivArt.setImageResource(0)
                     binding.loadingArt.visibility = View.VISIBLE
                     viewModel.gradientDrawable.postValue(null)
                     viewModel.lyricsBackground.postValue(null)
@@ -382,8 +382,8 @@ class NowPlayingFragment : Fragment() {
                     if (playlistId != null) {
                         viewModel.playlistId.value = playlistId
                     }
-                    Log.i("Now Playing Fragment", "Playlist Click")
-                    binding.ivArt.visibility = View.GONE
+                Log.i("Now Playing Fragment", "Playlist Click")
+                binding.ivArt.setImageResource(0)
                     binding.loadingArt.visibility = View.VISIBLE
                     viewModel.gradientDrawable.postValue(null)
                     viewModel.lyricsBackground.postValue(null)
@@ -464,7 +464,7 @@ class NowPlayingFragment : Fragment() {
 //                            Log.i("Now Playing Fragment", "Bên dưới")
 //                            Log.d("Song Transition", "Song Transition")
 //                            videoId = viewModel.videoId.value
-//                            binding.ivArt.visibility = View.GONE
+//                            binding.ivArt.setImageResource(0)
 //                            binding.loadingArt.visibility = View.VISIBLE
 //                            Log.d("Check Lyrics", viewModel._lyrics.value?.data.toString())
 //                            updateUIfromCurrentMediaItem(song)
@@ -483,7 +483,7 @@ class NowPlayingFragment : Fragment() {
 //                                viewModel.getFormat(song.mediaId)
                                 Log.i("Now Playing Fragment", "song ${song.mediaMetadata.title}")
                                 videoId = viewModel.videoId.value
-                                binding.ivArt.visibility = View.GONE
+                                binding.ivArt.setImageResource(0)
                                 binding.loadingArt.visibility = View.VISIBLE
                                 Log.d("Check Lyrics", viewModel._lyrics.value?.data.toString())
                                 updateUIfromCurrentMediaItem(song)
@@ -616,13 +616,6 @@ class NowPlayingFragment : Fragment() {
                         } else {
                             binding.lyricsLayout.visibility = View.GONE
                             binding.lyricsTextLayout.visibility = View.GONE
-                        }
-                    }
-                }
-                val job6 = launch {
-                    viewModel.lyricsFull.observe(viewLifecycleOwner) {
-                        if (it != null) {
-//                            binding.tvFullLyrics.text = it
                         }
                     }
                 }
@@ -811,7 +804,6 @@ class NowPlayingFragment : Fragment() {
                 job3.join()
                 job4.join()
                 job5.join()
-                job6.join()
                 job7.join()
                 job8.join()
                 job9.join()
@@ -1294,143 +1286,33 @@ class NowPlayingFragment : Fragment() {
         val nowPlaying = Queue.getNowPlaying()
         if (nowPlaying != null) {
 //            viewModel.getFormat(nowPlaying.videoId)
-            binding.ivArt.visibility = View.GONE
+            binding.ivArt.setImageResource(0)
             binding.loadingArt.visibility = View.VISIBLE
             Log.d("Update UI", "current: ${nowPlaying.title}")
             var thumbUrl = nowPlaying.thumbnails?.last()?.url!!
             if (thumbUrl.contains("w120")) {
                 thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
             }
-            val request = ImageRequest.Builder(requireContext())
-                .data(Uri.parse(thumbUrl))
-                .diskCacheKey(nowPlaying.videoId)
-                .diskCachePolicy(CachePolicy.ENABLED)
-                .target(
+            binding.ivArt.load(Uri.parse(thumbUrl)) {
+                diskCacheKey(nowPlaying.videoId)
+                diskCachePolicy(CachePolicy.ENABLED)
+                listener(
                     onStart = {
-                        binding.ivArt.visibility = View.GONE
+                        binding.ivArt.setImageResource(0)
                         binding.loadingArt.visibility = View.VISIBLE
                         Log.d("Update UI", "onStart: ")
                     },
-                    onSuccess = { result ->
+                    onSuccess = { _, _ ->
                         binding.ivArt.visibility = View.VISIBLE
                         binding.loadingArt.visibility = View.GONE
-                        binding.ivArt.setImageDrawable(result)
                         Log.d("Update UI", "onSuccess: ")
                         if (viewModel.gradientDrawable.value != null) {
                             viewModel.gradientDrawable.observe(viewLifecycleOwner) {
-                                binding.rootLayout.background = it
-//                            viewModel.lyricsBackground.observe(viewLifecycleOwner, Observer { color ->
-//                                binding.lyricsLayout.setCardBackgroundColor(color)
-//                                Log.d("Update UI", "Lyrics: $color")
-//                                updateStatusBarColor(color)
-//                            })
-                                viewModel.lyricsBackground.value?.let { it1 ->
-                                    binding.lyricsLayout.setCardBackgroundColor(
-                                        it1
-                                    )
-                                }
-                            }
-                            Log.d("Update UI", "updateUI: NULL")
-                        }
-//                        songChangeListener.onNowPlayingSongChange()
-                    },
-                )
-                .transformations(object : Transformation {
-                    override val cacheKey: String
-                        get() = nowPlaying.videoId
-
-                    override suspend fun transform(input: Bitmap, size: Size): Bitmap {
-                        val p = Palette.from(input).generate()
-                        val defaultColor = 0x000000
-                        var startColor = p.getDarkVibrantColor(defaultColor)
-                        Log.d("Check Start Color", "transform: $startColor")
-                        if (startColor == defaultColor) {
-                            startColor = p.getDarkMutedColor(defaultColor)
-                            if (startColor == defaultColor) {
-                                startColor = p.getVibrantColor(defaultColor)
-                                if (startColor == defaultColor) {
-                                    startColor = p.getMutedColor(defaultColor)
-                                    if (startColor == defaultColor) {
-                                        startColor = p.getLightVibrantColor(defaultColor)
-                                        if (startColor == defaultColor) {
-                                            startColor = p.getLightMutedColor(defaultColor)
-                                        }
-                                    }
-                                }
-                            }
-                            Log.d("Check Start Color", "transform: $startColor")
-                        }
-//                    val centerColor = 0x6C6C6C
-                        val endColor = 0x1b1a1f
-                        val gd = GradientDrawable(
-                            GradientDrawable.Orientation.TOP_BOTTOM,
-                            intArrayOf(startColor, endColor)
-                        )
-                        gd.cornerRadius = 0f
-                        gd.gradientType = GradientDrawable.LINEAR_GRADIENT
-                        gd.gradientRadius = 0.5f
-                        gd.alpha = 150
-                        val bg = ColorUtils.setAlphaComponent(startColor, 230)
-                        viewModel.gradientDrawable.postValue(gd)
-                        viewModel.lyricsBackground.postValue(bg)
-                        return input
-                    }
-
-                })
-                .build()
-            binding.topAppBar.subtitle = from
-            viewModel.from.postValue(from)
-            binding.tvSongTitle.text = nowPlaying.title
-            binding.tvSongTitle.isSelected = true
-            val tempArtist = mutableListOf<String>()
-            if (nowPlaying.artists != null) {
-                for (artist in nowPlaying.artists) {
-                    tempArtist.add(artist.name)
-                }
-            }
-            val artistName: String = connectArtists(tempArtist)
-            binding.tvSongArtist.text = artistName
-            binding.tvSongArtist.isSelected = true
-            binding.tvSongTitle.visibility = View.VISIBLE
-            binding.tvSongArtist.visibility = View.VISIBLE
-            ImageLoader(requireContext()).enqueue(request)
-        }
-    }
-
-    private fun updateUIfromCurrentMediaItem(mediaItem: MediaItem?) {
-        if (mediaItem != null) {
-            binding.ivArt.visibility = View.GONE
-            binding.loadingArt.visibility = View.VISIBLE
-//            viewModel.getFormat(mediaItem.mediaId)
-            Log.d("Update UI", "current: ${mediaItem.mediaMetadata.title}")
-            binding.tvSongTitle.visibility = View.VISIBLE
-            binding.tvSongArtist.visibility = View.VISIBLE
-            binding.topAppBar.subtitle = from
-            viewModel.from.postValue(from)
-            binding.tvSongTitle.text = mediaItem.mediaMetadata.title
-            binding.tvSongTitle.isSelected = true
-            binding.tvSongArtist.text = mediaItem.mediaMetadata.artist
-            binding.tvSongArtist.isSelected = true
-            val request = ImageRequest.Builder(requireContext())
-                .data(mediaItem.mediaMetadata.artworkUri)
-                .diskCacheKey(mediaItem.mediaId)
-                .diskCachePolicy(CachePolicy.ENABLED)
-                .target(
-                    onStart = {
-                        binding.ivArt.visibility = View.GONE
-                        binding.loadingArt.visibility = View.VISIBLE
-                        Log.d("Update UI", "onStart: ")
-                    },
-                    onSuccess = { result ->
-                        binding.ivArt.visibility = View.VISIBLE
-                        binding.loadingArt.visibility = View.GONE
-                        binding.ivArt.setImageDrawable(result)
-                        Log.d("Update UI", "onSuccess: ")
-                        if (viewModel.gradientDrawable.value != null) {
-                            viewModel.gradientDrawable.observe(viewLifecycleOwner) {
-                                binding.rootLayout.background = it
                                 if (it != null) {
-                                    val start = binding.rootLayout.background
+                                    var start = binding.rootLayout.background
+                                    if (start == null) {
+                                        start = ColorDrawable(Color.BLACK)
+                                    }
                                     val transition = TransitionDrawable(arrayOf(start, it))
                                     binding.rootLayout.background = transition
                                     transition.isCrossFadeEnabled = true
@@ -1452,9 +1334,206 @@ class NowPlayingFragment : Fragment() {
 //                        songChangeListener.onNowPlayingSongChange()
                     },
                 )
-                .diskCacheKey(mediaItem.mediaMetadata.artworkUri.toString())
-                .diskCachePolicy(CachePolicy.ENABLED)
-                .transformations(object : Transformation {
+                transformations(
+                    object : Transformation {
+                        override val cacheKey: String
+                            get() = nowPlaying.videoId
+
+                        override suspend fun transform(input: Bitmap, size: Size): Bitmap {
+                            val p = Palette.from(input).generate()
+                            val defaultColor = 0x000000
+                            var startColor = p.getDarkVibrantColor(defaultColor)
+                            Log.d("Check Start Color", "transform: $startColor")
+                            if (startColor == defaultColor) {
+                                startColor = p.getDarkMutedColor(defaultColor)
+                                if (startColor == defaultColor) {
+                                    startColor = p.getVibrantColor(defaultColor)
+                                    if (startColor == defaultColor) {
+                                        startColor = p.getMutedColor(defaultColor)
+                                        if (startColor == defaultColor) {
+                                            startColor = p.getLightVibrantColor(defaultColor)
+                                            if (startColor == defaultColor) {
+                                                startColor = p.getLightMutedColor(defaultColor)
+                                            }
+                                        }
+                                    }
+                                }
+                                Log.d("Check Start Color", "transform: $startColor")
+                            }
+//                    val centerColor = 0x6C6C6C
+                            val endColor = 0x1b1a1f
+                            val gd = GradientDrawable(
+                                GradientDrawable.Orientation.TOP_BOTTOM,
+                                intArrayOf(startColor, endColor)
+                            )
+                            gd.cornerRadius = 0f
+                            gd.gradientType = GradientDrawable.LINEAR_GRADIENT
+                            gd.gradientRadius = 0.5f
+                            gd.alpha = 150
+                            val bg = ColorUtils.setAlphaComponent(startColor, 230)
+                            viewModel.gradientDrawable.postValue(gd)
+                            viewModel.lyricsBackground.postValue(bg)
+                            return input
+                        }
+
+                    }
+                )
+            }
+//            val request = ImageRequest.Builder(requireContext())
+//                .data(Uri.parse(thumbUrl))
+//                .diskCacheKey(nowPlaying.videoId)
+//                .diskCachePolicy(CachePolicy.ENABLED)
+//                .target(
+//                    onStart = {
+//                        binding.ivArt.setImageResource(0)
+//                        binding.loadingArt.visibility = View.VISIBLE
+//                        Log.d("Update UI", "onStart: ")
+//                    },
+//                    onSuccess = { result ->
+//                        binding.ivArt.visibility = View.VISIBLE
+//                        binding.loadingArt.visibility = View.GONE
+//                        binding.ivArt.setImageDrawable(result)
+//                        Log.d("Update UI", "onSuccess: ")
+//                        if (viewModel.gradientDrawable.value != null) {
+//                            viewModel.gradientDrawable.observe(viewLifecycleOwner) {
+//                                binding.rootLayout.background = it
+////                            viewModel.lyricsBackground.observe(viewLifecycleOwner, Observer { color ->
+////                                binding.lyricsLayout.setCardBackgroundColor(color)
+////                                Log.d("Update UI", "Lyrics: $color")
+////                                updateStatusBarColor(color)
+////                            })
+//                                viewModel.lyricsBackground.value?.let { it1 ->
+//                                    binding.lyricsLayout.setCardBackgroundColor(
+//                                        it1
+//                                    )
+//                                }
+//                            }
+//                            Log.d("Update UI", "updateUI: NULL")
+//                        }
+////                        songChangeListener.onNowPlayingSongChange()
+//                    },
+//                )
+//                .transformations(object : Transformation {
+//                    override val cacheKey: String
+//                        get() = nowPlaying.videoId
+//
+//                    override suspend fun transform(input: Bitmap, size: Size): Bitmap {
+//                        val p = Palette.from(input).generate()
+//                        val defaultColor = 0x000000
+//                        var startColor = p.getDarkVibrantColor(defaultColor)
+//                        Log.d("Check Start Color", "transform: $startColor")
+//                        if (startColor == defaultColor) {
+//                            startColor = p.getDarkMutedColor(defaultColor)
+//                            if (startColor == defaultColor) {
+//                                startColor = p.getVibrantColor(defaultColor)
+//                                if (startColor == defaultColor) {
+//                                    startColor = p.getMutedColor(defaultColor)
+//                                    if (startColor == defaultColor) {
+//                                        startColor = p.getLightVibrantColor(defaultColor)
+//                                        if (startColor == defaultColor) {
+//                                            startColor = p.getLightMutedColor(defaultColor)
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                            Log.d("Check Start Color", "transform: $startColor")
+//                        }
+////                    val centerColor = 0x6C6C6C
+//                        val endColor = 0x1b1a1f
+//                        val gd = GradientDrawable(
+//                            GradientDrawable.Orientation.TOP_BOTTOM,
+//                            intArrayOf(startColor, endColor)
+//                        )
+//                        gd.cornerRadius = 0f
+//                        gd.gradientType = GradientDrawable.LINEAR_GRADIENT
+//                        gd.gradientRadius = 0.5f
+//                        gd.alpha = 150
+//                        val bg = ColorUtils.setAlphaComponent(startColor, 230)
+//                        viewModel.gradientDrawable.postValue(gd)
+//                        viewModel.lyricsBackground.postValue(bg)
+//                        return input
+//                    }
+//
+//                })
+//                .build()
+//            ImageLoader(requireContext()).enqueue(request)
+            binding.topAppBar.subtitle = from
+            viewModel.from.postValue(from)
+            binding.tvSongTitle.text = nowPlaying.title
+            binding.tvSongTitle.isSelected = true
+            val tempArtist = mutableListOf<String>()
+            if (nowPlaying.artists != null) {
+                for (artist in nowPlaying.artists) {
+                    tempArtist.add(artist.name)
+                }
+            }
+            val artistName: String = connectArtists(tempArtist)
+            binding.tvSongArtist.text = artistName
+            binding.tvSongArtist.isSelected = true
+            binding.tvSongTitle.visibility = View.VISIBLE
+            binding.tvSongArtist.visibility = View.VISIBLE
+
+        }
+    }
+
+    private fun updateUIfromCurrentMediaItem(mediaItem: MediaItem?) {
+        if (mediaItem != null) {
+            binding.ivArt.setImageResource(0)
+            binding.loadingArt.visibility = View.VISIBLE
+//            viewModel.getFormat(mediaItem.mediaId)
+            Log.d("Update UI", "current: ${mediaItem.mediaMetadata.title}")
+            binding.tvSongTitle.visibility = View.VISIBLE
+            binding.tvSongArtist.visibility = View.VISIBLE
+            binding.topAppBar.subtitle = from
+            viewModel.from.postValue(from)
+            binding.tvSongTitle.setTextAnimation(mediaItem.mediaMetadata.title.toString())
+            binding.tvSongTitle.isSelected = true
+            binding.tvSongArtist.setTextAnimation(mediaItem.mediaMetadata.artist.toString())
+            binding.tvSongArtist.isSelected = true
+            binding.ivArt.load(mediaItem.mediaMetadata.artworkUri) {
+                diskCacheKey(mediaItem.mediaId)
+                diskCachePolicy(CachePolicy.ENABLED)
+                crossfade(true)
+                crossfade(300)
+                listener(
+                    onStart = {
+                        binding.ivArt.setImageResource(0)
+                        binding.loadingArt.visibility = View.VISIBLE
+                        Log.d("Update UI", "onStart: ")
+                    },
+                    onSuccess = { _, _ ->
+                        binding.ivArt.visibility = View.VISIBLE
+                        binding.loadingArt.visibility = View.GONE
+                        Log.d("Update UI", "onSuccess: ")
+                        if (viewModel.gradientDrawable.value != null) {
+                            viewModel.gradientDrawable.observe(viewLifecycleOwner) {
+                                if (it != null) {
+                                    var start = binding.rootLayout.background
+                                    if (start == null) {
+                                        start = ColorDrawable(Color.BLACK)
+                                    }
+                                    val transition = TransitionDrawable(arrayOf(start, it))
+                                    binding.rootLayout.background = transition
+                                    transition.isCrossFadeEnabled = true
+                                    transition.startTransition(500)
+                                }
+//                            viewModel.lyricsBackground.observe(viewLifecycleOwner, Observer { color ->
+//                                binding.lyricsLayout.setCardBackgroundColor(color)
+//                                Log.d("Update UI", "Lyrics: $color")
+//                                updateStatusBarColor(color)
+//                            })
+                                viewModel.lyricsBackground.value?.let { it1 ->
+                                    binding.lyricsLayout.setCardBackgroundColor(
+                                        it1
+                                    )
+                                }
+                            }
+                            Log.d("Update UI", "updateUI: NULL")
+                        }
+//                        songChangeListener.onNowPlayingSongChange()
+                    },
+                )
+                transformations(object : Transformation {
                     override val cacheKey: String
                         get() = "paletteArtTransformer"
 
@@ -1494,10 +1573,94 @@ class NowPlayingFragment : Fragment() {
                         viewModel.lyricsBackground.postValue(bg)
                         return input
                     }
-
                 })
-                .build()
-            ImageLoader(requireContext()).enqueue(request)
+            }
+//            val request = ImageRequest.Builder(requireContext())
+//                .data(mediaItem.mediaMetadata.artworkUri)
+//                .diskCacheKey(mediaItem.mediaId)
+//                .diskCachePolicy(CachePolicy.ENABLED)
+//                .target(
+//                    onStart = {
+//                        binding.ivArt.setImageResource(0)
+//                        binding.loadingArt.visibility = View.VISIBLE
+//                        Log.d("Update UI", "onStart: ")
+//                    },
+//                    onSuccess = { result ->
+//                        binding.ivArt.visibility = View.VISIBLE
+//                        binding.loadingArt.visibility = View.GONE
+//                        binding.ivArt.setImageDrawable(result)
+//                        Log.d("Update UI", "onSuccess: ")
+//                        if (viewModel.gradientDrawable.value != null) {
+//                            viewModel.gradientDrawable.observe(viewLifecycleOwner) {
+//                                if (it != null) {
+//                                    val start = binding.rootLayout.background
+//                                    val transition = TransitionDrawable(arrayOf(start, it))
+//                                    binding.rootLayout.background = transition
+//                                    transition.isCrossFadeEnabled = true
+//                                    transition.startTransition(500)
+//                                }
+////                            viewModel.lyricsBackground.observe(viewLifecycleOwner, Observer { color ->
+////                                binding.lyricsLayout.setCardBackgroundColor(color)
+////                                Log.d("Update UI", "Lyrics: $color")
+////                                updateStatusBarColor(color)
+////                            })
+//                                viewModel.lyricsBackground.value?.let { it1 ->
+//                                    binding.lyricsLayout.setCardBackgroundColor(
+//                                        it1
+//                                    )
+//                                }
+//                            }
+//                            Log.d("Update UI", "updateUI: NULL")
+//                        }
+////                        songChangeListener.onNowPlayingSongChange()
+//                    },
+//                )
+//                .diskCacheKey(mediaItem.mediaMetadata.artworkUri.toString())
+//                .diskCachePolicy(CachePolicy.ENABLED)
+//                .transformations(object : Transformation {
+//                    override val cacheKey: String
+//                        get() = "paletteArtTransformer"
+//
+//                    override suspend fun transform(input: Bitmap, size: Size): Bitmap {
+//                        val p = Palette.from(input).generate()
+//                        val defaultColor = 0x000000
+//                        var startColor = p.getDarkVibrantColor(defaultColor)
+//                        Log.d("Check Start Color", "transform: $startColor")
+//                        if (startColor == defaultColor) {
+//                            startColor = p.getDarkMutedColor(defaultColor)
+//                            if (startColor == defaultColor) {
+//                                startColor = p.getVibrantColor(defaultColor)
+//                                if (startColor == defaultColor) {
+//                                    startColor = p.getMutedColor(defaultColor)
+//                                    if (startColor == defaultColor) {
+//                                        startColor = p.getLightVibrantColor(defaultColor)
+//                                        if (startColor == defaultColor) {
+//                                            startColor = p.getLightMutedColor(defaultColor)
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                            Log.d("Check Start Color", "transform: $startColor")
+//                        }
+////                    val centerColor = 0x6C6C6C
+//                        val endColor = 0x1b1a1f
+//                        val gd = GradientDrawable(
+//                            GradientDrawable.Orientation.TOP_BOTTOM,
+//                            intArrayOf(startColor, endColor)
+//                        )
+//                        gd.cornerRadius = 0f
+//                        gd.gradientType = GradientDrawable.LINEAR_GRADIENT
+//                        gd.gradientRadius = 0.5f
+//                        gd.alpha = 150
+//                        val bg = ColorUtils.setAlphaComponent(startColor, 230)
+//                        viewModel.gradientDrawable.postValue(gd)
+//                        viewModel.lyricsBackground.postValue(bg)
+//                        return input
+//                    }
+//
+//                })
+//                .build()
+//            ImageLoader(requireContext()).enqueue(request)
         }
     }
 

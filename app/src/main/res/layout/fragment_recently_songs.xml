@@ -16,25 +16,28 @@
                 android:id="@+id/topAppBar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
-                app:title="Recently Songs"
+                app:title="@string/recently"
                 app:navigationIcon="@drawable/baseline_arrow_back_ios_new_24"
                 app:navigationIconTint="@android:color/white"
                 app:titleTextAppearance="@style/TextAppearance.Material3.TitleMedium"
                 app:layout_scrollFlags="scroll|enterAlways|snap"/>
         </com.google.android.material.appbar.AppBarLayout>
-        <LinearLayout
-            android:layout_below="@id/topAppBarLayout"
-            android:orientation="vertical"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rvRecentlySongs"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    tools:listitem="@layout/item_songs_search_result"
-                    android:paddingBottom="135sp"
-                    android:clipToPadding="false">
 
-                </androidx.recyclerview.widget.RecyclerView>
-        </LinearLayout>
+    <LinearLayout
+        android:layout_below="@id/topAppBarLayout"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="10dp">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rvRecentlySongs"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            tools:listitem="@layout/item_songs_search_result"
+            android:paddingBottom="135sp"
+            android:clipToPadding="false">
+
+        </androidx.recyclerview.widget.RecyclerView>
+    </LinearLayout>
     </RelativeLayout>

@@ -66,7 +66,6 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
@@ -234,25 +233,37 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                         if (nowPlaying != null && getCurrentMediaItemIndex() > 0) {
                             _nowPlayingMediaItem.postValue(nowPlaying)
                             var downloaded = false
-                            val tempSong = simpleMediaServiceHandler!!.catalogMetadata.get(getCurrentMediaItemIndex())
-                            Log.d("Check tempSong", tempSong.toString())
-                            mainRepository.insertSong(tempSong.toSongEntity())
-                            mainRepository.getSongById(tempSong.videoId)
-                                .collectLatest { songEntity ->
-                                    _songDB.value = songEntity
-                                    if (songEntity != null) {
-                                        _liked.value = songEntity.liked
-                                        simpleMediaServiceHandler!!.like(songEntity.liked)
-                                        downloaded =
-                                            songEntity.downloadState == DownloadState.STATE_DOWNLOADED
-                                        Log.d("Check like", songEntity.toString())
+                            val tempSong = simpleMediaServiceHandler!!.catalogMetadata.getOrNull(
+                                getCurrentMediaItemIndex()
+                            )
+                            if (tempSong != null) {
+                                Log.d("Check tempSong", tempSong.toString())
+                                mainRepository.insertSong(tempSong.toSongEntity())
+                                mainRepository.getSongById(tempSong.videoId)
+                                    .collectLatest { songEntity ->
+                                        _songDB.value = songEntity
+                                        if (songEntity != null) {
+                                            _liked.value = songEntity.liked
+                                            simpleMediaServiceHandler!!.like(songEntity.liked)
+                                            downloaded =
+                                                songEntity.downloadState == DownloadState.STATE_DOWNLOADED
+                                            Log.d("Check like", songEntity.toString())
+                                        }
                                     }
+                                mainRepository.updateSongInLibrary(
+                                    LocalDateTime.now(),
+                                    tempSong.videoId
+                                )
+                                mainRepository.updateListenCount(tempSong.videoId)
+                                tempSong.durationSeconds?.let {
+                                    mainRepository.updateDurationSeconds(
+                                        it,
+                                        tempSong.videoId
+                                    )
                                 }
-                            mainRepository.updateSongInLibrary(LocalDateTime.now(), tempSong.videoId)
-                            mainRepository.updateListenCount(tempSong.videoId)
-                            tempSong.durationSeconds?.let { mainRepository.updateDurationSeconds(it, tempSong.videoId) }
-                            videoId.postValue(tempSong.videoId)
-                            _nowPlayingMediaItem.value = nowPlaying
+                                videoId.postValue(tempSong.videoId)
+                                _nowPlayingMediaItem.value = nowPlaying
+                            }
                         }
                     }
                 }

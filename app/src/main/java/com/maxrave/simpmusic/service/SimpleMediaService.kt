@@ -9,9 +9,6 @@ import android.os.Binder
 import android.os.IBinder
 import android.util.Log
 import androidx.core.net.toUri
-import androidx.media3.cast.CastPlayer
-import androidx.media3.cast.DefaultMediaItemConverter
-import androidx.media3.cast.SessionAvailabilityListener
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.Player
@@ -34,11 +31,9 @@ import androidx.media3.extractor.mkv.MatroskaExtractor
 import androidx.media3.extractor.mp4.FragmentedMp4Extractor
 import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.MediaController
+import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
-import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionToken
-import coil.ImageLoader
-import com.google.android.gms.cast.framework.CastContext
 import com.google.common.util.concurrent.MoreExecutors
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.MEDIA_NOTIFICATION
@@ -54,16 +49,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
-import java.util.concurrent.Executors
 import javax.inject.Inject
 
 @AndroidEntryPoint
 @UnstableApi
-class SimpleMediaService : MediaSessionService() {
+class SimpleMediaService : MediaLibraryService() {
 
     lateinit var player: ExoPlayer
 
-    lateinit var mediaSession: MediaSession
+    lateinit var mediaSession: MediaLibrarySession
 
     @Inject
     lateinit var dataStoreManager: DataStoreManager
@@ -104,10 +98,11 @@ class SimpleMediaService : MediaSessionService() {
             .setRenderersFactory(provideRendererFactory(this))
             .build()
 
-        mediaSession = provideMediaSession(
-            context = this,
-            player = player,
-            callback = simpleMediaSessionCallback,
+        mediaSession = provideMediaLibrarySession(
+            this,
+            this,
+            player,
+            simpleMediaSessionCallback
         )
         val sessionToken = SessionToken(this, ComponentName(this, SimpleMediaService::class.java))
         val controllerFuture = MediaController.Builder(this, sessionToken).buildAsync()
@@ -119,7 +114,7 @@ class SimpleMediaService : MediaSessionService() {
         return super.onStartCommand(intent, flags, startId)
     }
 
-    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession =
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession =
         mediaSession
 
     @UnstableApi
@@ -284,9 +279,28 @@ class SimpleMediaService : MediaSessionService() {
     @UnstableApi
     fun provideCoilBitmapLoader(context: Context): CoilBitmapLoader = CoilBitmapLoader(context)
 
+
+    @UnstableApi
+    fun provideMediaLibrarySession(
+        context: Context,
+        service: MediaLibraryService,
+        player: ExoPlayer,
+        callback: SimpleMediaSessionCallback
+    ): MediaLibrarySession = MediaLibrarySession.Builder(
+        service, player, callback
+    )
+        .setSessionActivity(
+            PendingIntent.getActivity(
+                context, 0, Intent(context, MainActivity::class.java),
+                PendingIntent.FLAG_IMMUTABLE
+            )
+        )
+        .setBitmapLoader(provideCoilBitmapLoader(context))
+        .build()
+
     @UnstableApi
     fun provideMediaSession(
-         context: Context,
+        context: Context,
         player: ExoPlayer,
         callback: SimpleMediaSessionCallback
     ): MediaSession =

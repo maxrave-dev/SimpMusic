@@ -26,11 +26,14 @@
             android:layout_below="@id/topAppBarLayout"
             android:orientation="vertical"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="10dp">
+
             <androidx.core.widget.NestedScrollView
                 android:padding="10sp"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
+
                 <androidx.recyclerview.widget.RecyclerView
                     android:id="@+id/rvFavorite"
                     android:layout_width="match_parent"

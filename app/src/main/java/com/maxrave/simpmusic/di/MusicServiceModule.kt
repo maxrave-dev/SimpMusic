@@ -8,6 +8,7 @@ import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor
 import androidx.media3.datasource.cache.NoOpCacheEvictor
 import androidx.media3.datasource.cache.SimpleCache
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
+import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.service.SimpleMediaSessionCallback
 import dagger.Module
 import dagger.Provides
@@ -65,5 +66,8 @@ object MusicServiceModule {
 
     @Provides
     @Singleton
-    fun provideMediaSessionCallback() : SimpleMediaSessionCallback = SimpleMediaSessionCallback()
+    fun provideMediaSessionCallback(
+        @ApplicationContext context: Context,
+        mainRepository: MainRepository
+    ): SimpleMediaSessionCallback = SimpleMediaSessionCallback(context, mainRepository)
 }

@@ -9,6 +9,7 @@ import android.text.Html
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
+import android.widget.TextView
 import androidx.core.net.toUri
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.lifecycle.LiveData
@@ -299,8 +300,28 @@ fun MediaItem?.toSongEntity(): SongEntity? {
         downloadState = 0
     ) else null
 }
+
+@JvmName("MediaItemtoSongEntity")
 @UnstableApi
-fun Track.toMediaItem() : MediaItem {
+fun SongEntity.toMediaItem(): MediaItem {
+    return MediaItem.Builder()
+        .setMediaId(this.videoId)
+        .setUri(this.videoId)
+        .setCustomCacheKey(this.videoId)
+        .setMediaMetadata(
+            MediaMetadata.Builder()
+                .setTitle(this.title)
+                .setArtist(this.artistName?.connectArtists())
+                .setArtworkUri(this.thumbnails?.toUri())
+                .setAlbumTitle(this.albumName)
+                .build()
+        )
+        .build()
+}
+
+@JvmName("TracktoMediaItem")
+@UnstableApi
+fun Track.toMediaItem(): MediaItem {
     return MediaItem.Builder()
         .setMediaId(this.videoId)
         .setUri(this.videoId)
@@ -647,6 +668,52 @@ fun List<PodcastBrowse.EpisodeItem>.toListTrack(): ArrayList<Track> {
         listTrack.add(item.toTrack())
     }
     return listTrack
+}
+
+fun TextView.setTextAnimation(
+    text: String,
+    duration: Long = 300,
+    completion: (() -> Unit)? = null
+) {
+    if (text != "null") {
+        fadOutAnimation(duration) {
+            this.text = text
+            fadInAnimation(duration) {
+                completion?.let {
+                    it()
+                }
+            }
+        }
+    }
+}
+
+fun View.fadOutAnimation(
+    duration: Long = 300,
+    visibility: Int = View.INVISIBLE,
+    completion: (() -> Unit)? = null
+) {
+    animate()
+        .alpha(0f)
+        .setDuration(duration)
+        .withEndAction {
+            this.visibility = visibility
+            completion?.let {
+                it()
+            }
+        }
+}
+
+fun View.fadInAnimation(duration: Long = 300, completion: (() -> Unit)? = null) {
+    alpha = 0f
+    visibility = View.VISIBLE
+    animate()
+        .alpha(1f)
+        .setDuration(duration)
+        .withEndAction {
+            completion?.let {
+                it()
+            }
+        }
 }
 
 operator fun File.div(child: String): File = File(this, child)
