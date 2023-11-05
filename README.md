@@ -9,16 +9,16 @@ A simple music app using YouTube Music for backend
 
 > **Warning**
 >
->This app is in beta stage, so it may have many bugs and make it crash. If you find any bug, please create an issue or contact me via email.
+>This app is in the beta stage, so it may have many bugs and make it crash. If you find any bugs, please create an issue or contact me via email.
 
 ## Features
 
 - Play music from YouTube Music or YouTube free without ads in the background
-- Browsing Home, Charts, Podcast, Moods & Genre with YouTube Music data with high speed
+- Browsing Home, Charts, Podcast, Moods & Genre with YouTube Music data at high speed
 - Search everything on YouTube
-- Analyze your playing data, create custom playlists and sync with YouTube Music...
+- Analyze your playing data, create custom playlists, and sync with YouTube Music...
 - Caching and can save data for offline playback
-- Synced lyrics from Musixmatch and YouTube Transcript and translate lyrics (Community translation
+- Synced lyrics from Musixmatch and YouTube Transcript and translated lyrics (Community translation
   from Musixmatch)
 - Personalize data (*)
 - Support SponsorBlock
@@ -26,7 +26,7 @@ A simple music app using YouTube Music for backend
 - Android Auto
 - And many more
 
-> (*) For users who choosed "Send back to Google" feature
+> (*) For users who chose "Send back to Google" feature
 
 ## Screenshot
 
@@ -50,43 +50,43 @@ More [screenshot](https://photos.app.goo.gl/AbieoXG5ctDrpwzp7) here.
 
 ## Data
 
-- This app using hidden API from YouTube Music with some tricks to get data from YouTube Music.
+- This app uses hidden API from YouTube Music with some tricks to get data from YouTube Music.
 - Thanks for [InnerTune](https://github.com/z-huang/InnerTune/) for the idea to get data from
   YouTube Music. This repo is my inspiration to create this app
 - My app is using [SponsorBlock](https://sponsor.ajay.app/) to skip sponsor in YouTube videos.
-  Thanks for this great service
+  Thanks for this excellent service
 - Lyrics data from Musixmatch. More information [Musixmatch](https://developer.musixmatch.com/)
 
 ## Privacy
 
-SimpMusic don't have any tracker or third party server for collecting user data. If YouTube
+SimpMusic doesn't have any tracker or third-party server for collecting user data. If YouTube
 logged-in user enable "Send back to Google" feature, SimpMusic only use YouTube Music Tracking API
-to send listening history and listening record of video to Google for better recommendation and
-supporting artist or YouTube Creator (For API refference,
+to send listening history and listening record of video to Google for better recommendations and
+supporting artist or YouTube Creator (For API reference,
 see [this](https://github.com/maxrave-dev/SimpMusic/blob/13f7ab6e5fa521b62a9fd31a1cefdc2787a1a8af/kotlinYtmusicScraper/src/main/java/com/maxrave/kotlinytmusicscraper/Ytmusic.kt#L639C4-L666C1)).
 
 ## Translation
 
 [![Crowdin](https://badges.crowdin.net/simpmusic/localized.svg)](https://crowdin.com/project/simpmusic)  
-You can help me to translate this app to your language by using
+You can help me to translate this app into your language by using
 Crowdin [SimpMusic on Crowdin](https://crowdin.com/project/simpmusic)
 
 ## FAQ
 
 #### 1. Wrong Lyrics?
 
-YouTube Music is not official partner of Musixmatch so can't get lyrics directly if using YouTube "
+YouTube Music is not an official partner of Musixmatch so you can't get lyrics directly if using YouTube "
 videoId" parameter. So I need to use some "String Matcher" and "Duration" for search lyrics. So
-sometime, some song or video get wrong lyric
+sometimes, some songs or videos get the wrong lyric
 
 #### 2. Why the name or brand is "SimpMusic"?
 
-Simply, because I love this name. It's combination of Simple and Music. But SimpMusic is not simple
-app, it's all you need about music streaming app.
+Simply, because I love this name. It's a combination of Simple and Music. But SimpMusic is not simple
+app, it's all you need for a music streaming app.
 
 ## Support
 
-Join my Discord server to update the newest features, tips and report bugs  
+Join my Discord server to update the newest features, tips, and report bugs  
 |   [<img src="https://upload.wikimedia.org/wikipedia/vi/7/72/Discord_logo.svg.png" height="40">]() | [Discord](https://discord.gg/Rq5tWVM9Hg) |  
 |---------|---------|
 
