@@ -7,7 +7,7 @@ A simple music app using YouTube Music for backend
 - Search everything on YouTube
 - Analyze your playing data, create custom playlists and sync with YouTube Music...
 - Caching and can save data for offline playback
-- Synced lyrics from Musixmatch and translate lyrics (Community translation from Musixmatch)
+- Synced lyrics from Musixmatch, YouTube Transcript and translate lyrics (Community translation from Musixmatch)
 - Support SponsorBlock
 - Sleep Timer
 - And many more
