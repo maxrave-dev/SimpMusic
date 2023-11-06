@@ -9,9 +9,16 @@ import kotlinx.serialization.json.JsonNames
 data class Continuation(
     @JsonNames("nextContinuationData", "nextRadioContinuationData")
     val nextContinuationData: NextContinuationData?,
+    val reloadContinuationData: ReloadContinuationData?
 ) {
     @Serializable
     data class NextContinuationData(
         val continuation: String,
+    )
+
+    @Serializable
+    data class ReloadContinuationData(
+        val continuation: String?,
+        val clickTrackingParams: String?
     )
 }

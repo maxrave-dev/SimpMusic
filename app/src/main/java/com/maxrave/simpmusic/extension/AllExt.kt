@@ -4,19 +4,27 @@ import android.app.ActivityManager
 import android.app.Service
 import android.content.Context
 import android.graphics.Color
+import android.os.Bundle
+import android.text.Html
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
+import android.widget.TextView
 import androidx.core.net.toUri
 import androidx.datastore.preferences.preferencesDataStore
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
+import androidx.lifecycle.asFlow
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
+import androidx.navigation.NavController
 import androidx.sqlite.db.SimpleSQLiteQuery
 import com.maxrave.kotlinytmusicscraper.models.SongItem
 import com.maxrave.kotlinytmusicscraper.models.VideoItem
+import com.maxrave.kotlinytmusicscraper.models.musixmatch.MusixmatchTranslationLyricsResponse
 import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
-import com.maxrave.kotlinytmusicscraper.models.spotify.ArtistX
+import com.maxrave.kotlinytmusicscraper.models.youtube.Transcript
 import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
 import com.maxrave.simpmusic.common.SETTINGS_FILENAME
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
@@ -32,12 +40,14 @@ import com.maxrave.simpmusic.data.model.browse.playlist.PlaylistBrowse
 import com.maxrave.simpmusic.data.model.home.Content
 import com.maxrave.simpmusic.data.model.metadata.Line
 import com.maxrave.simpmusic.data.model.metadata.Lyrics
+import com.maxrave.simpmusic.data.model.podcast.PodcastBrowse
 import com.maxrave.simpmusic.data.model.searchResult.songs.Album
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
 import com.maxrave.simpmusic.data.parser.toListThumbnail
+import kotlinx.coroutines.flow.Flow
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -69,7 +79,7 @@ fun ResultSong.toTrack(): Track {
         album = album,
         artists = artists,
         duration = "",
-        durationSeconds = 0,
+        durationSeconds = this.durationSeconds,
         isAvailable = isAvailable,
         isExplicit = isExplicit,
         likeStatus = likeStatus,
@@ -160,6 +170,8 @@ fun VideoItem.toTrack(): Track {
         year = null
     )
 }
+
+@JvmName("SongItemtoTrack")
 fun List<SongItem>?.toListTrack(): ArrayList<Track> {
     val listTrack = arrayListOf<Track>()
     if (this != null) {
@@ -223,6 +235,14 @@ fun Track.toSongEntity(): SongEntity {
     )
 }
 
+fun String?.removeDuplicateWords(): String {
+    if (this == null) return "null"
+    else {
+        val regex = Regex("\\b(\\w+)\\b\\s*(?=.*\\b\\1\\b)")
+        return this.replace(regex, "")
+    }
+}
+
 fun SongEntity.toTrack(): Track {
     val listArtist = mutableListOf<Artist>()
     if (this.artistName != null ) {
@@ -280,8 +300,28 @@ fun MediaItem?.toSongEntity(): SongEntity? {
         downloadState = 0
     ) else null
 }
+
+@JvmName("MediaItemtoSongEntity")
 @UnstableApi
-fun Track.toMediaItem() : MediaItem {
+fun SongEntity.toMediaItem(): MediaItem {
+    return MediaItem.Builder()
+        .setMediaId(this.videoId)
+        .setUri(this.videoId)
+        .setCustomCacheKey(this.videoId)
+        .setMediaMetadata(
+            MediaMetadata.Builder()
+                .setTitle(this.title)
+                .setArtist(this.artistName?.connectArtists())
+                .setArtworkUri(this.thumbnails?.toUri())
+                .setAlbumTitle(this.albumName)
+                .build()
+        )
+        .build()
+}
+
+@JvmName("TracktoMediaItem")
+@UnstableApi
+fun Track.toMediaItem(): MediaItem {
     return MediaItem.Builder()
         .setMediaId(this.videoId)
         .setUri(this.videoId)
@@ -351,7 +391,7 @@ fun Content.toTrack(): Track {
         album = album,
         artists = artists ?: listOf(Artist("", "")),
         duration = "",
-        durationSeconds = 0,
+        durationSeconds = durationSeconds,
         isAvailable = false,
         isExplicit = false,
         likeStatus = "INDIFFERENT",
@@ -506,21 +546,7 @@ fun PipedResponse.toTrack(videoId: String): Track {
         year = ""
     )
 }
-fun List<ArtistX?>?.connectArtistsSpotify(): String {
-    val stringBuilder = StringBuilder()
 
-    if (this != null) {
-        for ((index, artist) in this.withIndex()) {
-            stringBuilder.append(artist?.name)
-
-            if (index < this.size - 1) {
-                stringBuilder.append(" ")
-            }
-        }
-    }
-
-    return stringBuilder.toString()
-}
 fun YouTubeInitialPage.toTrack(): Track {
     val initialPage = this
 
@@ -541,6 +567,153 @@ fun YouTubeInitialPage.toTrack(): Track {
         resultType = "",
         year = ""
     )
+}
+fun MusixmatchTranslationLyricsResponse.toLyrics(originalLyrics: Lyrics): Lyrics? {
+    if (this.message.body.translations_list.isEmpty()) {
+        return null
+    }
+    else {
+        val listTranslation = this.message.body.translations_list
+        val translation = originalLyrics.copy(
+            lines = originalLyrics.lines?.mapIndexed { index, line ->
+                line.copy(
+                    words = if (!line.words.contains("♫")) {listTranslation.find { it.translation.matched_line == line.words || it.translation.subtitle_matched_line == line.words || it.translation.snippet == line.words }?.translation?.description ?: ""} else {line.words}
+                )
+            }
+        )
+        return translation
+    }
+}
+
+fun Transcript.toLyrics(): Lyrics {
+    val lines = this.text.map {
+        Line(
+            endTimeMs = "0",
+            startTimeMs = (it.start.toFloat() * 1000).toInt().toString(),
+            syllables = listOf(),
+            words = Html.fromHtml(it.content, Html.FROM_HTML_MODE_COMPACT).toString()
+        )
+    }
+    val sortedLine = lines.sortedBy { it.startTimeMs.toInt() }
+    return Lyrics(
+        error = false,
+        lines = sortedLine,
+        syncType = "LINE_SYNCED"
+    )
+}
+
+fun NavController.navigateSafe(resId: Int, bundle: Bundle? = null) {
+    if (currentDestination?.id != resId) {
+        if (bundle != null) {
+            navigate(resId, bundle)
+        } else {
+            navigate(resId)
+        }
+    }
+}
+fun <A, B> zip(first: LiveData<A>, second: LiveData<B>): Flow<Pair<A, B>> {
+    val mediatorLiveData = MediatorLiveData<Pair<A, B>>()
+
+    var isFirstEmitted = false
+    var isSecondEmitted = false
+    var firstValue: A? = null
+    var secondValue: B? = null
+
+    mediatorLiveData.addSource(first) {
+        isFirstEmitted = true
+        firstValue = it
+        if (isSecondEmitted) {
+            mediatorLiveData.value = Pair(firstValue!!, secondValue!!)
+            isFirstEmitted = false
+            isSecondEmitted = false
+        }
+    }
+    mediatorLiveData.addSource(second) {
+        isSecondEmitted = true
+        secondValue = it
+        if (isFirstEmitted) {
+            mediatorLiveData.value = Pair(firstValue!!, secondValue!!)
+            isFirstEmitted = false
+            isSecondEmitted = false
+        }
+    }
+
+    return mediatorLiveData.asFlow()
+}
+
+fun PodcastBrowse.EpisodeItem.toTrack(): Track {
+    return Track(
+        album = null,
+        artists = listOf(this.author),
+        duration = this.durationString,
+        durationSeconds = null,
+        isAvailable = true,
+        isExplicit = false,
+        likeStatus = "INDIFFERENT",
+        thumbnails = this.thumbnail,
+        title = this.title,
+        videoId = this.videoId,
+        videoType = "Podcast",
+        category = "Podcast",
+        feedbackTokens = null,
+        resultType = "Podcast",
+        year = this.createdDay
+    )
+}
+
+@JvmName("PodcastBrowseEpisodeItemtoListTrack")
+fun List<PodcastBrowse.EpisodeItem>.toListTrack(): ArrayList<Track> {
+    val listTrack = arrayListOf<Track>()
+    for (item in this) {
+        listTrack.add(item.toTrack())
+    }
+    return listTrack
+}
+
+fun TextView.setTextAnimation(
+    text: String,
+    duration: Long = 300,
+    completion: (() -> Unit)? = null
+) {
+    if (text != "null") {
+        fadOutAnimation(duration) {
+            this.text = text
+            fadInAnimation(duration) {
+                completion?.let {
+                    it()
+                }
+            }
+        }
+    }
+}
+
+fun View.fadOutAnimation(
+    duration: Long = 300,
+    visibility: Int = View.INVISIBLE,
+    completion: (() -> Unit)? = null
+) {
+    animate()
+        .alpha(0f)
+        .setDuration(duration)
+        .withEndAction {
+            this.visibility = visibility
+            completion?.let {
+                it()
+            }
+        }
+}
+
+fun View.fadInAnimation(duration: Long = 300, completion: (() -> Unit)? = null) {
+    alpha = 0f
+    visibility = View.VISIBLE
+    animate()
+        .alpha(1f)
+        .setDuration(duration)
+        .withEndAction {
+            completion?.let {
+                it()
+            }
+        }
 }
 
 operator fun File.div(child: String): File = File(this, child)

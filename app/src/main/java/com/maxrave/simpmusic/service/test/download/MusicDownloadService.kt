@@ -2,8 +2,6 @@ package com.maxrave.simpmusic.service.test.download
 
 import android.app.Notification
 import android.content.Context
-import android.util.Log
-import android.widget.Toast
 import androidx.media3.common.util.NotificationUtil
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
@@ -14,7 +12,6 @@ import androidx.media3.exoplayer.offline.DownloadService
 import androidx.media3.exoplayer.scheduler.PlatformScheduler
 import androidx.media3.exoplayer.scheduler.Scheduler
 import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.data.repository.MainRepository
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 

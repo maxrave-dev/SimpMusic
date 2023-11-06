@@ -1,7 +1,6 @@
 package com.maxrave.simpmusic.data.model.searchResult.songs
 
 
-import android.provider.MediaStore.Audio.Radio
 import com.google.gson.annotations.SerializedName
 
 data class SongsResult(

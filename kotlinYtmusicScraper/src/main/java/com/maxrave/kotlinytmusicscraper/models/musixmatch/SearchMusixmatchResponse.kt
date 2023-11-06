@@ -24,6 +24,7 @@ data class SearchMusixmatchResponse(
                     val track_id: Int,
                     val track_name: String,
                     val artist_name: String,
+                    val track_length: Int,
                 )
             }
         }

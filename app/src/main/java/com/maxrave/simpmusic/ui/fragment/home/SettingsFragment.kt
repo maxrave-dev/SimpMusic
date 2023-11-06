@@ -1,43 +1,58 @@
 package com.maxrave.simpmusic.ui.fragment.home
 
+import android.app.usage.StorageStatsManager
 import android.content.Intent
 import android.media.audiofx.AudioEffect
 import android.net.Uri
 import android.os.Bundle
+import android.os.storage.StorageManager
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.os.LocaleListCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
 import coil.annotation.ExperimentalCoilApi
 import coil.imageLoader
+import com.google.android.flexbox.FlexboxLayout
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.common.LIMIT_CACHE_SIZE
+import com.maxrave.simpmusic.common.LYRICS_PROVIDER
 import com.maxrave.simpmusic.common.QUALITY
 import com.maxrave.simpmusic.common.SPONSOR_BLOCK
 import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.common.SUPPORTED_LOCATION
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.databinding.FragmentSettingsBinding
+import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.setEnabledAll
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
+import com.mikepenz.aboutlibraries.Libs
+import com.mikepenz.aboutlibraries.LibsBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
+import kotlinx.coroutines.launch
+import java.io.File
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import java.util.Scanner
+
 
 @UnstableApi
 @AndroidEntryPoint
@@ -98,6 +113,7 @@ class SettingsFragment : Fragment() {
         viewModel.getQuality()
         viewModel.getPlayerCacheSize()
         viewModel.getDownloadedCacheSize()
+        viewModel.getPlayerCacheLimit()
         viewModel.getLoggedIn()
         viewModel.getNormalizeVolume()
         viewModel.getSkipSilent()
@@ -107,6 +123,10 @@ class SettingsFragment : Fragment() {
         viewModel.getLastCheckForUpdate()
         viewModel.getSponsorBlockEnabled()
         viewModel.getSponsorBlockCategories()
+        viewModel.getTranslationLanguage() //
+        viewModel.getLyricsProvider() //
+        viewModel.getUseTranslation() //
+        viewModel.getMusixmatchLoggedIn() //
 
         val diskCache = context?.imageLoader?.diskCache
 
@@ -120,6 +140,32 @@ class SettingsFragment : Fragment() {
                 binding.tvLogIn.text = getString(R.string.log_in_to_get_personally_data)
                 setEnabledAll(binding.swSaveHistory, false)
             }
+        }
+        viewModel.musixmatchLoggedIn.observe(viewLifecycleOwner) {
+            if (it == DataStoreManager.TRUE) {
+                binding.tvMusixmatchLoginTitle.text = getString(R.string.log_out_from_musixmatch)
+                binding.tvMusixmatchLogin.text = getString(R.string.logged_in)
+                setEnabledAll(binding.swUseMusixmatchTranslation, true)
+                setEnabledAll(binding.btTranslationLanguage, true)
+            } else if (it == DataStoreManager.FALSE) {
+                binding.tvMusixmatchLoginTitle.text = getString(R.string.log_in_to_Musixmatch)
+                binding.tvMusixmatchLogin.text = getString(R.string.only_support_email_and_password_type)
+                setEnabledAll(binding.swUseMusixmatchTranslation, false)
+                setEnabledAll(binding.btTranslationLanguage, false)
+            }
+        }
+        viewModel.mainLyricsProvider.observe(viewLifecycleOwner) {
+            if (it == DataStoreManager.YOUTUBE) {
+                binding.tvMainLyricsProvider.text = LYRICS_PROVIDER.items.get(1)
+            } else if (it == DataStoreManager.MUSIXMATCH) {
+                binding.tvMainLyricsProvider.text = LYRICS_PROVIDER.items.get(0)
+            }
+        }
+        viewModel.translationLanguage.observe(viewLifecycleOwner) {
+            binding.tvTranslationLanguage.text = it
+        }
+        viewModel.useTranslation.observe(viewLifecycleOwner) {
+            binding.swUseMusixmatchTranslation.isChecked = it == DataStoreManager.TRUE
         }
         viewModel.sendBackToGoogle.observe(viewLifecycleOwner) {
             binding.swSaveHistory.isChecked = it == DataStoreManager.TRUE
@@ -137,9 +183,11 @@ class SettingsFragment : Fragment() {
             binding.tvQuality.text = it
         }
         viewModel.cacheSize.observe(viewLifecycleOwner) {
+            drawDataStat()
             binding.tvPlayerCache.text = getString(R.string.cache_size, bytesToMB(it).toString())
         }
         viewModel.downloadedCacheSize.observe(viewLifecycleOwner) {
+            drawDataStat()
             binding.tvDownloadedCache.text = getString(R.string.cache_size, bytesToMB(it).toString())
         }
         binding.tvThumbnailCache.text = getString(R.string.cache_size, if (diskCache?.size != null) {
@@ -167,6 +215,31 @@ class SettingsFragment : Fragment() {
             binding.tvCheckForUpdate.text = getString(R.string.last_checked_at, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
                 .withZone(ZoneId.systemDefault())
                 .format(Instant.ofEpochMilli(it.toLong())))
+        }
+        viewModel.playerCacheLimit.observe(viewLifecycleOwner) {
+            binding.tvLimitPlayerCache.text = if (it != -1) "$it MB" else getString(R.string.unlimited)
+        }
+        binding.btLimitPlayerCache.setOnClickListener {
+            var checkedIndex = -1
+            val dialog = MaterialAlertDialogBuilder(requireContext())
+                .setSingleChoiceItems(LIMIT_CACHE_SIZE.items, -1) { _, which ->
+                    checkedIndex = which
+                }
+                .setTitle(getString(R.string.limit_player_cache))
+                .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                    dialog.dismiss()
+                }
+                .setPositiveButton(getString(R.string.change)) { dialog, _ ->
+                    if (checkedIndex != -1) {
+                        viewModel.setPlayerCacheLimit(LIMIT_CACHE_SIZE.data[checkedIndex])
+                        viewModel.playerCacheLimit.observe(viewLifecycleOwner) {
+                            binding.tvLimitPlayerCache.text = if (it != -1) "$it MB" else getString(R.string.unlimited)
+                            Toast.makeText(requireContext(), getString(R.string.restart_app), Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    dialog.dismiss()
+                }
+            dialog.show()
         }
         binding.btCheckForUpdate.setOnClickListener {
             binding.tvCheckForUpdate.text = getString(R.string.checking)
@@ -209,11 +282,7 @@ class SettingsFragment : Fragment() {
         }
 
         binding.btVersion.setOnClickListener {
-            val urlIntent = Intent(
-                Intent.ACTION_VIEW,
-                Uri.parse("https://github.com/maxrave-dev/SimpMusic")
-            )
-            startActivity(urlIntent)
+            findNavController().navigateSafe(R.id.action_global_creditFragment)
         }
 
         binding.btLogin.setOnClickListener {
@@ -222,7 +291,17 @@ class SettingsFragment : Fragment() {
                 Toast.makeText(requireContext(), getString(R.string.logged_out), Toast.LENGTH_SHORT).show()
             }
             else if (viewModel.loggedIn.value == DataStoreManager.FALSE) {
-                findNavController().navigate(R.id.action_global_logInFragment)
+                findNavController().navigateSafe(R.id.action_global_logInFragment)
+            }
+        }
+        
+        binding.btMusixmatchLogin.setOnClickListener {
+            if (viewModel.musixmatchLoggedIn.value == DataStoreManager.TRUE) {
+                viewModel.clearMusixmatchCookie()
+                Toast.makeText(requireContext(), getString(R.string.logged_out), Toast.LENGTH_SHORT).show()
+            }
+            else if (viewModel.musixmatchLoggedIn.value == DataStoreManager.FALSE) {
+                findNavController().navigateSafe(R.id.action_global_musixmatchFragment)
             }
         }
 
@@ -264,6 +343,7 @@ class SettingsFragment : Fragment() {
                 .setPositiveButton(getString(R.string.clear)) { dialog, _ ->
                     viewModel.clearPlayerCache()
                     viewModel.cacheSize.observe(viewLifecycleOwner) {
+                        drawDataStat()
                         binding.tvPlayerCache.text = getString(R.string.cache_size, bytesToMB(it).toString())
                     }
                     dialog.dismiss()
@@ -317,6 +397,7 @@ class SettingsFragment : Fragment() {
                                         val temp = SUPPORTED_LANGUAGE.items[SUPPORTED_LANGUAGE.codes.indexOf(it)]
                                         binding.tvLanguage.text = temp
                                         val localeList = LocaleListCompat.forLanguageTags(it)
+                                        sharedViewModel.activityRecreate()
                                         AppCompatDelegate.setApplicationLocales(localeList)
                                     }
                                 }
@@ -351,6 +432,70 @@ class SettingsFragment : Fragment() {
             dialog.show()
 
         }
+        binding.btMainLyricsProvider.setOnClickListener {
+            var checkedIndex = -1
+            val dialog = MaterialAlertDialogBuilder(requireContext())
+                .setTitle(getString(R.string.main_lyrics_provider))
+                .setSingleChoiceItems(LYRICS_PROVIDER.items, -1) { _, which ->
+                    checkedIndex = which
+                }
+                .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                    dialog.dismiss()
+                }
+                .setPositiveButton(getString(R.string.change)) { dialog, _ ->
+                    if (checkedIndex != -1) {
+                        if (checkedIndex == 0) {
+                            viewModel.setLyricsProvider(DataStoreManager.MUSIXMATCH)
+                            binding.tvMainLyricsProvider.text = DataStoreManager.MUSIXMATCH
+                        } else if (checkedIndex == 1){
+                            viewModel.setLyricsProvider(DataStoreManager.YOUTUBE)
+                            binding.tvMainLyricsProvider.text = DataStoreManager.YOUTUBE
+                        }
+                    }
+                    viewModel.getLyricsProvider()
+                    viewModel.mainLyricsProvider.observe(viewLifecycleOwner) {
+                        if (it == DataStoreManager.YOUTUBE) {
+                            binding.tvMainLyricsProvider.text = LYRICS_PROVIDER.items.get(1)
+                        } else if (it == DataStoreManager.MUSIXMATCH) {
+                            binding.tvMainLyricsProvider.text = LYRICS_PROVIDER.items.get(0)
+                        }
+                    }
+                    dialog.dismiss()
+                }
+            dialog.show()
+        }
+
+        binding.btTranslationLanguage.setOnClickListener{
+            val materialAlertDialogBuilder = MaterialAlertDialogBuilder(requireContext())
+            materialAlertDialogBuilder.setTitle(getString(R.string.translation_language))
+            materialAlertDialogBuilder.setMessage(getString(R.string.translation_language_message))
+            val editText = EditText(requireContext())
+            materialAlertDialogBuilder.setView(editText)
+            materialAlertDialogBuilder.setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                dialog.dismiss()
+            }
+            materialAlertDialogBuilder.setPositiveButton(getString(R.string.change)) { dialog, _ ->
+                if (editText.text.toString().isNotEmpty()) {
+                    if (editText.text.toString().length == 2) {
+                        viewModel.setTranslationLanguage(editText.text.toString())
+                        viewModel.translationLanguage.observe(viewLifecycleOwner) {
+                            binding.tvTranslationLanguage.text = it
+                        }
+                    }
+                    else {
+                        Toast.makeText(requireContext(), getString(R.string.invalid_language_code), Toast.LENGTH_SHORT).show()
+                    }
+                }
+                else {
+                    if (viewModel.language.value != null && viewModel.language.value!!.length >= 2) {
+                        viewModel.language.value?.slice(0..1)
+                            ?.let { it1 -> viewModel.setTranslationLanguage(it1) }
+                    }
+                }
+                dialog.dismiss()
+            }
+            materialAlertDialogBuilder.show()
+        }
 
         binding.btStorageDownloadedCache.setOnClickListener {
             val dialog = MaterialAlertDialogBuilder(requireContext())
@@ -362,6 +507,7 @@ class SettingsFragment : Fragment() {
                     viewModel.clearDownloadedCache()
                     viewModel.downloadedCacheSize.observe(viewLifecycleOwner) {
                         binding.tvPlayerCache.text = getString(R.string.cache_size, bytesToMB(it).toString())
+                        drawDataStat()
                     }
                     dialog.dismiss()
                 }
@@ -403,28 +549,31 @@ class SettingsFragment : Fragment() {
 
             val dialog = MaterialAlertDialogBuilder(requireContext())
                 .setTitle("Category")
-                .setMultiChoiceItems(item, checked) { dialogInterface, i, b ->
+                .setMultiChoiceItems(item, checked) { _, i, b ->
                     if (b) {
                         if (!selectedItem.contains(SPONSOR_BLOCK.list[i].toString())) {
                             selectedItem.add(SPONSOR_BLOCK.list[i].toString())
                         }
-                    }
-                    else {
+                    } else {
                         if (selectedItem.contains(SPONSOR_BLOCK.list[i].toString())) {
                             selectedItem.remove(SPONSOR_BLOCK.list[i].toString())
                         }
                     }
                 }
-                .setPositiveButton(getString(R.string.save)) { dialog , i ->
+                .setPositiveButton(getString(R.string.save)) { dialog, _ ->
                     viewModel.setSponsorBlockCategories(selectedItem)
                     Log.d("Check category", selectedItem.toString())
                     viewModel.getSponsorBlockCategories()
                     viewModel.sponsorBlockCategories.observe(viewLifecycleOwner) {
-                        Toast.makeText(requireContext(), getString(R.string.saved), Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            requireContext(),
+                            getString(R.string.saved),
+                            Toast.LENGTH_SHORT
+                        ).show()
                         dialog.dismiss()
                     }
                 }
-                .setNegativeButton(R.string.cancel) {dialog , i ->
+                .setNegativeButton(R.string.cancel) { dialog, _ ->
                     dialog.dismiss()
                 }
             dialog.show()
@@ -443,47 +592,107 @@ class SettingsFragment : Fragment() {
         binding.btRestore.setOnClickListener {
             restoreLauncher.launch(arrayOf("application/octet-stream"))
         }
-        binding.swNormalizeVolume.setOnCheckedChangeListener { compoundButton, checked ->
+        binding.swNormalizeVolume.setOnCheckedChangeListener { _, checked ->
             if (checked) {
                 viewModel.setNormalizeVolume(true)
             } else {
                 viewModel.setNormalizeVolume(false)
             }
         }
-        binding.swSkipSilent.setOnCheckedChangeListener { compoundButton, checked ->
+        binding.swSkipSilent.setOnCheckedChangeListener { _, checked ->
             if (checked) {
                 viewModel.setSkipSilent(true)
             } else {
                 viewModel.setSkipSilent(false)
             }
         }
-        binding.swSavePlaybackState.setOnCheckedChangeListener { compoundButton, checked ->
+        binding.swSavePlaybackState.setOnCheckedChangeListener { _, checked ->
             if (checked) {
                 viewModel.setSavedPlaybackState(true)
             } else {
                 viewModel.setSavedPlaybackState(false)
             }
         }
-        binding.swSaveLastPlayed.setOnCheckedChangeListener { compoundButton, checked ->
+        binding.swSaveLastPlayed.setOnCheckedChangeListener { _, checked ->
             if (checked) {
                 viewModel.setSaveLastPlayed(true)
             } else {
                 viewModel.setSaveLastPlayed(false)
             }
         }
-        binding.swEnableSponsorBlock.setOnCheckedChangeListener { compoundButton, checked ->
+        binding.swEnableSponsorBlock.setOnCheckedChangeListener { _, checked ->
             if (checked) {
                 viewModel.setSponsorBlockEnabled(true)
-            }
-            else {
+            } else {
                 viewModel.setSponsorBlockEnabled(false)
             }
         }
-        binding.swSaveHistory.setOnCheckedChangeListener { compoundButton, checked ->
+        binding.swSaveHistory.setOnCheckedChangeListener { _, checked ->
             if (checked) {
                 viewModel.setSendBackToGoogle(true)
             } else {
                 viewModel.setSendBackToGoogle(false)
+            }
+        }
+        binding.swUseMusixmatchTranslation.setOnCheckedChangeListener { _, checked ->
+            if (checked) {
+                viewModel.setUseTranslation(true)
+            } else {
+                viewModel.setUseTranslation(false)
+            }
+        }
+        binding.bt3rdPartyLibraries.setOnClickListener {
+
+            val inputStream = requireContext().resources.openRawResource(R.raw.aboutlibraries)
+            val scanner = Scanner(inputStream).useDelimiter("\\A")
+            val stringBuilder = StringBuilder()
+            while (scanner.hasNextLine()) {
+                stringBuilder.append(scanner.nextLine())
+            }
+            Log.w("AboutLibraries", stringBuilder.toString())
+            val localLib = Libs.Builder().withJson(stringBuilder.toString()).build()
+            val intent = LibsBuilder()
+                .withLicenseShown(true)
+                .withVersionShown(true)
+                .withActivityTitle(getString(R.string.third_party_libraries))
+                .withSearchEnabled(true)
+                .withEdgeToEdge(true)
+                .withLibs(
+                    localLib
+                )
+                .intent(requireContext())
+            startActivity(intent)
+        }
+    }
+    private fun browseFiles(dir: File): Long {
+        var dirSize: Long = 0
+        if (!dir.listFiles().isNullOrEmpty()) {
+            for (f in dir.listFiles()!!) {
+                dirSize += f.length()
+                if (f.isDirectory) {
+                    dirSize += browseFiles(f)
+                }
+            }
+        }
+        return dirSize
+    }
+    private fun drawDataStat() {
+        val mStorageStatsManager = getSystemService(requireContext(), StorageStatsManager::class.java)
+        if (mStorageStatsManager != null) {
+            lifecycleScope.launch {
+                val totalByte = mStorageStatsManager.getTotalBytes(StorageManager.UUID_DEFAULT)
+                val freeSpace = mStorageStatsManager.getFreeBytes(StorageManager.UUID_DEFAULT)
+                val usedSpace = totalByte - freeSpace
+                val simpMusicSize = browseFiles(requireContext().filesDir)
+                val otherApp = simpMusicSize.let { usedSpace.minus(it) }
+                val databaseSize = simpMusicSize - viewModel.playerCache.cacheSpace - viewModel.downloadCache.cacheSpace
+                if (totalByte == freeSpace + otherApp + databaseSize + viewModel.playerCache.cacheSpace + viewModel.downloadCache.cacheSpace) {
+                    (binding.flexBox.getChildAt(0).layoutParams as FlexboxLayout.LayoutParams).flexBasisPercent = otherApp.toFloat().div(totalByte.toFloat())
+                    (binding.flexBox.getChildAt(1).layoutParams as FlexboxLayout.LayoutParams).flexBasisPercent = viewModel.downloadCache.cacheSpace.toFloat().div(totalByte.toFloat())
+                    (binding.flexBox.getChildAt(2).layoutParams as FlexboxLayout.LayoutParams).flexBasisPercent = viewModel.playerCache.cacheSpace.toFloat().div(totalByte.toFloat())
+                    (binding.flexBox.getChildAt(3).layoutParams as FlexboxLayout.LayoutParams).flexBasisPercent = databaseSize.toFloat().div(totalByte.toFloat())
+                    (binding.flexBox.getChildAt(4).layoutParams as FlexboxLayout.LayoutParams).flexBasisPercent = freeSpace.toFloat().div(totalByte.toFloat())
+                }
             }
         }
     }

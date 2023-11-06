@@ -4,6 +4,7 @@ plugins {
     id ("androidx.navigation.safeargs")
     id ("com.google.dagger.hilt.android")
     id("com.google.devtools.ksp")
+    id ("com.mikepenz.aboutlibraries.plugin")
 }
 
 android {
@@ -14,14 +15,26 @@ android {
         applicationId = "com.maxrave.simpmusic"
         minSdk = 26
         targetSdk = 34
-        versionCode = 10
-        versionName = "0.1.4-beta"
+        versionCode = 11
+        versionName = "0.1.5-beta"
 
         ksp {
             arg("room.schemaLocation", "$projectDir/schemas")
         }
 
-        resourceConfigurations += listOf("en", "vi", "it", "de", "ru")
+        resourceConfigurations += listOf(
+            "en",
+            "vi",
+            "it",
+            "de",
+            "ru",
+            "tr",
+            "fi",
+            "pl",
+            "pt",
+            "fr",
+            "es"
+        )
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
     }
@@ -61,6 +74,7 @@ dependencies {
     implementation(project(mapOf("path" to ":kotlinYtmusicScraper")))
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
+    implementation("androidx.media3:media3-cast:1.1.1")
     //ExoPlayer
     val media3_version= "1.1.1"
 
@@ -85,16 +99,17 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 
-    implementation("androidx.room:room-runtime:2.5.2")
-    implementation("androidx.room:room-ktx:2.5.2")
-    ksp("androidx.room:room-compiler:2.5.2")
+    implementation("androidx.room:room-runtime:2.6.0")
+    implementation("androidx.room:room-ktx:2.6.0")
+    ksp("androidx.room:room-compiler:2.6.0")
     //Legacy Support
     implementation("androidx.legacy:legacy-support-v4:1.0.0")
     //Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.7.3")
     //Navigation
-    implementation("androidx.navigation:navigation-fragment-ktx:2.7.4")
-    implementation("androidx.navigation:navigation-ui-ktx:2.7.4")
+    implementation("androidx.navigation:navigation-fragment-ktx:2.7.5")
+    implementation("androidx.navigation:navigation-ui-ktx:2.7.5")
 
     implementation("com.google.code.gson:gson:2.10.1")
 
@@ -111,7 +126,7 @@ dependencies {
     implementation("androidx.preference:preference-ktx:1.2.1")
 
     //fragment ktx
-    implementation("androidx.fragment:fragment-ktx:1.6.1")
+    implementation("androidx.fragment:fragment-ktx:1.6.2")
     //Hilt
     implementation("com.google.dagger:hilt-android:2.48.1")
     ksp("com.google.dagger:hilt-compiler:2.48.1")
@@ -144,7 +159,15 @@ dependencies {
     implementation("com.intuit.sdp:sdp-android:1.1.0")
     implementation("com.intuit.ssp:ssp-android:1.1.0")
 
+    val latestAboutLibsRelease = "10.9.2"
+    implementation ("com.mikepenz:aboutlibraries:${latestAboutLibsRelease}")
+
+    implementation("com.google.android.flexbox:flexbox:3.0.0")
+
 }
 hilt {
     enableAggregatingTask = true
+}
+aboutLibraries {
+    registerAndroidTasks = false
 }

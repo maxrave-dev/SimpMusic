@@ -12,7 +12,9 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
 import androidx.palette.graphics.Palette
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -24,6 +26,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.snackbar.Snackbar
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.adapter.artist.AlbumsAdapter
+import com.maxrave.simpmusic.adapter.artist.FeaturedOnAdapter
 import com.maxrave.simpmusic.adapter.artist.PopularAdapter
 import com.maxrave.simpmusic.adapter.artist.RelatedArtistsAdapter
 import com.maxrave.simpmusic.adapter.artist.SeeArtistOfNowPlayingAdapter
@@ -33,8 +36,10 @@ import com.maxrave.simpmusic.adapter.playlist.AddToAPlaylistAdapter
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
+import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.browse.artist.ResultAlbum
+import com.maxrave.simpmusic.data.model.browse.artist.ResultPlaylist
 import com.maxrave.simpmusic.data.model.browse.artist.ResultRelated
 import com.maxrave.simpmusic.data.model.browse.artist.ResultSingle
 import com.maxrave.simpmusic.data.model.browse.artist.ResultSong
@@ -45,6 +50,7 @@ import com.maxrave.simpmusic.databinding.BottomSheetNowPlayingBinding
 import com.maxrave.simpmusic.databinding.BottomSheetSeeArtistOfNowPlayingBinding
 import com.maxrave.simpmusic.databinding.FragmentArtistBinding
 import com.maxrave.simpmusic.extension.connectArtists
+import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.removeConflicts
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toSongEntity
@@ -52,7 +58,9 @@ import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.ArtistViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
 import kotlin.math.abs
 
 @AndroidEntryPoint
@@ -64,6 +72,7 @@ class ArtistFragment: Fragment(){
     private lateinit var popularAdapter: PopularAdapter
     private lateinit var singlesAdapter: SinglesAdapter
     private lateinit var albumsAdapter: AlbumsAdapter
+    private lateinit var featuredOnAdapter: FeaturedOnAdapter
     private lateinit var videoAdapter: VideoAdapter
     private lateinit var relatedArtistsAdapter: RelatedArtistsAdapter
 
@@ -96,6 +105,7 @@ class ArtistFragment: Fragment(){
         singlesAdapter = SinglesAdapter(arrayListOf())
         albumsAdapter = AlbumsAdapter(arrayListOf())
         videoAdapter = VideoAdapter(arrayListOf())
+        featuredOnAdapter = FeaturedOnAdapter(arrayListOf())
         relatedArtistsAdapter = RelatedArtistsAdapter(arrayListOf(), requireContext())
         binding.rvPopularSongs.apply {
             adapter = popularAdapter
@@ -113,6 +123,10 @@ class ArtistFragment: Fragment(){
             adapter = videoAdapter
             layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         }
+        binding.rvFeaturedOn.apply {
+            adapter = featuredOnAdapter
+            layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        }
         binding.rvRelatedArtists.apply {
             adapter = relatedArtistsAdapter
             layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
@@ -128,7 +142,42 @@ class ArtistFragment: Fragment(){
             if (id != null){
                 val args = Bundle()
                 args.putString("id", id)
-                findNavController().navigate(R.id.action_global_playlistFragment, args)
+                findNavController().navigateSafe(R.id.action_global_playlistFragment, args)
+            }
+            else {
+                Snackbar.make(binding.root, getString(R.string.error), Snackbar.LENGTH_LONG).show()
+            }
+        }
+        binding.btMoreAlbum.setOnClickListener {
+            if  (viewModel.artistBrowse.value?.data?.channelId != null) {
+                val id = "MPAD${viewModel.artistBrowse.value?.data?.channelId}"
+                val args = Bundle()
+                args.putString("id", id)
+                args.putString("type", "album")
+                findNavController().navigateSafe(R.id.action_global_moreAlbumsFragment, args)
+            }
+            else {
+                Snackbar.make(binding.root, getString(R.string.error), Snackbar.LENGTH_LONG).show()
+            }
+        }
+        binding.btMoreSingles.setOnClickListener {
+            if (viewModel.artistBrowse.value?.data?.channelId != null) {
+                val id = "MPAD${viewModel.artistBrowse.value?.data?.channelId}"
+                val args = Bundle()
+                args.putString("id", id)
+                args.putString("type", "single")
+                findNavController().navigateSafe(R.id.action_global_moreAlbumsFragment, args)
+            }
+            else {
+                Snackbar.make(binding.root, getString(R.string.error), Snackbar.LENGTH_LONG).show()
+            }
+        }
+        binding.btMoreVideos.setOnClickListener {
+            val id = viewModel.artistBrowse.value?.data?.videoList
+            if (id != null){
+                val args = Bundle()
+                args.putString("id", id)
+                findNavController().navigateSafe(R.id.action_global_playlistFragment, args)
             }
             else {
                 Snackbar.make(binding.root, getString(R.string.error), Snackbar.LENGTH_LONG).show()
@@ -138,21 +187,21 @@ class ArtistFragment: Fragment(){
             override fun onItemClick(position: Int) {
                 val bundle = Bundle()
                 bundle.putString("channelId", relatedArtistsAdapter.getItem(position).browseId)
-                findNavController().navigate(R.id.action_global_artistFragment, bundle)
+                findNavController().navigateSafe(R.id.action_global_artistFragment, bundle)
             }
         })
         singlesAdapter.setOnClickListener(object: SinglesAdapter.OnItemClickListener{
             override fun onItemClick(position: Int, type: String) {
                 val args = Bundle()
                 args.putString("browseId", singlesAdapter.getItem(position).browseId)
-                findNavController().navigate(R.id.action_global_albumFragment, args)
+                findNavController().navigateSafe(R.id.action_global_albumFragment, args)
             }
         })
         albumsAdapter.setOnClickListener(object: AlbumsAdapter.OnItemClickListener{
             override fun onItemClick(position: Int, type: String) {
                 val args = Bundle()
                 args.putString("browseId", albumsAdapter.getItem(position).browseId)
-                findNavController().navigate(R.id.action_global_albumFragment, args)
+                findNavController().navigateSafe(R.id.action_global_albumFragment, args)
             }
         })
         popularAdapter.setOnClickListener(object: PopularAdapter.OnItemClickListener{
@@ -164,12 +213,22 @@ class ArtistFragment: Fragment(){
                 Queue.setNowPlaying(firstQueue)
                 val args = Bundle()
                 args.putString("videoId", videoId)
-                args.putString("from", "\"${viewModel.artistBrowse.value?.data?.name}\" ${getString(R.string.popular)}")
+                args.putString(
+                    "from",
+                    "\"${viewModel.artistBrowse.value?.data?.name}\" ${getString(R.string.popular)}"
+                )
                 args.putString("type", Config.SONG_CLICK)
-                findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
             }
         })
-        videoAdapter.setOnClickListener(object : VideoAdapter.OnItemClickListener{
+        featuredOnAdapter.setOnClickListener(object : FeaturedOnAdapter.OnItemClickListener {
+            override fun onItemClick(position: Int, type: String) {
+                val args = Bundle()
+                args.putString("id", featuredOnAdapter.getItem(position).id)
+                findNavController().navigateSafe(R.id.action_global_playlistFragment, args)
+            }
+        })
+        videoAdapter.setOnClickListener(object : VideoAdapter.OnItemClickListener {
             override fun onItemClick(position: Int, type: String) {
                 val songClicked = videoAdapter.getCurrentList()[position]
                 val videoId = songClicked.videoId
@@ -178,9 +237,12 @@ class ArtistFragment: Fragment(){
                 Queue.setNowPlaying(firstQueue)
                 val args = Bundle()
                 args.putString("videoId", videoId)
-                args.putString("from", "\"${viewModel.artistBrowse.value?.data?.name}\" ${getString(R.string.videos)}")
+                args.putString(
+                    "from",
+                    "\"${viewModel.artistBrowse.value?.data?.name}\" ${getString(R.string.videos)}"
+                )
                 args.putString("type", Config.VIDEO_CLICK)
-                findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
             }
         })
         popularAdapter.setOnOptionsClickListener(object : PopularAdapter.OnOptionsClickListener{
@@ -200,6 +262,7 @@ class ArtistFragment: Fragment(){
                             cbFavorite.isChecked = false
                         }
                     }
+                    btChangeLyricsProvider.visibility = View.GONE
                     tvSongTitle.text = song.title
                     tvSongTitle.isSelected = true
                     tvSongArtist.text = song.artists.toListName().connectArtists()
@@ -208,10 +271,12 @@ class ArtistFragment: Fragment(){
                     btRadio.setOnClickListener {
                         val args = Bundle()
                         args.putString("radioId", "RDAMVM${song.videoId}")
-                        args.putString("title", "${song.title} ${context?.getString(R.string.radio)}")
-                        args.putString("thumbnails", song.thumbnails.lastOrNull()?.url)
+                        args.putString(
+                            "videoId",
+                            song.videoId
+                        )
                         dialog.dismiss()
-                        findNavController().navigate(R.id.action_global_playlistFragment, args)
+                        findNavController().navigateSafe(R.id.action_global_playlistFragment, args)
                     }
                     btLike.setOnClickListener {
                         if (cbFavorite.isChecked) {
@@ -239,7 +304,7 @@ class ArtistFragment: Fragment(){
                                 override fun onItemClick(position: Int) {
                                     val artist = song.artists[position]
                                     if (artist.id != null) {
-                                        findNavController().navigate(
+                                        findNavController().navigateSafe(
                                             R.id.action_global_artistFragment,
                                             Bundle().apply {
                                                 putString("channelId", artist.id)
@@ -277,12 +342,21 @@ class ArtistFragment: Fragment(){
                             AddToAPlaylistAdapter.OnItemClickListener {
                             override fun onItemClick(position: Int) {
                                 val playlist = listLocalPlaylist[position]
+                                viewModel.updateInLibrary(song.videoId)
                                 val tempTrack = ArrayList<String>()
                                 if (playlist.tracks != null) {
                                     tempTrack.addAll(playlist.tracks)
                                 }
                                 if (!tempTrack.contains(song.videoId) && playlist.syncedWithYouTubePlaylist == 1 && playlist.youtubePlaylistId != null) {
                                     viewModel.addToYouTubePlaylist(playlist.id, playlist.youtubePlaylistId, song.videoId)
+                                }
+                                if (!tempTrack.contains(song.videoId)) {
+                                    viewModel.insertPairSongLocalPlaylist(
+                                        PairSongLocalPlaylist(
+                                            playlistId = playlist.id, songId = song.videoId, position = tempTrack.size, inPlaylist = LocalDateTime.now()
+                                        )
+                                    )
+                                    tempTrack.add(song.videoId)
                                 }
                                 tempTrack.add(song.videoId)
                                 tempTrack.removeConflicts()
@@ -332,9 +406,8 @@ class ArtistFragment: Fragment(){
             if (radioId != null){
                 val args = Bundle()
                 args.putString("radioId", radioId)
-                args.putString("title", "${viewModel.artistBrowse.value?.data?.name} ${context?.getString(R.string.radio)}")
-                args.putString("thumbnails", viewModel.artistBrowse.value?.data?.thumbnails?.lastOrNull()?.url)
-                findNavController().navigate(R.id.action_global_playlistFragment, args)
+                args.putString("channelId", viewModel.artistBrowse.value?.data?.channelId)
+                findNavController().navigateSafe(R.id.action_global_playlistFragment, args)
             }
             else {
                 Snackbar.make(binding.root, getString(R.string.error), Snackbar.LENGTH_LONG).show()
@@ -354,90 +427,139 @@ class ArtistFragment: Fragment(){
                 }
             }
         }
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.CREATED) {
+                val followJob = launch {
+                    viewModel.followed.collect { followed ->
+                        if (followed) {
+                            binding.btFollow.text =  getString(R.string.followed)
+                        }
+                        else {
+                            binding.btFollow.text =  getString(R.string.follow)
+                        }
+                    }
+                }
+                val artistJob = launch {
+                    viewModel.artistBrowse.collectLatest { response ->
+                        when(response){
+                            is Resource.Success -> {
+                                response.data.let {
+                                    with(binding){
+                                        if (it != null){
+                                            viewModel.insertArtist(ArtistEntity(it.channelId!!, it.name,
+                                                it.thumbnails?.first()?.url
+                                            ))
+                                        }
+                                        topAppBar.title = it?.name.toString()
+                                        if (it?.thumbnails?.size!! > 1){
+                                            loadImage(it.thumbnails[1].url)
+                                        }
+                                        else {
+                                            loadImage(it.thumbnails[0].url)
+                                        }
+                                        if (viewModel.gradientDrawable.value == null){
+                                            viewModel.gradientDrawable.observe(viewLifecycleOwner) { gd ->
+                                                binding.cardBelowAppBarLayout.background = gd
+                                                binding.aboutContainer.background = gd
+                                                Log.d("Load Gradient from Image", gd.toString())
+                                            }
+                                        }
+                                        else {
+                                            Log.d("Load Gradient from Cache", gradientDrawable.toString())
+                                            binding.cardBelowAppBarLayout.background = gradientDrawable
+                                            binding.aboutContainer.background = gradientDrawable
+                                        }
+                                        tvSubscribers.text = it.subscribers
+                                        if (it.views == null){
+                                            tvViews.text = ""
+                                        }
+                                        else {
+                                            tvViews.text = it.views.toString()
+                                        }
+                                        tvDescription.originalText = (it.description ?: getString(R.string.no_description)).toString()
+                                        if (it.songs?.results != null) {
+                                            popularAdapter.updateList(it.songs.results as ArrayList<ResultSong>)
+                                            if (it.songs.results.isEmpty()) {
+                                                binding.tvPopular.visibility = View.GONE
+                                            }
+                                        } else {
+                                            binding.tvPopular.visibility = View.GONE
+                                        }
+                                        if (it.singles?.results != null) {
+                                            singlesAdapter.updateList(it.singles.results as ArrayList<ResultSingle>)
+                                            if (it.singles.results.isEmpty()) {
+                                                binding.tvSingles.visibility = View.GONE
+                                            }
+                                        } else {
+                                            binding.tvSingles.visibility = View.GONE
+                                        }
+                                        if (it.albums?.results != null) {
+                                            albumsAdapter.updateList(it.albums.results as ArrayList<ResultAlbum>)
+                                            if (it.albums.results.isEmpty()) {
+                                                binding.tvAlbums.visibility = View.GONE
+                                            }
+                                        } else {
+                                            binding.tvAlbums.visibility = View.GONE
+                                        }
+                                        if (it.video != null) {
+                                            videoAdapter.updateList(it.video as ArrayList<ResultVideo>)
+                                            if (it.video.isEmpty()) {
+                                                binding.tvVideo.visibility = View.GONE
+                                            }
+                                        } else {
+                                            binding.tvVideo.visibility = View.GONE
+                                        }
+                                        if (it.featuredOn != null) {
+                                            featuredOnAdapter.updateList(it.featuredOn as ArrayList<ResultPlaylist>)
+                                            if (it.featuredOn.isEmpty()) {
+                                                binding.tvFeaturedOn.visibility = View.GONE
+                                            }
+                                        } else {
+                                            binding.tvFeaturedOn.visibility = View.GONE
+                                        }
+                                        if (it.related?.results != null) {
+                                            relatedArtistsAdapter.updateList(it.related.results as ArrayList<ResultRelated>)
+                                            if (it.related.results.isEmpty()) {
+                                                binding.tvRelatedArtists.visibility = View.GONE
+                                            }
+                                        } else {
+                                            binding.tvRelatedArtists.visibility = View.GONE
+                                        }
+                                    }
+                                    binding.loadingLayout.visibility = View.GONE
+                                    binding.topAppBarLayout.visibility = View.VISIBLE
+                                    binding.rootLayout.visibility = View.VISIBLE
+                                    binding.rootFull.visibility = View.VISIBLE
+                                }
+                            }
+                            is Resource.Error -> {
+                                binding.loadingLayout.visibility = View.GONE
+                                Snackbar.make(binding.root, "${response.message}", Snackbar.LENGTH_LONG)
+                                    .setAction(getString(R.string.retry)) {
+                                        if (channelId != null) {
+                                            fetchData(channelId)
+                                        }
+                                    }
+                                    .show()
+                                findNavController().popBackStack()
+                            }
+                            else -> {
+                                binding.loadingLayout.visibility = View.VISIBLE
+                                binding.topAppBarLayout.visibility = View.GONE
+                                binding.rootLayout.visibility = View.GONE
+                                binding.rootFull.visibility = View.GONE
+                            }
+                        }
+                    }
+                }
+                artistJob.join()
+                followJob.join()
+            }
+        }
 
     }
     private fun fetchData(channelId: String){
         viewModel.browseArtist(channelId)
-        viewModel.artistBrowse.observe(viewLifecycleOwner) { response ->
-            when(response){
-                is Resource.Success -> {
-                    response.data.let {
-                        with(binding){
-                            if (it != null){
-                                viewModel.insertArtist(ArtistEntity(it.channelId!!, it.name,
-                                    it.thumbnails?.first()?.url
-                                ))
-                                lifecycleScope.launch {
-                                    viewModel.followed.collect { followed ->
-                                        if (followed) {
-                                            binding.btFollow.text =  getString(R.string.followed)
-                                        }
-                                        else {
-                                            binding.btFollow.text =  getString(R.string.follow)
-                                        }
-                                    }
-                                }
-                            }
-                            topAppBar.title = it?.name.toString()
-                            if (it?.thumbnails?.size!! > 1){
-                                loadImage(it.thumbnails[1].url)
-                            }
-                            else {
-                                loadImage(it.thumbnails[0].url)
-                            }
-                            if (viewModel.gradientDrawable.value == null){
-                                viewModel.gradientDrawable.observe(viewLifecycleOwner) { gd ->
-                                    binding.cardBelowAppBarLayout.background = gd
-                                    binding.aboutContainer.background = gd
-                                    Log.d("Load Gradient from Image", gd.toString())
-                                }
-                            }
-                            else {
-                                Log.d("Load Gradient from Cache", gradientDrawable.toString())
-                                binding.cardBelowAppBarLayout.background = gradientDrawable
-                                binding.aboutContainer.background = gradientDrawable
-                            }
-                            tvSubscribers.text = it.subscribers
-                            if (it.views == null){
-                                tvViews.text = ""
-                            }
-                            else {
-                                tvViews.text = it.views.toString()
-                            }
-                            tvDescription.originalText = (it.description ?: getString(R.string.no_description)).toString()
-                            if (it.songs?.results != null) {
-                                popularAdapter.updateList(it.songs.results as ArrayList<ResultSong>)
-                            }
-                            if (it.singles?.results != null) {
-                                singlesAdapter.updateList(it.singles.results as ArrayList<ResultSingle>)
-                            }
-                            if (it.albums?.results != null) {
-                                albumsAdapter.updateList(it.albums.results as ArrayList<ResultAlbum>)
-                            }
-                            if (it.video != null) {
-                                videoAdapter.updateList(it.video as ArrayList<ResultVideo>)
-                            }
-                            if (it.related?.results != null) {
-                                relatedArtistsAdapter.updateList(it.related.results as ArrayList<ResultRelated>)
-                            }
-                        }
-                        binding.loadingLayout.visibility = View.GONE
-                        binding.topAppBarLayout.visibility = View.VISIBLE
-                        binding.rootLayout.visibility = View.VISIBLE
-                        binding.rootFull.visibility = View.VISIBLE
-                    }
-                }
-                is Resource.Error -> {
-                    binding.loadingLayout.visibility = View.GONE
-                    Snackbar.make(binding.root, "${response.message}", Snackbar.LENGTH_LONG)
-                        .setAction(getString(R.string.retry)) {
-                            fetchData(channelId)
-                        }
-                        .show()
-                    findNavController().popBackStack()
-                }
-            }
-        }
     }
 
     private fun loadImage(url: String) {

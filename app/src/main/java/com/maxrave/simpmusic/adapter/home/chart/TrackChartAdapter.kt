@@ -47,7 +47,7 @@ class TrackChartAdapter( var trackList: ArrayList<ItemVideo>, val context: Conte
             artistName = removeTrailingComma(artistName)
             artistName = removeComma(artistName)
             binding.tvArtistName.text = artistName
-            binding.ivArt.load(track.thumbnails.last().url)
+            binding.ivArt.load(track.thumbnails.lastOrNull()?.url)
         }
     }
     private fun removeTrailingComma(sentence: String): String {

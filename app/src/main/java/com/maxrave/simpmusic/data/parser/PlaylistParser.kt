@@ -3,10 +3,15 @@ package com.maxrave.simpmusic.data.parser
 import android.util.Log
 import com.maxrave.kotlinytmusicscraper.models.MusicShelfRenderer
 import com.maxrave.kotlinytmusicscraper.models.response.BrowseResponse
+import com.maxrave.kotlinytmusicscraper.models.response.SearchResponse
+import com.maxrave.kotlinytmusicscraper.pages.PodcastItem
 import com.maxrave.simpmusic.data.db.entities.SetVideoIdEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.browse.playlist.Author
 import com.maxrave.simpmusic.data.model.browse.playlist.PlaylistBrowse
+import com.maxrave.simpmusic.data.model.podcast.PodcastBrowse
+import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
+import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 
 fun parsePlaylistData(header: Any?, listContent: List<MusicShelfRenderer.Content>, playlistId: String): PlaylistBrowse? {
@@ -66,15 +71,25 @@ fun parsePlaylistData(header: Any?, listContent: List<MusicShelfRenderer.Content
         for (content in listContent){
             val track = Track(
                 album = null,
-                artists = parseSongArtists(content.musicResponsiveListItemRenderer, 1) ?: listOf(),
-                duration = content.musicResponsiveListItemRenderer.fixedColumns?.get(0)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.get(0)?.text ?: "",
-                durationSeconds = content.musicResponsiveListItemRenderer.fixedColumns?.get(0)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.get(0)?.text?.split(":")?.let { it[0].toInt() * 60 + it[1].toInt()} ?: 0,
+                artists = content.musicResponsiveListItemRenderer?.let { parseSongArtists(it, 1) }
+                    ?: listOf(),
+                duration = content.musicResponsiveListItemRenderer?.fixedColumns?.get(0)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.get(
+                    0
+                )?.text ?: "",
+                durationSeconds = content.musicResponsiveListItemRenderer?.fixedColumns?.get(0)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.get(
+                    0
+                )?.text?.split(":")?.let { it[0].toInt() * 60 + it[1].toInt() } ?: 0,
                 isAvailable = false,
                 isExplicit = false,
                 likeStatus = "INDIFFERENT",
-                thumbnails = content.musicResponsiveListItemRenderer.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail() ?: listOf(),
-                title = content.musicResponsiveListItemRenderer.flexColumns[0].musicResponsiveListItemFlexColumnRenderer.text?.runs?.get(0)?.text ?: "",
-                videoId = content.musicResponsiveListItemRenderer.flexColumns[0].musicResponsiveListItemFlexColumnRenderer.text?.runs?.get(0)?.navigationEndpoint?.watchEndpoint?.videoId ?: "",
+                thumbnails = content.musicResponsiveListItemRenderer?.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail()
+                    ?: listOf(),
+                title = content.musicResponsiveListItemRenderer?.flexColumns?.firstOrNull()?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.get(
+                    0
+                )?.text ?: "",
+                videoId = content.musicResponsiveListItemRenderer?.flexColumns?.firstOrNull()?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.get(
+                    0
+                )?.navigationEndpoint?.watchEndpoint?.videoId ?: "",
                 videoType = "video",
                 category = null,
                 feedbackTokens = null,
@@ -108,14 +123,102 @@ fun parsePlaylistData(header: Any?, listContent: List<MusicShelfRenderer.Content
 fun parseSetVideoId(listContent: List<MusicShelfRenderer.Content>): ArrayList<SetVideoIdEntity> {
     val listSetVideoId: ArrayList<SetVideoIdEntity> = arrayListOf()
     for (content in listContent) {
-        val videoId = content.musicResponsiveListItemRenderer.flexColumns[0].musicResponsiveListItemFlexColumnRenderer.text?.runs?.get(0)?.navigationEndpoint?.watchEndpoint?.videoId
-        val setVideoId = content.musicResponsiveListItemRenderer.menu?.menuRenderer?.items?.find { it.menuServiceItemRenderer?.icon?.iconType == "REMOVE_FROM_PLAYLIST" }?.menuServiceItemRenderer?.serviceEndpoint?.playlistEditEndpoint?.actions?.get(0)?.setVideoId
+        val videoId =
+            content.musicResponsiveListItemRenderer?.flexColumns?.firstOrNull()?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.get(
+                0
+            )?.navigationEndpoint?.watchEndpoint?.videoId
+        val setVideoId =
+            content.musicResponsiveListItemRenderer?.menu?.menuRenderer?.items?.find { it.menuServiceItemRenderer?.icon?.iconType == "REMOVE_FROM_PLAYLIST" }?.menuServiceItemRenderer?.serviceEndpoint?.playlistEditEndpoint?.actions?.get(
+                0
+            )?.setVideoId
         if (videoId != null && setVideoId != null) {
             listSetVideoId.add(SetVideoIdEntity(videoId, setVideoId))
-        }
-        else {
+        } else {
             Log.d("PlaylistParser", "videoId or setVideoId is null")
         }
     }
     return listSetVideoId
+}
+
+fun parsePodcast(list: List<PodcastItem>): ArrayList<PlaylistsResult> {
+    val listPlaylist: ArrayList<PlaylistsResult> = arrayListOf()
+    for (item in list) {
+        listPlaylist.add(
+            PlaylistsResult(
+                author = item.author.name,
+                browseId = item.id,
+                category = "podcast",
+                itemCount = "",
+                resultType = "Podcast",
+                thumbnails = item.thumbnail.thumbnails.toListThumbnail(),
+                title = item.title
+            )
+        )
+    }
+    return listPlaylist
+}
+
+fun parsePodcastData(
+    listContent: List<MusicShelfRenderer.Content>?,
+    author: Artist?
+): List<PodcastBrowse.EpisodeItem> {
+    if (listContent == null || author == null) return emptyList()
+    else {
+        val listEpisode: ArrayList<PodcastBrowse.EpisodeItem> = arrayListOf()
+        listContent.forEach { content ->
+            listEpisode.add(
+                PodcastBrowse.EpisodeItem(
+                    title = content.musicMultiRowListItemRenderer?.title?.runs?.firstOrNull()?.text
+                        ?: "",
+                    author = author,
+                    description = content.musicMultiRowListItemRenderer?.description?.runs?.joinToString(
+                        separator = ""
+                    ) { it.text } ?: "",
+                    thumbnail = content.musicMultiRowListItemRenderer?.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail()
+                        ?: emptyList<Thumbnail>(),
+                    createdDay = content.musicMultiRowListItemRenderer?.subtitle?.runs?.firstOrNull()?.text
+                        ?: "",
+                    durationString = content.musicMultiRowListItemRenderer?.subtitle?.runs?.getOrNull(
+                        1
+                    )?.text ?: "",
+                    videoId = content.musicMultiRowListItemRenderer?.onTap?.watchEndpoint?.videoId
+                        ?: ""
+                )
+            )
+        }
+
+        return listEpisode
+    }
+}
+
+fun parsePodcastContinueData(
+    listContent: List<SearchResponse.ContinuationContents.MusicShelfContinuation.Content>?,
+    author: Artist?
+): List<PodcastBrowse.EpisodeItem> {
+    if (listContent == null || author == null) return emptyList()
+    else {
+        val listEpisode: ArrayList<PodcastBrowse.EpisodeItem> = arrayListOf()
+        listContent.forEach { content ->
+            listEpisode.add(
+                PodcastBrowse.EpisodeItem(
+                    title = content.musicMultiRowListItemRenderer?.title?.runs?.firstOrNull()?.text
+                        ?: "",
+                    author = author,
+                    description = content.musicMultiRowListItemRenderer?.description?.runs?.joinToString(
+                        separator = ""
+                    ) { it.text } ?: "",
+                    thumbnail = content.musicMultiRowListItemRenderer?.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail()
+                        ?: emptyList<Thumbnail>(),
+                    createdDay = content.musicMultiRowListItemRenderer?.subtitle?.runs?.firstOrNull()?.text
+                        ?: "",
+                    durationString = content.musicMultiRowListItemRenderer?.subtitle?.runs?.lastOrNull()?.text
+                        ?: "",
+                    videoId = content.musicMultiRowListItemRenderer?.onTap?.watchEndpoint?.videoId
+                        ?: ""
+                )
+            )
+        }
+
+        return listEpisode
+    }
 }

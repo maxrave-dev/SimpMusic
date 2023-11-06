@@ -97,7 +97,9 @@
                         android:layout_height="wrap_content"
                         android:layout_width="wrap_content"
                         app:singleSelection="true"
-                        app:singleLine="true">
+                        app:singleLine="true"
+                        app:selectionRequired="true">
+
                         <com.google.android.material.chip.Chip
                             android:id="@+id/chipAll"
                             android:checked="true"
@@ -149,11 +151,34 @@
                             android:focusable="true"
                             app:chipBackgroundColor="@color/bg_chip_state_list"
                             style="@style/Widget.MaterialComponents.Chip.Filter" />
+
                         <com.google.android.material.chip.Chip
                             android:id="@+id/chipPlaylist"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="@string/playlists"
+                            android:checkable="true"
+                            android:clickable="true"
+                            android:focusable="true"
+                            app:chipBackgroundColor="@color/bg_chip_state_list"
+                            style="@style/Widget.MaterialComponents.Chip.Filter" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipFeaturedPlaylist"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/featured_playlists"
+                            android:checkable="true"
+                            android:clickable="true"
+                            android:focusable="true"
+                            app:chipBackgroundColor="@color/bg_chip_state_list"
+                            style="@style/Widget.MaterialComponents.Chip.Filter" />
+
+                        <com.google.android.material.chip.Chip
+                            android:id="@+id/chipPodcast"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="@string/podcasts"
                             android:checkable="true"
                             android:clickable="true"
                             android:focusable="true"

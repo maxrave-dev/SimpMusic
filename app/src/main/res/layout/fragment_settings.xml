@@ -417,6 +417,153 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:text="@string/lyrics"
+                    android:textColor="@android:color/white"
+                    android:textStyle="bold"
+                    android:textSize="16sp"
+                    android:layout_marginVertical="15sp">
+
+                </TextView>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginVertical="5sp"
+                    android:layout_marginStart="15sp"
+                    android:id="@+id/btMainLyricsProvider"
+                    android:focusable="true"
+                    android:clickable="true"
+                    android:foreground="?android:attr/selectableItemBackground">
+                    <TextView
+                        android:textSize = "16sp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@android:color/white"
+                        android:text = "@string/main_lyrics_provider">
+
+                    </TextView>
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:id="@+id/tvMainLyricsProvider"
+                        android:text="@string/musixmatch">
+
+                    </TextView>
+
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginVertical="5sp"
+                    android:layout_marginStart="15sp"
+                    android:id="@+id/btMusixmatchLogin"
+                    android:focusable="true"
+                    android:clickable="true"
+                    android:foreground="?android:attr/selectableItemBackground">
+                    <TextView
+                        android:id="@+id/tvMusixmatchLoginTitle"
+                        android:textSize = "16sp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@android:color/white"
+                        android:text = "@string/log_in_to_Musixmatch">
+
+                    </TextView>
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:id="@+id/tvMusixmatchLogin"
+                        android:text="@string/only_support_email_and_password_type">
+
+                    </TextView>
+
+                </LinearLayout>
+                <TextView
+                    android:autoLink="web"
+                    android:layout_marginVertical="5sp"
+                    android:layout_marginStart="15sp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textSize="11sp"
+                    android:text="@string/musixmatch_login_description">
+
+                </TextView>
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+                    <LinearLayout
+                        android:layout_alignParentStart="true"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginVertical="5sp"
+                        android:layout_marginStart="15sp"
+                        android:id="@+id/btUseMusixmatchTranslation"
+                        android:focusable="true"
+                        android:clickable="true"
+                        android:foreground="?android:attr/selectableItemBackground"
+                        android:layout_toStartOf="@+id/swUseMusixmatchTranslation">
+                        <TextView
+                            android:textSize = "16sp"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textColor="@android:color/white"
+                            android:text = "@string/use_musixmatch_translation">
+
+                        </TextView>
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textSize="13sp"
+                            android:id="@+id/tvUseMusixmatchTranslation"
+                            android:text="@string/use_musixmatch_translation_description">
+
+                        </TextView>
+                    </LinearLayout>
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/swUseMusixmatchTranslation"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true">
+
+                    </com.google.android.material.switchmaterial.SwitchMaterial>
+                </RelativeLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginVertical="5sp"
+                    android:layout_marginStart="15sp"
+                    android:id="@+id/btTranslationLanguage"
+                    android:focusable="true"
+                    android:clickable="true"
+                    android:foreground="?android:attr/selectableItemBackground">
+                    <TextView
+                        android:textSize = "16sp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@android:color/white"
+                        android:text = "@string/translation_language">
+
+                    </TextView>
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:id="@+id/tvTranslationLanguage"
+                        android:text="@string/follow_app_language">
+
+                    </TextView>
+
+                </LinearLayout>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
                     android:text="@string/sponsorBlock"
                     android:textColor="@android:color/white"
                     android:textStyle="bold"
@@ -597,6 +744,210 @@
                     </TextView>
 
                 </LinearLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginVertical="5sp"
+                    android:layout_marginStart="15sp"
+                    android:id="@+id/btLimitPlayerCache"
+                    android:focusable="true"
+                    android:clickable="true"
+                    android:foreground="?android:attr/selectableItemBackground">
+                    <TextView
+                        android:textSize = "16sp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@android:color/white"
+                        android:text = "@string/limit_player_cache">
+
+                    </TextView>
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:id="@+id/tvLimitPlayerCache"
+                        android:text="">
+
+                    </TextView>
+
+                </LinearLayout>
+                <com.google.android.material.card.MaterialCardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginVertical="10dp"
+                    android:layout_marginHorizontal="15sp">
+                    <com.google.android.flexbox.FlexboxLayout
+                        android:id="@+id/flexBox"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:flexWrap="nowrap">
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/firstContainer"
+                            android:layout_width="wrap_content"
+                            android:layout_height="8dp"
+                            app:cardCornerRadius="0dp"
+                            app:cardBackgroundColor="?attr/colorPrimary"
+                            app:layout_flexBasisPercent ="20%"
+                            style="@style/Widget.Material3.CardView.Elevated">
+
+                        </com.google.android.material.card.MaterialCardView>
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/downloadedContainer"
+                            android:layout_width="wrap_content"
+                            android:layout_height="8dp"
+                            app:cardCornerRadius="0dp"
+                            app:cardBackgroundColor="#8BC34A"
+                            style="@style/Widget.Material3.CardView.Elevated">
+
+                        </com.google.android.material.card.MaterialCardView>
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/cacheContainer"
+                            android:layout_width="wrap_content"
+                            android:layout_height="8dp"
+                            app:cardCornerRadius="0dp"
+                            app:cardBackgroundColor="#FFEB3B"
+                            style="@style/Widget.Material3.CardView.Elevated">
+
+                        </com.google.android.material.card.MaterialCardView>
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/databaseContainer"
+                            android:layout_width="wrap_content"
+                            android:layout_height="8dp"
+                            app:cardCornerRadius="0dp"
+                            app:cardBackgroundColor="#EFEFEE"
+                            style="@style/Widget.Material3.CardView.Elevated">
+
+                        </com.google.android.material.card.MaterialCardView>
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/freeContainer"
+                            android:layout_width="wrap_content"
+                            android:layout_height="8dp"
+                            app:cardCornerRadius="0dp"
+                            app:cardBackgroundColor="#6C6C6C"
+                            style="@style/Widget.Material3.CardView.Elevated">
+
+                        </com.google.android.material.card.MaterialCardView>
+
+                    </com.google.android.flexbox.FlexboxLayout>
+                </com.google.android.material.card.MaterialCardView>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginVertical="5sp"
+                    android:layout_marginHorizontal="15sp">
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="25dp">
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/firstContainerModel"
+                            android:layout_width="15dp"
+                            android:layout_height="15dp"
+                            android:layout_centerVertical="true"
+                            app:cardCornerRadius="60dp"
+                            app:cardBackgroundColor="?attr/colorPrimary">
+
+                        </com.google.android.material.card.MaterialCardView>
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/other_app"
+                            android:layout_toEndOf="@+id/firstContainerModel"
+                            android:layout_centerVertical="true"
+                            android:layout_marginStart="20dp">
+
+                        </TextView>
+                    </RelativeLayout>
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="25dp">
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/downloadedContainerModel"
+                            android:layout_width="15dp"
+                            android:layout_height="15dp"
+                            android:layout_centerVertical="true"
+                            app:cardCornerRadius="60dp"
+                            app:cardBackgroundColor="#8BC34A">
+
+                        </com.google.android.material.card.MaterialCardView>
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/downloaded_cache"
+                            android:layout_toEndOf="@+id/downloadedContainerModel"
+                            android:layout_centerVertical="true"
+                            android:layout_marginStart="20dp">
+
+                        </TextView>
+                    </RelativeLayout>
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="25dp">
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/cacheContainerModel"
+                            android:layout_width="15dp"
+                            android:layout_height="15dp"
+                            android:layout_centerVertical="true"
+                            app:cardCornerRadius="60dp"
+                            app:cardBackgroundColor="#FFEB3B">
+
+                        </com.google.android.material.card.MaterialCardView>
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/player_cache"
+                            android:layout_toEndOf="@+id/cacheContainerModel"
+                            android:layout_centerVertical="true"
+                            android:layout_marginStart="20dp">
+
+                        </TextView>
+                    </RelativeLayout>
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="25dp">
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/databaseContainerModel"
+                            android:layout_width="15dp"
+                            android:layout_height="15dp"
+                            android:layout_centerVertical="true"
+                            app:cardCornerRadius="60dp"
+                            app:cardBackgroundColor="#EFEFEE">
+
+                        </com.google.android.material.card.MaterialCardView>
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/database"
+                            android:layout_toEndOf="@+id/databaseContainerModel"
+                            android:layout_centerVertical="true"
+                            android:layout_marginStart="20dp">
+
+                        </TextView>
+                    </RelativeLayout>
+                    <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="25dp">
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/freeContainerModel"
+                            android:layout_width="15dp"
+                            android:layout_height="15dp"
+                            android:layout_centerVertical="true"
+                            app:cardCornerRadius="60dp"
+                            app:cardBackgroundColor="#6C6C6C">
+
+                        </com.google.android.material.card.MaterialCardView>
+                        <TextView
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:text="@string/free_space"
+                            android:layout_toEndOf="@+id/freeContainerModel"
+                            android:layout_centerVertical="true"
+                            android:layout_marginStart="20dp">
+
+                        </TextView>
+                    </RelativeLayout>
+                </LinearLayout>
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -740,7 +1091,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textColor="@android:color/white"
-                        android:text = "@string/github">
+                        android:text = "@string/author">
 
                     </TextView>
                     <TextView
@@ -777,6 +1128,34 @@
                         android:textSize="16sp"
                         android:id="@+id/tvPaypal"
                         android:text="@string/paypal">
+
+                    </TextView>
+
+                </LinearLayout>
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginVertical="5sp"
+                    android:layout_marginStart="15sp"
+                    android:id="@+id/bt3rdPartyLibraries"
+                    android:focusable="true"
+                    android:clickable="true"
+                    android:foreground="?android:attr/selectableItemBackground">
+                    <TextView
+                        android:textSize = "16sp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@android:color/white"
+                        android:text = "@string/third_party_libraries">
+
+                    </TextView>
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:id="@+id/tv3rdPartyLibraries"
+                        android:text="@string/description_and_licenses">
 
                     </TextView>
 

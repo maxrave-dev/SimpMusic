@@ -41,6 +41,8 @@ class MoodContentAdapter(private var contentList: ArrayList<Content>): RecyclerV
         with(holder){
             binding.tvTitle.text = content.title
             binding.tvDescription.text = content.subtitle
+            binding.tvTitle.isSelected = true
+            binding.tvDescription.isSelected = true
             if (content.thumbnails != null) {
                 binding.ivArt.load(content.thumbnails.last().url)
             }

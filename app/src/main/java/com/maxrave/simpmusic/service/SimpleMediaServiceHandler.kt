@@ -43,7 +43,7 @@ class SimpleMediaServiceHandler constructor(
     mediaSessionCallback: SimpleMediaSessionCallback,
     private val dataStoreManager: DataStoreManager,
     private val mainRepository: MainRepository,
-    private val coroutineScope: LifecycleCoroutineScope,
+    var coroutineScope: LifecycleCoroutineScope,
     private val context: Context
 ) : Player.Listener {
 
@@ -225,6 +225,7 @@ class SimpleMediaServiceHandler constructor(
 
     fun moveMediaItem(fromIndex: Int, newIndex: Int) {
         player.moveMediaItem(fromIndex, newIndex)
+        _currentSongIndex.value = currentIndex()
     }
 
     suspend fun onPlayerEvent(playerEvent: PlayerEvent) {
@@ -662,6 +663,7 @@ class SimpleMediaServiceHandler constructor(
 
                     }
                     else -> {
+                        Log.w("Check index", "load: $index")
                         addFirstMediaItemToIndex(getMediaItemWithIndex(0), index)
                         Queue.getNowPlaying().let { song ->
                             if (song != null) {
@@ -832,6 +834,7 @@ class SimpleMediaServiceHandler constructor(
         return true
     }
     fun addQueueToPlayer() {
+        Log.d("Check Queue in handler", Queue.getQueue().toString())
         loadJob?.cancel()
         loadJob = coroutineScope.launch {
             load()

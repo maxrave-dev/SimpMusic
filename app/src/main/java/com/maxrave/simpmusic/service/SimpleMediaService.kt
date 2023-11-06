@@ -31,8 +31,8 @@ import androidx.media3.extractor.mkv.MatroskaExtractor
 import androidx.media3.extractor.mp4.FragmentedMp4Extractor
 import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.MediaController
+import androidx.media3.session.MediaLibraryService
 import androidx.media3.session.MediaSession
-import androidx.media3.session.MediaSessionService
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.MoreExecutors
 import com.maxrave.simpmusic.R
@@ -42,6 +42,7 @@ import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.di.DownloadCache
 import com.maxrave.simpmusic.di.PlayerCache
+import com.maxrave.simpmusic.service.test.CoilBitmapLoader
 import com.maxrave.simpmusic.ui.MainActivity
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -51,11 +52,12 @@ import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 @AndroidEntryPoint
-class SimpleMediaService : MediaSessionService() {
+@UnstableApi
+class SimpleMediaService : MediaLibraryService() {
 
     lateinit var player: ExoPlayer
 
-    lateinit var mediaSession: MediaSession
+    lateinit var mediaSession: MediaLibrarySession
 
     @Inject
     lateinit var dataStoreManager: DataStoreManager
@@ -96,11 +98,11 @@ class SimpleMediaService : MediaSessionService() {
             .setRenderersFactory(provideRendererFactory(this))
             .build()
 
-        mediaSession = provideMediaSession(
-            context = this,
-            player = player,
-            callback = simpleMediaSessionCallback
-
+        mediaSession = provideMediaLibrarySession(
+            this,
+            this,
+            player,
+            simpleMediaSessionCallback
         )
         val sessionToken = SessionToken(this, ComponentName(this, SimpleMediaService::class.java))
         val controllerFuture = MediaController.Builder(this, sessionToken).buildAsync()
@@ -112,7 +114,7 @@ class SimpleMediaService : MediaSessionService() {
         return super.onStartCommand(intent, flags, startId)
     }
 
-    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession =
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaLibrarySession =
         mediaSession
 
     @UnstableApi
@@ -275,8 +277,30 @@ class SimpleMediaService : MediaSessionService() {
         }
 
     @UnstableApi
+    fun provideCoilBitmapLoader(context: Context): CoilBitmapLoader = CoilBitmapLoader(context)
+
+
+    @UnstableApi
+    fun provideMediaLibrarySession(
+        context: Context,
+        service: MediaLibraryService,
+        player: ExoPlayer,
+        callback: SimpleMediaSessionCallback
+    ): MediaLibrarySession = MediaLibrarySession.Builder(
+        service, player, callback
+    )
+        .setSessionActivity(
+            PendingIntent.getActivity(
+                context, 0, Intent(context, MainActivity::class.java),
+                PendingIntent.FLAG_IMMUTABLE
+            )
+        )
+        .setBitmapLoader(provideCoilBitmapLoader(context))
+        .build()
+
+    @UnstableApi
     fun provideMediaSession(
-         context: Context,
+        context: Context,
         player: ExoPlayer,
         callback: SimpleMediaSessionCallback
     ): MediaSession =
@@ -287,6 +311,7 @@ class SimpleMediaService : MediaSessionService() {
                     PendingIntent.FLAG_IMMUTABLE
                 )
             )
+            .setBitmapLoader(provideCoilBitmapLoader(context))
             .build()
 
 }

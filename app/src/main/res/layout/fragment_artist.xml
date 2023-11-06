@@ -154,6 +154,7 @@
                 </com.google.android.material.card.MaterialCardView>
 
                 <RelativeLayout
+                    android:id="@+id/tvPopular"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
                     <TextView
@@ -192,16 +193,36 @@
                     tools:listitem="@layout/item_popular_song">
 
                 </androidx.recyclerview.widget.RecyclerView>
-
-                <TextView
-                    android:padding="15sp"
+                <RelativeLayout
+                    android:id="@+id/tvSingles"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/singles"
-                    android:textSize="18sp"
-                    android:textStyle="bold">
+                    android:layout_height="wrap_content">
+                    <TextView
+                        android:padding="15sp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/singles"
+                        android:textSize="18sp"
+                        android:textStyle="bold">
 
-                </TextView>
+                    </TextView>
+                    <Button
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_width="wrap_content"
+                        android:id="@+id/btMoreSingles"
+                        android:layout_height="wrap_content"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:text="@string/more"
+                        android:textColor="?attr/colorOnSecondaryContainer"
+                        android:background="@android:color/transparent"
+                        android:src="@drawable/baseline_shuffle_24"
+                        android:focusable="true"
+                        android:clickable="true"
+                        android:foreground="?android:attr/selectableItemBackground">
+
+                    </Button>
+                </RelativeLayout>
                 <androidx.recyclerview.widget.RecyclerView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -215,15 +236,36 @@
                     tools:listitem="@layout/item_singles">
 
                 </androidx.recyclerview.widget.RecyclerView>
-                <TextView
-                    android:padding="15sp"
+                <RelativeLayout
+                    android:id="@+id/tvAlbums"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/albums"
-                    android:textSize="18sp"
-                    android:textStyle="bold">
+                    android:layout_height="wrap_content">
+                    <TextView
+                        android:padding="15sp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/albums"
+                        android:textSize="18sp"
+                        android:textStyle="bold">
 
-                </TextView>
+                    </TextView>
+                    <Button
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_width="wrap_content"
+                        android:id="@+id/btMoreAlbum"
+                        android:layout_height="wrap_content"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:text="@string/more"
+                        android:textColor="?attr/colorOnSecondaryContainer"
+                        android:background="@android:color/transparent"
+                        android:src="@drawable/baseline_shuffle_24"
+                        android:focusable="true"
+                        android:clickable="true"
+                        android:foreground="?android:attr/selectableItemBackground">
+
+                    </Button>
+                </RelativeLayout>
                 <androidx.recyclerview.widget.RecyclerView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -237,15 +279,36 @@
                     tools:listitem="@layout/item_singles">
 
                 </androidx.recyclerview.widget.RecyclerView>
-                <TextView
-                    android:padding="15sp"
+                <RelativeLayout
+                    android:id="@+id/tvVideo"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="@string/videos"
-                    android:textSize="18sp"
-                    android:textStyle="bold">
+                    android:layout_height="wrap_content">
+                    <TextView
+                        android:padding="15sp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/videos"
+                        android:textSize="18sp"
+                        android:textStyle="bold">
 
-                </TextView>
+                    </TextView>
+                    <Button
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_width="wrap_content"
+                        android:id="@+id/btMoreVideos"
+                        android:layout_height="wrap_content"
+                        style="?attr/materialButtonOutlinedStyle"
+                        android:text="@string/more"
+                        android:textColor="?attr/colorOnSecondaryContainer"
+                        android:background="@android:color/transparent"
+                        android:src="@drawable/baseline_shuffle_24"
+                        android:focusable="true"
+                        android:clickable="true"
+                        android:foreground="?android:attr/selectableItemBackground">
+
+                    </Button>
+                </RelativeLayout>
                 <androidx.recyclerview.widget.RecyclerView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -259,7 +322,30 @@
                     tools:listitem="@layout/item_singles">
 
                 </androidx.recyclerview.widget.RecyclerView>
+
                 <TextView
+                    android:id="@+id/tvFeaturedOn"
+                    android:padding="15sp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/featured_inArtist"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="15sp"
+                    android:layout_marginEnd="15sp"
+                    android:id="@+id/rvFeaturedOn"
+                    android:scrollbars="horizontal"
+                    android:orientation="horizontal"
+                    app:reverseLayout="true"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                    tools:listitem="@layout/item_related_artist" />
+
+                <TextView
+                    android:id="@+id/tvRelatedArtists"
                     android:padding="15sp"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -268,6 +354,7 @@
                     android:textStyle="bold">
 
                 </TextView>
+
                 <androidx.recyclerview.widget.RecyclerView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -320,7 +407,7 @@
                 </com.google.android.material.card.MaterialCardView>
                 <RelativeLayout
                     android:layout_width="match_parent"
-                    android:layout_height="150sp">
+                    android:layout_height="180sp">
 
                 </RelativeLayout>
             </LinearLayout>

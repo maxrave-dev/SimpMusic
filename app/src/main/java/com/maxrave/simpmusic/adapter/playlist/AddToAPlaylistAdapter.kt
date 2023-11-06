@@ -3,7 +3,6 @@ package com.maxrave.simpmusic.adapter.playlist
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.databinding.ItemLocalPlaylistBinding
 

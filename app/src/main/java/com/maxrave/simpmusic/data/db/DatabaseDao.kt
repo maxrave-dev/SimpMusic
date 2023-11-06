@@ -12,6 +12,7 @@ import com.maxrave.simpmusic.data.db.entities.ArtistEntity
 import com.maxrave.simpmusic.data.db.entities.FormatEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.LyricsEntity
+import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.QueueEntity
 import com.maxrave.simpmusic.data.db.entities.SearchHistory
@@ -124,11 +125,14 @@ interface DatabaseDao {
     @Query("UPDATE song SET downloadState = :downloadState WHERE videoId = :videoId")
     suspend fun updateDownloadState(downloadState: Int, videoId: String)
 
+    @Query("UPDATE song SET durationSeconds = :durationSeconds WHERE videoId = :videoId")
+    suspend fun updateDurationSeconds(durationSeconds: Int, videoId: String)
+
     @Query("SELECT * FROM song WHERE downloadState = 3")
-    suspend fun getDownloadedSongs(): List<SongEntity>
+    suspend fun getDownloadedSongs(): List<SongEntity>?
 
     @Query("SELECT * FROM song WHERE downloadState = 1 OR downloadState = 2")
-    suspend fun getDownloadingSongs(): List<SongEntity>
+    suspend fun getDownloadingSongs(): List<SongEntity>?
 
     @Query("SELECT * FROM song WHERE videoId IN (:primaryKeyList)")
     fun getSongByListVideoId(primaryKeyList: List<String>): List<SongEntity>
@@ -285,4 +289,15 @@ interface DatabaseDao {
 
     @Query("SELECT * FROM set_video_id WHERE videoId = :videoId")
     suspend fun getSetVideoId(videoId: String): SetVideoIdEntity?
+
+    //PairSongLocalPlaylist
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertPairSongLocalPlaylist(pairSongLocalPlaylist: PairSongLocalPlaylist)
+
+    @Query("SELECT * FROM pair_song_local_playlist WHERE playlistId = :playlistId")
+    suspend fun getPlaylistPairSong(playlistId: Long): List<PairSongLocalPlaylist>?
+
+    @Query("DELETE FROM pair_song_local_playlist WHERE songId = :videoId AND playlistId = :playlistId")
+    suspend fun deletePairSongLocalPlaylist(playlistId: Long, videoId: String)
+
 }

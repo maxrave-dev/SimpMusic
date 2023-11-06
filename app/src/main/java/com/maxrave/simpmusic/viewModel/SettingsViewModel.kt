@@ -49,8 +49,8 @@ class SettingsViewModel @Inject constructor(
     private var mainRepository: MainRepository,
     private var database: MusicDatabase,
     private var databaseDao: DatabaseDao,
-    @PlayerCache private val playerCache: SimpleCache,
-    @DownloadCache private val downloadCache: SimpleCache,
+    @PlayerCache val playerCache: SimpleCache,
+    @DownloadCache val downloadCache: SimpleCache,
     ) : AndroidViewModel(application) {
 
     @Inject
@@ -82,6 +82,84 @@ class SettingsViewModel @Inject constructor(
     val sponsorBlockCategories: LiveData<ArrayList<String>> = _sponsorBlockCategories
     private var _sendBackToGoogle: MutableLiveData<String> = MutableLiveData()
     val sendBackToGoogle: LiveData<String> = _sendBackToGoogle
+    private var _mainLyricsProvider: MutableLiveData<String> = MutableLiveData()
+    val mainLyricsProvider: LiveData<String> = _mainLyricsProvider
+    private var _musixmatchLoggedIn: MutableLiveData<String> = MutableLiveData()
+    val musixmatchLoggedIn: LiveData<String> = _musixmatchLoggedIn
+    private var _translationLanguage: MutableLiveData<String> = MutableLiveData()
+    val translationLanguage: LiveData<String> = _translationLanguage
+    private var _useTranslation: MutableLiveData<String> = MutableLiveData()
+    val useTranslation: LiveData<String> = _useTranslation
+    private var _playerCacheLimit: MutableLiveData<Int> = MutableLiveData()
+    val playerCacheLimit: LiveData<Int> = _playerCacheLimit
+    fun getTranslationLanguage() {
+        viewModelScope.launch {
+            withContext(Dispatchers.Main) {
+                dataStoreManager.translationLanguage.collect { translationLanguage ->
+                    _translationLanguage.postValue(translationLanguage)
+                }
+            }
+        }
+    }
+    fun setTranslationLanguage(language: String) {
+        viewModelScope.launch {
+            withContext(Dispatchers.Main) {
+                dataStoreManager.setTranslationLanguage(language)
+                getTranslationLanguage()
+            }
+        }
+    }
+    fun getUseTranslation() {
+        viewModelScope.launch {
+            withContext(Dispatchers.Main) {
+                dataStoreManager.enableTranslateLyric.collect { useTranslation ->
+                    _useTranslation.postValue(useTranslation)
+                }
+            }
+        }
+    }
+    fun setUseTranslation(useTranslation: Boolean) {
+        viewModelScope.launch {
+            withContext(Dispatchers.Main) {
+                dataStoreManager.setEnableTranslateLyric(useTranslation)
+                getUseTranslation()
+            }
+        }
+    }
+    fun getMusixmatchLoggedIn() {
+        viewModelScope.launch {
+            withContext(Dispatchers.Main) {
+                dataStoreManager.musixmatchLoggedIn.collect { musixmatchLoggedIn ->
+                    _musixmatchLoggedIn.postValue(musixmatchLoggedIn)
+                }
+            }
+        }
+    }
+    fun setMusixmatchLoggedIn(loggedIn: Boolean) {
+        viewModelScope.launch {
+            withContext(Dispatchers.Main) {
+                dataStoreManager.setMusixmatchLoggedIn(loggedIn)
+                getMusixmatchLoggedIn()
+            }
+        }
+    }
+    fun getLyricsProvider() {
+        viewModelScope.launch {
+            withContext(Dispatchers.Main) {
+                dataStoreManager.lyricsProvider.collect { mainLyricsProvider ->
+                    _mainLyricsProvider.postValue(mainLyricsProvider)
+                }
+            }
+        }
+    }
+    fun setLyricsProvider(provider: String) {
+        viewModelScope.launch {
+            withContext(Dispatchers.Main) {
+                dataStoreManager.setLyricsProvider(provider)
+                getLyricsProvider()
+            }
+        }
+    }
 
     fun checkForUpdate() {
         viewModelScope.launch {
@@ -237,7 +315,7 @@ class SettingsViewModel @Inject constructor(
                 downloadCache.removeResource(key)
             }
             mainRepository.getDownloadedSongs().collect {songs ->
-                songs.forEach { song ->
+                songs?.forEach { song ->
                     mainRepository.updateDownloadState(song.videoId, DownloadState.STATE_NOT_DOWNLOADED)
                 }
             }
@@ -344,15 +422,6 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun clearSpotifyCookie() {
-        viewModelScope.launch {
-            withContext((Dispatchers.Main)) {
-                dataStoreManager.setSpotifyCookie("")
-                dataStoreManager.setSpotifyLoggedIn(false)
-            }
-        }
-    }
-
     fun getNormalizeVolume() {
         viewModelScope.launch {
             withContext(Dispatchers.Main) {
@@ -432,6 +501,30 @@ class SettingsViewModel @Inject constructor(
                 dataStoreManager.setSaveRecentSongAndQueue(b)
                 getSaveRecentSongAndQueue()
             }
+        }
+    }
+
+    fun clearMusixmatchCookie() {
+        viewModelScope.launch {
+            withContext((Dispatchers.Main)) {
+                dataStoreManager.setMusixmatchCookie("")
+                YouTube.musixMatchCookie = null
+                dataStoreManager.setMusixmatchLoggedIn(false)
+            }
+        }
+    }
+
+    fun getPlayerCacheLimit() {
+        viewModelScope.launch {
+            dataStoreManager.maxSongCacheSize.collect {
+                _playerCacheLimit.postValue(it)
+            }
+        }
+    }
+    fun setPlayerCacheLimit(size: Int) {
+        viewModelScope.launch {
+            dataStoreManager.setMaxSongCacheSize(size)
+            getPlayerCacheLimit()
         }
     }
 }

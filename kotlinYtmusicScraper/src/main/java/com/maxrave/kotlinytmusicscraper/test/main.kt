@@ -2,16 +2,27 @@ package com.maxrave.kotlinytmusicscraper.test
 
 import com.google.gson.annotations.SerializedName
 import com.maxrave.kotlinytmusicscraper.YouTube
+import com.maxrave.kotlinytmusicscraper.Ytmusic
 import com.maxrave.kotlinytmusicscraper.models.GridRenderer
 import com.maxrave.kotlinytmusicscraper.models.MusicResponsiveListItemRenderer
 import com.maxrave.kotlinytmusicscraper.models.MusicTwoRowItemRenderer
 import com.maxrave.kotlinytmusicscraper.models.Run
 import com.maxrave.kotlinytmusicscraper.models.SectionListRenderer
 import com.maxrave.kotlinytmusicscraper.models.Thumbnail
+import com.maxrave.kotlinytmusicscraper.models.YouTubeClient
 import kotlinx.coroutines.runBlocking
+
 
 fun main() {
     runBlocking {
+        YouTube.customQuery("MPSPPLWrhnsc6Cvcrp7HmEWu8q0p95pRyGmpHi").onSuccess { result ->
+            println(result)
+        }
+            .onFailure { error ->
+                error.printStackTrace()
+            }
+    }
+//        Ytmusic().player(YouTubeClient.ANDROID_MUSIC, )
 //        YouTube.spotifyCookie =
 //            "sp_t=a910acb941e990e349d79e8170f2dafe; _scid=e96b060c-30fc-4c59-9e44-25f376482edd; _ga=GA1.2.2112854199.1671017821; sp_adid=95e621d6-b86c-4ce5-bed4-6b03ab65155b; _ga_ZWG1NSHWD8=GS1.1.1671017821.1.0.1671017823.0.0.0; sp_dc=AQAYI79gjZIRlNjJUDXJLIq1yw5Nb_E85T55B8jgHOVWOseGrnhlVuEKRziSRV1XA8Ca2d7bx7RAQ-6hjGLWNlsxHrZ6DP6Jmn_Joz-6djb05evRb31kKFGrTXhRzFBRMr5MePVo2pujxkVtOjCZp_qNP1J3ryQ; sp_key=595700a0-212b-4ce5-a497-0f7eea005f35; OptanonAlertBoxClosed=2022-12-27T15:05:03.114Z; sp_m=vn-vi; sp_landing=https%3A%2F%2Fopen.spotify.com%2Ftrack%2F1GPRHgVXzRfzoc44HEZZQI%3Fsp_cid%3Da910acb941e990e349d79e8170f2dafe%26device%3Ddesktop; OptanonConsent=isIABGlobal=false&datestamp=Sat+Sep+30+2023+22%3A30%3A16+GMT%2B0700+(Indochina+Time)&version=6.26.0&hosts=&landingPath=NotLandingPage&groups=s00%3A1%2Cf00%3A1%2Cm00%3A1%2Ct00%3A1%2Ci00%3A1%2Cf11%3A0&AwaitingReconsent=false&geolocation=VN%3BSG"
 //        YouTube.cookie =
@@ -29,12 +40,31 @@ fun main() {
 //                    }
 //                }
 //            }
-        YouTube.getMusixmatchUserToken().onSuccess { 
-            println(it.message.body.user_token)
-        }
-            .onFailure {
-                it.printStackTrace()
-            }
+//        YouTube.getMusixmatchUserToken().onSuccess {
+//            println(it.message.body.user_token)
+//            YouTube.postMusixmatchCredentials("ndtminh2608@gmail.com", "minh123456", it.message.body.user_token).onSuccess { value ->
+//                println(value)
+//                YouTube.musixmatchUserToken = it.message.body.user_token
+//                delay(2000)
+//                YouTube.getMusixmatchTranslateLyrics("144114431", it.message.body.user_token, "vi").onSuccess { lyrics ->
+//                    println(lyrics)
+//                }.onFailure {
+//                    it.printStackTrace()
+//                }
+//
+//            }
+//                .onFailure {
+//                    it.printStackTrace()
+//                }
+//        }
+//            .onFailure {
+//                it.printStackTrace()
+//            }
+//            YouTube.browse(browseId = "VLOLAK5uy_nX6nwnLobDcXKOKCk2gH-xql7B6aU1Ta4", params = "ggMCCAI%3D").onSuccess { result ->
+//                println(result.items)
+//            }.onFailure { error ->
+//                error.printStackTrace()
+//            }
     }
 //      YouTube.authentication().onSuccess { token ->
 //            if (token.accessToken != null) {
@@ -141,7 +171,6 @@ fun main() {
 //            .onFailure { error ->
 //                error.printStackTrace()
 //            }
-    }
 
 fun parseLibraryPlaylist(input: List<GridRenderer.Item>): ArrayList<PlaylistsResult> {
     val list : ArrayList<PlaylistsResult> = arrayListOf()

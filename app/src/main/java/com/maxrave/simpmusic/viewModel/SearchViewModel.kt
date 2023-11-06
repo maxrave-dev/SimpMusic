@@ -15,6 +15,7 @@ import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
+import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.SearchHistory
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
@@ -38,6 +39,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import java.time.LocalDateTime
 import javax.inject.Inject
 
 @HiltViewModel
@@ -57,19 +59,31 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
     private var _artistSearchResult: MutableLiveData<Resource<ArrayList<ArtistsResult>>> = MutableLiveData()
     val artistsSearchResult: LiveData<Resource<ArrayList<ArtistsResult>>> = _artistSearchResult
 
-    private var _albumSearchResult: MutableLiveData<Resource<ArrayList<AlbumsResult>>> = MutableLiveData()
+    private var _albumSearchResult: MutableLiveData<Resource<ArrayList<AlbumsResult>>> =
+        MutableLiveData()
     val albumsSearchResult: LiveData<Resource<ArrayList<AlbumsResult>>> = _albumSearchResult
 
-    private var _playlistSearchResult: MutableLiveData<Resource<ArrayList<PlaylistsResult>>> = MutableLiveData()
+    private var _playlistSearchResult: MutableLiveData<Resource<ArrayList<PlaylistsResult>>> =
+        MutableLiveData()
     val playlistSearchResult: LiveData<Resource<ArrayList<PlaylistsResult>>> = _playlistSearchResult
 
-    private var _videoSearchResult: MutableLiveData<Resource<ArrayList<VideosResult>>> = MutableLiveData()
+    private var _videoSearchResult: MutableLiveData<Resource<ArrayList<VideosResult>>> =
+        MutableLiveData()
     val videoSearchResult: LiveData<Resource<ArrayList<VideosResult>>> = _videoSearchResult
+
+    private var _featuredPlaylistSearchResult: MutableLiveData<Resource<ArrayList<PlaylistsResult>>> =
+        MutableLiveData()
+    val featuredPlaylistSearchResult: LiveData<Resource<ArrayList<PlaylistsResult>>> =
+        _featuredPlaylistSearchResult
+
+    private var _podcastSearchResult: MutableLiveData<Resource<ArrayList<PlaylistsResult>>> =
+        MutableLiveData()
+    val podcastSearchResult: LiveData<Resource<ArrayList<PlaylistsResult>>> = _podcastSearchResult
 
     var loading = MutableLiveData<Boolean>()
 
     private var _suggestQuery: MutableLiveData<Resource<SearchSuggestions>> = MutableLiveData()
-    val suggestQuery : LiveData<Resource<SearchSuggestions>> = _suggestQuery
+    val suggestQuery: LiveData<Resource<SearchSuggestions>> = _suggestQuery
 
     var errorMessage = MutableLiveData<String>()
 
@@ -158,9 +172,21 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
                 }
             }
             val job5 = launch {
-                mainRepository.getSearchDataVideo(query).collect {values ->
+                mainRepository.getSearchDataVideo(query).collect { values ->
                     _videoSearchResult.value = values
                     Log.d("SearchViewModel", "searchVideos: ${_videoSearchResult.value}")
+                }
+            }
+            val job6 = launch {
+                mainRepository.getSearchDataFeaturedPlaylist(query).collect { values ->
+                    Log.d("SearchViewModel", "featured: $values")
+                    _featuredPlaylistSearchResult.value = values
+                }
+            }
+            val job7 = launch {
+                mainRepository.getSearchDataPodcast(query).collect { values ->
+                    Log.d("SearchViewModel", "podcast: ${values.data.toString()}")
+                    _podcastSearchResult.value = values
                 }
             }
             job1.join()
@@ -168,6 +194,8 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
             job3.join()
             job4.join()
             job5.join()
+            job6.join()
+            job7.join()
             withContext(Dispatchers.Main) {
                 loading.value = false
             }
@@ -184,26 +212,62 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
 
 
     fun searchAlbums(query: String) {
-        if (loading.value == false){
+        if (loading.value == false) {
             loading.value = true
-            viewModelScope.launch { mainRepository.getSearchDataAlbum(query).collect {values ->
-                _albumSearchResult.value = values
-                Log.d("SearchViewModel", "searchAlbums: ${_albumSearchResult.value}")
-                withContext(Dispatchers.Main) {
-                    loading.value = false
+            viewModelScope.launch {
+                mainRepository.getSearchDataAlbum(query).collect { values ->
+                    _albumSearchResult.value = values
+                    Log.d("SearchViewModel", "searchAlbums: ${_albumSearchResult.value}")
+                    withContext(Dispatchers.Main) {
+                        loading.value = false
+                    }
                 }
-            } }
+            }
+        }
+    }
+
+    fun searchFeaturedPlaylist(query: String) {
+        if (loading.value == false) {
+            loading.value = true
+            viewModelScope.launch {
+                mainRepository.getSearchDataFeaturedPlaylist(query).collect { values ->
+                    _featuredPlaylistSearchResult.value = values
+                    Log.d(
+                        "SearchViewModel",
+                        "searchFeaturedPlaylist: ${_featuredPlaylistSearchResult.value}"
+                    )
+                    withContext(Dispatchers.Main) {
+                        loading.value = false
+                    }
+                }
+            }
+        }
+    }
+
+    fun searchPodcast(query: String) {
+        if (loading.value == false) {
+            loading.value = true
+            viewModelScope.launch {
+                mainRepository.getSearchDataPodcast(query).collect { values ->
+                    _podcastSearchResult.value = values
+                    Log.d("SearchViewModel", "searchPodcast: ${_podcastSearchResult.value}")
+                    withContext(Dispatchers.Main) {
+                        loading.value = false
+                    }
+                }
+            }
         }
     }
 
     fun searchArtists(query: String) {
-        if (loading.value == false){
+        if (loading.value == false) {
             loading.value = true
-            viewModelScope.launch { mainRepository.getSearchDataArtist(query).collect {values ->
-                _artistSearchResult.value = values
-                Log.d("SearchViewModel", "searchArtists: ${_artistSearchResult.value}")
-                withContext(Dispatchers.Main) {
-                    loading.value = false
+            viewModelScope.launch {
+                mainRepository.getSearchDataArtist(query).collect { values ->
+                    _artistSearchResult.value = values
+                    Log.d("SearchViewModel", "searchArtists: ${_artistSearchResult.value}")
+                    withContext(Dispatchers.Main) {
+                        loading.value = false
                 }
             } }
         }
@@ -349,6 +413,18 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
                     Toast.makeText(getApplication(), application.getString(R.string.error), Toast.LENGTH_SHORT).show()
                 }
             }
+        }
+    }
+
+    fun updateInLibrary(videoId: String) {
+        viewModelScope.launch {
+            mainRepository.updateSongInLibrary(LocalDateTime.now(), videoId)
+        }
+    }
+
+    fun insertPairSongLocalPlaylist(pairSongLocalPlaylist: PairSongLocalPlaylist) {
+        viewModelScope.launch {
+            mainRepository.insertPairSongLocalPlaylist(pairSongLocalPlaylist)
         }
     }
 }

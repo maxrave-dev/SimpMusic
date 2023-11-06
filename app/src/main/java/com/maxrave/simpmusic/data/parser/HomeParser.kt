@@ -47,8 +47,16 @@ fun parseMixedContent(data: List<SectionListRenderer.Content>?): List<HomeItem> 
                 Log.w("parse_mixed_content", results1.toString())
                 val contentList = results1?.contents
                 Log.w("parse_mixed_content", results1?.contents?.size.toString())
-                val title = results1?.header?.musicCarouselShelfBasicHeaderRenderer?.title?.runs?.get(0)?.text ?: ""
+                val title =
+                    results1?.header?.musicCarouselShelfBasicHeaderRenderer?.title?.runs?.get(0)?.text
+                        ?: ""
                 Log.w("parse_mixed_content", title)
+                val subtitle =
+                    results1?.header?.musicCarouselShelfBasicHeaderRenderer?.strapline?.runs?.firstOrNull()?.text
+                val thumbnail =
+                    results1?.header?.musicCarouselShelfBasicHeaderRenderer?.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail()
+                val artistChannelId =
+                    results1?.header?.musicCarouselShelfBasicHeaderRenderer?.title?.runs?.firstOrNull()?.navigationEndpoint?.browseEndpoint?.browseId
                 val listContent = mutableListOf<Content?>()
                 if (!contentList.isNullOrEmpty()) {
                     for (result1 in contentList) {
@@ -128,6 +136,7 @@ fun parseMixedContent(data: List<SectionListRenderer.Content>?): List<HomeItem> 
                                             title = ytItem.title,
                                             videoId = ytItem.id,
                                             views = null,
+                                            durationSeconds = ytItem.duration,
                                             radio = null
                                         )
                                     )
@@ -149,6 +158,7 @@ fun parseMixedContent(data: List<SectionListRenderer.Content>?): List<HomeItem> 
                                             title = ytItem.title,
                                             videoId = ytItem.id,
                                             views = ytItem.view,
+                                            durationSeconds = ytItem.duration,
                                             radio = null
                                         )
                                     )
@@ -271,13 +281,20 @@ fun parseMixedContent(data: List<SectionListRenderer.Content>?): List<HomeItem> 
                                 )
                                 listContent.add(content)
                             }
-                        }
-                        else {
+                        } else {
                             break
                         }
                     }
                 }
-                list.add(HomeItem(contents = listContent, title = title))
+                list.add(
+                    HomeItem(
+                        contents = listContent,
+                        title = title,
+                        subtitle = subtitle,
+                        thumbnail = thumbnail,
+                        channelId = if (artistChannelId?.contains("UC") == true) artistChannelId else null
+                    )
+                )
                 Log.w("parse_mixed_content", list.toString())
             }
         }

@@ -13,9 +13,18 @@ fun parseSearchPlaylist(result: SearchResult): ArrayList<PlaylistsResult> {
                 author = playlist.author?.name ?: "",
                 browseId = playlist.id,
                 category = "playlist",
-                itemCount = playlist.songCountText?:"",
+                itemCount = playlist.songCountText ?: "",
                 resultType = "Playlist",
-                thumbnails = listOf(Thumbnail(544, Regex("([wh])120").replace(playlist.thumbnail, "$1544"), 544)),
+                thumbnails = listOf(
+                    Thumbnail(
+                        544,
+                        if (playlist.thumbnail.contains(Regex("([wh])120"))) Regex("([wh])120").replace(
+                            playlist.thumbnail,
+                            "$1544"
+                        ) else playlist.thumbnail,
+                        544
+                    )
+                ),
                 title = playlist.title
             )
         )

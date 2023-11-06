@@ -11,6 +11,7 @@ data class ResultSong (
     val title: String,
     @SerializedName("artists")
     val artists: List<Artist>?,
+    val durationSeconds: Int = 0,
     @SerializedName("album")
     val album: Album,
     @SerializedName("likeStatus")

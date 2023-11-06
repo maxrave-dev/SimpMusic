@@ -156,7 +156,7 @@
     <string name="no_equalizer">Your device doesn\'t have equalizer</string>
     <string name="open_system_equalizer">Open system equalizer</string>
     <string name="use_your_system_equalizer">Use your system equalizer</string>
-    <string name="version_name" translatable="false">v0.1.4-beta</string>
+    <string name="version_name" translatable="false">v0.1.5-beta</string>
     <string name="streaming_data_provider_piped">Streaming data provider (Piped)</string>
     <string name="itag">Itag</string>
     <string name="mime_type">Mime Type</string>
@@ -243,6 +243,39 @@
     <string name="update_playlist">Update playlist from YouTube Music</string>
     <string name="backup_create_success">Backup create success</string>
     <string name="backup_create_failed">Backup create failed</string>
+    <string name="musixmatch">Musixmatch</string>
+    <string name="main_lyrics_provider">Main Lyrics Provider</string>
+    <string name="log_in_to_Musixmatch">Log in to Musixmatch</string>
+    <string name="only_support_email_and_password_type">Only support email and password type</string>
+    <string name="musixmatch_login_description">Musixmatch Translation API works only with logged-in user. SimpMusic used Musixmatch Developer API. More information, go to https://github.com/maxrave-dev/SimpMusic or https://developer.musixmatch.com/</string>
+    <string name="use_musixmatch_translation">Use Musixmatch Translation</string>
+    <string name="use_musixmatch_translation_description">Enable lyrics translation using Musixmatch. Require Musixmatch Login</string>
+    <string name="translation_language">Translation Language</string>
+    <string name="follow_app_language">Follow app language</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="please_enter_your_email_and_password">Please enter your email and password</string>
+    <string name="log_out_from_musixmatch">Log out from Musixmatch</string>
+    <string name="translation_language_message">Type language code (Eg: en) (2 letters). If you want to set same with SimpMusic\'s language, please make edit box empty.</string>
+    <string name="invalid_language_code">Invalid language code</string>
+    <string name="lyrics_provider_youtube">Lyrics provided by YouTube</string>
+    <string name="limit_player_cache">Limit Player Cache</string>
+    <string name="unlimited">Unlimited</string>
+    <string name="third_party_libraries">Third party libraries</string>
+    <string name="description_and_licenses">Description and licenses</string>
+    <string name="author">Author</string>
+    <string name="other_app">Other app</string>
+    <string name="database">App database</string>
+    <string name="free_space">Free space</string>
+    <string name="suggest">Suggestion</string>
+    <string name="reload">Reload</string>
+    <string name="added_date">Added date</string>
+    <string name="credit_app">A simple music app using YouTube Music for backend \n\nSimpMusic is an open source project to stream music from YouTube and YouTube Music without ads and tracking. SimpMusic provides many features:\n\n - Streaming music \n - Synced lyrics\n - Personalize data\n - etc… \n\nSimpMusic is always free and no ads\n\nBuild with ❤️ from Tuan Minh Nguyen Duc (maxrave-dev)</string>
+    <string name="issue_tracker">Issue Tracker</string>
+    <string name="copyright" translatable="false">©2023 Tuan Minh Nguyen Duc (maxrave-dev)</string>
+    <string name="featured_playlists">Featured Playlists</string>
+    <string name="podcasts" translatable="false">Podcasts</string>
+    <string name="featured_inArtist">Featured on</string>
     <plurals name="n_song">
         <item quantity="one">%d song</item>
         <item quantity="other">%d songs</item>

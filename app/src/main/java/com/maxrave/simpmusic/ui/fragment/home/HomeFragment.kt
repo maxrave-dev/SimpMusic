@@ -32,6 +32,7 @@ import com.maxrave.simpmusic.data.model.home.HomeItem
 import com.maxrave.simpmusic.data.model.home.chart.toTrack
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.FragmentHomeBinding
+import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.HomeViewModel
@@ -133,14 +134,14 @@ class HomeFragment : Fragment() {
             override fun onMoodsMomentItemClick(position: Int) {
                 val args = Bundle()
                 args.putString("params", moodsMomentAdapter.moodsMomentList[position].params)
-                findNavController().navigate(R.id.action_global_moodFragment, args)
+                findNavController().navigateSafe(R.id.action_global_moodFragment, args)
             }
         })
         genreAdapter.setOnGenreClickListener(object : GenreAdapter.OnGenreItemClickListener {
             override fun onGenreItemClick(position: Int) {
                 val args = Bundle()
                 args.putString("params", genreAdapter.genreList[position].params)
-                findNavController().navigate(R.id.action_global_moodFragment, args)
+                findNavController().navigateSafe(R.id.action_global_moodFragment, args)
             }
         })
         artistChartAdapter.setOnArtistClickListener(object :
@@ -148,7 +149,7 @@ class HomeFragment : Fragment() {
             override fun onArtistItemClick(position: Int) {
                 val args = Bundle()
                 args.putString("channelId", artistChartAdapter.listArtist[position].browseId)
-                findNavController().navigate(R.id.action_global_artistFragment, args)
+                findNavController().navigateSafe(R.id.action_global_artistFragment, args)
             }
         })
         quickPicksAdapter.setOnClickListener(object : QuickPicksAdapter.OnClickListener {
@@ -162,7 +163,7 @@ class HomeFragment : Fragment() {
                     args.putString("videoId", song.videoId)
                     args.putString("from", "\"${song.title}\" Radio")
                     args.putString("type", Config.SONG_CLICK)
-                    findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                    findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
                 } else {
                     Toast.makeText(
                         requireContext(),
@@ -181,7 +182,7 @@ class HomeFragment : Fragment() {
                     args.putString("videoId", song.videoId)
                     args.putString("from", "\"${song.title}\" ${getString(R.string.in_charts)}")
                     args.putString("type", Config.SONG_CLICK)
-                    findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                    findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
                 }
             }
         })
@@ -209,12 +210,12 @@ class HomeFragment : Fragment() {
         binding.topAppBar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.home_fragment_menu_item_recently_played -> {
-                    findNavController().navigate(R.id.action_bottom_navigation_item_home_to_recentlySongsFragment)
+                    findNavController().navigateSafe(R.id.action_bottom_navigation_item_home_to_recentlySongsFragment)
                     true
                 }
 
                 R.id.home_fragment_menu_item_settings -> {
-                    findNavController().navigate(R.id.action_bottom_navigation_item_home_to_settingsFragment)
+                    findNavController().navigateSafe(R.id.action_bottom_navigation_item_home_to_settingsFragment)
                     true
                 }
 
@@ -312,8 +313,10 @@ class HomeFragment : Fragment() {
                     binding.accountLayout.visibility = View.VISIBLE
                     binding.tvAccountName.text = accountName
                     binding.ivAccount.load(accountThumbUrl)
+                } else {
+                    binding.accountLayout.visibility = View.GONE
                 }
-                else {
+                if (viewModel.homeItemList.value?.data?.find { it.subtitle == accountName } != null) {
                     binding.accountLayout.visibility = View.GONE
                 }
             }

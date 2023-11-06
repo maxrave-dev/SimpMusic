@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.maxrave.kotlinytmusicscraper.models.AlbumItem
 import com.maxrave.kotlinytmusicscraper.models.ArtistItem
+import com.maxrave.kotlinytmusicscraper.models.PlaylistItem
 import com.maxrave.kotlinytmusicscraper.models.SongItem
 import com.maxrave.kotlinytmusicscraper.models.VideoItem
 import com.maxrave.kotlinytmusicscraper.pages.ArtistPage
@@ -12,6 +13,7 @@ import com.maxrave.simpmusic.data.model.browse.artist.Albums
 import com.maxrave.simpmusic.data.model.browse.artist.ArtistBrowse
 import com.maxrave.simpmusic.data.model.browse.artist.Related
 import com.maxrave.simpmusic.data.model.browse.artist.ResultAlbum
+import com.maxrave.simpmusic.data.model.browse.artist.ResultPlaylist
 import com.maxrave.simpmusic.data.model.browse.artist.ResultRelated
 import com.maxrave.simpmusic.data.model.browse.artist.ResultSingle
 import com.maxrave.simpmusic.data.model.browse.artist.ResultSong
@@ -29,14 +31,19 @@ fun parseArtistData(data: ArtistPage, context: Context): ArtistBrowse {
     val songSection = data.sections.find { it.title == context.getString(R.string.songs_inArtist) }
     val albumSection = data.sections.find { it.title == context.getString(R.string.albums_inArtist) }
     val singleSection = data.sections.find { it.title == context.getString(R.string.singles_inArtist) }
-    val videoSection = data.sections.find {it.title == context.getString(R.string.videos_inArtist)}
+    val videoSection =
+        data.sections.find { it.title == context.getString(R.string.videos_inArtist) }
+    val featuredOnSection =
+        data.sections.find { it.title == context.getString(R.string.featured_inArtist) }
     Log.w("ArtistParser", "videoSection: ${videoSection?.items}")
+    Log.w("ArtistParser", "featuredOnSection: ${featuredOnSection?.items}")
     val relatedSection = data.sections.find { it.title == context.getString(R.string.fans_might_also_like_inArtist) }
     val listSong : ArrayList<ResultSong> = arrayListOf()
     val listAlbum: ArrayList<ResultAlbum> = arrayListOf()
     val listSingle: ArrayList<ResultSingle> = arrayListOf()
     val listRelated: ArrayList<ResultRelated> = arrayListOf()
     val listVideo: ArrayList<ResultVideo> = arrayListOf()
+    val listFeaturedOn: ArrayList<ResultPlaylist> = arrayListOf()
     albumSection?.items?.forEach { album->
         listAlbum.add(
             ResultAlbum(
@@ -68,7 +75,19 @@ fun parseArtistData(data: ArtistPage, context: Context): ArtistBrowse {
                 thumbnails = listOf(Thumbnail(544, song.thumbnail, 544)),
                 isAvailable = true,
                 isExplicit = false,
-                videoType = "Song"
+                videoType = "Song",
+                durationSeconds = song.duration ?: 0
+            )
+        )
+    }
+    featuredOnSection?.items?.forEach {
+        val playlist = it as PlaylistItem
+        listFeaturedOn.add(
+            ResultPlaylist(
+                id = playlist.id,
+                author = playlist.author?.name ?: "",
+                thumbnails = listOf(Thumbnail(544, playlist.thumbnail, 544)),
+                title = playlist.title
             )
         )
     }
@@ -76,7 +95,10 @@ fun parseArtistData(data: ArtistPage, context: Context): ArtistBrowse {
         val artist = it as ArtistItem
         listRelated.add(
             ResultRelated(
-                browseId = artist.id, subscribers = artist.subscribers?:"", thumbnails = listOf(Thumbnail(544,artist.thumbnail,544)), title = artist.title
+                browseId = artist.id,
+                subscribers = artist.subscribers ?: "",
+                thumbnails = listOf(Thumbnail(544, artist.thumbnail, 544)),
+                title = artist.title
             )
         )
     }
@@ -87,14 +109,15 @@ fun parseArtistData(data: ArtistPage, context: Context): ArtistBrowse {
                 artists = video.artists.map { artist -> Artist(id = artist.id ?: "", name = artist.name) },
                 category = null,
                 duration = null,
-                durationSeconds = null,
+                durationSeconds = video.duration,
                 resultType = null,
                 thumbnails = video.thumbnails?.thumbnails?.toListThumbnail(),
                 title = video.title,
                 videoId = video.id,
                 videoType = null,
                 views = video.view,
-                year = ""
+                year = "",
+
             )
         )
     }
@@ -114,8 +137,10 @@ fun parseArtistData(data: ArtistPage, context: Context): ArtistBrowse {
         songs = Songs(browseId = songSection?.moreEndpoint?.browseId, results = listSong),
         subscribed = false,
         subscribers = data.subscribers,
-        thumbnails = listOf(Thumbnail(2880, data.artist.thumbnail,1200)),
+        thumbnails = listOf(Thumbnail(2880, data.artist.thumbnail, 1200)),
         views = data.view,
-        video = listVideo
+        video = listVideo,
+        videoList = videoSection?.moreEndpoint?.browseId,
+        featuredOn = listFeaturedOn
     )
 }

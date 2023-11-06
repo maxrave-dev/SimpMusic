@@ -33,8 +33,7 @@ import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.setupWithNavController
 import androidx.palette.graphics.Palette
-import coil.ImageLoader
-import coil.request.ImageRequest
+import coil.load
 import coil.size.Size
 import coil.transform.Transformation
 import com.daimajia.swipe.SwipeLayout
@@ -56,6 +55,8 @@ import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.databinding.ActivityMainBinding
 import com.maxrave.simpmusic.extension.isMyServiceRunning
+import com.maxrave.simpmusic.extension.navigateSafe
+import com.maxrave.simpmusic.extension.setTextAnimation
 import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -120,29 +121,32 @@ class MainActivity : AppCompatActivity() {
             repeatOnLifecycle(Lifecycle.State.CREATED) {
                 val job5 = launch {
                     viewModel.simpleMediaServiceHandler?.nowPlaying?.collect {
-                        if (it != null){
-                            Log.w("Test service", viewModel.simpleMediaServiceHandler?.getCurrentMediaItem()?.mediaMetadata?.title.toString())
-                            binding.songTitle.text = it.mediaMetadata.title
+                        if (it != null) {
+                            Log.w(
+                                "Test service",
+                                viewModel.simpleMediaServiceHandler?.getCurrentMediaItem()?.mediaMetadata?.title.toString()
+                            )
+                            binding.songTitle.setTextAnimation(it.mediaMetadata.title.toString())
                             binding.songTitle.isSelected = true
-                            binding.songArtist.text = it.mediaMetadata.artist
+                            binding.songArtist.setTextAnimation(it.mediaMetadata.artist.toString())
                             binding.songArtist.isSelected = true
-                            val request = ImageRequest.Builder(this@MainActivity)
-                                .data(it.mediaMetadata.artworkUri)
-                                .target(
-                                    onSuccess = { result ->
-                                        binding.ivArt.setImageDrawable(result)
-                                    },
-                                )
-                                .transformations(object : Transformation {
+                            binding.ivArt.load(it.mediaMetadata.artworkUri) {
+                                crossfade(true)
+                                crossfade(300)
+                                placeholder(R.drawable.outline_album_24)
+                                transformations(object : Transformation {
                                     override val cacheKey: String
                                         get() = it.mediaMetadata.artworkUri.toString()
 
-                                    override suspend fun transform(input: Bitmap, size: Size): Bitmap {
+                                    override suspend fun transform(
+                                        input: Bitmap,
+                                        size: Size
+                                    ): Bitmap {
                                         val p = Palette.from(input).generate()
                                         val defaultColor = 0x000000
                                         var startColor = p.getDarkVibrantColor(defaultColor)
                                         Log.d("Check Start Color", "transform: $startColor")
-                                        if (startColor == defaultColor){
+                                        if (startColor == defaultColor) {
                                             startColor = p.getDarkMutedColor(defaultColor)
                                             if (startColor == defaultColor){
                                                 startColor = p.getVibrantColor(defaultColor)
@@ -174,8 +178,57 @@ class MainActivity : AppCompatActivity() {
                                     }
 
                                 })
-                                .build()
-                            ImageLoader(this@MainActivity).execute(request)
+                            }
+//                            val request = ImageRequest.Builder(this@MainActivity)
+//                                .data(it.mediaMetadata.artworkUri)
+//                                .target(
+//                                    onSuccess = { result ->
+//                                        binding.ivArt.setImageDrawable(result)
+//                                    },
+//                                )
+//                                .transformations(object : Transformation {
+//                                    override val cacheKey: String
+//                                        get() = it.mediaMetadata.artworkUri.toString()
+//
+//                                    override suspend fun transform(input: Bitmap, size: Size): Bitmap {
+//                                        val p = Palette.from(input).generate()
+//                                        val defaultColor = 0x000000
+//                                        var startColor = p.getDarkVibrantColor(defaultColor)
+//                                        Log.d("Check Start Color", "transform: $startColor")
+//                                        if (startColor == defaultColor){
+//                                            startColor = p.getDarkMutedColor(defaultColor)
+//                                            if (startColor == defaultColor){
+//                                                startColor = p.getVibrantColor(defaultColor)
+//                                                if (startColor == defaultColor){
+//                                                    startColor = p.getMutedColor(defaultColor)
+//                                                    if (startColor == defaultColor){
+//                                                        startColor = p.getLightVibrantColor(defaultColor)
+//                                                        if (startColor == defaultColor){
+//                                                            startColor = p.getLightMutedColor(defaultColor)
+//                                                        }
+//                                                    }
+//                                                }
+//                                            }
+//                                            Log.d("Check Start Color", "transform: $startColor")
+//                                        }
+//                                        val endColor = 0x1b1a1f
+//                                        val gd = GradientDrawable(
+//                                            GradientDrawable.Orientation.TOP_BOTTOM,
+//                                            intArrayOf(startColor, endColor)
+//                                        )
+//                                        gd.cornerRadius = 0f
+//                                        gd.gradientType = GradientDrawable.LINEAR_GRADIENT
+//                                        gd.gradientRadius = 0.5f
+//                                        gd.alpha = 150
+//                                        val bg = ColorUtils.setAlphaComponent(startColor, 255)
+//                                        binding.card.setCardBackgroundColor(bg)
+//                                        binding.cardBottom.setCardBackgroundColor(bg)
+//                                        return input
+//                                    }
+//
+//                                })
+//                                .build()
+//                            ImageLoader(this@MainActivity).execute(request)
                         }
                     }
                 }
@@ -243,14 +296,17 @@ class MainActivity : AppCompatActivity() {
         Log.d("MainActivity", "onResume: ")
     }
 
-    override fun onStart() {
-        super.onStart()
-        startMusicService()
-    }
-
     @UnstableApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+//        if (viewModel.simpleMediaServiceHandler == null) {
+//            startMusicService()
+//        }
+        if (viewModel.recreateActivity.value == true) {
+            viewModel.simpleMediaServiceHandler?.coroutineScope = lifecycleScope
+            runCollect()
+        }
+        startMusicService()
         Log.d("MainActivity", "onCreate: ")
         action = intent.action
         data = intent?.data ?: intent?.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
@@ -293,6 +349,14 @@ class MainActivity : AppCompatActivity() {
                 // Set the migration flag to ensure that this is executed only once
                 putString(FIRST_TIME_MIGRATION, STATUS_DONE)
             }
+        }
+        if (AppCompatDelegate.getApplicationLocales().toLanguageTags() != getString(SELECTED_LANGUAGE)) {
+            Log.d("Locale Key", "onCreate: ${AppCompatDelegate.getApplicationLocales().toLanguageTags()}")
+            putString(SELECTED_LANGUAGE, AppCompatDelegate.getApplicationLocales().toLanguageTags())
+            YouTube.locale = YouTubeLocale(
+                gl = getString("location") ?: "US",
+                hl = AppCompatDelegate.getApplicationLocales().toLanguageTags()
+            )
         }
 //
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -398,7 +462,7 @@ class MainActivity : AppCompatActivity() {
         binding.card.setOnClickListener {
             val bundle = Bundle()
             bundle.putString("type", Config.MINIPLAYER_CLICK)
-            navController.navigate(R.id.action_global_nowPlayingFragment, bundle)
+            navController.navigateSafe(R.id.action_global_nowPlayingFragment, bundle)
         }
         binding.btPlayPause.setOnClickListener {
             viewModel.onUIEvent(UIEvent.PlayPause)
@@ -415,19 +479,19 @@ class MainActivity : AppCompatActivity() {
                                     "playlist" -> data!!.getQueryParameter("list")?.let { playlistId ->
                                         if (playlistId.startsWith("OLAK5uy_")) {
                                             viewModel.intent.value = null
-                                            navController.navigate(R.id.action_global_albumFragment, Bundle().apply {
+                                            navController.navigateSafe(R.id.action_global_albumFragment, Bundle().apply {
                                                 putString("browseId", playlistId)
                                             })
                                         }
                                         else if (playlistId.startsWith("VL")) {
                                             viewModel.intent.value = null
-                                            navController.navigate(R.id.action_global_playlistFragment, Bundle().apply {
+                                            navController.navigateSafe(R.id.action_global_playlistFragment, Bundle().apply {
                                                 putString("id", playlistId)
                                             })
                                         }
                                         else {
                                             viewModel.intent.value = null
-                                            navController.navigate(R.id.action_global_playlistFragment, Bundle().apply {
+                                            navController.navigateSafe(R.id.action_global_playlistFragment, Bundle().apply {
                                                 putString("id", "VL$playlistId")
                                             })
                                         }
@@ -436,7 +500,7 @@ class MainActivity : AppCompatActivity() {
                                     "channel", "c" -> data!!.lastPathSegment?.let { artistId ->
                                         if (artistId.startsWith("UC")) {
                                             viewModel.intent.value = null
-                                            navController.navigate(R.id.action_global_artistFragment, Bundle().apply {
+                                            navController.navigateSafe(R.id.action_global_artistFragment, Bundle().apply {
                                                 putString("channelId", artistId)
                                             })
                                         }
@@ -450,7 +514,7 @@ class MainActivity : AppCompatActivity() {
 //                                            when (channelId) {
 //                                                is Resource.Success -> {
 //                                                    viewModel.intent.value = null
-//                                                    navController.navigate(R.id.action_global_artistFragment, Bundle().apply {
+//                                                    navController.navigateSafe(R.id.action_global_artistFragment, Bundle().apply {
 //                                                        putString("channelId", channelId.data?.id)
 //                                                    })
 //                                                }
@@ -476,10 +540,10 @@ class MainActivity : AppCompatActivity() {
                                         hideBottomNav()
                                         if (navController.currentDestination?.id == R.id.nowPlayingFragment) {
                                             findNavController(R.id.fragment_container_view).popBackStack()
-                                            navController.navigate(R.id.action_global_nowPlayingFragment, args)
+                                            navController.navigateSafe(R.id.action_global_nowPlayingFragment, args)
                                         }
                                         else {
-                                            navController.navigate(R.id.action_global_nowPlayingFragment, args)
+                                            navController.navigateSafe(R.id.action_global_nowPlayingFragment, args)
                                         }
                                     }
                                 }
@@ -582,18 +646,22 @@ class MainActivity : AppCompatActivity() {
         Log.w("MainActivity", "onDestroy: ")
     }
     private fun startMusicService() {
-        if (viewModel.isServiceRunning.value != true) {
+        println("go to StartMusicService")
+        if (viewModel.recreateActivity.value != true) {
             val intent = Intent(this, SimpleMediaService::class.java)
+            startService(intent)
             bindService(intent, serviceConnection, BIND_AUTO_CREATE)
-            viewModel.isServiceRunning.postValue(true)
+            viewModel.isServiceRunning.value = true
             Log.d("Service", "Service started")
         }
     }
     private fun stopService(){
-        if (viewModel.isServiceRunning.value == true){
+        if (viewModel.recreateActivity.value != true){
+            viewModel.isServiceRunning.value = false
             viewModel.simpleMediaServiceHandler?.mayBeSaveRecentSong()
             viewModel.simpleMediaServiceHandler?.mayBeSavePlaybackState()
             viewModel.simpleMediaServiceHandler?.release()
+            viewModel.simpleMediaServiceHandler = null
             unbindService(serviceConnection)
             Log.d("Service", "Service stopped")
             if (this.isMyServiceRunning(DownloadService:: class.java)){
@@ -601,7 +669,6 @@ class MainActivity : AppCompatActivity() {
                 viewModel.changeAllDownloadingToError()
                 Log.d("Service", "DownloadService stopped")
             }
-            viewModel.isServiceRunning.postValue(false)
         }
     }
 

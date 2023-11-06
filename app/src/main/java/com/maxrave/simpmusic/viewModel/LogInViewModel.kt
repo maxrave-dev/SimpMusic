@@ -25,5 +25,4 @@ class LogInViewModel @Inject constructor(private val dataStore: DataStoreManager
             _status.postValue(true)
         }
     }
-
 }

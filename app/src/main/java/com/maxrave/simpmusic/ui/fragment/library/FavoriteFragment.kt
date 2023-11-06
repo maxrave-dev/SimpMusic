@@ -26,6 +26,7 @@ import com.maxrave.simpmusic.adapter.search.SearchItemAdapter
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
+import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
@@ -35,6 +36,7 @@ import com.maxrave.simpmusic.databinding.BottomSheetNowPlayingBinding
 import com.maxrave.simpmusic.databinding.BottomSheetSeeArtistOfNowPlayingBinding
 import com.maxrave.simpmusic.databinding.FragmentFavoriteBinding
 import com.maxrave.simpmusic.extension.connectArtists
+import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.removeConflicts
 import com.maxrave.simpmusic.extension.setEnabledAll
 import com.maxrave.simpmusic.extension.toTrack
@@ -43,6 +45,7 @@ import com.maxrave.simpmusic.viewModel.FavoriteViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
 
 @AndroidEntryPoint
 class FavoriteFragment : Fragment() {
@@ -103,7 +106,7 @@ class FavoriteFragment : Fragment() {
                 Queue.setNowPlaying(song.toTrack())
                 Queue.addAll(listLiked.map { (it as SongEntity).toTrack()} as ArrayList<Track>)
                 Queue.removeTrackWithIndex(position)
-                findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
             }
 
             override fun onOptionsClick(position: Int, type: String) {
@@ -144,13 +147,16 @@ class FavoriteFragment : Fragment() {
                             setEnabledAll(btDownload, true)
                         }
                     }
+                    btChangeLyricsProvider.visibility = View.GONE
                     btRadio.setOnClickListener {
                         val args = Bundle()
                         args.putString("radioId", "RDAMVM${song.videoId}")
-                        args.putString("title", "${song.title} ${context?.getString(R.string.radio)}")
-                        args.putString("thumbnails", song.thumbnails)
+                        args.putString(
+                            "videoId",
+                            song.videoId
+                        )
                         dialog.dismiss()
-                        findNavController().navigate(R.id.action_global_playlistFragment, args)
+                        findNavController().navigateSafe(R.id.action_global_playlistFragment, args)
                     }
                     btLike.setOnClickListener {
                         if (cbFavorite.isChecked){
@@ -196,7 +202,7 @@ class FavoriteFragment : Fragment() {
                                 override fun onItemClick(position: Int) {
                                     val artist = tempArtist[position]
                                     if (artist.id != null) {
-                                        findNavController().navigate(R.id.action_global_artistFragment, Bundle().apply {
+                                        findNavController().navigateSafe(R.id.action_global_artistFragment, Bundle().apply {
                                             putString("channelId", artist.id)
                                         })
                                         subDialog.dismiss()
@@ -231,11 +237,20 @@ class FavoriteFragment : Fragment() {
                             override fun onItemClick(position: Int) {
                                 val playlist = listLocalPlaylist[position]
                                 val tempTrack = ArrayList<String>()
+                                viewModel.updateInLibrary(song.videoId)
                                 if (playlist.tracks != null) {
                                     tempTrack.addAll(playlist.tracks)
                                 }
                                 if (!tempTrack.contains(song.videoId) && playlist.syncedWithYouTubePlaylist == 1 && playlist.youtubePlaylistId != null) {
                                     viewModel.addToYouTubePlaylist(playlist.id, playlist.youtubePlaylistId, song.videoId)
+                                }
+                                if (!tempTrack.contains(song.videoId)) {
+                                    viewModel.insertPairSongLocalPlaylist(
+                                        PairSongLocalPlaylist(
+                                            playlistId = playlist.id, songId = song.videoId, position = tempTrack.size, inPlaylist = LocalDateTime.now()
+                                        )
+                                    )
+                                    tempTrack.add(song.videoId)
                                 }
                                 tempTrack.add(song.videoId)
                                 tempTrack.removeConflicts()

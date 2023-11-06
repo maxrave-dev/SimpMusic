@@ -11,7 +11,6 @@ import com.maxrave.kotlinytmusicscraper.models.SubscriptionButton
 import com.maxrave.kotlinytmusicscraper.models.Tabs
 import com.maxrave.kotlinytmusicscraper.models.ThumbnailRenderer
 import kotlinx.serialization.Serializable
-import java.util.concurrent.Flow.Subscription
 
 @Serializable
 data class BrowseResponse(
@@ -20,17 +19,36 @@ data class BrowseResponse(
     val header: Header?,
     val microformat: Microformat?,
     val responseContext: ResponseContext,
+    val background: Background?,
 ) {
+    @Serializable
+    data class Background(
+        val musicThumbnailRenderer: ThumbnailRenderer.MusicThumbnailRenderer?,
+    )
+
     @Serializable
     data class Contents(
         val singleColumnBrowseResultsRenderer: Tabs?,
+        val twoColumnBrowseResultsRenderer: TwoColumnBrowseResultsRenderer?,
         val sectionListRenderer: SectionListRenderer?,
-    )
+    ) {
+        @Serializable
+        data class TwoColumnBrowseResultsRenderer(
+            val secondaryContents: SecondaryContents?,
+            val tabs: List<Tabs.Tab>?,
+        ) {
+            @Serializable
+            data class SecondaryContents(
+                val sectionListRenderer: SectionListRenderer?,
+            )
+        }
+    }
 
     @Serializable
     data class ContinuationContents(
         val sectionListContinuation: SectionListContinuation?,
         val musicPlaylistShelfContinuation: MusicPlaylistShelfContinuation?,
+        val musicShelfContinuation: SearchResponse.ContinuationContents.MusicShelfContinuation?,
     ) {
         @Serializable
         data class SectionListContinuation(

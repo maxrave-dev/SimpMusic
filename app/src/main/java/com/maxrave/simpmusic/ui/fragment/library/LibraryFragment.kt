@@ -21,6 +21,7 @@ import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
+import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
@@ -33,11 +34,13 @@ import com.maxrave.simpmusic.databinding.BottomSheetNowPlayingBinding
 import com.maxrave.simpmusic.databinding.BottomSheetSeeArtistOfNowPlayingBinding
 import com.maxrave.simpmusic.databinding.FragmentLibraryBinding
 import com.maxrave.simpmusic.extension.connectArtists
+import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.removeConflicts
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.viewModel.LibraryViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
+import java.time.LocalDateTime
 
 @AndroidEntryPoint
 class LibraryFragment : Fragment() {
@@ -219,19 +222,19 @@ class LibraryFragment : Fragment() {
                     val channelId = (adapterItem.getCurrentList()[position] as ArtistEntity).channelId
                     val args = Bundle()
                     args.putString("channelId", channelId)
-                    findNavController().navigate(R.id.action_global_artistFragment, args)
+                    findNavController().navigateSafe(R.id.action_global_artistFragment, args)
                 }
                 if (type == Config.ALBUM_CLICK){
                     val browseId = (adapterItem.getCurrentList()[position] as AlbumEntity).browseId
                     val args = Bundle()
                     args.putString("browseId", browseId)
-                    findNavController().navigate(R.id.action_global_albumFragment, args)
+                    findNavController().navigateSafe(R.id.action_global_albumFragment, args)
                 }
                 if (type == Config.PLAYLIST_CLICK){
                     val id = (adapterItem.getCurrentList()[position] as PlaylistEntity).id
                     val args = Bundle()
                     args.putString("id", id)
-                    findNavController().navigate(R.id.action_global_playlistFragment, args)
+                    findNavController().navigateSafe(R.id.action_global_playlistFragment, args)
                 }
                 if (type == Config.SONG_CLICK){
                     val songClicked = adapterItem.getCurrentList()[position] as SongEntity
@@ -243,7 +246,7 @@ class LibraryFragment : Fragment() {
                     args.putString("videoId", videoId)
                     args.putString("from", getString(R.string.recently_added))
                     args.putString("type", Config.SONG_CLICK)
-                    findNavController().navigate(R.id.action_global_nowPlayingFragment, args)
+                    findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
                 }
             }
 
@@ -264,6 +267,7 @@ class LibraryFragment : Fragment() {
                             cbFavorite.isChecked = false
                         }
                     }
+                    btChangeLyricsProvider.visibility = View.GONE
                     tvSongTitle.text = song.title
                     tvSongTitle.isSelected = true
                     tvSongArtist.text = song.artistName?.connectArtists()
@@ -272,10 +276,12 @@ class LibraryFragment : Fragment() {
                     btRadio.setOnClickListener {
                         val args = Bundle()
                         args.putString("radioId", "RDAMVM${song.videoId}")
-                        args.putString("title", "${song.title} ${context?.getString(R.string.radio)}")
-                        args.putString("thumbnails", song.thumbnails)
+                        args.putString(
+                            "videoId",
+                            song.videoId
+                        )
                         dialog.dismiss()
-                        findNavController().navigate(R.id.action_global_playlistFragment, args)
+                        findNavController().navigateSafe(R.id.action_global_playlistFragment, args)
                     }
                     btLike.setOnClickListener {
                         if (cbFavorite.isChecked){
@@ -331,7 +337,7 @@ class LibraryFragment : Fragment() {
                                 override fun onItemClick(position: Int) {
                                     val artist = tempArtist[position]
                                     if (artist.id != null) {
-                                        findNavController().navigate(R.id.action_global_artistFragment, Bundle().apply {
+                                        findNavController().navigateSafe(R.id.action_global_artistFragment, Bundle().apply {
                                             putString("channelId", artist.id)
                                         })
                                         subDialog.dismiss()
@@ -367,11 +373,20 @@ class LibraryFragment : Fragment() {
                             override fun onItemClick(position: Int) {
                                 val playlist = listLocalPlaylist[position]
                                 val tempTrack = ArrayList<String>()
+                                viewModel.updateInLibrary(song.videoId)
                                 if (playlist.tracks != null) {
                                     tempTrack.addAll(playlist.tracks)
                                 }
                                 if (!tempTrack.contains(song.videoId) && playlist.syncedWithYouTubePlaylist == 1 && playlist.youtubePlaylistId != null) {
                                     viewModel.addToYouTubePlaylist(playlist.id, playlist.youtubePlaylistId, song.videoId)
+                                }
+                                if (!tempTrack.contains(song.videoId)) {
+                                    viewModel.insertPairSongLocalPlaylist(
+                                        PairSongLocalPlaylist(
+                                            playlistId = playlist.id, songId = song.videoId, position = tempTrack.size, inPlaylist = LocalDateTime.now()
+                                        )
+                                    )
+                                    tempTrack.add(song.videoId)
                                 }
                                 tempTrack.add(song.videoId)
                                 tempTrack.removeConflicts()
@@ -405,13 +420,13 @@ class LibraryFragment : Fragment() {
                         val id = (listPlaylist[position] as PlaylistEntity).id
                         val args = Bundle()
                         args.putString("id", id)
-                        findNavController().navigate(R.id.action_global_playlistFragment, args)
+                        findNavController().navigateSafe(R.id.action_global_playlistFragment, args)
                     }
                     "album" -> {
                         val browseId = (listPlaylist[position] as AlbumEntity).browseId
                         val args = Bundle()
                         args.putString("browseId", browseId)
-                        findNavController().navigate(R.id.action_global_albumFragment, args)
+                        findNavController().navigateSafe(R.id.action_global_albumFragment, args)
                     }
                 }
             }
@@ -422,7 +437,7 @@ class LibraryFragment : Fragment() {
                 val args = Bundle()
                 args.putString("id", (listYouTubePlaylist.get(position) as PlaylistsResult).browseId)
                 args.putBoolean("youtube", true)
-                findNavController().navigate(R.id.action_global_playlistFragment, args)
+                findNavController().navigateSafe(R.id.action_global_playlistFragment, args)
             }
 
         })
@@ -434,14 +449,14 @@ class LibraryFragment : Fragment() {
                         val args = Bundle()
                         args.putString("id", id)
                         args.putInt("downloaded", 1)
-                        findNavController().navigate(R.id.action_global_playlistFragment, args)
+                        findNavController().navigateSafe(R.id.action_global_playlistFragment, args)
                     }
                     "album" -> {
                         val browseId = (listDownloaded[position] as AlbumEntity).browseId
                         val args = Bundle()
                         args.putString("browseId", browseId)
                         args.putInt("downloaded", 1)
-                        findNavController().navigate(R.id.action_global_albumFragment, args)
+                        findNavController().navigateSafe(R.id.action_global_albumFragment, args)
                     }
                 }
             }
@@ -451,20 +466,20 @@ class LibraryFragment : Fragment() {
                 val playlist = listLocalPlaylist[position] as LocalPlaylistEntity
                 val args = Bundle()
                 args.putLong("id", playlist.id)
-                findNavController().navigate(R.id.action_bottom_navigation_item_library_to_localPlaylistFragment, args)
+                findNavController().navigateSafe(R.id.action_bottom_navigation_item_library_to_localPlaylistFragment, args)
             }
         })
         binding.btFavorite.setOnClickListener{
-            findNavController().navigate(R.id.action_bottom_navigation_item_library_to_favoriteFragment)
+            findNavController().navigateSafe(R.id.action_bottom_navigation_item_library_to_favoriteFragment)
         }
         binding.btFollowed.setOnClickListener {
-            findNavController().navigate(R.id.action_bottom_navigation_item_library_to_followedFragment)
+            findNavController().navigateSafe(R.id.action_bottom_navigation_item_library_to_followedFragment)
         }
         binding.btTrending.setOnClickListener {
-            findNavController().navigate(R.id.action_bottom_navigation_item_library_to_mostPlayedFragment)
+            findNavController().navigateSafe(R.id.action_bottom_navigation_item_library_to_mostPlayedFragment)
         }
         binding.btDownloaded.setOnClickListener {
-            findNavController().navigate(R.id.action_bottom_navigation_item_library_to_downloadedFragment)
+            findNavController().navigateSafe(R.id.action_bottom_navigation_item_library_to_downloadedFragment)
         }
         binding.btAddLocalPlaylist.setOnClickListener {
             val dialog = BottomSheetDialog(requireContext())

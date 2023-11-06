@@ -125,22 +125,7 @@
     <fragment
         android:id="@+id/nowPlayingFragment"
         android:name="com.maxrave.simpmusic.ui.fragment.player.NowPlayingFragment"
-        android:label="NowPlayingFragment" >
-        <action
-            android:id="@+id/action_nowPlayingFragment_to_queueFragment"
-            app:destination="@id/queueFragment"
-            app:enterAnim="@anim/bottom_to_top"
-            app:exitAnim="@anim/top_to_bottom"
-            app:popEnterAnim="@anim/bottom_to_top"
-            app:popExitAnim="@anim/top_to_bottom" />
-        <action
-            android:id="@+id/action_nowPlayingFragment_to_infoFragment"
-            app:destination="@id/infoFragment"
-            app:enterAnim="@anim/bottom_to_top"
-            app:exitAnim="@anim/top_to_bottom"
-            app:popEnterAnim="@anim/bottom_to_top"
-            app:popExitAnim="@anim/top_to_bottom" />
-    </fragment>
+        android:label="NowPlayingFragment" />
     <action
         android:id="@+id/action_global_nowPlayingFragment"
         app:destination="@id/nowPlayingFragment"
@@ -221,5 +206,64 @@
         app:popEnterAnim="@anim/bottom_to_top"
         app:popExitAnim="@anim/top_to_bottom"
         app:popUpTo="@id/settingsFragment" />
+    <fragment
+        android:id="@+id/musixmatchFragment"
+        android:name="com.maxrave.simpmusic.ui.fragment.login.MusixmatchFragment"
+        android:label="MusixmatchFragment" />
+    <action
+        android:id="@+id/action_global_musixmatchFragment"
+        app:destination="@id/musixmatchFragment"
+        app:enterAnim="@anim/bottom_to_top"
+        app:exitAnim="@anim/top_to_bottom"
+        app:popEnterAnim="@anim/bottom_to_top"
+        app:popExitAnim="@anim/top_to_bottom" />
+    <action
+        android:id="@+id/action_global_infoFragment"
+        app:destination="@id/infoFragment"
+        app:enterAnim="@anim/bottom_to_top"
+        app:exitAnim="@anim/top_to_bottom"
+        app:popEnterAnim="@anim/bottom_to_top"
+        app:popExitAnim="@anim/top_to_bottom" />
+    <action
+        android:id="@+id/action_global_queueFragment"
+        app:destination="@id/queueFragment"
+        app:enterAnim="@anim/bottom_to_top"
+        app:exitAnim="@anim/top_to_bottom"
+        app:popEnterAnim="@anim/bottom_to_top"
+        app:popExitAnim="@anim/top_to_bottom" />
+    <fragment
+        android:id="@+id/moreAlbumsFragment"
+        android:name="com.maxrave.simpmusic.ui.fragment.other.MoreAlbumsFragment"
+        android:label="fragment_more_albums"
+        tools:layout="@layout/fragment_more_albums" />
+    <action
+        android:id="@+id/action_global_moreAlbumsFragment"
+        app:destination="@id/moreAlbumsFragment"
+        app:enterAnim="@anim/bottom_to_top"
+        app:exitAnim="@anim/top_to_bottom"
+        app:popEnterAnim="@anim/bottom_to_top"
+        app:popExitAnim="@anim/top_to_bottom" />
+    <fragment
+        android:id="@+id/creditFragment"
+        android:name="com.maxrave.simpmusic.ui.fragment.other.CreditFragment"
+        android:label="CreditFragment" />
+    <action
+        android:id="@+id/action_global_creditFragment"
+        app:destination="@id/creditFragment"
+        app:enterAnim="@anim/bottom_to_top"
+        app:exitAnim="@anim/top_to_bottom"
+        app:popEnterAnim="@anim/bottom_to_top"
+        app:popExitAnim="@anim/top_to_bottom" />
+    <fragment
+        android:id="@+id/podcastFragment"
+        android:name="com.maxrave.simpmusic.ui.fragment.other.PodcastFragment"
+        android:label="PodcastFragment" />
+    <action
+        android:id="@+id/action_global_podcastFragment"
+        app:destination="@id/podcastFragment"
+        app:enterAnim="@anim/bottom_to_top"
+        app:exitAnim="@anim/top_to_bottom"
+        app:popEnterAnim="@anim/bottom_to_top"
+        app:popExitAnim="@anim/top_to_bottom" />
 
 </navigation>

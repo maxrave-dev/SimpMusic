@@ -15,6 +15,7 @@ import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
+import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
@@ -26,11 +27,13 @@ import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import java.time.LocalDateTime
 import javax.inject.Inject
 
 @HiltViewModel
@@ -42,7 +45,7 @@ class PlaylistViewModel @Inject constructor(
     @Inject
     lateinit var downloadUtils: DownloadUtils
 
-    var gradientDrawable: MutableLiveData<GradientDrawable> = MutableLiveData()
+    var gradientDrawable: MutableLiveData<GradientDrawable?> = MutableLiveData()
     var loading = MutableLiveData<Boolean>()
 
     private val _playlistBrowse: MutableLiveData<Resource<PlaylistBrowse>?> = MutableLiveData()
@@ -95,14 +98,30 @@ class PlaylistViewModel @Inject constructor(
         }
     }
 
-    fun getRadio(radioId: String, title: String?, thumbnails: String?) {
+    fun getRadio(radioId: String, videoId: String? = null, channelId: String? = null) {
         loading.value = true
         viewModelScope.launch {
-            mainRepository.getRadio(radioId, title, thumbnails).collect {
-                _playlistBrowse.value = it
+            if (videoId != null) {
+                mainRepository.getSongById(videoId).collectLatest { song ->
+                    if (song != null) {
+                        mainRepository.getRadio(radioId, song).collect {
+                            _playlistBrowse.value = it
+                        }
+                        withContext(Dispatchers.Main) {
+                            loading.value = false
+                        }
+                    }
+                }
             }
-            withContext(Dispatchers.Main) {
-                loading.value = false
+            else if (channelId != null) {
+                mainRepository.getArtistById(channelId).collectLatest { artist ->
+                    mainRepository.getRadio(radioId = radioId, artist = artist).collect {
+                        _playlistBrowse.value = it
+                    }
+                    withContext(Dispatchers.Main) {
+                        loading.value = false
+                    }
+                }
             }
         }
     }
@@ -294,6 +313,7 @@ class PlaylistViewModel @Inject constructor(
 
     fun clearPlaylistBrowse() {
         _playlistBrowse.value = null
+        gradientDrawable.value = null
     }
 
     fun getLocation() {
@@ -435,6 +455,19 @@ class PlaylistViewModel @Inject constructor(
                     _liked.value = values.liked
                 }
             }
+        }
+    }
+
+    fun updateInLibrary(videoId: String) {
+        viewModelScope.launch {
+            mainRepository.updateSongInLibrary(LocalDateTime.now(), videoId)
+        }
+
+    }
+
+    fun insertPairSongLocalPlaylist(pairSongLocalPlaylist: PairSongLocalPlaylist) {
+        viewModelScope.launch {
+            mainRepository.insertPairSongLocalPlaylist(pairSongLocalPlaylist)
         }
     }
 }

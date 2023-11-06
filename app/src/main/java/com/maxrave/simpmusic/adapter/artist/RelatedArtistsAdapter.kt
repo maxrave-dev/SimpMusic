@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
-import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.data.model.browse.artist.ResultRelated
 import com.maxrave.simpmusic.databinding.ItemRelatedArtistBinding
 

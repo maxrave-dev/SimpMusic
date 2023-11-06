@@ -2,7 +2,6 @@ package com.maxrave.simpmusic.data.model.home
 
 
 import com.google.gson.annotations.SerializedName
-import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.searchResult.songs.Album
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
@@ -28,5 +27,7 @@ data class Content(
     val videoId: String?,
     @SerializedName("views")
     val views: String?,
+    @SerializedName("durationSeconds")
+    val durationSeconds: Int? = null,
     val radio: String? = null,
 )

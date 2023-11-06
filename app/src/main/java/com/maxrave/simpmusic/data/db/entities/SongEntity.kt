@@ -3,7 +3,6 @@ package com.maxrave.simpmusic.data.db.entities
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.maxrave.simpmusic.common.DownloadState.STATE_NOT_DOWNLOADED
-import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import java.time.LocalDateTime
 
 @Entity(tableName = "song")
@@ -27,7 +26,7 @@ data class SongEntity (
     val totalPlayTime: Long = 0, // in milliseconds
     val downloadState: Int = STATE_NOT_DOWNLOADED,
     val inLibrary: LocalDateTime = LocalDateTime.now(),
-        )
+    )
 {
     fun toggleLike() = copy(liked = !liked)
 

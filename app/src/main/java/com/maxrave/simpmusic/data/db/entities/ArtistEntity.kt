@@ -2,7 +2,6 @@ package com.maxrave.simpmusic.data.db.entities
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
-import com.google.gson.annotations.SerializedName
 import java.time.LocalDateTime
 
 @Entity(tableName = "artist")

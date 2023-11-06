@@ -16,8 +16,11 @@ data class FormatEntity(
     val uploaderId: String? = null,
     val uploaderSubCount: String? = null,
     val uploaderThumbnail: String? = null,
+    val lengthSeconds: Int? = null,
     val description: String? = null,
+    val youtubeCaptionsUrl: String? = null,
     val playbackTrackingVideostatsPlaybackUrl: String? = null,
     val playbackTrackingAtrUrl: String? = null,
     val playbackTrackingVideostatsWatchtimeUrl: String? = null,
+    val cpn: String? = null,
 )

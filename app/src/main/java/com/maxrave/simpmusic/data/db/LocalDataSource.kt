@@ -5,6 +5,7 @@ import com.maxrave.simpmusic.data.db.entities.ArtistEntity
 import com.maxrave.simpmusic.data.db.entities.FormatEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.LyricsEntity
+import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.QueueEntity
 import com.maxrave.simpmusic.data.db.entities.SearchHistory
@@ -34,6 +35,7 @@ class LocalDataSource @Inject constructor(private val databaseDao: DatabaseDao) 
     suspend fun insertSong(song: SongEntity) = databaseDao.insertSong(song)
     suspend fun updateListenCount(videoId: String) = databaseDao.updateTotalPlayTime(videoId)
     suspend fun updateLiked(liked: Int, videoId: String) = databaseDao.updateLiked(liked, videoId)
+    suspend fun updateDurationSeconds(durationSeconds: Int, videoId: String) = databaseDao.updateDurationSeconds(durationSeconds, videoId)
     suspend fun updateSongInLibrary(inLibrary: LocalDateTime, videoId: String) = databaseDao.updateSongInLibrary(inLibrary, videoId)
     suspend fun getMostPlayedSongs() = databaseDao.getMostPlayedSongs()
     suspend fun updateDownloadState(downloadState: Int, videoId: String) = databaseDao.updateDownloadState(downloadState, videoId)
@@ -91,4 +93,8 @@ class LocalDataSource @Inject constructor(private val databaseDao: DatabaseDao) 
 
     suspend fun insertSetVideoId(setVideoIdEntity: SetVideoIdEntity) = databaseDao.insertSetVideoId(setVideoIdEntity)
     suspend fun getSetVideoId(videoId: String) = databaseDao.getSetVideoId(videoId)
+
+    suspend fun insertPairSongLocalPlaylist(pairSongLocalPlaylist: PairSongLocalPlaylist) = databaseDao.insertPairSongLocalPlaylist(pairSongLocalPlaylist)
+    suspend fun getPlaylistPairSong(playlistId: Long) = databaseDao.getPlaylistPairSong(playlistId)
+    suspend fun deletePairSongLocalPlaylist(playlistId: Long, videoId: String) = databaseDao.deletePairSongLocalPlaylist(playlistId, videoId)
 }

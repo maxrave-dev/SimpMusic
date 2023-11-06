@@ -37,6 +37,8 @@ class GenreContentAdapter(private var contentList: ArrayList<Content>): Recycler
         with(holder){
             binding.tvTitle.text = content.title.title
             binding.tvDescription.text = content.title.subtitle
+            binding.tvTitle.isSelected = true
+            binding.tvDescription.isSelected = true
             if (content.thumbnail != null) {
                 binding.ivArt.load(content.thumbnail.last().url)
             }
