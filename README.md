@@ -37,8 +37,8 @@ A simple music app using YouTube Music for backend
 </p>  
 <p float="left">  
   <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/asset/screenshot/moodmoment.jpg" width="200" />  
- <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/asset/screenshot/chart.jpg" width="200" />  
  <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/asset/screenshot/artist_top.jpg" width="200" />  
+ <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/asset/screenshot/artist_bottom.jpg" width="200" />  
 </p>  
 <p float="left">  
   <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/asset/screenshot/radio.jpg" width="200" />  
