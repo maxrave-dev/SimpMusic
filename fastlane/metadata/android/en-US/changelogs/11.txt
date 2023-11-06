@@ -2,6 +2,7 @@
 - Add Android Auto Support
 - Translation lyrics for Musixmatch Logged-in users
 - Add feature "Change main lyrics provider" (YouTube Transcript or Musixmatch)
+- Add "Suggestion" for local playlists which synced with YouTube Music
 - Podcasts support
 - Add "Player Cache" limit
 - Show all albums, singles and videos of an artist, add "featured on" playlists

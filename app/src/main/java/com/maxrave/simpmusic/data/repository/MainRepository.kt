@@ -1020,8 +1020,10 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
         runCatching {
 //            val q = query.replace(Regex("\\([^)]*?(feat.|ft.|cùng với|con)[^)]*?\\)"), "")
 //                .replace("  ", " ")
-            val q = query.replace(Regex("\\((feat\\.|ft.|cùng với|con) "), " ").replace(
-                Regex("( và | & | и | e | und |, )"), " ").replace("  ", " ").replace(Regex("([()])"), "").replace(".", " ")
+            val q =
+                query.replace(Regex("\\((feat\\.|ft.|cùng với|con|mukana|com|avec) "), " ").replace(
+                    Regex("( và | & | и | e | und |, )"), " "
+                ).replace("  ", " ").replace(Regex("([()])"), "").replace(".", " ")
             Log.d("Lyrics", "query: $q")
             var musixMatchUserToken = YouTube.musixmatchUserToken
             if (musixMatchUserToken == null) {
@@ -1432,14 +1434,13 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
     }
 
     suspend fun getYouTubeSetVideoId(youtubePlaylistId: String): Flow<ArrayList<SetVideoIdEntity>?> = flow {
-        YouTube.playlist(youtubePlaylistId).onSuccess { playlistPage ->
+        YouTube.playlist(youtubePlaylistId).onSuccess {
             flow {
                 runCatching {
                     var id = ""
                     if (!youtubePlaylistId.startsWith("VL")) {
                         id += "VL$youtubePlaylistId"
-                    }
-                    else {
+                    } else {
                         id += youtubePlaylistId
                     }
                     Log.d("Repository", "playlist id: $id")

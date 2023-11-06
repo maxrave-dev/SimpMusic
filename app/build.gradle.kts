@@ -108,8 +108,8 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.7.3")
     //Navigation
-    implementation("androidx.navigation:navigation-fragment-ktx:2.7.4")
-    implementation("androidx.navigation:navigation-ui-ktx:2.7.4")
+    implementation("androidx.navigation:navigation-fragment-ktx:2.7.5")
+    implementation("androidx.navigation:navigation-ui-ktx:2.7.5")
 
     implementation("com.google.code.gson:gson:2.10.1")
 
@@ -126,7 +126,7 @@ dependencies {
     implementation("androidx.preference:preference-ktx:1.2.1")
 
     //fragment ktx
-    implementation("androidx.fragment:fragment-ktx:1.6.1")
+    implementation("androidx.fragment:fragment-ktx:1.6.2")
     //Hilt
     implementation("com.google.dagger:hilt-android:2.48.1")
     ksp("com.google.dagger:hilt-compiler:2.48.1")
@@ -159,7 +159,7 @@ dependencies {
     implementation("com.intuit.sdp:sdp-android:1.1.0")
     implementation("com.intuit.ssp:ssp-android:1.1.0")
 
-    val latestAboutLibsRelease = "10.9.1"
+    val latestAboutLibsRelease = "10.9.2"
     implementation ("com.mikepenz:aboutlibraries:${latestAboutLibsRelease}")
 
     implementation("com.google.android.flexbox:flexbox:3.0.0")
@@ -167,4 +167,7 @@ dependencies {
 }
 hilt {
     enableAggregatingTask = true
+}
+aboutLibraries {
+    registerAndroidTasks = false
 }

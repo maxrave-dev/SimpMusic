@@ -39,6 +39,7 @@ import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.setEnabledAll
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
+import com.mikepenz.aboutlibraries.Libs
 import com.mikepenz.aboutlibraries.LibsBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
@@ -50,6 +51,7 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import java.util.Scanner
 
 
 @UnstableApi
@@ -547,28 +549,31 @@ class SettingsFragment : Fragment() {
 
             val dialog = MaterialAlertDialogBuilder(requireContext())
                 .setTitle("Category")
-                .setMultiChoiceItems(item, checked) { dialogInterface, i, b ->
+                .setMultiChoiceItems(item, checked) { _, i, b ->
                     if (b) {
                         if (!selectedItem.contains(SPONSOR_BLOCK.list[i].toString())) {
                             selectedItem.add(SPONSOR_BLOCK.list[i].toString())
                         }
-                    }
-                    else {
+                    } else {
                         if (selectedItem.contains(SPONSOR_BLOCK.list[i].toString())) {
                             selectedItem.remove(SPONSOR_BLOCK.list[i].toString())
                         }
                     }
                 }
-                .setPositiveButton(getString(R.string.save)) { dialog , i ->
+                .setPositiveButton(getString(R.string.save)) { dialog, _ ->
                     viewModel.setSponsorBlockCategories(selectedItem)
                     Log.d("Check category", selectedItem.toString())
                     viewModel.getSponsorBlockCategories()
                     viewModel.sponsorBlockCategories.observe(viewLifecycleOwner) {
-                        Toast.makeText(requireContext(), getString(R.string.saved), Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            requireContext(),
+                            getString(R.string.saved),
+                            Toast.LENGTH_SHORT
+                        ).show()
                         dialog.dismiss()
                     }
                 }
-                .setNegativeButton(R.string.cancel) {dialog , i ->
+                .setNegativeButton(R.string.cancel) { dialog, _ ->
                     dialog.dismiss()
                 }
             dialog.show()
@@ -587,50 +592,49 @@ class SettingsFragment : Fragment() {
         binding.btRestore.setOnClickListener {
             restoreLauncher.launch(arrayOf("application/octet-stream"))
         }
-        binding.swNormalizeVolume.setOnCheckedChangeListener { compoundButton, checked ->
+        binding.swNormalizeVolume.setOnCheckedChangeListener { _, checked ->
             if (checked) {
                 viewModel.setNormalizeVolume(true)
             } else {
                 viewModel.setNormalizeVolume(false)
             }
         }
-        binding.swSkipSilent.setOnCheckedChangeListener { compoundButton, checked ->
+        binding.swSkipSilent.setOnCheckedChangeListener { _, checked ->
             if (checked) {
                 viewModel.setSkipSilent(true)
             } else {
                 viewModel.setSkipSilent(false)
             }
         }
-        binding.swSavePlaybackState.setOnCheckedChangeListener { compoundButton, checked ->
+        binding.swSavePlaybackState.setOnCheckedChangeListener { _, checked ->
             if (checked) {
                 viewModel.setSavedPlaybackState(true)
             } else {
                 viewModel.setSavedPlaybackState(false)
             }
         }
-        binding.swSaveLastPlayed.setOnCheckedChangeListener { compoundButton, checked ->
+        binding.swSaveLastPlayed.setOnCheckedChangeListener { _, checked ->
             if (checked) {
                 viewModel.setSaveLastPlayed(true)
             } else {
                 viewModel.setSaveLastPlayed(false)
             }
         }
-        binding.swEnableSponsorBlock.setOnCheckedChangeListener { compoundButton, checked ->
+        binding.swEnableSponsorBlock.setOnCheckedChangeListener { _, checked ->
             if (checked) {
                 viewModel.setSponsorBlockEnabled(true)
-            }
-            else {
+            } else {
                 viewModel.setSponsorBlockEnabled(false)
             }
         }
-        binding.swSaveHistory.setOnCheckedChangeListener { compoundButton, checked ->
+        binding.swSaveHistory.setOnCheckedChangeListener { _, checked ->
             if (checked) {
                 viewModel.setSendBackToGoogle(true)
             } else {
                 viewModel.setSendBackToGoogle(false)
             }
         }
-        binding.swUseMusixmatchTranslation.setOnCheckedChangeListener {_, checked ->
+        binding.swUseMusixmatchTranslation.setOnCheckedChangeListener { _, checked ->
             if (checked) {
                 viewModel.setUseTranslation(true)
             } else {
@@ -638,11 +642,27 @@ class SettingsFragment : Fragment() {
             }
         }
         binding.bt3rdPartyLibraries.setOnClickListener {
-            LibsBuilder()
-                .start(requireContext())
+
+            val inputStream = requireContext().resources.openRawResource(R.raw.aboutlibraries)
+            val scanner = Scanner(inputStream).useDelimiter("\\A")
+            val stringBuilder = StringBuilder()
+            while (scanner.hasNextLine()) {
+                stringBuilder.append(scanner.nextLine())
+            }
+            Log.w("AboutLibraries", stringBuilder.toString())
+            val localLib = Libs.Builder().withJson(stringBuilder.toString()).build()
+            val intent = LibsBuilder()
+                .withLicenseShown(true)
+                .withVersionShown(true)
+                .withActivityTitle(getString(R.string.third_party_libraries))
+                .withSearchEnabled(true)
+                .withEdgeToEdge(true)
+                .withLibs(
+                    localLib
+                )
+                .intent(requireContext())
+            startActivity(intent)
         }
-
-
     }
     private fun browseFiles(dir: File): Long {
         var dirSize: Long = 0

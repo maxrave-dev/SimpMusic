@@ -2,6 +2,7 @@
 - Hỗ trợ Android Auto
 - Dịch lời bài hát cho người dùng đã đăng nhập Musixmatch
 - Thêm tính năng "Thay đổi nhà cung cấp lời bài hát chính" (YouTube Transcript hoặc Musixmatch)
+- Thêm "Đề xuất" cho các danh sách phát cục bộ được đồng bộ hóa với YouTube Music
 - Hỗ trợ Podcasts
 - Thêm "Giới hạn bộ nhớ đệm của trình phát"
 - Hiển thị tất cả các album, đĩa đơn và video của một nghệ sĩ, thêm các danh sách phát "Nổi bật"
