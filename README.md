@@ -31,19 +31,19 @@ A simple music app using YouTube Music for backend
 ## Screenshot
 
 <p float="left">  
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/miniplayer_top.jpg" width="200" />  
- <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/miniplayer_bottom.jpg" width="200" />  
- <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/new_home_ui.jpg" width="200" />  
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/asset/screenshot/miniplayer_top.jpg" width="200" />  
+ <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/asset/screenshot/miniplayer_bottom.jpg" width="200" />  
+ <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/asset/screenshot/new_home_ui.jpg" width="200" />  
 </p>  
 <p float="left">  
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/moodmoment.jpg" width="200" />  
- <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/chart.jpg" width="200" />  
- <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/artist_top.jpg" width="200" />  
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/asset/screenshot/moodmoment.jpg" width="200" />  
+ <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/asset/screenshot/artist_top.jpg" width="200" />  
+ <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/asset/screenshot/artist_bottom.jpg" width="200" />  
 </p>  
 <p float="left">  
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/radio.jpg" width="200" />  
- <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/search_suggest.jpg" width="200" />  
- <img src="https://github.com/maxrave-dev/SimpMusic/blob/main/asset/screenshot/search_result.jpg" width="200" />  
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/asset/screenshot/radio.jpg" width="200" />  
+ <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/asset/screenshot/search_suggest.jpg" width="200" />  
+ <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/asset/screenshot/search_result.jpg" width="200" />  
 </p>  
 
 More [screenshot](https://photos.app.goo.gl/AbieoXG5ctDrpwzp7) here.
