@@ -26,6 +26,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -263,39 +264,47 @@ class LocalPlaylistViewModel @Inject constructor(
 
     fun deleteItem(song: SongEntity?, id: Long) {
         viewModelScope.launch {
-            val tempList: ArrayList<SongEntity> = arrayListOf()
-            listTrack.value?.let { tempList.addAll(it) }
-            song?.videoId?.let {
-                mainRepository.deletePairSongLocalPlaylist(id, it)
-                for (i in tempList.indexOf(song) until tempList.size) {
-                    mainRepository.insertPairSongLocalPlaylist(
-                        PairSongLocalPlaylist(
-                            playlistId = id,
-                            songId = tempList[i].videoId,
-                            position = tempList.indexOf(tempList[i]) - 1,
-                            inPlaylist = LocalDateTime.now()
+            if (song != null) {
+                val songPosition = listPair.value?.find { it.songId == song.videoId }?.position
+                if (songPosition != null) {
+                    listPair.value?.filter { it.position > songPosition }?.forEach {
+                        mainRepository.insertPairSongLocalPlaylist(
+                            it.copy(position = it.position - 1)
                         )
-                    )
-                }
-            }
-            tempList.remove(song)
-            val listTrack: ArrayList<String> = arrayListOf()
-            tempList.forEach {
-                listTrack.add(it.videoId)
-            }
-            mainRepository.updateLocalPlaylistTracks(
-                listTrack, id
-            )
-            getPairSongLocalPlaylist(id)
-            mainRepository.getLocalPlaylist(id).collect { playlist ->
-                _listLocalPlaylist.value = playlist
-                if (!playlist.tracks.isNullOrEmpty()) {
-                    mainRepository.getSongsByListVideoId(playlist.tracks).collect { tracks ->
-                        _listTrack.value = tracks
                     }
-                }
-                else {
-                    _listTrack.value = null
+                    mainRepository.deletePairSongLocalPlaylist(id, song.videoId)
+//                    song.videoId.let {
+//
+//                        for (i in tempList.indexOf(song) until tempList.size) {
+//                            mainRepository.insertPairSongLocalPlaylist(
+//                                PairSongLocalPlaylist(
+//                                    playlistId = id,
+//                                    songId = tempList[i].videoId,
+//                                    position = tempList.indexOf(tempList[i]) - 1,
+//                                    inPlaylist = LocalDateTime.now()
+//                                )
+//                            )
+//                        }
+//                    }
+                    mainRepository.getLocalPlaylist(id).first().tracks?.let { list ->
+                        if (list.isNotEmpty()) {
+                            val temp = list.toMutableList()
+                            temp.remove(song.videoId)
+                            mainRepository.updateLocalPlaylistTracks(temp, id)
+                            getPairSongLocalPlaylist(id)
+                            mainRepository.getLocalPlaylist(id).collect { playlist ->
+                                _listLocalPlaylist.value = playlist
+                                if (!playlist.tracks.isNullOrEmpty()) {
+                                    mainRepository.getSongsByListVideoId(playlist.tracks)
+                                        .collect { tracks ->
+                                            _listTrack.value = tracks
+                                        }
+                                } else {
+                                    _listTrack.value = null
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

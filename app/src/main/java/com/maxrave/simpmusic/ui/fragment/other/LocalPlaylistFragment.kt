@@ -190,10 +190,15 @@ class LocalPlaylistFragment : Fragment() {
                 val dialog = BottomSheetDialog(requireContext())
                 val viewDialog = BottomSheetLocalPlaylistItemBinding.inflate(layoutInflater)
                 viewDialog.btDelete.setOnClickListener {
-                    viewModel.deleteItem(viewModel.listTrack.value?.get(position), id!!)
+                    val temp = playlistAdapter.getListTrack().getOrNull(position) as SongEntity
+                    viewModel.deleteItem(temp, id!!)
                     if (viewModel.localPlaylist.value?.syncedWithYouTubePlaylist == 1 && viewModel.localPlaylist.value?.youtubePlaylistId != null) {
                         val videoId = viewModel.listTrack.value?.get(position)?.videoId
-                        viewModel.removeYouTubePlaylistItem(viewModel.localPlaylist.value?.youtubePlaylistId!!, videoId!!)
+                        viewModel.removeYouTubePlaylistItem(
+                            viewModel.localPlaylist.value?.youtubePlaylistId!!,
+                            videoId!!
+                        )
+                        dialog.dismiss()
                     }
                 }
                 dialog.setContentView(viewDialog.root)
@@ -653,6 +658,9 @@ class LocalPlaylistFragment : Fragment() {
                                 viewModel.listPair.value?.find { pair -> pair.songId == (it as SongEntity).videoId }?.position
                             }
                             playlistAdapter.updateList(listTrack)
+                        } else {
+                            listTrack.clear()
+                            playlistAdapter.updateList(arrayListOf())
                         }
                     }
                 }

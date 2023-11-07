@@ -175,7 +175,7 @@ class SettingsFragment : Fragment() {
         }
         viewModel.language.observe(viewLifecycleOwner) {
             if (it != null) {
-                val temp = SUPPORTED_LANGUAGE.items[SUPPORTED_LANGUAGE.codes.indexOf(it)]
+                val temp = SUPPORTED_LANGUAGE.items.getOrNull(SUPPORTED_LANGUAGE.codes.indexOf(it))
                 binding.tvLanguage.text = temp
             }
         }
