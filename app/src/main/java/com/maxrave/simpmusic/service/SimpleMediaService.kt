@@ -242,7 +242,11 @@ class SimpleMediaService : MediaLibraryService() {
 
     @UnstableApi
     fun provideExtractorFactory(): ExtractorsFactory = ExtractorsFactory {
-        arrayOf(MatroskaExtractor(), FragmentedMp4Extractor())
+        arrayOf(
+            MatroskaExtractor(),
+            FragmentedMp4Extractor(),
+            androidx.media3.extractor.mp4.Mp4Extractor()
+        )
     }
 
     @UnstableApi

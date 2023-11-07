@@ -172,6 +172,7 @@ class NowPlayingFragment : Fragment() {
             adapter = lyricsFullAdapter
             layoutManager = LinearLayoutManager(requireContext())
         }
+        binding.playerView.player = viewModel.simpleMediaServiceHandler?.player
 
         when (type) {
             SONG_CLICK -> {
@@ -666,14 +667,24 @@ class NowPlayingFragment : Fragment() {
                 }
                 val job14 = launch {
                     viewModel.format.collectLatest { format ->
-                        if (format != null){
+                        if (format != null) {
                             binding.uploaderLayout.visibility = View.VISIBLE
                             binding.tvUploader.text = format.uploader
                             binding.ivAuthor.load(format.uploaderThumbnail)
                             binding.tvSubCount.text = format.uploaderSubCount
+                            if (format.itag == 22) {
+                                binding.playerView.visibility = View.VISIBLE
+                                binding.ivArt.visibility = View.GONE
+                                binding.loadingArt.visibility = View.GONE
+                            } else {
+                                binding.playerView.visibility = View.GONE
+                                binding.ivArt.visibility = View.VISIBLE
+                            }
                         }
                         else {
                             binding.uploaderLayout.visibility = View.GONE
+                            binding.playerView.visibility = View.GONE
+                            binding.ivArt.visibility = View.VISIBLE
                         }
                     }
                 }

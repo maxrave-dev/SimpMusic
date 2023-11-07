@@ -74,7 +74,7 @@ dependencies {
     implementation(project(mapOf("path" to ":kotlinYtmusicScraper")))
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
-    implementation("androidx.media3:media3-cast:1.1.1")
+
     //ExoPlayer
     val media3_version= "1.1.1"
 
@@ -87,6 +87,7 @@ dependencies {
     implementation("androidx.media3:media3-exoplayer-smoothstreaming:$media3_version")
     implementation("androidx.media3:media3-exoplayer-workmanager:$media3_version")
     implementation("androidx.media3:media3-datasource-okhttp:$media3_version")
+    implementation("androidx.media3:media3-cast:$media3_version")
 
     //palette color
     implementation("androidx.palette:palette-ktx:1.0.0")

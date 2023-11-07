@@ -53,6 +53,7 @@
                         android:scaleType="fitCenter">
 
                     </ImageView>
+
                     <com.google.android.material.progressindicator.CircularProgressIndicator
                         android:id="@+id/loading_art"
                         android:layout_width="wrap_content"
@@ -62,6 +63,14 @@
 
                     </com.google.android.material.progressindicator.CircularProgressIndicator>
 
+                    <androidx.media3.ui.PlayerView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerInParent="true"
+                        android:id="@+id/playerView"
+                        app:artwork_display_mode="off"
+                        app:use_controller="false"
+                        android:visibility="gone" />
                 </RelativeLayout>
 
                 <LinearLayout

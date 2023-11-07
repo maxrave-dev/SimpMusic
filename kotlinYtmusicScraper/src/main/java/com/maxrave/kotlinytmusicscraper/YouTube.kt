@@ -8,6 +8,7 @@ import com.maxrave.kotlinytmusicscraper.models.Artist
 import com.maxrave.kotlinytmusicscraper.models.ArtistItem
 import com.maxrave.kotlinytmusicscraper.models.BrowseEndpoint
 import com.maxrave.kotlinytmusicscraper.models.GridRenderer
+import com.maxrave.kotlinytmusicscraper.models.MediaType
 import com.maxrave.kotlinytmusicscraper.models.MusicCarouselShelfRenderer
 import com.maxrave.kotlinytmusicscraper.models.PlaylistItem
 import com.maxrave.kotlinytmusicscraper.models.Run
@@ -503,7 +504,10 @@ object YouTube {
         return@runCatching json.decodeFromString<YouTubeInitialPage>(response)
     }
 
-    suspend fun player(videoId: String, playlistId: String? = null): Result<Pair<String, PlayerResponse>> = runCatching {
+    suspend fun player(
+        videoId: String,
+        playlistId: String? = null
+    ): Result<Triple<String, PlayerResponse, MediaType>> = runCatching {
         val ytScrape = ytMusic.scrapeYouTube(videoId).body<String>()
         var response = ""
         var data = ""
@@ -527,45 +531,67 @@ object YouTube {
         )
         ksoupHtmlParser.write(ytScrape)
         ksoupHtmlParser.end()
-        val json = Json {ignoreUnknownKeys = true}
+        val json = Json { ignoreUnknownKeys = true }
 //        println(data)
         val ytScrapeData = json.decodeFromString<YouTubeDataPage>(data)
         val ytScrapeInitial = json.decodeFromString<YouTubeInitialPage>(response)
-        val cpn = (1..16).map { "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"[Random.Default.nextInt(0, 64)] }.joinToString("")
-        val playerResponse = ytMusic.player(ANDROID_MUSIC, videoId, playlistId, cpn).body<PlayerResponse>()
+        val cpn = (1..16).map {
+            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"[Random.Default.nextInt(
+                0,
+                64
+            )]
+        }.joinToString("")
+        val playerResponse =
+            ytMusic.player(ANDROID_MUSIC, videoId, playlistId, cpn).body<PlayerResponse>()
+        println("Thumbnails " + playerResponse.videoDetails?.thumbnail)
+        val firstThumb = playerResponse.videoDetails?.thumbnail?.thumbnails?.firstOrNull()
+        val thumbnails =
+            if (firstThumb?.height == firstThumb?.width && firstThumb != null) MediaType.Song else MediaType.Video
 //        println( playerResponse.streamingData?.adaptiveFormats?.findLast { it.itag == 251 }?.mimeType.toString())
         if (playerResponse.playabilityStatus.status == "OK") {
-            return@runCatching Pair(cpn, playerResponse.copy(
-                videoDetails = playerResponse.videoDetails?.copy(
+            return@runCatching Triple(
+                cpn, playerResponse.copy(
+                    videoDetails = playerResponse.videoDetails?.copy(
 //                    authorAvatar = piped.uploaderAvatar?.replace(Regex("s48"), "s960"),
-                    author = ytScrapeInitial.videoDetails?.author ?: playerResponse.videoDetails.author,
-                    authorAvatar = ytScrapeData.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.thumbnail?.thumbnails?.get(0)?.url?.replace(Regex("s48"), "s960"),
+                        author = ytScrapeInitial.videoDetails?.author
+                            ?: playerResponse.videoDetails.author,
+                        authorAvatar = ytScrapeData.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.thumbnail?.thumbnails?.get(
+                            0
+                        )?.url?.replace(Regex("s48"), "s960"),
 //                    authorSubCount = piped.uploaderSubscriberCount,
-                    authorSubCount = ytScrapeData.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.subscriberCountText?.simpleText ?: "0",
-                    description = ytScrapeInitial.videoDetails?.shortDescription,
-                ),
-                captions = ytScrapeInitial.captions,
-            ))
+                        authorSubCount = ytScrapeData.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.subscriberCountText?.simpleText
+                            ?: "0",
+                        description = ytScrapeInitial.videoDetails?.shortDescription,
+                    ),
+                    captions = ytScrapeInitial.captions,
+                ), thumbnails
+            )
         }
         val safePlayerResponse = ytMusic.player(TVHTML5, videoId, playlistId, cpn).body<PlayerResponse>()
         if (safePlayerResponse.playabilityStatus.status != "OK") {
-            return@runCatching Pair(cpn, playerResponse.copy(
-                videoDetails = safePlayerResponse.videoDetails?.copy(
+            return@runCatching Triple(
+                cpn, playerResponse.copy(
+                    videoDetails = safePlayerResponse.videoDetails?.copy(
 //                    authorAvatar = piped.uploaderAvatar?.replace(Regex("s48"), "s960"),
-                    author = ytScrapeInitial.videoDetails?.author ?: safePlayerResponse.videoDetails.author,
-                    authorAvatar = ytScrapeData.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.thumbnail?.thumbnails?.get(0)?.url?.replace(Regex("s48"), "s960"),
+                        author = ytScrapeInitial.videoDetails?.author
+                            ?: safePlayerResponse.videoDetails.author,
+                        authorAvatar = ytScrapeData.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.thumbnail?.thumbnails?.get(
+                            0
+                        )?.url?.replace(Regex("s48"), "s960"),
 //                    authorSubCount = piped.uploaderSubscriberCount,
-                    authorSubCount = ytScrapeData.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.subscriberCountText?.simpleText ?: "0",
-                    description = ytScrapeInitial.videoDetails?.shortDescription,
-                ),
-                captions = ytScrapeInitial.captions,
-            ))
+                        authorSubCount = ytScrapeData.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.subscriberCountText?.simpleText
+                            ?: "0",
+                        description = ytScrapeInitial.videoDetails?.shortDescription,
+                    ),
+                    captions = ytScrapeInitial.captions,
+                ), thumbnails
+            )
         }
         else {
             val piped = ytMusic.pipedStreams(videoId, "pipedapi.kavin.rocks").body<PipedResponse>()
             Log.w("use Piped?", piped.audioStreams.toString())
             val audioStreams = piped.audioStreams
-            return@runCatching Pair(cpn, safePlayerResponse.copy(
+            return@runCatching Triple(cpn, safePlayerResponse.copy(
                 streamingData = safePlayerResponse.streamingData?.copy(
                     adaptiveFormats = safePlayerResponse.streamingData.adaptiveFormats.mapNotNull { adaptiveFormat ->
                         audioStreams.find { it.itag == adaptiveFormat.itag }?.let {
@@ -577,14 +603,19 @@ object YouTube {
                 ),
                 videoDetails = safePlayerResponse.videoDetails?.copy(
 //                    authorAvatar = piped.uploaderAvatar?.replace(Regex("s48"), "s960"),
-                    author = ytScrapeInitial.videoDetails?.author ?: safePlayerResponse.videoDetails.author,
-                    authorAvatar = ytScrapeData.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.thumbnail?.thumbnails?.get(0)?.url?.replace(Regex("s48"), "s960"),
+                    author = ytScrapeInitial.videoDetails?.author
+                        ?: safePlayerResponse.videoDetails.author,
+                    authorAvatar = ytScrapeData.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.thumbnail?.thumbnails?.get(
+                        0
+                    )?.url?.replace(Regex("s48"), "s960"),
 //                    authorSubCount = piped.uploaderSubscriberCount,
-                    authorSubCount = ytScrapeData.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.subscriberCountText?.simpleText ?: "0",
+                    authorSubCount = ytScrapeData.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.subscriberCountText?.simpleText
+                        ?: "0",
                     description = ytScrapeInitial.videoDetails?.shortDescription,
                 ),
                 captions = ytScrapeInitial.captions,
-            ))
+            ), thumbnails
+            )
         }
     }
     suspend fun updateWatchTime(watchtimeUrl: String, watchtimeList: ArrayList<Float>, cpn: String, playlistId: String?): Result<Int> =

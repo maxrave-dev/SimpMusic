@@ -3,6 +3,7 @@ package com.maxrave.simpmusic.data.repository
 import android.content.Context
 import android.util.Log
 import com.maxrave.kotlinytmusicscraper.YouTube
+import com.maxrave.kotlinytmusicscraper.models.MediaType
 import com.maxrave.kotlinytmusicscraper.models.MusicShelfRenderer
 import com.maxrave.kotlinytmusicscraper.models.SearchSuggestions
 import com.maxrave.kotlinytmusicscraper.models.SongItem
@@ -1349,32 +1350,48 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
     suspend fun getStream(videoId: String, itag: Int): Flow<String?> = flow{
         YouTube.player(videoId).onSuccess { data ->
             val response = data.second
-            val format = response.streamingData?.adaptiveFormats?.find { it.itag == itag }
-                runBlocking {
-                    insertFormat(
-                        FormatEntity(
-                            videoId = videoId,
-                            itag = format?.itag ?: itag,
-                            mimeType = format?.mimeType,
-                            bitrate = format?.bitrate?.toLong(),
-                            contentLength = format?.contentLength,
-                            lastModified = format?.lastModified,
-                            loudnessDb = response.playerConfig?.audioConfig?.loudnessDb?.toFloat(),
+            if (data.third == MediaType.Song) Log.w(
+                "Stream",
+                "response: is SONG"
+            ) else Log.w("Stream", "response: is VIDEO")
+            val format =
+                if (data.third == MediaType.Song) response.streamingData?.adaptiveFormats?.find { it.itag == itag } else response.streamingData?.formats?.find { it.itag == 22 }
+            runBlocking {
+                insertFormat(
+                    FormatEntity(
+                        videoId = videoId,
+                        itag = format?.itag ?: itag,
+                        mimeType = format?.mimeType,
+                        bitrate = format?.bitrate?.toLong(),
+                        contentLength = format?.contentLength,
+                        lastModified = format?.lastModified,
+                        loudnessDb = response.playerConfig?.audioConfig?.loudnessDb?.toFloat(),
                             uploader = response.videoDetails?.author?.replace(Regex(" - Topic| - Chủ đề|"), ""),
                             uploaderId = response.videoDetails?.channelId,
                             uploaderThumbnail = response.videoDetails?.authorAvatar,
                             uploaderSubCount = response.videoDetails?.authorSubCount,
-                            description = response.videoDetails?.description,
-                            youtubeCaptionsUrl = response.captions?.playerCaptionsTracklistRenderer?.captionTracks?.get(0)?.baseUrl?.replace("&fmt=srv3", ""),
-                            lengthSeconds = response.videoDetails?.lengthSeconds?.toInt(),
-                            playbackTrackingVideostatsPlaybackUrl = response.playbackTracking?.videostatsPlaybackUrl?.baseUrl?.replace("https://s.youtube.com", "https://music.youtube.com"),
-                            playbackTrackingAtrUrl = response.playbackTracking?.atrUrl?.baseUrl?.replace("https://s.youtube.com", "https://music.youtube.com"),
-                            playbackTrackingVideostatsWatchtimeUrl = response.playbackTracking?.videostatsWatchtimeUrl?.baseUrl?.replace("https://s.youtube.com", "https://music.youtube.com"),
-                            cpn = data.first,
-                        )
+                        description = response.videoDetails?.description,
+                        youtubeCaptionsUrl = response.captions?.playerCaptionsTracklistRenderer?.captionTracks?.get(
+                            0
+                        )?.baseUrl?.replace("&fmt=srv3", ""),
+                        lengthSeconds = response.videoDetails?.lengthSeconds?.toInt(),
+                        playbackTrackingVideostatsPlaybackUrl = response.playbackTracking?.videostatsPlaybackUrl?.baseUrl?.replace(
+                            "https://s.youtube.com",
+                            "https://music.youtube.com"
+                        ),
+                        playbackTrackingAtrUrl = response.playbackTracking?.atrUrl?.baseUrl?.replace(
+                            "https://s.youtube.com",
+                            "https://music.youtube.com"
+                        ),
+                        playbackTrackingVideostatsWatchtimeUrl = response.playbackTracking?.videostatsWatchtimeUrl?.baseUrl?.replace(
+                            "https://s.youtube.com",
+                            "https://music.youtube.com"
+                        ),
+                        cpn = data.first,
                     )
-                }
-                emit(response.streamingData?.adaptiveFormats?.find { it.itag == itag }?.url?.plus("&cpn=${data.first}"))
+                )
+            }
+            emit(format?.url?.plus("&cpn=${data.first}"))
             }.onFailure {
                 it.printStackTrace()
             Log.e("Stream", "Error: ${it.message}")

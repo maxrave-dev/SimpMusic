@@ -2,25 +2,20 @@ package com.maxrave.kotlinytmusicscraper.test
 
 import com.google.gson.annotations.SerializedName
 import com.maxrave.kotlinytmusicscraper.YouTube
-import com.maxrave.kotlinytmusicscraper.Ytmusic
 import com.maxrave.kotlinytmusicscraper.models.GridRenderer
 import com.maxrave.kotlinytmusicscraper.models.MusicResponsiveListItemRenderer
 import com.maxrave.kotlinytmusicscraper.models.MusicTwoRowItemRenderer
 import com.maxrave.kotlinytmusicscraper.models.Run
 import com.maxrave.kotlinytmusicscraper.models.SectionListRenderer
 import com.maxrave.kotlinytmusicscraper.models.Thumbnail
-import com.maxrave.kotlinytmusicscraper.models.YouTubeClient
 import kotlinx.coroutines.runBlocking
 
 
 fun main() {
     runBlocking {
-        YouTube.customQuery("MPSPPLWrhnsc6Cvcrp7HmEWu8q0p95pRyGmpHi").onSuccess { result ->
-            println(result)
+        YouTube.player("JzpxJcJwDZ0").onSuccess { player ->
+            println(player)
         }
-            .onFailure { error ->
-                error.printStackTrace()
-            }
     }
 //        Ytmusic().player(YouTubeClient.ANDROID_MUSIC, )
 //        YouTube.spotifyCookie =
