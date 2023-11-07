@@ -316,7 +316,8 @@ class DataStoreManager @Inject constructor(private val settingsDataStore: DataSt
         }
     }
     val translationLanguage = settingsDataStore.data.map { preferences ->
-        preferences[TRANSLATION_LANGUAGE] ?: language.first().slice(0..1)
+        preferences[TRANSLATION_LANGUAGE] ?: if (language.first().length >= 2) language.first()
+            .substring(0..1) else "en"
     }
     suspend fun setTranslationLanguage(language: String) {
         withContext(Dispatchers.IO) {

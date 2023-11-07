@@ -10,7 +10,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.Download
-import com.maxrave.kotlinytmusicscraper.test.main
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
@@ -265,7 +264,7 @@ class LocalPlaylistViewModel @Inject constructor(
     fun deleteItem(song: SongEntity?, id: Long) {
         viewModelScope.launch {
             val tempList: ArrayList<SongEntity> = arrayListOf()
-            tempList.addAll(listTrack.value!!)
+            listTrack.value?.let { tempList.addAll(it) }
             song?.videoId?.let {
                 mainRepository.deletePairSongLocalPlaylist(id, it)
                 for (i in tempList.indexOf(song) until tempList.size) {
