@@ -276,8 +276,16 @@
     <string name="featured_playlists">Featured Playlists</string>
     <string name="podcasts" translatable="false">Podcasts</string>
     <string name="featured_inArtist">Featured on</string>
+    <string name="audio_quality">Audio quality</string>
+    <string name="play_video_for_video_track_instead_of_audio_only">Play video for video track instead of audio only</string>
+    <string name="such_as_music_video_lyrics_video_podcasts_and_more">Such as Music Video, Lyrics Video, Podcasts, and more</string>
+    <string name="video_quality">Video Quality</string>
     <plurals name="n_song">
         <item quantity="one">%d song</item>
         <item quantity="other">%d songs</item>
     </plurals>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="play_video_instead_of_audio_warning">This action will delete player cache. Continue?</string>
+    <string name="quality_video">Video Quality</string>
 </resources>

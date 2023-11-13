@@ -33,6 +33,7 @@ import com.maxrave.simpmusic.common.QUALITY
 import com.maxrave.simpmusic.common.SPONSOR_BLOCK
 import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.common.SUPPORTED_LOCATION
+import com.maxrave.simpmusic.common.VIDEO_QUALITY
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.databinding.FragmentSettingsBinding
 import com.maxrave.simpmusic.extension.navigateSafe
@@ -127,6 +128,8 @@ class SettingsFragment : Fragment() {
         viewModel.getLyricsProvider() //
         viewModel.getUseTranslation() //
         viewModel.getMusixmatchLoggedIn() //
+        viewModel.getPlayVideoInsteadOfAudio()
+        viewModel.getVideoQuality()
 
         val diskCache = context?.imageLoader?.diskCache
 
@@ -149,10 +152,23 @@ class SettingsFragment : Fragment() {
                 setEnabledAll(binding.btTranslationLanguage, true)
             } else if (it == DataStoreManager.FALSE) {
                 binding.tvMusixmatchLoginTitle.text = getString(R.string.log_in_to_Musixmatch)
-                binding.tvMusixmatchLogin.text = getString(R.string.only_support_email_and_password_type)
+                binding.tvMusixmatchLogin.text =
+                    getString(R.string.only_support_email_and_password_type)
                 setEnabledAll(binding.swUseMusixmatchTranslation, false)
                 setEnabledAll(binding.btTranslationLanguage, false)
             }
+        }
+        viewModel.playVideoInsteadOfAudio.observe(viewLifecycleOwner) {
+            if (it == DataStoreManager.TRUE) {
+                binding.swEnableVideo.isChecked = true
+                setEnabledAll(binding.btVideoQuality, true)
+            } else if (it == DataStoreManager.FALSE) {
+                binding.swEnableVideo.isChecked = false
+                setEnabledAll(binding.btVideoQuality, false)
+            }
+        }
+        viewModel.videoQuality.observe(viewLifecycleOwner) {
+            binding.tvVideoQuality.text = it
         }
         viewModel.mainLyricsProvider.observe(viewLifecycleOwner) {
             if (it == DataStoreManager.YOUTUBE) {
@@ -432,6 +448,27 @@ class SettingsFragment : Fragment() {
             dialog.show()
 
         }
+        binding.btVideoQuality.setOnClickListener {
+            var checkedIndex = -1
+            val dialog = MaterialAlertDialogBuilder(requireContext())
+                .setSingleChoiceItems(VIDEO_QUALITY.items, -1) { _, which ->
+                    checkedIndex = which
+                }
+                .setTitle(getString(R.string.quality_video))
+                .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                    dialog.dismiss()
+                }
+                .setPositiveButton(getString(R.string.change)) { dialog, _ ->
+                    if (checkedIndex != -1) {
+                        viewModel.changeVideoQuality(checkedIndex)
+                        viewModel.videoQuality.observe(viewLifecycleOwner) {
+                            binding.tvVideoQuality.text = it
+                        }
+                    }
+                    dialog.dismiss()
+                }
+            dialog.show()
+        }
         binding.btMainLyricsProvider.setOnClickListener {
             var checkedIndex = -1
             val dialog = MaterialAlertDialogBuilder(requireContext())
@@ -597,6 +634,34 @@ class SettingsFragment : Fragment() {
                 viewModel.setNormalizeVolume(true)
             } else {
                 viewModel.setNormalizeVolume(false)
+            }
+        }
+        binding.swEnableVideo.setOnCheckedChangeListener { _, checked ->
+            val test = viewModel.playVideoInsteadOfAudio.value
+            val checkReal = (test == DataStoreManager.TRUE) != checked
+            if (checkReal) {
+                if (checked) {
+                    val dialog = MaterialAlertDialogBuilder(requireContext())
+                        .setTitle(getString(R.string.warning))
+                        .setMessage(getString(R.string.play_video_instead_of_audio_warning))
+                        .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                            binding.swEnableVideo.isChecked = false
+                            dialog.dismiss()
+                        }
+                        .setPositiveButton(getString(R.string.change)) { dialog, _ ->
+                            viewModel.clearPlayerCache()
+                            viewModel.cacheSize.observe(viewLifecycleOwner) {
+                                drawDataStat()
+                                binding.tvPlayerCache.text =
+                                    getString(R.string.cache_size, bytesToMB(it).toString())
+                            }
+                            viewModel.setPlayVideoInsteadOfAudio(true)
+                            dialog.dismiss()
+                        }
+                    dialog.show()
+                } else {
+                    viewModel.setPlayVideoInsteadOfAudio(false)
+                }
             }
         }
         binding.swSkipSilent.setOnCheckedChangeListener { _, checked ->

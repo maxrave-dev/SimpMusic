@@ -1,6 +1,7 @@
 package com.maxrave.simpmusic.ui.fragment.player
 
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
@@ -12,10 +13,15 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowInsets
 import android.view.animation.AnimationUtils
 import android.widget.Toast
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.graphics.ColorUtils
 import androidx.core.net.toUri
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -35,6 +41,8 @@ import coil.size.Size
 import coil.transform.Transformation
 import com.daimajia.swipe.SwipeLayout
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetBehavior.BottomSheetCallback
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.slider.Slider
@@ -58,6 +66,7 @@ import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.metadata.MetadataSong
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.BottomSheetAddToAPlaylistBinding
+import com.maxrave.simpmusic.databinding.BottomSheetFullscreenBinding
 import com.maxrave.simpmusic.databinding.BottomSheetNowPlayingBinding
 import com.maxrave.simpmusic.databinding.BottomSheetSeeArtistOfNowPlayingBinding
 import com.maxrave.simpmusic.databinding.BottomSheetSleepTimerBinding
@@ -78,6 +87,8 @@ import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -104,9 +115,12 @@ class NowPlayingFragment : Fragment() {
     private var gradientDrawable: GradientDrawable? = null
     private var lyricsBackground: Int? = null
 
-    lateinit var lyricsAdapter: LyricsAdapter
-    lateinit var lyricsFullAdapter: LyricsAdapter
-    lateinit var disableScrolling: DisableTouchEventRecyclerView
+    private lateinit var lyricsAdapter: LyricsAdapter
+    private lateinit var lyricsFullAdapter: LyricsAdapter
+    private lateinit var disableScrolling: DisableTouchEventRecyclerView
+    private var overlayJob: Job? = null
+
+    private var isFullScreen = false
 
 //    private lateinit var songChangeListener: OnNowPlayingSongChangeListener
 //    override fun onAttach(context: Context) {
@@ -144,6 +158,7 @@ class NowPlayingFragment : Fragment() {
         val activity = requireActivity()
         val bottom = activity.findViewById<BottomNavigationView>(R.id.bottom_navigation_view)
         val miniplayer = activity.findViewById<SwipeLayout>(R.id.miniplayer)
+
         bottom.visibility = View.GONE
         miniplayer.visibility = View.GONE
         binding.lyricsFullLayout.visibility = View.GONE
@@ -673,17 +688,17 @@ class NowPlayingFragment : Fragment() {
                             binding.ivAuthor.load(format.uploaderThumbnail)
                             binding.tvSubCount.text = format.uploaderSubCount
                             if (format.itag == 22) {
-                                binding.playerView.visibility = View.VISIBLE
-                                binding.ivArt.visibility = View.GONE
+                                binding.playerLayout.visibility = View.VISIBLE
+                                binding.ivArt.visibility = View.INVISIBLE
                                 binding.loadingArt.visibility = View.GONE
                             } else {
-                                binding.playerView.visibility = View.GONE
+                                binding.playerLayout.visibility = View.GONE
                                 binding.ivArt.visibility = View.VISIBLE
                             }
                         }
                         else {
                             binding.uploaderLayout.visibility = View.GONE
-                            binding.playerView.visibility = View.GONE
+                            binding.playerLayout.visibility = View.GONE
                             binding.ivArt.visibility = View.VISIBLE
                         }
                     }
@@ -850,6 +865,59 @@ class NowPlayingFragment : Fragment() {
                 viewModel.onUIEvent(UIEvent.UpdateProgress(slider.value))
             }
         })
+        binding.btFullscreen.setOnClickListener {
+            binding.playerView.player = null
+            isFullScreen = true
+            findNavController().navigateSafe(R.id.action_global_fullscreenFragment)
+
+//                requireActivity().requestedOrientation =
+//                    ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+//                val parent = fullscreen.root.parent as View
+//                parent.fitsSystemWindows = true
+//                val params =
+//                    parent.layoutParams as CoordinatorLayout.LayoutParams
+//                val behavior = params.behavior
+//                if (behavior != null && behavior is BottomSheetBehavior<*>) {
+//                    behavior.peekHeight = binding.root.height
+//                    behavior.state = BottomSheetBehavior.STATE_EXPANDED
+//                    behavior.addBottomSheetCallback(object : BottomSheetCallback() {
+//                        override fun onStateChanged( bottomSheet: View, newState: Int) {
+//                            if (newState == BottomSheetBehavior.STATE_DRAGGING) {
+//                                behavior.state = BottomSheetBehavior.STATE_EXPANDED
+//                            }
+//                        }
+//
+//                        override fun onSlide(bottomSheet: View, slideOffset: Float) {}
+//                    })
+//                }
+
+
+//            }
+        }
+        binding.playerLayout.setOnClickListener {
+            val shortAnimationDuration =
+                resources.getInteger(android.R.integer.config_mediumAnimTime)
+            if (binding.overlay.visibility == View.VISIBLE) {
+                binding.overlay.visibility = View.GONE
+                overlayJob?.cancel()
+            } else {
+                binding.overlay.alpha = 0f
+                binding.overlay.apply {
+                    visibility = View.VISIBLE
+                    animate()
+                        .alpha(1f)
+                        .setDuration(shortAnimationDuration.toLong())
+                        .setListener(null)
+                }
+                overlayJob?.cancel()
+                overlayJob = lifecycleScope.launch {
+                    repeatOnLifecycle(Lifecycle.State.CREATED) {
+                        delay(3000)
+                        binding.overlay.visibility = View.GONE
+                    }
+                }
+            }
+        }
 
         binding.btPlayPause.setOnClickListener {
             viewModel.onUIEvent(UIEvent.PlayPause)
@@ -1703,10 +1771,13 @@ class NowPlayingFragment : Fragment() {
         activity.window.navigationBarColor = Color.parseColor("#CB0B0A0A")
         val bottom = activity.findViewById<BottomNavigationView>(R.id.bottom_navigation_view)
         val miniplayer = activity.findViewById<SwipeLayout>(R.id.miniplayer)
-        bottom.animation = AnimationUtils.loadAnimation(requireContext(), R.anim.bottom_to_top)
-        bottom.visibility = View.VISIBLE
-        miniplayer.animation = AnimationUtils.loadAnimation(requireContext(), R.anim.bottom_to_top)
-        miniplayer.visibility = View.VISIBLE
+        if (!isFullScreen) {
+            bottom.animation = AnimationUtils.loadAnimation(requireContext(), R.anim.bottom_to_top)
+            bottom.visibility = View.VISIBLE
+            miniplayer.animation =
+                AnimationUtils.loadAnimation(requireContext(), R.anim.bottom_to_top)
+            miniplayer.visibility = View.VISIBLE
+        }
+        isFullScreen = false
     }
-
 }

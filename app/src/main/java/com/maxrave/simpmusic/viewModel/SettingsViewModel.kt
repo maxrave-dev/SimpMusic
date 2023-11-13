@@ -20,6 +20,7 @@ import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.QUALITY
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.common.SETTINGS_FILENAME
+import com.maxrave.simpmusic.common.VIDEO_QUALITY
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.DatabaseDao
 import com.maxrave.simpmusic.data.db.MusicDatabase
@@ -92,6 +93,23 @@ class SettingsViewModel @Inject constructor(
     val useTranslation: LiveData<String> = _useTranslation
     private var _playerCacheLimit: MutableLiveData<Int> = MutableLiveData()
     val playerCacheLimit: LiveData<Int> = _playerCacheLimit
+    private var _playVideoInsteadOfAudio: MutableLiveData<String> = MutableLiveData()
+    val playVideoInsteadOfAudio: LiveData<String> = _playVideoInsteadOfAudio
+    private var _videoQuality: MutableLiveData<String> = MutableLiveData()
+    val videoQuality: LiveData<String> = _videoQuality
+    fun getVideoQuality() {
+        viewModelScope.launch {
+            withContext(Dispatchers.Main) {
+                dataStoreManager.videoQuality.collect { videoQuality ->
+                    when (videoQuality) {
+                        VIDEO_QUALITY.items[0].toString() -> _videoQuality.postValue(VIDEO_QUALITY.items[0].toString())
+                        VIDEO_QUALITY.items[1].toString() -> _videoQuality.postValue(VIDEO_QUALITY.items[1].toString())
+                    }
+                }
+            }
+        }
+    }
+
     fun getTranslationLanguage() {
         viewModelScope.launch {
             withContext(Dispatchers.Main) {
@@ -101,6 +119,7 @@ class SettingsViewModel @Inject constructor(
             }
         }
     }
+
     fun setTranslationLanguage(language: String) {
         viewModelScope.launch {
             withContext(Dispatchers.Main) {
@@ -236,6 +255,25 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun getPlayVideoInsteadOfAudio() {
+        viewModelScope.launch {
+            withContext(Dispatchers.Main) {
+                dataStoreManager.watchVideoInsteadOfPlayingAudio.collect { playVideoInsteadOfAudio ->
+                    _playVideoInsteadOfAudio.postValue(playVideoInsteadOfAudio)
+                }
+            }
+        }
+    }
+
+    fun setPlayVideoInsteadOfAudio(playVideoInsteadOfAudio: Boolean) {
+        viewModelScope.launch {
+            withContext(Dispatchers.Main) {
+                dataStoreManager.setWatchVideoInsteadOfPlayingAudio(playVideoInsteadOfAudio)
+                getPlayVideoInsteadOfAudio()
+            }
+        }
+    }
+
     fun getSponsorBlockCategories() {
         viewModelScope.launch {
             withContext(Dispatchers.Main) {
@@ -265,6 +303,18 @@ class SettingsViewModel @Inject constructor(
                         QUALITY.items[1].toString() -> _quality.postValue(QUALITY.items[1].toString())
                     }
                 }
+            }
+        }
+    }
+
+    fun changeVideoQuality(checkedIndex: Int) {
+        viewModelScope.launch {
+            withContext((Dispatchers.Main)) {
+                when (checkedIndex) {
+                    0 -> dataStoreManager.setVideoQuality(VIDEO_QUALITY.items[0].toString())
+                    1 -> dataStoreManager.setVideoQuality(VIDEO_QUALITY.items[1].toString())
+                }
+                getVideoQuality()
             }
         }
     }

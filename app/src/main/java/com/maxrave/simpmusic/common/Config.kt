@@ -74,6 +74,12 @@ object QUALITY {
     val items: Array<CharSequence> = arrayOf("Low - 66kps", "High - 129kps")
     val itags: Array<Int> = arrayOf(250, 251)
 }
+
+object VIDEO_QUALITY {
+    val items: Array<CharSequence> = arrayOf("720p", "480p")
+    val itags: Array<Int> = arrayOf(22, 135)
+}
+
 object LYRICS_PROVIDER {
     val items: Array<CharSequence> = arrayOf("Musixmatch", "YouTube Transcript")
 }

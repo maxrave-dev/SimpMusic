@@ -19,6 +19,7 @@ import com.maxrave.kotlinytmusicscraper.pages.BrowseResult
 import com.maxrave.kotlinytmusicscraper.pages.PlaylistPage
 import com.maxrave.kotlinytmusicscraper.pages.SearchPage
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.common.VIDEO_QUALITY
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.LocalDataSource
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
@@ -1349,13 +1350,16 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
     }.flowOn(Dispatchers.IO)
     suspend fun getStream(videoId: String, itag: Int): Flow<String?> = flow{
         YouTube.player(videoId).onSuccess { data ->
+            val videoItag =
+                VIDEO_QUALITY.itags.getOrNull(VIDEO_QUALITY.items.indexOf(dataStoreManager.videoQuality.first()))
+                    ?: 22
             val response = data.second
             if (data.third == MediaType.Song) Log.w(
                 "Stream",
                 "response: is SONG"
             ) else Log.w("Stream", "response: is VIDEO")
             val format =
-                if (data.third == MediaType.Song) response.streamingData?.adaptiveFormats?.find { it.itag == itag } else response.streamingData?.formats?.find { it.itag == 22 }
+                if (data.third == MediaType.Song) response.streamingData?.adaptiveFormats?.find { it.itag == itag } else response.streamingData?.formats?.find { it.itag == videoItag }
             runBlocking {
                 insertFormat(
                     FormatEntity(
@@ -1366,10 +1370,10 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                         contentLength = format?.contentLength,
                         lastModified = format?.lastModified,
                         loudnessDb = response.playerConfig?.audioConfig?.loudnessDb?.toFloat(),
-                            uploader = response.videoDetails?.author?.replace(Regex(" - Topic| - Chủ đề|"), ""),
-                            uploaderId = response.videoDetails?.channelId,
-                            uploaderThumbnail = response.videoDetails?.authorAvatar,
-                            uploaderSubCount = response.videoDetails?.authorSubCount,
+                        uploader = response.videoDetails?.author?.replace(Regex(" - Topic| - Chủ đề|"), ""),
+                        uploaderId = response.videoDetails?.channelId,
+                        uploaderThumbnail = response.videoDetails?.authorAvatar,
+                        uploaderSubCount = response.videoDetails?.authorSubCount,
                         description = response.videoDetails?.description,
                         youtubeCaptionsUrl = response.captions?.playerCaptionsTracklistRenderer?.captionTracks?.get(
                             0

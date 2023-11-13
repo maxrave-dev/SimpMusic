@@ -38,10 +38,23 @@
         <item name="android:textStyle">normal</item>
         <item name="android:textSize">13sp</item>
     </style>
+
     <style name="SubTitleToolBar">
         <item name="android:textColor">@android:color/white</item>
         <item name="android:fontFamily">@font/roboto</item>
         <item name="android:textStyle">bold</item>
         <item name="android:textSize">15sp</item>
+    </style>
+
+    <style name="FullScreenDialog" parent="android:Theme.Black.NoTitleBar.Fullscreen">
+        <item name="android:navigationBarColor">
+            @android:color/transparent
+        </item>
+
+    </style>
+
+    <style name="Widget.Theme.SimpMusic.ButtonBar.Fullscreen" parent="">
+        <item name="android:background">@color/black_overlay</item>
+        <item name="android:buttonBarStyle">?android:attr/buttonBarStyle</item>
     </style>
 </resources>

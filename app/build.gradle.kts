@@ -15,8 +15,8 @@ android {
         applicationId = "com.maxrave.simpmusic"
         minSdk = 26
         targetSdk = 34
-        versionCode = 12
-        versionName = "0.1.5"
+        versionCode = 13
+        versionName = "0.1.6"
 
         ksp {
             arg("room.schemaLocation", "$projectDir/schemas")
@@ -87,7 +87,6 @@ dependencies {
     implementation("androidx.media3:media3-exoplayer-smoothstreaming:$media3_version")
     implementation("androidx.media3:media3-exoplayer-workmanager:$media3_version")
     implementation("androidx.media3:media3-datasource-okhttp:$media3_version")
-    implementation("androidx.media3:media3-cast:$media3_version")
 
     //palette color
     implementation("androidx.palette:palette-ktx:1.0.0")

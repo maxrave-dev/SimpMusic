@@ -72,6 +72,35 @@ import org.json.JSONArray
 import java.net.Proxy
 import kotlin.random.Random
 
+private fun List<PipedResponse.AudioStream>.toListFormat(): List<PlayerResponse.StreamingData.Format> {
+    val list = mutableListOf<PlayerResponse.StreamingData.Format>()
+    this.forEach {
+        list.add(
+            PlayerResponse.StreamingData.Format(
+                itag = it.itag,
+                url = it.url,
+                mimeType = it.mimeType ?: "",
+                bitrate = it.bitrate,
+                width = it.width,
+                height = it.height,
+                contentLength = it.contentLength.toLong(),
+                quality = it.quality,
+                fps = it.fps,
+                qualityLabel = "",
+                averageBitrate = it.bitrate,
+                audioQuality = it.quality,
+                approxDurationMs = "",
+                audioSampleRate = 0,
+                audioChannels = 0,
+                loudnessDb = 0.0,
+                lastModified = 0,
+            )
+        )
+    }
+
+    return list
+}
+
 /**
  * Special thanks to [z-huang/InnerTune](https://github.com/z-huang/InnerTune)
  * This library is from [z-huang/InnerTune] and I just modified it to comply with SimpMusic
@@ -547,6 +576,7 @@ object YouTube {
         val firstThumb = playerResponse.videoDetails?.thumbnail?.thumbnails?.firstOrNull()
         val thumbnails =
             if (firstThumb?.height == firstThumb?.width && firstThumb != null) MediaType.Song else MediaType.Video
+        println("Player Response " + playerResponse.streamingData)
 //        println( playerResponse.streamingData?.adaptiveFormats?.findLast { it.itag == 251 }?.mimeType.toString())
         if (playerResponse.playabilityStatus.status == "OK") {
             return@runCatching Triple(
@@ -567,10 +597,12 @@ object YouTube {
                 ), thumbnails
             )
         }
-        val safePlayerResponse = ytMusic.player(TVHTML5, videoId, playlistId, cpn).body<PlayerResponse>()
-        if (safePlayerResponse.playabilityStatus.status != "OK") {
+        val safePlayerResponse =
+            ytMusic.player(TVHTML5, videoId, playlistId, cpn).body<PlayerResponse>()
+        println("Safe Player Response " + safePlayerResponse.playabilityStatus.status)
+        if (safePlayerResponse.playabilityStatus.status == "OK" && safePlayerResponse.streamingData != null) {
             return@runCatching Triple(
-                cpn, playerResponse.copy(
+                cpn, safePlayerResponse.copy(
                     videoDetails = safePlayerResponse.videoDetails?.copy(
 //                    authorAvatar = piped.uploaderAvatar?.replace(Regex("s48"), "s960"),
                         author = ytScrapeInitial.videoDetails?.author
@@ -591,26 +623,25 @@ object YouTube {
             val piped = ytMusic.pipedStreams(videoId, "pipedapi.kavin.rocks").body<PipedResponse>()
             Log.w("use Piped?", piped.audioStreams.toString())
             val audioStreams = piped.audioStreams
-            return@runCatching Triple(cpn, safePlayerResponse.copy(
-                streamingData = safePlayerResponse.streamingData?.copy(
-                    adaptiveFormats = safePlayerResponse.streamingData.adaptiveFormats.mapNotNull { adaptiveFormat ->
-                        audioStreams.find { it.itag == adaptiveFormat.itag }?.let {
-                            adaptiveFormat.copy(
-                                url = it.url,
-                            )
-                        }
-                    }
-                ),
-                videoDetails = safePlayerResponse.videoDetails?.copy(
+            val videoStreams = piped.videoStreams
+            val stream = audioStreams + videoStreams
+            return@runCatching Triple(
+                cpn, safePlayerResponse.copy(
+                    streamingData = PlayerResponse.StreamingData(
+                        formats = stream.toListFormat(),
+                        adaptiveFormats = stream.toListFormat(),
+                        expiresInSeconds = 0
+                    ),
+                    videoDetails = safePlayerResponse.videoDetails?.copy(
 //                    authorAvatar = piped.uploaderAvatar?.replace(Regex("s48"), "s960"),
-                    author = ytScrapeInitial.videoDetails?.author
-                        ?: safePlayerResponse.videoDetails.author,
-                    authorAvatar = ytScrapeData.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.thumbnail?.thumbnails?.get(
-                        0
-                    )?.url?.replace(Regex("s48"), "s960"),
+                        author = ytScrapeInitial.videoDetails?.author
+                            ?: safePlayerResponse.videoDetails.author,
+                        authorAvatar = ytScrapeData.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.thumbnail?.thumbnails?.get(
+                            0
+                        )?.url?.replace(Regex("s48"), "s960"),
 //                    authorSubCount = piped.uploaderSubscriberCount,
-                    authorSubCount = ytScrapeData.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.subscriberCountText?.simpleText
-                        ?: "0",
+                        authorSubCount = ytScrapeData.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.subscriberCountText?.simpleText
+                            ?: "0",
                     description = ytScrapeInitial.videoDetails?.shortDescription,
                 ),
                 captions = ytScrapeInitial.captions,
