@@ -17,6 +17,7 @@ A simple music app using YouTube Music for backend
 - Browsing Home, Charts, Podcast, Moods & Genre with YouTube Music data at high speed
 - Search everything on YouTube
 - Analyze your playing data, create custom playlists, and sync with YouTube Music...
+- Play video option
 - Caching and can save data for offline playback
 - Synced lyrics from Musixmatch and YouTube Transcript and translated lyrics (Community translation
   from Musixmatch)
