@@ -74,29 +74,31 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent">
 
-                        <LinearLayout
+                        <RelativeLayout
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:layout_alignParentTop="true"
-                            android:orientation="horizontal"
                             android:padding="0dp">
 
                             <com.google.android.material.imageview.ShapeableImageView
                                 android:id="@+id/ivArt"
                                 android:layout_width="40sp"
                                 android:layout_height="40sp"
-                                android:layout_gravity="center_vertical"
+                                android:layout_alignParentStart="true"
+                                android:layout_centerVertical="true"
                                 android:layout_marginStart="8sp"
                                 android:src="@drawable/outline_album_24">
 
                             </com.google.android.material.imageview.ShapeableImageView>
 
                             <LinearLayout
+                                android:id="@+id/llSongInfo"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:layout_gravity="center_vertical"
+                                android:layout_centerVertical="true"
                                 android:layout_marginStart="10sp"
-                                android:layout_weight="1"
+                                android:layout_marginEnd="100dp"
+                                android:layout_toEndOf="@+id/ivArt"
                                 android:orientation="vertical">
 
                                 <TextView
@@ -132,10 +134,10 @@
 
                             <com.google.android.material.checkbox.MaterialCheckBox
                                 android:id="@+id/cbFavorite"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:layout_gravity="center_vertical"
-                                android:layout_weight="2"
+                                android:layout_width="50dp"
+                                android:layout_height="50dp"
+                                android:layout_centerVertical="true"
+                                android:layout_toStartOf="@id/btPlayPause"
                                 android:button="@drawable/selector_favorite_check_box"
                                 android:clickable="true"
                                 android:focusable="true"
@@ -146,16 +148,17 @@
 
                             <ImageButton
                                 android:id="@+id/btPlayPause"
-                                android:layout_width="40sp"
-                                android:layout_height="40sp"
-                                android:layout_gravity="center_vertical"
+                                android:layout_width="40dp"
+                                android:layout_height="40dp"
+                                android:layout_centerVertical="true"
                                 android:layout_marginEnd="10sp"
                                 android:background="@null"
+                                android:layout_alignParentEnd="true"
                                 android:scaleType="fitCenter"
                                 android:src="@drawable/baseline_play_arrow_24">
 
                             </ImageButton>
-                        </LinearLayout>
+                        </RelativeLayout>
 
                         <com.google.android.material.progressindicator.LinearProgressIndicator
                             android:layout_alignParentBottom="true"

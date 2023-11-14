@@ -215,7 +215,6 @@
                     android:focusable="true"
                     android:clickable="true"
                     android:foreground="?android:attr/selectableItemBackground">
-
                     <TextView
                         android:textSize="16sp"
                         android:layout_width="match_parent"
@@ -226,11 +225,11 @@
                     </TextView>
 
                     <TextView
-                        android:id="@+id/tvVideoQuality"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textSize="16sp"
-                        android:text="">
+                        android:id="@+id/tvVideoQuality"
+                        android:text="720p">
 
                     </TextView>
 

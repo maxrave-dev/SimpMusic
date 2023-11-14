@@ -482,9 +482,11 @@ fun Lyrics.toLyricsEntity(videoId: String): LyricsEntity {
 fun setEnabledAll(v: View, enabled: Boolean) {
     v.isEnabled = enabled
     v.isFocusable = enabled
-    v.isClickable = enabled
     if (v is ImageButton) {
         if (enabled) v.setColorFilter(Color.WHITE) else v.setColorFilter(Color.GRAY)
+    }
+    if (v is TextView) {
+        v.isEnabled = enabled
     }
     if (v is ViewGroup) {
         val vg = v

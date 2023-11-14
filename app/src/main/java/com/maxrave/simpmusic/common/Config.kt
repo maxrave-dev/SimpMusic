@@ -76,8 +76,8 @@ object QUALITY {
 }
 
 object VIDEO_QUALITY {
-    val items: Array<CharSequence> = arrayOf("720p", "480p")
-    val itags: Array<Int> = arrayOf(22, 135)
+    val items: Array<CharSequence> = arrayOf("720p", "360p")
+    val itags: Array<Int> = arrayOf(22, 18)
 }
 
 object LYRICS_PROVIDER {

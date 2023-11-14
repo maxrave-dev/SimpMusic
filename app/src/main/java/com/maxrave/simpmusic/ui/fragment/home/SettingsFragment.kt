@@ -640,28 +640,28 @@ class SettingsFragment : Fragment() {
             val test = viewModel.playVideoInsteadOfAudio.value
             val checkReal = (test == DataStoreManager.TRUE) != checked
             if (checkReal) {
-                if (checked) {
-                    val dialog = MaterialAlertDialogBuilder(requireContext())
-                        .setTitle(getString(R.string.warning))
-                        .setMessage(getString(R.string.play_video_instead_of_audio_warning))
-                        .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
-                            binding.swEnableVideo.isChecked = false
-                            dialog.dismiss()
+                val dialog = MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(getString(R.string.warning))
+                    .setMessage(getString(R.string.play_video_instead_of_audio_warning))
+                    .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                        binding.swEnableVideo.isChecked = false
+                        dialog.dismiss()
+                    }
+                    .setPositiveButton(getString(R.string.change)) { dialog, _ ->
+                        viewModel.clearPlayerCache()
+                        viewModel.cacheSize.observe(viewLifecycleOwner) {
+                            drawDataStat()
+                            binding.tvPlayerCache.text =
+                                getString(R.string.cache_size, bytesToMB(it).toString())
                         }
-                        .setPositiveButton(getString(R.string.change)) { dialog, _ ->
-                            viewModel.clearPlayerCache()
-                            viewModel.cacheSize.observe(viewLifecycleOwner) {
-                                drawDataStat()
-                                binding.tvPlayerCache.text =
-                                    getString(R.string.cache_size, bytesToMB(it).toString())
-                            }
+                        if (checked) {
                             viewModel.setPlayVideoInsteadOfAudio(true)
-                            dialog.dismiss()
+                        } else {
+                            viewModel.setPlayVideoInsteadOfAudio(false)
                         }
-                    dialog.show()
-                } else {
-                    viewModel.setPlayVideoInsteadOfAudio(false)
-                }
+                        dialog.dismiss()
+                    }
+                dialog.show()
             }
         }
         binding.swSkipSilent.setOnCheckedChangeListener { _, checked ->

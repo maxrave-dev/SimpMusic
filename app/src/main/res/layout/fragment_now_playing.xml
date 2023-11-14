@@ -63,55 +63,65 @@
 
                     </com.google.android.material.progressindicator.CircularProgressIndicator>
 
-                    <androidx.constraintlayout.widget.ConstraintLayout
+                    <com.google.android.material.card.MaterialCardView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:elevation="8dp"
+                        style="?attr/materialCardViewElevatedStyle"
                         android:id="@+id/playerLayout"
+                        android:visibility="gone"
                         android:layout_centerInParent="true"
-                        android:visibility="gone">
+                        app:cardCornerRadius="0dp">
 
-                        <FrameLayout
-                            android:layout_width="0dp"
-                            android:layout_height="0dp"
-                            android:background="@color/md_theme_dark_background"
-                            app:layout_constraintDimensionRatio="H,16:9"
-                            app:layout_constraintTop_toTopOf="parent"
-                            app:layout_constraintStart_toStartOf="parent"
-                            app:layout_constraintEnd_toEndOf="parent">
+                        <androidx.constraintlayout.widget.ConstraintLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
 
-                            <androidx.media3.ui.PlayerView
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:keepScreenOn="true"
-                                android:id="@+id/playerView"
-                                app:artwork_display_mode="off"
-                                app:use_controller="false"
-                                app:show_subtitle_button="true"
-                                android:layout_gravity="center_vertical"></androidx.media3.ui.PlayerView>
+                            <FrameLayout
+                                android:layout_width="0dp"
+                                android:layout_height="0dp"
+                                android:background="@color/md_theme_dark_background"
+                                app:layout_constraintDimensionRatio="H,16:9"
+                                app:layout_constraintTop_toTopOf="parent"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintEnd_toEndOf="parent">
 
-                            <RelativeLayout
-                                android:id="@+id/overlay"
-                                android:background="@drawable/overlay"
-                                android:layout_width="match_parent"
-                                android:layout_height="@dimen/_35sdp"
-                                android:visibility="gone"
-                                android:gravity="top">
-
-                                <ImageButton
-                                    android:id="@+id/btFullscreen"
-                                    android:layout_width="wrap_content"
+                                <androidx.media3.ui.PlayerView
+                                    android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:background="?attr/actionBarItemBackground"
-                                    android:scaleType="fitCenter"
-                                    android:padding="12dp"
-                                    android:layout_alignParentBottom="true"
-                                    android:layout_alignParentEnd="true"
-                                    android:src="@drawable/baseline_fullscreen_24">
+                                    android:keepScreenOn="true"
+                                    android:id="@+id/playerView"
+                                    app:artwork_display_mode="off"
+                                    app:use_controller="false"
+                                    android:layout_gravity="center_vertical"
+                                    app:show_subtitle_button="true">
 
-                                </ImageButton>
-                            </RelativeLayout>
-                        </FrameLayout>
-                    </androidx.constraintlayout.widget.ConstraintLayout>
+                                </androidx.media3.ui.PlayerView>
+
+                                <RelativeLayout
+                                    android:id="@+id/overlay"
+                                    android:background="@drawable/overlay"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="@dimen/_35sdp"
+                                    android:visibility="gone"
+                                    android:gravity="top">
+
+                                    <ImageButton
+                                        android:id="@+id/btFullscreen"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:background="?attr/actionBarItemBackground"
+                                        android:scaleType="fitCenter"
+                                        android:padding="12dp"
+                                        android:layout_alignParentBottom="true"
+                                        android:layout_alignParentEnd="true"
+                                        android:src="@drawable/baseline_fullscreen_24">
+
+                                    </ImageButton>
+                                </RelativeLayout>
+                            </FrameLayout>
+                        </androidx.constraintlayout.widget.ConstraintLayout>
+                    </com.google.android.material.card.MaterialCardView>
                 </RelativeLayout>
 
                 <LinearLayout

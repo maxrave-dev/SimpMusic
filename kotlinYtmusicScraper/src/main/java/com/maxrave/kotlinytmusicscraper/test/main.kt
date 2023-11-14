@@ -13,7 +13,7 @@ import kotlinx.coroutines.runBlocking
 
 fun main() {
     runBlocking {
-        YouTube.player("v97wEjsmsYo").onSuccess { player ->
+        YouTube.player("vk1pRjGvsAQ").onSuccess { player ->
             println(player)
         }
     }

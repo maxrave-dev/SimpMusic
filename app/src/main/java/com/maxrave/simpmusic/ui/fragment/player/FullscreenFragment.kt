@@ -20,6 +20,8 @@ import com.daimajia.swipe.SwipeLayout
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.databinding.BottomSheetFullscreenBinding
+import com.maxrave.simpmusic.extension.setEnabledAll
+import com.maxrave.simpmusic.service.RepeatState
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import dagger.hilt.android.AndroidEntryPoint
@@ -79,6 +81,12 @@ class FullscreenFragment : Fragment() {
             btPlayPause.setOnClickListener {
                 viewModel.onUIEvent(UIEvent.PlayPause)
             }
+            binding.btShuffle.setOnClickListener {
+                viewModel.onUIEvent(UIEvent.Shuffle)
+            }
+            binding.btRepeat.setOnClickListener {
+                viewModel.onUIEvent(UIEvent.Repeat)
+            }
             rootLayout.setOnClickListener {
                 if (overlayLayout.visibility == View.VISIBLE) {
                     showJob?.cancel()
@@ -136,11 +144,55 @@ class FullscreenFragment : Fragment() {
                         }
                     }
                 }
+                val shuffle = launch {
+                    viewModel.shuffleModeEnabled.collect { shuffle ->
+                        when (shuffle) {
+                            true -> {
+                                binding.btShuffle.setImageResource(R.drawable.baseline_shuffle_24_enable)
+                            }
+
+                            false -> {
+                                binding.btShuffle.setImageResource(R.drawable.baseline_shuffle_24)
+                            }
+                        }
+                    }
+                }
+                val repeat = launch {
+                    viewModel.repeatMode.collect { repeatMode ->
+                        when (repeatMode) {
+                            RepeatState.None -> {
+                                binding.btRepeat.setImageResource(R.drawable.baseline_repeat_24)
+                            }
+
+                            RepeatState.One -> {
+                                binding.btRepeat.setImageResource(R.drawable.baseline_repeat_one_24)
+                            }
+
+                            RepeatState.All -> {
+                                binding.btRepeat.setImageResource(R.drawable.baseline_repeat_24_enable)
+                            }
+                        }
+                    }
+                }
+                val job11 = launch {
+                    viewModel.simpleMediaServiceHandler?.previousTrackAvailable?.collect { available ->
+                        setEnabledAll(binding.btPrevious, available)
+                    }
+                }
+                val job12 = launch {
+                    viewModel.simpleMediaServiceHandler?.nextTrackAvailable?.collect { available ->
+                        setEnabledAll(binding.btNext, available)
+                    }
+                }
                 time.join()
                 timeString.join()
                 duration.join()
                 isPlaying.join()
                 title.join()
+                repeat.join()
+                job11.join()
+                job12.join()
+                shuffle.join()
             }
         }
     }

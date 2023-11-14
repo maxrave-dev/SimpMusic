@@ -1,7 +1,6 @@
 package com.maxrave.simpmusic.ui.fragment.player
 
 import android.content.Intent
-import android.content.pm.ActivityInfo
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
@@ -13,15 +12,10 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowInsets
 import android.view.animation.AnimationUtils
 import android.widget.Toast
-import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.graphics.ColorUtils
 import androidx.core.net.toUri
-import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
@@ -41,8 +35,6 @@ import coil.size.Size
 import coil.transform.Transformation
 import com.daimajia.swipe.SwipeLayout
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetBehavior.BottomSheetCallback
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.slider.Slider
@@ -66,7 +58,6 @@ import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.metadata.MetadataSong
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.BottomSheetAddToAPlaylistBinding
-import com.maxrave.simpmusic.databinding.BottomSheetFullscreenBinding
 import com.maxrave.simpmusic.databinding.BottomSheetNowPlayingBinding
 import com.maxrave.simpmusic.databinding.BottomSheetSeeArtistOfNowPlayingBinding
 import com.maxrave.simpmusic.databinding.BottomSheetSleepTimerBinding
@@ -687,7 +678,7 @@ class NowPlayingFragment : Fragment() {
                             binding.tvUploader.text = format.uploader
                             binding.ivAuthor.load(format.uploaderThumbnail)
                             binding.tvSubCount.text = format.uploaderSubCount
-                            if (format.itag == 22) {
+                            if (format.itag == 22 || format.itag == 18) {
                                 binding.playerLayout.visibility = View.VISIBLE
                                 binding.ivArt.visibility = View.INVISIBLE
                                 binding.loadingArt.visibility = View.GONE
