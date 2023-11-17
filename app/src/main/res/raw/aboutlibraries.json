@@ -1,9 +1,11 @@
 {
-  "metadata": {},
+  "metadata": {
+  },
   "libraries": [
     {
       "uniqueId": "androidx.activity:activity",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -26,7 +28,8 @@
     },
     {
       "uniqueId": "androidx.activity:activity-ktx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -49,7 +52,8 @@
     },
     {
       "uniqueId": "androidx.annotation:annotation-experimental",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -69,7 +73,8 @@
     },
     {
       "uniqueId": "androidx.annotation:annotation-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -89,7 +94,8 @@
     },
     {
       "uniqueId": "androidx.appcompat:appcompat",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -109,7 +115,8 @@
     },
     {
       "uniqueId": "androidx.appcompat:appcompat-resources",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -129,7 +136,8 @@
     },
     {
       "uniqueId": "androidx.arch.core:core-common",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -149,7 +157,8 @@
     },
     {
       "uniqueId": "androidx.arch.core:core-runtime",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -169,7 +178,8 @@
     },
     {
       "uniqueId": "androidx.asynclayoutinflater:asynclayoutinflater",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -189,7 +199,8 @@
     },
     {
       "uniqueId": "androidx.autofill:autofill",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -209,7 +220,8 @@
     },
     {
       "uniqueId": "androidx.cardview:cardview",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -229,7 +241,8 @@
     },
     {
       "uniqueId": "androidx.collection:collection",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -249,7 +262,8 @@
     },
     {
       "uniqueId": "androidx.collection:collection-ktx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -269,7 +283,8 @@
     },
     {
       "uniqueId": "androidx.compose.animation:animation",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -289,7 +304,8 @@
     },
     {
       "uniqueId": "androidx.compose.animation:animation-core",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -309,7 +325,8 @@
     },
     {
       "uniqueId": "androidx.compose.foundation:foundation",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -329,7 +346,8 @@
     },
     {
       "uniqueId": "androidx.compose.foundation:foundation-layout",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -349,7 +367,8 @@
     },
     {
       "uniqueId": "androidx.compose.material:material",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -369,7 +388,8 @@
     },
     {
       "uniqueId": "androidx.compose.material:material-icons-core",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -389,7 +409,8 @@
     },
     {
       "uniqueId": "androidx.compose.material:material-ripple",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -409,7 +430,8 @@
     },
     {
       "uniqueId": "androidx.compose.runtime:runtime",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -429,7 +451,8 @@
     },
     {
       "uniqueId": "androidx.compose.runtime:runtime-saveable",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -449,7 +472,8 @@
     },
     {
       "uniqueId": "androidx.compose.ui:ui",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -469,7 +493,8 @@
     },
     {
       "uniqueId": "androidx.compose.ui:ui-geometry",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -489,7 +514,8 @@
     },
     {
       "uniqueId": "androidx.compose.ui:ui-graphics",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -509,7 +535,8 @@
     },
     {
       "uniqueId": "androidx.compose.ui:ui-text",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -529,7 +556,8 @@
     },
     {
       "uniqueId": "androidx.compose.ui:ui-tooling-preview",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -549,7 +577,8 @@
     },
     {
       "uniqueId": "androidx.compose.ui:ui-unit",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -569,7 +598,8 @@
     },
     {
       "uniqueId": "androidx.compose.ui:ui-util",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -589,8 +619,10 @@
     },
     {
       "uniqueId": "androidx.compose:compose-bom",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "2022.12.00",
       "description": "A compatible set of Jetpack Compose libraries.",
       "name": "Jetpack Compose Libraries BOM",
@@ -601,7 +633,8 @@
     },
     {
       "uniqueId": "androidx.concurrent:concurrent-futures",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -621,7 +654,8 @@
     },
     {
       "uniqueId": "androidx.constraintlayout:constraintlayout",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -641,7 +675,8 @@
     },
     {
       "uniqueId": "androidx.constraintlayout:constraintlayout-core",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -661,7 +696,8 @@
     },
     {
       "uniqueId": "androidx.coordinatorlayout:coordinatorlayout",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -681,7 +717,8 @@
     },
     {
       "uniqueId": "androidx.core:core",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -701,7 +738,8 @@
     },
     {
       "uniqueId": "androidx.core:core-ktx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -721,7 +759,8 @@
     },
     {
       "uniqueId": "androidx.cursoradapter:cursoradapter",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -741,7 +780,8 @@
     },
     {
       "uniqueId": "androidx.customview:customview",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -761,7 +801,8 @@
     },
     {
       "uniqueId": "androidx.customview:customview-poolingcontainer",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -781,8 +822,10 @@
     },
     {
       "uniqueId": "androidx.databinding:databinding-adapters",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "7.0.3",
       "description": "",
       "name": "androidx.databinding:databinding-adapters",
@@ -792,7 +835,8 @@
     },
     {
       "uniqueId": "androidx.databinding:databinding-common",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -812,8 +856,10 @@
     },
     {
       "uniqueId": "androidx.databinding:databinding-ktx",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "7.0.3",
       "description": "",
       "name": "androidx.databinding:databinding-ktx",
@@ -823,8 +869,10 @@
     },
     {
       "uniqueId": "androidx.databinding:databinding-runtime",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "7.0.3",
       "description": "",
       "name": "androidx.databinding:databinding-runtime",
@@ -834,8 +882,10 @@
     },
     {
       "uniqueId": "androidx.databinding:viewbinding",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "8.1.3",
       "description": "",
       "name": "androidx.databinding:viewbinding",
@@ -845,7 +895,8 @@
     },
     {
       "uniqueId": "androidx.datastore:datastore",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -865,7 +916,8 @@
     },
     {
       "uniqueId": "androidx.datastore:datastore-core",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -885,7 +937,8 @@
     },
     {
       "uniqueId": "androidx.datastore:datastore-preferences",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -905,7 +958,8 @@
     },
     {
       "uniqueId": "androidx.datastore:datastore-preferences-core",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -925,7 +979,8 @@
     },
     {
       "uniqueId": "androidx.documentfile:documentfile",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -945,7 +1000,8 @@
     },
     {
       "uniqueId": "androidx.drawerlayout:drawerlayout",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -965,7 +1021,8 @@
     },
     {
       "uniqueId": "androidx.dynamicanimation:dynamicanimation",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -985,7 +1042,8 @@
     },
     {
       "uniqueId": "androidx.emoji2:emoji2",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1005,7 +1063,8 @@
     },
     {
       "uniqueId": "androidx.emoji2:emoji2-views-helper",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1025,7 +1084,8 @@
     },
     {
       "uniqueId": "androidx.exifinterface:exifinterface",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1045,7 +1105,8 @@
     },
     {
       "uniqueId": "androidx.fragment:fragment",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1065,7 +1126,8 @@
     },
     {
       "uniqueId": "androidx.fragment:fragment-ktx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1085,7 +1147,8 @@
     },
     {
       "uniqueId": "androidx.interpolator:interpolator",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1105,7 +1168,8 @@
     },
     {
       "uniqueId": "androidx.legacy:legacy-support-core-ui",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1125,7 +1189,8 @@
     },
     {
       "uniqueId": "androidx.legacy:legacy-support-core-utils",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1145,7 +1210,8 @@
     },
     {
       "uniqueId": "androidx.legacy:legacy-support-v4",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1165,7 +1231,8 @@
     },
     {
       "uniqueId": "androidx.lifecycle:lifecycle-common",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1185,7 +1252,8 @@
     },
     {
       "uniqueId": "androidx.lifecycle:lifecycle-common-java8",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1205,7 +1273,8 @@
     },
     {
       "uniqueId": "androidx.lifecycle:lifecycle-extensions",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1225,7 +1294,8 @@
     },
     {
       "uniqueId": "androidx.lifecycle:lifecycle-livedata",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1245,7 +1315,8 @@
     },
     {
       "uniqueId": "androidx.lifecycle:lifecycle-livedata-core",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1265,7 +1336,8 @@
     },
     {
       "uniqueId": "androidx.lifecycle:lifecycle-livedata-core-ktx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1285,7 +1357,8 @@
     },
     {
       "uniqueId": "androidx.lifecycle:lifecycle-livedata-ktx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1305,7 +1378,8 @@
     },
     {
       "uniqueId": "androidx.lifecycle:lifecycle-process",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1325,7 +1399,8 @@
     },
     {
       "uniqueId": "androidx.lifecycle:lifecycle-runtime",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1345,7 +1420,8 @@
     },
     {
       "uniqueId": "androidx.lifecycle:lifecycle-runtime-ktx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1365,7 +1441,8 @@
     },
     {
       "uniqueId": "androidx.lifecycle:lifecycle-service",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1385,7 +1462,8 @@
     },
     {
       "uniqueId": "androidx.lifecycle:lifecycle-viewmodel",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1405,7 +1483,8 @@
     },
     {
       "uniqueId": "androidx.lifecycle:lifecycle-viewmodel-ktx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1425,7 +1504,8 @@
     },
     {
       "uniqueId": "androidx.lifecycle:lifecycle-viewmodel-savedstate",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1445,7 +1525,8 @@
     },
     {
       "uniqueId": "androidx.loader:loader",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1465,7 +1546,8 @@
     },
     {
       "uniqueId": "androidx.localbroadcastmanager:localbroadcastmanager",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1485,7 +1567,8 @@
     },
     {
       "uniqueId": "androidx.media3:media3-common",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1504,7 +1587,8 @@
     },
     {
       "uniqueId": "androidx.media3:media3-container",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1523,7 +1607,8 @@
     },
     {
       "uniqueId": "androidx.media3:media3-database",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1542,7 +1627,8 @@
     },
     {
       "uniqueId": "androidx.media3:media3-datasource",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1561,7 +1647,8 @@
     },
     {
       "uniqueId": "androidx.media3:media3-datasource-okhttp",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1580,7 +1667,8 @@
     },
     {
       "uniqueId": "androidx.media3:media3-decoder",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1599,7 +1687,8 @@
     },
     {
       "uniqueId": "androidx.media3:media3-exoplayer",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1618,7 +1707,8 @@
     },
     {
       "uniqueId": "androidx.media3:media3-exoplayer-dash",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1637,7 +1727,8 @@
     },
     {
       "uniqueId": "androidx.media3:media3-exoplayer-hls",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1656,7 +1747,8 @@
     },
     {
       "uniqueId": "androidx.media3:media3-exoplayer-rtsp",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1675,7 +1767,8 @@
     },
     {
       "uniqueId": "androidx.media3:media3-exoplayer-smoothstreaming",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1694,7 +1787,8 @@
     },
     {
       "uniqueId": "androidx.media3:media3-exoplayer-workmanager",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1713,7 +1807,8 @@
     },
     {
       "uniqueId": "androidx.media3:media3-extractor",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1732,7 +1827,8 @@
     },
     {
       "uniqueId": "androidx.media3:media3-session",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1751,7 +1847,8 @@
     },
     {
       "uniqueId": "androidx.media3:media3-ui",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1770,7 +1867,8 @@
     },
     {
       "uniqueId": "androidx.media:media",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1790,7 +1888,8 @@
     },
     {
       "uniqueId": "androidx.navigation:navigation-common",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1810,7 +1909,8 @@
     },
     {
       "uniqueId": "androidx.navigation:navigation-common-ktx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1830,7 +1930,8 @@
     },
     {
       "uniqueId": "androidx.navigation:navigation-fragment",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1850,7 +1951,8 @@
     },
     {
       "uniqueId": "androidx.navigation:navigation-fragment-ktx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1870,7 +1972,8 @@
     },
     {
       "uniqueId": "androidx.navigation:navigation-runtime",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1890,7 +1993,8 @@
     },
     {
       "uniqueId": "androidx.navigation:navigation-runtime-ktx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1910,7 +2014,8 @@
     },
     {
       "uniqueId": "androidx.navigation:navigation-ui",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1930,7 +2035,8 @@
     },
     {
       "uniqueId": "androidx.navigation:navigation-ui-ktx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1950,7 +2056,8 @@
     },
     {
       "uniqueId": "androidx.paging:paging-common",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1970,7 +2077,8 @@
     },
     {
       "uniqueId": "androidx.paging:paging-common-ktx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1990,7 +2098,8 @@
     },
     {
       "uniqueId": "androidx.paging:paging-runtime",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2010,7 +2119,8 @@
     },
     {
       "uniqueId": "androidx.paging:paging-runtime-ktx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2030,7 +2140,8 @@
     },
     {
       "uniqueId": "androidx.palette:palette",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2050,7 +2161,8 @@
     },
     {
       "uniqueId": "androidx.palette:palette-ktx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2070,7 +2182,8 @@
     },
     {
       "uniqueId": "androidx.preference:preference",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2090,7 +2203,8 @@
     },
     {
       "uniqueId": "androidx.preference:preference-ktx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2110,7 +2224,8 @@
     },
     {
       "uniqueId": "androidx.print:print",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2130,7 +2245,8 @@
     },
     {
       "uniqueId": "androidx.profileinstaller:profileinstaller",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2150,7 +2266,8 @@
     },
     {
       "uniqueId": "androidx.recyclerview:recyclerview",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2170,7 +2287,8 @@
     },
     {
       "uniqueId": "androidx.resourceinspection:resourceinspection-annotation",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2190,7 +2308,8 @@
     },
     {
       "uniqueId": "androidx.room:room-common",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2210,7 +2329,8 @@
     },
     {
       "uniqueId": "androidx.room:room-ktx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2230,7 +2350,8 @@
     },
     {
       "uniqueId": "androidx.room:room-runtime",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2250,7 +2371,8 @@
     },
     {
       "uniqueId": "androidx.savedstate:savedstate",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2270,7 +2392,8 @@
     },
     {
       "uniqueId": "androidx.savedstate:savedstate-ktx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2290,7 +2413,8 @@
     },
     {
       "uniqueId": "androidx.slidingpanelayout:slidingpanelayout",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2310,7 +2434,8 @@
     },
     {
       "uniqueId": "androidx.sqlite:sqlite",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2330,7 +2455,8 @@
     },
     {
       "uniqueId": "androidx.sqlite:sqlite-framework",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2350,7 +2476,8 @@
     },
     {
       "uniqueId": "androidx.startup:startup-runtime",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2370,7 +2497,8 @@
     },
     {
       "uniqueId": "androidx.swiperefreshlayout:swiperefreshlayout",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2390,7 +2518,8 @@
     },
     {
       "uniqueId": "androidx.tracing:tracing",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2410,7 +2539,8 @@
     },
     {
       "uniqueId": "androidx.transition:transition",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2430,7 +2560,8 @@
     },
     {
       "uniqueId": "androidx.vectordrawable:vectordrawable",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2450,7 +2581,8 @@
     },
     {
       "uniqueId": "androidx.vectordrawable:vectordrawable-animated",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2470,7 +2602,8 @@
     },
     {
       "uniqueId": "androidx.versionedparcelable:versionedparcelable",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2490,7 +2623,8 @@
     },
     {
       "uniqueId": "androidx.viewpager2:viewpager2",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2510,7 +2644,8 @@
     },
     {
       "uniqueId": "androidx.viewpager:viewpager",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2530,7 +2665,8 @@
     },
     {
       "uniqueId": "androidx.window:window",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2550,7 +2686,8 @@
     },
     {
       "uniqueId": "androidx.work:work-runtime",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2570,7 +2707,8 @@
     },
     {
       "uniqueId": "cat.ereza:customactivityoncrash",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Eduard Ereza Mart\u00ednez"
@@ -2591,7 +2729,8 @@
     },
     {
       "uniqueId": "com.airbnb.android:lottie",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Airbnb"
@@ -2612,7 +2751,8 @@
     },
     {
       "uniqueId": "com.daimajia.swipelayout:library",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "daimajia"
@@ -2633,7 +2773,8 @@
     },
     {
       "uniqueId": "com.facebook.fbui.textlayoutbuilder:staticlayout-proxy",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Facebook"
@@ -2654,7 +2795,8 @@
     },
     {
       "uniqueId": "com.facebook.shimmer:shimmer",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Facebook"
@@ -2675,7 +2817,8 @@
     },
     {
       "uniqueId": "com.github.bumptech.glide:annotations",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Sam Judd"
@@ -2697,7 +2840,8 @@
     },
     {
       "uniqueId": "com.github.bumptech.glide:disklrucache",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Sam Judd"
@@ -2719,7 +2863,8 @@
     },
     {
       "uniqueId": "com.github.bumptech.glide:gifdecoder",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Sam Judd"
@@ -2741,7 +2886,8 @@
     },
     {
       "uniqueId": "com.github.bumptech.glide:glide",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Sam Judd"
@@ -2763,7 +2909,8 @@
     },
     {
       "uniqueId": "com.github.giangpham96.expandable-text:expandable_text_compose",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Giang H. Pham"
@@ -2784,7 +2931,8 @@
     },
     {
       "uniqueId": "com.github.giangpham96.expandable-text:expandable_textview",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Giang H. Pham"
@@ -2805,16 +2953,20 @@
     },
     {
       "uniqueId": "com.github.giangpham96:expandable-text",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "2.0.0",
       "description": "",
       "name": "com.github.giangpham96:expandable-text",
-      "licenses": []
+      "licenses": [
+      ]
     },
     {
       "uniqueId": "com.google.android.flexbox:flexbox",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Google"
@@ -2833,7 +2985,8 @@
     },
     {
       "uniqueId": "com.google.android.material:material",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2853,8 +3006,10 @@
     },
     {
       "uniqueId": "com.google.code.findbugs:jsr305",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "3.0.2",
       "description": "JSR305 Annotations for Findbugs",
       "scm": {
@@ -2870,8 +3025,10 @@
     },
     {
       "uniqueId": "com.google.code.gson:gson",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "2.10.1",
       "description": "Gson JSON library",
       "scm": {
@@ -2887,8 +3044,10 @@
     },
     {
       "uniqueId": "com.google.dagger:dagger",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "2.48.1",
       "description": "A fast dependency injector for Android and Java.",
       "scm": {
@@ -2908,8 +3067,10 @@
     },
     {
       "uniqueId": "com.google.dagger:dagger-lint-aar",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "2.48.1",
       "description": "A fast dependency injector for Android and Java.",
       "scm": {
@@ -2929,8 +3090,10 @@
     },
     {
       "uniqueId": "com.google.dagger:hilt-android",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "2.48.1",
       "description": "A fast dependency injector for Android and Java.",
       "scm": {
@@ -2950,8 +3113,10 @@
     },
     {
       "uniqueId": "com.google.dagger:hilt-core",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "2.48.1",
       "description": "A fast dependency injector for Android and Java.",
       "scm": {
@@ -2971,8 +3136,10 @@
     },
     {
       "uniqueId": "com.google.errorprone:error_prone_annotations",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "2.15.0",
       "description": "Error Prone is a static analysis tool for Java that catches common programming mistakes at compile-time.",
       "scm": {
@@ -2992,8 +3159,10 @@
     },
     {
       "uniqueId": "com.google.guava:failureaccess",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "1.0.1",
       "description": "Contains\n    com.google.common.util.concurrent.internal.InternalFutureFailureAccess and\n    InternalFutures. Most users will never need to use this artifact. Its\n    classes is conceptually a part of Guava, but they're in this separate\n    artifact so that Android libraries can use them without pulling in all of\n    Guava (just as they can use ListenableFuture by depending on the\n    listenablefuture artifact).",
       "scm": {
@@ -3009,8 +3178,10 @@
     },
     {
       "uniqueId": "com.google.guava:guava",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "31.1-android",
       "description": "Guava is a suite of core and expanded libraries that include\n    utility classes, Google's collections, I/O classes, and\n    much more.",
       "scm": {
@@ -3026,8 +3197,10 @@
     },
     {
       "uniqueId": "com.google.guava:listenablefuture",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "9999.0-empty-to-avoid-conflict-with-guava",
       "description": "An empty artifact that Guava depends on to signal that it is providing\n    ListenableFuture -- but is also available in a second \"version\" that\n    contains com.google.common.util.concurrent.ListenableFuture class, without\n    any other Guava classes. The idea is:\n\n    - If users want only ListenableFuture, they depend on listenablefuture-1.0.\n\n    - If users want all of Guava, they depend on guava, which, as of Guava\n    27.0, depends on\n    listenablefuture-9999.0-empty-to-avoid-conflict-with-guava. The 9999.0-...\n    version number is enough for some build systems (notably, Gradle) to select\n    that empty artifact over the \"real\" listenablefuture-1.0 -- avoiding a\n    conflict with the copy of ListenableFuture in guava itself. If users are\n    using an older version of Guava or a build system other than Gradle, they\n    may see class conflicts. If so, they can solve them by manually excluding\n    the listenablefuture artifact or manually forcing their build systems to\n    use 9999.0-....",
       "scm": {
@@ -3043,8 +3216,10 @@
     },
     {
       "uniqueId": "com.google.j2objc:j2objc-annotations",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "1.3",
       "description": "A set of annotations that provide additional information to the J2ObjC\n    translator to modify the result of translation.",
       "scm": {
@@ -3060,7 +3235,8 @@
     },
     {
       "uniqueId": "com.intuit.sdp:sdp-android",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Elhanan Mishraky"
@@ -3081,7 +3257,8 @@
     },
     {
       "uniqueId": "com.intuit.ssp:ssp-android",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Elhanan Mishraky"
@@ -3102,7 +3279,8 @@
     },
     {
       "uniqueId": "com.mikepenz:aboutlibraries-core-android",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Mike Penz"
@@ -3123,7 +3301,8 @@
     },
     {
       "uniqueId": "com.mikepenz:fastadapter",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Mike Penz"
@@ -3144,7 +3323,8 @@
     },
     {
       "uniqueId": "com.mohamedrejeb.ksoup:ksoup-entites-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Mohamed Rejeb"
@@ -3164,7 +3344,8 @@
     },
     {
       "uniqueId": "com.mohamedrejeb.ksoup:ksoup-html-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Mohamed Rejeb"
@@ -3184,7 +3365,8 @@
     },
     {
       "uniqueId": "com.squareup.okhttp3:okhttp",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Square, Inc."
@@ -3205,7 +3387,8 @@
     },
     {
       "uniqueId": "com.squareup.okio:okio-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Square, Inc."
@@ -3226,7 +3409,8 @@
     },
     {
       "uniqueId": "dev.chrisbanes.insetter:insetter",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Chris Banes"
@@ -3247,7 +3431,8 @@
     },
     {
       "uniqueId": "dev.chrisbanes.insetter:insetter-dbx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Chris Banes"
@@ -3268,7 +3453,8 @@
     },
     {
       "uniqueId": "io.coil-kt:coil",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Coil Contributors"
@@ -3289,7 +3475,8 @@
     },
     {
       "uniqueId": "io.coil-kt:coil-base",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Coil Contributors"
@@ -3310,7 +3497,8 @@
     },
     {
       "uniqueId": "io.github.pdvrieze.xmlutil:core-android",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Paul de Vrieze"
@@ -3331,7 +3519,8 @@
     },
     {
       "uniqueId": "io.github.pdvrieze.xmlutil:serialization-android",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Paul de Vrieze"
@@ -3352,7 +3541,8 @@
     },
     {
       "uniqueId": "io.ktor:ktor-client-cio-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3372,7 +3562,8 @@
     },
     {
       "uniqueId": "io.ktor:ktor-client-content-negotiation-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3392,7 +3583,8 @@
     },
     {
       "uniqueId": "io.ktor:ktor-client-core-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3412,7 +3604,8 @@
     },
     {
       "uniqueId": "io.ktor:ktor-client-encoding-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3432,7 +3625,8 @@
     },
     {
       "uniqueId": "io.ktor:ktor-client-okhttp-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3452,7 +3646,8 @@
     },
     {
       "uniqueId": "io.ktor:ktor-events-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3472,7 +3667,8 @@
     },
     {
       "uniqueId": "io.ktor:ktor-http-cio-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3492,7 +3688,8 @@
     },
     {
       "uniqueId": "io.ktor:ktor-http-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3512,7 +3709,8 @@
     },
     {
       "uniqueId": "io.ktor:ktor-io-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3532,7 +3730,8 @@
     },
     {
       "uniqueId": "io.ktor:ktor-network-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3552,7 +3751,8 @@
     },
     {
       "uniqueId": "io.ktor:ktor-network-tls-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3572,7 +3772,8 @@
     },
     {
       "uniqueId": "io.ktor:ktor-serialization-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3592,7 +3793,8 @@
     },
     {
       "uniqueId": "io.ktor:ktor-serialization-kotlinx-json-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3612,7 +3814,8 @@
     },
     {
       "uniqueId": "io.ktor:ktor-serialization-kotlinx-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3632,7 +3835,8 @@
     },
     {
       "uniqueId": "io.ktor:ktor-serialization-kotlinx-xml-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3652,7 +3856,8 @@
     },
     {
       "uniqueId": "io.ktor:ktor-utils-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3672,7 +3877,8 @@
     },
     {
       "uniqueId": "io.ktor:ktor-websocket-serialization-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3692,7 +3898,8 @@
     },
     {
       "uniqueId": "io.ktor:ktor-websockets-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3712,8 +3919,10 @@
     },
     {
       "uniqueId": "javax.inject:javax.inject",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "1",
       "description": "The javax.inject API",
       "scm": {
@@ -3727,8 +3936,10 @@
     },
     {
       "uniqueId": "org.brotli:dec",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "0.1.2",
       "description": "Brotli is a generic-purpose lossless compression algorithm.",
       "scm": {
@@ -3744,7 +3955,8 @@
     },
     {
       "uniqueId": "org.checkerframework:checker-qual",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.cs.washington.edu/",
@@ -3770,7 +3982,8 @@
     },
     {
       "uniqueId": "org.jetbrains.kotlin:kotlin-bom",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3792,7 +4005,8 @@
     },
     {
       "uniqueId": "org.jetbrains.kotlin:kotlin-reflect",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3814,7 +4028,8 @@
     },
     {
       "uniqueId": "org.jetbrains.kotlin:kotlin-stdlib",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3836,7 +4051,8 @@
     },
     {
       "uniqueId": "org.jetbrains.kotlin:kotlin-stdlib-jdk7",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3858,7 +4074,8 @@
     },
     {
       "uniqueId": "org.jetbrains.kotlin:kotlin-stdlib-jdk8",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3880,7 +4097,8 @@
     },
     {
       "uniqueId": "org.jetbrains.kotlinx:atomicfu-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3900,7 +4118,8 @@
     },
     {
       "uniqueId": "org.jetbrains.kotlinx:kotlinx-coroutines-android",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3920,7 +4139,8 @@
     },
     {
       "uniqueId": "org.jetbrains.kotlinx:kotlinx-coroutines-bom",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3940,7 +4160,8 @@
     },
     {
       "uniqueId": "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3960,7 +4181,8 @@
     },
     {
       "uniqueId": "org.jetbrains.kotlinx:kotlinx-coroutines-guava",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3980,7 +4202,8 @@
     },
     {
       "uniqueId": "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -4000,7 +4223,8 @@
     },
     {
       "uniqueId": "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -4020,7 +4244,8 @@
     },
     {
       "uniqueId": "org.jetbrains.kotlinx:kotlinx-serialization-bom",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -4040,7 +4265,8 @@
     },
     {
       "uniqueId": "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -4060,7 +4286,8 @@
     },
     {
       "uniqueId": "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -4080,7 +4307,8 @@
     },
     {
       "uniqueId": "org.jetbrains:annotations",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -4102,8 +4330,10 @@
     },
     {
       "uniqueId": "org.slf4j:slf4j-api",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "1.7.36",
       "description": "The slf4j API",
       "scm": {
@@ -4122,7 +4352,8 @@
     },
     {
       "uniqueId": "pub.devrel:easypermissions",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Google"

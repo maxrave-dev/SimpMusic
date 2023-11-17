@@ -169,6 +169,7 @@ hilt {
     enableAggregatingTask = true
 }
 aboutLibraries {
+    prettyPrint = true
     registerAndroidTasks = false
     excludeFields = arrayOf("generated")
 }

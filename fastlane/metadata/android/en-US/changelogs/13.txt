@@ -1,0 +1,2 @@
+- Fix dependencies
+- Play video option
