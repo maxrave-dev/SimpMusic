@@ -1,7 +1,5 @@
 {
-  "metadata": {
-    "generated": "2023-11-13T17:25:17.128Z"
-  },
+  "metadata": {},
   "libraries": [
     {
       "uniqueId": "androidx.activity:activity",

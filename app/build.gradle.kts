@@ -170,4 +170,5 @@ hilt {
 }
 aboutLibraries {
     registerAndroidTasks = false
+    excludeFields = arrayOf("generated")
 }
