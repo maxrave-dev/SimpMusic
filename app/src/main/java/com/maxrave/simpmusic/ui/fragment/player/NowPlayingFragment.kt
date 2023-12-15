@@ -682,6 +682,7 @@ class NowPlayingFragment : Fragment() {
                                 binding.playerLayout.visibility = View.VISIBLE
                                 binding.ivArt.visibility = View.INVISIBLE
                                 binding.loadingArt.visibility = View.GONE
+                                viewModel.updateSubtitle(format.youtubeCaptionsUrl)
                             } else {
                                 binding.playerLayout.visibility = View.GONE
                                 binding.ivArt.visibility = View.VISIBLE

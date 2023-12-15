@@ -10,6 +10,7 @@ import com.maxrave.simpmusic.data.model.home.Content
 import com.maxrave.simpmusic.databinding.ItemHomeContentArtistBinding
 import com.maxrave.simpmusic.databinding.ItemHomeContentPlaylistBinding
 import com.maxrave.simpmusic.databinding.ItemHomeContentSongBinding
+import com.maxrave.simpmusic.databinding.ItemHomeContentVideoBinding
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.toListName
 
@@ -63,16 +64,43 @@ class HomeItemContentAdapter(private var listContent: ArrayList<Content>, privat
             }
         }
     }
-    inner class PlaylistViewHolder(var binding: ItemHomeContentPlaylistBinding, var listener: onPlaylistItemClickListener): RecyclerView.ViewHolder(binding.root){
+
+    inner class VideoViewHolder(
+        var binding: ItemHomeContentVideoBinding,
+        var listener: onSongItemClickListener
+    ) : RecyclerView.ViewHolder(binding.root) {
         init {
-            binding.root.setOnClickListener {listener.onPlaylistItemClick(bindingAdapterPosition)}
+            binding.root.setOnClickListener { listener.onSongItemClick(bindingAdapterPosition) }
         }
-        fun bind(content: Content){
-            with(binding){
+
+        fun bind(content: Content) {
+            with(binding) {
+                if (content.thumbnails.isNotEmpty()) {
+                    ivArt.load(content.thumbnails.lastOrNull()?.url)
+                }
+                tvSongName.text = content.title
+                tvSongName.isSelected = true
+                tvArtistName.text = content.artists.toListName().firstOrNull()
+                tvArtistName.isSelected = true
+                tvAlbumName.text = content.album?.name ?: context.getString(R.string.videos)
+                tvAlbumName.isSelected = true
+            }
+        }
+    }
+
+    inner class PlaylistViewHolder(
+        var binding: ItemHomeContentPlaylistBinding,
+        var listener: onPlaylistItemClickListener
+    ) : RecyclerView.ViewHolder(binding.root) {
+        init {
+            binding.root.setOnClickListener { listener.onPlaylistItemClick(bindingAdapterPosition) }
+        }
+
+        fun bind(content: Content) {
+            with(binding) {
                 if (content.thumbnails.size > 1) {
                     ivArt.load(content.thumbnails[1].url)
-                }
-                else{
+                } else {
                     ivArt.load(content.thumbnails[0].url)
                 }
                 tvTitle.text = content.title
@@ -129,7 +157,16 @@ class HomeItemContentAdapter(private var listContent: ArrayList<Content>, privat
             SONG -> SongViewHolder(ItemHomeContentSongBinding.inflate(inflate, parent, false), mSongListener)
             PLAYLIST -> PlaylistViewHolder(ItemHomeContentPlaylistBinding.inflate(inflate, parent, false), mPlaylistListener)
             ALBUM -> AlbumViewHolder(ItemHomeContentPlaylistBinding.inflate(inflate, parent, false), mAlbumListener)
-            ARTIST -> ArtistViewHolder(ItemHomeContentArtistBinding.inflate(inflate, parent, false), mArtistListener)
+            ARTIST -> ArtistViewHolder(
+                ItemHomeContentArtistBinding.inflate(inflate, parent, false),
+                mArtistListener
+            )
+
+            VIDEO -> VideoViewHolder(
+                ItemHomeContentVideoBinding.inflate(inflate, parent, false),
+                mSongListener
+            )
+
             else -> throw IllegalArgumentException("Invalid view type")
         }
     }
@@ -140,6 +177,7 @@ class HomeItemContentAdapter(private var listContent: ArrayList<Content>, privat
             is PlaylistViewHolder -> holder.bind(listContent[position])
             is AlbumViewHolder -> holder.bind(listContent[position])
             is ArtistViewHolder -> holder.bind(listContent[position])
+            is VideoViewHolder -> holder.bind(listContent[position])
         }
     }
 
@@ -150,13 +188,14 @@ class HomeItemContentAdapter(private var listContent: ArrayList<Content>, privat
                 ARTIST
             else
                 PLAYLIST
-        } else if ((temp.browseId != null && temp.videoId == null) || (temp.browseId != null && temp.videoId == "") ) {
+        } else if ((temp.browseId != null && temp.videoId == null) || (temp.browseId != null && temp.videoId == "")) {
             if (temp.browseId.startsWith("UC"))
                 ARTIST
             else
                 ALBUM
-        }
-        else{
+        } else if (temp.thumbnails.firstOrNull()?.width != temp.thumbnails.firstOrNull()?.height) {
+            VIDEO
+        } else {
             SONG
         }
     }
@@ -170,5 +209,6 @@ class HomeItemContentAdapter(private var listContent: ArrayList<Content>, privat
         private const val PLAYLIST = 2
         private const val ALBUM = 3
         private const val ARTIST = 4
+        private const val VIDEO = 5
     }
 }

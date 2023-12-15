@@ -15,13 +15,13 @@ import android.util.Log
 import android.view.View
 import android.view.animation.AnimationUtils
 import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.graphics.ColorUtils
 import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
-import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.lifecycleScope
@@ -350,8 +350,14 @@ class MainActivity : AppCompatActivity() {
                 putString(FIRST_TIME_MIGRATION, STATUS_DONE)
             }
         }
-        if (AppCompatDelegate.getApplicationLocales().toLanguageTags() != getString(SELECTED_LANGUAGE)) {
-            Log.d("Locale Key", "onCreate: ${AppCompatDelegate.getApplicationLocales().toLanguageTags()}")
+        if (AppCompatDelegate.getApplicationLocales().toLanguageTags() != getString(
+                SELECTED_LANGUAGE
+            )
+        ) {
+            Log.d(
+                "Locale Key",
+                "onCreate: ${AppCompatDelegate.getApplicationLocales().toLanguageTags()}"
+            )
             putString(SELECTED_LANGUAGE, AppCompatDelegate.getApplicationLocales().toLanguageTags())
             YouTube.locale = YouTubeLocale(
                 gl = getString("location") ?: "US",
@@ -360,15 +366,20 @@ class MainActivity : AppCompatActivity() {
         }
 //
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            WindowCompat.setDecorFitsSystemWindows(window, false)
+//            WindowCompat.setDecorFitsSystemWindows(window, false)
+        enableEdgeToEdge()
 //        } else {
 //            window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
 //        }
 
-        if (!EasyPermissions.hasPermissions(this, Manifest.permission.POST_NOTIFICATIONS)){
+        if (!EasyPermissions.hasPermissions(this, Manifest.permission.POST_NOTIFICATIONS)) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                EasyPermissions.requestPermissions(this,
-                    getString(R.string.this_app_needs_to_access_your_notification), 1, Manifest.permission.POST_NOTIFICATIONS)
+                EasyPermissions.requestPermissions(
+                    this,
+                    getString(R.string.this_app_needs_to_access_your_notification),
+                    1,
+                    Manifest.permission.POST_NOTIFICATIONS
+                )
             }
         }
 

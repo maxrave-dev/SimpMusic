@@ -5,15 +5,12 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.BitmapDrawable
 import android.net.Uri
-import androidx.core.graphics.drawable.toBitmap
 import androidx.media3.common.util.BitmapLoader
 import androidx.media3.common.util.UnstableApi
-import coil.ImageLoader
 import coil.imageLoader
 import coil.request.ErrorResult
 import coil.request.ImageRequest
 import com.google.common.util.concurrent.ListenableFuture
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.guava.future
@@ -27,7 +24,7 @@ class CoilBitmapLoader(private val context: Context): BitmapLoader {
         }
     }
 
-    override fun loadBitmap(uri: Uri): ListenableFuture<Bitmap> {
+    override fun loadBitmap(uri: Uri, options: BitmapFactory.Options?): ListenableFuture<Bitmap> {
         return GlobalScope.future(Dispatchers.IO) {
             val result =
                 (context.imageLoader.execute(

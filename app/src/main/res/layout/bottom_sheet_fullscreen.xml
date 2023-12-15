@@ -12,7 +12,9 @@
         app:artwork_display_mode="off"
         app:use_controller="false"
         app:show_subtitle_button="true"
-        android:keepScreenOn="true"></androidx.media3.ui.PlayerView>
+        android:keepScreenOn="true">
+
+    </androidx.media3.ui.PlayerView>
 
     <RelativeLayout
         android:layout_width="match_parent"

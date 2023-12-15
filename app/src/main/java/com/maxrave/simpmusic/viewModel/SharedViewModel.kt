@@ -99,7 +99,6 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     private var _related = MutableStateFlow<Resource<ArrayList<Track>>?>(null)
     val related: StateFlow<Resource<ArrayList<Track>>?> = _related
 
-    val listItag = listOf(171,249,250,251,140,141,256,258)
     var videoId = MutableLiveData<String>()
     var from = MutableLiveData<String>()
     var gradientDrawable: MutableLiveData<GradientDrawable> = MutableLiveData()
@@ -176,7 +175,9 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     var playlistId: MutableStateFlow<String?> = MutableStateFlow(null)
     private var initJob: Job? = null
 
-//    init {
+    var loadingMore: MutableStateFlow<Boolean> = MutableStateFlow(false)
+
+    //    init {
 //        Log.w("Check SharedViewModel init", (simpleMediaServiceHandler != null).toString())
 ////        regionCode = runBlocking { dataStoreManager.location.first() }
 ////        quality = runBlocking { dataStoreManager.quality.first() }
@@ -264,6 +265,15 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                                 videoId.postValue(tempSong.videoId)
                                 _nowPlayingMediaItem.value = nowPlaying
                             }
+                            val index = getCurrentMediaItemIndex() + 1
+                            Log.w("Check index", index.toString())
+                            val size = simpleMediaServiceHandler!!.catalogMetadata.size
+                            Log.w("Check size", size.toString())
+                            Log.w("Check loadingMore", loadingMore.toString())
+                            if (size > 3 && size - index < 3 && size - index >= 0 && !loadingMore.first()) {
+                                Log.d("Check loadMore", "loadMore")
+                                loadMore()
+                            }
                         }
                     }
                 }
@@ -319,15 +329,35 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
         }
     }
 
+    fun loadMore() {
+        val continuation = Queue.getContinuation()
+        Log.w("Check loadMore", continuation.toString())
+        if (continuation != null) {
+            viewModelScope.launch {
+                loadingMore.value = true
+                Log.w("Check loadMore continuation", continuation.toString())
+                mainRepository.getContinueTrack(continuation.first, continuation.second)
+                    .collect { response ->
+                        if (response != null) {
+                            Log.w("Check loadMore response", response.toString())
+                            simpleMediaServiceHandler?.loadMoreCatalog(response)
+                        }
+                        loadingMore.value = false
+                    }
+            }
+        }
+    }
+
     private fun initPlayback(playback: String?, atr: String?, watchTime: String?, cpn: String?) {
         jobWatchtime?.cancel()
         viewModelScope.launch {
             if (playback != null && atr != null && watchTime != null && cpn != null) {
                 watchTimeList.clear()
-                mainRepository.initPlayback(playback, atr, watchTime, cpn, playlistId.value).collect {
-                    if (it.first == 204) {
-                        Log.d("Check initPlayback", "Success")
-                        watchTimeList.add(0f)
+                mainRepository.initPlayback(playback, atr, watchTime, cpn, playlistId.value)
+                    .collect {
+                        if (it.first == 204) {
+                            Log.d("Check initPlayback", "Success")
+                            watchTimeList.add(0f)
                         watchTimeList.add(5.54f)
                         watchTimeList.add(it.second)
                         updateWatchTime()
@@ -1191,6 +1221,12 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
 
     fun activityRecreate() {
         _recreateActivity.value = true
+    }
+
+    fun updateSubtitle(url: String?) {
+        if (url != null) {
+            simpleMediaServiceHandler?.updateSubtitle(url)
+        }
     }
 }
 sealed class UIEvent {

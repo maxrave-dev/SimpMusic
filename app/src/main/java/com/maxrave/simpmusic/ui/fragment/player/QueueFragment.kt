@@ -11,6 +11,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -131,22 +132,43 @@ class QueueFragment: BottomSheetDialogFragment() {
                 }
             }
             val job4 = launch {
-                viewModel.simpleMediaServiceHandler?.added?.collect{ isAdded ->
+                viewModel.simpleMediaServiceHandler?.added?.collect { isAdded ->
                     Log.d("Check Added in Queue", "$isAdded")
-                    if (isAdded){
+                    if (isAdded) {
                         queueAdapter.updateList(viewModel.simpleMediaServiceHandler!!.catalogMetadata)
                         viewModel.simpleMediaServiceHandler?.changeAddedState()
                     }
+                }
+            }
+            val job5 = launch {
+                viewModel.loadingMore.collect {
+                    if (it) {
+                        binding.loadingQueue.visibility = View.VISIBLE
+                    } else {
+                        binding.loadingQueue.visibility = View.GONE
+                    }
+
                 }
             }
             job1.join()
             job2.join()
             job3.join()
             job4.join()
+            job5.join()
         }
 
         binding.tvSongTitle.isSelected = true
         binding.tvSongArtist.isSelected = true
+
+        binding.rvQueue.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+                val layoutManager = recyclerView.layoutManager as LinearLayoutManager?
+                if (!viewModel.loadingMore.value && layoutManager != null && layoutManager.findLastCompletelyVisibleItemPosition() == queueAdapter.itemCount - 1) {
+                    viewModel.loadMore()
+                }
+            }
+        })
 
         queueAdapter.setOnClickListener(object : QueueAdapter.OnItemClickListener {
             override fun onItemClick(position: Int) {

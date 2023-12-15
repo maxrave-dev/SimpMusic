@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.data.parser
 
+import android.content.Context
 import android.util.Log
 import com.maxrave.kotlinytmusicscraper.models.MusicShelfRenderer
 import com.maxrave.kotlinytmusicscraper.models.response.BrowseResponse
@@ -14,8 +15,13 @@ import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 
-fun parsePlaylistData(header: Any?, listContent: List<MusicShelfRenderer.Content>, playlistId: String): PlaylistBrowse? {
-    if (header != null){
+fun parsePlaylistData(
+    header: Any?,
+    listContent: List<MusicShelfRenderer.Content>,
+    playlistId: String,
+    context: Context
+): PlaylistBrowse? {
+    if (header != null) {
         var title = ""
         val listAuthor: ArrayList<Author> = arrayListOf()
         var duration = ""
@@ -71,7 +77,13 @@ fun parsePlaylistData(header: Any?, listContent: List<MusicShelfRenderer.Content
         for (content in listContent){
             val track = Track(
                 album = null,
-                artists = content.musicResponsiveListItemRenderer?.let { parseSongArtists(it, 1) }
+                artists = content.musicResponsiveListItemRenderer?.let {
+                    parseSongArtists(
+                        it,
+                        1,
+                        context
+                    )
+                }
                     ?: listOf(),
                 duration = content.musicResponsiveListItemRenderer?.fixedColumns?.get(0)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.get(
                     0

@@ -109,27 +109,33 @@
                     android:textSize="18sp"
                     android:textStyle="bold"
                     android:textColor="@android:color/white" />
-                    <LinearLayout
-                        android:orientation="vertical"
+                    <RelativeLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content">
+
                         <androidx.recyclerview.widget.RecyclerView
                             android:id="@+id/rvQueue"
+                            android:layout_alignParentTop="true"
+                            android:layout_above="@id/loadingQueue"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             tools:listitem="@layout/item_album_track">
 
                         </androidx.recyclerview.widget.RecyclerView>
+
                         <com.google.android.material.progressindicator.CircularProgressIndicator
+                            android:visibility="gone"
+                            android:layout_alignParentBottom="true"
                             android:id="@+id/loadingQueue"
+                            android:layout_centerHorizontal="true"
                             android:layout_width="50sp"
                             android:layout_height="50sp"
                             android:indeterminate="true"
                             android:layout_gravity="center_horizontal"
-                            android:layout_marginVertical="15sp">
+                            android:paddingVertical="15sp">
 
                         </com.google.android.material.progressindicator.CircularProgressIndicator>
-                    </LinearLayout>
+                    </RelativeLayout>
             </LinearLayout>
         </LinearLayout>
 </RelativeLayout>
