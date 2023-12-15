@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
@@ -305,8 +306,9 @@ class MainActivity : AppCompatActivity() {
         if (viewModel.recreateActivity.value == true) {
             viewModel.simpleMediaServiceHandler?.coroutineScope = lifecycleScope
             runCollect()
+        } else {
+            startMusicService()
         }
-        startMusicService()
         Log.d("MainActivity", "onCreate: ")
         action = intent.action
         data = intent?.data ?: intent?.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
@@ -765,6 +767,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun getString(key: String): String? {
         return viewModel.getString(key)
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        viewModel.activityRecreate()
     }
 
 }

@@ -45,14 +45,15 @@
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="@dimen/_60sdp">
 
-                    <ImageView
+                    <com.google.android.material.imageview.ShapeableImageView
                         android:id="@+id/ivArt"
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/_260sdp"
                         android:layout_centerInParent="true"
+                        app:shapeAppearanceOverlay="@style/rounded_thumb"
                         android:scaleType="fitCenter">
 
-                    </ImageView>
+                    </com.google.android.material.imageview.ShapeableImageView>
 
                     <com.google.android.material.progressindicator.CircularProgressIndicator
                         android:id="@+id/loading_art"
@@ -71,7 +72,7 @@
                         android:id="@+id/playerLayout"
                         android:visibility="gone"
                         android:layout_centerInParent="true"
-                        app:cardCornerRadius="0dp">
+                        app:cardCornerRadius="8dp">
 
                         <androidx.constraintlayout.widget.ConstraintLayout
                             android:layout_width="match_parent"
@@ -80,21 +81,24 @@
                             <FrameLayout
                                 android:layout_width="0dp"
                                 android:layout_height="0dp"
-                                android:background="@color/md_theme_dark_background"
+                                android:background="@drawable/rounded_framelayout"
                                 app:layout_constraintDimensionRatio="H,16:9"
                                 app:layout_constraintTop_toTopOf="parent"
                                 app:layout_constraintStart_toStartOf="parent"
-                                app:layout_constraintEnd_toEndOf="parent">
+                                app:layout_constraintEnd_toEndOf="parent"
+                                android:clipToOutline="true">
 
                                 <androidx.media3.ui.PlayerView
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
+                                    android:background="@drawable/rounded_framelayout"
                                     android:keepScreenOn="true"
                                     android:id="@+id/playerView"
                                     app:artwork_display_mode="off"
                                     app:use_controller="false"
                                     android:layout_gravity="center_vertical"
-                                    app:show_subtitle_button="true">
+                                    app:show_subtitle_button="true"
+                                    android:clipToOutline="true">
 
                                 </androidx.media3.ui.PlayerView>
 

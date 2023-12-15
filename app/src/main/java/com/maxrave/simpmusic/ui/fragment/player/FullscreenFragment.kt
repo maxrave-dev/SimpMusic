@@ -34,7 +34,6 @@ import kotlinx.coroutines.launch
 class FullscreenFragment : Fragment() {
     private val viewModel: SharedViewModel by activityViewModels()
     private val binding by lazy { BottomSheetFullscreenBinding.inflate(layoutInflater) }
-    var job: Job? = null
     private var showJob: Job? = null
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -53,7 +52,10 @@ class FullscreenFragment : Fragment() {
         val miniplayer = activity.findViewById<SwipeLayout>(R.id.miniplayer)
         bottom.visibility = View.GONE
         miniplayer.visibility = View.GONE
-        hideSystemUI()
+        if (!viewModel.isFullScreen) {
+            hideSystemUI()
+            viewModel.isFullScreen = true
+        }
         if (binding.playerView.player == null) {
             binding.playerView.player = viewModel.simpleMediaServiceHandler?.player
         }
@@ -198,7 +200,6 @@ class FullscreenFragment : Fragment() {
     }
 
     private fun hideSystemUI() {
-        WindowCompat.setDecorFitsSystemWindows(requireActivity().window, false)
         WindowInsetsControllerCompat(requireActivity().window, binding.root).let { controller ->
             controller.hide(WindowInsetsCompat.Type.systemBars())
             controller.systemBarsBehavior =
@@ -216,9 +217,13 @@ class FullscreenFragment : Fragment() {
         requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
     }
 
+    @UnstableApi
     override fun onDestroy() {
         super.onDestroy()
         binding.playerView.player = null
-        showSystemUI()
+        if (viewModel.isFullScreen) {
+            showSystemUI()
+            viewModel.isFullScreen = false
+        }
     }
 }

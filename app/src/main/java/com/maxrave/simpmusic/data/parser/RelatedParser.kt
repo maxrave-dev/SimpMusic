@@ -21,15 +21,24 @@ fun parseRelated(data:  List<PlaylistPanelRenderer.Content>?): ArrayList<Track>?
                     if (longByTextRuns[i].navigationEndpoint?.browseEndpoint?.browseId != null) {
                         if (longByTextRuns[i].navigationEndpoint?.browseEndpoint?.browseId?.startsWith("UC") == true){
                             val artistName = longByTextRuns[i].text
-                            val artistId = longByTextRuns[i].navigationEndpoint?.browseEndpoint?.browseId
+                            val artistId =
+                                longByTextRuns[i].navigationEndpoint?.browseEndpoint?.browseId
                             artist.add(Artist(artistId ?: "", artistName))
-                        }
-                        else if (longByTextRuns[i].navigationEndpoint?.browseEndpoint?.browseId?.startsWith("MP") == true){
+                        } else if (longByTextRuns[i].navigationEndpoint?.browseEndpoint?.browseId?.startsWith(
+                                "MP"
+                            ) == true
+                        ) {
                             val albumName = longByTextRuns[i].text
-                            val albumId = longByTextRuns[i].navigationEndpoint?.browseEndpoint?.browseId
+                            val albumId =
+                                longByTextRuns[i].navigationEndpoint?.browseEndpoint?.browseId
                             album.add(Album(albumId ?: "", albumName))
                         }
                     }
+                }
+                if (artist.isEmpty()) {
+                    val artistName = longByTextRuns[0].text
+                    val artistId = longByTextRuns[0].navigationEndpoint?.browseEndpoint?.browseId
+                    artist.add(Artist(artistId ?: "", artistName))
                 }
             }
             val videoId = track.playlistPanelVideoRenderer?.navigationEndpoint?.watchEndpoint?.videoId

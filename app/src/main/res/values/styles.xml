@@ -4,16 +4,20 @@
     <style name="rounded_corner">
         <item name="cornerSize">10dp</item>
     </style>
+
+    <style name="rounded_thumb">
+        <item name="cornerSize">8dp</item>
+    </style>
+
     <style name="rounded_corner_for_quick_pick">
         <item name="cornerSize">5dp</item>
     </style>
 
-    <style name="artist_name"
-        parent="TextAppearance.Material3.DisplayMedium">
+    <style name="artist_name" parent="TextAppearance.Material3.DisplayMedium">
         <item name="android:textColor">@android:color/white</item>
         <item name="android:fontFamily">@font/jetbrains_mono_bold</item>
         <item name="android:textStyle">bold</item>
-        </style>
+    </style>
     <style name="album_name"
         parent="TextAppearance.Material3.BodyMedium">
         <item name="android:textColor">@android:color/white</item>
