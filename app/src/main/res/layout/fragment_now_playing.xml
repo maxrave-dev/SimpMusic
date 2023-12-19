@@ -50,8 +50,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="@dimen/_260sdp"
                         android:layout_centerInParent="true"
-                        app:shapeAppearanceOverlay="@style/rounded_thumb"
-                        android:scaleType="fitCenter">
+                        android:scaleType="fitCenter"
+                        app:shapeAppearanceOverlay="@style/rounded_thumb">
 
                     </com.google.android.material.imageview.ShapeableImageView>
 
@@ -97,8 +97,7 @@
                                     app:artwork_display_mode="off"
                                     app:use_controller="false"
                                     android:layout_gravity="center_vertical"
-                                    app:show_subtitle_button="true"
-                                    android:clipToOutline="true">
+                                    app:show_subtitle_button="true">
 
                                 </androidx.media3.ui.PlayerView>
 

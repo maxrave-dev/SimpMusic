@@ -45,6 +45,7 @@ import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
 import com.maxrave.kotlinytmusicscraper.models.youtube.data.YouTubeDataPage
 import com.maxrave.kotlinytmusicscraper.pages.AlbumPage
 import com.maxrave.kotlinytmusicscraper.pages.ArtistPage
+import com.maxrave.kotlinytmusicscraper.pages.ArtistSection
 import com.maxrave.kotlinytmusicscraper.pages.BrowseResult
 import com.maxrave.kotlinytmusicscraper.pages.ExplorePage
 import com.maxrave.kotlinytmusicscraper.pages.MoodAndGenres
@@ -252,6 +253,21 @@ object YouTube {
             ?.mapNotNull {
                 AlbumPage.fromMusicResponsiveListItemRenderer(it.musicResponsiveListItemRenderer)
             }!!
+    }
+
+    suspend fun testArtist(browseId: String): Result<ArrayList<ArtistSection>> = runCatching {
+        val response = ytMusic.browse(WEB_REMIX, browseId).body<BrowseResponse>()
+        val artistSections = arrayListOf<ArtistSection>()
+        val content = response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()
+            ?.tabRenderer?.content?.sectionListRenderer?.contents
+        if (content != null) {
+            for (i in 0 until content.size) {
+                ArtistPage.fromSectionListRendererContent(content.get(i))
+                    ?.let { artistSections.add(it) }
+                println("Section $i checking \n artistSection ${artistSections.lastOrNull()}")
+            }
+        }
+        return@runCatching artistSections
     }
 
     /**

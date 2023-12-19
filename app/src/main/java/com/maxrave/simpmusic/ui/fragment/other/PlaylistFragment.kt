@@ -268,12 +268,24 @@ class PlaylistFragment: Fragment() {
         }
 
         binding.btPlayPause.setOnClickListener {
-            if (viewModel.playlistBrowse.value is Resource.Success && viewModel.playlistBrowse.value?.data != null){
+            if (viewModel.isRadio.value == false) {
+                Queue.setContinuation(null)
+            }
+            if (viewModel.playlistBrowse.value is Resource.Success && viewModel.playlistBrowse.value?.data != null) {
                 val args = Bundle()
                 args.putString("type", Config.PLAYLIST_CLICK)
-                args.putString("videoId", viewModel.playlistBrowse.value?.data?.tracks?.get(0)?.videoId)
-                args.putString("from", "Playlist \"${viewModel.playlistBrowse.value?.data?.title}\"")
-                args.putString("playlistId", viewModel.playlistBrowse.value?.data?.id?.replaceFirst("VL", ""))
+                args.putString(
+                    "videoId",
+                    viewModel.playlistBrowse.value?.data?.tracks?.get(0)?.videoId
+                )
+                args.putString(
+                    "from",
+                    "Playlist \"${viewModel.playlistBrowse.value?.data?.title}\""
+                )
+                args.putString(
+                    "playlistId",
+                    viewModel.playlistBrowse.value?.data?.id?.replaceFirst("VL", "")
+                )
                 if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                     args.putInt("downloaded", 1)
                 }
@@ -285,8 +297,7 @@ class PlaylistFragment: Fragment() {
                 }
                 Log.d("PlaylistFragment", "Queue: ${Queue.getQueue().size}")
                 findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
-            }
-            else if (viewModel.playlistEntity.value != null && viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED){
+            } else if (viewModel.playlistEntity.value != null && viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED){
                 val args = Bundle()
                 args.putString("type", Config.PLAYLIST_CLICK)
                 args.putString("videoId", viewModel.playlistEntity.value?.tracks?.get(0))
@@ -303,8 +314,7 @@ class PlaylistFragment: Fragment() {
                 }
                 Log.d("PlaylistFragment", "Queue: ${Queue.getQueue().size}")
                 findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
-            }
-            else {
+            } else {
                 Snackbar.make(requireView(),
                     getString(R.string.playlist_is_empty), Snackbar.LENGTH_SHORT).show()
             }
@@ -312,12 +322,24 @@ class PlaylistFragment: Fragment() {
 
         playlistItemAdapter.setOnClickListener(object: PlaylistItemAdapter.OnItemClickListener{
             override fun onItemClick(position: Int) {
-                if (viewModel.playlistBrowse.value is Resource.Success && viewModel.playlistBrowse.value?.data != null){
+                if (viewModel.isRadio.value == false) {
+                    Queue.setContinuation(null)
+                }
+                if (viewModel.playlistBrowse.value is Resource.Success && viewModel.playlistBrowse.value?.data != null) {
                     val args = Bundle()
                     args.putString("type", Config.PLAYLIST_CLICK)
-                    args.putString("videoId", viewModel.playlistBrowse.value?.data!!.tracks[position].videoId)
-                    args.putString("from", "Playlist \"${viewModel.playlistBrowse.value?.data!!.title}\"")
-                    args.putString("playlistId", viewModel.playlistBrowse.value?.data?.id?.replaceFirst("VL", ""))
+                    args.putString(
+                        "videoId",
+                        viewModel.playlistBrowse.value?.data!!.tracks[position].videoId
+                    )
+                    args.putString(
+                        "from",
+                        "Playlist \"${viewModel.playlistBrowse.value?.data!!.title}\""
+                    )
+                    args.putString(
+                        "playlistId",
+                        viewModel.playlistBrowse.value?.data?.id?.replaceFirst("VL", "")
+                    )
                     args.putInt("index", position)
                     if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                         args.putInt("downloaded", 1)

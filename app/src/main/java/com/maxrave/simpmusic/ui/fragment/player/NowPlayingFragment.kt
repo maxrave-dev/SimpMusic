@@ -32,6 +32,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import coil.load
 import coil.request.CachePolicy
 import coil.size.Size
+import coil.transform.RoundedCornersTransformation
 import coil.transform.Transformation
 import com.daimajia.swipe.SwipeLayout
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -55,6 +56,7 @@ import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.model.browse.album.Track
+import com.maxrave.simpmusic.data.model.metadata.Line
 import com.maxrave.simpmusic.data.model.metadata.MetadataSong
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.BottomSheetAddToAPlaylistBinding
@@ -169,7 +171,27 @@ class NowPlayingFragment : Fragment() {
         disableScrolling = DisableTouchEventRecyclerView()
 
         lyricsAdapter = LyricsAdapter(null)
+        lyricsAdapter.setOnItemClickListener(object : LyricsAdapter.OnItemClickListener {
+            override fun onItemClick(line: Line) {
+                //No Implementation
+            }
+        })
         lyricsFullAdapter = LyricsAdapter(null)
+        lyricsFullAdapter.setOnItemClickListener(object : LyricsAdapter.OnItemClickListener {
+            override fun onItemClick(line: Line) {
+                Log.w("Check line", line.toString())
+                val duration = runBlocking { viewModel.duration.first() }
+                Log.w("Check duration", duration.toString())
+                if (duration > 0 && line.startTimeMs.toLong() < duration) {
+                    Log.w(
+                        "Check seek",
+                        (line.startTimeMs.toLong().toDouble() / duration).toFloat().toString()
+                    )
+                    val seek = ((line.startTimeMs.toLong() * 100).toDouble() / duration).toFloat()
+                    viewModel.onUIEvent(UIEvent.UpdateProgress(seek))
+                }
+            }
+        })
         binding.rvLyrics.apply {
             adapter = lyricsAdapter
             layoutManager = CenterLayoutManager(requireContext())
@@ -1447,7 +1469,8 @@ class NowPlayingFragment : Fragment() {
                             return input
                         }
 
-                    }
+                    },
+                    RoundedCornersTransformation(8f)
                 )
             }
 //            val request = ImageRequest.Builder(requireContext())

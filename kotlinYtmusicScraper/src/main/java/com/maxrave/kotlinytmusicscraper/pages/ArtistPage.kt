@@ -1,6 +1,5 @@
 package com.maxrave.kotlinytmusicscraper.pages
 
-import android.util.Log
 import com.maxrave.kotlinytmusicscraper.models.Album
 import com.maxrave.kotlinytmusicscraper.models.AlbumItem
 import com.maxrave.kotlinytmusicscraper.models.Artist
@@ -77,12 +76,13 @@ data class ArtistPage(
                                 id = it.navigationEndpoint?.browseEndpoint?.browseId
                             )
                 } ?: return null,
-                album = renderer.flexColumns.getOrNull(2)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()?.let {
-                    Album(
-                        name = it.text,
-                        id = it.navigationEndpoint?.browseEndpoint?.browseId!!
-                    )
-                },
+                album = renderer.flexColumns.lastOrNull()?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()
+                    ?.let {
+                        Album(
+                            name = it.text,
+                            id = it.navigationEndpoint?.browseEndpoint?.browseId!!
+                        )
+                    },
                 duration = null,
                 thumbnail = renderer.thumbnail?.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
                 explicit = renderer.badges?.find {
@@ -94,6 +94,7 @@ data class ArtistPage(
         fun fromMusicTwoRowItemRenderer(renderer: MusicTwoRowItemRenderer): YTItem? {
             return when {
                 renderer.isSong -> {
+                    print("isSong")
                     SongItem(
                         id = renderer.navigationEndpoint.watchEndpoint?.videoId ?: return null,
                         title = renderer.title.runs?.firstOrNull()?.text ?: return null,
@@ -113,22 +114,25 @@ data class ArtistPage(
                 }
 
                 renderer.isAlbum -> {
+                    print("isAlbum")
                     AlbumItem(
-                        browseId = renderer.navigationEndpoint.browseEndpoint?.browseId ?: return null,
+                        browseId = renderer.navigationEndpoint.browseEndpoint?.browseId
+                            ?: return null,
                         playlistId = renderer.thumbnailOverlay?.musicItemThumbnailOverlayRenderer?.content
                             ?.musicPlayButtonRenderer?.playNavigationEndpoint
                             ?.watchPlaylistEndpoint?.playlistId ?: return null,
                         title = renderer.title.runs?.firstOrNull()?.text ?: return null,
                         artists = null,
                         year = renderer.subtitle?.runs?.lastOrNull()?.text?.toIntOrNull(),
-                        thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
+                        thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
+                            ?: return null,
                         explicit = renderer.subtitleBadges?.find {
                             it.musicInlineBadgeRenderer.icon.iconType == "MUSIC_EXPLICIT_BADGE"
                         } != null
                     )
                 }
-
                 renderer.isPlaylist -> {
+                    print("isPlaylist")
                     // Playlist from YouTube Music
                     PlaylistItem(
                         id = renderer.navigationEndpoint.browseEndpoint?.browseId?.removePrefix("VL") ?: return null,
@@ -153,28 +157,33 @@ data class ArtistPage(
                 }
 
                 renderer.isArtist -> {
+                    print("isArtist")
                     ArtistItem(
                         id = renderer.navigationEndpoint.browseEndpoint?.browseId ?: return null,
                         title = renderer.title.runs?.lastOrNull()?.text ?: return null,
-                        thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
+                        thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
+                            ?: return null,
                         shuffleEndpoint = renderer.menu?.menuRenderer?.items?.find {
                             it.menuNavigationItemRenderer?.icon?.iconType == "MUSIC_SHUFFLE"
-                        }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint ?: return null,
+                        }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint
+                            ?: return null,
                         radioEndpoint = renderer.menu.menuRenderer.items.find {
                             it.menuNavigationItemRenderer?.icon?.iconType == "MIX"
-                        }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint ?: return null,
+                        }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint
+                            ?: return null,
                         subscribers = renderer.subtitle?.runs?.firstOrNull()?.text ?: return null,
                     )
                 }
                 renderer.isVideo -> {
-                    Log.d("ArtistPage", "isVideo")
+                    print("isVideo")
                     VideoItem(
                         id = renderer.navigationEndpoint.watchEndpoint?.videoId ?: return null,
                         title = renderer.title.runs?.get(0)?.text ?: return null,
-                        thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
+                        thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
+                            ?: return null,
                         endpoint = renderer.navigationEndpoint.watchEndpoint,
                         thumbnails = renderer.thumbnailRenderer.musicThumbnailRenderer.thumbnail,
-                        artists = renderer.subtitle?.runs?.let {list ->
+                        artists = renderer.subtitle?.runs?.let { list ->
                             val artist = mutableListOf<Artist>()
                             for (i in list.indices) {
                                 if (i % 2 == 0 && i != list.lastIndex) {

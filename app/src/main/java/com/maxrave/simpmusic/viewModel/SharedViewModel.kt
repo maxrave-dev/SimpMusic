@@ -686,6 +686,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                     }
                 }
                 ALBUM_CLICK -> {
+                    Queue.setContinuation(null)
                     if (index == null) {
 //                                        fetchSourceFromQueue(downloaded = downloaded ?: 0)
                         loadPlaylistOrAlbum()

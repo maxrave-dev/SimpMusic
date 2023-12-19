@@ -13,6 +13,15 @@ class LyricsAdapter(private var originalLyrics: Lyrics?, var translated: Lyrics?
 
     private var activeLyrics: Line? = null
 
+    interface OnItemClickListener {
+        fun onItemClick(line: Line)
+    }
+
+    lateinit var mListener: OnItemClickListener
+    fun setOnItemClickListener(listener: OnItemClickListener) {
+        mListener = listener
+    }
+
     fun updateOriginalLyrics(lyrics: Lyrics) {
         if (lyrics != originalLyrics) {
             originalLyrics = lyrics
@@ -20,6 +29,7 @@ class LyricsAdapter(private var originalLyrics: Lyrics?, var translated: Lyrics?
             notifyDataSetChanged()
         }
     }
+
     fun updateTranslatedLyrics(lyrics: Lyrics?) {
         if (lyrics != null) {
             translated = lyrics
@@ -45,30 +55,41 @@ class LyricsAdapter(private var originalLyrics: Lyrics?, var translated: Lyrics?
         }
     }
 
-    inner class ActiveViewHolder(val binding: ItemLyricsActiveBinding): RecyclerView.ViewHolder(binding.root) {
+    inner class ActiveViewHolder(
+        val binding: ItemLyricsActiveBinding,
+        val listener: OnItemClickListener
+    ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(line: Line) {
+            binding.root.setOnClickListener {
+                listener.onItemClick(line)
+            }
             binding.tvNowLyrics.text = line.words
             if (translated != null && translated?.lines?.find { it.startTimeMs == line.startTimeMs }?.words != null) {
                 translated?.lines?.find { it.startTimeMs == line.startTimeMs }?.words?.let {
                     binding.tvTranslatedLyrics.visibility = View.VISIBLE
                     binding.tvTranslatedLyrics.text = it
                 }
-            }
-            else {
+            } else {
                 binding.tvTranslatedLyrics.visibility = View.GONE
             }
         }
     }
-    inner class NormalViewHolder(val binding: ItemLyricsNormalBinding): RecyclerView.ViewHolder(binding.root) {
+
+    inner class NormalViewHolder(
+        val binding: ItemLyricsNormalBinding,
+        val listener: OnItemClickListener
+    ) : RecyclerView.ViewHolder(binding.root) {
         fun bind(line: Line) {
+            binding.root.setOnClickListener {
+                listener.onItemClick(line)
+            }
             binding.tvLyrics.text = line.words
             if (translated != null && translated?.lines?.find { it.startTimeMs == line.startTimeMs }?.words != null) {
                 translated?.lines?.find { it.startTimeMs == line.startTimeMs }?.words?.let {
                     binding.tvTranslatedLyrics.visibility = View.VISIBLE
                     binding.tvTranslatedLyrics.text = it
                 }
-            }
-            else {
+            } else {
                 binding.tvTranslatedLyrics.visibility = View.GONE
             }
         }
@@ -76,8 +97,21 @@ class LyricsAdapter(private var originalLyrics: Lyrics?, var translated: Lyrics?
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
-            TYPE_ACTIVE -> ActiveViewHolder(ItemLyricsActiveBinding.inflate(LayoutInflater.from(parent.context), parent, false))
-            else -> NormalViewHolder(ItemLyricsNormalBinding.inflate(LayoutInflater.from(parent.context), parent, false))
+            TYPE_ACTIVE -> ActiveViewHolder(
+                ItemLyricsActiveBinding.inflate(
+                    LayoutInflater.from(
+                        parent.context
+                    ), parent, false
+                ), mListener
+            )
+
+            else -> NormalViewHolder(
+                ItemLyricsNormalBinding.inflate(
+                    LayoutInflater.from(parent.context),
+                    parent,
+                    false
+                ), mListener
+            )
         }
     }
 

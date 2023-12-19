@@ -9,14 +9,12 @@ import com.maxrave.kotlinytmusicscraper.models.Run
 import com.maxrave.kotlinytmusicscraper.models.SectionListRenderer
 import com.maxrave.kotlinytmusicscraper.models.Thumbnail
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
 
 fun main() {
     runBlocking {
-        YouTube.nextCustom("vk1pRjGvsAQ").onSuccess { player ->
-            println(Json.encodeToString(player))
+        YouTube.testArtist("UC-FbBvrUwI1CmCnurnJlc6Q").onSuccess { player ->
+            println(player)
         }
     }
 //        Ytmusic().player(YouTubeClient.ANDROID_MUSIC, )
