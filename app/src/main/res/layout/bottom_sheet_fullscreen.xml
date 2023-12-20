@@ -39,6 +39,7 @@
                 android:textSize="@dimen/_15ssp"
                 android:textColor="@android:color/white"
                 android:layout_gravity="center_horizontal"
+                android:gravity="center_horizontal"
                 android:text="Check main subtitle">
 
             </TextView>
@@ -51,6 +52,7 @@
                 android:textSize="@dimen/_13ssp"
                 android:textColor="#FFEB3B"
                 android:layout_gravity="center_horizontal"
+                android:gravity="center_horizontal"
                 android:text="Check main subtitle">
 
             </TextView>
