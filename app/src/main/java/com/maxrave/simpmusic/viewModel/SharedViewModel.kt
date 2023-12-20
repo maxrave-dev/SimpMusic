@@ -177,6 +177,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
 
     var loadingMore: MutableStateFlow<Boolean> = MutableStateFlow(false)
     var isFullScreen: Boolean = false
+    var isSubtitle: Boolean = true
 
     //    init {
 //        Log.w("Check SharedViewModel init", (simpleMediaServiceHandler != null).toString())

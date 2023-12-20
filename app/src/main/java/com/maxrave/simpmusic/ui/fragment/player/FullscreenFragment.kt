@@ -19,6 +19,7 @@ import androidx.navigation.fragment.findNavController
 import com.daimajia.swipe.SwipeLayout
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.databinding.BottomSheetFullscreenBinding
 import com.maxrave.simpmusic.extension.setEnabledAll
 import com.maxrave.simpmusic.service.RepeatState
@@ -68,6 +69,13 @@ class FullscreenFragment : Fragment() {
                     overlayLayout.visibility = View.GONE
                 }
             }
+            if (viewModel.isSubtitle) {
+                binding.btSubtitle.setImageResource(R.drawable.baseline_subtitles_24)
+                binding.subtitleView.visibility = View.VISIBLE
+            } else {
+                binding.btSubtitle.setImageResource(R.drawable.baseline_subtitles_off_24)
+                binding.subtitleView.visibility = View.GONE
+            }
             toolbar.setNavigationOnClickListener {
                 findNavController().popBackStack()
             }
@@ -88,6 +96,16 @@ class FullscreenFragment : Fragment() {
             }
             binding.btRepeat.setOnClickListener {
                 viewModel.onUIEvent(UIEvent.Repeat)
+            }
+            binding.btSubtitle.setOnClickListener {
+                viewModel.isSubtitle = !viewModel.isSubtitle
+                if (viewModel.isSubtitle) {
+                    binding.btSubtitle.setImageResource(R.drawable.baseline_subtitles_24)
+                    binding.subtitleView.visibility = View.VISIBLE
+                } else {
+                    binding.btSubtitle.setImageResource(R.drawable.baseline_subtitles_off_24)
+                    binding.subtitleView.visibility = View.GONE
+                }
             }
             rootLayout.setOnClickListener {
                 if (overlayLayout.visibility == View.VISIBLE) {
@@ -186,6 +204,52 @@ class FullscreenFragment : Fragment() {
                         setEnabledAll(binding.btNext, available)
                     }
                 }
+                val job5 = launch {
+                    viewModel.progressMillis.collect {
+                        if (viewModel._lyrics.value?.data != null && viewModel.isSubtitle) {
+//                            val temp = viewModel.getLyricsString(it)
+                            val lyrics = viewModel._lyrics.value!!.data
+                            val translated = viewModel.translateLyrics.value
+                            val index = viewModel.getActiveLyrics(it)
+                            if (index != null) {
+                                if (lyrics?.lines?.get(0)?.words == "Lyrics not found") {
+                                    binding.subtitleView.visibility = View.GONE
+                                } else {
+                                    lyrics.let { it1 ->
+                                        if (viewModel.getLyricsSyncState() == Config.SyncState.LINE_SYNCED) {
+                                            if (index == -1) {
+                                                binding.subtitleView.visibility = View.GONE
+                                            } else {
+                                                binding.subtitleView.visibility = View.VISIBLE
+                                                binding.tvMainSubtitle.text =
+                                                    it1?.lines?.get(index)?.words
+                                                if (translated != null) {
+                                                    val line = translated.lines?.find { line ->
+                                                        line.startTimeMs == it1?.lines?.get(index)?.startTimeMs
+                                                    }
+                                                    if (line != null) {
+                                                        binding.tvTranslatedSubtitle.visibility =
+                                                            View.VISIBLE
+                                                        binding.tvTranslatedSubtitle.text =
+                                                            line.words
+                                                    } else {
+                                                        binding.tvTranslatedSubtitle.visibility =
+                                                            View.GONE
+                                                    }
+                                                }
+                                            }
+                                        } else if (viewModel.getLyricsSyncState() == Config.SyncState.UNSYNCED) {
+                                            binding.subtitleView.visibility = View.GONE
+                                        }
+                                    }
+                                }
+                            } else {
+                                binding.subtitleView.visibility = View.GONE
+                            }
+                        }
+                    }
+                }
+                job5.join()
                 time.join()
                 timeString.join()
                 duration.join()

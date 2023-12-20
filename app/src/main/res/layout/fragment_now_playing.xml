@@ -48,9 +48,10 @@
                     <com.google.android.material.imageview.ShapeableImageView
                         android:id="@+id/ivArt"
                         android:layout_width="match_parent"
-                        android:layout_height="@dimen/_260sdp"
+                        android:layout_height="wrap_content"
                         android:layout_centerInParent="true"
-                        android:scaleType="fitCenter"
+                        android:scaleType="fitXY"
+                        android:adjustViewBounds="true"
                         app:shapeAppearanceOverlay="@style/rounded_thumb">
 
                     </com.google.android.material.imageview.ShapeableImageView>
