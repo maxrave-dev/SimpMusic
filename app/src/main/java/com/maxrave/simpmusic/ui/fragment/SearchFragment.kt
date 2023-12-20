@@ -60,6 +60,7 @@ import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.SearchViewModel
+import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.launch
@@ -83,6 +84,7 @@ class SearchFragment : Fragment() {
     private lateinit var suggestYTItemList: ArrayList<YTItem>
 
     private val viewModel by activityViewModels<SearchViewModel>()
+    private val sharedViewModel by activityViewModels<SharedViewModel>()
     private lateinit var resultAdapter: SearchItemAdapter
     private lateinit var searchHistoryAdapter: SearchHistoryItemAdapter
     private lateinit var suggestAdapter: SuggestQueryAdapter
@@ -459,6 +461,9 @@ class SearchFragment : Fragment() {
                         tvSongArtist.text = track.artists.toListName().connectArtists()
                         tvSongArtist.isSelected = true
                         ivThumbnail.load(track.thumbnails?.last()?.url)
+                        btAddQueue.setOnClickListener {
+                            sharedViewModel.addToQueue(track)
+                        }
                         btRadio.setOnClickListener {
                             val args = Bundle()
                             args.putString("radioId", "RDAMVM${track.videoId}")
@@ -467,7 +472,10 @@ class SearchFragment : Fragment() {
                                 track.videoId
                             )
                             dialog.dismiss()
-                            findNavController().navigateSafe(R.id.action_global_playlistFragment, args)
+                            findNavController().navigateSafe(
+                                R.id.action_global_playlistFragment,
+                                args
+                            )
                         }
                         btLike.setOnClickListener {
                             if (cbFavorite.isChecked){

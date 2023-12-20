@@ -288,4 +288,6 @@
     <string name="dummy_content">DUMMY\nCONTENT</string>
     <string name="play_video_instead_of_audio_warning">This action will delete player cache. Continue?</string>
     <string name="quality_video">Video Quality</string>
+    <string name="add_to_queue">Add to queue</string>
+    <string name="added_to_queue">Added to queue</string>
 </resources>

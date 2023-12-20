@@ -151,35 +151,72 @@
 
             </TextView>
         </RelativeLayout>
+
         <RelativeLayout
             android:id="@+id/btAddPlaylist"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:focusable="true"
             android:clickable="true"
+            android:focusable="true"
             android:foreground="?android:attr/selectableItemBackground"
             android:paddingHorizontal="20sp">
+
             <ImageView
+                android:id="@+id/ivAddPlaylist"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentStart="true"
-                android:id="@+id/ivAddPlaylist"
                 android:padding="12sp"
                 android:src="@drawable/baseline_playlist_add_24">
 
             </ImageView>
+
             <TextView
                 android:id="@+id/tvAddPlaylist"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_toEndOf="@+id/ivAddPlaylist"
-                android:text="@string/add_to_a_playlist"
                 android:layout_centerVertical="true"
                 android:layout_marginStart="10sp"
+                android:layout_toEndOf="@+id/ivAddPlaylist"
+                android:text="@string/add_to_a_playlist"
                 android:textSize="16sp">
 
             </TextView>
         </RelativeLayout>
+
+        <RelativeLayout
+            android:id="@+id/btAddQueue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="?android:attr/selectableItemBackground"
+            android:paddingHorizontal="20sp">
+
+            <ImageView
+                android:id="@+id/ivAddQueue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentStart="true"
+                android:padding="12sp"
+                app:tint="@android:color/white"
+                android:src="@drawable/baseline_queue_music_24">
+
+            </ImageView>
+
+            <TextView
+                android:id="@+id/tvAddQueue"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="10sp"
+                android:layout_toEndOf="@+id/ivAddQueue"
+                android:text="@string/add_to_queue"
+                android:textSize="16sp">
+
+            </TextView>
+        </RelativeLayout>
+
         <RelativeLayout
             android:id="@+id/btSeeArtists"
             android:layout_width="match_parent"
@@ -188,6 +225,7 @@
             android:clickable="true"
             android:foreground="?android:attr/selectableItemBackground"
             android:paddingHorizontal="20sp">
+
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

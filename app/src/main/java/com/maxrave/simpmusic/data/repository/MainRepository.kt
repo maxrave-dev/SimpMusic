@@ -1474,17 +1474,16 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                 Log.w("Library", "input: ${input.size}")
                 val list = parseLibraryPlaylist(input)
                 emit(list)
-            }
-            else {
+            } else {
                 emit(null)
             }
         }
-            .onFailure {e ->
+            .onFailure { e ->
                 Log.e("Library", "Error: ${e.message}")
                 e.printStackTrace()
                 emit(null)
             }
-    }
+    }.flowOn(Dispatchers.IO)
     suspend fun initPlayback(playback: String, atr: String, watchTime: String, cpn: String, playlistId: String?): Flow<Pair<Int, Float>> = flow {
         YouTube.initPlayback(playback, atr, watchTime, cpn, playlistId).onSuccess { response ->
             emit(response)

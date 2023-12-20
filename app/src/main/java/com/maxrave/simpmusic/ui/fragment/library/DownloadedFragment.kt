@@ -8,6 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.DownloadService
@@ -38,6 +39,7 @@ import com.maxrave.simpmusic.extension.setEnabledAll
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.viewModel.DownloadedViewModel
+import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import java.time.LocalDateTime
@@ -46,8 +48,9 @@ import java.time.LocalDateTime
 class DownloadedFragment : Fragment() {
     private var _binding: FragmentDownloadedBinding? = null
     private val binding get() = _binding!!
-    
+
     private val viewModel by viewModels<DownloadedViewModel>()
+    private val sharedViewModel by activityViewModels<SharedViewModel>()
 
     private lateinit var downloadedAdapter: SearchItemAdapter
     private lateinit var listDownloaded: ArrayList<Any>
@@ -150,7 +153,9 @@ class DownloadedFragment : Fragment() {
                     tvSongArtist.text = song.artistName?.connectArtists()
                     tvSongArtist.isSelected = true
                     ivThumbnail.load(song.thumbnails)
-
+                    btAddQueue.setOnClickListener {
+                        sharedViewModel.addToQueue(song.toTrack())
+                    }
                     btRadio.setOnClickListener {
                         val args = Bundle()
                         args.putString("radioId", "RDAMVM${song.videoId}")

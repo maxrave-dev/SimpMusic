@@ -1230,6 +1230,14 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
             simpleMediaServiceHandler?.updateSubtitle(url)
         }
     }
+
+    fun addToQueue(track: Track) {
+        viewModelScope.launch {
+            simpleMediaServiceHandler?.loadMoreCatalog(arrayListOf(track))
+            Toast.makeText(context, context.getString(R.string.added_to_queue), Toast.LENGTH_SHORT)
+                .show()
+        }
+    }
 }
 sealed class UIEvent {
     data object PlayPause : UIEvent()

@@ -58,6 +58,7 @@ import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.PlaylistViewModel
+import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -70,6 +71,7 @@ import kotlin.random.Random
 @AndroidEntryPoint
 class PlaylistFragment: Fragment() {
     private val viewModel by activityViewModels<PlaylistViewModel>()
+    private val sharedViewModel by activityViewModels<SharedViewModel>()
     private var _binding: FragmentPlaylistBinding? = null
     private val binding get() = _binding!!
 
@@ -399,6 +401,9 @@ class PlaylistFragment: Fragment() {
                     tvSongTitle.isSelected = true
                     tvSongArtist.text = song.artists.toListName().connectArtists()
                     tvSongArtist.isSelected = true
+                    btAddQueue.setOnClickListener {
+                        sharedViewModel.addToQueue(song)
+                    }
                     ivThumbnail.load(song.thumbnails?.lastOrNull()?.url)
                     btRadio.setOnClickListener {
                         val args = Bundle()

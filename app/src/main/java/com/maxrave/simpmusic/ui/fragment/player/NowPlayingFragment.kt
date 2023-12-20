@@ -1016,6 +1016,7 @@ class NowPlayingFragment : Fragment() {
                                     }
                                 }
                             }
+                            btAddQueue.visibility = View.GONE
                             if (runBlocking { viewModel.liked.first() }) {
                                 tvFavorite.text = getString(R.string.liked)
                                 cbFavorite.isChecked = true
