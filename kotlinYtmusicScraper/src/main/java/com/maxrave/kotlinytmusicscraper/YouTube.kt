@@ -578,8 +578,25 @@ object YouTube {
         ksoupHtmlParser.end()
         val json = Json { ignoreUnknownKeys = true }
 //        println(data)
-        val ytScrapeData = json.decodeFromString<YouTubeDataPage>(data)
-        val ytScrapeInitial = json.decodeFromString<YouTubeInitialPage>(response)
+        var ytScrapeData: YouTubeDataPage? = null
+        var ytScrapeInitial: YouTubeInitialPage? = null
+        runCatching {
+            json.decodeFromString<YouTubeDataPage>(data)
+        }.onSuccess {
+            ytScrapeData = it
+        }.onFailure {
+            it.printStackTrace()
+            ytScrapeData = null
+        }
+        runCatching {
+            json.decodeFromString<YouTubeInitialPage>(response)
+        }.onSuccess {
+            ytScrapeInitial = it
+        }.onFailure {
+            it.printStackTrace()
+            ytScrapeInitial = null
+        }
+
         val cpn = (1..16).map {
             "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"[Random.Default.nextInt(
                 0,
@@ -599,17 +616,17 @@ object YouTube {
                 cpn, playerResponse.copy(
                     videoDetails = playerResponse.videoDetails?.copy(
 //                    authorAvatar = piped.uploaderAvatar?.replace(Regex("s48"), "s960"),
-                        author = ytScrapeInitial.videoDetails?.author
+                        author = ytScrapeInitial?.videoDetails?.author
                             ?: playerResponse.videoDetails.author,
-                        authorAvatar = ytScrapeData.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.thumbnail?.thumbnails?.get(
+                        authorAvatar = ytScrapeData?.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.thumbnail?.thumbnails?.get(
                             0
                         )?.url?.replace(Regex("s48"), "s960"),
 //                    authorSubCount = piped.uploaderSubscriberCount,
-                        authorSubCount = ytScrapeData.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.subscriberCountText?.simpleText
+                        authorSubCount = ytScrapeData?.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.subscriberCountText?.simpleText
                             ?: "0",
-                        description = ytScrapeInitial.videoDetails?.shortDescription,
+                        description = ytScrapeInitial?.videoDetails?.shortDescription,
                     ),
-                    captions = ytScrapeInitial.captions,
+                    captions = ytScrapeInitial?.captions,
                 ), thumbnails
             )
         }
@@ -621,17 +638,17 @@ object YouTube {
                 cpn, safePlayerResponse.copy(
                     videoDetails = safePlayerResponse.videoDetails?.copy(
 //                    authorAvatar = piped.uploaderAvatar?.replace(Regex("s48"), "s960"),
-                        author = ytScrapeInitial.videoDetails?.author
+                        author = ytScrapeInitial?.videoDetails?.author
                             ?: safePlayerResponse.videoDetails.author,
-                        authorAvatar = ytScrapeData.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.thumbnail?.thumbnails?.get(
+                        authorAvatar = ytScrapeData?.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.thumbnail?.thumbnails?.get(
                             0
                         )?.url?.replace(Regex("s48"), "s960"),
 //                    authorSubCount = piped.uploaderSubscriberCount,
-                        authorSubCount = ytScrapeData.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.subscriberCountText?.simpleText
+                        authorSubCount = ytScrapeData?.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.subscriberCountText?.simpleText
                             ?: "0",
-                        description = ytScrapeInitial.videoDetails?.shortDescription,
+                        description = ytScrapeInitial?.videoDetails?.shortDescription,
                     ),
-                    captions = ytScrapeInitial.captions,
+                    captions = ytScrapeInitial?.captions,
                 ), thumbnails
             )
         }
@@ -650,18 +667,18 @@ object YouTube {
                     ),
                     videoDetails = safePlayerResponse.videoDetails?.copy(
 //                    authorAvatar = piped.uploaderAvatar?.replace(Regex("s48"), "s960"),
-                        author = ytScrapeInitial.videoDetails?.author
+                        author = ytScrapeInitial?.videoDetails?.author
                             ?: safePlayerResponse.videoDetails.author,
-                        authorAvatar = ytScrapeData.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.thumbnail?.thumbnails?.get(
+                        authorAvatar = ytScrapeData?.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.thumbnail?.thumbnails?.get(
                             0
                         )?.url?.replace(Regex("s48"), "s960"),
 //                    authorSubCount = piped.uploaderSubscriberCount,
-                        authorSubCount = ytScrapeData.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.subscriberCountText?.simpleText
+                        authorSubCount = ytScrapeData?.contents?.twoColumnWatchNextResults?.results?.results?.content?.findLast { it?.videoSecondaryInfoRenderer != null }?.videoSecondaryInfoRenderer?.owner?.videoOwnerRenderer?.subscriberCountText?.simpleText
                             ?: "0",
-                    description = ytScrapeInitial.videoDetails?.shortDescription,
-                ),
-                captions = ytScrapeInitial.captions,
-            ), thumbnails
+                        description = ytScrapeInitial?.videoDetails?.shortDescription,
+                    ),
+                    captions = ytScrapeInitial?.captions,
+                ), thumbnails
             )
         }
     }

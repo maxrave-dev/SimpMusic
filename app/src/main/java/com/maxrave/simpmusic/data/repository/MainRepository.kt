@@ -1418,8 +1418,13 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                 "Stream",
                 "response: is SONG"
             ) else Log.w("Stream", "response: is VIDEO")
-            val format =
+            Log.w("Stream: ", data.toString())
+            var format =
                 if (data.third == MediaType.Song) response.streamingData?.adaptiveFormats?.find { it.itag == itag } else response.streamingData?.formats?.find { it.itag == videoItag }
+            if (format == null) {
+                format = response.streamingData?.adaptiveFormats?.lastOrNull()
+            }
+            Log.w("Stream", "format: $format")
             runBlocking {
                 insertFormat(
                     FormatEntity(

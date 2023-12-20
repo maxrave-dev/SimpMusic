@@ -245,7 +245,7 @@ class SimpleMediaService : MediaLibraryService() {
         arrayOf(
             MatroskaExtractor(),
             FragmentedMp4Extractor(),
-            androidx.media3.extractor.mp4.Mp4Extractor()
+            androidx.media3.extractor.mp4.Mp4Extractor(),
         )
     }
 

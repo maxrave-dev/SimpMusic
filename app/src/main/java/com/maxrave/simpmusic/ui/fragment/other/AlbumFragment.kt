@@ -39,6 +39,7 @@ import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.FragmentAlbumBinding
+import com.maxrave.simpmusic.extension.indexMap
 import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.toAlbumEntity
 import com.maxrave.simpmusic.extension.toArrayListTrack
@@ -565,6 +566,7 @@ class AlbumFragment: Fragment() {
                         for (i in listTrack){
                             tempList.add(i)
                         }
+                        tempList.sortBy { (albumEntity.tracks?.indexMap())?.get((it as SongEntity).videoId) }
                         songsAdapter.updateList(tempList)
                     }
                     binding.rootLayout.visibility = View.VISIBLE
