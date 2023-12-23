@@ -653,7 +653,9 @@ class MainActivity : AppCompatActivity() {
             result.observe(this) {data ->
                 val queueData = data
                 Log.w("Check queue saved", queueData.toString())
-                binding.miniplayer.visibility = View.VISIBLE
+                if (runBlocking { viewModel.simpleMediaServiceHandler?.nowPlaying?.first() } != null) {
+                    binding.miniplayer.visibility = View.VISIBLE
+                }
                 if (queueData.isNotEmpty()) {
                     Log.w("Check queue saved", queueData.toString())
                     Queue.clear()

@@ -190,9 +190,15 @@ class SettingsFragment : Fragment() {
             binding.tvContentCountry.text = it
         }
         viewModel.language.observe(viewLifecycleOwner) {
+            Log.w("Language", it.toString())
             if (it != null) {
-                val temp = SUPPORTED_LANGUAGE.items.getOrNull(SUPPORTED_LANGUAGE.codes.indexOf(it))
-                binding.tvLanguage.text = temp
+                if (it.contains("id") || it.contains("in")) {
+                    binding.tvLanguage.text = "Bahasa Indonesia"
+                } else {
+                    val temp =
+                        SUPPORTED_LANGUAGE.items.getOrNull(SUPPORTED_LANGUAGE.codes.indexOf(it))
+                    binding.tvLanguage.text = temp
+                }
             } else {
                 binding.tvLanguage.text = "Automatic"
             }
@@ -421,11 +427,24 @@ class SettingsFragment : Fragment() {
                                 viewModel.changeLanguage(SUPPORTED_LANGUAGE.codes[checkedIndex])
                                 viewModel.language.observe(viewLifecycleOwner) {
                                     if (it != null) {
-                                        val temp = SUPPORTED_LANGUAGE.items[SUPPORTED_LANGUAGE.codes.indexOf(it)]
-                                        binding.tvLanguage.text = temp
-                                        val localeList = LocaleListCompat.forLanguageTags(it)
-                                        sharedViewModel.activityRecreate()
-                                        AppCompatDelegate.setApplicationLocales(localeList)
+                                        Log.w("Language", it)
+                                        runCatching {
+                                            SUPPORTED_LANGUAGE.items[SUPPORTED_LANGUAGE.codes.indexOf(
+                                                it
+                                            )]
+                                        }.onSuccess { temp ->
+                                            binding.tvLanguage.text = temp
+                                            val localeList = LocaleListCompat.forLanguageTags(it)
+                                            sharedViewModel.activityRecreate()
+                                            AppCompatDelegate.setApplicationLocales(localeList)
+                                        }
+                                            .onFailure {
+                                                Toast.makeText(
+                                                    requireContext(),
+                                                    getString(R.string.invalid_language_code),
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            }
                                     }
                                 }
                                 d.dismiss()

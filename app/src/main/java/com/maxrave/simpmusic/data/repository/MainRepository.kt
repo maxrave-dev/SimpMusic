@@ -1084,10 +1084,10 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
 //                .replace("  ", " ")
             val q =
                 query.replace(
-                    Regex("\\((feat\\.|ft.|cùng với|con|mukana|com|avec|合作音乐人:|) "),
+                    Regex("\\((feat\\.|ft.|cùng với|con|mukana|com|avec|合作音乐人: ) "),
                     " "
                 ).replace(
-                    Regex("( và | & | и | e | und |, )"), " "
+                    Regex("( và | & | и | e | und |, |和| dan)"), " "
                 ).replace("  ", " ").replace(Regex("([()])"), "").replace(".", " ")
             Log.d("Lyrics", "query: $q")
             var musixMatchUserToken = YouTube.musixmatchUserToken
