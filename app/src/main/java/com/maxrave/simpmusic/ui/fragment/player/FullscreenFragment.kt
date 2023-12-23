@@ -30,6 +30,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.slider.Slider
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.adapter.artist.SeeArtistOfNowPlayingAdapter
 import com.maxrave.simpmusic.adapter.playlist.AddToAPlaylistAdapter
@@ -138,6 +139,15 @@ class FullscreenFragment : Fragment() {
                     binding.subtitleView.visibility = View.GONE
                 }
             }
+            binding.progressSong.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
+                override fun onStartTrackingTouch(slider: Slider) {
+
+                }
+
+                override fun onStopTrackingTouch(slider: Slider) {
+                    viewModel.onUIEvent(UIEvent.UpdateProgress(slider.value))
+                }
+            })
             rootLayout.setOnClickListener {
                 if (overlayLayout.visibility == View.VISIBLE) {
                     showJob?.cancel()
@@ -165,8 +175,10 @@ class FullscreenFragment : Fragment() {
         lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.CREATED) {
                 val time = launch {
-                    viewModel.progress.collect { prog ->
-                        binding.progressSong.value = prog * 100
+                    viewModel.progress.collect {
+                        if (it in 0.0..1.0) {
+                            binding.progressSong.value = it * 100
+                        }
                     }
                 }
                 val timeString = launch {
@@ -176,7 +188,11 @@ class FullscreenFragment : Fragment() {
                 }
                 val duration = launch {
                     viewModel.duration.collect { dur ->
-                        binding.tvFullTime.text = viewModel.formatDuration(dur)
+                        if (dur < 0) {
+                            binding.tvFullTime.text = getString(R.string.na_na)
+                        } else {
+                            binding.tvFullTime.text = viewModel.formatDuration(dur)
+                        }
                     }
                 }
                 val isPlaying = launch {
@@ -300,6 +316,9 @@ class FullscreenFragment : Fragment() {
                     if (!viewModel.simpleMediaServiceHandler?.catalogMetadata.isNullOrEmpty()) {
                         viewModel.refreshSongDB()
                         val dialog = BottomSheetDialog(requireContext())
+                        dialog.apply {
+                            behavior.state = BottomSheetBehavior.STATE_EXPANDED
+                        }
                         val bottomSheetView = BottomSheetNowPlayingBinding.inflate(layoutInflater)
                         with(bottomSheetView) {
                             lifecycleScope.launch {
@@ -401,6 +420,9 @@ class FullscreenFragment : Fragment() {
                                             .show()
                                     } else {
                                         val d = BottomSheetDialog(requireContext())
+                                        d.apply {
+                                            behavior.state = BottomSheetBehavior.STATE_EXPANDED
+                                        }
                                         val v = BottomSheetSleepTimerBinding.inflate(layoutInflater)
                                         v.btSet.setOnClickListener {
                                             val min = v.etTime.editText?.text.toString()
@@ -425,6 +447,9 @@ class FullscreenFragment : Fragment() {
                                     val listLocalPlaylist: ArrayList<LocalPlaylistEntity> =
                                         arrayListOf()
                                     val addPlaylistDialog = BottomSheetDialog(requireContext())
+                                    addPlaylistDialog.apply {
+                                        behavior.state = BottomSheetBehavior.STATE_EXPANDED
+                                    }
                                     val viewAddPlaylist =
                                         BottomSheetAddToAPlaylistBinding.inflate(layoutInflater)
                                     val addToAPlaylistAdapter = AddToAPlaylistAdapter(arrayListOf())
@@ -482,6 +507,9 @@ class FullscreenFragment : Fragment() {
 
                                 btSeeArtists.setOnClickListener {
                                     val subDialog = BottomSheetDialog(requireContext())
+                                    subDialog.apply {
+                                        behavior.state = BottomSheetBehavior.STATE_EXPANDED
+                                    }
                                     val subBottomSheetView =
                                         BottomSheetSeeArtistOfNowPlayingBinding.inflate(
                                             layoutInflater
@@ -668,9 +696,6 @@ class FullscreenFragment : Fragment() {
                         }
                         dialog.setCancelable(true)
                         dialog.setContentView(bottomSheetView.root)
-                        dialog.setOnShowListener {
-                            dialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
-                        }
                         dialog.show()
                     }
                     true

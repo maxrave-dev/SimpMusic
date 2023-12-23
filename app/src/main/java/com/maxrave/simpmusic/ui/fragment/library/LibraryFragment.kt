@@ -263,12 +263,14 @@ class LibraryFragment : Fragment() {
                 with(bottomSheetView) {
                     btSleepTimer.visibility = View.GONE
                     viewModel.songEntity.observe(viewLifecycleOwner) { songEntity ->
-                        if (songEntity.liked) {
-                            tvFavorite.text = getString(R.string.liked)
-                            cbFavorite.isChecked = true
-                        } else {
-                            tvFavorite.text = getString(R.string.like)
-                            cbFavorite.isChecked = false
+                        if (songEntity != null) {
+                            if (songEntity.liked) {
+                                tvFavorite.text = getString(R.string.liked)
+                                cbFavorite.isChecked = true
+                            } else {
+                                tvFavorite.text = getString(R.string.like)
+                                cbFavorite.isChecked = false
+                            }
                         }
                     }
                     btAddQueue.setOnClickListener {

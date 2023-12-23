@@ -113,37 +113,38 @@ class DownloadedFragment : Fragment() {
                 with(bottomSheetView) {
                     btSleepTimer.visibility = View.GONE
                     viewModel.songEntity.observe(viewLifecycleOwner) { songEntity ->
-                        if (songEntity.liked) {
-                            tvFavorite.text = getString(R.string.liked)
-                            cbFavorite.isChecked = true
-                        }
-                        else {
-                            tvFavorite.text = getString(R.string.like)
-                            cbFavorite.isChecked = false
-                        }
-                        when (song.downloadState) {
-                            DownloadState.STATE_PREPARING -> {
-                                tvDownload.text = getString(R.string.preparing)
-                                ivDownload.setImageResource(R.drawable.outline_download_for_offline_24)
-                                setEnabledAll(btDownload, true)
+                        if (songEntity != null) {
+                            if (songEntity.liked) {
+                                tvFavorite.text = getString(R.string.liked)
+                                cbFavorite.isChecked = true
+                            } else {
+                                tvFavorite.text = getString(R.string.like)
+                                cbFavorite.isChecked = false
                             }
+                            when (song.downloadState) {
+                                DownloadState.STATE_PREPARING -> {
+                                    tvDownload.text = getString(R.string.preparing)
+                                    ivDownload.setImageResource(R.drawable.outline_download_for_offline_24)
+                                    setEnabledAll(btDownload, true)
+                                }
 
-                            DownloadState.STATE_NOT_DOWNLOADED -> {
-                                tvDownload.text = getString(R.string.download)
-                                ivDownload.setImageResource(R.drawable.outline_download_for_offline_24)
-                                setEnabledAll(btDownload, true)
-                            }
+                                DownloadState.STATE_NOT_DOWNLOADED -> {
+                                    tvDownload.text = getString(R.string.download)
+                                    ivDownload.setImageResource(R.drawable.outline_download_for_offline_24)
+                                    setEnabledAll(btDownload, true)
+                                }
 
-                            DownloadState.STATE_DOWNLOADING -> {
-                                tvDownload.text = getString(R.string.downloading)
-                                ivDownload.setImageResource(R.drawable.baseline_downloading_white)
-                                setEnabledAll(btDownload, true)
-                            }
+                                DownloadState.STATE_DOWNLOADING -> {
+                                    tvDownload.text = getString(R.string.downloading)
+                                    ivDownload.setImageResource(R.drawable.baseline_downloading_white)
+                                    setEnabledAll(btDownload, true)
+                                }
 
-                            DownloadState.STATE_DOWNLOADED -> {
-                                tvDownload.text = getString(R.string.downloaded)
-                                ivDownload.setImageResource(R.drawable.baseline_downloaded)
-                                setEnabledAll(btDownload, true)
+                                DownloadState.STATE_DOWNLOADED -> {
+                                    tvDownload.text = getString(R.string.downloaded)
+                                    ivDownload.setImageResource(R.drawable.baseline_downloaded)
+                                    setEnabledAll(btDownload, true)
+                                }
                             }
                         }
                     }

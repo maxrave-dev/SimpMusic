@@ -54,7 +54,9 @@ object SUPPORTED_LANGUAGE {
         "Polski",
         "Português",
         "Français",
-        "Español"
+        "Español",
+        "简体中文",
+        "Bahasa Indonesia"
     )
     val codes: Array<String> = arrayOf(
         "en-US",
@@ -67,7 +69,9 @@ object SUPPORTED_LANGUAGE {
         "pl-PL",
         "pt-PT",
         "fr-FR",
-        "es-ES"
+        "es-ES",
+        "zh-CN",
+        "id-ID"
     )
 }
 object QUALITY {

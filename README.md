@@ -7,9 +7,14 @@ A simple music app using YouTube Music for backend
 
 [![Latest release](https://img.shields.io/github/v/release/maxrave-dev/SimpMusic)](https://github.com/maxrave-dev/SimpMusic/releases)   [![Downloads](https://img.shields.io/github/downloads/maxrave-dev/SimpMusic/total)](https://github.com/maxrave-dev/SimpMusic/releases)
 
+### Nightly Build
+
+[<img src="https://github.com/machiav3lli/oandbackupx/blob/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" height="80">](https://github.com/maxrave-dev/SimpMusic/actions/)
+
 > **Warning**
 >
->This app is in the beta stage, so it may have many bugs and make it crash. If you find any bugs, please create an issue or contact me via email.
+>This app is in the beta stage, so it may have many bugs and make it crash. If you find any bugs,
+> please create an issue or contact me via email.
 
 ## Features
 
@@ -17,7 +22,7 @@ A simple music app using YouTube Music for backend
 - Browsing Home, Charts, Podcast, Moods & Genre with YouTube Music data at high speed
 - Search everything on YouTube
 - Analyze your playing data, create custom playlists, and sync with YouTube Music...
-- Play video option
+- Play video option with subtitle
 - Caching and can save data for offline playback
 - Synced lyrics from Musixmatch and YouTube Transcript and translated lyrics (Community translation
   from Musixmatch)
@@ -45,7 +50,10 @@ A simple music app using YouTube Music for backend
   <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/asset/screenshot/radio.jpg" width="200" />  
  <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/asset/screenshot/search_suggest.jpg" width="200" />  
  <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/asset/screenshot/search_result.jpg" width="200" />  
-</p>  
+</p>
+<p float="left">
+<img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/fastlane/metadata/android/en-US/images/phoneScreenshots/15.jpg" width="600"/>
+</p>
 
 More [screenshot](https://photos.app.goo.gl/AbieoXG5ctDrpwzp7) here.
 

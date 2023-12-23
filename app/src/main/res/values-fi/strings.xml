@@ -22,10 +22,10 @@
     <string name="show">Näytä</string>
     <string name="na_na">NA:NA</string>
     <string name="cache_size">%1$s Mt</string>
-    <string name="favorite">Suosikki</string>
+    <string name="favorite">Suosikit</string>
     <string name="followed">Seuratut</string>
     <string name="most_played">Toistetuimmat</string>
-    <string name="Downloaded">Ladattu</string>
+    <string name="Downloaded">Ladatut</string>
     <string name="favorite_playlists">Suosikkisoittolistat</string>
     <string name="no_favorite_playlists">Ei suosikkisoittolistoja</string>
     <string name="downloaded_playlists">Ladatut soittolistat</string>
@@ -132,7 +132,7 @@
     <string name="settings">Asetukset</string>
     <string name="now_playing_upper">NYT SOI</string>
     <string name="language">Kieli</string>
-    <string name="what_do_you_want_to_listen_to">Mitä haluat kuunnella?</string>
+    <string name="what_do_you_want_to_listen_to">Mitä haluaisit kuunnella?</string>
     <string name="songs_inArtist">Kappaleet</string>
     <string name="albums_inArtist">Albumit</string>
     <string name="singles_inArtist">Singlet</string>
@@ -144,7 +144,7 @@
     <string name="delete_song_from_playlist">Poista tämä kappale soittolistalta</string>
     <string name="log_in">Kirjaudu sisään</string>
     <string name="log_in_to_YouTube">Kirjaudu sisään YouTubeen</string>
-    <string name="log_in_to_get_personally_data">Kirjaudu sisään saadaksesi henkilökohtaisia tietoja</string>
+    <string name="log_in_to_get_personally_data">Kirjautumalla saat käyttöösi omat YouTube Music -tietosi</string>
     <string name="login_success">Sisäänkirjautuminen onnistui</string>
     <string name="log_out">Kirjaudu ulos YouTubesta</string>
     <string name="logged_in">Kirjauduttu sisään</string>
@@ -170,7 +170,7 @@
     <string name="save_playback_state">Muista toiston tila</string>
     <string name="save_shuffle_and_repeat_mode">Muista sekoituksen ja toistamisen tila</string>
     <string name="skip_silent">Ohita hiljaisuus</string>
-    <string name="skip_no_music_part">Ohita osa ilman musiikkia</string>
+    <string name="skip_no_music_part">Ohita osat ilman musiikkia</string>
     <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Aikakatkaisu, tarkista internet-yhteys</string>
     <string name="save_last_played">Muista viimeksi soitettu</string>
     <string name="save_last_played_track_and_queue">Muista viimeksi toistettu kappale ja jono</string>
@@ -191,8 +191,8 @@
     <string name="filler">Täyte</string>
     <string name="sponsorBlock">SponsorBlock</string>
     <string name="enable_sponsor_block">Ota SponsorBlock käyttöön</string>
-    <string name="categories_sponsor_block">Valitse segmentin ohitustoiminto</string>
-    <string name="what_segments_will_be_skipped">Mitkä segmentit ohitetaan</string>
+    <string name="categories_sponsor_block">Segmenttien ohitus</string>
+    <string name="what_segments_will_be_skipped">Valise ohitettavat segmentit</string>
     <string name="save">Tallenna</string>
     <string name="saved">Tallennettu</string>
     <string name="sponsor_block_intro">SponsorBlock on joukkolähtöinen järjestelmä YouTube-videoiden ärsyttävien osien ohittamiseen.\nLisätietoja: https://sponsor.ajay.app/\nSimpMusicissa SponsorBlock on käytettävissä vain, kun laite on online-tilassa.</string>
@@ -245,8 +245,8 @@
     <string name="musixmatch">Musixmatch</string>
     <string name="main_lyrics_provider">Ensisijainen sanoituspalvelu</string>
     <string name="log_in_to_Musixmatch">Kirjaudu Musixmatchiin</string>
-    <string name="only_support_email_and_password_type">Tukee vain sähköpostiosoitetta ja salasanatyyppiä</string>
-    <string name="musixmatch_login_description">Musixmatch Translation API toimii vain kirjautuneen käyttäjän kanssa. SimpMusic käytti Musixmatch Developer APIa. Lisätietoja on osoitteessa https://github.com/maxrave-dev/SimpMusic tai https://developer.musixmatch.com/</string>
+    <string name="only_support_email_and_password_type">Kirjaudu sähköpostilla ja salasanalla</string>
+    <string name="musixmatch_login_description">Musixmatchin käännös-API toimii vain sisäänkirjautuneena. SimpMusic käyttää Musixmatchin kehittäjä-APIa. Lisätietoja on osoitteissa https://github.com/maxrave-dev/SimpMusic ja https://developer.musixmatch.com/</string>
     <string name="use_musixmatch_translation">Käytä Musixmatchin käännöstä</string>
     <string name="use_musixmatch_translation_description">Salli sanoitusten kääntäminen Musixmatchilla. Vaatii Musixmatchiin kirjautumisen</string>
     <string name="translation_language">Käännöksen kieli</string>
@@ -268,13 +268,23 @@
     <string name="free_space">Vapaata tilaa</string>
     <string name="suggest">Ehdotus</string>
     <string name="reload">Lataa uudelleen</string>
-    <string name="added_date">Lisätty päivämäärä</string>
-    <string name="credit_app">Yksinkertainen musiikkisovellus, joka käyttää YouTube Musicin taustajärjestelmää \n\nSimpMusic on avoimen lähdekoodin projekti musiikin suoratoistoon YouTubesta ja YouTube Musicista ilman mainoksia ja seurantaa. SimpMusic tarjoaa monia ominaisuuksia:\n\n - Musiikin suoratoisto \n - Synkronoidut sanoitukset\n - Tietojen mukauttaminen\n - jne… \n\nSimpMusic on aina ilmainen eikä mainoksia\n\nRakenna kanssa ❤️ alkaen Tuan Minh Nguyen Duc (maxrave-dev)</string>
-    <string name="issue_tracker">Ongelman seuranta</string>
+    <string name="added_date">Lisäyspäivämäärä</string>
+    <string name="credit_app">Yksinkertainen musiikkisovellus, joka käyttää YouTube Musicin taustajärjestelmää \n\nSimpMusic on avoimen lähdekoodin projekti musiikin suoratoistoon YouTubesta ja YouTube Musicista ilman mainoksia ja seurantaa. SimpMusic tarjoaa monia ominaisuuksia:\n\n - Musiikin suoratoisto \n - Synkronoidut sanoitukset\n - Tietojen mukauttaminen\n - jne… \n\nSimpMusic on aina ilmainen ja vailla mainoksia\n\nTehty ❤️:llä, Tuan Minh Nguyen Duc (maxrave-dev)</string>
+    <string name="issue_tracker">Tikettijärjestelmä</string>
+    <string name="featured_playlists">Suositellut soittolistat</string>
+    <string name="featured_inArtist">Mukana näissä</string>
+    <string name="audio_quality">Äänenlaatu</string>
+    <string name="play_video_for_video_track_instead_of_audio_only">Toista video videoraidalla pelkän äänen sijaan</string>
+    <string name="such_as_music_video_lyrics_video_podcasts_and_more">Kuten musiikkivideo, sanoitusvideo, podcastit ja paljon muuta</string>
+    <string name="video_quality">Videon laatu</string>
     <plurals name="n_song">
         <item quantity="one">%d kappale</item>
         <item quantity="other">%d kappaletta</item>
     </plurals>
-    <string name="featured_playlists">Suositellut soittolistat</string>
-    <string name="featured_inArtist">Mukana näissä</string>
+    <string name="dummy_button">Harjoituspainike</string>
+    <string name="dummy_content">HARJOITUS\nSISÄLTÖ</string>
+    <string name="play_video_instead_of_audio_warning">Tämä toiminto poistaa pelaajan välimuistin. Jatkaa?</string>
+    <string name="quality_video">Videon laatu</string>
+    <string name="add_to_queue">Lisää jonoon</string>
+    <string name="added_to_queue">Lisätty jonoon</string>
 </resources>

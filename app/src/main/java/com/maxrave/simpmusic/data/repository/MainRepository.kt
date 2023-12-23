@@ -1083,7 +1083,10 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
 //            val q = query.replace(Regex("\\([^)]*?(feat.|ft.|cùng với|con)[^)]*?\\)"), "")
 //                .replace("  ", " ")
             val q =
-                query.replace(Regex("\\((feat\\.|ft.|cùng với|con|mukana|com|avec) "), " ").replace(
+                query.replace(
+                    Regex("\\((feat\\.|ft.|cùng với|con|mukana|com|avec|合作音乐人:|) "),
+                    " "
+                ).replace(
                     Regex("( và | & | и | e | und |, )"), " "
                 ).replace("  ", " ").replace(Regex("([()])"), "").replace(".", " ")
             Log.d("Lyrics", "query: $q")

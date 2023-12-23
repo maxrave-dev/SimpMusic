@@ -41,14 +41,15 @@ class ArtistViewModel @Inject constructor(private val application: Application, 
     private var _followed: MutableStateFlow<Boolean> = MutableStateFlow(false)
     var followed: StateFlow<Boolean> = _followed
 
-    private var _songEntity: MutableLiveData<SongEntity> = MutableLiveData()
-    val songEntity: LiveData<SongEntity> = _songEntity
+    private var _songEntity: MutableLiveData<SongEntity?> = MutableLiveData()
+    val songEntity: LiveData<SongEntity?> = _songEntity
     private var _listLocalPlaylist: MutableLiveData<List<LocalPlaylistEntity>> = MutableLiveData()
     val listLocalPlaylist: LiveData<List<LocalPlaylistEntity>> = _listLocalPlaylist
 
 
     private var regionCode: String? = null
     private var language: String? = null
+
     init {
         regionCode = runBlocking { dataStoreManager.location.first() }
         language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }

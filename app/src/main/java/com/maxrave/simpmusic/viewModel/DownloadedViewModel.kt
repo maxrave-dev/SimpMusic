@@ -25,16 +25,17 @@ class DownloadedViewModel @Inject constructor(private val application: Applicati
     private var _listLocalPlaylist: MutableLiveData<List<LocalPlaylistEntity>> = MutableLiveData()
     val localPlaylist: LiveData<List<LocalPlaylistEntity>> = _listLocalPlaylist
 
-    private var _songEntity: MutableLiveData<SongEntity> = MutableLiveData()
-    val songEntity: LiveData<SongEntity> = _songEntity
+    private var _songEntity: MutableLiveData<SongEntity?> = MutableLiveData()
+    val songEntity: LiveData<SongEntity?> = _songEntity
 
     fun getListDownloadedSong() {
         viewModelScope.launch {
-            mainRepository.getDownloadedSongs().collect{ downloadedSong ->
+            mainRepository.getDownloadedSongs().collect { downloadedSong ->
                 _listDownloadedSong.value = downloadedSong as ArrayList<SongEntity>
             }
         }
     }
+
     fun getSongEntity(videoId: String) {
         viewModelScope.launch {
             mainRepository.getSongById(videoId).collect { values ->

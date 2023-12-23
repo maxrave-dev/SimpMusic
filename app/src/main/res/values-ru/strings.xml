@@ -269,14 +269,24 @@
     <string name="suggest">Предположение</string>
     <string name="reload">Перезагрузить</string>
     <string name="added_date">Дата добавления</string>
-    <string name="credit_app">Простое музыкальное приложение, использующее YouTube Music в качестве серверной части. \n\nSimpMusic — это проект с открытым исходным кодом для потоковой передачи музыки с YouTube и YouTube Music без рекламы и отслеживания. SimpMusic предоставляет множество функций:\n\n - Потоковое воспроизведение музыки \n - Синхронизированные тексты песен\n - Персонализация данных\n - и т. д. \n\nSimpMusic всегда бесплатен и без рекламы\n\nСоздавайте с ❤️ от Туан Минь Нгуен Дык (maxrave-dev)</string>
+    <string name="credit_app">Простое музыкальное приложение, использующее YouTube Music в качестве серверной части. \n\nSimpMusic — это проект с открытым исходным кодом для потоковой передачи музыки с YouTube и YouTube Music без рекламы и отслеживания. SimpMusic предоставляет множество функций:\n\n - Потоковое воспроизведение музыки \n - Синхронизированные тексты песен\n - Персонализация данных\n - и т. д. \n\nSimpMusic всегда бесплатен и без рекламы\n\nСоздавайте с ❤️ от Туан Минь Нгуен Дык (maxrave-dev)</string>
+    <string name="issue_tracker">Трекер проблем</string>
+    <string name="featured_playlists">Избранные плейлисты</string>
+    <string name="featured_inArtist">Где встречается</string>
+    <string name="audio_quality">Качество звука</string>
+    <string name="play_video_for_video_track_instead_of_audio_only">Воспроизводить видео для треков, а не только аудио</string>
+    <string name="such_as_music_video_lyrics_video_podcasts_and_more">Такие, как музыкальное видео, видео с текстами, подкасты и многое другое</string>
+    <string name="video_quality">Качество видео</string>
     <plurals name="n_song">
         <item quantity="one">%d песня</item>
         <item quantity="few">%d песни</item>
         <item quantity="many">%d песни</item>
         <item quantity="other">%d песни</item>
     </plurals>
-    <string name="issue_tracker">Трекер проблем</string>
-    <string name="featured_playlists">Избранные плейлисты</string>
-    <string name="featured_inArtist">Где встречается</string>
+    <string name="dummy_button">Фиктивная кнопка</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="play_video_instead_of_audio_warning">Это действие удалит кэш плеера. Продолжить?</string>
+    <string name="quality_video">Качество видео</string>
+    <string name="add_to_queue">Добавить в очередь</string>
+    <string name="added_to_queue">Добавлено в очередь!</string>
 </resources>

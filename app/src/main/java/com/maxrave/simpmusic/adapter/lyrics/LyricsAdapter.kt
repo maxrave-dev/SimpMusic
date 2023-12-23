@@ -14,7 +14,7 @@ class LyricsAdapter(private var originalLyrics: Lyrics?, var translated: Lyrics?
     private var activeLyrics: Line? = null
 
     interface OnItemClickListener {
-        fun onItemClick(line: Line)
+        fun onItemClick(line: Line?)
     }
 
     lateinit var mListener: OnItemClickListener

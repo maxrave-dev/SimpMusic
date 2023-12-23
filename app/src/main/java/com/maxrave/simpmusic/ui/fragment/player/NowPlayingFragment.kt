@@ -36,6 +36,7 @@ import coil.transform.RoundedCornersTransformation
 import coil.transform.Transformation
 import com.daimajia.swipe.SwipeLayout
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.slider.Slider
@@ -172,23 +173,26 @@ class NowPlayingFragment : Fragment() {
 
         lyricsAdapter = LyricsAdapter(null)
         lyricsAdapter.setOnItemClickListener(object : LyricsAdapter.OnItemClickListener {
-            override fun onItemClick(line: Line) {
+            override fun onItemClick(line: Line?) {
                 //No Implementation
             }
         })
         lyricsFullAdapter = LyricsAdapter(null)
         lyricsFullAdapter.setOnItemClickListener(object : LyricsAdapter.OnItemClickListener {
-            override fun onItemClick(line: Line) {
+            override fun onItemClick(line: Line?) {
                 Log.w("Check line", line.toString())
-                val duration = runBlocking { viewModel.duration.first() }
-                Log.w("Check duration", duration.toString())
-                if (duration > 0 && line.startTimeMs.toLong() < duration) {
-                    Log.w(
-                        "Check seek",
-                        (line.startTimeMs.toLong().toDouble() / duration).toFloat().toString()
-                    )
-                    val seek = ((line.startTimeMs.toLong() * 100).toDouble() / duration).toFloat()
-                    viewModel.onUIEvent(UIEvent.UpdateProgress(seek))
+                if (line != null) {
+                    val duration = runBlocking { viewModel.duration.first() }
+                    Log.w("Check duration", duration.toString())
+                    if (duration > 0 && line.startTimeMs.toLong() < duration) {
+                        Log.w(
+                            "Check seek",
+                            (line.startTimeMs.toLong().toDouble() / duration).toFloat().toString()
+                        )
+                        val seek =
+                            ((line.startTimeMs.toLong() * 100).toDouble() / duration).toFloat()
+                        viewModel.onUIEvent(UIEvent.UpdateProgress(seek))
+                    }
                 }
             }
         })
@@ -1002,6 +1006,9 @@ class NowPlayingFragment : Fragment() {
                     if (!viewModel.simpleMediaServiceHandler?.catalogMetadata.isNullOrEmpty()) {
                         viewModel.refreshSongDB()
                         val dialog = BottomSheetDialog(requireContext())
+                        dialog.apply {
+                            behavior.state = BottomSheetBehavior.STATE_EXPANDED
+                        }
                         val bottomSheetView = BottomSheetNowPlayingBinding.inflate(layoutInflater)
                         with(bottomSheetView) {
                             lifecycleScope.launch {
@@ -1103,6 +1110,9 @@ class NowPlayingFragment : Fragment() {
                                             .show()
                                     } else {
                                         val d = BottomSheetDialog(requireContext())
+                                        d.apply {
+                                            behavior.state = BottomSheetBehavior.STATE_EXPANDED
+                                        }
                                         val v = BottomSheetSleepTimerBinding.inflate(layoutInflater)
                                         v.btSet.setOnClickListener {
                                             val min = v.etTime.editText?.text.toString()
@@ -1127,6 +1137,9 @@ class NowPlayingFragment : Fragment() {
                                     val listLocalPlaylist: ArrayList<LocalPlaylistEntity> =
                                         arrayListOf()
                                     val addPlaylistDialog = BottomSheetDialog(requireContext())
+                                    addPlaylistDialog.apply {
+                                        behavior.state = BottomSheetBehavior.STATE_EXPANDED
+                                    }
                                     val viewAddPlaylist =
                                         BottomSheetAddToAPlaylistBinding.inflate(layoutInflater)
                                     val addToAPlaylistAdapter = AddToAPlaylistAdapter(arrayListOf())
@@ -1181,6 +1194,9 @@ class NowPlayingFragment : Fragment() {
 
                                 btSeeArtists.setOnClickListener {
                                     val subDialog = BottomSheetDialog(requireContext())
+                                    subDialog.apply {
+                                        behavior.state = BottomSheetBehavior.STATE_EXPANDED
+                                    }
                                     val subBottomSheetView =
                                         BottomSheetSeeArtistOfNowPlayingBinding.inflate(
                                             layoutInflater

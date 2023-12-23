@@ -33,15 +33,15 @@ class MostPlayedViewModel @Inject constructor(private val mainRepository: MainRe
     private var _listMostPlayedSong: MutableLiveData<ArrayList<SongEntity>> = MutableLiveData()
     val listMostPlayedSong: LiveData<ArrayList<SongEntity>> get() = _listMostPlayedSong
 
-    private var _songEntity: MutableLiveData<SongEntity> = MutableLiveData()
-    val songEntity: LiveData<SongEntity> = _songEntity
+    private var _songEntity: MutableLiveData<SongEntity?> = MutableLiveData()
+    val songEntity: LiveData<SongEntity?> = _songEntity
 
     private var _listLocalPlaylist: MutableLiveData<List<LocalPlaylistEntity>> = MutableLiveData()
     val listLocalPlaylist: LiveData<List<LocalPlaylistEntity>> = _listLocalPlaylist
 
     fun getListLikedSong() {
         viewModelScope.launch {
-            mainRepository.getMostPlayedSongs().collect{ most ->
+            mainRepository.getMostPlayedSongs().collect { most ->
                 _listMostPlayedSong.value = most as ArrayList<SongEntity>
             }
         }

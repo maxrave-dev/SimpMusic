@@ -269,12 +269,22 @@
     <string name="suggest">Suggestion</string>
     <string name="reload">Recharger</string>
     <string name="added_date">Date d\'ajout</string>
+    <string name="credit_app">Une application musicale simple utilisant YouTube Music pour le backend \n\nSimpMusic est un projet open source permettant de diffuser de la musique à partir de YouTube et YouTube Music sans publicité ni suivi. SimpMusic offre de nombreuses fonctionnalités :\n\n - Musique en streaming \n - Paroles synchronisées\n - Personnaliser les données\n - etc… \n\nSimpMusic est toujours gratuit et sans publicité\n\nConstruisez avec ❤️ de Tuan Minh Nguyen Duc (maxrave -dev)</string>
+    <string name="issue_tracker">Traqueur d\'incidents</string>
+    <string name="featured_playlists">Listes de lecture en vedette</string>
+    <string name="featured_inArtist">À retrouver ici</string>
+    <string name="audio_quality">Qualité audio</string>
+    <string name="play_video_for_video_track_instead_of_audio_only">Toista video videoraidalla pelkän äänen sijaan</string>
+    <string name="such_as_music_video_lyrics_video_podcasts_and_more">Kuten musiikkivideo, sanoitusvideo, podcastit ja paljon muuta</string>
+    <string name="video_quality">Qualité de la vidéo</string>
     <plurals name="n_song">
         <item quantity="one">%d morceau</item>
         <item quantity="other">%d morceaux</item>
     </plurals>
-    <string name="credit_app">Une application musicale simple utilisant YouTube Music pour le backend \n\nSimpMusic est un projet open source permettant de diffuser de la musique à partir de YouTube et YouTube Music sans publicité ni suivi. SimpMusic offre de nombreuses fonctionnalités :\n\n - Musique en streaming \n - Paroles synchronisées\n - Personnaliser les données\n - etc… \n\nSimpMusic est toujours gratuit et sans publicité\n\nConstruisez avec ❤️ de Tuan Minh Nguyen Duc (maxrave -dev)</string>
-    <string name="issue_tracker">Traqueur d\'incidents</string>
-    <string name="featured_playlists">Listes de lecture en vedette</string>
-    <string name="featured_inArtist">À retrouver ici</string>
+    <string name="dummy_button">Bouton factice</string>
+    <string name="dummy_content">FAUX\nCONTENU</string>
+    <string name="play_video_instead_of_audio_warning">Cette action va supprimer le cache du joueur. Continuer ?</string>
+    <string name="quality_video">Qualité de la vidéo</string>
+    <string name="add_to_queue">Ajouter à la file d\'attente</string>
+    <string name="added_to_queue">Ajouté à la file d\'attente</string>
 </resources>

@@ -39,6 +39,7 @@
 
     <style name="FullScreenDialogTheme" parent="MaterialAlertDialog.Material3">
         <item name="windowNoTitle">false</item>
+        <item name="backgroundTint">@color/md_theme_dark_background</item>
     </style>
 
     <style name="DialogAnimation">

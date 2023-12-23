@@ -1,0 +1,9 @@
+- Fix Artist Page (caused by YouTube API changes)
+- Fixed bug when change orientation and full-screen mode
+- Fix can't play private or self-upload tracks
+- Fix downloaded-album tracks order
+- Endless radio and related tracks
+- Add "Add to queue" feature
+- Add "Click to lyric to seek" feature
+- Add Full-screen subtitle and Option Button
+- Add Chinese (Simplified) and Bahasa Indonesia translations

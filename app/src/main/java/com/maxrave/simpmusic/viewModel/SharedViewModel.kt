@@ -86,8 +86,8 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
 
     var simpleMediaServiceHandler: SimpleMediaServiceHandler? = null
 
-    private var _songDB: MutableLiveData<SongEntity> = MutableLiveData()
-    val songDB: LiveData<SongEntity> = _songDB
+    private var _songDB: MutableLiveData<SongEntity?> = MutableLiveData()
+    val songDB: LiveData<SongEntity?> = _songDB
     private var _liked: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val liked: SharedFlow<Boolean> = _liked.asSharedFlow()
 
@@ -1053,22 +1053,28 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     fun restoreLastPLayedTrackDone() {
         putString(RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE, TRUE)
     }
+
     fun removeSaveQueue() {
         viewModelScope.launch {
             mainRepository.removeQueue()
         }
     }
-    private var _githubResponse = MutableLiveData<GithubResponse>()
-    val githubResponse: LiveData<GithubResponse> = _githubResponse
+
+    private var _githubResponse = MutableLiveData<GithubResponse?>()
+    val githubResponse: LiveData<GithubResponse?> = _githubResponse
 
     fun checkForUpdate() {
         viewModelScope.launch {
-            mainRepository.checkForUpdate().collect {response ->
-                dataStoreManager.putString("CheckForUpdateAt", System.currentTimeMillis().toString())
+            mainRepository.checkForUpdate().collect { response ->
+                dataStoreManager.putString(
+                    "CheckForUpdateAt",
+                    System.currentTimeMillis().toString()
+                )
                 _githubResponse.postValue(response)
             }
         }
     }
+
     fun skipSegment(position: Long) {
         simpleMediaServiceHandler?.skipSegment(position)
     }
@@ -1224,6 +1230,10 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
 
     fun activityRecreate() {
         _recreateActivity.value = true
+    }
+
+    fun activityRecreateDone() {
+        _recreateActivity.value = false
     }
 
     fun updateSubtitle(url: String?) {

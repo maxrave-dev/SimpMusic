@@ -193,6 +193,8 @@ class SettingsFragment : Fragment() {
             if (it != null) {
                 val temp = SUPPORTED_LANGUAGE.items.getOrNull(SUPPORTED_LANGUAGE.codes.indexOf(it))
                 binding.tvLanguage.text = temp
+            } else {
+                binding.tvLanguage.text = "Automatic"
             }
         }
         viewModel.quality.observe(viewLifecycleOwner) {
@@ -228,9 +230,13 @@ class SettingsFragment : Fragment() {
             binding.swEnableSponsorBlock.isChecked = it == DataStoreManager.TRUE
         }
         viewModel.lastCheckForUpdate.observe(viewLifecycleOwner) {
-            binding.tvCheckForUpdate.text = getString(R.string.last_checked_at, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-                .withZone(ZoneId.systemDefault())
-                .format(Instant.ofEpochMilli(it.toLong())))
+            if (it != null) {
+                binding.tvCheckForUpdate.text = getString(
+                    R.string.last_checked_at, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                        .withZone(ZoneId.systemDefault())
+                        .format(Instant.ofEpochMilli(it.toLong()))
+                )
+            }
         }
         viewModel.playerCacheLimit.observe(viewLifecycleOwner) {
             binding.tvLimitPlayerCache.text = if (it != -1) "$it MB" else getString(R.string.unlimited)
@@ -288,9 +294,14 @@ class SettingsFragment : Fragment() {
                         Toast.makeText(requireContext(), getString(R.string.no_update), Toast.LENGTH_SHORT).show()
                         viewModel.getLastCheckForUpdate()
                         viewModel.lastCheckForUpdate.observe(viewLifecycleOwner) {
-                            binding.tvCheckForUpdate.text = getString(R.string.last_checked_at, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-                                .withZone(ZoneId.systemDefault())
-                                .format(Instant.ofEpochMilli(it.toLong())))
+                            if (it != null) {
+                                binding.tvCheckForUpdate.text = getString(
+                                    R.string.last_checked_at,
+                                    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                                        .withZone(ZoneId.systemDefault())
+                                        .format(Instant.ofEpochMilli(it.toLong()))
+                                )
+                            }
                         }
                     }
                 }

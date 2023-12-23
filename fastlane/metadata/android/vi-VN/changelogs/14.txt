@@ -1,0 +1,9 @@
+- Sửa lỗi trang nghệ sĩ (do thay đổi API YouTube)
+- Sửa lỗi khi xoay màn hình và chế độ toàn màn hình
+- Sửa lỗi không thể phát nhạc bạn tự tải lên hoặc riêng tư
+- Sửa lỗi thứ tự bài hát trong album đã tải về
+- Radio không dừng và bài hát liên quan
+- Thêm tính năng "Thêm vào hàng đợi"
+- Thêm tính năng "Click vào lời bài hát để tua"
+- Thêm phụ đề và nút tùy chọn cho chế độ toàn màn hình
+- Thêm bản dịch tiếng Trung Quốc (giản thể) và tiếng Indonesia

@@ -1,4 +1,4 @@
-Ứng dụng nghe nhạc đơn giản sử dụng dữ liệu từ YouTube Music
+Không chỉ là ứng dụng nghe nhạc, nó là SimpMusic
 
 <br><b>Tính năng:</b>
 
@@ -6,7 +6,7 @@
 - Duyệt tất cả các nội dung như bảng xếp hạng, thể loại, tâm trạng, podcast, ... từ YouTube Music với tốc độ cao
 - Tìm kiếm mọi thứ trên YouTube
 - Thống kê dữ liệu nghe nhạc của bạn, tạo danh sách phát tùy chỉnh và đồng bộ với YouTube Music
-- Tuỳ chọn xem video hoặc chỉ nghe âm thanh
+- Tuỳ chọn xem video hỗ trợ phụ đề
 - Lưu trữ dữ liệu ngoại tuyến
 - Lời bài hát được đồng bộ từ Musixmatch và YouTube Transcript, dịch lời bài hát với cộng đồng từ Musixmatch
 - Hỗ trợ SponsorBlock

@@ -7,6 +7,7 @@ import android.content.ServiceConnection
 import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.Rect
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Build
@@ -73,6 +74,7 @@ import pub.devrel.easypermissions.EasyPermissions
 import java.text.SimpleDateFormat
 import java.util.Locale
 import javax.inject.Inject
+
 
 @UnstableApi
 @AndroidEntryPoint
@@ -306,6 +308,7 @@ class MainActivity : AppCompatActivity() {
         if (viewModel.recreateActivity.value == true) {
             viewModel.simpleMediaServiceHandler?.coroutineScope = lifecycleScope
             runCollect()
+            viewModel.activityRecreateDone()
         } else {
             startMusicService()
         }
@@ -393,6 +396,21 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
+        binding.root.addOnLayoutChangeListener { v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
+            val rect = Rect(left, top, right, bottom)
+            val oldRect = Rect(oldLeft, oldTop, oldRight, oldBottom)
+            Log.w("Old Rect", "onCreate: $oldRect, $oldLeft $oldTop $oldRight $oldBottom")
+            Log.w("New Rect", "onCreate: $rect, $left $top $right $bottom")
+            if ((rect.width() != oldRect.width() || rect.height() != oldRect.height()) && oldRect != Rect(
+                    0,
+                    0,
+                    0,
+                    0
+                )
+            ) {
+                viewModel.activityRecreate()
+            }
+        }
         binding.bottomNavigationView.applyInsetter {
             type(navigationBars = true) {
                 padding()

@@ -388,12 +388,14 @@ class PlaylistFragment: Fragment() {
                 with(bottomSheetView) {
                     btSleepTimer.visibility = View.GONE
                     viewModel.songEntity.observe(viewLifecycleOwner) { songEntity ->
-                        if (songEntity.liked) {
-                            tvFavorite.text = getString(R.string.liked)
-                            cbFavorite.isChecked = true
-                        } else {
-                            tvFavorite.text = getString(R.string.like)
-                            cbFavorite.isChecked = false
+                        if (songEntity != null) {
+                            if (songEntity.liked) {
+                                tvFavorite.text = getString(R.string.liked)
+                                cbFavorite.isChecked = true
+                            } else {
+                                tvFavorite.text = getString(R.string.like)
+                                cbFavorite.isChecked = false
+                            }
                         }
                     }
                     btChangeLyricsProvider.visibility = View.GONE
@@ -740,21 +742,25 @@ class PlaylistFragment: Fragment() {
                                 val playlistEntity = viewModel.playlistEntity.value
                                 if (playlistEntity != null){
                                     viewModel.checkAllSongDownloaded(it.tracks as ArrayList<Track>)
-                                    viewModel.playlistEntity.observe(viewLifecycleOwner){ playlistEntity2 ->
-                                        when (playlistEntity2.downloadState) {
-                                            DownloadState.STATE_DOWNLOADED -> {
-                                                btDownload.visibility = View.VISIBLE
-                                                animationDownloading.visibility = View.GONE
-                                                btDownload.setImageResource(R.drawable.baseline_downloaded)
-                                            }
-                                            DownloadState.STATE_DOWNLOADING -> {
-                                                btDownload.visibility = View.GONE
-                                                animationDownloading.visibility = View.VISIBLE
-                                            }
-                                            DownloadState.STATE_NOT_DOWNLOADED -> {
-                                                btDownload.visibility = View.VISIBLE
-                                                animationDownloading.visibility = View.GONE
-                                                btDownload.setImageResource(R.drawable.download_button)
+                                    viewModel.playlistEntity.observe(viewLifecycleOwner) { playlistEntity2 ->
+                                        if (playlistEntity2 != null) {
+                                            when (playlistEntity2.downloadState) {
+                                                DownloadState.STATE_DOWNLOADED -> {
+                                                    btDownload.visibility = View.VISIBLE
+                                                    animationDownloading.visibility = View.GONE
+                                                    btDownload.setImageResource(R.drawable.baseline_downloaded)
+                                                }
+
+                                                DownloadState.STATE_DOWNLOADING -> {
+                                                    btDownload.visibility = View.GONE
+                                                    animationDownloading.visibility = View.VISIBLE
+                                                }
+
+                                                DownloadState.STATE_NOT_DOWNLOADED -> {
+                                                    btDownload.visibility = View.VISIBLE
+                                                    animationDownloading.visibility = View.GONE
+                                                    btDownload.setImageResource(R.drawable.download_button)
+                                                }
                                             }
                                         }
                                     }

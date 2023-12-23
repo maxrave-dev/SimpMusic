@@ -269,14 +269,24 @@
     <string name="suggest">Sugestia</string>
     <string name="reload">Przeładować</string>
     <string name="added_date">Dodana data</string>
+    <string name="credit_app">Prosta aplikacja muzyczna wykorzystująca YouTube Music jako zaplecze \n\nSimpMusic to projekt typu open source umożliwiający strumieniowe przesyłanie muzyki z YouTube i YouTube Music bez reklam i śledzenia. SimpMusic zapewnia wiele funkcji:\n\n – Przesyłanie strumieniowe muzyki \n – Zsynchronizowane teksty\n – Personalizacja danych\n – itp… \n\nSimpMusic jest zawsze darmowy i nie zawiera reklam\n\nTwórz za pomocą ❤️ od Tuan Minh Nguyen Duc (maxrave-dev)</string>
+    <string name="issue_tracker">Lista problemow</string>
+    <string name="featured_playlists">Polecane playlisty</string>
+    <string name="featured_inArtist">Polecane</string>
+    <string name="audio_quality">Jakość dźwięku</string>
+    <string name="play_video_for_video_track_instead_of_audio_only">Odtwarzaj wideo dla ścieżki wideo zamiast tylko audio</string>
+    <string name="such_as_music_video_lyrics_video_podcasts_and_more">Takie jak muzyka wideo, film tekstowy, Podcasty i wiele innych</string>
+    <string name="video_quality">Jakość wideo</string>
     <plurals name="n_song">
         <item quantity="one">%d utwór</item>
         <item quantity="few">%d utwory</item>
         <item quantity="many">%d utworów</item>
         <item quantity="other">%d utworów</item>
     </plurals>
-    <string name="credit_app">Prosta aplikacja muzyczna wykorzystująca YouTube Music jako zaplecze \n\nSimpMusic to projekt typu open source umożliwiający strumieniowe przesyłanie muzyki z YouTube i YouTube Music bez reklam i śledzenia. SimpMusic zapewnia wiele funkcji:\n\n – Przesyłanie strumieniowe muzyki \n – Zsynchronizowane teksty\n – Personalizacja danych\n – itp… \n\nSimpMusic jest zawsze darmowy i nie zawiera reklam\n\nTwórz za pomocą ❤️ od Tuan Minh Nguyen Duc (maxrave-dev)</string>
-    <string name="issue_tracker">Lista problemow</string>
-    <string name="featured_playlists">Polecane playlisty</string>
-    <string name="featured_inArtist">Polecane</string>
+    <string name="dummy_button">Przycisk Dummy</string>
+    <string name="dummy_content">DUMMY\nZAWARTOŚĆ</string>
+    <string name="play_video_instead_of_audio_warning">Ta akcja usunie pamięć podręczną gracza. Kontynuować?</string>
+    <string name="quality_video">Jakość wideo</string>
+    <string name="add_to_queue">Dodaj do kolejki</string>
+    <string name="added_to_queue">Dodano do kolejki</string>
 </resources>

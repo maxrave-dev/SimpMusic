@@ -62,4 +62,12 @@
         <item name="android:background">@color/black_overlay</item>
         <item name="android:buttonBarStyle">?android:attr/buttonBarStyle</item>
     </style>
+
+    <style name="ThemeOverlay.App.BottomSheetDialog" parent="@style/ThemeOverlay.MaterialComponents.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/SimpMusicBlackBottomSheetDialog</item>
+    </style>
+
+    <style name="SimpMusicBlackBottomSheetDialog" parent="Widget.MaterialComponents.BottomSheet.Modal">
+        <item name="backgroundTint">@color/md_theme_dark_background</item>
+    </style>
 </resources>

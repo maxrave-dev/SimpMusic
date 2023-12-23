@@ -59,8 +59,8 @@ class SettingsViewModel @Inject constructor(
 
     private var _location: MutableLiveData<String> = MutableLiveData()
     val location: LiveData<String> = _location
-    private var _language: MutableLiveData<String> = MutableLiveData()
-    val language: LiveData<String> = _language
+    private var _language: MutableLiveData<String?> = MutableLiveData()
+    val language: LiveData<String?> = _language
     private var _loggedIn: MutableLiveData<String> = MutableLiveData()
     val loggedIn: LiveData<String> = _loggedIn
     private var _normalizeVolume: MutableLiveData<String> = MutableLiveData()
@@ -73,10 +73,10 @@ class SettingsViewModel @Inject constructor(
     val savedPlaybackState: LiveData<String> = _savedPlaybackState
     private var _saveRecentSongAndQueue: MutableLiveData<String> = MutableLiveData()
     val saveRecentSongAndQueue: LiveData<String> = _saveRecentSongAndQueue
-    private var _lastCheckForUpdate: MutableLiveData<String> = MutableLiveData()
-    val lastCheckForUpdate: LiveData<String> = _lastCheckForUpdate
-    private var _githubResponse = MutableLiveData<GithubResponse>()
-    val githubResponse: LiveData<GithubResponse> = _githubResponse
+    private var _lastCheckForUpdate: MutableLiveData<String?> = MutableLiveData()
+    val lastCheckForUpdate: LiveData<String?> = _lastCheckForUpdate
+    private var _githubResponse = MutableLiveData<GithubResponse?>()
+    val githubResponse: LiveData<GithubResponse?> = _githubResponse
     private var _sponsorBlockEnabled: MutableLiveData<String> = MutableLiveData()
     val sponsorBlockEnabled: LiveData<String> = _sponsorBlockEnabled
     private var _sponsorBlockCategories: MutableLiveData<ArrayList<String>> = MutableLiveData()

@@ -59,14 +59,14 @@
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.3.0",
+      "artifactVersion": "1.3.1",
       "description": "Java annotation for use on unstable Android API surfaces. When used in conjunction with the Experimental annotation lint checks, this annotation provides functional parity with Kotlin's Experimental annotation.",
       "scm": {
         "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
         "url": "https://cs.android.com/androidx/platform/frameworks/support"
       },
       "name": "Experimental annotation",
-      "website": "https://developer.android.com/jetpack/androidx/releases/annotation#1.3.0",
+      "website": "https://developer.android.com/jetpack/androidx/releases/annotation#1.3.1",
       "licenses": [
         "Apache-2.0"
       ]
@@ -886,7 +886,7 @@
       ],
       "developers": [
       ],
-      "artifactVersion": "8.1.3",
+      "artifactVersion": "8.2.0",
       "description": "",
       "name": "androidx.databinding:viewbinding",
       "licenses": [
@@ -1574,7 +1574,7 @@
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.1.1",
+      "artifactVersion": "1.2.0",
       "description": "Media3 common module",
       "scm": {
         "connection": "scm:git:https://github.com/androidx/media.git",
@@ -1594,7 +1594,7 @@
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.1.1",
+      "artifactVersion": "1.2.0",
       "description": "Media3 Container module",
       "scm": {
         "connection": "scm:git:https://github.com/androidx/media.git",
@@ -1614,7 +1614,7 @@
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.1.1",
+      "artifactVersion": "1.2.0",
       "description": "Media3 database module",
       "scm": {
         "connection": "scm:git:https://github.com/androidx/media.git",
@@ -1634,7 +1634,7 @@
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.1.1",
+      "artifactVersion": "1.2.0",
       "description": "Media3 DataSource module",
       "scm": {
         "connection": "scm:git:https://github.com/androidx/media.git",
@@ -1654,7 +1654,7 @@
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.1.1",
+      "artifactVersion": "1.2.0",
       "description": "Media3 OkHttp DataSource module",
       "scm": {
         "connection": "scm:git:https://github.com/androidx/media.git",
@@ -1674,7 +1674,7 @@
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.1.1",
+      "artifactVersion": "1.2.0",
       "description": "Media3 decoder module",
       "scm": {
         "connection": "scm:git:https://github.com/androidx/media.git",
@@ -1694,7 +1694,7 @@
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.1.1",
+      "artifactVersion": "1.2.0",
       "description": "Media3 ExoPlayer module",
       "scm": {
         "connection": "scm:git:https://github.com/androidx/media.git",
@@ -1714,7 +1714,7 @@
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.1.1",
+      "artifactVersion": "1.2.0",
       "description": "Media3 ExoPlayer DASH module",
       "scm": {
         "connection": "scm:git:https://github.com/androidx/media.git",
@@ -1734,7 +1734,7 @@
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.1.1",
+      "artifactVersion": "1.2.0",
       "description": "Media3 ExoPlayer HLS module",
       "scm": {
         "connection": "scm:git:https://github.com/androidx/media.git",
@@ -1754,7 +1754,7 @@
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.1.1",
+      "artifactVersion": "1.2.0",
       "description": "Media3 ExoPlayer RTSP module",
       "scm": {
         "connection": "scm:git:https://github.com/androidx/media.git",
@@ -1774,7 +1774,7 @@
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.1.1",
+      "artifactVersion": "1.2.0",
       "description": "Media3 ExoPlayer SmoothStreaming module",
       "scm": {
         "connection": "scm:git:https://github.com/androidx/media.git",
@@ -1794,7 +1794,7 @@
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.1.1",
+      "artifactVersion": "1.2.0",
       "description": "Media3 ExoPlayer WorkManager module",
       "scm": {
         "connection": "scm:git:https://github.com/androidx/media.git",
@@ -1814,7 +1814,7 @@
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.1.1",
+      "artifactVersion": "1.2.0",
       "description": "Media3 Extractor module",
       "scm": {
         "connection": "scm:git:https://github.com/androidx/media.git",
@@ -1834,7 +1834,7 @@
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.1.1",
+      "artifactVersion": "1.2.0",
       "description": "Media3 Session module",
       "scm": {
         "connection": "scm:git:https://github.com/androidx/media.git",
@@ -1854,7 +1854,7 @@
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.1.1",
+      "artifactVersion": "1.2.0",
       "description": "Media3 UI module",
       "scm": {
         "connection": "scm:git:https://github.com/androidx/media.git",
@@ -1895,14 +1895,14 @@
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "2.7.5",
+      "artifactVersion": "2.7.6",
       "description": "Android Navigation-Common",
       "scm": {
         "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
         "url": "https://cs.android.com/androidx/platform/frameworks/support"
       },
       "name": "Navigation Common",
-      "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.7.5",
+      "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.7.6",
       "licenses": [
         "Apache-2.0"
       ]
@@ -1916,14 +1916,14 @@
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "2.7.5",
+      "artifactVersion": "2.7.6",
       "description": "Android Navigation-Common-Ktx",
       "scm": {
         "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
         "url": "https://cs.android.com/androidx/platform/frameworks/support"
       },
       "name": "Navigation Common Kotlin Extensions",
-      "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.7.5",
+      "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.7.6",
       "licenses": [
         "Apache-2.0"
       ]
@@ -1937,14 +1937,14 @@
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "2.7.5",
+      "artifactVersion": "2.7.6",
       "description": "Android Navigation-Fragment",
       "scm": {
         "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
         "url": "https://cs.android.com/androidx/platform/frameworks/support"
       },
       "name": "Navigation Fragment",
-      "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.7.5",
+      "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.7.6",
       "licenses": [
         "Apache-2.0"
       ]
@@ -1958,14 +1958,14 @@
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "2.7.5",
+      "artifactVersion": "2.7.6",
       "description": "Android Navigation-Fragment-Ktx",
       "scm": {
         "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
         "url": "https://cs.android.com/androidx/platform/frameworks/support"
       },
       "name": "Navigation Fragment Kotlin Extensions",
-      "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.7.5",
+      "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.7.6",
       "licenses": [
         "Apache-2.0"
       ]
@@ -1979,14 +1979,14 @@
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "2.7.5",
+      "artifactVersion": "2.7.6",
       "description": "Android Navigation-Runtime",
       "scm": {
         "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
         "url": "https://cs.android.com/androidx/platform/frameworks/support"
       },
       "name": "Navigation Runtime",
-      "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.7.5",
+      "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.7.6",
       "licenses": [
         "Apache-2.0"
       ]
@@ -2000,14 +2000,14 @@
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "2.7.5",
+      "artifactVersion": "2.7.6",
       "description": "Android Navigation-Runtime-Ktx",
       "scm": {
         "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
         "url": "https://cs.android.com/androidx/platform/frameworks/support"
       },
       "name": "Navigation Runtime Kotlin Extensions",
-      "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.7.5",
+      "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.7.6",
       "licenses": [
         "Apache-2.0"
       ]
@@ -2021,14 +2021,14 @@
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "2.7.5",
+      "artifactVersion": "2.7.6",
       "description": "Android Navigation-UI",
       "scm": {
         "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
         "url": "https://cs.android.com/androidx/platform/frameworks/support"
       },
       "name": "Navigation UI",
-      "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.7.5",
+      "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.7.6",
       "licenses": [
         "Apache-2.0"
       ]
@@ -2042,14 +2042,14 @@
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "2.7.5",
+      "artifactVersion": "2.7.6",
       "description": "Android Navigation-UI-Ktx",
       "scm": {
         "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
         "url": "https://cs.android.com/androidx/platform/frameworks/support"
       },
       "name": "Navigation UI Kotlin Extensions",
-      "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.7.5",
+      "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.7.6",
       "licenses": [
         "Apache-2.0"
       ]
@@ -2315,14 +2315,14 @@
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "2.6.0",
+      "artifactVersion": "2.6.1",
       "description": "Android Room-Common",
       "scm": {
         "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
         "url": "https://cs.android.com/androidx/platform/frameworks/support"
       },
       "name": "Room-Common",
-      "website": "https://developer.android.com/jetpack/androidx/releases/room#2.6.0",
+      "website": "https://developer.android.com/jetpack/androidx/releases/room#2.6.1",
       "licenses": [
         "Apache-2.0"
       ]
@@ -2336,14 +2336,14 @@
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "2.6.0",
+      "artifactVersion": "2.6.1",
       "description": "Android Room Kotlin Extensions",
       "scm": {
         "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
         "url": "https://cs.android.com/androidx/platform/frameworks/support"
       },
       "name": "Room Kotlin Extensions",
-      "website": "https://developer.android.com/jetpack/androidx/releases/room#2.6.0",
+      "website": "https://developer.android.com/jetpack/androidx/releases/room#2.6.1",
       "licenses": [
         "Apache-2.0"
       ]
@@ -2357,14 +2357,14 @@
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "2.6.0",
+      "artifactVersion": "2.6.1",
       "description": "Android Room-Runtime",
       "scm": {
         "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
         "url": "https://cs.android.com/androidx/platform/frameworks/support"
       },
       "name": "Room-Runtime",
-      "website": "https://developer.android.com/jetpack/androidx/releases/room#2.6.0",
+      "website": "https://developer.android.com/jetpack/androidx/releases/room#2.6.1",
       "licenses": [
         "Apache-2.0"
       ]
@@ -2992,7 +2992,7 @@
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.10.0",
+      "artifactVersion": "1.11.0",
       "description": "Material Components for Android is a static library that you can add to your Android application in order to use APIs that provide implementations of the Material Design specification. Compatible on devices running API 14 or later.",
       "scm": {
         "connection": "scm:git:https://github.com/material-components/material-components-android.git",
