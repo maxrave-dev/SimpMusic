@@ -35,7 +35,7 @@ android {
             "fr",
             "es",
             "zh",
-            "id"
+            "in"
         )
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

@@ -71,7 +71,7 @@ object SUPPORTED_LANGUAGE {
         "fr-FR",
         "es-ES",
         "zh-CN",
-        "id-ID"
+        "in-ID"
     )
 }
 object QUALITY {
