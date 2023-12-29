@@ -8,8 +8,10 @@ import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
 import com.daimajia.swipe.SwipeLayout
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -19,11 +21,14 @@ import com.maxrave.simpmusic.databinding.FragmentMusixmatchBinding
 import com.maxrave.simpmusic.extension.isMyServiceRunning
 import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.viewModel.MusixmatchViewModel
+import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 @AndroidEntryPoint
 class MusixmatchFragment : Fragment() {
@@ -32,6 +37,7 @@ class MusixmatchFragment : Fragment() {
     val binding get() = _binding!!
 
     private val viewModel by viewModels<MusixmatchViewModel>()
+    private val sharedViewModel by activityViewModels<SharedViewModel>()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -102,6 +108,8 @@ class MusixmatchFragment : Fragment() {
             loadingJob.join()
         }
     }
+
+    @UnstableApi
     override fun onDestroyView() {
         super.onDestroyView()
         val activity = requireActivity()
@@ -110,8 +118,11 @@ class MusixmatchFragment : Fragment() {
         bottom.visibility = View.VISIBLE
         val miniplayer = activity.findViewById<SwipeLayout>(R.id.miniplayer)
         if (requireActivity().isMyServiceRunning(SimpleMediaService::class.java)) {
-            miniplayer.animation = AnimationUtils.loadAnimation(requireContext(), R.anim.bottom_to_top)
-            miniplayer.visibility = View.VISIBLE
+            miniplayer.animation =
+                AnimationUtils.loadAnimation(requireContext(), R.anim.bottom_to_top)
+            if (runBlocking { sharedViewModel.simpleMediaServiceHandler?.nowPlaying?.first() != null }) {
+                miniplayer.visibility = View.VISIBLE
+            }
         }
     }
 }

@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class PipedResponse(
     val audioStreams: List<AudioStream>,
+    val videoStreams: List<AudioStream>,
     @SerialName("category")
     val category: String?,
     @SerialName("description")

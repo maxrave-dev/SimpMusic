@@ -15,8 +15,8 @@ android {
         applicationId = "com.maxrave.simpmusic"
         minSdk = 26
         targetSdk = 34
-        versionCode = 11
-        versionName = "0.1.5-beta"
+        versionCode = 14
+        versionName = "0.1.7"
 
         ksp {
             arg("room.schemaLocation", "$projectDir/schemas")
@@ -33,7 +33,9 @@ android {
             "pl",
             "pt",
             "fr",
-            "es"
+            "es",
+            "zh",
+            "in"
         )
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -42,7 +44,13 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-            proguardFiles (getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+        debug {
+            applicationIdSuffix = ".dev"
         }
     }
     compileOptions {
@@ -68,15 +76,15 @@ dependencies {
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
     //material design3
-    implementation("com.google.android.material:material:1.10.0")
+    implementation("com.google.android.material:material:1.11.0")
     //runtime
     implementation("androidx.startup:startup-runtime:1.1.1")
     implementation(project(mapOf("path" to ":kotlinYtmusicScraper")))
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
-    implementation("androidx.media3:media3-cast:1.1.1")
+
     //ExoPlayer
-    val media3_version= "1.1.1"
+    val media3_version = "1.2.0"
 
     implementation("androidx.media3:media3-exoplayer:$media3_version")
     implementation("androidx.media3:media3-ui:$media3_version")
@@ -99,17 +107,17 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 
-    implementation("androidx.room:room-runtime:2.6.0")
-    implementation("androidx.room:room-ktx:2.6.0")
-    ksp("androidx.room:room-compiler:2.6.0")
+    implementation("androidx.room:room-runtime:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+    ksp("androidx.room:room-compiler:2.6.1")
     //Legacy Support
     implementation("androidx.legacy:legacy-support-v4:1.0.0")
     //Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.7.3")
     //Navigation
-    implementation("androidx.navigation:navigation-fragment-ktx:2.7.5")
-    implementation("androidx.navigation:navigation-ui-ktx:2.7.5")
+    implementation("androidx.navigation:navigation-fragment-ktx:2.7.6")
+    implementation("androidx.navigation:navigation-ui-ktx:2.7.6")
 
     implementation("com.google.code.gson:gson:2.10.1")
 
@@ -169,5 +177,7 @@ hilt {
     enableAggregatingTask = true
 }
 aboutLibraries {
+    prettyPrint = true
     registerAndroidTasks = false
+    excludeFields = arrayOf("generated")
 }

@@ -269,11 +269,21 @@
     <string name="suggest">Đề xuất</string>
     <string name="reload">Làm mới</string>
     <string name="added_date">Ngày thêm vào</string>
-    <plurals name="n_song">
-        <item quantity="other">%d bài hát</item>
-    </plurals>
+    <string name="credit_app">Một ứng dụng âm nhạc đơn giản sử dụng dữ liệu từ YouTube Music \n\nSimpMusic là một dự án nguồn mở để phát nhạc từ YouTube và YouTube Music mà không bị quảng cáo và theo dõi. SimpMusic cung cấp nhiều tính năng:\n\n - Phát nhạc \n - Lời bài hát được đồng bộ hóa\n - Cá nhân hóa dữ liệu\n - v.v… \n\nSimpMusic luôn miễn phí và không có quảng cáo\n\nXây dựng với ❤️ bởi Nguyên Đức Tuấn Minh (maxrave-dev)</string>
     <string name="issue_tracker">Theo dõi lỗi</string>
     <string name="featured_playlists">Danh sách phát nổi bật</string>
     <string name="featured_inArtist">Nổi bật</string>
-    <string name="credit_app">Một ứng dụng âm nhạc đơn giản sử dụng dữ liệu từ YouTube Music \n\nSimpMusic là một dự án nguồn mở để phát nhạc từ YouTube và YouTube Music mà không bị quảng cáo và theo dõi. SimpMusic cung cấp nhiều tính năng:\n\n - Phát nhạc \n - Lời bài hát được đồng bộ hóa\n - Cá nhân hóa dữ liệu\n - v.v… \n\nSimpMusic luôn miễn phí và không có quảng cáo\n\nXây dựng với ❤️ bởi Nguyên Đức Tuấn Minh (maxrave-dev)</string>
+    <string name="audio_quality">Chất lượng âm thanh</string>
+    <string name="play_video_for_video_track_instead_of_audio_only">Phát video nếu có thể thay vì chỉ âm thanh</string>
+    <string name="such_as_music_video_lyrics_video_podcasts_and_more">Ví dụ như MV, Lyrics Video, Podcasts hoặc khác</string>
+    <string name="video_quality">Chất lượng video</string>
+    <plurals name="n_song">
+        <item quantity="other">%d bài hát</item>
+    </plurals>
+    <string name="dummy_button">Nút giả</string>
+    <string name="dummy_content">DUMMY\nNỘI DUNG</string>
+    <string name="play_video_instead_of_audio_warning">Hành động này sẽ xoá cache phát nhạc. Tiếp tục?</string>
+    <string name="quality_video">Chất lượng video</string>
+    <string name="add_to_queue">Thêm vào hành đợi</string>
+    <string name="added_to_queue">Đã thêm vào hàng đợi</string>
 </resources>

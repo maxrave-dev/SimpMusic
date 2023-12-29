@@ -1,11 +1,11 @@
 {
   "metadata": {
-    "generated": "2023-11-05T15:48:30.735Z"
   },
   "libraries": [
     {
       "uniqueId": "androidx.activity:activity",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -28,7 +28,8 @@
     },
     {
       "uniqueId": "androidx.activity:activity-ktx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -51,27 +52,29 @@
     },
     {
       "uniqueId": "androidx.annotation:annotation-experimental",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.3.0",
+      "artifactVersion": "1.3.1",
       "description": "Java annotation for use on unstable Android API surfaces. When used in conjunction with the Experimental annotation lint checks, this annotation provides functional parity with Kotlin's Experimental annotation.",
       "scm": {
         "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
         "url": "https://cs.android.com/androidx/platform/frameworks/support"
       },
       "name": "Experimental annotation",
-      "website": "https://developer.android.com/jetpack/androidx/releases/annotation#1.3.0",
+      "website": "https://developer.android.com/jetpack/androidx/releases/annotation#1.3.1",
       "licenses": [
         "Apache-2.0"
       ]
     },
     {
       "uniqueId": "androidx.annotation:annotation-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -91,7 +94,8 @@
     },
     {
       "uniqueId": "androidx.appcompat:appcompat",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -111,7 +115,8 @@
     },
     {
       "uniqueId": "androidx.appcompat:appcompat-resources",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -131,7 +136,8 @@
     },
     {
       "uniqueId": "androidx.arch.core:core-common",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -151,7 +157,8 @@
     },
     {
       "uniqueId": "androidx.arch.core:core-runtime",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -171,7 +178,8 @@
     },
     {
       "uniqueId": "androidx.asynclayoutinflater:asynclayoutinflater",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -191,7 +199,8 @@
     },
     {
       "uniqueId": "androidx.autofill:autofill",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -211,7 +220,8 @@
     },
     {
       "uniqueId": "androidx.cardview:cardview",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -231,7 +241,8 @@
     },
     {
       "uniqueId": "androidx.collection:collection",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -251,7 +262,8 @@
     },
     {
       "uniqueId": "androidx.collection:collection-ktx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -271,7 +283,8 @@
     },
     {
       "uniqueId": "androidx.compose.animation:animation",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -291,7 +304,8 @@
     },
     {
       "uniqueId": "androidx.compose.animation:animation-core",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -311,7 +325,8 @@
     },
     {
       "uniqueId": "androidx.compose.foundation:foundation",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -331,7 +346,8 @@
     },
     {
       "uniqueId": "androidx.compose.foundation:foundation-layout",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -351,7 +367,8 @@
     },
     {
       "uniqueId": "androidx.compose.material:material",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -371,7 +388,8 @@
     },
     {
       "uniqueId": "androidx.compose.material:material-icons-core",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -391,7 +409,8 @@
     },
     {
       "uniqueId": "androidx.compose.material:material-ripple",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -411,7 +430,8 @@
     },
     {
       "uniqueId": "androidx.compose.runtime:runtime",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -431,7 +451,8 @@
     },
     {
       "uniqueId": "androidx.compose.runtime:runtime-saveable",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -451,7 +472,8 @@
     },
     {
       "uniqueId": "androidx.compose.ui:ui",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -471,7 +493,8 @@
     },
     {
       "uniqueId": "androidx.compose.ui:ui-geometry",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -491,7 +514,8 @@
     },
     {
       "uniqueId": "androidx.compose.ui:ui-graphics",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -511,7 +535,8 @@
     },
     {
       "uniqueId": "androidx.compose.ui:ui-text",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -531,7 +556,8 @@
     },
     {
       "uniqueId": "androidx.compose.ui:ui-tooling-preview",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -551,7 +577,8 @@
     },
     {
       "uniqueId": "androidx.compose.ui:ui-unit",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -571,7 +598,8 @@
     },
     {
       "uniqueId": "androidx.compose.ui:ui-util",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -591,8 +619,10 @@
     },
     {
       "uniqueId": "androidx.compose:compose-bom",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "2022.12.00",
       "description": "A compatible set of Jetpack Compose libraries.",
       "name": "Jetpack Compose Libraries BOM",
@@ -603,7 +633,8 @@
     },
     {
       "uniqueId": "androidx.concurrent:concurrent-futures",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -623,7 +654,8 @@
     },
     {
       "uniqueId": "androidx.constraintlayout:constraintlayout",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -643,7 +675,8 @@
     },
     {
       "uniqueId": "androidx.constraintlayout:constraintlayout-core",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -663,7 +696,8 @@
     },
     {
       "uniqueId": "androidx.coordinatorlayout:coordinatorlayout",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -683,7 +717,8 @@
     },
     {
       "uniqueId": "androidx.core:core",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -703,7 +738,8 @@
     },
     {
       "uniqueId": "androidx.core:core-ktx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -723,7 +759,8 @@
     },
     {
       "uniqueId": "androidx.cursoradapter:cursoradapter",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -743,7 +780,8 @@
     },
     {
       "uniqueId": "androidx.customview:customview",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -763,7 +801,8 @@
     },
     {
       "uniqueId": "androidx.customview:customview-poolingcontainer",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -783,8 +822,10 @@
     },
     {
       "uniqueId": "androidx.databinding:databinding-adapters",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "7.0.3",
       "description": "",
       "name": "androidx.databinding:databinding-adapters",
@@ -794,7 +835,8 @@
     },
     {
       "uniqueId": "androidx.databinding:databinding-common",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -814,8 +856,10 @@
     },
     {
       "uniqueId": "androidx.databinding:databinding-ktx",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "7.0.3",
       "description": "",
       "name": "androidx.databinding:databinding-ktx",
@@ -825,8 +869,10 @@
     },
     {
       "uniqueId": "androidx.databinding:databinding-runtime",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "7.0.3",
       "description": "",
       "name": "androidx.databinding:databinding-runtime",
@@ -836,9 +882,11 @@
     },
     {
       "uniqueId": "androidx.databinding:viewbinding",
-      "funding": [],
-      "developers": [],
-      "artifactVersion": "8.1.2",
+      "funding": [
+      ],
+      "developers": [
+      ],
+      "artifactVersion": "8.2.0",
       "description": "",
       "name": "androidx.databinding:viewbinding",
       "licenses": [
@@ -847,7 +895,8 @@
     },
     {
       "uniqueId": "androidx.datastore:datastore",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -867,7 +916,8 @@
     },
     {
       "uniqueId": "androidx.datastore:datastore-core",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -887,7 +937,8 @@
     },
     {
       "uniqueId": "androidx.datastore:datastore-preferences",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -907,7 +958,8 @@
     },
     {
       "uniqueId": "androidx.datastore:datastore-preferences-core",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -927,7 +979,8 @@
     },
     {
       "uniqueId": "androidx.documentfile:documentfile",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -947,7 +1000,8 @@
     },
     {
       "uniqueId": "androidx.drawerlayout:drawerlayout",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -967,7 +1021,8 @@
     },
     {
       "uniqueId": "androidx.dynamicanimation:dynamicanimation",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -987,7 +1042,8 @@
     },
     {
       "uniqueId": "androidx.emoji2:emoji2",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1007,7 +1063,8 @@
     },
     {
       "uniqueId": "androidx.emoji2:emoji2-views-helper",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1027,7 +1084,8 @@
     },
     {
       "uniqueId": "androidx.exifinterface:exifinterface",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1047,47 +1105,50 @@
     },
     {
       "uniqueId": "androidx.fragment:fragment",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.6.1",
+      "artifactVersion": "1.6.2",
       "description": "The Support Library is a static library that you can add to your Android application in order to use APIs that are either not available for older platform versions or utility APIs that aren't a part of the framework APIs. Compatible on devices running API 14 or later.",
       "scm": {
         "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
         "url": "https://cs.android.com/androidx/platform/frameworks/support"
       },
       "name": "Support fragment",
-      "website": "https://developer.android.com/jetpack/androidx/releases/fragment#1.6.1",
+      "website": "https://developer.android.com/jetpack/androidx/releases/fragment#1.6.2",
       "licenses": [
         "Apache-2.0"
       ]
     },
     {
       "uniqueId": "androidx.fragment:fragment-ktx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.6.1",
+      "artifactVersion": "1.6.2",
       "description": "Kotlin extensions for 'fragment' artifact",
       "scm": {
         "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
         "url": "https://cs.android.com/androidx/platform/frameworks/support"
       },
       "name": "Fragment Kotlin Extensions",
-      "website": "https://developer.android.com/jetpack/androidx/releases/fragment#1.6.1",
+      "website": "https://developer.android.com/jetpack/androidx/releases/fragment#1.6.2",
       "licenses": [
         "Apache-2.0"
       ]
     },
     {
       "uniqueId": "androidx.interpolator:interpolator",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1107,7 +1168,8 @@
     },
     {
       "uniqueId": "androidx.legacy:legacy-support-core-ui",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1127,7 +1189,8 @@
     },
     {
       "uniqueId": "androidx.legacy:legacy-support-core-utils",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1147,7 +1210,8 @@
     },
     {
       "uniqueId": "androidx.legacy:legacy-support-v4",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1167,7 +1231,8 @@
     },
     {
       "uniqueId": "androidx.lifecycle:lifecycle-common",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1187,7 +1252,8 @@
     },
     {
       "uniqueId": "androidx.lifecycle:lifecycle-common-java8",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1207,7 +1273,8 @@
     },
     {
       "uniqueId": "androidx.lifecycle:lifecycle-extensions",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1227,7 +1294,8 @@
     },
     {
       "uniqueId": "androidx.lifecycle:lifecycle-livedata",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1247,7 +1315,8 @@
     },
     {
       "uniqueId": "androidx.lifecycle:lifecycle-livedata-core",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1267,7 +1336,8 @@
     },
     {
       "uniqueId": "androidx.lifecycle:lifecycle-livedata-core-ktx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1287,7 +1357,8 @@
     },
     {
       "uniqueId": "androidx.lifecycle:lifecycle-livedata-ktx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1307,7 +1378,8 @@
     },
     {
       "uniqueId": "androidx.lifecycle:lifecycle-process",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1327,7 +1399,8 @@
     },
     {
       "uniqueId": "androidx.lifecycle:lifecycle-runtime",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1347,7 +1420,8 @@
     },
     {
       "uniqueId": "androidx.lifecycle:lifecycle-runtime-ktx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1367,7 +1441,8 @@
     },
     {
       "uniqueId": "androidx.lifecycle:lifecycle-service",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1387,7 +1462,8 @@
     },
     {
       "uniqueId": "androidx.lifecycle:lifecycle-viewmodel",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1407,7 +1483,8 @@
     },
     {
       "uniqueId": "androidx.lifecycle:lifecycle-viewmodel-ktx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1427,7 +1504,8 @@
     },
     {
       "uniqueId": "androidx.lifecycle:lifecycle-viewmodel-savedstate",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1447,7 +1525,8 @@
     },
     {
       "uniqueId": "androidx.loader:loader",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1467,7 +1546,8 @@
     },
     {
       "uniqueId": "androidx.localbroadcastmanager:localbroadcastmanager",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1486,33 +1566,15 @@
       ]
     },
     {
-      "uniqueId": "androidx.media3:media3-cast",
-      "funding": [],
-      "developers": [
-        {
-          "name": "The Android Open Source Project"
-        }
-      ],
-      "artifactVersion": "1.1.1",
-      "description": "Media3 Cast module",
-      "scm": {
-        "connection": "scm:git:https://github.com/androidx/media.git",
-        "url": "https://github.com/androidx/media"
-      },
-      "name": "Media3 Cast module",
-      "licenses": [
-        "Apache-2.0"
-      ]
-    },
-    {
       "uniqueId": "androidx.media3:media3-common",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.1.1",
+      "artifactVersion": "1.2.0",
       "description": "Media3 common module",
       "scm": {
         "connection": "scm:git:https://github.com/androidx/media.git",
@@ -1525,13 +1587,14 @@
     },
     {
       "uniqueId": "androidx.media3:media3-container",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.1.1",
+      "artifactVersion": "1.2.0",
       "description": "Media3 Container module",
       "scm": {
         "connection": "scm:git:https://github.com/androidx/media.git",
@@ -1544,13 +1607,14 @@
     },
     {
       "uniqueId": "androidx.media3:media3-database",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.1.1",
+      "artifactVersion": "1.2.0",
       "description": "Media3 database module",
       "scm": {
         "connection": "scm:git:https://github.com/androidx/media.git",
@@ -1563,13 +1627,14 @@
     },
     {
       "uniqueId": "androidx.media3:media3-datasource",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.1.1",
+      "artifactVersion": "1.2.0",
       "description": "Media3 DataSource module",
       "scm": {
         "connection": "scm:git:https://github.com/androidx/media.git",
@@ -1582,13 +1647,14 @@
     },
     {
       "uniqueId": "androidx.media3:media3-datasource-okhttp",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.1.1",
+      "artifactVersion": "1.2.0",
       "description": "Media3 OkHttp DataSource module",
       "scm": {
         "connection": "scm:git:https://github.com/androidx/media.git",
@@ -1601,13 +1667,14 @@
     },
     {
       "uniqueId": "androidx.media3:media3-decoder",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.1.1",
+      "artifactVersion": "1.2.0",
       "description": "Media3 decoder module",
       "scm": {
         "connection": "scm:git:https://github.com/androidx/media.git",
@@ -1620,13 +1687,14 @@
     },
     {
       "uniqueId": "androidx.media3:media3-exoplayer",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.1.1",
+      "artifactVersion": "1.2.0",
       "description": "Media3 ExoPlayer module",
       "scm": {
         "connection": "scm:git:https://github.com/androidx/media.git",
@@ -1639,13 +1707,14 @@
     },
     {
       "uniqueId": "androidx.media3:media3-exoplayer-dash",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.1.1",
+      "artifactVersion": "1.2.0",
       "description": "Media3 ExoPlayer DASH module",
       "scm": {
         "connection": "scm:git:https://github.com/androidx/media.git",
@@ -1658,13 +1727,14 @@
     },
     {
       "uniqueId": "androidx.media3:media3-exoplayer-hls",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.1.1",
+      "artifactVersion": "1.2.0",
       "description": "Media3 ExoPlayer HLS module",
       "scm": {
         "connection": "scm:git:https://github.com/androidx/media.git",
@@ -1677,13 +1747,14 @@
     },
     {
       "uniqueId": "androidx.media3:media3-exoplayer-rtsp",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.1.1",
+      "artifactVersion": "1.2.0",
       "description": "Media3 ExoPlayer RTSP module",
       "scm": {
         "connection": "scm:git:https://github.com/androidx/media.git",
@@ -1696,13 +1767,14 @@
     },
     {
       "uniqueId": "androidx.media3:media3-exoplayer-smoothstreaming",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.1.1",
+      "artifactVersion": "1.2.0",
       "description": "Media3 ExoPlayer SmoothStreaming module",
       "scm": {
         "connection": "scm:git:https://github.com/androidx/media.git",
@@ -1715,13 +1787,14 @@
     },
     {
       "uniqueId": "androidx.media3:media3-exoplayer-workmanager",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.1.1",
+      "artifactVersion": "1.2.0",
       "description": "Media3 ExoPlayer WorkManager module",
       "scm": {
         "connection": "scm:git:https://github.com/androidx/media.git",
@@ -1734,13 +1807,14 @@
     },
     {
       "uniqueId": "androidx.media3:media3-extractor",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.1.1",
+      "artifactVersion": "1.2.0",
       "description": "Media3 Extractor module",
       "scm": {
         "connection": "scm:git:https://github.com/androidx/media.git",
@@ -1753,13 +1827,14 @@
     },
     {
       "uniqueId": "androidx.media3:media3-session",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.1.1",
+      "artifactVersion": "1.2.0",
       "description": "Media3 Session module",
       "scm": {
         "connection": "scm:git:https://github.com/androidx/media.git",
@@ -1772,13 +1847,14 @@
     },
     {
       "uniqueId": "androidx.media3:media3-ui",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.1.1",
+      "artifactVersion": "1.2.0",
       "description": "Media3 UI module",
       "scm": {
         "connection": "scm:git:https://github.com/androidx/media.git",
@@ -1791,7 +1867,8 @@
     },
     {
       "uniqueId": "androidx.media:media",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -1810,188 +1887,177 @@
       ]
     },
     {
-      "uniqueId": "androidx.mediarouter:mediarouter",
-      "funding": [],
-      "developers": [
-        {
-          "name": "The Android Open Source Project"
-        }
-      ],
-      "artifactVersion": "1.3.0",
-      "description": "Android MediaRouter Support Library",
-      "scm": {
-        "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
-        "url": "https://cs.android.com/androidx/platform/frameworks/support"
-      },
-      "name": "Android MediaRouter Support Library",
-      "website": "https://developer.android.com/jetpack/androidx/releases/mediarouter#1.3.0",
-      "licenses": [
-        "Apache-2.0"
-      ]
-    },
-    {
       "uniqueId": "androidx.navigation:navigation-common",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "2.7.4",
+      "artifactVersion": "2.7.6",
       "description": "Android Navigation-Common",
       "scm": {
         "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
         "url": "https://cs.android.com/androidx/platform/frameworks/support"
       },
       "name": "Navigation Common",
-      "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.7.4",
+      "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.7.6",
       "licenses": [
         "Apache-2.0"
       ]
     },
     {
       "uniqueId": "androidx.navigation:navigation-common-ktx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "2.7.4",
+      "artifactVersion": "2.7.6",
       "description": "Android Navigation-Common-Ktx",
       "scm": {
         "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
         "url": "https://cs.android.com/androidx/platform/frameworks/support"
       },
       "name": "Navigation Common Kotlin Extensions",
-      "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.7.4",
+      "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.7.6",
       "licenses": [
         "Apache-2.0"
       ]
     },
     {
       "uniqueId": "androidx.navigation:navigation-fragment",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "2.7.4",
+      "artifactVersion": "2.7.6",
       "description": "Android Navigation-Fragment",
       "scm": {
         "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
         "url": "https://cs.android.com/androidx/platform/frameworks/support"
       },
       "name": "Navigation Fragment",
-      "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.7.4",
+      "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.7.6",
       "licenses": [
         "Apache-2.0"
       ]
     },
     {
       "uniqueId": "androidx.navigation:navigation-fragment-ktx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "2.7.4",
+      "artifactVersion": "2.7.6",
       "description": "Android Navigation-Fragment-Ktx",
       "scm": {
         "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
         "url": "https://cs.android.com/androidx/platform/frameworks/support"
       },
       "name": "Navigation Fragment Kotlin Extensions",
-      "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.7.4",
+      "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.7.6",
       "licenses": [
         "Apache-2.0"
       ]
     },
     {
       "uniqueId": "androidx.navigation:navigation-runtime",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "2.7.4",
+      "artifactVersion": "2.7.6",
       "description": "Android Navigation-Runtime",
       "scm": {
         "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
         "url": "https://cs.android.com/androidx/platform/frameworks/support"
       },
       "name": "Navigation Runtime",
-      "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.7.4",
+      "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.7.6",
       "licenses": [
         "Apache-2.0"
       ]
     },
     {
       "uniqueId": "androidx.navigation:navigation-runtime-ktx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "2.7.4",
+      "artifactVersion": "2.7.6",
       "description": "Android Navigation-Runtime-Ktx",
       "scm": {
         "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
         "url": "https://cs.android.com/androidx/platform/frameworks/support"
       },
       "name": "Navigation Runtime Kotlin Extensions",
-      "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.7.4",
+      "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.7.6",
       "licenses": [
         "Apache-2.0"
       ]
     },
     {
       "uniqueId": "androidx.navigation:navigation-ui",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "2.7.4",
+      "artifactVersion": "2.7.6",
       "description": "Android Navigation-UI",
       "scm": {
         "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
         "url": "https://cs.android.com/androidx/platform/frameworks/support"
       },
       "name": "Navigation UI",
-      "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.7.4",
+      "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.7.6",
       "licenses": [
         "Apache-2.0"
       ]
     },
     {
       "uniqueId": "androidx.navigation:navigation-ui-ktx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "2.7.4",
+      "artifactVersion": "2.7.6",
       "description": "Android Navigation-UI-Ktx",
       "scm": {
         "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
         "url": "https://cs.android.com/androidx/platform/frameworks/support"
       },
       "name": "Navigation UI Kotlin Extensions",
-      "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.7.4",
+      "website": "https://developer.android.com/jetpack/androidx/releases/navigation#2.7.6",
       "licenses": [
         "Apache-2.0"
       ]
     },
     {
       "uniqueId": "androidx.paging:paging-common",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2011,7 +2077,8 @@
     },
     {
       "uniqueId": "androidx.paging:paging-common-ktx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2031,7 +2098,8 @@
     },
     {
       "uniqueId": "androidx.paging:paging-runtime",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2051,7 +2119,8 @@
     },
     {
       "uniqueId": "androidx.paging:paging-runtime-ktx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2071,7 +2140,8 @@
     },
     {
       "uniqueId": "androidx.palette:palette",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2091,7 +2161,8 @@
     },
     {
       "uniqueId": "androidx.palette:palette-ktx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2111,7 +2182,8 @@
     },
     {
       "uniqueId": "androidx.preference:preference",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2131,7 +2203,8 @@
     },
     {
       "uniqueId": "androidx.preference:preference-ktx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2151,7 +2224,8 @@
     },
     {
       "uniqueId": "androidx.print:print",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2171,7 +2245,8 @@
     },
     {
       "uniqueId": "androidx.profileinstaller:profileinstaller",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2191,27 +2266,29 @@
     },
     {
       "uniqueId": "androidx.recyclerview:recyclerview",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.3.1",
+      "artifactVersion": "1.3.2",
       "description": "Android Support RecyclerView",
       "scm": {
         "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
         "url": "https://cs.android.com/androidx/platform/frameworks/support"
       },
       "name": "Support RecyclerView",
-      "website": "https://developer.android.com/jetpack/androidx/releases/recyclerview#1.3.1",
+      "website": "https://developer.android.com/jetpack/androidx/releases/recyclerview#1.3.2",
       "licenses": [
         "Apache-2.0"
       ]
     },
     {
       "uniqueId": "androidx.resourceinspection:resourceinspection-annotation",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2231,67 +2308,71 @@
     },
     {
       "uniqueId": "androidx.room:room-common",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "2.6.0",
+      "artifactVersion": "2.6.1",
       "description": "Android Room-Common",
       "scm": {
         "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
         "url": "https://cs.android.com/androidx/platform/frameworks/support"
       },
       "name": "Room-Common",
-      "website": "https://developer.android.com/jetpack/androidx/releases/room#2.6.0",
+      "website": "https://developer.android.com/jetpack/androidx/releases/room#2.6.1",
       "licenses": [
         "Apache-2.0"
       ]
     },
     {
       "uniqueId": "androidx.room:room-ktx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "2.6.0",
+      "artifactVersion": "2.6.1",
       "description": "Android Room Kotlin Extensions",
       "scm": {
         "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
         "url": "https://cs.android.com/androidx/platform/frameworks/support"
       },
       "name": "Room Kotlin Extensions",
-      "website": "https://developer.android.com/jetpack/androidx/releases/room#2.6.0",
+      "website": "https://developer.android.com/jetpack/androidx/releases/room#2.6.1",
       "licenses": [
         "Apache-2.0"
       ]
     },
     {
       "uniqueId": "androidx.room:room-runtime",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "2.6.0",
+      "artifactVersion": "2.6.1",
       "description": "Android Room-Runtime",
       "scm": {
         "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
         "url": "https://cs.android.com/androidx/platform/frameworks/support"
       },
       "name": "Room-Runtime",
-      "website": "https://developer.android.com/jetpack/androidx/releases/room#2.6.0",
+      "website": "https://developer.android.com/jetpack/androidx/releases/room#2.6.1",
       "licenses": [
         "Apache-2.0"
       ]
     },
     {
       "uniqueId": "androidx.savedstate:savedstate",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2311,7 +2392,8 @@
     },
     {
       "uniqueId": "androidx.savedstate:savedstate-ktx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2331,7 +2413,8 @@
     },
     {
       "uniqueId": "androidx.slidingpanelayout:slidingpanelayout",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2351,7 +2434,8 @@
     },
     {
       "uniqueId": "androidx.sqlite:sqlite",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2371,7 +2455,8 @@
     },
     {
       "uniqueId": "androidx.sqlite:sqlite-framework",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2391,7 +2476,8 @@
     },
     {
       "uniqueId": "androidx.startup:startup-runtime",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2411,7 +2497,8 @@
     },
     {
       "uniqueId": "androidx.swiperefreshlayout:swiperefreshlayout",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2431,7 +2518,8 @@
     },
     {
       "uniqueId": "androidx.tracing:tracing",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2451,7 +2539,8 @@
     },
     {
       "uniqueId": "androidx.transition:transition",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2471,7 +2560,8 @@
     },
     {
       "uniqueId": "androidx.vectordrawable:vectordrawable",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2491,7 +2581,8 @@
     },
     {
       "uniqueId": "androidx.vectordrawable:vectordrawable-animated",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2511,7 +2602,8 @@
     },
     {
       "uniqueId": "androidx.versionedparcelable:versionedparcelable",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2531,7 +2623,8 @@
     },
     {
       "uniqueId": "androidx.viewpager2:viewpager2",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2551,7 +2644,8 @@
     },
     {
       "uniqueId": "androidx.viewpager:viewpager",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2571,7 +2665,8 @@
     },
     {
       "uniqueId": "androidx.window:window",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2591,7 +2686,8 @@
     },
     {
       "uniqueId": "androidx.work:work-runtime",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
@@ -2611,7 +2707,8 @@
     },
     {
       "uniqueId": "cat.ereza:customactivityoncrash",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Eduard Ereza Mart\u00ednez"
@@ -2632,7 +2729,8 @@
     },
     {
       "uniqueId": "com.airbnb.android:lottie",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Airbnb"
@@ -2653,7 +2751,8 @@
     },
     {
       "uniqueId": "com.daimajia.swipelayout:library",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "daimajia"
@@ -2674,7 +2773,8 @@
     },
     {
       "uniqueId": "com.facebook.fbui.textlayoutbuilder:staticlayout-proxy",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Facebook"
@@ -2695,7 +2795,8 @@
     },
     {
       "uniqueId": "com.facebook.shimmer:shimmer",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Facebook"
@@ -2716,7 +2817,8 @@
     },
     {
       "uniqueId": "com.github.bumptech.glide:annotations",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Sam Judd"
@@ -2738,7 +2840,8 @@
     },
     {
       "uniqueId": "com.github.bumptech.glide:disklrucache",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Sam Judd"
@@ -2760,7 +2863,8 @@
     },
     {
       "uniqueId": "com.github.bumptech.glide:gifdecoder",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Sam Judd"
@@ -2782,7 +2886,8 @@
     },
     {
       "uniqueId": "com.github.bumptech.glide:glide",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Sam Judd"
@@ -2804,7 +2909,8 @@
     },
     {
       "uniqueId": "com.github.giangpham96.expandable-text:expandable_text_compose",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Giang H. Pham"
@@ -2825,7 +2931,8 @@
     },
     {
       "uniqueId": "com.github.giangpham96.expandable-text:expandable_textview",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Giang H. Pham"
@@ -2846,49 +2953,20 @@
     },
     {
       "uniqueId": "com.github.giangpham96:expandable-text",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "2.0.0",
       "description": "",
       "name": "com.github.giangpham96:expandable-text",
-      "licenses": []
-    },
-    {
-      "uniqueId": "com.google.android.datatransport:transport-api",
-      "funding": [],
-      "developers": [],
-      "artifactVersion": "3.0.0",
-      "description": "",
-      "name": "transport-api",
       "licenses": [
-        "Apache-2.0"
-      ]
-    },
-    {
-      "uniqueId": "com.google.android.datatransport:transport-backend-cct",
-      "funding": [],
-      "developers": [],
-      "artifactVersion": "3.1.3",
-      "description": "",
-      "name": "transport-backend-cct",
-      "licenses": [
-        "Apache-2.0"
-      ]
-    },
-    {
-      "uniqueId": "com.google.android.datatransport:transport-runtime",
-      "funding": [],
-      "developers": [],
-      "artifactVersion": "3.1.3",
-      "description": "",
-      "name": "transport-runtime",
-      "licenses": [
-        "Apache-2.0"
       ]
     },
     {
       "uniqueId": "com.google.android.flexbox:flexbox",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Google"
@@ -2906,80 +2984,15 @@
       ]
     },
     {
-      "uniqueId": "com.google.android.gms:play-services-base",
-      "funding": [],
-      "developers": [],
-      "artifactVersion": "18.0.1",
-      "description": "",
-      "name": "play-services-base",
-      "licenses": [
-        "ASDKL"
-      ]
-    },
-    {
-      "uniqueId": "com.google.android.gms:play-services-basement",
-      "funding": [],
-      "developers": [],
-      "artifactVersion": "18.0.0",
-      "description": "",
-      "name": "play-services-basement",
-      "licenses": [
-        "ASDKL"
-      ]
-    },
-    {
-      "uniqueId": "com.google.android.gms:play-services-cast",
-      "funding": [],
-      "developers": [],
-      "artifactVersion": "21.3.0",
-      "description": "",
-      "name": "play-services-cast",
-      "licenses": [
-        "ASDKL"
-      ]
-    },
-    {
-      "uniqueId": "com.google.android.gms:play-services-cast-framework",
-      "funding": [],
-      "developers": [],
-      "artifactVersion": "21.3.0",
-      "description": "",
-      "name": "play-services-cast-framework",
-      "licenses": [
-        "ASDKL"
-      ]
-    },
-    {
-      "uniqueId": "com.google.android.gms:play-services-flags",
-      "funding": [],
-      "developers": [],
-      "artifactVersion": "18.0.1",
-      "description": "",
-      "name": "play-services-flags",
-      "licenses": [
-        "ASDKL"
-      ]
-    },
-    {
-      "uniqueId": "com.google.android.gms:play-services-tasks",
-      "funding": [],
-      "developers": [],
-      "artifactVersion": "18.0.1",
-      "description": "",
-      "name": "play-services-tasks",
-      "licenses": [
-        "ASDKL"
-      ]
-    },
-    {
       "uniqueId": "com.google.android.material:material",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.10.0",
+      "artifactVersion": "1.11.0",
       "description": "Material Components for Android is a static library that you can add to your Android application in order to use APIs that provide implementations of the Material Design specification. Compatible on devices running API 14 or later.",
       "scm": {
         "connection": "scm:git:https://github.com/material-components/material-components-android.git",
@@ -2993,8 +3006,10 @@
     },
     {
       "uniqueId": "com.google.code.findbugs:jsr305",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "3.0.2",
       "description": "JSR305 Annotations for Findbugs",
       "scm": {
@@ -3010,8 +3025,10 @@
     },
     {
       "uniqueId": "com.google.code.gson:gson",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "2.10.1",
       "description": "Gson JSON library",
       "scm": {
@@ -3027,8 +3044,10 @@
     },
     {
       "uniqueId": "com.google.dagger:dagger",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "2.48.1",
       "description": "A fast dependency injector for Android and Java.",
       "scm": {
@@ -3048,8 +3067,10 @@
     },
     {
       "uniqueId": "com.google.dagger:dagger-lint-aar",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "2.48.1",
       "description": "A fast dependency injector for Android and Java.",
       "scm": {
@@ -3069,8 +3090,10 @@
     },
     {
       "uniqueId": "com.google.dagger:hilt-android",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "2.48.1",
       "description": "A fast dependency injector for Android and Java.",
       "scm": {
@@ -3090,8 +3113,10 @@
     },
     {
       "uniqueId": "com.google.dagger:hilt-core",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "2.48.1",
       "description": "A fast dependency injector for Android and Java.",
       "scm": {
@@ -3111,8 +3136,10 @@
     },
     {
       "uniqueId": "com.google.errorprone:error_prone_annotations",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "2.15.0",
       "description": "Error Prone is a static analysis tool for Java that catches common programming mistakes at compile-time.",
       "scm": {
@@ -3131,42 +3158,11 @@
       }
     },
     {
-      "uniqueId": "com.google.firebase:firebase-encoders",
-      "funding": [],
-      "developers": [],
-      "artifactVersion": "17.0.0",
-      "description": "",
-      "name": "firebase-encoders",
-      "licenses": [
-        "Apache-2.0"
-      ]
-    },
-    {
-      "uniqueId": "com.google.firebase:firebase-encoders-json",
-      "funding": [],
-      "developers": [],
-      "artifactVersion": "18.0.0",
-      "description": "",
-      "name": "firebase-encoders-json",
-      "licenses": [
-        "Apache-2.0"
-      ]
-    },
-    {
-      "uniqueId": "com.google.firebase:firebase-encoders-proto",
-      "funding": [],
-      "developers": [],
-      "artifactVersion": "16.0.0",
-      "description": "",
-      "name": "firebase-encoders-proto",
-      "licenses": [
-        "Apache-2.0"
-      ]
-    },
-    {
       "uniqueId": "com.google.guava:failureaccess",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "1.0.1",
       "description": "Contains\n    com.google.common.util.concurrent.internal.InternalFutureFailureAccess and\n    InternalFutures. Most users will never need to use this artifact. Its\n    classes is conceptually a part of Guava, but they're in this separate\n    artifact so that Android libraries can use them without pulling in all of\n    Guava (just as they can use ListenableFuture by depending on the\n    listenablefuture artifact).",
       "scm": {
@@ -3182,8 +3178,10 @@
     },
     {
       "uniqueId": "com.google.guava:guava",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "31.1-android",
       "description": "Guava is a suite of core and expanded libraries that include\n    utility classes, Google's collections, I/O classes, and\n    much more.",
       "scm": {
@@ -3199,8 +3197,10 @@
     },
     {
       "uniqueId": "com.google.guava:listenablefuture",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "9999.0-empty-to-avoid-conflict-with-guava",
       "description": "An empty artifact that Guava depends on to signal that it is providing\n    ListenableFuture -- but is also available in a second \"version\" that\n    contains com.google.common.util.concurrent.ListenableFuture class, without\n    any other Guava classes. The idea is:\n\n    - If users want only ListenableFuture, they depend on listenablefuture-1.0.\n\n    - If users want all of Guava, they depend on guava, which, as of Guava\n    27.0, depends on\n    listenablefuture-9999.0-empty-to-avoid-conflict-with-guava. The 9999.0-...\n    version number is enough for some build systems (notably, Gradle) to select\n    that empty artifact over the \"real\" listenablefuture-1.0 -- avoiding a\n    conflict with the copy of ListenableFuture in guava itself. If users are\n    using an older version of Guava or a build system other than Gradle, they\n    may see class conflicts. If so, they can solve them by manually excluding\n    the listenablefuture artifact or manually forcing their build systems to\n    use 9999.0-....",
       "scm": {
@@ -3216,8 +3216,10 @@
     },
     {
       "uniqueId": "com.google.j2objc:j2objc-annotations",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "1.3",
       "description": "A set of annotations that provide additional information to the J2ObjC\n    translator to modify the result of translation.",
       "scm": {
@@ -3233,7 +3235,8 @@
     },
     {
       "uniqueId": "com.intuit.sdp:sdp-android",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Elhanan Mishraky"
@@ -3254,7 +3257,8 @@
     },
     {
       "uniqueId": "com.intuit.ssp:ssp-android",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Elhanan Mishraky"
@@ -3275,13 +3279,14 @@
     },
     {
       "uniqueId": "com.mikepenz:aboutlibraries-core-android",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Mike Penz"
         }
       ],
-      "artifactVersion": "10.9.1",
+      "artifactVersion": "10.9.2",
       "description": "AboutLibraries automatically detects all dependencies of a project and collects their information including the license. Optionally visualising it via the provided ui components.",
       "scm": {
         "connection": "scm:git@github.com:mikepenz/AboutLibraries.git",
@@ -3296,7 +3301,8 @@
     },
     {
       "uniqueId": "com.mikepenz:fastadapter",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Mike Penz"
@@ -3317,7 +3323,8 @@
     },
     {
       "uniqueId": "com.mohamedrejeb.ksoup:ksoup-entites-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Mohamed Rejeb"
@@ -3337,7 +3344,8 @@
     },
     {
       "uniqueId": "com.mohamedrejeb.ksoup:ksoup-html-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Mohamed Rejeb"
@@ -3357,7 +3365,8 @@
     },
     {
       "uniqueId": "com.squareup.okhttp3:okhttp",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Square, Inc."
@@ -3378,7 +3387,8 @@
     },
     {
       "uniqueId": "com.squareup.okio:okio-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Square, Inc."
@@ -3399,7 +3409,8 @@
     },
     {
       "uniqueId": "dev.chrisbanes.insetter:insetter",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Chris Banes"
@@ -3420,7 +3431,8 @@
     },
     {
       "uniqueId": "dev.chrisbanes.insetter:insetter-dbx",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Chris Banes"
@@ -3441,7 +3453,8 @@
     },
     {
       "uniqueId": "io.coil-kt:coil",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Coil Contributors"
@@ -3462,7 +3475,8 @@
     },
     {
       "uniqueId": "io.coil-kt:coil-base",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Coil Contributors"
@@ -3483,7 +3497,8 @@
     },
     {
       "uniqueId": "io.github.pdvrieze.xmlutil:core-android",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Paul de Vrieze"
@@ -3504,7 +3519,8 @@
     },
     {
       "uniqueId": "io.github.pdvrieze.xmlutil:serialization-android",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Paul de Vrieze"
@@ -3525,7 +3541,8 @@
     },
     {
       "uniqueId": "io.ktor:ktor-client-cio-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3545,7 +3562,8 @@
     },
     {
       "uniqueId": "io.ktor:ktor-client-content-negotiation-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3565,7 +3583,8 @@
     },
     {
       "uniqueId": "io.ktor:ktor-client-core-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3585,7 +3604,8 @@
     },
     {
       "uniqueId": "io.ktor:ktor-client-encoding-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3605,7 +3625,8 @@
     },
     {
       "uniqueId": "io.ktor:ktor-client-okhttp-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3625,7 +3646,8 @@
     },
     {
       "uniqueId": "io.ktor:ktor-events-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3645,7 +3667,8 @@
     },
     {
       "uniqueId": "io.ktor:ktor-http-cio-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3665,7 +3688,8 @@
     },
     {
       "uniqueId": "io.ktor:ktor-http-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3685,7 +3709,8 @@
     },
     {
       "uniqueId": "io.ktor:ktor-io-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3705,7 +3730,8 @@
     },
     {
       "uniqueId": "io.ktor:ktor-network-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3725,7 +3751,8 @@
     },
     {
       "uniqueId": "io.ktor:ktor-network-tls-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3745,7 +3772,8 @@
     },
     {
       "uniqueId": "io.ktor:ktor-serialization-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3765,7 +3793,8 @@
     },
     {
       "uniqueId": "io.ktor:ktor-serialization-kotlinx-json-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3785,7 +3814,8 @@
     },
     {
       "uniqueId": "io.ktor:ktor-serialization-kotlinx-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3805,7 +3835,8 @@
     },
     {
       "uniqueId": "io.ktor:ktor-serialization-kotlinx-xml-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3825,7 +3856,8 @@
     },
     {
       "uniqueId": "io.ktor:ktor-utils-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3845,7 +3877,8 @@
     },
     {
       "uniqueId": "io.ktor:ktor-websocket-serialization-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3865,7 +3898,8 @@
     },
     {
       "uniqueId": "io.ktor:ktor-websockets-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3885,8 +3919,10 @@
     },
     {
       "uniqueId": "javax.inject:javax.inject",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "1",
       "description": "The javax.inject API",
       "scm": {
@@ -3900,8 +3936,10 @@
     },
     {
       "uniqueId": "org.brotli:dec",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "0.1.2",
       "description": "Brotli is a generic-purpose lossless compression algorithm.",
       "scm": {
@@ -3917,7 +3955,8 @@
     },
     {
       "uniqueId": "org.checkerframework:checker-qual",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.cs.washington.edu/",
@@ -3943,7 +3982,8 @@
     },
     {
       "uniqueId": "org.jetbrains.kotlin:kotlin-bom",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3965,7 +4005,8 @@
     },
     {
       "uniqueId": "org.jetbrains.kotlin:kotlin-reflect",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -3987,15 +4028,16 @@
     },
     {
       "uniqueId": "org.jetbrains.kotlin:kotlin-stdlib",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
           "name": "Kotlin Team"
         }
       ],
-      "artifactVersion": "1.9.10",
-      "description": "Kotlin Standard Library for JVM",
+      "artifactVersion": "1.9.20",
+      "description": "Kotlin Standard Library",
       "scm": {
         "connection": "scm:git:https://github.com/JetBrains/kotlin.git",
         "url": "https://github.com/JetBrains/kotlin",
@@ -4008,30 +4050,9 @@
       ]
     },
     {
-      "uniqueId": "org.jetbrains.kotlin:kotlin-stdlib-common",
-      "funding": [],
-      "developers": [
-        {
-          "organisationUrl": "https://www.jetbrains.com",
-          "name": "Kotlin Team"
-        }
-      ],
-      "artifactVersion": "1.9.10",
-      "description": "Kotlin Common Standard Library",
-      "scm": {
-        "connection": "scm:git:https://github.com/JetBrains/kotlin.git",
-        "url": "https://github.com/JetBrains/kotlin",
-        "developerConnection": "scm:git:https://github.com/JetBrains/kotlin.git"
-      },
-      "name": "Kotlin Stdlib Common",
-      "website": "https://kotlinlang.org/",
-      "licenses": [
-        "Apache-2.0"
-      ]
-    },
-    {
       "uniqueId": "org.jetbrains.kotlin:kotlin-stdlib-jdk7",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -4053,7 +4074,8 @@
     },
     {
       "uniqueId": "org.jetbrains.kotlin:kotlin-stdlib-jdk8",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -4075,7 +4097,8 @@
     },
     {
       "uniqueId": "org.jetbrains.kotlinx:atomicfu-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -4095,7 +4118,8 @@
     },
     {
       "uniqueId": "org.jetbrains.kotlinx:kotlinx-coroutines-android",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -4115,7 +4139,8 @@
     },
     {
       "uniqueId": "org.jetbrains.kotlinx:kotlinx-coroutines-bom",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -4135,7 +4160,8 @@
     },
     {
       "uniqueId": "org.jetbrains.kotlinx:kotlinx-coroutines-core-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -4155,7 +4181,8 @@
     },
     {
       "uniqueId": "org.jetbrains.kotlinx:kotlinx-coroutines-guava",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -4175,7 +4202,8 @@
     },
     {
       "uniqueId": "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -4195,7 +4223,8 @@
     },
     {
       "uniqueId": "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -4215,7 +4244,8 @@
     },
     {
       "uniqueId": "org.jetbrains.kotlinx:kotlinx-serialization-bom",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -4235,7 +4265,8 @@
     },
     {
       "uniqueId": "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -4255,7 +4286,8 @@
     },
     {
       "uniqueId": "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -4275,7 +4307,8 @@
     },
     {
       "uniqueId": "org.jetbrains:annotations",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "organisationUrl": "https://www.jetbrains.com",
@@ -4297,8 +4330,10 @@
     },
     {
       "uniqueId": "org.slf4j:slf4j-api",
-      "funding": [],
-      "developers": [],
+      "funding": [
+      ],
+      "developers": [
+      ],
       "artifactVersion": "1.7.36",
       "description": "The slf4j API",
       "scm": {
@@ -4317,7 +4352,8 @@
     },
     {
       "uniqueId": "pub.devrel:easypermissions",
-      "funding": [],
+      "funding": [
+      ],
       "developers": [
         {
           "name": "Google"
@@ -4337,13 +4373,6 @@
     }
   ],
   "licenses": {
-    "ASDKL": {
-      "hash": "ASDKL",
-      "internalHash": "ASDKL",
-      "url": "https://developer.android.com/studio/terms.html",
-      "spdxId": "ASDKL",
-      "name": "Android Software Development Kit License"
-    },
     "Apache-2.0": {
       "content": "Apache License\nVersion 2.0, January 2004\nhttp://www.apache.org/licenses/\n\nTERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION\n\n1. Definitions.\n\n\"License\" shall mean the terms and conditions for use, reproduction, and distribution as defined by Sections 1 through 9 of this document.\n\n\"Licensor\" shall mean the copyright owner or entity authorized by the copyright owner that is granting the License.\n\n\"Legal Entity\" shall mean the union of the acting entity and all other entities that control, are controlled by, or are under common control with that entity. For the purposes of this definition, \"control\" means (i) the power, direct or indirect, to cause the direction or management of such entity, whether by contract or otherwise, or (ii) ownership of fifty percent (50%) or more of the outstanding shares, or (iii) beneficial ownership of such entity.\n\n\"You\" (or \"Your\") shall mean an individual or Legal Entity exercising permissions granted by this License.\n\n\"Source\" form shall mean the preferred form for making modifications, including but not limited to software source code, documentation source, and configuration files.\n\n\"Object\" form shall mean any form resulting from mechanical transformation or translation of a Source form, including but not limited to compiled object code, generated documentation, and conversions to other media types.\n\n\"Work\" shall mean the work of authorship, whether in Source or Object form, made available under the License, as indicated by a copyright notice that is included in or attached to the work (an example is provided in the Appendix below).\n\n\"Derivative Works\" shall mean any work, whether in Source or Object form, that is based on (or derived from) the Work and for which the editorial revisions, annotations, elaborations, or other modifications represent, as a whole, an original work of authorship. For the purposes of this License, Derivative Works shall not include works that remain separable from, or merely link (or bind by name) to the interfaces of, the Work and Derivative Works thereof.\n\n\"Contribution\" shall mean any work of authorship, including the original version of the Work and any modifications or additions to that Work or Derivative Works thereof, that is intentionally submitted to Licensor for inclusion in the Work by the copyright owner or by an individual or Legal Entity authorized to submit on behalf of the copyright owner. For the purposes of this definition, \"submitted\" means any form of electronic, verbal, or written communication sent to the Licensor or its representatives, including but not limited to communication on electronic mailing lists, source code control systems, and issue tracking systems that are managed by, or on behalf of, the Licensor for the purpose of discussing and improving the Work, but excluding communication that is conspicuously marked or otherwise designated in writing by the copyright owner as \"Not a Contribution.\"\n\n\"Contributor\" shall mean Licensor and any individual or Legal Entity on behalf of whom a Contribution has been received by Licensor and subsequently incorporated within the Work.\n\n2. Grant of Copyright License. Subject to the terms and conditions of this License, each Contributor hereby grants to You a perpetual, worldwide, non-exclusive, no-charge, royalty-free, irrevocable copyright license to reproduce, prepare Derivative Works of, publicly display, publicly perform, sublicense, and distribute the Work and such Derivative Works in Source or Object form.\n\n3. Grant of Patent License. Subject to the terms and conditions of this License, each Contributor hereby grants to You a perpetual, worldwide, non-exclusive, no-charge, royalty-free, irrevocable (except as stated in this section) patent license to make, have made, use, offer to sell, sell, import, and otherwise transfer the Work, where such license applies only to those patent claims licensable by such Contributor that are necessarily infringed by their Contribution(s) alone or by combination of their Contribution(s) with the Work to which such Contribution(s) was submitted. If You institute patent litigation against any entity (including a cross-claim or counterclaim in a lawsuit) alleging that the Work or a Contribution incorporated within the Work constitutes direct or contributory patent infringement, then any patent licenses granted to You under this License for that Work shall terminate as of the date such litigation is filed.\n\n4. Redistribution. You may reproduce and distribute copies of the Work or Derivative Works thereof in any medium, with or without modifications, and in Source or Object form, provided that You meet the following conditions:\n\n     (a) You must give any other recipients of the Work or Derivative Works a copy of this License; and\n\n     (b) You must cause any modified files to carry prominent notices stating that You changed the files; and\n\n     (c) You must retain, in the Source form of any Derivative Works that You distribute, all copyright, patent, trademark, and attribution notices from the Source form of the Work, excluding those notices that do not pertain to any part of the Derivative Works; and\n\n     (d) If the Work includes a \"NOTICE\" text file as part of its distribution, then any Derivative Works that You distribute must include a readable copy of the attribution notices contained within such NOTICE file, excluding those notices that do not pertain to any part of the Derivative Works, in at least one of the following places: within a NOTICE text file distributed as part of the Derivative Works; within the Source form or documentation, if provided along with the Derivative Works; or, within a display generated by the Derivative Works, if and wherever such third-party notices normally appear. The contents of the NOTICE file are for informational purposes only and do not modify the License. You may add Your own attribution notices within Derivative Works that You distribute, alongside or as an addendum to the NOTICE text from the Work, provided that such additional attribution notices cannot be construed as modifying the License.\n\n     You may add Your own copyright statement to Your modifications and may provide additional or different license terms and conditions for use, reproduction, or distribution of Your modifications, or for any such Derivative Works as a whole, provided Your use, reproduction, and distribution of the Work otherwise complies with the conditions stated in this License.\n\n5. Submission of Contributions. Unless You explicitly state otherwise, any Contribution intentionally submitted for inclusion in the Work by You to the Licensor shall be under the terms and conditions of this License, without any additional terms or conditions. Notwithstanding the above, nothing herein shall supersede or modify the terms of any separate license agreement you may have executed with Licensor regarding such Contributions.\n\n6. Trademarks. This License does not grant permission to use the trade names, trademarks, service marks, or product names of the Licensor, except as required for reasonable and customary use in describing the origin of the Work and reproducing the content of the NOTICE file.\n\n7. Disclaimer of Warranty. Unless required by applicable law or agreed to in writing, Licensor provides the Work (and each Contributor provides its Contributions) on an \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied, including, without limitation, any warranties or conditions of TITLE, NON-INFRINGEMENT, MERCHANTABILITY, or FITNESS FOR A PARTICULAR PURPOSE. You are solely responsible for determining the appropriateness of using or redistributing the Work and assume any risks associated with Your exercise of permissions under this License.\n\n8. Limitation of Liability. In no event and under no legal theory, whether in tort (including negligence), contract, or otherwise, unless required by applicable law (such as deliberate and grossly negligent acts) or agreed to in writing, shall any Contributor be liable to You for damages, including any direct, indirect, special, incidental, or consequential damages of any character arising as a result of this License or out of the use or inability to use the Work (including but not limited to damages for loss of goodwill, work stoppage, computer failure or malfunction, or any and all other commercial damages or losses), even if such Contributor has been advised of the possibility of such damages.\n\n9. Accepting Warranty or Additional Liability. While redistributing the Work or Derivative Works thereof, You may choose to offer, and charge a fee for, acceptance of support, warranty, indemnity, or other liability obligations and/or rights consistent with this License. However, in accepting such obligations, You may act only on Your own behalf and on Your sole responsibility, not on behalf of any other Contributor, and only if You agree to indemnify, defend, and hold each Contributor harmless for any liability incurred by, or claims asserted against, such Contributor by reason of your accepting any such warranty or additional liability.\n\nEND OF TERMS AND CONDITIONS\n\nAPPENDIX: How to apply the Apache License to your work.\n\nTo apply the Apache License to your work, attach the following boilerplate notice, with the fields enclosed by brackets \"[]\" replaced with your own identifying information. (Don't include the brackets!)  The text should be enclosed in the appropriate comment syntax for the file format. We also recommend that a file or class name and description of purpose be included on the same \"printed page\" as the copyright notice for easier identification within third-party archives.\n\nCopyright [yyyy] [name of copyright owner]\n\nLicensed under the Apache License, Version 2.0 (the \"License\");\nyou may not use this file except in compliance with the License.\nYou may obtain a copy of the License at\n\nhttp://www.apache.org/licenses/LICENSE-2.0\n\nUnless required by applicable law or agreed to in writing, software\ndistributed under the License is distributed on an \"AS IS\" BASIS,\nWITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\nSee the License for the specific language governing permissions and\nlimitations under the License.",
       "hash": "Apache-2.0",

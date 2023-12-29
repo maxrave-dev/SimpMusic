@@ -485,6 +485,9 @@ fun setEnabledAll(v: View, enabled: Boolean) {
     if (v is ImageButton) {
         if (enabled) v.setColorFilter(Color.WHITE) else v.setColorFilter(Color.GRAY)
     }
+    if (v is TextView) {
+        v.isEnabled = enabled
+    }
     if (v is ViewGroup) {
         val vg = v
         for (i in 0 until vg.childCount) setEnabledAll(vg.getChildAt(i), enabled)
@@ -504,13 +507,26 @@ fun ArrayList<String>.removeConflicts(): ArrayList<String> {
     return nonConflictingList
 }
 
+fun <T> Iterable<T>.indexMap(): Map<T, Int> {
+    val map = mutableMapOf<T, Int>()
+    forEachIndexed { i, v ->
+        map[v] = i
+    }
+    return map
+}
+
 fun com.maxrave.kotlinytmusicscraper.models.lyrics.Lyrics.toLyrics(): Lyrics {
-    val lines : ArrayList<Line> = arrayListOf()
+    val lines: ArrayList<Line> = arrayListOf()
     if (this.lyrics != null) {
         this.lyrics?.lines?.forEach {
-            lines.add(Line(
-                endTimeMs = it.endTimeMs, startTimeMs = it.startTimeMs, syllables = it.syllables ?: listOf(), words = it.words
-            ))
+            lines.add(
+                Line(
+                    endTimeMs = it.endTimeMs,
+                    startTimeMs = it.startTimeMs,
+                    syllables = it.syllables ?: listOf(),
+                    words = it.words
+                )
+            )
         }
         return Lyrics(
             error = false,

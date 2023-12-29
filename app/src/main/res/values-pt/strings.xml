@@ -269,12 +269,22 @@
     <string name="suggest">Sugestão</string>
     <string name="reload">Recarregar</string>
     <string name="added_date">Data adicionada</string>
+    <string name="credit_app">Um aplicativo de música simples que usa o YouTube Music como back-end \n\nO SimpMusic é um projeto de código aberto para transmitir músicas do YouTube e do YouTube Music sem anúncios e rastreamento. O SimpMusic oferece muitos recursos:\n\n - Streaming de música\n - Letras sincronizadas\n - Personalização de dados\n - etc… \n\nO SimpMusic é sempre gratuito e sem anúncios\n\nConstrua com ❤️ de Tuan Minh Nguyen Duc (maxrave-dev)</string>
+    <string name="issue_tracker">Rastreador de problemas</string>
+    <string name="featured_playlists">Listas de reprodução em destaque</string>
+    <string name="featured_inArtist">Destacado</string>
+    <string name="audio_quality">Qualidade de áudio</string>
+    <string name="play_video_for_video_track_instead_of_audio_only">Reproduzir vídeo para faixa de vídeo em vez de apenas áudio</string>
+    <string name="such_as_music_video_lyrics_video_podcasts_and_more">Como Vídeo de Música, Vídeo de Letras, Podcasts e muito mais</string>
+    <string name="video_quality">Qualidade de Vídeo</string>
     <plurals name="n_song">
         <item quantity="one">%d música</item>
         <item quantity="other">%d músicas</item>
     </plurals>
-    <string name="credit_app">Um aplicativo de música simples que usa o YouTube Music como back-end \n\nO SimpMusic é um projeto de código aberto para transmitir músicas do YouTube e do YouTube Music sem anúncios e rastreamento. O SimpMusic oferece muitos recursos:\n\n - Streaming de música\n - Letras sincronizadas\n - Personalização de dados\n - etc... \n\nO SimpMusic é sempre gratuito e sem anúncios\n\nConstrua com ❤️ de Tuan Minh Nguyen Duc (maxrave-dev)</string>
-    <string name="issue_tracker">Rastreador de problemas</string>
-    <string name="featured_playlists">Listas de reprodução em destaque</string>
-    <string name="featured_inArtist">Destacado</string>
+    <string name="dummy_button">Botão Falso</string>
+    <string name="dummy_content">MANEQUIM\nCONTEUDO</string>
+    <string name="play_video_instead_of_audio_warning">Esta ação irá apagar o cache do reprodutor. Continuar?</string>
+    <string name="quality_video">Qualidade de Vídeo</string>
+    <string name="add_to_queue">Adicionar à fila</string>
+    <string name="added_to_queue">Adicionado à fila</string>
 </resources>

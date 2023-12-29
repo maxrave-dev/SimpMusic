@@ -20,7 +20,7 @@ class SimpMusicApplication: Application(){
             .enabled(true) //default: true
             .showErrorDetails(true) //default: true
             .showRestartButton(true) //default: true
-            .errorDrawable(R.drawable.logo_simpmusic_01)
+            .errorDrawable(R.mipmap.ic_launcher_round)
             .logErrorOnRestart(false) //default: true
             .trackActivities(true) //default: false
             .minTimeBetweenCrashesMs(2000) //default: 3000 //default: bug image

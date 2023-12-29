@@ -87,8 +87,8 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
 
     var errorMessage = MutableLiveData<String>()
 
-    private val _songEntity: MutableLiveData<SongEntity> = MutableLiveData()
-    val songEntity: LiveData<SongEntity> = _songEntity
+    private val _songEntity: MutableLiveData<SongEntity?> = MutableLiveData()
+    val songEntity: LiveData<SongEntity?> = _songEntity
 
     var regionCode: String? = null
     var language: String? = null

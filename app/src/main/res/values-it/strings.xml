@@ -269,12 +269,22 @@
     <string name="suggest">Suggerimento</string>
     <string name="reload">Ricarica</string>
     <string name="added_date">Data aggiunta</string>
+    <string name="credit_app">Una semplice app musicale che utilizza YouTube Music come backend \n\nSimpMusic è un progetto open source per lo streaming di musica da YouTube e YouTube Music senza pubblicità e tracciamento. SimpMusic offre molte funzionalità:\n\n - Musica in streaming\n - Testi sincronizzati\n - Personalizza dati\n - ecc… \n\nSimpMusic è sempre gratuito e senza pubblicità\n\nCrea con ❤️ di Tuan Minh Nguyen Duc (maxrave-dev)</string>
+    <string name="issue_tracker">Tracker dei problemi</string>
+    <string name="featured_playlists">Playlist in primo piano</string>
+    <string name="featured_inArtist">In primo piano</string>
+    <string name="audio_quality">Qualità audio</string>
+    <string name="play_video_for_video_track_instead_of_audio_only">Riproduci video per traccia video invece che solo audio</string>
+    <string name="such_as_music_video_lyrics_video_podcasts_and_more">Come Musica Video, Testi Video, Podcast e altro ancora</string>
+    <string name="video_quality">Qualità video</string>
     <plurals name="n_song">
         <item quantity="one">%d canzone</item>
         <item quantity="other">%d songs</item>
     </plurals>
-    <string name="credit_app">Una semplice app musicale che utilizza YouTube Music come backend \n\nSimpMusic è un progetto open source per lo streaming di musica da YouTube e YouTube Music senza pubblicità e tracciamento. SimpMusic offre molte funzionalità:\n\n - Musica in streaming\n - Testi sincronizzati\n - Personalizza dati\n - ecc... \n\nSimpMusic è sempre gratuito e senza pubblicità\n\nCrea con ❤️ di Tuan Minh Nguyen Duc (maxrave-dev)</string>
-    <string name="issue_tracker">Tracker dei problemi</string>
-    <string name="featured_playlists">Playlist in primo piano</string>
-    <string name="featured_inArtist">In primo piano</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENUTO</string>
+    <string name="play_video_instead_of_audio_warning">Questa azione eliminerà la cache del giocatore. Continuare?</string>
+    <string name="quality_video">Qualità video</string>
+    <string name="add_to_queue">Aggiungi alla coda</string>
+    <string name="added_to_queue">Aggiunto alla coda</string>
 </resources>

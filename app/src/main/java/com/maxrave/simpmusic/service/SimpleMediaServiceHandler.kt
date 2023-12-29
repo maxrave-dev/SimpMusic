@@ -10,8 +10,11 @@ import android.util.Log
 import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.lifecycle.LifecycleCoroutineScope
+import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaItem.SubtitleConfiguration
 import androidx.media3.common.MediaMetadata
+import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Tracks
@@ -677,15 +680,104 @@ class SimpleMediaServiceHandler constructor(
         }
     }
 
+    suspend fun loadMoreCatalog(listTrack: ArrayList<Track>) {
+        _stateFlow.value = StateSource.STATE_INITIALIZING
+        for (i in 0 until listTrack.size) {
+            val track = listTrack[i]
+            var thumbUrl = track.thumbnails?.last()?.url
+                ?: "http://i.ytimg.com/vi/${track.videoId}/maxresdefault.jpg"
+            if (thumbUrl.contains("w120")) {
+                thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
+            }
+            val artistName: String = track.artists.toListName().connectArtists()
+            if (!catalogMetadata.contains(track)) {
+                if (track.artists.isNullOrEmpty()) {
+                    mainRepository.getFormat(track.videoId).cancellable().first().let { format ->
+                        if (format != null) {
+                            catalogMetadata.add(
+                                track.copy(
+                                    artists = listOf(
+                                        Artist(
+                                            format.uploaderId,
+                                            format.uploader ?: ""
+                                        )
+                                    )
+                                )
+                            )
+                            addMediaItemNotSet(
+                                MediaItem.Builder().setUri(track.videoId)
+                                    .setMediaId(track.videoId)
+                                    .setCustomCacheKey(track.videoId)
+                                    .setMediaMetadata(
+                                        MediaMetadata.Builder()
+                                            .setTitle(track.title)
+                                            .setArtist(format.uploader)
+                                            .setArtworkUri(thumbUrl.toUri())
+                                            .setAlbumTitle(track.album?.name)
+                                            .build()
+                                    )
+                                    .build()
+                            )
+                        } else {
+                            val mediaItem = MediaItem.Builder()
+                                .setMediaId(track.videoId)
+                                .setUri(track.videoId)
+                                .setCustomCacheKey(track.videoId)
+                                .setMediaMetadata(
+                                    MediaMetadata.Builder()
+                                        .setArtworkUri(thumbUrl.toUri())
+                                        .setAlbumTitle(track.album?.name)
+                                        .setTitle(track.title)
+                                        .setArtist("Various Artists")
+                                        .build()
+                                )
+                                .build()
+                            addMediaItemNotSet(mediaItem)
+                            catalogMetadata.add(
+                                track.copy(
+                                    artists = listOf(Artist("", "Various Artists"))
+                                )
+                            )
+                        }
+                    }
+                } else {
+                    addMediaItemNotSet(
+                        MediaItem.Builder().setUri(track.videoId)
+                            .setMediaId(track.videoId)
+                            .setCustomCacheKey(track.videoId)
+                            .setMediaMetadata(
+                                MediaMetadata.Builder()
+                                    .setTitle(track.title)
+                                    .setArtist(artistName)
+                                    .setArtworkUri(thumbUrl.toUri())
+                                    .setAlbumTitle(track.album?.name)
+                                    .build()
+                            )
+                            .build()
+                    )
+                    catalogMetadata.add(track)
+                }
+                Log.d(
+                    "MusicSource",
+                    "updateCatalog: ${track.title}, ${catalogMetadata.size}"
+                )
+                added.value = true
+                Log.d("MusicSource", "updateCatalog: ${track.title}")
+            }
+        }
+        _stateFlow.value = StateSource.STATE_INITIALIZED
+    }
+
     @UnstableApi
     suspend fun updateCatalog(downloaded: Int = 0): Boolean {
         _stateFlow.value = StateSource.STATE_INITIALIZING
         val tempQueue: ArrayList<Track> = arrayListOf()
         tempQueue.addAll(Queue.getQueue())
-        for (i in 0 until tempQueue.size){
+        for (i in 0 until tempQueue.size) {
             val track = tempQueue[i]
-            var thumbUrl = track.thumbnails?.last()?.url ?: "http://i.ytimg.com/vi/${track.videoId}/maxresdefault.jpg"
-            if (thumbUrl.contains("w120")){
+            var thumbUrl = track.thumbnails?.last()?.url
+                ?: "http://i.ytimg.com/vi/${track.videoId}/maxresdefault.jpg"
+            if (thumbUrl.contains("w120")) {
                 thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
             }
             if (downloaded == 1) {
@@ -850,6 +942,26 @@ class SimpleMediaServiceHandler constructor(
 
     fun setCurrentSongIndex(index: Int) {
         _currentSongIndex.value = index
+    }
+
+    fun updateSubtitle(url: String) {
+        val index = currentIndex()
+        val mediaItem = player.currentMediaItem
+        Log.w("Subtitle", "updateSubtitle: $url")
+        val subtitle = SubtitleConfiguration.Builder(url.plus("&fmt=ttml").toUri())
+            .setId(mediaItem?.mediaId)
+            .setMimeType(MimeTypes.APPLICATION_TTML)
+            .setLanguage("en")
+            .setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
+            .build()
+        val new = mediaItem?.buildUpon()?.setSubtitleConfigurations(listOf(subtitle))?.build()
+        if (new != null) {
+            player.replaceMediaItem(
+                index,
+                new
+            )
+            println("update subtitle" + player.currentMediaItem?.localConfiguration?.subtitleConfigurations?.firstOrNull()?.uri.toString())
+        }
     }
 
 }

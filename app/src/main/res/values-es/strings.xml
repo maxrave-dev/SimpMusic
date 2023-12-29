@@ -76,7 +76,7 @@
     <string name="change">Cambiar</string>
     <string name="quality">Calidad</string>
     <string name="clear_downloaded_cache">Limpiar Caché Descargado</string>
-    <string name="clear_thumbnail_cache">Limpiar Cache de imagenes</string>
+    <string name="clear_thumbnail_cache">Limpiar Cache de imágenes</string>
     <string name="add">Añadir</string>
     <string name="playlist_name">Nombre de la lista</string>
     <string name="create">Crear</string>
@@ -110,7 +110,7 @@
     <string name="storage">Almacenamiento</string>
     <string name="player_cache">Cache del usuario</string>
     <string name="downloaded_cache">Caché descargado</string>
-    <string name="thumbnail_cache">Cache de imagenes</string>
+    <string name="thumbnail_cache">Cache de imágenes</string>
     <string name="backup">Respaldo</string>
     <string name="backup_your_data">Respaldar tus datos</string>
     <string name="save_all_your_playlist_data">Guardar todos los datos de tu lista de reproducción</string>
@@ -269,12 +269,22 @@
     <string name="suggest">Sugerencia</string>
     <string name="reload">Recargar</string>
     <string name="added_date">Fecha agregada</string>
-    <string name="credit_app">Una aplicación de música sencilla que utiliza YouTube Music como backend \n\nSimpMusic es un proyecto de código abierto para transmitir música desde YouTube y YouTube Music sin anuncios ni seguimiento. SimpMusic ofrece muchas funciones:\n\n - Transmisión de música \n - Letras sincronizadas\n - Personalizar datos\n - etc... \n\nSimpMusic es siempre gratuito y sin anuncios\n\nCompilado con ❤️ de Tuan Minh Nguyen Duc (maxrave-dev)</string>
+    <string name="credit_app">Una aplicación de música sencilla que utiliza YouTube Music como backend \n\nSimpMusic es un proyecto de código abierto para transmitir música desde YouTube y YouTube Music sin anuncios ni seguimiento. SimpMusic ofrece muchas funciones:\n\n - Transmisión de música \n - Letras sincronizadas\n - Personalizar datos\n - etc… \n\nSimpMusic es siempre gratuito y sin anuncios\n\nCompilado con ❤️ de Tuan Minh Nguyen Duc (maxrave-dev)</string>
     <string name="issue_tracker">Rastreador de problemas</string>
     <string name="featured_playlists">Listas de reproducción destacadas</string>
     <string name="featured_inArtist">Destacado en</string>
+    <string name="audio_quality">Calidad de audio</string>
+    <string name="play_video_for_video_track_instead_of_audio_only">Reproducir vídeo para pista de vídeo en lugar de sólo audio</string>
+    <string name="such_as_music_video_lyrics_video_podcasts_and_more">Como por ejemplo vídeos musicales, letras de canciones, podcasts, etc.</string>
+    <string name="video_quality">Calidad de vídeo</string>
     <plurals name="n_song">
         <item quantity="one">%d canción</item>
         <item quantity="other">%d canciones</item>
     </plurals>
+    <string name="dummy_button">Botón de prueba</string>
+    <string name="dummy_content">DUMMY\nCONTENTO</string>
+    <string name="play_video_instead_of_audio_warning">Esta acción eliminará la caché del reproductor. ¿Continuar?</string>
+    <string name="quality_video">Calidad de vídeo</string>
+    <string name="add_to_queue">Añadir a la cola</string>
+    <string name="added_to_queue">Añadido a la cola</string>
 </resources>

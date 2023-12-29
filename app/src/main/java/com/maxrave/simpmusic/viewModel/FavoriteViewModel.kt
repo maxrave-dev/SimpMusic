@@ -36,16 +36,17 @@ class FavoriteViewModel @Inject constructor(private val application: Application
     private var _listLocalPlaylist: MutableLiveData<List<LocalPlaylistEntity>> = MutableLiveData()
     val localPlaylist: LiveData<List<LocalPlaylistEntity>> = _listLocalPlaylist
 
-    private val _songEntity: MutableLiveData<SongEntity> = MutableLiveData()
-    val songEntity: LiveData<SongEntity> = _songEntity
+    private val _songEntity: MutableLiveData<SongEntity?> = MutableLiveData()
+    val songEntity: LiveData<SongEntity?> = _songEntity
 
     fun getListLikedSong() {
         viewModelScope.launch {
-            mainRepository.getLikedSongs().collect{ likedSong ->
+            mainRepository.getLikedSongs().collect { likedSong ->
                 _listLikedSong.value = likedSong as ArrayList<SongEntity>
             }
         }
     }
+
     fun updateLikeStatus(videoId: String, likeStatus: Int) {
         viewModelScope.launch {
             mainRepository.updateLikeStatus(likeStatus = likeStatus, videoId = videoId)

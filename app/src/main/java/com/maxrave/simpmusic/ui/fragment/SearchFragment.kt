@@ -60,6 +60,7 @@ import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.SearchViewModel
+import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.launch
@@ -83,6 +84,7 @@ class SearchFragment : Fragment() {
     private lateinit var suggestYTItemList: ArrayList<YTItem>
 
     private val viewModel by activityViewModels<SearchViewModel>()
+    private val sharedViewModel by activityViewModels<SharedViewModel>()
     private lateinit var resultAdapter: SearchItemAdapter
     private lateinit var searchHistoryAdapter: SearchHistoryItemAdapter
     private lateinit var suggestAdapter: SuggestQueryAdapter
@@ -421,35 +423,39 @@ class SearchFragment : Fragment() {
                     val bottomSheetView = BottomSheetNowPlayingBinding.inflate(layoutInflater)
                     with(bottomSheetView) {
                         viewModel.songEntity.observe(viewLifecycleOwner) { songEntity ->
-                            if (songEntity.liked){
-                                tvFavorite.text = getString(R.string.liked)
-                                cbFavorite.isChecked = true
-                            }
-                            else {
-                                tvFavorite.text = getString(R.string.like)
-                                cbFavorite.isChecked = false
-                            }
+                            if (songEntity != null) {
+                                if (songEntity.liked) {
+                                    tvFavorite.text = getString(R.string.liked)
+                                    cbFavorite.isChecked = true
+                                } else {
+                                    tvFavorite.text = getString(R.string.like)
+                                    cbFavorite.isChecked = false
+                                }
 
-                            when (songEntity.downloadState) {
-                                DownloadState.STATE_NOT_DOWNLOADED -> {
-                                    tvDownload.text = getString(R.string.download)
-                                    ivDownload.setImageResource(R.drawable.outline_download_for_offline_24)
-                                    setEnabledAll(btDownload, true)
-                                }
-                                DownloadState.STATE_DOWNLOADING -> {
-                                    tvDownload.text = getString(R.string.downloading)
-                                    ivDownload.setImageResource(R.drawable.baseline_downloading_white)
-                                    setEnabledAll(btDownload, true)
-                                }
-                                DownloadState.STATE_DOWNLOADED -> {
-                                    tvDownload.text = getString(R.string.downloaded)
-                                    ivDownload.setImageResource(R.drawable.baseline_downloaded)
-                                    setEnabledAll(btDownload, true)
-                                }
-                                DownloadState.STATE_PREPARING -> {
-                                    tvDownload.text = getString(R.string.preparing)
-                                    ivDownload.setImageResource(R.drawable.baseline_downloading_white)
-                                    setEnabledAll(btDownload, true)
+                                when (songEntity.downloadState) {
+                                    DownloadState.STATE_NOT_DOWNLOADED -> {
+                                        tvDownload.text = getString(R.string.download)
+                                        ivDownload.setImageResource(R.drawable.outline_download_for_offline_24)
+                                        setEnabledAll(btDownload, true)
+                                    }
+
+                                    DownloadState.STATE_DOWNLOADING -> {
+                                        tvDownload.text = getString(R.string.downloading)
+                                        ivDownload.setImageResource(R.drawable.baseline_downloading_white)
+                                        setEnabledAll(btDownload, true)
+                                    }
+
+                                    DownloadState.STATE_DOWNLOADED -> {
+                                        tvDownload.text = getString(R.string.downloaded)
+                                        ivDownload.setImageResource(R.drawable.baseline_downloaded)
+                                        setEnabledAll(btDownload, true)
+                                    }
+
+                                    DownloadState.STATE_PREPARING -> {
+                                        tvDownload.text = getString(R.string.preparing)
+                                        ivDownload.setImageResource(R.drawable.baseline_downloading_white)
+                                        setEnabledAll(btDownload, true)
+                                    }
                                 }
                             }
                         }
@@ -459,6 +465,9 @@ class SearchFragment : Fragment() {
                         tvSongArtist.text = track.artists.toListName().connectArtists()
                         tvSongArtist.isSelected = true
                         ivThumbnail.load(track.thumbnails?.last()?.url)
+                        btAddQueue.setOnClickListener {
+                            sharedViewModel.addToQueue(track)
+                        }
                         btRadio.setOnClickListener {
                             val args = Bundle()
                             args.putString("radioId", "RDAMVM${track.videoId}")
@@ -467,7 +476,10 @@ class SearchFragment : Fragment() {
                                 track.videoId
                             )
                             dialog.dismiss()
-                            findNavController().navigateSafe(R.id.action_global_playlistFragment, args)
+                            findNavController().navigateSafe(
+                                R.id.action_global_playlistFragment,
+                                args
+                            )
                         }
                         btLike.setOnClickListener {
                             if (cbFavorite.isChecked){

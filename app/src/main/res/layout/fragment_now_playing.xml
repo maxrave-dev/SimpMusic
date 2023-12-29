@@ -45,14 +45,17 @@
                     android:layout_gravity="center_horizontal"
                     android:layout_marginTop="@dimen/_60sdp">
 
-                    <ImageView
+                    <com.google.android.material.imageview.ShapeableImageView
                         android:id="@+id/ivArt"
                         android:layout_width="match_parent"
-                        android:layout_height="@dimen/_260sdp"
+                        android:layout_height="wrap_content"
                         android:layout_centerInParent="true"
-                        android:scaleType="fitCenter">
+                        android:scaleType="fitXY"
+                        android:adjustViewBounds="true"
+                        app:shapeAppearanceOverlay="@style/rounded_thumb">
 
-                    </ImageView>
+                    </com.google.android.material.imageview.ShapeableImageView>
+
                     <com.google.android.material.progressindicator.CircularProgressIndicator
                         android:id="@+id/loading_art"
                         android:layout_width="wrap_content"
@@ -62,6 +65,67 @@
 
                     </com.google.android.material.progressindicator.CircularProgressIndicator>
 
+                    <com.google.android.material.card.MaterialCardView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:elevation="8dp"
+                        style="?attr/materialCardViewElevatedStyle"
+                        android:id="@+id/playerLayout"
+                        android:visibility="gone"
+                        android:layout_centerInParent="true"
+                        app:cardCornerRadius="8dp">
+
+                        <androidx.constraintlayout.widget.ConstraintLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content">
+
+                            <FrameLayout
+                                android:layout_width="0dp"
+                                android:layout_height="0dp"
+                                android:background="@drawable/rounded_framelayout"
+                                app:layout_constraintDimensionRatio="H,16:9"
+                                app:layout_constraintTop_toTopOf="parent"
+                                app:layout_constraintStart_toStartOf="parent"
+                                app:layout_constraintEnd_toEndOf="parent"
+                                android:clipToOutline="true">
+
+                                <androidx.media3.ui.PlayerView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:background="@drawable/rounded_framelayout"
+                                    android:keepScreenOn="true"
+                                    android:id="@+id/playerView"
+                                    app:artwork_display_mode="off"
+                                    app:use_controller="false"
+                                    android:layout_gravity="center_vertical"
+                                    app:show_subtitle_button="true">
+
+                                </androidx.media3.ui.PlayerView>
+
+                                <RelativeLayout
+                                    android:id="@+id/overlay"
+                                    android:background="@drawable/overlay"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="@dimen/_35sdp"
+                                    android:visibility="gone"
+                                    android:gravity="top">
+
+                                    <ImageButton
+                                        android:id="@+id/btFullscreen"
+                                        android:layout_width="wrap_content"
+                                        android:layout_height="wrap_content"
+                                        android:background="?attr/actionBarItemBackground"
+                                        android:scaleType="fitCenter"
+                                        android:padding="12dp"
+                                        android:layout_alignParentBottom="true"
+                                        android:layout_alignParentEnd="true"
+                                        android:src="@drawable/baseline_fullscreen_24">
+
+                                    </ImageButton>
+                                </RelativeLayout>
+                            </FrameLayout>
+                        </androidx.constraintlayout.widget.ConstraintLayout>
+                    </com.google.android.material.card.MaterialCardView>
                 </RelativeLayout>
 
                 <LinearLayout

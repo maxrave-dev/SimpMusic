@@ -32,9 +32,11 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import coil.load
 import coil.request.CachePolicy
 import coil.size.Size
+import coil.transform.RoundedCornersTransformation
 import coil.transform.Transformation
 import com.daimajia.swipe.SwipeLayout
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.slider.Slider
@@ -55,6 +57,7 @@ import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.model.browse.album.Track
+import com.maxrave.simpmusic.data.model.metadata.Line
 import com.maxrave.simpmusic.data.model.metadata.MetadataSong
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.BottomSheetAddToAPlaylistBinding
@@ -78,6 +81,8 @@ import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -104,9 +109,12 @@ class NowPlayingFragment : Fragment() {
     private var gradientDrawable: GradientDrawable? = null
     private var lyricsBackground: Int? = null
 
-    lateinit var lyricsAdapter: LyricsAdapter
-    lateinit var lyricsFullAdapter: LyricsAdapter
-    lateinit var disableScrolling: DisableTouchEventRecyclerView
+    private lateinit var lyricsAdapter: LyricsAdapter
+    private lateinit var lyricsFullAdapter: LyricsAdapter
+    private lateinit var disableScrolling: DisableTouchEventRecyclerView
+    private var overlayJob: Job? = null
+
+    private var isFullScreen = false
 
 //    private lateinit var songChangeListener: OnNowPlayingSongChangeListener
 //    override fun onAttach(context: Context) {
@@ -144,6 +152,7 @@ class NowPlayingFragment : Fragment() {
         val activity = requireActivity()
         val bottom = activity.findViewById<BottomNavigationView>(R.id.bottom_navigation_view)
         val miniplayer = activity.findViewById<SwipeLayout>(R.id.miniplayer)
+
         bottom.visibility = View.GONE
         miniplayer.visibility = View.GONE
         binding.lyricsFullLayout.visibility = View.GONE
@@ -163,7 +172,30 @@ class NowPlayingFragment : Fragment() {
         disableScrolling = DisableTouchEventRecyclerView()
 
         lyricsAdapter = LyricsAdapter(null)
+        lyricsAdapter.setOnItemClickListener(object : LyricsAdapter.OnItemClickListener {
+            override fun onItemClick(line: Line?) {
+                //No Implementation
+            }
+        })
         lyricsFullAdapter = LyricsAdapter(null)
+        lyricsFullAdapter.setOnItemClickListener(object : LyricsAdapter.OnItemClickListener {
+            override fun onItemClick(line: Line?) {
+                Log.w("Check line", line.toString())
+                if (line != null) {
+                    val duration = runBlocking { viewModel.duration.first() }
+                    Log.w("Check duration", duration.toString())
+                    if (duration > 0 && line.startTimeMs.toLong() < duration) {
+                        Log.w(
+                            "Check seek",
+                            (line.startTimeMs.toLong().toDouble() / duration).toFloat().toString()
+                        )
+                        val seek =
+                            ((line.startTimeMs.toLong() * 100).toDouble() / duration).toFloat()
+                        viewModel.onUIEvent(UIEvent.UpdateProgress(seek))
+                    }
+                }
+            }
+        })
         binding.rvLyrics.apply {
             adapter = lyricsAdapter
             layoutManager = CenterLayoutManager(requireContext())
@@ -172,6 +204,7 @@ class NowPlayingFragment : Fragment() {
             adapter = lyricsFullAdapter
             layoutManager = LinearLayoutManager(requireContext())
         }
+        binding.playerView.player = viewModel.simpleMediaServiceHandler?.player
 
         when (type) {
             SONG_CLICK -> {
@@ -666,14 +699,25 @@ class NowPlayingFragment : Fragment() {
                 }
                 val job14 = launch {
                     viewModel.format.collectLatest { format ->
-                        if (format != null){
+                        if (format != null) {
                             binding.uploaderLayout.visibility = View.VISIBLE
                             binding.tvUploader.text = format.uploader
                             binding.ivAuthor.load(format.uploaderThumbnail)
                             binding.tvSubCount.text = format.uploaderSubCount
+                            if (format.itag == 22 || format.itag == 18) {
+                                binding.playerLayout.visibility = View.VISIBLE
+                                binding.ivArt.visibility = View.INVISIBLE
+                                binding.loadingArt.visibility = View.GONE
+                                viewModel.updateSubtitle(format.youtubeCaptionsUrl)
+                            } else {
+                                binding.playerLayout.visibility = View.GONE
+                                binding.ivArt.visibility = View.VISIBLE
+                            }
                         }
                         else {
                             binding.uploaderLayout.visibility = View.GONE
+                            binding.playerLayout.visibility = View.GONE
+                            binding.ivArt.visibility = View.VISIBLE
                         }
                     }
                 }
@@ -839,6 +883,59 @@ class NowPlayingFragment : Fragment() {
                 viewModel.onUIEvent(UIEvent.UpdateProgress(slider.value))
             }
         })
+        binding.btFullscreen.setOnClickListener {
+            binding.playerView.player = null
+            isFullScreen = true
+            findNavController().navigateSafe(R.id.action_global_fullscreenFragment)
+
+//                requireActivity().requestedOrientation =
+//                    ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+//                val parent = fullscreen.root.parent as View
+//                parent.fitsSystemWindows = true
+//                val params =
+//                    parent.layoutParams as CoordinatorLayout.LayoutParams
+//                val behavior = params.behavior
+//                if (behavior != null && behavior is BottomSheetBehavior<*>) {
+//                    behavior.peekHeight = binding.root.height
+//                    behavior.state = BottomSheetBehavior.STATE_EXPANDED
+//                    behavior.addBottomSheetCallback(object : BottomSheetCallback() {
+//                        override fun onStateChanged( bottomSheet: View, newState: Int) {
+//                            if (newState == BottomSheetBehavior.STATE_DRAGGING) {
+//                                behavior.state = BottomSheetBehavior.STATE_EXPANDED
+//                            }
+//                        }
+//
+//                        override fun onSlide(bottomSheet: View, slideOffset: Float) {}
+//                    })
+//                }
+
+
+//            }
+        }
+        binding.playerLayout.setOnClickListener {
+            val shortAnimationDuration =
+                resources.getInteger(android.R.integer.config_mediumAnimTime)
+            if (binding.overlay.visibility == View.VISIBLE) {
+                binding.overlay.visibility = View.GONE
+                overlayJob?.cancel()
+            } else {
+                binding.overlay.alpha = 0f
+                binding.overlay.apply {
+                    visibility = View.VISIBLE
+                    animate()
+                        .alpha(1f)
+                        .setDuration(shortAnimationDuration.toLong())
+                        .setListener(null)
+                }
+                overlayJob?.cancel()
+                overlayJob = lifecycleScope.launch {
+                    repeatOnLifecycle(Lifecycle.State.CREATED) {
+                        delay(3000)
+                        binding.overlay.visibility = View.GONE
+                    }
+                }
+            }
+        }
 
         binding.btPlayPause.setOnClickListener {
             viewModel.onUIEvent(UIEvent.PlayPause)
@@ -909,6 +1006,9 @@ class NowPlayingFragment : Fragment() {
                     if (!viewModel.simpleMediaServiceHandler?.catalogMetadata.isNullOrEmpty()) {
                         viewModel.refreshSongDB()
                         val dialog = BottomSheetDialog(requireContext())
+                        dialog.apply {
+                            behavior.state = BottomSheetBehavior.STATE_EXPANDED
+                        }
                         val bottomSheetView = BottomSheetNowPlayingBinding.inflate(layoutInflater)
                         with(bottomSheetView) {
                             lifecycleScope.launch {
@@ -923,6 +1023,7 @@ class NowPlayingFragment : Fragment() {
                                     }
                                 }
                             }
+                            btAddQueue.visibility = View.GONE
                             if (runBlocking { viewModel.liked.first() }) {
                                 tvFavorite.text = getString(R.string.liked)
                                 cbFavorite.isChecked = true
@@ -1009,6 +1110,9 @@ class NowPlayingFragment : Fragment() {
                                             .show()
                                     } else {
                                         val d = BottomSheetDialog(requireContext())
+                                        d.apply {
+                                            behavior.state = BottomSheetBehavior.STATE_EXPANDED
+                                        }
                                         val v = BottomSheetSleepTimerBinding.inflate(layoutInflater)
                                         v.btSet.setOnClickListener {
                                             val min = v.etTime.editText?.text.toString()
@@ -1033,6 +1137,9 @@ class NowPlayingFragment : Fragment() {
                                     val listLocalPlaylist: ArrayList<LocalPlaylistEntity> =
                                         arrayListOf()
                                     val addPlaylistDialog = BottomSheetDialog(requireContext())
+                                    addPlaylistDialog.apply {
+                                        behavior.state = BottomSheetBehavior.STATE_EXPANDED
+                                    }
                                     val viewAddPlaylist =
                                         BottomSheetAddToAPlaylistBinding.inflate(layoutInflater)
                                     val addToAPlaylistAdapter = AddToAPlaylistAdapter(arrayListOf())
@@ -1087,6 +1194,9 @@ class NowPlayingFragment : Fragment() {
 
                                 btSeeArtists.setOnClickListener {
                                     val subDialog = BottomSheetDialog(requireContext())
+                                    subDialog.apply {
+                                        behavior.state = BottomSheetBehavior.STATE_EXPANDED
+                                    }
                                     val subBottomSheetView =
                                         BottomSheetSeeArtistOfNowPlayingBinding.inflate(
                                             layoutInflater
@@ -1376,7 +1486,8 @@ class NowPlayingFragment : Fragment() {
                             return input
                         }
 
-                    }
+                    },
+                    RoundedCornersTransformation(8f)
                 )
             }
 //            val request = ImageRequest.Builder(requireContext())
@@ -1692,10 +1803,13 @@ class NowPlayingFragment : Fragment() {
         activity.window.navigationBarColor = Color.parseColor("#CB0B0A0A")
         val bottom = activity.findViewById<BottomNavigationView>(R.id.bottom_navigation_view)
         val miniplayer = activity.findViewById<SwipeLayout>(R.id.miniplayer)
-        bottom.animation = AnimationUtils.loadAnimation(requireContext(), R.anim.bottom_to_top)
-        bottom.visibility = View.VISIBLE
-        miniplayer.animation = AnimationUtils.loadAnimation(requireContext(), R.anim.bottom_to_top)
-        miniplayer.visibility = View.VISIBLE
+        if (!isFullScreen) {
+            bottom.animation = AnimationUtils.loadAnimation(requireContext(), R.anim.bottom_to_top)
+            bottom.visibility = View.VISIBLE
+            miniplayer.animation =
+                AnimationUtils.loadAnimation(requireContext(), R.anim.bottom_to_top)
+            miniplayer.visibility = View.VISIBLE
+        }
+        isFullScreen = false
     }
-
 }

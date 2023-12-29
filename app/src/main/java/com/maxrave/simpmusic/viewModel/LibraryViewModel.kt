@@ -37,19 +37,19 @@ class LibraryViewModel @Inject constructor(private val mainRepository: MainRepos
     private var _listLocalPlaylist: MutableLiveData<List<LocalPlaylistEntity>> = MutableLiveData()
     val listLocalPlaylist: LiveData<List<LocalPlaylistEntity>> = _listLocalPlaylist
 
-    private var _listYouTubePlaylist: MutableLiveData<List<Any>> = MutableLiveData()
-    val listYouTubePlaylist: LiveData<List<Any>> = _listYouTubePlaylist
+    private var _listYouTubePlaylist: MutableLiveData<List<Any>?> = MutableLiveData()
+    val listYouTubePlaylist: LiveData<List<Any>?> = _listYouTubePlaylist
 
-    private var _songEntity: MutableLiveData<SongEntity> = MutableLiveData()
-    val songEntity: LiveData<SongEntity> = _songEntity
+    private var _songEntity: MutableLiveData<SongEntity?> = MutableLiveData()
+    val songEntity: LiveData<SongEntity?> = _songEntity
 
-//    val recentlyAdded = mainRepository.getAllRecentData().map { pagingData ->
+    //    val recentlyAdded = mainRepository.getAllRecentData().map { pagingData ->
 //        pagingData.map { it }
 //    }.cachedIn(viewModelScope)
     fun getRecentlyAdded() {
         viewModelScope.launch {
             val temp: MutableList<Any> = mutableListOf<Any>()
-            mainRepository.getAllRecentData().collect {data ->
+            mainRepository.getAllRecentData().collect { data ->
                 temp.addAll(data)
                 temp.find {
                     it is PlaylistEntity && (it.id.contains("RDEM") ||  it.id.contains("RDAMVM"))

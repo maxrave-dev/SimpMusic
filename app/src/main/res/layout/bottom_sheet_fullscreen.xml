@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/rootLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <androidx.media3.ui.PlayerView
+        android:id="@+id/player_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:artwork_display_mode="off"
+        app:use_controller="false"
+        app:show_subtitle_button="true"
+        android:keepScreenOn="true">
+
+    </androidx.media3.ui.PlayerView>
+
+    <FrameLayout
+        android:layout_gravity="bottom|center_horizontal"
+        android:id="@+id/subtitleView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="@dimen/_25sdp"
+        android:layout_marginHorizontal="@dimen/_40sdp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:background="@color/overlay"
+            android:padding="@dimen/_5sdp"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:id="@+id/tvMainSubtitle"
+                android:textSize="@dimen/_15ssp"
+                android:textColor="@android:color/white"
+                android:layout_gravity="center_horizontal"
+                android:gravity="center_horizontal"
+                android:text="Check main subtitle">
+
+            </TextView>
+
+            <TextView
+                android:visibility="gone"
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:id="@+id/tvTranslatedSubtitle"
+                android:textSize="@dimen/_13ssp"
+                android:textColor="#FFEB3B"
+                android:layout_gravity="center_horizontal"
+                android:gravity="center_horizontal"
+                android:text="Check main subtitle">
+
+            </TextView>
+        </LinearLayout>
+
+    </FrameLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@android:color/transparent"
+        android:id="@+id/overlayLayout">
+
+        <com.google.android.material.appbar.AppBarLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/topAppBarLayout"
+            android:layout_alignParentTop="true"
+            android:background="@android:color/transparent">
+
+            <com.google.android.material.appbar.MaterialToolbar
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:id="@+id/toolbar"
+                app:navigationIcon="@drawable/baseline_arrow_back_ios_new_24"
+                app:navigationIconTint="@android:color/white"
+                app:menu="@menu/top_app_bar_now_playing"
+                android:background="@color/overlay">
+
+            </com.google.android.material.appbar.MaterialToolbar>
+        </com.google.android.material.appbar.AppBarLayout>
+
+        <LinearLayout
+            android:background="@color/overlay"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:orientation="vertical"
+            android:id="@+id/controlLayout">
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20sp">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="@dimen/_11sdp"
+                    android:layout_marginEnd="@dimen/_11sdp">
+
+                    <com.google.android.material.progressindicator.LinearProgressIndicator
+                        android:id="@+id/buffered"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_centerInParent="true"
+                        android:max="100"
+                        android:min="0"
+                        android:progress="0"
+                        android:shadowRadius="0.2"
+                        app:indicatorColor="@android:color/darker_gray"
+                        app:trackCornerRadius="5sp">
+
+                    </com.google.android.material.progressindicator.LinearProgressIndicator>
+                </RelativeLayout>
+
+                <com.google.android.material.slider.Slider
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:valueFrom="0.0"
+                    android:valueTo="100.0"
+                    android:id="@+id/progress_song"
+                    android:indeterminate="true"
+                    app:labelBehavior="gone"
+                    app:trackColorActive="@android:color/white"
+                    app:trackColorInactive="@android:color/transparent"
+                    app:thumbColor="@android:color/white"
+                    app:thumbRadius="5sp">
+
+                </com.google.android.material.slider.Slider>
+
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:id="@+id/time_layout"
+                android:layout_marginStart="8sp"
+                android:layout_marginEnd="8sp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:id="@+id/tvCurrentTime"
+                    android:layout_weight="1"
+                    android:layout_gravity="center_vertical"
+                    android:gravity="start"
+                    android:textSize="15sp"
+                    android:textStyle="normal"
+                    android:fontFamily="@font/roboto" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text=""
+                    android:id="@+id/tvFullTime"
+                    android:layout_weight="1"
+                    android:layout_gravity="center_vertical"
+                    android:gravity="end"
+                    android:textSize="15sp"
+                    android:textStyle="normal"
+                    android:fontFamily="@font/roboto" />
+
+            </LinearLayout>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/controler_layout"
+                android:layout_marginBottom="15dp"
+                android:layout_marginTop="5sp">
+
+                <ImageButton
+                    android:id="@+id/btPlayPause"
+                    android:layout_width="@dimen/_60sdp"
+                    android:layout_height="@dimen/_60sdp"
+                    android:layout_centerInParent="true"
+                    android:background="?attr/actionBarItemBackground"
+                    android:scaleType="fitCenter"
+                    android:src="@drawable/baseline_play_circle_24" />
+
+                <ImageButton
+                    android:id="@+id/btNext"
+                    android:layout_width="@dimen/_40sdp"
+                    android:layout_height="@dimen/_40sdp"
+                    android:background="?attr/actionBarItemBackground"
+                    android:layout_centerVertical="true"
+                    android:layout_marginStart="20sp"
+                    android:scaleType="fitCenter"
+                    android:layout_toEndOf="@+id/btPlayPause"
+                    android:src="@drawable/baseline_skip_next_24">
+
+                </ImageButton>
+
+                <ImageButton
+                    android:id="@+id/btRepeat"
+                    android:layout_width="@dimen/_25sdp"
+                    android:layout_height="@dimen/_25sdp"
+                    android:background="?attr/actionBarItemBackground"
+                    android:layout_centerVertical="true"
+                    android:layout_marginStart="20sp"
+                    android:scaleType="fitCenter"
+                    android:layout_toEndOf="@+id/btNext"
+                    android:src="@drawable/baseline_repeat_24">
+
+                </ImageButton>
+
+                <ImageButton
+                    android:id="@+id/btPrevious"
+                    android:layout_width="@dimen/_40sdp"
+                    android:layout_height="@dimen/_40sdp"
+                    android:background="?attr/actionBarItemBackground"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="20sp"
+                    android:scaleType="fitCenter"
+                    android:layout_toStartOf="@+id/btPlayPause"
+                    android:src="@drawable/baseline_skip_previous_24">
+
+                </ImageButton>
+
+                <ImageButton
+                    android:id="@+id/btShuffle"
+                    android:layout_width="@dimen/_25sdp"
+                    android:layout_height="@dimen/_25sdp"
+                    android:background="?attr/actionBarItemBackground"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="20sp"
+                    android:scaleType="fitCenter"
+                    android:layout_toStartOf="@+id/btPrevious"
+                    android:src="@drawable/baseline_shuffle_24">
+
+                </ImageButton>
+
+                <ImageButton
+                    android:id="@+id/btOutFullScreen"
+                    android:layout_width="@dimen/_25sdp"
+                    android:layout_height="@dimen/_25sdp"
+                    android:background="?attr/actionBarItemBackground"
+                    android:layout_centerVertical="true"
+                    android:src="@drawable/baseline_fullscreen_exit_24"
+                    android:layout_marginEnd="20sp"
+                    android:layout_alignParentEnd="true"
+                    android:scaleType="fitCenter">
+
+                </ImageButton>
+
+                <ImageButton
+                    android:id="@+id/btSubtitle"
+                    android:layout_width="@dimen/_25sdp"
+                    android:layout_height="@dimen/_25sdp"
+                    android:background="?attr/actionBarItemBackground"
+                    android:layout_centerVertical="true"
+                    android:layout_marginEnd="20sp"
+                    android:scaleType="fitCenter"
+                    android:layout_toStartOf="@+id/btOutFullScreen"
+                    android:src="@drawable/baseline_subtitles_24">
+
+                </ImageButton>
+
+            </RelativeLayout>
+        </LinearLayout>
+    </RelativeLayout>
+</FrameLayout>

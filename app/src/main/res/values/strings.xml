@@ -156,7 +156,7 @@
     <string name="no_equalizer">Your device doesn\'t have equalizer</string>
     <string name="open_system_equalizer">Open system equalizer</string>
     <string name="use_your_system_equalizer">Use your system equalizer</string>
-    <string name="version_name" translatable="false">v0.1.5-beta</string>
+    <string name="version_name" translatable="false">v0.1.7</string>
     <string name="streaming_data_provider_piped">Streaming data provider (Piped)</string>
     <string name="itag">Itag</string>
     <string name="mime_type">Mime Type</string>
@@ -276,8 +276,18 @@
     <string name="featured_playlists">Featured Playlists</string>
     <string name="podcasts" translatable="false">Podcasts</string>
     <string name="featured_inArtist">Featured on</string>
+    <string name="audio_quality">Audio quality</string>
+    <string name="play_video_for_video_track_instead_of_audio_only">Play video for video track instead of audio only</string>
+    <string name="such_as_music_video_lyrics_video_podcasts_and_more">Such as Music Video, Lyrics Video, Podcasts, and more</string>
+    <string name="video_quality">Video Quality</string>
     <plurals name="n_song">
         <item quantity="one">%d song</item>
         <item quantity="other">%d songs</item>
     </plurals>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="play_video_instead_of_audio_warning">This action will delete player cache. Continue?</string>
+    <string name="quality_video">Video Quality</string>
+    <string name="add_to_queue">Add to queue</string>
+    <string name="added_to_queue">Added to queue</string>
 </resources>

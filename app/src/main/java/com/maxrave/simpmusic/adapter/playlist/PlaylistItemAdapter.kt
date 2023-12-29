@@ -99,14 +99,8 @@ class PlaylistItemAdapter(private var playlistItemList: ArrayList<Any>): Recycle
         }
     }
 
-    fun getListTrack(): ArrayList<Track> {
-        val tempList: ArrayList<Track> = ArrayList()
-        playlistItemList.forEach {
-            if (it is Track) {
-                tempList.add(it)
-            }
-        }
-        return tempList
+    fun getListTrack(): ArrayList<Any> {
+        return playlistItemList
     }
 
     companion object {

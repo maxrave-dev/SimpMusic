@@ -3,6 +3,7 @@ package com.maxrave.simpmusic.data.repository
 import android.content.Context
 import android.util.Log
 import com.maxrave.kotlinytmusicscraper.YouTube
+import com.maxrave.kotlinytmusicscraper.models.MediaType
 import com.maxrave.kotlinytmusicscraper.models.MusicShelfRenderer
 import com.maxrave.kotlinytmusicscraper.models.SearchSuggestions
 import com.maxrave.kotlinytmusicscraper.models.SongItem
@@ -18,6 +19,7 @@ import com.maxrave.kotlinytmusicscraper.pages.BrowseResult
 import com.maxrave.kotlinytmusicscraper.pages.PlaylistPage
 import com.maxrave.kotlinytmusicscraper.pages.SearchPage
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.common.VIDEO_QUALITY
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.LocalDataSource
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
@@ -71,6 +73,7 @@ import com.maxrave.simpmusic.data.parser.search.parseSearchPlaylist
 import com.maxrave.simpmusic.data.parser.search.parseSearchSong
 import com.maxrave.simpmusic.data.parser.search.parseSearchVideo
 import com.maxrave.simpmusic.data.parser.toListThumbnail
+import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.extension.bestMatchingIndex
 import com.maxrave.simpmusic.extension.toListTrack
 import com.maxrave.simpmusic.extension.toLyrics
@@ -360,7 +363,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                     )?.nextContinuationData?.continuation
                 val data =
                     result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(0)?.tabRenderer?.content?.sectionListRenderer?.contents
-                list.addAll(parseMixedContent(data))
+                list.addAll(parseMixedContent(data, context))
                 var count = 0
                 while (count < 5 && continueParam != null) {
                     YouTube.customQuery(browseId = "", continuation = continueParam).onSuccess { response ->
@@ -371,7 +374,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                         Log.d("Repository", "continueParam: $continueParam")
                         val dataContinue =
                             response.continuationContents?.sectionListContinuation?.contents
-                        list.addAll(parseMixedContent(dataContinue))
+                        list.addAll(parseMixedContent(dataContinue, context))
                         count++
                         Log.d("Repository", "count: $count")
                     }.onFailure {
@@ -469,7 +472,37 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                 }
         }
     }.flowOn(Dispatchers.IO)
-    suspend fun getRadio(radioId: String, originalTrack: SongEntity? = null, artist: ArtistEntity? = null): Flow<Resource<PlaylistBrowse>> = flow {
+
+    suspend fun getContinueTrack(
+        playlistId: String,
+        continuation: String
+    ): Flow<ArrayList<Track>?> = flow {
+        runCatching {
+            Queue.setContinuation(null)
+            YouTube.next(WatchEndpoint(playlistId = playlistId), continuation = continuation)
+                .onSuccess { next ->
+                    val data: ArrayList<SongItem> = arrayListOf()
+                    data.addAll(next.items)
+                    val nextContinuation = next.continuation
+                    if (nextContinuation != null) {
+                        Queue.setContinuation(Pair(playlistId, nextContinuation))
+                    } else {
+                        Queue.setContinuation(null)
+                    }
+                    emit(data.toListTrack())
+                }.onFailure { exception ->
+                exception.printStackTrace()
+                Queue.setContinuation(null)
+                emit(null)
+            }
+        }
+    }
+
+    suspend fun getRadio(
+        radioId: String,
+        originalTrack: SongEntity? = null,
+        artist: ArtistEntity? = null
+    ): Flow<Resource<PlaylistBrowse>> = flow {
         runCatching {
             YouTube.next(endpoint = WatchEndpoint(playlistId = radioId)).onSuccess { next ->
                 val data: ArrayList<SongItem> = arrayListOf()
@@ -478,15 +511,34 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                 Log.w("Radio", "data: ${data.size}")
                 var count = 0
                 while (continuation != null && count < 3) {
-                    YouTube.next(endpoint = WatchEndpoint(playlistId = radioId), continuation = continuation).onSuccess { nextContinue ->
+                    YouTube.next(
+                        endpoint = WatchEndpoint(playlistId = radioId),
+                        continuation = continuation
+                    ).onSuccess { nextContinue ->
                         data.addAll(nextContinue.items)
                         continuation = nextContinue.continuation
                         if (data.size >= 50) {
+                            val nextContinuation = nextContinue.continuation
+                            if (nextContinuation != null) {
+                                Queue.setContinuation(Pair(radioId, nextContinuation))
+                            }
                             continuation = null
                         }
                         Log.w("Radio", "data: ${data.size}")
                         count++
+                        if (count == 3) {
+                            val nextContinuation = nextContinue.continuation
+                            if (nextContinuation != null) {
+                                Queue.setContinuation(Pair(radioId, nextContinuation))
+                            }
+                        }
                     }.onFailure {
+                        if (count == 3) {
+                            val nextContinuation = continuation
+                            if (nextContinuation != null) {
+                                Queue.setContinuation(Pair(radioId, nextContinuation))
+                            }
+                        }
                         continuation = null
                         count++
                     }
@@ -718,7 +770,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                     }
                 }
                 Log.d("Repository", "playlist final data: ${listContent.size}")
-                parsePlaylistData(header, listContent, playlistId)?.let { playlist ->
+                parsePlaylistData(header, listContent, playlistId, context)?.let { playlist ->
                     emit(Resource.Success<PlaylistBrowse>(playlist))
                 } ?: emit(Resource.Error<PlaylistBrowse>("Error"))
             }.onFailure { e ->
@@ -991,9 +1043,19 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
         runCatching {
             YouTube.nextCustom(videoId).onSuccess { result ->
                 val listSongs: ArrayList<Track> = arrayListOf()
-                val data = result.contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer.tabs[0].tabRenderer.content?.musicQueueRenderer?.content?.playlistPanelRenderer?.contents
+                val data =
+                    result.contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer.tabs[0].tabRenderer.content?.musicQueueRenderer?.content?.playlistPanelRenderer?.contents
                 parseRelated(data)?.let { list ->
                     listSongs.addAll(list)
+                }
+                val nextContinuation =
+                    result.contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer.tabs[0].tabRenderer.content?.musicQueueRenderer?.content?.playlistPanelRenderer?.continuations?.get(
+                        0
+                    )?.nextContinuationData?.continuation
+                if (nextContinuation != null) {
+                    Queue.setContinuation(Pair("RDAMVM$videoId", nextContinuation))
+                } else {
+                    Queue.setContinuation(null)
                 }
                 emit(Resource.Success<ArrayList<Track>>(listSongs))
             }.onFailure { e ->
@@ -1021,8 +1083,11 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
 //            val q = query.replace(Regex("\\([^)]*?(feat.|ft.|cùng với|con)[^)]*?\\)"), "")
 //                .replace("  ", " ")
             val q =
-                query.replace(Regex("\\((feat\\.|ft.|cùng với|con|mukana|com|avec) "), " ").replace(
-                    Regex("( và | & | и | e | und |, )"), " "
+                query.replace(
+                    Regex("\\((feat\\.|ft.|cùng với|con|mukana|com|avec|合作音乐人: ) "),
+                    " "
+                ).replace(
+                    Regex("( và | & | и | e | und |, |和| dan)"), " "
                 ).replace("  ", " ").replace(Regex("([()])"), "").replace(".", " ")
             Log.d("Lyrics", "query: $q")
             var musixMatchUserToken = YouTube.musixmatchUserToken
@@ -1348,33 +1413,57 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
     }.flowOn(Dispatchers.IO)
     suspend fun getStream(videoId: String, itag: Int): Flow<String?> = flow{
         YouTube.player(videoId).onSuccess { data ->
+            val videoItag =
+                VIDEO_QUALITY.itags.getOrNull(VIDEO_QUALITY.items.indexOf(dataStoreManager.videoQuality.first()))
+                    ?: 22
             val response = data.second
-            val format = response.streamingData?.adaptiveFormats?.find { it.itag == itag }
-                runBlocking {
-                    insertFormat(
-                        FormatEntity(
-                            videoId = videoId,
-                            itag = format?.itag ?: itag,
-                            mimeType = format?.mimeType,
-                            bitrate = format?.bitrate?.toLong(),
-                            contentLength = format?.contentLength,
-                            lastModified = format?.lastModified,
-                            loudnessDb = response.playerConfig?.audioConfig?.loudnessDb?.toFloat(),
-                            uploader = response.videoDetails?.author?.replace(Regex(" - Topic| - Chủ đề|"), ""),
-                            uploaderId = response.videoDetails?.channelId,
-                            uploaderThumbnail = response.videoDetails?.authorAvatar,
-                            uploaderSubCount = response.videoDetails?.authorSubCount,
-                            description = response.videoDetails?.description,
-                            youtubeCaptionsUrl = response.captions?.playerCaptionsTracklistRenderer?.captionTracks?.get(0)?.baseUrl?.replace("&fmt=srv3", ""),
-                            lengthSeconds = response.videoDetails?.lengthSeconds?.toInt(),
-                            playbackTrackingVideostatsPlaybackUrl = response.playbackTracking?.videostatsPlaybackUrl?.baseUrl?.replace("https://s.youtube.com", "https://music.youtube.com"),
-                            playbackTrackingAtrUrl = response.playbackTracking?.atrUrl?.baseUrl?.replace("https://s.youtube.com", "https://music.youtube.com"),
-                            playbackTrackingVideostatsWatchtimeUrl = response.playbackTracking?.videostatsWatchtimeUrl?.baseUrl?.replace("https://s.youtube.com", "https://music.youtube.com"),
-                            cpn = data.first,
-                        )
+            if (data.third == MediaType.Song) Log.w(
+                "Stream",
+                "response: is SONG"
+            ) else Log.w("Stream", "response: is VIDEO")
+            Log.w("Stream: ", data.toString())
+            var format =
+                if (data.third == MediaType.Song) response.streamingData?.adaptiveFormats?.find { it.itag == itag } else response.streamingData?.formats?.find { it.itag == videoItag }
+            if (format == null) {
+                format = response.streamingData?.adaptiveFormats?.lastOrNull()
+            }
+            Log.w("Stream", "format: $format")
+            runBlocking {
+                insertFormat(
+                    FormatEntity(
+                        videoId = videoId,
+                        itag = format?.itag ?: itag,
+                        mimeType = format?.mimeType,
+                        bitrate = format?.bitrate?.toLong(),
+                        contentLength = format?.contentLength,
+                        lastModified = format?.lastModified,
+                        loudnessDb = response.playerConfig?.audioConfig?.loudnessDb?.toFloat(),
+                        uploader = response.videoDetails?.author?.replace(Regex(" - Topic| - Chủ đề|"), ""),
+                        uploaderId = response.videoDetails?.channelId,
+                        uploaderThumbnail = response.videoDetails?.authorAvatar,
+                        uploaderSubCount = response.videoDetails?.authorSubCount,
+                        description = response.videoDetails?.description,
+                        youtubeCaptionsUrl = response.captions?.playerCaptionsTracklistRenderer?.captionTracks?.get(
+                            0
+                        )?.baseUrl?.replace("&fmt=srv3", ""),
+                        lengthSeconds = response.videoDetails?.lengthSeconds?.toInt(),
+                        playbackTrackingVideostatsPlaybackUrl = response.playbackTracking?.videostatsPlaybackUrl?.baseUrl?.replace(
+                            "https://s.youtube.com",
+                            "https://music.youtube.com"
+                        ),
+                        playbackTrackingAtrUrl = response.playbackTracking?.atrUrl?.baseUrl?.replace(
+                            "https://s.youtube.com",
+                            "https://music.youtube.com"
+                        ),
+                        playbackTrackingVideostatsWatchtimeUrl = response.playbackTracking?.videostatsWatchtimeUrl?.baseUrl?.replace(
+                            "https://s.youtube.com",
+                            "https://music.youtube.com"
+                        ),
+                        cpn = data.first,
                     )
-                }
-                emit(response.streamingData?.adaptiveFormats?.find { it.itag == itag }?.url?.plus("&cpn=${data.first}"))
+                )
+            }
+            emit(format?.url?.plus("&cpn=${data.first}"))
             }.onFailure {
                 it.printStackTrace()
             Log.e("Stream", "Error: ${it.message}")
@@ -1388,17 +1477,16 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                 Log.w("Library", "input: ${input.size}")
                 val list = parseLibraryPlaylist(input)
                 emit(list)
-            }
-            else {
+            } else {
                 emit(null)
             }
         }
-            .onFailure {e ->
+            .onFailure { e ->
                 Log.e("Library", "Error: ${e.message}")
                 e.printStackTrace()
                 emit(null)
             }
-    }
+    }.flowOn(Dispatchers.IO)
     suspend fun initPlayback(playback: String, atr: String, watchTime: String, cpn: String, playlistId: String?): Flow<Pair<Int, Float>> = flow {
         YouTube.initPlayback(playback, atr, watchTime, cpn, playlistId).onSuccess { response ->
             emit(response)

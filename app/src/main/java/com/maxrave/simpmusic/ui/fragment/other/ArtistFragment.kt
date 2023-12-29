@@ -11,10 +11,12 @@ import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
 import androidx.palette.graphics.Palette
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -57,6 +59,7 @@ import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.ArtistViewModel
+import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -66,6 +69,7 @@ import kotlin.math.abs
 @AndroidEntryPoint
 class ArtistFragment: Fragment(){
     private val viewModel by viewModels<ArtistViewModel>()
+    private val sharedViewModel by activityViewModels<SharedViewModel>()
     private var _binding: FragmentArtistBinding? = null
     private val binding get() = _binding!!
 
@@ -246,6 +250,7 @@ class ArtistFragment: Fragment(){
             }
         })
         popularAdapter.setOnOptionsClickListener(object : PopularAdapter.OnOptionsClickListener{
+            @UnstableApi
             override fun onOptionsClick(position: Int) {
                 val song = popularAdapter.getCurrentList()[position]
                 viewModel.getSongEntity(song.toTrack().toSongEntity())
@@ -254,13 +259,18 @@ class ArtistFragment: Fragment(){
                 with(bottomSheetView) {
                     btSleepTimer.visibility = View.GONE
                     viewModel.songEntity.observe(viewLifecycleOwner) { songEntity ->
-                        if (songEntity.liked) {
-                            tvFavorite.text = getString(R.string.liked)
-                            cbFavorite.isChecked = true
-                        } else {
-                            tvFavorite.text = getString(R.string.like)
-                            cbFavorite.isChecked = false
+                        if (songEntity != null) {
+                            if (songEntity.liked) {
+                                tvFavorite.text = getString(R.string.liked)
+                                cbFavorite.isChecked = true
+                            } else {
+                                tvFavorite.text = getString(R.string.like)
+                                cbFavorite.isChecked = false
+                            }
                         }
+                    }
+                    btAddQueue.setOnClickListener {
+                        sharedViewModel.addToQueue(song.toTrack())
                     }
                     btChangeLyricsProvider.visibility = View.GONE
                     tvSongTitle.text = song.title

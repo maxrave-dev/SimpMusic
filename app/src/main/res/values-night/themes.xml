@@ -27,11 +27,16 @@
         <item name="colorSurfaceInverse">@color/md_theme_dark_inverseSurface</item>
         <item name="colorOnSurfaceInverse">@color/md_theme_dark_inverseOnSurface</item>
         <item name="colorPrimaryInverse">@color/md_theme_dark_inversePrimary</item>
-        <item name="android:statusBarColor" >@color/colorPrimaryDark</item>
+        <item name="android:statusBarColor">@color/colorPrimaryDark</item>
         <item name="android:fontFamily">@font/poppins_medium</item>
         <item name="android:navigationBarColor">
             @android:color/transparent
         </item>
         <item name="fontFamily">@font/poppins_medium</item>
+    </style>
+
+    <style name="ThemeOverlay.SimpMusic.FullscreenContainer" parent="">
+        <item name="fullscreenBackgroundColor">@color/light_blue_900</item>
+        <item name="fullscreenTextColor">@color/light_blue_A400</item>
     </style>
 </resources>

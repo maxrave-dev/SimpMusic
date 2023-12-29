@@ -1,4 +1,4 @@
-A simple music app using YouTube Music for backend
+Not a simple music player, it's SimpMusic
 
 <br><b>Features:</b>
 
@@ -6,6 +6,7 @@ A simple music app using YouTube Music for backend
 - Browsing Home, Charts, Podcast, Moods & Genre with YouTube Music data with high speed
 - Search everything on YouTube
 - Analyze your playing data, create custom playlists and sync with YouTube Music...
+- Play video option with subtitle
 - Caching and can save data for offline playback
 - Synced lyrics from Musixmatch, YouTube Transcript and translate lyrics (Community translation from Musixmatch)
 - Support SponsorBlock

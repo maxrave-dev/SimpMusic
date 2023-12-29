@@ -1,0 +1,2 @@
+- Sửa lỗi phần phụ thuộc
+- Tuỳ chọn phát video

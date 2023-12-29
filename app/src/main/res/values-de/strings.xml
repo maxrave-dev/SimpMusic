@@ -269,12 +269,22 @@
     <string name="suggest">Anregung</string>
     <string name="reload">Neu Laden</string>
     <string name="added_date">Datum hinzugefügt</string>
-    <plurals name="n_song">
-        <item quantity="one">%d Lied</item>
-        <item quantity="other">%d Lieder</item>
-    </plurals>
     <string name="credit_app">Eine einfache Musik-App mit YouTube Music als Backend \n\nSimpMusic ist ein Open-Source-Projekt zum Streamen von Musik von YouTube und YouTube Music ohne Werbung und Tracking. SimpMusic bietet viele Funktionen:\n\n - Musik streamen \n - Synchronisierte Liedtexte\n - Daten personalisieren\n - etc… \n\nSimpMusic ist immer kostenlos und ohne Werbung\n\nErstellen Sie mit ❤️ von Tuan Minh Nguyen Duc (maxrave-dev)</string>
     <string name="issue_tracker">Issue-Tracker</string>
     <string name="featured_playlists">Empfohlene Playlists</string>
     <string name="featured_inArtist">Zu hören in</string>
+    <string name="audio_quality">Audioqualität</string>
+    <string name="play_video_for_video_track_instead_of_audio_only">Video für Videospur statt nur für Audio abspielen</string>
+    <string name="such_as_music_video_lyrics_video_podcasts_and_more">So wie Musikvideo, Songtexte Video, Podcasts und mehr</string>
+    <string name="video_quality">Videoqualität</string>
+    <plurals name="n_song">
+        <item quantity="one">%d Lied</item>
+        <item quantity="other">%d Lieder</item>
+    </plurals>
+    <string name="dummy_button">Dummy-Taste</string>
+    <string name="dummy_content">DUMMY-\nINHALT</string>
+    <string name="play_video_instead_of_audio_warning">Diese Aktion wird den Spielercache löschen. Fortfahren?</string>
+    <string name="quality_video">Videoqualität</string>
+    <string name="add_to_queue">Zur Warteschlange hinzufügen</string>
+    <string name="added_to_queue">Zur Warteschlange hinzugefügt</string>
 </resources>

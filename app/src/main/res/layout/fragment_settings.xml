@@ -139,13 +139,14 @@
                     android:clickable="true"
                     android:foreground="?android:attr/selectableItemBackground">
                     <TextView
-                        android:textSize = "16sp"
+                        android:textSize="16sp"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:textColor="@android:color/white"
-                        android:text = "@string/quality">
+                        android:text="@string/audio_quality">
 
                     </TextView>
+
                     <TextView
                         android:id="@+id/tvQuality"
                         android:layout_width="match_parent"
@@ -156,9 +157,88 @@
                     </TextView>
 
                 </LinearLayout>
+
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
+
+                    <LinearLayout
+                        android:layout_alignParentStart="true"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:layout_marginVertical="5sp"
+                        android:layout_marginStart="15sp"
+                        android:id="@+id/btEnableVideo"
+                        android:focusable="true"
+                        android:clickable="true"
+                        android:foreground="?android:attr/selectableItemBackground"
+                        android:layout_toStartOf="@+id/swEnableVideo">
+
+                        <TextView
+                            android:textSize="16sp"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textColor="@android:color/white"
+                            android:text="@string/play_video_for_video_track_instead_of_audio_only">
+
+                        </TextView>
+
+                        <TextView
+                            android:id="@+id/tvEnableVideo"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textSize="11sp"
+                            android:text="@string/such_as_music_video_lyrics_video_podcasts_and_more">
+
+                        </TextView>
+
+                    </LinearLayout>
+
+                    <com.google.android.material.switchmaterial.SwitchMaterial
+                        android:id="@+id/swEnableVideo"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true">
+
+                    </com.google.android.material.switchmaterial.SwitchMaterial>
+                </RelativeLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginVertical="5sp"
+                    android:layout_marginStart="15sp"
+                    android:id="@+id/btVideoQuality"
+                    android:focusable="true"
+                    android:clickable="true"
+                    android:foreground="?android:attr/selectableItemBackground">
+                    <TextView
+                        android:textSize="16sp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@android:color/white"
+                        android:text="@string/video_quality">
+
+                    </TextView>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:id="@+id/tvVideoQuality"
+                        android:text="720p">
+
+                    </TextView>
+
+                </LinearLayout>
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
                     <LinearLayout
                         android:layout_alignParentStart="true"
                         android:layout_width="match_parent"

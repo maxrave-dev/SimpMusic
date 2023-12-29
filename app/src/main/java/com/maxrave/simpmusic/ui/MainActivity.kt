@@ -4,8 +4,10 @@ import android.Manifest
 import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.Rect
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Build
@@ -15,13 +17,13 @@ import android.util.Log
 import android.view.View
 import android.view.animation.AnimationUtils
 import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.graphics.ColorUtils
 import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
-import androidx.core.view.WindowCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.lifecycleScope
@@ -72,6 +74,7 @@ import pub.devrel.easypermissions.EasyPermissions
 import java.text.SimpleDateFormat
 import java.util.Locale
 import javax.inject.Inject
+
 
 @UnstableApi
 @AndroidEntryPoint
@@ -305,8 +308,10 @@ class MainActivity : AppCompatActivity() {
         if (viewModel.recreateActivity.value == true) {
             viewModel.simpleMediaServiceHandler?.coroutineScope = lifecycleScope
             runCollect()
+            viewModel.activityRecreateDone()
+        } else {
+            startMusicService()
         }
-        startMusicService()
         Log.d("MainActivity", "onCreate: ")
         action = intent.action
         data = intent?.data ?: intent?.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
@@ -350,8 +355,14 @@ class MainActivity : AppCompatActivity() {
                 putString(FIRST_TIME_MIGRATION, STATUS_DONE)
             }
         }
-        if (AppCompatDelegate.getApplicationLocales().toLanguageTags() != getString(SELECTED_LANGUAGE)) {
-            Log.d("Locale Key", "onCreate: ${AppCompatDelegate.getApplicationLocales().toLanguageTags()}")
+        if (AppCompatDelegate.getApplicationLocales().toLanguageTags() != getString(
+                SELECTED_LANGUAGE
+            )
+        ) {
+            Log.d(
+                "Locale Key",
+                "onCreate: ${AppCompatDelegate.getApplicationLocales().toLanguageTags()}"
+            )
             putString(SELECTED_LANGUAGE, AppCompatDelegate.getApplicationLocales().toLanguageTags())
             YouTube.locale = YouTubeLocale(
                 gl = getString("location") ?: "US",
@@ -360,15 +371,20 @@ class MainActivity : AppCompatActivity() {
         }
 //
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            WindowCompat.setDecorFitsSystemWindows(window, false)
+//            WindowCompat.setDecorFitsSystemWindows(window, false)
+        enableEdgeToEdge()
 //        } else {
 //            window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
 //        }
 
-        if (!EasyPermissions.hasPermissions(this, Manifest.permission.POST_NOTIFICATIONS)){
+        if (!EasyPermissions.hasPermissions(this, Manifest.permission.POST_NOTIFICATIONS)) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                EasyPermissions.requestPermissions(this,
-                    getString(R.string.this_app_needs_to_access_your_notification), 1, Manifest.permission.POST_NOTIFICATIONS)
+                EasyPermissions.requestPermissions(
+                    this,
+                    getString(R.string.this_app_needs_to_access_your_notification),
+                    1,
+                    Manifest.permission.POST_NOTIFICATIONS
+                )
             }
         }
 
@@ -380,6 +396,21 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
+        binding.root.addOnLayoutChangeListener { v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
+            val rect = Rect(left, top, right, bottom)
+            val oldRect = Rect(oldLeft, oldTop, oldRight, oldBottom)
+            Log.w("Old Rect", "onCreate: $oldRect, $oldLeft $oldTop $oldRight $oldBottom")
+            Log.w("New Rect", "onCreate: $rect, $left $top $right $bottom")
+            if ((rect.width() != oldRect.width() || rect.height() != oldRect.height()) && oldRect != Rect(
+                    0,
+                    0,
+                    0,
+                    0
+                )
+            ) {
+                viewModel.activityRecreate()
+            }
+        }
         binding.bottomNavigationView.applyInsetter {
             type(navigationBars = true) {
                 padding()
@@ -754,6 +785,11 @@ class MainActivity : AppCompatActivity() {
 
     private fun getString(key: String): String? {
         return viewModel.getString(key)
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        viewModel.activityRecreate()
     }
 
 }

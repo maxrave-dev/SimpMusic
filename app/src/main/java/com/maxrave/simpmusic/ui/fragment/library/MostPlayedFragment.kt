@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
@@ -42,6 +43,7 @@ import com.maxrave.simpmusic.extension.setEnabledAll
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.viewModel.MostPlayedViewModel
+import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.launch
@@ -53,6 +55,7 @@ class MostPlayedFragment: Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel by viewModels<MostPlayedViewModel>()
+    private val sharedViewModel by activityViewModels<SharedViewModel>()
 
     private lateinit var mostPlayedAdapter: SearchItemAdapter
     private lateinit var listMostPlayed: ArrayList<Any>
@@ -113,39 +116,43 @@ class MostPlayedFragment: Fragment() {
                 with(bottomSheetView) {
                     btSleepTimer.visibility = View.GONE
                     viewModel.songEntity.observe(viewLifecycleOwner) { songEntity ->
-                        if (songEntity.liked) {
-                            tvFavorite.text = getString(R.string.liked)
-                            cbFavorite.isChecked = true
-                        }
-                        else {
-                            tvFavorite.text = getString(R.string.like)
-                            cbFavorite.isChecked = false
-                        }
-                        when (songEntity.downloadState) {
-                            DownloadState.STATE_PREPARING -> {
-                                tvDownload.text = getString(R.string.preparing)
-                                ivDownload.setImageResource(R.drawable.outline_download_for_offline_24)
-                                setEnabledAll(btDownload, true)
+                        if (songEntity != null) {
+                            if (songEntity.liked) {
+                                tvFavorite.text = getString(R.string.liked)
+                                cbFavorite.isChecked = true
+                            } else {
+                                tvFavorite.text = getString(R.string.like)
+                                cbFavorite.isChecked = false
                             }
+                            when (songEntity.downloadState) {
+                                DownloadState.STATE_PREPARING -> {
+                                    tvDownload.text = getString(R.string.preparing)
+                                    ivDownload.setImageResource(R.drawable.outline_download_for_offline_24)
+                                    setEnabledAll(btDownload, true)
+                                }
 
-                            DownloadState.STATE_NOT_DOWNLOADED -> {
-                                tvDownload.text = getString(R.string.download)
-                                ivDownload.setImageResource(R.drawable.outline_download_for_offline_24)
-                                setEnabledAll(btDownload, true)
-                            }
+                                DownloadState.STATE_NOT_DOWNLOADED -> {
+                                    tvDownload.text = getString(R.string.download)
+                                    ivDownload.setImageResource(R.drawable.outline_download_for_offline_24)
+                                    setEnabledAll(btDownload, true)
+                                }
 
-                            DownloadState.STATE_DOWNLOADING -> {
-                                tvDownload.text = getString(R.string.downloading)
-                                ivDownload.setImageResource(R.drawable.baseline_downloading_white)
-                                setEnabledAll(btDownload, true)
-                            }
+                                DownloadState.STATE_DOWNLOADING -> {
+                                    tvDownload.text = getString(R.string.downloading)
+                                    ivDownload.setImageResource(R.drawable.baseline_downloading_white)
+                                    setEnabledAll(btDownload, true)
+                                }
 
-                            DownloadState.STATE_DOWNLOADED -> {
-                                tvDownload.text = getString(R.string.downloaded)
-                                ivDownload.setImageResource(R.drawable.baseline_downloaded)
-                                setEnabledAll(btDownload, true)
+                                DownloadState.STATE_DOWNLOADED -> {
+                                    tvDownload.text = getString(R.string.downloaded)
+                                    ivDownload.setImageResource(R.drawable.baseline_downloaded)
+                                    setEnabledAll(btDownload, true)
+                                }
                             }
                         }
+                    }
+                    btAddQueue.setOnClickListener {
+                        sharedViewModel.addToQueue(song.toTrack())
                     }
                     btChangeLyricsProvider.visibility = View.GONE
                     tvSongTitle.text = song.title
@@ -169,13 +176,14 @@ class MostPlayedFragment: Fragment() {
                             tvFavorite.text = getString(R.string.like)
                             viewModel.updateLikeStatus(song.videoId, 0)
                             viewModel.songEntity.observe(viewLifecycleOwner) { songEntity ->
-                                if (songEntity.liked) {
-                                    tvFavorite.text = getString(R.string.liked)
-                                    cbFavorite.isChecked = true
-                                }
-                                else {
-                                    tvFavorite.text = getString(R.string.like)
-                                    cbFavorite.isChecked = false
+                                if (songEntity != null) {
+                                    if (songEntity.liked) {
+                                        tvFavorite.text = getString(R.string.liked)
+                                        cbFavorite.isChecked = true
+                                    } else {
+                                        tvFavorite.text = getString(R.string.like)
+                                        cbFavorite.isChecked = false
+                                    }
                                 }
                             }
                         }
@@ -184,13 +192,14 @@ class MostPlayedFragment: Fragment() {
                             tvFavorite.text = getString(R.string.liked)
                             viewModel.updateLikeStatus(song.videoId, 1)
                             viewModel.songEntity.observe(viewLifecycleOwner) { songEntity ->
-                                if (songEntity.liked) {
-                                    tvFavorite.text = getString(R.string.liked)
-                                    cbFavorite.isChecked = true
-                                }
-                                else {
-                                    tvFavorite.text = getString(R.string.like)
-                                    cbFavorite.isChecked = false
+                                if (songEntity != null) {
+                                    if (songEntity.liked) {
+                                        tvFavorite.text = getString(R.string.liked)
+                                        cbFavorite.isChecked = true
+                                    } else {
+                                        tvFavorite.text = getString(R.string.like)
+                                        cbFavorite.isChecked = false
+                                    }
                                 }
                             }
                         }

@@ -57,20 +57,21 @@ class PlaylistViewModel @Inject constructor(
     private val _isRadio: MutableLiveData<Boolean> = MutableLiveData()
     var isRadio: LiveData<Boolean> = _isRadio
 
-    private var _playlistEntity: MutableLiveData<PlaylistEntity> = MutableLiveData()
-    var playlistEntity: LiveData<PlaylistEntity> = _playlistEntity
+    private var _playlistEntity: MutableLiveData<PlaylistEntity?> = MutableLiveData()
+    var playlistEntity: LiveData<PlaylistEntity?> = _playlistEntity
 
     private var _liked: MutableStateFlow<Boolean> = MutableStateFlow(false)
     var liked: MutableStateFlow<Boolean> = _liked
 
 
-    private var _songEntity: MutableLiveData<SongEntity> = MutableLiveData()
-    val songEntity: LiveData<SongEntity> = _songEntity
+    private var _songEntity: MutableLiveData<SongEntity?> = MutableLiveData()
+    val songEntity: LiveData<SongEntity?> = _songEntity
     private var _listLocalPlaylist: MutableLiveData<List<LocalPlaylistEntity>> = MutableLiveData()
     val listLocalPlaylist: LiveData<List<LocalPlaylistEntity>> = _listLocalPlaylist
 
     private var regionCode: String? = null
     private var language: String? = null
+
     init {
         regionCode = runBlocking { dataStoreManager.location.first() }
         language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }

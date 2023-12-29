@@ -54,7 +54,9 @@ object SUPPORTED_LANGUAGE {
         "Polski",
         "Português",
         "Français",
-        "Español"
+        "Español",
+        "简体中文",
+        "Bahasa Indonesia"
     )
     val codes: Array<String> = arrayOf(
         "en-US",
@@ -67,13 +69,21 @@ object SUPPORTED_LANGUAGE {
         "pl-PL",
         "pt-PT",
         "fr-FR",
-        "es-ES"
+        "es-ES",
+        "zh-CN",
+        "in-ID"
     )
 }
 object QUALITY {
     val items: Array<CharSequence> = arrayOf("Low - 66kps", "High - 129kps")
     val itags: Array<Int> = arrayOf(250, 251)
 }
+
+object VIDEO_QUALITY {
+    val items: Array<CharSequence> = arrayOf("720p", "360p")
+    val itags: Array<Int> = arrayOf(22, 18)
+}
+
 object LYRICS_PROVIDER {
     val items: Array<CharSequence> = arrayOf("Musixmatch", "YouTube Transcript")
 }
