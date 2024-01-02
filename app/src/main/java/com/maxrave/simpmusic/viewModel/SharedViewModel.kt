@@ -857,7 +857,13 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                 return i
             }
         }
-        if (current in (0..(lyricsFormat?.get(0)?.startTimeMs ?: "0").toLong())) {
+        val startTimeMs = if (lyricsFormat?.size?.compareTo(0)!! > 0) {
+            lyricsFormat[0].startTimeMs.toLong()
+        } else {
+            0L
+        }
+
+        if (current in (0..startTimeMs)) {
             return -1
         }
         return null
