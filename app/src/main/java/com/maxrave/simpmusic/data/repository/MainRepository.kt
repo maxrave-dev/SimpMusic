@@ -1413,6 +1413,8 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
     }.flowOn(Dispatchers.IO)
     suspend fun getStream(videoId: String, itag: Int): Flow<String?> = flow{
         YouTube.player(videoId).onSuccess { data ->
+            val acceptToPlayVideo =
+                runBlocking { dataStoreManager.watchVideoInsteadOfPlayingAudio.first() == DataStoreManager.TRUE }
             val videoItag =
                 VIDEO_QUALITY.itags.getOrNull(VIDEO_QUALITY.items.indexOf(dataStoreManager.videoQuality.first()))
                     ?: 22
@@ -1423,7 +1425,11 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
             ) else Log.w("Stream", "response: is VIDEO")
             Log.w("Stream: ", data.toString())
             var format =
-                if (data.third == MediaType.Song) response.streamingData?.adaptiveFormats?.find { it.itag == itag } else response.streamingData?.formats?.find { it.itag == videoItag }
+                if (acceptToPlayVideo) {
+                    if (data.third == MediaType.Song) response.streamingData?.adaptiveFormats?.find { it.itag == itag } else response.streamingData?.formats?.find { it.itag == videoItag }
+                } else {
+                    response.streamingData?.adaptiveFormats?.find { it.itag == itag }
+                }
             if (format == null) {
                 format = response.streamingData?.adaptiveFormats?.lastOrNull()
             }

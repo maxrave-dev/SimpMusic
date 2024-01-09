@@ -857,7 +857,9 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                 return i
             }
         }
-        if (current in (0..(lyricsFormat?.get(0)?.startTimeMs ?: "0").toLong())) {
+        if (!lyricsFormat.isNullOrEmpty() && current in (0..(lyricsFormat[0].startTimeMs
+                ?: "0").toLong())
+        ) {
             return -1
         }
         return null

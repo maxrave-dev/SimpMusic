@@ -49,11 +49,11 @@ class HomeItemContentAdapter(private var listContent: ArrayList<Content>, privat
         }
         fun bind(content: Content){
             with(binding){
-                if (content.thumbnails.size > 1) {
-                    ivArt.load(content.thumbnails[1].url)
-                }
-                else{
-                    ivArt.load(content.thumbnails[0].url)
+                if (content.thumbnails.isNotEmpty()) {
+                    ivArt.load(content.thumbnails.lastOrNull()?.url) {
+                        crossfade(true)
+                        placeholder(R.drawable.holder)
+                    }
                 }
                 tvSongName.text = content.title
                 tvSongName.isSelected = true
@@ -76,7 +76,10 @@ class HomeItemContentAdapter(private var listContent: ArrayList<Content>, privat
         fun bind(content: Content) {
             with(binding) {
                 if (content.thumbnails.isNotEmpty()) {
-                    ivArt.load(content.thumbnails.lastOrNull()?.url)
+                    ivArt.load(content.thumbnails.lastOrNull()?.url) {
+                        crossfade(true)
+                        placeholder(R.drawable.holder)
+                    }
                 }
                 tvSongName.text = content.title
                 tvSongName.isSelected = true
@@ -98,14 +101,15 @@ class HomeItemContentAdapter(private var listContent: ArrayList<Content>, privat
 
         fun bind(content: Content) {
             with(binding) {
-                if (content.thumbnails.size > 1) {
-                    ivArt.load(content.thumbnails[1].url)
-                } else {
-                    ivArt.load(content.thumbnails[0].url)
+                ivArt.load(content.thumbnails.lastOrNull()?.url) {
+                    crossfade(true)
+                    placeholder(R.drawable.holder)
                 }
                 tvTitle.text = content.title
                 tvTitle.isSelected = true
-                tvDescription.text = content.description ?: (if (!content.artists.isNullOrEmpty()) content.artists.toListName().connectArtists() else context.getString(R.string.playlist))
+                tvDescription.text = content.description
+                    ?: (if (!content.artists.isNullOrEmpty()) content.artists.toListName()
+                        .connectArtists() else context.getString(R.string.playlist))
                 tvDescription.isSelected = true
             }
         }
@@ -115,20 +119,19 @@ class HomeItemContentAdapter(private var listContent: ArrayList<Content>, privat
             binding.root.setOnClickListener {listener.onAlbumItemClick(bindingAdapterPosition)}
         }
         fun bind(content: Content){
-            with(binding){
-                if (content.thumbnails.size > 1) {
-                    ivArt.load(content.thumbnails[1].url)
-                }
-                else{
-                    ivArt.load(content.thumbnails[0].url)
+            with(binding) {
+                ivArt.load(content.thumbnails.lastOrNull()?.url) {
+                    crossfade(true)
+                    placeholder(R.drawable.holder)
                 }
                 tvTitle.text = content.title
                 tvTitle.isSelected = true
                 if (content.description != "" && content.description != null) {
                     tvDescription.text = content.description
-                }
-                else {
-                    tvDescription.text = if (!content.artists.isNullOrEmpty()) content.artists.toListName().connectArtists() else context.getString(R.string.album)
+                } else {
+                    tvDescription.text =
+                        if (!content.artists.isNullOrEmpty()) content.artists.toListName()
+                            .connectArtists() else context.getString(R.string.album)
                 }
                 tvDescription.isSelected = true
             }
@@ -139,12 +142,10 @@ class HomeItemContentAdapter(private var listContent: ArrayList<Content>, privat
             binding.root.setOnClickListener {listener.onArtistItemClick(bindingAdapterPosition)}
         }
         fun bind(content: Content){
-            with(binding){
-                if (content.thumbnails.size > 1) {
-                    ivArt.load(content.thumbnails[1].url)
-                }
-                else{
-                    ivArt.load(content.thumbnails[0].url)
+            with(binding) {
+                ivArt.load(content.thumbnails.lastOrNull()?.url) {
+                    crossfade(true)
+                    placeholder(R.drawable.holder)
                 }
                 tvArtistName.text = content.title
             }

@@ -188,18 +188,23 @@ class AlbumFragment: Fragment() {
             }
         }
         binding.btPlayPause.setOnClickListener {
-            if (viewModel.albumBrowse.value is Resource.Success && viewModel.albumBrowse.value?.data != null){
+            if (viewModel.albumBrowse.value is Resource.Success && viewModel.albumBrowse.value?.data != null && songsAdapter.getList()
+                    .isNotEmpty()
+            ) {
                 val args = Bundle()
                 args.putString("type", Config.ALBUM_CLICK)
-                args.putString("videoId", viewModel.albumBrowse.value?.data!!.tracks[0].videoId)
+                args.putString("videoId", songsAdapter.getList()[0].videoId)
                 args.putString("from", "Album \"${viewModel.albumBrowse.value?.data!!.title}\"")
                 if (viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                     args.putInt("downloaded", 1)
                 }
-                args.putString("playlistId", viewModel.albumBrowse.value?.data?.audioPlaylistId?.replaceFirst("VL", ""))
+                args.putString(
+                    "playlistId",
+                    viewModel.albumBrowse.value?.data?.audioPlaylistId?.replaceFirst("VL", "")
+                )
                 Queue.clear()
-                Queue.setNowPlaying(viewModel.albumBrowse.value?.data!!.tracks[0])
-                Queue.addAll(viewModel.albumBrowse.value?.data!!.tracks as ArrayList<Track>)
+                Queue.setNowPlaying(songsAdapter.getList()[0])
+                Queue.addAll(songsAdapter.getList())
                 if (Queue.getQueue().size >= 1) {
                     Queue.removeFirstTrackForPlaylistAndAlbum()
                 }
@@ -231,16 +236,19 @@ class AlbumFragment: Fragment() {
                 if (viewModel.albumBrowse.value is Resource.Success && viewModel.albumBrowse.value?.data != null){
                     val args = Bundle()
                     args.putString("type", Config.ALBUM_CLICK)
-                    args.putString("videoId", viewModel.albumBrowse.value?.data!!.tracks[position].videoId)
+                    args.putString("videoId", songsAdapter.getList()[position].videoId)
                     args.putString("from", "Album \"${viewModel.albumBrowse.value?.data!!.title}\"")
                     args.putInt("index", position)
                     if (viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                         args.putInt("downloaded", 1)
                     }
-                    args.putString("playlistId", viewModel.albumBrowse.value?.data?.audioPlaylistId?.replaceFirst("VL", ""))
+                    args.putString(
+                        "playlistId",
+                        viewModel.albumBrowse.value?.data?.audioPlaylistId?.replaceFirst("VL", "")
+                    )
                     Queue.clear()
-                    Queue.setNowPlaying(viewModel.albumBrowse.value?.data!!.tracks[position])
-                    Queue.addAll(viewModel.albumBrowse.value?.data!!.tracks as ArrayList<Track>)
+                    Queue.setNowPlaying(songsAdapter.getList()[position])
+                    Queue.addAll(songsAdapter.getList())
                     if (Queue.getQueue().size >= 1) {
                         Queue.removeTrackWithIndex(position)
                     }
@@ -249,7 +257,7 @@ class AlbumFragment: Fragment() {
                 else if (viewModel.albumEntity.value != null && viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED){
                     val args = Bundle()
                     args.putString("type", Config.ALBUM_CLICK)
-                    args.putString("videoId", viewModel.albumEntity.value?.tracks?.get(position))
+                    args.putString("videoId", songsAdapter.getList()[position].videoId)
                     args.putString("from", "Album \"${viewModel.albumEntity.value?.title}\"")
                     args.putInt("index", position)
                     if (viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
@@ -257,7 +265,7 @@ class AlbumFragment: Fragment() {
                     }
                     args.putString("playlistId", viewModel.albumEntity.value?.browseId?.replaceFirst("VL", ""))
                     Queue.clear()
-                    Queue.setNowPlaying(viewModel.listTrack.value?.get(position)!!.toTrack())
+                    Queue.setNowPlaying(songsAdapter.getList()[position])
                     Queue.addAll(viewModel.listTrack.value.toArrayListTrack())
                     if (Queue.getQueue().size >= 1) {
                         Queue.removeTrackWithIndex(position)
