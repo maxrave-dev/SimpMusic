@@ -19,16 +19,29 @@ class HomeItemContentAdapter(private var listContent: ArrayList<Content>, privat
     private lateinit var mAlbumListener: onAlbumItemClickListener
     private lateinit var mSongListener: onSongItemClickListener
     private lateinit var mArtistListener: onArtistItemClickListener
-    interface onSongItemClickListener{
+    fun updateData(newData: ArrayList<Content>) {
+        listContent.clear()
+        listContent.addAll(newData)
+        notifyDataSetChanged()
+    }
+
+    fun getData(): ArrayList<Content> {
+        return listContent
+    }
+
+    interface onSongItemClickListener {
         fun onSongItemClick(position: Int)
     }
-    interface onPlaylistItemClickListener{
+
+    interface onPlaylistItemClickListener {
         fun onPlaylistItemClick(position: Int)
     }
-    interface onAlbumItemClickListener{
+
+    interface onAlbumItemClickListener {
         fun onAlbumItemClick(position: Int)
     }
-    interface onArtistItemClickListener{
+
+    interface onArtistItemClickListener {
         fun onArtistItemClick(position: Int)
     }
     fun setOnSongClickListener(listener: onSongItemClickListener){

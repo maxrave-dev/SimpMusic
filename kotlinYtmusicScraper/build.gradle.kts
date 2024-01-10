@@ -47,7 +47,7 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 
-    val ktor_version= "2.3.5"
+    val ktor_version = "2.3.7"
 
     implementation("io.ktor:ktor-client-core:$ktor_version")
     implementation("io.ktor:ktor-client-cio:$ktor_version")
@@ -62,11 +62,11 @@ dependencies {
     implementation(kotlin("reflect"))
     implementation("com.google.code.gson:gson:2.10.1")
 
-    val version = "0.2.1"
+    val version = "0.3.1"
 
 // For parsing HTML
     implementation("com.mohamedrejeb.ksoup:ksoup-html:$version")
 
 // Only for encoding and decoding HTML entities
-    implementation("com.mohamedrejeb.ksoup:ksoup-entites:$version")
+    implementation("com.mohamedrejeb.ksoup:ksoup-entities:0.3.1")
 }

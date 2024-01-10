@@ -54,6 +54,7 @@ class HomeFragment : Fragment() {
     private lateinit var trackChartAdapter: TrackChartAdapter
     private lateinit var artistChartAdapter: ArtistChartAdapter
     private lateinit var quickPicksAdapter: QuickPicksAdapter
+    private lateinit var newReleaseAdapter: HomeItemAdapter
 
     private val items = arrayOf("US", "ZZ", "AR", "AU", "AT", "BE", "BO", "BR", "CA", "CL", "CO", "CR", "CZ", "DK", "DO", "EC", "EG", "SV", "EE", "FI", "FR", "DE", "GT", "HN", "HU", "IS", "IN", "ID", "IE", "IL", "IT", "JP", "KE", "LU", "MX", "NL", "NZ", "NI", "NG", "NO", "PA", "PY", "PE", "PL", "PT", "RO", "RU", "SA", "RS", "ZA", "KR", "ES", "SE", "CH", "TZ", "TR", "UG", "UA", "AE", "GB", "UY", "ZW")
     private val itemsData = arrayOf("United States", "Global", "Argentina", "Australia", "Austria", "Belgium", "Bolivia", "Brazil", "Canada", "Chile", "Colombia", "Costa Rica", "Czech Republic", "Denmark", "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Estonia", "Finland", "France", "Germany", "Guatemala", "Honduras", "Hungary", "Iceland", "India", "Indonesia", "Ireland", "Israel", "Italy", "Japan", "Kenya", "Luxembourg", "Mexico", "Netherlands", "New Zealand", "Nicaragua", "Nigeria", "Norway", "Panama", "Paraguay", "Peru", "Poland", "Portugal", "Romania", "Russia", "Saudi Arabia", "Serbia", "South Africa", "South Korea", "Spain", "Sweden", "Switzerland", "Tanzania", "Turkey", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "Uruguay", "Zimbabwe")
@@ -79,6 +80,7 @@ class HomeFragment : Fragment() {
         trackChartAdapter = TrackChartAdapter(arrayListOf(), requireContext())
         artistChartAdapter = ArtistChartAdapter(arrayListOf(), requireContext())
         quickPicksAdapter = QuickPicksAdapter(arrayListOf(), requireContext(), findNavController())
+        newReleaseAdapter = HomeItemAdapter(arrayListOf(), requireContext(), findNavController())
         initView()
         initObserver()
     }
@@ -119,7 +121,8 @@ class HomeFragment : Fragment() {
         }
         binding.rvTopTrack.apply {
             adapter = trackChartAdapter
-            layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+            layoutManager =
+                LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
         }
         binding.rvTopArtist.apply {
             adapter = artistChartAdapter
@@ -128,6 +131,11 @@ class HomeFragment : Fragment() {
         binding.rvQuickPicks.apply {
             adapter = quickPicksAdapter
             layoutManager = getGridLayoutHorizontal(3)
+        }
+        binding.rvNewRelease.apply {
+            adapter = newReleaseAdapter
+            layoutManager =
+                LinearLayoutManager(requireContext(), LinearLayoutManager.VERTICAL, false)
         }
         moodsMomentAdapter.setOnMoodsMomentClickListener(object :
             MoodsMomentAdapter.OnMoodsMomentItemClickListener {
@@ -319,9 +327,21 @@ class HomeFragment : Fragment() {
                 if (viewModel.homeItemList.value?.data?.find { it.subtitle == accountName } != null) {
                     binding.accountLayout.visibility = View.GONE
                 }
-            }
-            else {
+            } else {
                 binding.accountLayout.visibility = View.GONE
+            }
+        }
+        viewModel.newRelease.observe(viewLifecycleOwner) { response ->
+            when (response) {
+                is Resource.Success -> {
+                    response.data?.let { newRelease ->
+                        newReleaseAdapter.updateData(newRelease)
+                    }
+                }
+
+                is Resource.Error -> {
+                    binding.swipeRefreshLayout.isRefreshing = false
+                }
             }
         }
         viewLifecycleOwner.lifecycleScope.launch {

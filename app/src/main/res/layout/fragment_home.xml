@@ -189,6 +189,29 @@
                         android:layout_marginTop="10sp"
                         android:layout_marginBottom="3sp"
                         android:fontFamily="@font/roboto"
+                        android:text="@string/your_music_is_always_up_to_date"
+                        android:textSize="13sp"
+                        android:textStyle="normal">
+
+                    </TextView>
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/rvNewRelease"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10sp"
+                        android:layout_marginBottom="3sp"
+                        android:fontFamily="@font/roboto"
                         android:text="@string/let_s_pick_a_playlist_for_you"
                         android:textSize="13sp"
                         android:textStyle="normal">

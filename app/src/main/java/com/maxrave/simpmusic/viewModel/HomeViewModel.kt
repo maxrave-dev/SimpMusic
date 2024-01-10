@@ -10,6 +10,7 @@ import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.model.explore.mood.Mood
+import com.maxrave.simpmusic.data.model.home.HomeDataCombine
 import com.maxrave.simpmusic.data.model.home.HomeItem
 import com.maxrave.simpmusic.data.model.home.chart.Chart
 import com.maxrave.simpmusic.data.repository.MainRepository
@@ -41,6 +42,8 @@ class HomeViewModel @Inject constructor(
 
     private val _chart: MutableLiveData<Resource<Chart>> = MutableLiveData()
     val chart: LiveData<Resource<Chart>> = _chart
+    private val _newRelease: MutableLiveData<Resource<ArrayList<HomeItem>>> = MutableLiveData()
+    val newRelease: LiveData<Resource<ArrayList<HomeItem>>> = _newRelease
     var regionCodeChart: MutableLiveData<String> = MutableLiveData()
 
     val loading = MutableLiveData<Boolean>()
@@ -82,23 +85,31 @@ class HomeViewModel @Inject constructor(
 //                ),
                 mainRepository.getHomeData(),
                 mainRepository.getMoodAndMomentsData(),
-                mainRepository.getChartData("ZZ")
-            ) { home, exploreMood, exploreChart ->
-                Triple(home, exploreMood, exploreChart)
+                mainRepository.getChartData("ZZ"),
+                mainRepository.getNewRelease()
+            ) { home, exploreMood, exploreChart, newRelease ->
+                HomeDataCombine(home, exploreMood, exploreChart, newRelease)
             }.collect { result ->
-                val home = result.first
+                val home = result.home
                 Log.d("home size", "${home.data?.size}")
-                val exploreMoodItem = result.second
-                val chart = result.third
+                val exploreMoodItem = result.mood
+                val chart = result.chart
+                val newRelease = result.newRelease
                 _homeItemList.value = home
                 _exploreMoodItem.value = exploreMoodItem
                 regionCodeChart.value = "ZZ"
                 _chart.value = chart
+                _newRelease.value = newRelease
                 Log.d("HomeViewModel", "getHomeItemList: $result")
                 loading.value = false
                 dataStoreManager.cookie.first().let {
                     if (it != "") {
-                        _accountInfo.postValue(Pair(dataStoreManager.getString("AccountName").first(), dataStoreManager.getString("AccountThumbUrl").first()))
+                        _accountInfo.postValue(
+                            Pair(
+                                dataStoreManager.getString("AccountName").first(),
+                                dataStoreManager.getString("AccountThumbUrl").first()
+                            )
+                        )
                     }
                 }
                 when {

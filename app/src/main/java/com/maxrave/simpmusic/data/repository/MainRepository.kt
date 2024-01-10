@@ -61,6 +61,7 @@ import com.maxrave.simpmusic.data.parser.parseGenreObject
 import com.maxrave.simpmusic.data.parser.parseLibraryPlaylist
 import com.maxrave.simpmusic.data.parser.parseMixedContent
 import com.maxrave.simpmusic.data.parser.parseMoodsMomentObject
+import com.maxrave.simpmusic.data.parser.parseNewRelease
 import com.maxrave.simpmusic.data.parser.parsePlaylistData
 import com.maxrave.simpmusic.data.parser.parsePodcast
 import com.maxrave.simpmusic.data.parser.parsePodcastContinueData
@@ -387,6 +388,14 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
             }.onFailure { error ->
                 emit(Resource.Error<ArrayList<HomeItem>>(error.message.toString()))
             }
+        }
+    }.flowOn(Dispatchers.IO)
+
+    suspend fun getNewRelease(): Flow<Resource<ArrayList<HomeItem>>> = flow {
+        YouTube.newRelease().onSuccess { result ->
+            emit(Resource.Success<ArrayList<HomeItem>>(parseNewRelease(result, context)))
+        }.onFailure { error ->
+            emit(Resource.Error<ArrayList<HomeItem>>(error.message.toString()))
         }
     }.flowOn(Dispatchers.IO)
 

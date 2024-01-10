@@ -13,6 +13,7 @@ import com.maxrave.kotlinytmusicscraper.models.SongItem
 import com.maxrave.kotlinytmusicscraper.models.Thumbnail
 import com.maxrave.kotlinytmusicscraper.models.VideoItem
 import com.maxrave.kotlinytmusicscraper.pages.ArtistPage
+import com.maxrave.kotlinytmusicscraper.pages.ExplorePage
 import com.maxrave.kotlinytmusicscraper.pages.RelatedPage
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.data.model.home.Content
@@ -669,4 +670,84 @@ fun List<Thumbnail>.toListThumbnail(): List<com.maxrave.simpmusic.data.model.sea
         list.add(it.toThumbnail())
     }
     return list
+}
+
+fun parseNewRelease(explore: ExplorePage, context: Context): ArrayList<HomeItem> {
+    val result = arrayListOf<HomeItem>()
+    result.add(
+        HomeItem(
+            title = context.getString(R.string.new_release),
+            contents = explore.released.map {
+                Content(
+                    album = null,
+                    artists = listOf(
+                        Artist(
+                            id = it.author?.id ?: "",
+                            name = it.author?.name ?: ""
+                        )
+                    ),
+                    description = it.author?.name ?: "YouTube Music",
+                    isExplicit = it.explicit,
+                    playlistId = it.id,
+                    browseId = it.id,
+                    thumbnails = listOf(
+                        com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail(
+                            522,
+                            it.thumbnail,
+                            522
+                        )
+                    ),
+                    title = it.title,
+                    videoId = null,
+                    views = null,
+                    radio = null
+                )
+            },
+        )
+    )
+    result.add(
+        HomeItem(
+            title = context.getString(R.string.music_video),
+            contents = explore.musicVideo.map { videoItem ->
+                val artists = videoItem?.artists?.map {
+                    Artist(
+                        name = it.name,
+                        id = it.id
+                    )
+                }?.toMutableList()
+                if (artists?.lastOrNull()?.id == null && artists?.lastOrNull()?.name?.contains(
+                        Regex("\\d")
+                    ) == true
+                ) {
+                    artists.removeLast()
+                }
+                Content(
+                    album = videoItem.album?.let {
+                        Album(
+                            name = it.name,
+                            id = it.id
+                        )
+                    },
+                    artists = artists,
+                    description = null,
+                    isExplicit = videoItem.explicit,
+                    playlistId = null,
+                    browseId = null,
+                    thumbnails = listOf(
+                        com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail(
+                            522,
+                            videoItem.thumbnail,
+                            1080
+                        )
+                    ),
+                    title = videoItem.title,
+                    videoId = videoItem.id,
+                    views = videoItem.view,
+                    durationSeconds = videoItem.duration,
+                    radio = null
+                )
+            },
+        )
+    )
+    return result
 }

@@ -122,7 +122,7 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
 
     //Coil
-    implementation("io.coil-kt:coil:2.4.0")
+    implementation("io.coil-kt:coil:2.5.0")
     //Glide
     implementation("com.github.bumptech.glide:glide:4.16.0")
     //Easy Permissions
@@ -136,9 +136,9 @@ dependencies {
     //fragment ktx
     implementation("androidx.fragment:fragment-ktx:1.6.2")
     //Hilt
-    implementation("com.google.dagger:hilt-android:2.48.1")
-    ksp("com.google.dagger:hilt-compiler:2.48.1")
-    ksp("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.7.0")
+    implementation("com.google.dagger:hilt-android:2.50")
+    ksp("com.google.dagger:hilt-compiler:2.50")
+    ksp("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.8.0")
     //DataStore
     implementation("androidx.datastore:datastore-preferences:1.0.0")
     //Swipe To Refresh
@@ -151,7 +151,7 @@ dependencies {
     implementation("com.facebook.shimmer:shimmer:0.5.0")
 
     //Lottie
-    val lottieVersion = "6.1.0"
+    val lottieVersion = "6.3.0"
     implementation("com.airbnb.android:lottie:$lottieVersion")
 
     //Paging 3
@@ -167,7 +167,7 @@ dependencies {
     implementation("com.intuit.sdp:sdp-android:1.1.0")
     implementation("com.intuit.ssp:ssp-android:1.1.0")
 
-    val latestAboutLibsRelease = "10.9.2"
+    val latestAboutLibsRelease = "10.10.0"
     implementation ("com.mikepenz:aboutlibraries:${latestAboutLibsRelease}")
 
     implementation("com.google.android.flexbox:flexbox:3.0.0")

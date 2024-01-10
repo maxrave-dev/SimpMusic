@@ -290,4 +290,7 @@
     <string name="quality_video">Video Quality</string>
     <string name="add_to_queue">Add to queue</string>
     <string name="added_to_queue">Added to queue</string>
+    <string name="new_release">New release</string>
+    <string name="music_video">Music video</string>
+    <string name="your_music_is_always_up_to_date">YOUR MUSIC IS ALWAYS UP-TO-DATE</string>
 </resources>

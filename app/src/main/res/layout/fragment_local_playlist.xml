@@ -117,7 +117,7 @@
                                         android:layout_height="35sp"
                                         android:layout_toEndOf="@+id/btPlayPause"
                                         android:src="@drawable/download_button"
-                                        android:layout_marginStart="8sp"
+                                        android:layout_marginStart="17dp"
                                         android:clickable="true"
                                         android:focusable="true"
                                         android:foreground="?android:attr/selectableItemBackground">
