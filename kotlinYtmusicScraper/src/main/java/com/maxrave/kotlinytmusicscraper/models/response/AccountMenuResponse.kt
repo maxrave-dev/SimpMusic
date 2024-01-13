@@ -2,6 +2,7 @@ package com.maxrave.kotlinytmusicscraper.models.response
 
 import com.maxrave.kotlinytmusicscraper.models.AccountInfo
 import com.maxrave.kotlinytmusicscraper.models.Runs
+import com.maxrave.kotlinytmusicscraper.models.Thumbnails
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -31,11 +32,13 @@ data class AccountMenuResponse(
                         @Serializable
                         data class ActiveAccountHeaderRenderer(
                             val accountName: Runs,
-                            val email: Runs,
+                            val accountPhoto: Thumbnails,
+                            val channelHandle: Runs,
                         ) {
                             fun toAccountInfo() = AccountInfo(
                                 accountName.runs!!.first().text,
-                                email.runs!!.first().text
+                                channelHandle.runs!!.first().text,
+                                accountPhoto.thumbnails
                             )
                         }
                     }

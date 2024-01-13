@@ -61,14 +61,33 @@ class HomeViewModel @Inject constructor(
             language = dataStoreManager.getString(SELECTED_LANGUAGE).first()
                 ?: SUPPORTED_LANGUAGE.codes.first()
             //  refresh when region change
-            dataStoreManager.location.distinctUntilChanged().collect {
-                regionCode = it
-                getHomeItemList()
+            val job1 = launch {
+                dataStoreManager.location.distinctUntilChanged().collect {
+                    regionCode = it
+                    getHomeItemList()
+                }
             }
-            dataStoreManager.language.distinctUntilChanged().collect {
-                language = it
-                getHomeItemList()
+            //  refresh when language change
+            val job2 = launch {
+                dataStoreManager.language.distinctUntilChanged().collect {
+                    language = it
+                    getHomeItemList()
+                }
             }
+            val job3 = launch {
+                dataStoreManager.cookie.distinctUntilChanged().collect {
+                    getHomeItemList()
+                    _accountInfo.postValue(
+                        Pair(
+                            dataStoreManager.getString("AccountName").first(),
+                            dataStoreManager.getString("AccountThumbUrl").first()
+                        )
+                    )
+                }
+            }
+            job1.join()
+            job2.join()
+            job3.join()
         }
 
     }

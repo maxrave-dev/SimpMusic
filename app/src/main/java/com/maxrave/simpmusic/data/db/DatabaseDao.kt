@@ -10,6 +10,7 @@ import androidx.sqlite.db.SupportSQLiteQuery
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
 import com.maxrave.simpmusic.data.db.entities.FormatEntity
+import com.maxrave.simpmusic.data.db.entities.GoogleAccountEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.LyricsEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
@@ -299,5 +300,21 @@ interface DatabaseDao {
 
     @Query("DELETE FROM pair_song_local_playlist WHERE songId = :videoId AND playlistId = :playlistId")
     suspend fun deletePairSongLocalPlaylist(playlistId: Long, videoId: String)
+
+    //GoogleAccountEntity
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertGoogleAccount(googleAccountEntity: GoogleAccountEntity)
+
+    @Query("SELECT * FROM googleaccountentity")
+    suspend fun getAllGoogleAccount(): List<GoogleAccountEntity>?
+
+    @Query("SELECT * FROM googleaccountentity WHERE isUsed = 1")
+    suspend fun getUsedGoogleAccount(): GoogleAccountEntity?
+
+    @Query("UPDATE googleaccountentity SET isUsed = :isUsed WHERE email = :email")
+    suspend fun updateGoogleAccountUsed(isUsed: Boolean, email: String)
+
+    @Query("DELETE FROM googleaccountentity WHERE email = :email")
+    suspend fun deleteGoogleAccount(email: String)
 
 }

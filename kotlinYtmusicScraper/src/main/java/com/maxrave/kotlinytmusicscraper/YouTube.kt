@@ -821,7 +821,12 @@ object YouTube {
     }
 
     suspend fun accountInfo(): Result<AccountInfo?> = runCatching {
-        ytMusic.accountMenu(WEB_REMIX).body<AccountMenuResponse>().actions[0].openPopupAction.popup.multiPageMenuRenderer.header?.activeAccountHeaderRenderer?.toAccountInfo()
+        ytMusic.accountMenu(WEB_REMIX).apply {
+            this.bodyAsText().let {
+                println(it)
+            }
+        }
+            .body<AccountMenuResponse>().actions[0].openPopupAction.popup.multiPageMenuRenderer.header?.activeAccountHeaderRenderer?.toAccountInfo()
     }
 
     suspend fun pipeStream(videoId: String, pipedInstance: String) = runCatching {

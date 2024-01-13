@@ -18,15 +18,16 @@ import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.os.LocaleListCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.LinearLayoutManager
 import coil.annotation.ExperimentalCoilApi
 import coil.imageLoader
 import com.google.android.flexbox.FlexboxLayout
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.adapter.account.AccountAdapter
 import com.maxrave.simpmusic.common.LIMIT_CACHE_SIZE
 import com.maxrave.simpmusic.common.LYRICS_PROVIDER
 import com.maxrave.simpmusic.common.QUALITY
@@ -36,6 +37,7 @@ import com.maxrave.simpmusic.common.SUPPORTED_LOCATION
 import com.maxrave.simpmusic.common.VIDEO_QUALITY
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.databinding.FragmentSettingsBinding
+import com.maxrave.simpmusic.databinding.YoutubeAccountDialogBinding
 import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.setEnabledAll
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
@@ -44,6 +46,7 @@ import com.mikepenz.aboutlibraries.Libs
 import com.mikepenz.aboutlibraries.LibsBuilder
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
@@ -61,7 +64,7 @@ class SettingsFragment : Fragment() {
 
     private var _binding: FragmentSettingsBinding? = null
     private val binding get() = _binding!!
-    private val viewModel by viewModels<SettingsViewModel>()
+    private val viewModel by activityViewModels<SettingsViewModel>()
     private val sharedViewModel by activityViewModels<SharedViewModel>()
 
     private val backupLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
@@ -91,15 +94,6 @@ class SettingsFragment : Fragment() {
     override fun onResume() {
         super.onResume()
         viewModel.getLoggedIn()
-        viewModel.loggedIn.observe(viewLifecycleOwner) {
-            if (it == DataStoreManager.TRUE) {
-                binding.tvLogInTitle.text = getString(R.string.log_out)
-                binding.tvLogIn.text = getString(R.string.logged_in)
-            } else if (it == DataStoreManager.FALSE) {
-                binding.tvLogInTitle.text = getString(R.string.log_in)
-                binding.tvLogIn.text = getString(R.string.log_in_to_get_personally_data)
-            }
-        }
     }
 
     private var resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {}
@@ -133,17 +127,6 @@ class SettingsFragment : Fragment() {
 
         val diskCache = context?.imageLoader?.diskCache
 
-        viewModel.loggedIn.observe(viewLifecycleOwner) {
-            if (it == DataStoreManager.TRUE) {
-                binding.tvLogInTitle.text = getString(R.string.log_out)
-                binding.tvLogIn.text = getString(R.string.logged_in)
-                setEnabledAll(binding.swSaveHistory, true)
-            } else if (it == DataStoreManager.FALSE) {
-                binding.tvLogInTitle.text = getString(R.string.log_in)
-                binding.tvLogIn.text = getString(R.string.log_in_to_get_personally_data)
-                setEnabledAll(binding.swSaveHistory, false)
-            }
-        }
         viewModel.musixmatchLoggedIn.observe(viewLifecycleOwner) {
             if (it == DataStoreManager.TRUE) {
                 binding.tvMusixmatchLoginTitle.text = getString(R.string.log_out_from_musixmatch)
@@ -261,24 +244,116 @@ class SettingsFragment : Fragment() {
                     if (checkedIndex != -1) {
                         viewModel.setPlayerCacheLimit(LIMIT_CACHE_SIZE.data[checkedIndex])
                         viewModel.playerCacheLimit.observe(viewLifecycleOwner) {
-                            binding.tvLimitPlayerCache.text = if (it != -1) "$it MB" else getString(R.string.unlimited)
-                            Toast.makeText(requireContext(), getString(R.string.restart_app), Toast.LENGTH_SHORT).show()
+                            binding.tvLimitPlayerCache.text =
+                                if (it != -1) "$it MB" else getString(R.string.unlimited)
+                            Toast.makeText(
+                                requireContext(),
+                                getString(R.string.restart_app),
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     }
                     dialog.dismiss()
                 }
             dialog.show()
         }
+        binding.btYouTubeAccount.setOnClickListener {
+            val dialog = MaterialAlertDialogBuilder(requireContext())
+            val accountBinding =
+                YoutubeAccountDialogBinding.inflate(LayoutInflater.from(requireContext()))
+            val accountAdapter = AccountAdapter(arrayListOf())
+            dialog.setView(accountBinding.root)
+            val alertDialog = dialog.create()
+            accountBinding.rvAccount.apply {
+                adapter = accountAdapter
+                layoutManager = LinearLayoutManager(requireContext())
+            }
+            accountAdapter.setOnAccountClickListener(object :
+                AccountAdapter.OnAccountClickListener {
+                override fun onAccountClick(pos: Int) {
+                    Log.w("Account", accountAdapter.getAccountList().getOrNull(pos).toString())
+                    if (accountAdapter.getAccountList().getOrNull(pos) != null) {
+                        viewModel.setUsedAccount(accountAdapter.getAccountList().get(pos))
+                    }
+                }
+            })
+            accountBinding.btAddAccount.setOnClickListener {
+                findNavController().navigateSafe(R.id.action_global_logInFragment)
+                alertDialog.dismiss()
+            }
+            accountBinding.btClose.setOnClickListener {
+                alertDialog.dismiss()
+            }
+            accountBinding.btGuest.setOnClickListener {
+                viewModel.setUsedAccount(null)
+                alertDialog.dismiss()
+            }
+            accountBinding.btLogOut.setOnClickListener {
+                val subAlertDialogBuilder = MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(getString(R.string.warning))
+                    .setMessage(getString(R.string.log_out_warning))
+                    .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                        dialog.dismiss()
+                    }
+                    .setPositiveButton(getString(R.string.log_out)) { dialog, _ ->
+                        viewModel.logOutAllYouTube()
+                    }
+                subAlertDialogBuilder.show()
+            }
+            viewModel.getAllGoogleAccount()
+            accountBinding.loadingLayout.visibility = View.VISIBLE
+            lifecycleScope.launch {
+                val job2 = launch {
+                    viewModel.loading.collectLatest {
+                        if (it) {
+                            accountBinding.loadingLayout.visibility = View.VISIBLE
+                            accountBinding.apply {
+                                setEnabledAll(btAddAccount, false)
+                                setEnabledAll(btLogOut, false)
+                                setEnabledAll(btGuest, false)
+                            }
+                        } else {
+                            accountBinding.loadingLayout.visibility = View.GONE
+                            accountBinding.apply {
+                                setEnabledAll(btAddAccount, true)
+                                setEnabledAll(btLogOut, true)
+                                setEnabledAll(btGuest, true)
+                            }
+                        }
+                    }
+                }
+                val job1 = launch {
+                    viewModel.googleAccounts.collect {
+                        if (it != null) {
+                            accountBinding.tvNoAccount.visibility = View.GONE
+                            accountBinding.rvAccount.visibility = View.VISIBLE
+                            accountAdapter.updateAccountList(it)
+                        } else {
+                            accountAdapter.updateAccountList(arrayListOf())
+                            accountBinding.tvNoAccount.visibility = View.VISIBLE
+                            accountBinding.rvAccount.visibility = View.GONE
+                        }
+                    }
+                }
+                job1.join()
+                job2.join()
+            }
+            alertDialog.show()
+        }
         binding.btCheckForUpdate.setOnClickListener {
             binding.tvCheckForUpdate.text = getString(R.string.checking)
             viewModel.checkForUpdate()
-            viewModel.githubResponse.observe(viewLifecycleOwner) {response ->
+            viewModel.githubResponse.observe(viewLifecycleOwner) { response ->
                 if (response != null) {
                     if (response.tagName != getString(R.string.version_name)) {
-                        binding.tvCheckForUpdate.text = getString(R.string.last_checked_at, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-                            .withZone(ZoneId.systemDefault())
-                            .format(Instant.ofEpochMilli(System.currentTimeMillis())))
-                        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
+                        binding.tvCheckForUpdate.text = getString(
+                            R.string.last_checked_at,
+                            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                                .withZone(ZoneId.systemDefault())
+                                .format(Instant.ofEpochMilli(System.currentTimeMillis()))
+                        )
+                        val inputFormat =
+                            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
                         val outputFormat = SimpleDateFormat("dd MMM yyyy HH:mm:ss", Locale.getDefault())
                         val formatted = response.publishedAt?.let { input ->
                             inputFormat.parse(input)
@@ -316,16 +391,6 @@ class SettingsFragment : Fragment() {
 
         binding.btVersion.setOnClickListener {
             findNavController().navigateSafe(R.id.action_global_creditFragment)
-        }
-
-        binding.btLogin.setOnClickListener {
-            if (viewModel.loggedIn.value == DataStoreManager.TRUE) {
-                viewModel.clearCookie()
-                Toast.makeText(requireContext(), getString(R.string.logged_out), Toast.LENGTH_SHORT).show()
-            }
-            else if (viewModel.loggedIn.value == DataStoreManager.FALSE) {
-                findNavController().navigateSafe(R.id.action_global_logInFragment)
-            }
         }
         
         binding.btMusixmatchLogin.setOnClickListener {

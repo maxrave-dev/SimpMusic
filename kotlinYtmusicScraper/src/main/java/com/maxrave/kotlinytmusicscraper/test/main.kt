@@ -8,18 +8,22 @@ import com.maxrave.kotlinytmusicscraper.models.MusicTwoRowItemRenderer
 import com.maxrave.kotlinytmusicscraper.models.Run
 import com.maxrave.kotlinytmusicscraper.models.SectionListRenderer
 import com.maxrave.kotlinytmusicscraper.models.Thumbnail
+import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
 import kotlinx.coroutines.runBlocking
 
 
 fun main() {
     runBlocking {
-//        YouTube.cookie =
-//            "VISITOR_INFO1_LIVE=zhhx1-pXFL0; __utmz=27069237.1673094830.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); LOGIN_INFO=AFmmF2swRgIhAP8Up-6LbDCZ9VErjDFBxPEaS1cG-r5V5eprAxAuanF_AiEA_SwYwNI5s5MA2ppW8ynBJRjWTxXaJz0ni28IBgXQVuY:QUQ3MjNmeDVVbVpIbFNxMHhvY05TVzMxMWJmTzdNYzN6NXdLd0JGM1QtTHo5RWQ1R0lXVjdhU2JLRHNBZS0wNU9HS0RjcDBFX0VQREZEd3NRRlVvRjZNSmdTUTM1NHVuVlBwcmtEUUZjdlJVWXc4Qk9ibVBZVm9iNnpISDV4UHlDYS03RFNabi1PR3hWQ1pqWVJhTDhHTEV2eWpjTXVyR1dR; DEVICE_INFO=ChxOekk1TlRJMU5qazNORGszTnpNek56SXdNZz09EJHr96kGGJHr96kG; VISITOR_PRIVACY_METADATA=CgJWThIEGgAgTg%3D%3D; PREF=f6=40000000&tz=Asia.Saigon&f7=100&autoplay=true&volume=30&gl=VN&hl=vi&guide_collapsed=false&f5=20000; __utma=27069237.597876058.1673094830.1701522667.1702909192.30; SID=eQiHuEEKpgrtalgntBnhUnzjmoI_BtoxCPtHzdwO_jIbpdch-xnAUxy4Y7ZZvLHBOhYVaw.; __Secure-1PSID=eQiHuEEKpgrtalgntBnhUnzjmoI_BtoxCPtHzdwO_jIbpdchrPdSBaU80vsDxxO-BB0PKw.; __Secure-3PSID=eQiHuEEKpgrtalgntBnhUnzjmoI_BtoxCPtHzdwO_jIbpdch3BK7k3wqQHh563cj4oSa0g.; HSID=AJVyJ6dVCz_o6QazB; SSID=AxLfFZ5RZ-5F81040; APISID=jjSHrmSFl_oaNTm_/AjQ_FsfLkbrV-fHpi; SAPISID=ys_W-HDkrrirNuJj/ACUWkfwbt8p6g5Yge; __Secure-1PAPISID=ys_W-HDkrrirNuJj/ACUWkfwbt8p6g5Yge; __Secure-3PAPISID=ys_W-HDkrrirNuJj/ACUWkfwbt8p6g5Yge; __Secure-1PSIDTS=sidts-CjEBPVxjSsdYs9Bd3wqNj5lBattv5U3ReTfMXPhVmna0j1e1MBDO-Fwfq3u-066PJ9SKEAA; __Secure-3PSIDTS=sidts-CjEBPVxjSsdYs9Bd3wqNj5lBattv5U3ReTfMXPhVmna0j1e1MBDO-Fwfq3u-066PJ9SKEAA; YSC=Tp58pJlKWxs; SIDCC=ABTWhQHjy9p_JpwowkKB2ycdPZXdZL8mTPX3P9QK9j2sOS43plOsWF0U0MuifVIst7Fawj8uvun_; __Secure-1PSIDCC=ABTWhQEU6BXqJrJF0byiL30gFKdrmDnAcZ941okHphb0Y5AS7ijYGqaS_pHMHcyckFlHH0VAcyDK; __Secure-3PSIDCC=ABTWhQEufSVXNkp2fuCeJaHCG77apfFKvteWiHfJy7SJmZm6W9wYg5Q_jJMfd6httYH-2pn94jI"
-        YouTube.newRelease().onSuccess { player ->
-            println(player)
-        }.onFailure {
-            it.printStackTrace()
+        YouTube.apply {
+            locale = YouTubeLocale("VN", "vi")
+            cookie =
+                "VISITOR_INFO1_LIVE=zhhx1-pXFL0; __utmz=27069237.1673094830.1.1.utmcsr=(direct)|utmccn=(direct)|utmcmd=(none); LOGIN_INFO=AFmmF2swRgIhAP8Up-6LbDCZ9VErjDFBxPEaS1cG-r5V5eprAxAuanF_AiEA_SwYwNI5s5MA2ppW8ynBJRjWTxXaJz0ni28IBgXQVuY:QUQ3MjNmeDVVbVpIbFNxMHhvY05TVzMxMWJmTzdNYzN6NXdLd0JGM1QtTHo5RWQ1R0lXVjdhU2JLRHNBZS0wNU9HS0RjcDBFX0VQREZEd3NRRlVvRjZNSmdTUTM1NHVuVlBwcmtEUUZjdlJVWXc4Qk9ibVBZVm9iNnpISDV4UHlDYS03RFNabi1PR3hWQ1pqWVJhTDhHTEV2eWpjTXVyR1dR; DEVICE_INFO=ChxOekk1TlRJMU5qazNORGszTnpNek56SXdNZz09EJHr96kGGJHr96kG; VISITOR_PRIVACY_METADATA=CgJWThIEGgAgTg%3D%3D; __utma=27069237.597876058.1673094830.1701522667.1702909192.30; HSID=AKmR2wltBTtzS_ssL; SSID=AmqXseQN3blQJAlw-; APISID=HLtlhkG_cz7HW8sh/AW6T1ufP21Y-B0BOP; SAPISID=5wLR0vjnRB0XSl6C/Agh-ZC5Cqfpx9x9Gj; __Secure-1PAPISID=5wLR0vjnRB0XSl6C/Agh-ZC5Cqfpx9x9Gj; __Secure-3PAPISID=5wLR0vjnRB0XSl6C/Agh-ZC5Cqfpx9x9Gj; SID=fQiHuJ_WVR-i8-Dj3hFzHfh8DnFQ2mW2LD5osSjDqaNf4Z3blFcY_nvLCrkOs3vdiSVgHg.; __Secure-1PSID=fQiHuJ_WVR-i8-Dj3hFzHfh8DnFQ2mW2LD5osSjDqaNf4Z3b8e9gPCrAxY9Xefj2kKpKUw.; __Secure-3PSID=fQiHuJ_WVR-i8-Dj3hFzHfh8DnFQ2mW2LD5osSjDqaNf4Z3bjcWRdG1Ehl94K2R5mfxdoA.; YSC=OVhwePbO4Ak; __Secure-1PSIDTS=sidts-CjEBPVxjSv5DtHZxrGrwPhd9hU3_MEVAhybIT7yZ6XEA3IBU6UTLBOYvxTw2TI3J5gjREAA; __Secure-3PSIDTS=sidts-CjEBPVxjSv5DtHZxrGrwPhd9hU3_MEVAhybIT7yZ6XEA3IBU6UTLBOYvxTw2TI3J5gjREAA; PREF=f6=40000000&tz=Asia.Saigon&f7=100&autoplay=true&volume=30&gl=VN&hl=vi&guide_collapsed=false&f5=20000&repeat=ALL; SIDCC=ABTWhQFNCqnnWHbHRjYTZpTp08nKvD7lKsxcmSijt5UVV3sHOXX9s-PT20B4WDfan-Y5sTfmN8nA; __Secure-1PSIDCC=ABTWhQFcYHtClXvIZpl4Pby8GwmqlVo2us3w7j22tMCc2UyByq9O_k3jHrINmMOY4yOSXclj_l15; __Secure-3PSIDCC=ABTWhQEnT0bIEts4vPq751cTQOWeweouAxyxkGw6DBgJFYOlzysv5fz5YSNdDMLD2AGAhLq61Cw"
+        }.accountInfo().onSuccess { account ->
+            println(account)
         }
+            .onFailure {
+                it.printStackTrace()
+            }
     }
 //        Ytmusic().player(YouTubeClient.ANDROID_MUSIC, )
 //        YouTube.spotifyCookie =

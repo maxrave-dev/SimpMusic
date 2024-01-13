@@ -3,6 +3,7 @@ package com.maxrave.simpmusic.data.repository
 import android.content.Context
 import android.util.Log
 import com.maxrave.kotlinytmusicscraper.YouTube
+import com.maxrave.kotlinytmusicscraper.models.AccountInfo
 import com.maxrave.kotlinytmusicscraper.models.MediaType
 import com.maxrave.kotlinytmusicscraper.models.MusicShelfRenderer
 import com.maxrave.kotlinytmusicscraper.models.SearchSuggestions
@@ -25,6 +26,7 @@ import com.maxrave.simpmusic.data.db.LocalDataSource
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
 import com.maxrave.simpmusic.data.db.entities.FormatEntity
+import com.maxrave.simpmusic.data.db.entities.GoogleAccountEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.LyricsEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
@@ -338,21 +340,68 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
         localDataSource.updateLocalPlaylistYouTubePlaylistId(id, ytId)
     }
 
-    suspend fun updateLocalPlaylistYouTubePlaylistSynced(id: Long, synced: Int) = withContext(Dispatchers.IO) {
-        localDataSource.updateLocalPlaylistYouTubePlaylistSynced(id, synced)
-    }
+    suspend fun updateLocalPlaylistYouTubePlaylistSynced(id: Long, synced: Int) =
+        withContext(Dispatchers.IO) {
+            localDataSource.updateLocalPlaylistYouTubePlaylistSynced(id, synced)
+        }
 
-    suspend fun updateLocalPlaylistYouTubePlaylistSyncState(id: Long, syncState: Int) = withContext(Dispatchers.IO) {
-        localDataSource.updateLocalPlaylistYouTubePlaylistSyncState(id, syncState)
-    }
+    suspend fun updateLocalPlaylistYouTubePlaylistSyncState(id: Long, syncState: Int) =
+        withContext(Dispatchers.IO) {
+            localDataSource.updateLocalPlaylistYouTubePlaylistSyncState(id, syncState)
+        }
+
+    suspend fun insertGoogleAccount(googleAccountEntity: GoogleAccountEntity) =
+        withContext(Dispatchers.IO) {
+            localDataSource.insertGoogleAccount(googleAccountEntity)
+        }
+
+    suspend fun getGoogleAccounts(): Flow<List<GoogleAccountEntity>?> =
+        flow<List<GoogleAccountEntity>?> { emit(localDataSource.getGoogleAccounts()) }.flowOn(
+            Dispatchers.IO
+        )
+
+    suspend fun getUsedGoogleAccount(): Flow<GoogleAccountEntity?> =
+        flow<GoogleAccountEntity?> { emit(localDataSource.getUsedGoogleAccount()) }.flowOn(
+            Dispatchers.IO
+        )
+
+    suspend fun deleteGoogleAccount(email: String) =
+        withContext(Dispatchers.IO) { localDataSource.deleteGoogleAccount(email) }
+
+    suspend fun updateGoogleAccountUsed(email: String, isUsed: Boolean) =
+        withContext(Dispatchers.IO) { localDataSource.updateGoogleAccountUsed(email, isUsed) }
+
+    suspend fun getAccountInfo() = flow<AccountInfo?> {
+        YouTube.accountInfo().onSuccess { accountInfo ->
+            emit(accountInfo)
+        }.onFailure {
+            it.printStackTrace()
+            emit(null)
+        }
+    }.flowOn(Dispatchers.IO)
 
     suspend fun getHomeData(): Flow<Resource<ArrayList<HomeItem>>> = flow {
         runCatching {
             YouTube.customQuery(browseId = "FEmusic_home").onSuccess { result ->
                 val list: ArrayList<HomeItem> = arrayListOf()
-                if (result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(0)?.tabRenderer?.content?.sectionListRenderer?.contents?.get(0)?.musicCarouselShelfRenderer?.header?.musicCarouselShelfBasicHeaderRenderer?.strapline?.runs?.get(0)?.text != null) {
-                    val accountName = result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(0)?.tabRenderer?.content?.sectionListRenderer?.contents?.get(0)?.musicCarouselShelfRenderer?.header?.musicCarouselShelfBasicHeaderRenderer?.strapline?.runs?.get(0)?.text ?: ""
-                    val accountThumbUrl = result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(0)?.tabRenderer?.content?.sectionListRenderer?.contents?.get(0)?.musicCarouselShelfRenderer?.header?.musicCarouselShelfBasicHeaderRenderer?.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.get(0)?.url?.replace("s88", "s352") ?: ""
+                if (result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(0)?.tabRenderer?.content?.sectionListRenderer?.contents?.get(
+                        0
+                    )?.musicCarouselShelfRenderer?.header?.musicCarouselShelfBasicHeaderRenderer?.strapline?.runs?.get(
+                        0
+                    )?.text != null
+                ) {
+                    val accountName =
+                        result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(0)?.tabRenderer?.content?.sectionListRenderer?.contents?.get(
+                            0
+                        )?.musicCarouselShelfRenderer?.header?.musicCarouselShelfBasicHeaderRenderer?.strapline?.runs?.get(
+                            0
+                        )?.text ?: ""
+                    val accountThumbUrl =
+                        result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(0)?.tabRenderer?.content?.sectionListRenderer?.contents?.get(
+                            0
+                        )?.musicCarouselShelfRenderer?.header?.musicCarouselShelfBasicHeaderRenderer?.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.get(
+                            0
+                        )?.url?.replace("s88", "s352") ?: ""
                     if (accountName != "" && accountThumbUrl != "") {
                         dataStoreManager.putString("AccountName", accountName)
                         dataStoreManager.putString("AccountThumbUrl", accountThumbUrl)

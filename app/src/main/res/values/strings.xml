@@ -156,7 +156,7 @@
     <string name="no_equalizer">Your device doesn\'t have equalizer</string>
     <string name="open_system_equalizer">Open system equalizer</string>
     <string name="use_your_system_equalizer">Use your system equalizer</string>
-    <string name="version_name" translatable="false">v0.1.7</string>
+    <string name="version_name" translatable="false">v0.1.8</string>
     <string name="streaming_data_provider_piped">Streaming data provider (Piped)</string>
     <string name="itag">Itag</string>
     <string name="mime_type">Mime Type</string>
@@ -293,4 +293,11 @@
     <string name="new_release">New release</string>
     <string name="music_video">Music video</string>
     <string name="your_music_is_always_up_to_date">YOUR MUSIC IS ALWAYS UP-TO-DATE</string>
+    <string name="youtube_account">YouTube Account</string>
+    <string name="manage_your_youtube_accounts">Manage your YouTube Accounts</string>
+    <string name="no_account">No account</string>
+    <string name="add_an_account">Add an account</string>
+    <string name="signed_in">Signed in</string>
+    <string name="guest">Guest</string>
+    <string name="log_out_warning">Log out from all account?</string>
 </resources>

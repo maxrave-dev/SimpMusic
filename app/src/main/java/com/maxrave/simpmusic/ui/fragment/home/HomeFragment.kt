@@ -317,7 +317,7 @@ class HomeFragment : Fragment() {
             if (pair != null) {
                 val accountName = pair.first
                 val accountThumbUrl = pair.second
-                if (accountName != null && accountThumbUrl != null) {
+                if (accountName != null && accountThumbUrl != null && accountName != "" && accountThumbUrl != "") {
                     binding.accountLayout.visibility = View.VISIBLE
                     binding.tvAccountName.text = accountName
                     binding.ivAccount.load(accountThumbUrl)

@@ -24,6 +24,7 @@ import com.maxrave.simpmusic.databinding.FragmentLogInBinding
 import com.maxrave.simpmusic.extension.isMyServiceRunning
 import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.viewModel.LogInViewModel
+import com.maxrave.simpmusic.viewModel.SettingsViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
@@ -37,6 +38,7 @@ class LogInFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel by viewModels<LogInViewModel>()
+    private val settingsViewModel by activityViewModels<SettingsViewModel>()
     private val sharedViewModel by activityViewModels<SharedViewModel>()
 
     override fun onCreateView(
@@ -79,7 +81,12 @@ class LogInFragment : Fragment() {
                         binding.webView.clearSslPreferences()
                         viewModel.status.observe(this@LogInFragment) {
                             if (it) {
-                                Toast.makeText(requireContext(), R.string.login_success, Toast.LENGTH_SHORT).show()
+                                settingsViewModel.addAccount()
+                                Toast.makeText(
+                                    requireContext(),
+                                    R.string.login_success,
+                                    Toast.LENGTH_SHORT
+                                ).show()
                                 findNavController().popBackStack()
                             }
                         }

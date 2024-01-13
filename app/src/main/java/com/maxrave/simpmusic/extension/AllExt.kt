@@ -568,7 +568,12 @@ fun YouTubeInitialPage.toTrack(): Track {
 
     return Track(
         album = null,
-        artists = listOf(Artist(initialPage.videoDetails?.author, initialPage.videoDetails?.channelId ?: "")),
+        artists = listOf(
+            Artist(
+                name = initialPage.videoDetails?.author ?: "",
+                id = initialPage.videoDetails?.channelId
+            )
+        ),
         duration = initialPage.videoDetails?.lengthSeconds,
         durationSeconds = initialPage.videoDetails?.lengthSeconds?.toInt() ?: 0,
         isAvailable = false,

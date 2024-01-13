@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -24,6 +25,7 @@ import com.maxrave.simpmusic.common.VIDEO_QUALITY
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.DatabaseDao
 import com.maxrave.simpmusic.data.db.MusicDatabase
+import com.maxrave.simpmusic.data.db.entities.GoogleAccountEntity
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.di.DownloadCache
 import com.maxrave.simpmusic.di.PlayerCache
@@ -34,6 +36,8 @@ import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.ui.MainActivity
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -571,10 +575,141 @@ class SettingsViewModel @Inject constructor(
             }
         }
     }
+
     fun setPlayerCacheLimit(size: Int) {
         viewModelScope.launch {
             dataStoreManager.setMaxSongCacheSize(size)
             getPlayerCacheLimit()
+        }
+    }
+
+    private var _googleAccounts: MutableStateFlow<ArrayList<GoogleAccountEntity>?> =
+        MutableStateFlow(null)
+    val googleAccounts: MutableStateFlow<ArrayList<GoogleAccountEntity>?> = _googleAccounts
+
+    private var _loading: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val loading: MutableStateFlow<Boolean> = _loading
+
+    fun getAllGoogleAccount() {
+        Log.w("getAllGoogleAccount", "getAllGoogleAccount: Go to function")
+        viewModelScope.launch {
+            _loading.value = true
+            mainRepository.getGoogleAccounts().collect { accounts ->
+                Log.w("getAllGoogleAccount", "getAllGoogleAccount: $accounts")
+                if (!accounts.isNullOrEmpty()) {
+                    _googleAccounts.value = accounts as ArrayList<GoogleAccountEntity>
+                    _loading.value = false
+                } else {
+                    if (loggedIn.value == DataStoreManager.TRUE) {
+                        mainRepository.getAccountInfo().collect {
+                            Log.w("getAllGoogleAccount", "getAllGoogleAccount: $it")
+                            if (it != null) {
+                                dataStoreManager.putString("AccountName", it.name)
+                                dataStoreManager.putString(
+                                    "AccountThumbUrl",
+                                    it.thumbnails.lastOrNull()?.url ?: ""
+                                )
+                                mainRepository.insertGoogleAccount(
+                                    GoogleAccountEntity(
+                                        email = it.email,
+                                        name = it.name,
+                                        thumbnailUrl = it.thumbnails.lastOrNull()?.url ?: "",
+                                        cache = YouTube.cookie,
+                                        isUsed = true
+                                    )
+                                )
+                                delay(500)
+                                getAllGoogleAccount()
+                            } else {
+                                _googleAccounts.value = null
+                                _loading.value = false
+                            }
+                        }
+                    } else {
+                        _googleAccounts.value = null
+                        _loading.value = false
+                    }
+                }
+            }
+        }
+    }
+
+    fun addAccount() {
+        viewModelScope.launch {
+            mainRepository.getAccountInfo().collect { accountInfo ->
+                if (accountInfo != null) {
+                    googleAccounts.value?.forEach {
+                        mainRepository.updateGoogleAccountUsed(it.email, false)
+                    }
+                    dataStoreManager.putString("AccountName", accountInfo.name)
+                    dataStoreManager.putString(
+                        "AccountThumbUrl",
+                        accountInfo.thumbnails.lastOrNull()?.url ?: ""
+                    )
+                    mainRepository.insertGoogleAccount(
+                        GoogleAccountEntity(
+                            email = accountInfo.email,
+                            name = accountInfo.name,
+                            thumbnailUrl = accountInfo.thumbnails.lastOrNull()?.url ?: "",
+                            cache = YouTube.cookie,
+                            isUsed = true
+                        )
+                    )
+                    dataStoreManager.setLoggedIn(true)
+                    dataStoreManager.setCookie(YouTube.cookie ?: "")
+                    delay(500)
+                    getAllGoogleAccount()
+                    getLoggedIn()
+                }
+            }
+        }
+
+    }
+
+    fun setUsedAccount(acc: GoogleAccountEntity?) {
+        viewModelScope.launch {
+            if (acc != null) {
+                googleAccounts.value?.forEach {
+                    mainRepository.updateGoogleAccountUsed(it.email, false)
+                }
+                dataStoreManager.putString("AccountName", acc.name)
+                dataStoreManager.putString("AccountThumbUrl", acc.thumbnailUrl)
+                mainRepository.updateGoogleAccountUsed(acc.email, true)
+                YouTube.cookie = acc.cache
+                dataStoreManager.setCookie(acc.cache ?: "")
+                dataStoreManager.setLoggedIn(true)
+                delay(500)
+                getAllGoogleAccount()
+                getLoggedIn()
+            } else {
+                googleAccounts.value?.forEach {
+                    mainRepository.updateGoogleAccountUsed(it.email, false)
+                }
+                dataStoreManager.putString("AccountName", "")
+                dataStoreManager.putString("AccountThumbUrl", "")
+                dataStoreManager.setLoggedIn(false)
+                dataStoreManager.setCookie("")
+                YouTube.cookie = null
+                delay(500)
+                getAllGoogleAccount()
+                getLoggedIn()
+            }
+        }
+    }
+
+    fun logOutAllYouTube() {
+        viewModelScope.launch {
+            googleAccounts.value?.forEach { account ->
+                mainRepository.deleteGoogleAccount(account.email)
+            }
+            dataStoreManager.putString("AccountName", "")
+            dataStoreManager.putString("AccountThumbUrl", "")
+            dataStoreManager.setLoggedIn(false)
+            dataStoreManager.setCookie("")
+            YouTube.cookie = null
+            delay(500)
+            getAllGoogleAccount()
+            getLoggedIn()
         }
     }
 }

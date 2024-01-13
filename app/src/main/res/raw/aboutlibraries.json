@@ -80,14 +80,14 @@
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.6.0",
-      "description": "The Support Library is a static library that you can add to your Android application in order to use APIs that are either not available for older platform versions or utility APIs that aren't a part of the framework APIs.",
+      "artifactVersion": "1.7.0",
+      "description": "Provides source annotations for tooling and readability.",
       "scm": {
         "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
         "url": "https://cs.android.com/androidx/platform/frameworks/support"
       },
-      "name": "Support Annotations",
-      "website": "https://developer.android.com/jetpack/androidx/releases/annotation#1.6.0",
+      "name": "Annotation",
+      "website": "https://developer.android.com/jetpack/androidx/releases/annotation#1.7.0",
       "licenses": [
         "Apache-2.0"
       ]
@@ -240,7 +240,7 @@
       ]
     },
     {
-      "uniqueId": "androidx.collection:collection",
+      "uniqueId": "androidx.collection:collection-jvm",
       "funding": [
       ],
       "developers": [
@@ -248,14 +248,14 @@
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.2.0",
+      "artifactVersion": "1.3.0",
       "description": "Standalone efficient collections.",
       "scm": {
         "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
         "url": "https://cs.android.com/androidx/platform/frameworks/support"
       },
-      "name": "Support collections",
-      "website": "https://developer.android.com/jetpack/androidx/releases/collection#1.2.0",
+      "name": "collections",
+      "website": "https://developer.android.com/jetpack/androidx/releases/collection#1.3.0",
       "licenses": [
         "Apache-2.0"
       ]
@@ -269,14 +269,14 @@
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.1.0",
+      "artifactVersion": "1.3.0",
       "description": "Kotlin extensions for 'collection' artifact",
       "scm": {
         "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
-        "url": "http://source.android.com"
+        "url": "https://cs.android.com/androidx/platform/frameworks/support"
       },
       "name": "Collections Kotlin Extensions",
-      "website": "http://developer.android.com/tools/extras/support-library.html",
+      "website": "https://developer.android.com/jetpack/androidx/releases/collection#1.3.0",
       "licenses": [
         "Apache-2.0"
       ]
@@ -886,7 +886,7 @@
       ],
       "developers": [
       ],
-      "artifactVersion": "8.2.0",
+      "artifactVersion": "8.2.1",
       "description": "",
       "name": "androidx.databinding:viewbinding",
       "licenses": [
@@ -2736,7 +2736,7 @@
           "name": "Airbnb"
         }
       ],
-      "artifactVersion": "6.1.0",
+      "artifactVersion": "6.3.0",
       "description": "Lottie is an animation library that renders Adobe After Effects animations natively in realtime.",
       "scm": {
         "connection": "scm:git@github.com:airbnb/lottie-android.git",
@@ -3048,7 +3048,7 @@
       ],
       "developers": [
       ],
-      "artifactVersion": "2.48.1",
+      "artifactVersion": "2.50",
       "description": "A fast dependency injector for Android and Java.",
       "scm": {
         "connection": "scm:git:git://github.com/google/dagger.git",
@@ -3071,7 +3071,7 @@
       ],
       "developers": [
       ],
-      "artifactVersion": "2.48.1",
+      "artifactVersion": "2.50",
       "description": "A fast dependency injector for Android and Java.",
       "scm": {
         "connection": "scm:git:git://github.com/google/dagger.git",
@@ -3094,7 +3094,7 @@
       ],
       "developers": [
       ],
-      "artifactVersion": "2.48.1",
+      "artifactVersion": "2.50",
       "description": "A fast dependency injector for Android and Java.",
       "scm": {
         "connection": "scm:git:git://github.com/google/dagger.git",
@@ -3117,7 +3117,7 @@
       ],
       "developers": [
       ],
-      "artifactVersion": "2.48.1",
+      "artifactVersion": "2.50",
       "description": "A fast dependency injector for Android and Java.",
       "scm": {
         "connection": "scm:git:git://github.com/google/dagger.git",
@@ -3286,7 +3286,7 @@
           "name": "Mike Penz"
         }
       ],
-      "artifactVersion": "10.9.2",
+      "artifactVersion": "10.10.0",
       "description": "AboutLibraries automatically detects all dependencies of a project and collects their information including the license. Optionally visualising it via the provided ui components.",
       "scm": {
         "connection": "scm:git@github.com:mikepenz/AboutLibraries.git",
@@ -3322,7 +3322,7 @@
       ]
     },
     {
-      "uniqueId": "com.mohamedrejeb.ksoup:ksoup-entites-jvm",
+      "uniqueId": "com.mohamedrejeb.ksoup:ksoup-entities-jvm",
       "funding": [
       ],
       "developers": [
@@ -3330,7 +3330,7 @@
           "name": "Mohamed Rejeb"
         }
       ],
-      "artifactVersion": "0.2.1",
+      "artifactVersion": "0.3.1",
       "description": "A lightweight Kotlin Multiplatform library to parse HTML/XML data.",
       "scm": {
         "connection": "https://github.com/MohamedRejeb/Ksoup.git",
@@ -3351,7 +3351,7 @@
           "name": "Mohamed Rejeb"
         }
       ],
-      "artifactVersion": "0.2.1",
+      "artifactVersion": "0.3.1",
       "description": "A lightweight Kotlin Multiplatform library to parse HTML/XML data.",
       "scm": {
         "connection": "https://github.com/MohamedRejeb/Ksoup.git",
@@ -3372,7 +3372,7 @@
           "name": "Square, Inc."
         }
       ],
-      "artifactVersion": "4.11.0",
+      "artifactVersion": "4.12.0",
       "description": "Square\u2019s meticulous HTTP client for Java and Kotlin.",
       "scm": {
         "connection": "scm:git:https://github.com/square/okhttp.git",
@@ -3394,7 +3394,7 @@
           "name": "Square, Inc."
         }
       ],
-      "artifactVersion": "3.4.0",
+      "artifactVersion": "3.6.0",
       "description": "A modern I/O library for Android, Java, and Kotlin Multiplatform.",
       "scm": {
         "connection": "scm:git:git://github.com/square/okio.git",
@@ -3460,7 +3460,7 @@
           "name": "Coil Contributors"
         }
       ],
-      "artifactVersion": "2.4.0",
+      "artifactVersion": "2.5.0",
       "description": "An image loading library for Android backed by Kotlin Coroutines.",
       "scm": {
         "connection": "scm:git:git://github.com/coil-kt/coil.git",
@@ -3482,7 +3482,7 @@
           "name": "Coil Contributors"
         }
       ],
-      "artifactVersion": "2.4.0",
+      "artifactVersion": "2.5.0",
       "description": "An image loading library for Android backed by Kotlin Coroutines.",
       "scm": {
         "connection": "scm:git:git://github.com/coil-kt/coil.git",
@@ -3549,7 +3549,7 @@
           "name": "JetBrains Team"
         }
       ],
-      "artifactVersion": "2.3.5",
+      "artifactVersion": "2.3.7",
       "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
       "scm": {
         "url": "https://github.com/ktorio/ktor.git"
@@ -3570,7 +3570,7 @@
           "name": "JetBrains Team"
         }
       ],
-      "artifactVersion": "2.3.5",
+      "artifactVersion": "2.3.7",
       "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
       "scm": {
         "url": "https://github.com/ktorio/ktor.git"
@@ -3591,7 +3591,7 @@
           "name": "JetBrains Team"
         }
       ],
-      "artifactVersion": "2.3.5",
+      "artifactVersion": "2.3.7",
       "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
       "scm": {
         "url": "https://github.com/ktorio/ktor.git"
@@ -3612,7 +3612,7 @@
           "name": "JetBrains Team"
         }
       ],
-      "artifactVersion": "2.3.5",
+      "artifactVersion": "2.3.7",
       "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
       "scm": {
         "url": "https://github.com/ktorio/ktor.git"
@@ -3633,7 +3633,7 @@
           "name": "JetBrains Team"
         }
       ],
-      "artifactVersion": "2.3.5",
+      "artifactVersion": "2.3.7",
       "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
       "scm": {
         "url": "https://github.com/ktorio/ktor.git"
@@ -3654,7 +3654,7 @@
           "name": "JetBrains Team"
         }
       ],
-      "artifactVersion": "2.3.5",
+      "artifactVersion": "2.3.7",
       "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
       "scm": {
         "url": "https://github.com/ktorio/ktor.git"
@@ -3675,7 +3675,7 @@
           "name": "JetBrains Team"
         }
       ],
-      "artifactVersion": "2.3.5",
+      "artifactVersion": "2.3.7",
       "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
       "scm": {
         "url": "https://github.com/ktorio/ktor.git"
@@ -3696,7 +3696,7 @@
           "name": "JetBrains Team"
         }
       ],
-      "artifactVersion": "2.3.5",
+      "artifactVersion": "2.3.7",
       "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
       "scm": {
         "url": "https://github.com/ktorio/ktor.git"
@@ -3717,7 +3717,7 @@
           "name": "JetBrains Team"
         }
       ],
-      "artifactVersion": "2.3.5",
+      "artifactVersion": "2.3.7",
       "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
       "scm": {
         "url": "https://github.com/ktorio/ktor.git"
@@ -3738,7 +3738,7 @@
           "name": "JetBrains Team"
         }
       ],
-      "artifactVersion": "2.3.5",
+      "artifactVersion": "2.3.7",
       "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
       "scm": {
         "url": "https://github.com/ktorio/ktor.git"
@@ -3759,7 +3759,7 @@
           "name": "JetBrains Team"
         }
       ],
-      "artifactVersion": "2.3.5",
+      "artifactVersion": "2.3.7",
       "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
       "scm": {
         "url": "https://github.com/ktorio/ktor.git"
@@ -3780,7 +3780,7 @@
           "name": "JetBrains Team"
         }
       ],
-      "artifactVersion": "2.3.5",
+      "artifactVersion": "2.3.7",
       "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
       "scm": {
         "url": "https://github.com/ktorio/ktor.git"
@@ -3801,7 +3801,7 @@
           "name": "JetBrains Team"
         }
       ],
-      "artifactVersion": "2.3.5",
+      "artifactVersion": "2.3.7",
       "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
       "scm": {
         "url": "https://github.com/ktorio/ktor.git"
@@ -3822,7 +3822,7 @@
           "name": "JetBrains Team"
         }
       ],
-      "artifactVersion": "2.3.5",
+      "artifactVersion": "2.3.7",
       "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
       "scm": {
         "url": "https://github.com/ktorio/ktor.git"
@@ -3843,7 +3843,7 @@
           "name": "JetBrains Team"
         }
       ],
-      "artifactVersion": "2.3.5",
+      "artifactVersion": "2.3.7",
       "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
       "scm": {
         "url": "https://github.com/ktorio/ktor.git"
@@ -3864,7 +3864,7 @@
           "name": "JetBrains Team"
         }
       ],
-      "artifactVersion": "2.3.5",
+      "artifactVersion": "2.3.7",
       "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
       "scm": {
         "url": "https://github.com/ktorio/ktor.git"
@@ -3885,7 +3885,7 @@
           "name": "JetBrains Team"
         }
       ],
-      "artifactVersion": "2.3.5",
+      "artifactVersion": "2.3.7",
       "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
       "scm": {
         "url": "https://github.com/ktorio/ktor.git"
@@ -3906,7 +3906,7 @@
           "name": "JetBrains Team"
         }
       ],
-      "artifactVersion": "2.3.5",
+      "artifactVersion": "2.3.7",
       "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
       "scm": {
         "url": "https://github.com/ktorio/ktor.git"
@@ -4013,7 +4013,7 @@
           "name": "Kotlin Team"
         }
       ],
-      "artifactVersion": "1.9.10",
+      "artifactVersion": "1.9.22",
       "description": "Kotlin Full Reflection Library",
       "scm": {
         "connection": "scm:git:https://github.com/JetBrains/kotlin.git",
@@ -4036,7 +4036,7 @@
           "name": "Kotlin Team"
         }
       ],
-      "artifactVersion": "1.9.20",
+      "artifactVersion": "1.9.22",
       "description": "Kotlin Standard Library",
       "scm": {
         "connection": "scm:git:https://github.com/JetBrains/kotlin.git",
@@ -4091,27 +4091,6 @@
       },
       "name": "Kotlin Stdlib Jdk8",
       "website": "https://kotlinlang.org/",
-      "licenses": [
-        "Apache-2.0"
-      ]
-    },
-    {
-      "uniqueId": "org.jetbrains.kotlinx:atomicfu-jvm",
-      "funding": [
-      ],
-      "developers": [
-        {
-          "organisationUrl": "https://www.jetbrains.com",
-          "name": "JetBrains Team"
-        }
-      ],
-      "artifactVersion": "0.22.0",
-      "description": "AtomicFU utilities",
-      "scm": {
-        "url": "https://github.com/Kotlin/kotlinx.atomicfu"
-      },
-      "name": "atomicfu",
-      "website": "https://github.com/Kotlin/kotlinx.atomicfu",
       "licenses": [
         "Apache-2.0"
       ]
@@ -4252,7 +4231,7 @@
           "name": "JetBrains Team"
         }
       ],
-      "artifactVersion": "1.6.0",
+      "artifactVersion": "1.6.2",
       "description": "Kotlin multiplatform serialization runtime library",
       "scm": {
         "url": "https://github.com/Kotlin/kotlinx.serialization"
@@ -4273,7 +4252,7 @@
           "name": "JetBrains Team"
         }
       ],
-      "artifactVersion": "1.6.0",
+      "artifactVersion": "1.6.2",
       "description": "Kotlin multiplatform serialization runtime library",
       "scm": {
         "url": "https://github.com/Kotlin/kotlinx.serialization"
@@ -4294,7 +4273,7 @@
           "name": "JetBrains Team"
         }
       ],
-      "artifactVersion": "1.6.0",
+      "artifactVersion": "1.6.2",
       "description": "Kotlin multiplatform serialization runtime library",
       "scm": {
         "url": "https://github.com/Kotlin/kotlinx.serialization"

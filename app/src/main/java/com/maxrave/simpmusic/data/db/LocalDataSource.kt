@@ -3,6 +3,7 @@ package com.maxrave.simpmusic.data.db
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
 import com.maxrave.simpmusic.data.db.entities.FormatEntity
+import com.maxrave.simpmusic.data.db.entities.GoogleAccountEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.LyricsEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
@@ -89,12 +90,27 @@ class LocalDataSource @Inject constructor(private val databaseDao: DatabaseDao) 
     suspend fun getQueue() = databaseDao.getQueue()
     suspend fun deleteQueue() = databaseDao.deleteQueue()
 
-    suspend fun getLocalPlaylistByYoutubePlaylistId(playlistId: String) = databaseDao.getLocalPlaylistByYoutubePlaylistId(playlistId)
+    suspend fun getLocalPlaylistByYoutubePlaylistId(playlistId: String) =
+        databaseDao.getLocalPlaylistByYoutubePlaylistId(playlistId)
 
-    suspend fun insertSetVideoId(setVideoIdEntity: SetVideoIdEntity) = databaseDao.insertSetVideoId(setVideoIdEntity)
+    suspend fun insertSetVideoId(setVideoIdEntity: SetVideoIdEntity) =
+        databaseDao.insertSetVideoId(setVideoIdEntity)
+
     suspend fun getSetVideoId(videoId: String) = databaseDao.getSetVideoId(videoId)
 
-    suspend fun insertPairSongLocalPlaylist(pairSongLocalPlaylist: PairSongLocalPlaylist) = databaseDao.insertPairSongLocalPlaylist(pairSongLocalPlaylist)
+    suspend fun insertPairSongLocalPlaylist(pairSongLocalPlaylist: PairSongLocalPlaylist) =
+        databaseDao.insertPairSongLocalPlaylist(pairSongLocalPlaylist)
+
     suspend fun getPlaylistPairSong(playlistId: Long) = databaseDao.getPlaylistPairSong(playlistId)
-    suspend fun deletePairSongLocalPlaylist(playlistId: Long, videoId: String) = databaseDao.deletePairSongLocalPlaylist(playlistId, videoId)
+    suspend fun deletePairSongLocalPlaylist(playlistId: Long, videoId: String) =
+        databaseDao.deletePairSongLocalPlaylist(playlistId, videoId)
+
+    suspend fun getGoogleAccounts() = databaseDao.getAllGoogleAccount()
+    suspend fun insertGoogleAccount(googleAccountEntity: GoogleAccountEntity) =
+        databaseDao.insertGoogleAccount(googleAccountEntity)
+
+    suspend fun getUsedGoogleAccount() = databaseDao.getUsedGoogleAccount()
+    suspend fun deleteGoogleAccount(email: String) = databaseDao.deleteGoogleAccount(email)
+    suspend fun updateGoogleAccountUsed(email: String, isUsed: Boolean) =
+        databaseDao.updateGoogleAccountUsed(isUsed, email)
 }
