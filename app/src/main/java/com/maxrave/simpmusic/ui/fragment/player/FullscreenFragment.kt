@@ -484,7 +484,7 @@ class FullscreenFragment : Fragment() {
                                                     PairSongLocalPlaylist(
                                                         playlistId = playlist.id,
                                                         songId = song.videoId,
-                                                        position = tempTrack.size,
+                                                        position = playlist.tracks?.size ?: 0,
                                                         inPlaylist = LocalDateTime.now()
                                                     )
                                                 )

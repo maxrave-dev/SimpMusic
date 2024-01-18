@@ -16,6 +16,7 @@ import com.maxrave.kotlinytmusicscraper.models.body.GetQueueBody
 import com.maxrave.kotlinytmusicscraper.models.body.GetSearchSuggestionsBody
 import com.maxrave.kotlinytmusicscraper.models.body.MusixmatchCredentialsBody
 import com.maxrave.kotlinytmusicscraper.models.body.NextBody
+import com.maxrave.kotlinytmusicscraper.models.body.NotificationBody
 import com.maxrave.kotlinytmusicscraper.models.body.PlayerBody
 import com.maxrave.kotlinytmusicscraper.models.body.SearchBody
 import com.maxrave.kotlinytmusicscraper.models.musixmatch.SearchMusixmatchResponse
@@ -171,20 +172,35 @@ class Ytmusic {
         contentType(ContentType.Application.Json)
         headers {
             append("X-Goog-Api-Format-Version", "1")
-            append("X-YouTube-Client-Name", client.clientName)
+            append(
+                "X-YouTube-Client-Name",
+                if (client != YouTubeClient.NOTIFICATION_CLIENT) client.clientName else "1"
+            )
             append("X-YouTube-Client-Version", client.clientVersion)
-            append("x-origin", "https://music.youtube.com")
+            append(
+                "x-origin",
+                if (client != YouTubeClient.NOTIFICATION_CLIENT) "https://music.youtube.com" else "https://www.youtube.com"
+            )
             append("X-Goog-Visitor-Id", visitorData)
+            if (client == YouTubeClient.NOTIFICATION_CLIENT) {
+                append("X-Youtube-Bootstrap-Logged-In", "true")
+                append("X-Goog-Authuser", "0")
+                append("Origin", "https://www.youtube.com")
+
+            }
             if (client.referer != null) {
                 append("Referer", client.referer)
             }
             if (setLogin) {
                 cookie?.let { cookie ->
-                    append("cookie", cookie)
+                    append("Cookie", cookie)
                     if ("SAPISID" !in cookieMap) return@let
                     val currentTime = System.currentTimeMillis() / 1000
+                    val keyValue = cookieMap["SAPISID"] ?: cookieMap["__Secure-3PAPISID"]
+                    println("keyValue: $keyValue")
                     val sapisidHash =
-                        sha1("$currentTime ${cookieMap["SAPISID"]} https://music.youtube.com")
+                        if (client != YouTubeClient.NOTIFICATION_CLIENT) sha1("$currentTime ${keyValue} https://music.youtube.com")
+                        else sha1("$currentTime ${keyValue} https://www.youtube.com")
                     append("Authorization", "SAPISIDHASH ${currentTime}_${sapisidHash}")
                 }
             }
@@ -675,5 +691,15 @@ class Ytmusic {
         }
     }
 
+    suspend fun getNotification() =
+        httpClient.post("https://www.youtube.com/youtubei/v1/notification/get_notification_menu")
+        {
+            ytClient(YouTubeClient.NOTIFICATION_CLIENT, true)
+            setBody(
+                NotificationBody(
+                    context = YouTubeClient.NOTIFICATION_CLIENT.toContext(locale, visitorData)
+                )
+            )
+        }
 
 }

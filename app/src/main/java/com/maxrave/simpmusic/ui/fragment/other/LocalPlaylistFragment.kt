@@ -283,7 +283,6 @@ class LocalPlaylistFragment : Fragment() {
             }
             else
             {
-                binding.topAppBar.background = null
                 requireActivity().window.statusBarColor = ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark)
                 Log.d("ArtistFragment", "Expanded")
             }
@@ -579,7 +578,9 @@ class LocalPlaylistFragment : Fragment() {
             {
                 binding.collapsingToolbarLayout.isTitleEnabled = false
                 binding.topAppBar.background = null
-                requireActivity().window.statusBarColor = ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark)
+                binding.topAppBarLayout.background = viewModel.gradientDrawable.value
+                requireActivity().window.statusBarColor =
+                    ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark)
             }
         }
 

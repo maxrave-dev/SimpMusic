@@ -884,6 +884,10 @@ object YouTube {
         ytMusic.createYouTubePlaylist(title, listVideoId).body<CreatePlaylistResponse>()
     }
 
+    suspend fun getNotification() = runCatching {
+        ytMusic.getNotification().bodyAsText()
+    }
+
     const val MAX_GET_QUEUE_SIZE = 1000
 
     private const val VISITOR_DATA_PREFIX = "Cgt"

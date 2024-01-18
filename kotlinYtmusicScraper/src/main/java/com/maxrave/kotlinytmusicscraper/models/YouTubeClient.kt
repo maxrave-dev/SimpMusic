@@ -26,6 +26,7 @@ data class YouTubeClient(
 
     companion object {
         private const val REFERER_YOUTUBE_MUSIC = "https://music.youtube.com/"
+        private const val REFERER_YOUTUBE = "https://www.youtube.com/"
 
         private const val USER_AGENT_WEB = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36"
         private const val USER_AGENT_ANDROID = "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Mobile Safari/537.36"
@@ -69,11 +70,24 @@ data class YouTubeClient(
         val CLIENT = YouTubeClient(
             clientName = "67",
             clientVersion = "1.${
-                SimpleDateFormat("yyyyMMdd", Locale.ENGLISH).apply { timeZone = TimeZone.getTimeZone("UTC") }.format(
-                    Date())}.00.00",
+                SimpleDateFormat("yyyyMMdd", Locale.ENGLISH).apply {
+                    timeZone = TimeZone.getTimeZone("UTC")
+                }.format(
+                    Date()
+                )
+            }.00.00",
             api_key = "AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX30",
             userAgent = USER_AGENT_WEB,
             referer = REFERER_YOUTUBE_MUSIC
+        )
+
+        val NOTIFICATION_CLIENT = YouTubeClient(
+            clientName = "WEB",
+            clientVersion = "2.20240111.09.00",
+            api_key = "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8",
+            userAgent = USER_AGENT_WEB,
+            referer = REFERER_YOUTUBE
+
         )
     }
 }

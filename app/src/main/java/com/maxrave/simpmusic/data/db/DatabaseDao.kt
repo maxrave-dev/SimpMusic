@@ -118,7 +118,7 @@ interface DatabaseDao {
     suspend fun updateLiked(liked: Int, videoId: String)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertSong(song: SongEntity)
+    suspend fun insertSong(song: SongEntity): Long
 
     @Query("SELECT * FROM song WHERE totalPlayTime > 1 ORDER BY totalPlayTime DESC LIMIT 20")
     suspend fun getMostPlayedSongs(): List<SongEntity>

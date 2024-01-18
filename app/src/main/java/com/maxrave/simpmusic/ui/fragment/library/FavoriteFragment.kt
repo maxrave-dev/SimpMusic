@@ -253,7 +253,10 @@ class FavoriteFragment : Fragment() {
                                 if (!tempTrack.contains(song.videoId)) {
                                     viewModel.insertPairSongLocalPlaylist(
                                         PairSongLocalPlaylist(
-                                            playlistId = playlist.id, songId = song.videoId, position = tempTrack.size, inPlaylist = LocalDateTime.now()
+                                            playlistId = playlist.id,
+                                            songId = song.videoId,
+                                            position = playlist.tracks?.size ?: 0,
+                                            inPlaylist = LocalDateTime.now()
                                         )
                                     )
                                     tempTrack.add(song.videoId)

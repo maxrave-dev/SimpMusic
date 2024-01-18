@@ -26,6 +26,7 @@ import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
@@ -323,7 +324,9 @@ class PlaylistViewModel @Inject constructor(
     }
     fun getSongEntity(song: SongEntity) {
         viewModelScope.launch {
-            mainRepository.insertSong(song)
+            mainRepository.insertSong(song).first().let {
+                println("Insert song $it")
+            }
             mainRepository.getSongById(song.videoId).collect { values ->
                 _songEntity.value = values
             }
@@ -372,7 +375,9 @@ class PlaylistViewModel @Inject constructor(
 
     fun insertSong(songEntity: SongEntity) {
         viewModelScope.launch {
-            mainRepository.insertSong(songEntity)
+            mainRepository.insertSong(songEntity).collect {
+                println("Insert Song $it")
+            }
         }
     }
 
@@ -408,11 +413,23 @@ class PlaylistViewModel @Inject constructor(
     fun insertLocalPlaylist(localPlaylistEntity: LocalPlaylistEntity, listTrack: List<Track>) {
         viewModelScope.launch {
             mainRepository.insertLocalPlaylist(localPlaylistEntity)
+            delay(500)
             mainRepository.getLocalPlaylistByYoutubePlaylistId(localPlaylistEntity.youtubePlaylistId!!).collect { playlist ->
                 if (playlist != null && playlist.youtubePlaylistId == localPlaylistEntity.youtubePlaylistId) {
-                    for (track in listTrack) {
-                        mainRepository.insertSong(track.toSongEntity())
+                    for (i in listTrack.indices) {
+                        mainRepository.insertSong(listTrack.get(i).toSongEntity()).first().let {
+                            println("Insert song $it")
+                            mainRepository.insertPairSongLocalPlaylist(
+                                PairSongLocalPlaylist(
+                                    playlistId = playlist.id,
+                                    songId = listTrack.get(i).videoId,
+                                    position = i,
+                                    inPlaylist = LocalDateTime.now()
+                                )
+                            )
+                        }
                     }
+
                 }
             }
             Toast.makeText(application, application.getString(R.string.added_local_playlist), Toast.LENGTH_SHORT).show()
@@ -469,6 +486,17 @@ class PlaylistViewModel @Inject constructor(
     fun insertPairSongLocalPlaylist(pairSongLocalPlaylist: PairSongLocalPlaylist) {
         viewModelScope.launch {
             mainRepository.insertPairSongLocalPlaylist(pairSongLocalPlaylist)
+        }
+    }
+
+    fun insertPlaylistSongEntity(tracks: List<Track>) {
+        viewModelScope.launch {
+            tracks.forEach { track ->
+                mainRepository.insertSong(track.toSongEntity()).first().let {
+                    println("Insert Song: $it")
+                }
+                Log.w("PlaylistFragment", "Insert Song: ${track.toSongEntity()}")
+            }
         }
     }
 }

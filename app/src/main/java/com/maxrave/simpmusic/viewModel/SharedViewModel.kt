@@ -66,6 +66,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
@@ -241,7 +242,10 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                             )
                             if (tempSong != null) {
                                 Log.d("Check tempSong", tempSong.toString())
-                                mainRepository.insertSong(tempSong.toSongEntity())
+                                mainRepository.insertSong(tempSong.toSongEntity()).first()
+                                    .let { id ->
+                                        Log.d("Check insertSong", id.toString())
+                                    }
                                 mainRepository.getSongById(tempSong.videoId)
                                     .collectLatest { songEntity ->
                                         _songDB.value = songEntity
@@ -292,7 +296,8 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                 val job6 = launch {
                     simpleMediaServiceHandler!!.liked.collect { liked ->
                         if (liked != _liked.value) {
-                            videoId.value?.let { updateLikeStatus(it, liked) }
+                            simpleMediaServiceHandler!!.nowPlaying.first()
+                                ?.let { updateLikeStatus(it.mediaId, liked) }
                         }
                     }
                 }
@@ -427,7 +432,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     }
 
     fun updateLikeInNotification(liked: Boolean) {
-        simpleMediaServiceHandler!!.like(liked)
+        simpleMediaServiceHandler?.like(liked)
     }
 
     private var _downloadState: MutableStateFlow<Download?> = MutableStateFlow(null)
@@ -583,14 +588,16 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
         viewModelScope.launch {
             simpleMediaServiceHandler?.clearMediaItems()
             var uri = ""
-            mainRepository.insertSong(track.toSongEntity())
-            mainRepository.getSongById(track.videoId)
-                .collect { songEntity ->
-                    _songDB.value = songEntity
-                    if (songEntity != null) {
-                        _liked.value = songEntity.liked
+            mainRepository.insertSong(track.toSongEntity()).first().let {
+                println("insertSong: $it")
+                mainRepository.getSongById(track.videoId)
+                    .collect { songEntity ->
+                        _songDB.value = songEntity
+                        if (songEntity != null) {
+                            _liked.value = songEntity.liked
+                        }
                     }
-                }
+            }
             mainRepository.updateSongInLibrary(LocalDateTime.now(), track.videoId)
             mainRepository.updateListenCount(track.videoId)
             track.durationSeconds?.let { mainRepository.updateDurationSeconds(it, track.videoId) }
@@ -891,14 +898,15 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     }
 
     fun updateLikeStatus(videoId: String, likeStatus: Boolean) {
-        viewModelScope.launch{
-            _liked.value = likeStatus
-            if (likeStatus) {
-                mainRepository.updateLikeStatus(videoId, 1)
-            }
-            else
-            {
-                mainRepository.updateLikeStatus(videoId, 0)
+        println("Update Like Status $videoId $likeStatus")
+        viewModelScope.launch {
+            if (simpleMediaServiceHandler?.nowPlaying?.first()?.mediaId == videoId) {
+                _liked.value = likeStatus
+                if (likeStatus) {
+                    mainRepository.updateLikeStatus(videoId, 1)
+                } else {
+                    mainRepository.updateLikeStatus(videoId, 0)
+                }
             }
         }
     }

@@ -135,10 +135,7 @@ fun parsePlaylistData(
 fun parseSetVideoId(listContent: List<MusicShelfRenderer.Content>): ArrayList<SetVideoIdEntity> {
     val listSetVideoId: ArrayList<SetVideoIdEntity> = arrayListOf()
     for (content in listContent) {
-        val videoId =
-            content.musicResponsiveListItemRenderer?.flexColumns?.firstOrNull()?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.get(
-                0
-            )?.navigationEndpoint?.watchEndpoint?.videoId
+        val videoId = content.musicResponsiveListItemRenderer?.playlistItemData?.videoId
         val setVideoId =
             content.musicResponsiveListItemRenderer?.menu?.menuRenderer?.items?.find { it.menuServiceItemRenderer?.icon?.iconType == "REMOVE_FROM_PLAYLIST" }?.menuServiceItemRenderer?.serviceEndpoint?.playlistEditEndpoint?.actions?.get(
                 0
@@ -149,6 +146,7 @@ fun parseSetVideoId(listContent: List<MusicShelfRenderer.Content>): ArrayList<Se
             Log.d("PlaylistParser", "videoId or setVideoId is null")
         }
     }
+    Log.w("PlaylistParser", "listSetVideoId: $listSetVideoId")
     return listSetVideoId
 }
 

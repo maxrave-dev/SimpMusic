@@ -964,17 +964,17 @@ class NowPlayingFragment : Fragment() {
         }
         binding.cbFavorite.setOnCheckedChangeListener { _, isChecked ->
             if (!isChecked) {
-                viewModel.getCurrentMediaItem()?.let { nowPlayingSong ->
+                viewModel.songDB.value?.let { nowPlayingSong ->
                     viewModel.updateLikeStatus(
-                        nowPlayingSong.mediaId,
+                        nowPlayingSong.videoId,
                         false
                     )
                     viewModel.updateLikeInNotification(false)
                 }
             } else {
-                viewModel.getCurrentMediaItem()?.let { nowPlayingSong ->
+                viewModel.songDB.value?.let { nowPlayingSong ->
                     viewModel.updateLikeStatus(
-                        nowPlayingSong.mediaId,
+                        nowPlayingSong.videoId,
                         true
                     )
                     viewModel.updateLikeInNotification(true)
@@ -1172,7 +1172,10 @@ class NowPlayingFragment : Fragment() {
                                             if (!tempTrack.contains(song.videoId)) {
                                                 viewModel.insertPairSongLocalPlaylist(
                                                     PairSongLocalPlaylist(
-                                                        playlistId = playlist.id, songId = song.videoId, position = tempTrack.size, inPlaylist = LocalDateTime.now()
+                                                        playlistId = playlist.id,
+                                                        songId = song.videoId,
+                                                        position = playlist.tracks?.size ?: 0,
+                                                        inPlaylist = LocalDateTime.now()
                                                     )
                                                 )
                                                 tempTrack.add(song.videoId)

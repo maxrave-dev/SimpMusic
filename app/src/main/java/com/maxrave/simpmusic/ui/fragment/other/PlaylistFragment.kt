@@ -493,7 +493,10 @@ class PlaylistFragment: Fragment() {
                                 if (!tempTrack.contains(song.videoId)) {
                                     viewModel.insertPairSongLocalPlaylist(
                                         PairSongLocalPlaylist(
-                                            playlistId = playlist.id, songId = song.videoId, position = tempTrack.size, inPlaylist = LocalDateTime.now()
+                                            playlistId = playlist.id,
+                                            songId = song.videoId,
+                                            position = playlist.tracks?.size ?: 0,
+                                            inPlaylist = LocalDateTime.now()
                                         )
                                     )
                                     tempTrack.add(song.videoId)
@@ -534,11 +537,11 @@ class PlaylistFragment: Fragment() {
                     }
                 }
             }
-            else
-            {
+            else {
                 binding.collapsingToolbarLayout.isTitleEnabled = false
-                binding.topAppBar.background = null
-                requireActivity().window.statusBarColor = ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark)
+                binding.topAppBar.background = viewModel.gradientDrawable.value
+                requireActivity().window.statusBarColor =
+                    ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark)
             }
         }
         binding.btShuffle.setOnClickListener {

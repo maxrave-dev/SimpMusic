@@ -131,8 +131,8 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
     suspend fun getSongById(id: String): Flow<SongEntity?> =
         flow { emit(localDataSource.getSong(id)) }.flowOn(Dispatchers.IO)
 
-    suspend fun insertSong(songEntity: SongEntity) =
-        withContext(Dispatchers.IO) { localDataSource.insertSong(songEntity) }
+    suspend fun insertSong(songEntity: SongEntity): Flow<Long> =
+        flow<Long> { emit(localDataSource.insertSong(songEntity)) }.flowOn(Dispatchers.IO)
 
     suspend fun updateListenCount(videoId: String) =
         withContext(Dispatchers.IO) { localDataSource.updateListenCount(videoId) }
@@ -1586,8 +1586,6 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
     }
 
     suspend fun getYouTubeSetVideoId(youtubePlaylistId: String): Flow<ArrayList<SetVideoIdEntity>?> = flow {
-        YouTube.playlist(youtubePlaylistId).onSuccess {
-            flow {
                 runCatching {
                     var id = ""
                     if (!youtubePlaylistId.startsWith("VL")) {
@@ -1625,6 +1623,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                         }
                         Log.d("Repository", "playlist final data: ${listContent.size}")
                         parseSetVideoId(listContent).let { playlist ->
+                            Log.d("Repository", "playlist final data setVideoId: $playlist")
                             playlist.forEach { item ->
                                 insertSetVideoId(item)
                             }
@@ -1636,8 +1635,6 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                     }
                 }
             }.flowOn(Dispatchers.IO)
-        }
-    }
 
     suspend fun createYouTubePlaylist(playlist: LocalPlaylistEntity): Flow<String?> = flow {
         runCatching {

@@ -98,7 +98,9 @@ class ArtistViewModel @Inject constructor(private val application: Application, 
 
     fun getSongEntity(song: SongEntity) {
         viewModelScope.launch {
-            mainRepository.insertSong(song)
+            mainRepository.insertSong(song).first().let {
+                println("Insert Song $it")
+            }
             mainRepository.getSongById(song.videoId).collect { values ->
                 _songEntity.value = values
             }

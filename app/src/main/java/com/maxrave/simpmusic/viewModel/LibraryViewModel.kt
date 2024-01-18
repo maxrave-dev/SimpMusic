@@ -64,7 +64,7 @@ class LibraryViewModel @Inject constructor(private val mainRepository: MainRepos
     fun getYouTubePlaylist() {
         viewModelScope.launch {
             mainRepository.getLibraryPlaylist().collect { data ->
-                _listYouTubePlaylist.postValue(data)
+                _listYouTubePlaylist.postValue(data?.reversed())
             }
         }
     }

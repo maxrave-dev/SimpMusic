@@ -313,7 +313,9 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
 
     fun getSongEntity(track: Track) {
         viewModelScope.launch {
-            mainRepository.insertSong(track.toSongEntity())
+            mainRepository.insertSong(track.toSongEntity()).first().let {
+                println("Insert song $it")
+            }
             mainRepository.getSongById(track.videoId).collect { values ->
                 _songEntity.value = values
             }

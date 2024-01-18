@@ -559,8 +559,11 @@ class SearchFragment : Fragment() {
                                     if (!tempTrack.contains(track.videoId)) {
                                         viewModel.insertPairSongLocalPlaylist(
                                             PairSongLocalPlaylist(
-                                            playlistId = playlist.id, songId = track.videoId, position = tempTrack.size, inPlaylist = LocalDateTime.now()
-                                        )
+                                                playlistId = playlist.id,
+                                                songId = track.videoId,
+                                                position = playlist.tracks?.size ?: 0,
+                                                inPlaylist = LocalDateTime.now()
+                                            )
                                         )
                                         tempTrack.add(track.videoId)
                                     }

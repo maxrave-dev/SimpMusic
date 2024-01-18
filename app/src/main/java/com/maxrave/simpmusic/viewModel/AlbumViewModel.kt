@@ -261,7 +261,9 @@ class AlbumViewModel @Inject constructor(
 
     fun insertSong(songEntity: SongEntity) {
         viewModelScope.launch {
-            mainRepository.insertSong(songEntity)
+            mainRepository.insertSong(songEntity).collect {
+                println("Insert Song $it")
+            }
         }
     }
 
