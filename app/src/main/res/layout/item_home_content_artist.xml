@@ -3,21 +3,24 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="wrap_content"
-    android:layout_height="200sp"
+    android:layout_height="240sp"
     android:padding="10sp"
     android:orientation="vertical"
     android:focusable="true"
     android:clickable="true"
     android:foreground="?android:attr/selectableItemBackground">
+
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/ivArt"
-        android:layout_width="140dp"
-        android:layout_height="140dp"
+        android:layout_width="180dp"
+        android:layout_height="180dp"
         android:scaleType="centerCrop"
         app:shapeAppearanceOverlay="@style/circle" />
+
     <TextView
         android:id="@+id/tvArtistName"
-        android:layout_width="140dp"
+        android:textColor="@android:color/white"
+        android:layout_width="180dp"
         android:layout_height="wrap_content"
         android:text=""
         android:textStyle="bold"

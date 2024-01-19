@@ -284,6 +284,6 @@
     <string name="dummy_content">DUMMY\nNỘI DUNG</string>
     <string name="play_video_instead_of_audio_warning">Hành động này sẽ xoá cache phát nhạc. Tiếp tục?</string>
     <string name="quality_video">Chất lượng video</string>
-    <string name="add_to_queue">Thêm vào hành đợi</string>
+    <string name="add_to_queue">Thêm vào hàng đợi</string>
     <string name="added_to_queue">Đã thêm vào hàng đợi</string>
 </resources>

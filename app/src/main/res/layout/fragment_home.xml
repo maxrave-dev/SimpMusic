@@ -122,8 +122,9 @@
                                 android:layout_marginStart="8dp"
                                 android:fontFamily="@font/roboto"
                                 android:gravity="center_vertical"
+                                android:textColor="@android:color/white"
                                 android:text=""
-                                android:textSize="21sp"
+                                android:textSize="20sp"
                                 android:textStyle="bold">
 
                             </TextView>
@@ -151,8 +152,9 @@
                         android:layout_marginTop="5sp"
                         android:layout_marginBottom="10sp"
                         android:fontFamily="@font/roboto"
+                        android:textColor="@android:color/white"
                         android:text="@string/quick_picks"
-                        android:textSize="21sp"
+                        android:textSize="20sp"
                         android:textStyle="bold">
 
                     </TextView>
@@ -225,8 +227,9 @@
                         android:layout_marginTop="5sp"
                         android:layout_marginBottom="10sp"
                         android:fontFamily="@font/roboto"
+                        android:textColor="@android:color/white"
                         android:text="@string/moods_amp_moment"
-                        android:textSize="21sp"
+                        android:textSize="20sp"
                         android:textStyle="bold">
 
                     </TextView>
@@ -249,8 +252,9 @@
                         android:layout_marginTop="5sp"
                         android:layout_marginBottom="10sp"
                         android:fontFamily="@font/roboto"
+                        android:textColor="@android:color/white"
                         android:text="@string/genre"
-                        android:textSize="21sp"
+                        android:textSize="20sp"
                         android:textStyle="bold">
 
                     </TextView>
@@ -292,8 +296,9 @@
                             android:layout_marginTop="5sp"
                             android:layout_marginBottom="5sp"
                             android:fontFamily="@font/roboto"
+                            android:textColor="@android:color/white"
                             android:text="@string/chart"
-                            android:textSize="21sp"
+                            android:textSize="20sp"
                             android:textStyle="bold">
 
                         </TextView>

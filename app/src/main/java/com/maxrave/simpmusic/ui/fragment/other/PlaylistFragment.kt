@@ -539,7 +539,8 @@ class PlaylistFragment: Fragment() {
             }
             else {
                 binding.collapsingToolbarLayout.isTitleEnabled = false
-                binding.topAppBar.background = viewModel.gradientDrawable.value
+                binding.topAppBar.background = null
+                binding.topAppBarLayout.background = viewModel.gradientDrawable.value
                 requireActivity().window.statusBarColor =
                     ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark)
             }
