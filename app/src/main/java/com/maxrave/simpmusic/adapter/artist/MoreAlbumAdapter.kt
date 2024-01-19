@@ -7,6 +7,7 @@ import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.maxrave.kotlinytmusicscraper.models.AlbumItem
 import com.maxrave.kotlinytmusicscraper.models.YTItem
+import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.databinding.ItemSinglesBinding
 
 class MoreAlbumAdapter(private var albumList: ArrayList<YTItem>): RecyclerView.Adapter<MoreAlbumAdapter.ViewHolder>() {
@@ -29,7 +30,10 @@ class MoreAlbumAdapter(private var albumList: ArrayList<YTItem>): RecyclerView.A
                 if (item is AlbumItem) {
                     tvAlbumName.text = item.title
                     tvAlbumYear.text = item.year.toString()
-                    ivAlbumArt.load(item.thumbnail)
+                    ivAlbumArt.load(item.thumbnail) {
+                        crossfade(true)
+                        placeholder(R.drawable.holder)
+                    }
                 }
             }
         }

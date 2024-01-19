@@ -63,7 +63,7 @@ class HomeItemContentAdapter(private var listContent: ArrayList<Content>, privat
         fun bind(content: Content){
             with(binding){
                 if (content.thumbnails.isNotEmpty()) {
-                    ivArt.load(content.thumbnails.lastOrNull()?.url) {
+                    ivArt.load(content.thumbnails.maxByOrNull { it.width }?.url) {
                         crossfade(true)
                         placeholder(R.drawable.holder)
                     }
@@ -89,9 +89,9 @@ class HomeItemContentAdapter(private var listContent: ArrayList<Content>, privat
         fun bind(content: Content) {
             with(binding) {
                 if (content.thumbnails.isNotEmpty()) {
-                    ivArt.load(content.thumbnails.lastOrNull()?.url) {
+                    ivArt.load(content.thumbnails.maxByOrNull { it.width }?.url) {
                         crossfade(true)
-                        placeholder(R.drawable.holder)
+                        placeholder(R.drawable.holder_video)
                     }
                 }
                 tvSongName.text = content.title
@@ -114,7 +114,7 @@ class HomeItemContentAdapter(private var listContent: ArrayList<Content>, privat
 
         fun bind(content: Content) {
             with(binding) {
-                ivArt.load(content.thumbnails.lastOrNull()?.url) {
+                ivArt.load(content.thumbnails.maxByOrNull { it.width }?.url) {
                     crossfade(true)
                     placeholder(R.drawable.holder)
                 }
@@ -133,7 +133,7 @@ class HomeItemContentAdapter(private var listContent: ArrayList<Content>, privat
         }
         fun bind(content: Content){
             with(binding) {
-                ivArt.load(content.thumbnails.lastOrNull()?.url) {
+                ivArt.load(content.thumbnails.maxByOrNull { it.width }?.url) {
                     crossfade(true)
                     placeholder(R.drawable.holder)
                 }
@@ -156,7 +156,7 @@ class HomeItemContentAdapter(private var listContent: ArrayList<Content>, privat
         }
         fun bind(content: Content){
             with(binding) {
-                ivArt.load(content.thumbnails.lastOrNull()?.url) {
+                ivArt.load(content.thumbnails.maxByOrNull { it.width }?.url) {
                     crossfade(true)
                     placeholder(R.drawable.holder)
                 }

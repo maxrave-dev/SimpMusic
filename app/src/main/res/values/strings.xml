@@ -300,4 +300,5 @@
     <string name="signed_in">Signed in</string>
     <string name="guest">Guest</string>
     <string name="log_out_warning">Log out from all account?</string>
+    <string name="play_next">Play next</string>
 </resources>

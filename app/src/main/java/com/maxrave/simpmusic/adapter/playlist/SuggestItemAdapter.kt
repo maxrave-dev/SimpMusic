@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView.Adapter
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import coil.load
+import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.databinding.ItemSuggestItemYoutubePlaylistBinding
 import com.maxrave.simpmusic.extension.connectArtists
@@ -37,7 +38,10 @@ class SuggestItemAdapter(private var listTrack: ArrayList<Track>): Adapter<Sugge
         fun bind(track: Track) {
             binding.tvSongTitle.text = track.title
             binding.tvSongArtist.text = track.artists.toListName().connectArtists()
-            binding.ivThumbnail.load(track.thumbnails?.last()?.url)
+            binding.ivThumbnail.load(track.thumbnails?.last()?.url) {
+                crossfade(true)
+                placeholder(R.drawable.holder)
+            }
             binding.tvSongTitle.isSelected = true
             binding.tvSongArtist.isSelected = true
         }

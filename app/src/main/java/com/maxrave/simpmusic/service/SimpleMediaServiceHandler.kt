@@ -202,7 +202,16 @@ class SimpleMediaServiceHandler constructor(
 
     fun addMediaItemNotSet(mediaItem: MediaItem) {
         player.addMediaItem(mediaItem)
-        if (player.mediaItemCount == 1){
+        if (player.mediaItemCount == 1) {
+            player.prepare()
+            player.playWhenReady = true
+        }
+        updateNextPreviousTrackAvailability()
+    }
+
+    fun addMediaItemNotSet(mediaItem: MediaItem, index: Int) {
+        player.addMediaItem(index, mediaItem)
+        if (player.mediaItemCount == 1) {
             player.prepare()
             player.playWhenReady = true
         }
@@ -962,6 +971,94 @@ class SimpleMediaServiceHandler constructor(
             )
             println("update subtitle" + player.currentMediaItem?.localConfiguration?.subtitleConfigurations?.firstOrNull()?.uri.toString())
         }
+    }
+
+    suspend fun playNext(track: Track) {
+        _stateFlow.value = StateSource.STATE_INITIALIZING
+        var thumbUrl = track.thumbnails?.last()?.url
+            ?: "http://i.ytimg.com/vi/${track.videoId}/maxresdefault.jpg"
+        if (thumbUrl.contains("w120")) {
+            thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
+        }
+        val artistName: String = track.artists.toListName().connectArtists()
+        if (!catalogMetadata.contains(track) && (currentIndex() + 1 in 0..catalogMetadata.size)) {
+            if (track.artists.isNullOrEmpty()) {
+                mainRepository.getFormat(track.videoId).cancellable().first().let { format ->
+                    if (format != null) {
+                        catalogMetadata.add(
+                            currentIndex() + 1,
+                            track.copy(
+                                artists = listOf(
+                                    Artist(
+                                        format.uploaderId,
+                                        format.uploader ?: ""
+                                    )
+                                )
+                            )
+                        )
+                        addMediaItemNotSet(
+                            MediaItem.Builder().setUri(track.videoId)
+                                .setMediaId(track.videoId)
+                                .setCustomCacheKey(track.videoId)
+                                .setMediaMetadata(
+                                    MediaMetadata.Builder()
+                                        .setTitle(track.title)
+                                        .setArtist(format.uploader)
+                                        .setArtworkUri(thumbUrl.toUri())
+                                        .setAlbumTitle(track.album?.name)
+                                        .build()
+                                )
+                                .build(), currentIndex() + 1
+                        )
+                    } else {
+                        val mediaItem = MediaItem.Builder()
+                            .setMediaId(track.videoId)
+                            .setUri(track.videoId)
+                            .setCustomCacheKey(track.videoId)
+                            .setMediaMetadata(
+                                MediaMetadata.Builder()
+                                    .setArtworkUri(thumbUrl.toUri())
+                                    .setAlbumTitle(track.album?.name)
+                                    .setTitle(track.title)
+                                    .setArtist("Various Artists")
+                                    .build()
+                            )
+                            .build()
+                        addMediaItemNotSet(mediaItem, currentIndex() + 1)
+                        catalogMetadata.add(
+                            currentIndex() + 1,
+                            track.copy(
+                                artists = listOf(Artist("", "Various Artists"))
+                            )
+                        )
+                    }
+                }
+            } else {
+                addMediaItemNotSet(
+                    MediaItem.Builder().setUri(track.videoId)
+                        .setMediaId(track.videoId)
+                        .setCustomCacheKey(track.videoId)
+                        .setMediaMetadata(
+                            MediaMetadata.Builder()
+                                .setTitle(track.title)
+                                .setArtist(artistName)
+                                .setArtworkUri(thumbUrl.toUri())
+                                .setAlbumTitle(track.album?.name)
+                                .build()
+                        )
+                        .build(),
+                    currentIndex() + 1
+                )
+                catalogMetadata.add(currentIndex() + 1, track)
+            }
+            Log.d(
+                "MusicSource",
+                "updateCatalog: ${track.title}, ${catalogMetadata.size}"
+            )
+            added.value = true
+            Log.d("MusicSource", "updateCatalog: ${track.title}")
+        }
+        _stateFlow.value = StateSource.STATE_INITIALIZED
     }
 
 }

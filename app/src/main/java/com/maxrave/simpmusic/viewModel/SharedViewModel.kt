@@ -1259,6 +1259,14 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                 .show()
         }
     }
+
+    fun playNext(song: Track) {
+        viewModelScope.launch {
+            simpleMediaServiceHandler?.playNext(song)
+            Toast.makeText(context, context.getString(R.string.play_next), Toast.LENGTH_SHORT)
+                .show()
+        }
+    }
 }
 sealed class UIEvent {
     data object PlayPause : UIEvent()

@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import androidx.navigation.NavController
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
+import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.data.model.home.Content
 import com.maxrave.simpmusic.databinding.ItemQuickPicksBinding
 
@@ -54,7 +55,13 @@ class QuickPicksAdapter(val contentList: ArrayList<Content>, val context: Contex
             artistName = removeTrailingComma(artistName)
             artistName = removeComma(artistName)
             binding.tvSongArtist.text = artistName
-            binding.ivThumbnail.load(content.thumbnails.lastOrNull()?.url ?: "https://i.ytimg.com/vi/${content.videoId}/maxresdefault.jpg")
+            binding.ivThumbnail.load(
+                content.thumbnails.lastOrNull()?.url
+                    ?: "https://i.ytimg.com/vi/${content.videoId}/maxresdefault.jpg"
+            ) {
+                crossfade(true)
+                placeholder(R.drawable.holder)
+            }
             binding.tvSongArtist.isSelected = true
             binding.tvSongTitle.isSelected = true
         }

@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
+import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.data.model.browse.artist.ResultPlaylist
 import com.maxrave.simpmusic.databinding.ItemSinglesBinding
 
@@ -54,7 +55,10 @@ class FeaturedOnAdapter(private var playlistList: ArrayList<ResultPlaylist>) :
         with(holder.binding) {
             tvAlbumName.text = album.title
             tvAlbumYear.text = album.author
-            ivAlbumArt.load(album.thumbnails.lastOrNull()?.url)
+            ivAlbumArt.load(album.thumbnails.lastOrNull()?.url) {
+                crossfade(true)
+                placeholder(R.drawable.holder)
+            }
         }
     }
 

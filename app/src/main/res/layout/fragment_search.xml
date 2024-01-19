@@ -17,6 +17,7 @@
             app:iconifiedByDefault="false"
             app:queryBackground="@null"
             app:defaultQueryHint="@string/what_do_you_want_to_listen_to"
+            android:includeFontPadding="false"
             android:background="@drawable/shapebgsearch">
 
         </androidx.appcompat.widget.SearchView>

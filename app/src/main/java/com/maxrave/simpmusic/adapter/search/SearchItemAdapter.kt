@@ -54,9 +54,17 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
             with(binding){
                 if (song.thumbnails != null) {
                     if (song.thumbnails.size > 1){
-                        ivThumbnail.load(song.thumbnails[1].url)}
-                    else{
-                        ivThumbnail.load(song.thumbnails[0].url)}
+                        ivThumbnail.load(song.thumbnails[1].url) {
+                            crossfade(true)
+                            placeholder(R.drawable.holder)
+                        }
+                    }
+                    else {
+                        ivThumbnail.load(song.thumbnails[0].url) {
+                            crossfade(true)
+                            placeholder(R.drawable.holder)
+                        }
+                    }
                 }
                 tvSongTitle.text = song.title
                 val artistName = song.artists.toListName().connectArtists()
@@ -78,10 +86,16 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
             }
         }
         fun bind(song: SongEntity){
-            with(binding){
-                ivThumbnail.load(song.thumbnails)
+            with(binding) {
+                ivThumbnail.load(song.thumbnails) {
+                    crossfade(true)
+                    placeholder(R.drawable.holder)
+                }
                 tvSongTitle.text = song.title
-                tvSongArtist.text = context.getString(R.string.Song_and_artist_name, song.artistName?.connectArtists())
+                tvSongArtist.text = context.getString(
+                    R.string.Song_and_artist_name,
+                    song.artistName?.connectArtists()
+                )
                 tvSongAlbum.text = song.albumName
                 tvSongTitle.isSelected = true
                 tvSongArtist.isSelected = true
@@ -100,13 +114,15 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
         }
         fun bind(video: VideosResult){
             with (binding) {
-                ivThumbnail.load(video.thumbnails?.get(0)?.url)
+                ivThumbnail.load(video.thumbnails?.get(0)?.url) {
+                    crossfade(true)
+                    placeholder(R.drawable.holder_video)
+                }
                 tvVideoTitle.text = video.title
                 val tempArtist = mutableListOf<String>()
-                if (video.artists != null){
+                if (video.artists != null) {
                     tvAuthor.text = video.artists.toListName().connectArtists()
-                }
-                else{
+                } else {
                     tvAuthor.text = ""
                 }
                 tvView.text = video.views
@@ -121,8 +137,11 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
             }
         }
         fun bind(artist: ArtistsResult){
-            with(binding){
-                ivThumbnail.load(artist.thumbnails[0].url)
+            with(binding) {
+                ivThumbnail.load(artist.thumbnails[0].url) {
+                    crossfade(true)
+                    placeholder(R.drawable.holder)
+                }
                 tvArtistName.text = artist.artist
             }
         }
@@ -148,10 +167,18 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
         }
         fun bind(playlist: PlaylistsResult) {
             with(binding) {
-                if (playlist.thumbnails.size > 1){
-                    ivThumbnail.load(playlist.thumbnails[1].url)}
-                else{
-                    ivThumbnail.load(playlist.thumbnails[0].url)}
+                if (playlist.thumbnails.size > 1) {
+                    ivThumbnail.load(playlist.thumbnails[1].url) {
+                        crossfade(true)
+                        placeholder(R.drawable.holder)
+                    }
+                }
+                else {
+                    ivThumbnail.load(playlist.thumbnails[0].url) {
+                        crossfade(true)
+                        placeholder(R.drawable.holder)
+                    }
+                }
                 tvPlaylistName.text = playlist.title
                 tvPlaylistAuthor.text = context.getString(R.string.playlist_and_author, playlist.author)
                 tvPlaylistName.isSelected = true
@@ -167,9 +194,13 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
         }
         fun bind(playlist: PlaylistEntity) {
             with(binding) {
-                ivThumbnail.load(playlist.thumbnails)
+                ivThumbnail.load(playlist.thumbnails) {
+                    crossfade(true)
+                    placeholder(R.drawable.holder)
+                }
                 tvPlaylistName.text = playlist.title
-                tvPlaylistAuthor.text = context.getString(R.string.playlist_and_author, playlist.author)
+                tvPlaylistAuthor.text =
+                    context.getString(R.string.playlist_and_author, playlist.author)
                 tvPlaylistName.isSelected = true
                 tvPlaylistAuthor.isSelected = true
             }
@@ -183,10 +214,18 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
         }
         fun bind(album: AlbumsResult){
             with(binding){
-                if (album.thumbnails.size > 1){
-                    ivThumbnail.load(album.thumbnails[1].url)}
-                else{
-                    ivThumbnail.load(album.thumbnails[0].url)}
+                if (album.thumbnails.size > 1) {
+                    ivThumbnail.load(album.thumbnails[1].url) {
+                        crossfade(true)
+                        placeholder(R.drawable.holder)
+                    }
+                }
+                else {
+                    ivThumbnail.load(album.thumbnails[0].url) {
+                        crossfade(true)
+                        placeholder(R.drawable.holder)
+                    }
+                }
                 tvAlbumName.text = album.title
                 val artistName = album.artists.toListName().connectArtists()
 //                artistName = removeTrailingComma(artistName)
@@ -206,8 +245,11 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
             }
         }
         fun bind(album: AlbumEntity){
-            with(binding){
-                ivThumbnail.load(album.thumbnails)
+            with(binding) {
+                ivThumbnail.load(album.thumbnails) {
+                    crossfade(true)
+                    placeholder(R.drawable.holder)
+                }
                 tvAlbumName.text = album.title
                 val artistName = album.artistName?.connectArtists()
                 tvAlbumArtist.text = context.getString(R.string.album_and_artist_name, artistName)

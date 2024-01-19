@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
+import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.data.model.browse.artist.ResultRelated
 import com.maxrave.simpmusic.databinding.ItemRelatedArtistBinding
 
@@ -38,7 +39,10 @@ class RelatedArtistsAdapter(private var relatedArtistsList: ArrayList<ResultRela
         with(holder){
             binding.tvArtistName.text = relatedArtist.title
             binding.tvArtistSubscribers.text = relatedArtist.subscribers
-            binding.ivArtistArt.load(if (relatedArtist.thumbnails.size > 1) relatedArtist.thumbnails[1].url else relatedArtist.thumbnails[0].url)
+            binding.ivArtistArt.load(if (relatedArtist.thumbnails.size > 1) relatedArtist.thumbnails[1].url else relatedArtist.thumbnails[0].url) {
+                crossfade(true)
+                placeholder(R.drawable.holder)
+            }
         }
     }
 

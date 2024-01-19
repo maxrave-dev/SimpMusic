@@ -276,6 +276,9 @@ class LibraryFragment : Fragment() {
                     btAddQueue.setOnClickListener {
                         sharedViewModel.addToQueue(song.toTrack())
                     }
+                    btPlayNext.setOnClickListener {
+                        sharedViewModel.playNext(song.toTrack())
+                    }
                     btChangeLyricsProvider.visibility = View.GONE
                     tvSongTitle.text = song.title
                     tvSongTitle.isSelected = true

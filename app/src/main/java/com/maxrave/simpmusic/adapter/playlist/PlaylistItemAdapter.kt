@@ -113,6 +113,7 @@ class PlaylistItemAdapter(private var playlistItemList: ArrayList<Any>): Recycle
             ImageLoader(context).enqueue(
                 ImageRequest.Builder(context)
                     .placeholder(R.drawable.holder)
+                    .crossfade(true)
                     .data(url)
                     .diskCacheKey(url)
                     .target(this)

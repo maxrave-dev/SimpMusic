@@ -61,10 +61,10 @@ class PopularAdapter(private var popularList: ArrayList<ResultSong>): RecyclerVi
             tvSongArtist.text = artistName
             tvSongTitle.isSelected = true
             tvSongArtist.isSelected = true
-            if (song.thumbnails.size > 1){
-                ivThumbnail.load(song.thumbnails[1].url)}
-            else{
-                ivThumbnail.load(song.thumbnails[0].url)}
+            ivThumbnail.load(song.thumbnails.lastOrNull()?.url) {
+                crossfade(true)
+                placeholder(com.maxrave.simpmusic.R.drawable.holder)
+            }
         }
     }
 

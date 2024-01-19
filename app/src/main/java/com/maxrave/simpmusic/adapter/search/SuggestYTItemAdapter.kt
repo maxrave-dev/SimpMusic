@@ -50,12 +50,23 @@ class SuggestYTItemAdapter(private val listYtItems: ArrayList<YTItem>, private v
             with(binding){
                 if (!song.thumbnails.isNullOrEmpty()) {
                     if (song.thumbnails.size > 1){
-                        ivThumbnail.load(song.thumbnails[1].url)}
-                    else{
-                        ivThumbnail.load(song.thumbnails[0].url)}
+                        ivThumbnail.load(song.thumbnails[1].url) {
+                            crossfade(true)
+                            placeholder(R.drawable.holder)
+                        }
+                    }
+                    else {
+                        ivThumbnail.load(song.thumbnails[0].url) {
+                            crossfade(true)
+                            placeholder(R.drawable.holder)
+                        }
+                    }
                 }
                 else {
-                    ivThumbnail.load(data.thumbnail)
+                    ivThumbnail.load(data.thumbnail) {
+                        crossfade(true)
+                        placeholder(R.drawable.holder)
+                    }
                 }
                 tvSongTitle.text = song.title
                 val artistName = song.artists.toListName().connectArtists()
@@ -78,7 +89,10 @@ class SuggestYTItemAdapter(private val listYtItems: ArrayList<YTItem>, private v
             val data = video.toTrack()
             with (binding) {
                 btOptions.visibility = View.GONE
-                ivThumbnail.load(video.thumbnails?.thumbnails?.lastOrNull()?.url)
+                ivThumbnail.load(video.thumbnails?.thumbnails?.lastOrNull()?.url) {
+                    crossfade(true)
+                    placeholder(R.drawable.holder_video)
+                }
                 tvVideoTitle.text = data.title
                 tvAuthor.text = data.artists.toListName().connectArtists()
                 tvView.text = video.view
@@ -93,8 +107,11 @@ class SuggestYTItemAdapter(private val listYtItems: ArrayList<YTItem>, private v
             }
         }
         fun bind(artist: ArtistItem){
-            with(binding){
-                ivThumbnail.load(artist.thumbnail)
+            with(binding) {
+                ivThumbnail.load(artist.thumbnail) {
+                    crossfade(true)
+                    placeholder(R.drawable.holder)
+                }
                 tvArtistName.text = artist.title
             }
         }
@@ -107,9 +124,13 @@ class SuggestYTItemAdapter(private val listYtItems: ArrayList<YTItem>, private v
         }
         fun bind(playlist: PlaylistItem) {
             with(binding) {
-                ivThumbnail.load(playlist.thumbnail)
+                ivThumbnail.load(playlist.thumbnail) {
+                    crossfade(true)
+                    placeholder(R.drawable.holder)
+                }
                 tvPlaylistName.text = playlist.title
-                tvPlaylistAuthor.text = context.getString(R.string.playlist_and_author, playlist.author)
+                tvPlaylistAuthor.text =
+                    context.getString(R.string.playlist_and_author, playlist.author)
                 tvPlaylistName.isSelected = true
                 tvPlaylistAuthor.isSelected = true
             }
@@ -122,8 +143,11 @@ class SuggestYTItemAdapter(private val listYtItems: ArrayList<YTItem>, private v
             }
         }
         fun bind(album: AlbumItem){
-            with(binding){
-                ivThumbnail.load(album.thumbnail)
+            with(binding) {
+                ivThumbnail.load(album.thumbnail) {
+                    crossfade(true)
+                    placeholder(R.drawable.holder)
+                }
                 tvAlbumName.text = album.title
                 val artistName = album.artists?.firstOrNull()?.name
 //                artistName = removeTrailingComma(artistName)

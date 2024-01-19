@@ -702,7 +702,10 @@ class NowPlayingFragment : Fragment() {
                         if (format != null) {
                             binding.uploaderLayout.visibility = View.VISIBLE
                             binding.tvUploader.text = format.uploader
-                            binding.ivAuthor.load(format.uploaderThumbnail)
+                            binding.ivAuthor.load(format.uploaderThumbnail) {
+                                crossfade(true)
+                                placeholder(R.drawable.holder_video)
+                            }
                             binding.tvSubCount.text = format.uploaderSubCount
                             if (format.itag == 22 || format.itag == 18) {
                                 binding.playerLayout.visibility = View.VISIBLE
@@ -1076,6 +1079,7 @@ class NowPlayingFragment : Fragment() {
                                         viewModel.updateLikeStatus(song.videoId, true)
                                     }
                                 }
+                                btPlayNext.visibility = View.GONE
                                 btRadio.setOnClickListener {
                                     val args = Bundle()
                                     args.putString("radioId", "RDAMVM${song.videoId}")

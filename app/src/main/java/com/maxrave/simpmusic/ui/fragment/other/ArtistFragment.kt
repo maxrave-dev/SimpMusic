@@ -272,6 +272,9 @@ class ArtistFragment: Fragment(){
                     btAddQueue.setOnClickListener {
                         sharedViewModel.addToQueue(song.toTrack())
                     }
+                    btPlayNext.setOnClickListener {
+                        sharedViewModel.playNext(song.toTrack())
+                    }
                     btChangeLyricsProvider.visibility = View.GONE
                     tvSongTitle.text = song.title
                     tvSongTitle.isSelected = true
@@ -578,8 +581,9 @@ class ArtistFragment: Fragment(){
     private fun loadImage(url: String) {
         binding.ivArtistImage.load(url) {
             memoryCachePolicy(CachePolicy.DISABLED)
-            placeholder(R.drawable.holder)
-            transformations(object: Transformation {
+            placeholder(R.drawable.holder_video)
+            crossfade(true)
+            transformations(object : Transformation {
                 override val cacheKey: String
                     get() = "paletteTransformer"
 
@@ -588,7 +592,7 @@ class ArtistFragment: Fragment(){
                     val defaultColor = 0x000000
                     var startColor = p.getDarkVibrantColor(defaultColor)
                     Log.d("Check Start Color", "transform: $startColor")
-                    if (startColor == defaultColor){
+                    if (startColor == defaultColor) {
                         startColor = p.getDarkMutedColor(defaultColor)
                         if (startColor == defaultColor){
                             startColor = p.getVibrantColor(defaultColor)

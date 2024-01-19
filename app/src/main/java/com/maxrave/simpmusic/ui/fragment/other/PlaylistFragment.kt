@@ -406,6 +406,9 @@ class PlaylistFragment: Fragment() {
                     btAddQueue.setOnClickListener {
                         sharedViewModel.addToQueue(song)
                     }
+                    btPlayNext.setOnClickListener {
+                        sharedViewModel.playNext(song)
+                    }
                     ivThumbnail.load(song.thumbnails?.lastOrNull()?.url)
                     btRadio.setOnClickListener {
                         val args = Bundle()

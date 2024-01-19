@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
+import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.data.model.browse.artist.ResultAlbum
 import com.maxrave.simpmusic.databinding.ItemSinglesBinding
 
@@ -44,7 +45,10 @@ class AlbumsAdapter(private var albumsList: ArrayList<ResultAlbum>): RecyclerVie
         with(holder.binding){
             tvAlbumName.text = album.title
             tvAlbumYear.text = album.year.toString()
-            ivAlbumArt.load(if (album.thumbnails.size > 1) album.thumbnails[1].url else album.thumbnails[0].url)
+            ivAlbumArt.load(if (album.thumbnails.size > 1) album.thumbnails[1].url else album.thumbnails[0].url) {
+                crossfade(true)
+                placeholder(R.drawable.holder)
+            }
         }
     }
     fun getItem(position: Int): ResultAlbum {

@@ -334,6 +334,7 @@ class FullscreenFragment : Fragment() {
                                 }
                             }
                             btAddQueue.visibility = View.GONE
+                            btPlayNext.visibility = View.GONE
                             if (runBlocking { viewModel.liked.first() }) {
                                 tvFavorite.text = getString(R.string.liked)
                                 cbFavorite.isChecked = true

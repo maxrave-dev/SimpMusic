@@ -468,6 +468,9 @@ class SearchFragment : Fragment() {
                         btAddQueue.setOnClickListener {
                             sharedViewModel.addToQueue(track)
                         }
+                        btPlayNext.setOnClickListener {
+                            sharedViewModel.playNext(track)
+                        }
                         btRadio.setOnClickListener {
                             val args = Bundle()
                             args.putString("radioId", "RDAMVM${track.videoId}")

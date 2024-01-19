@@ -157,6 +157,9 @@ class DownloadedFragment : Fragment() {
                     btAddQueue.setOnClickListener {
                         sharedViewModel.addToQueue(song.toTrack())
                     }
+                    btPlayNext.setOnClickListener {
+                        sharedViewModel.playNext(song.toTrack())
+                    }
                     btRadio.setOnClickListener {
                         val args = Bundle()
                         args.putString("radioId", "RDAMVM${song.videoId}")

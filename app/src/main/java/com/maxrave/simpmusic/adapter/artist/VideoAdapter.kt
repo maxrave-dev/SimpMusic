@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
+import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.data.model.browse.artist.ResultVideo
 import com.maxrave.simpmusic.databinding.ItemVideoBinding
 import com.maxrave.simpmusic.extension.connectArtists
@@ -38,7 +39,12 @@ class VideoAdapter(private val videos: ArrayList<ResultVideo>): RecyclerView.Ada
                 tvVideoName.isSelected = true
                 tvArtistName.isSelected = true
                 tvViews.isSelected = true
-                ivArt.load(video.thumbnails?.maxBy { it.width }?.url ?: video.thumbnails?.get(0)?.url )
+                ivArt.load(
+                    video.thumbnails?.maxBy { it.width }?.url ?: video.thumbnails?.get(0)?.url
+                ) {
+                    crossfade(true)
+                    placeholder(R.drawable.holder_video)
+                }
             }
         }
     }
