@@ -224,7 +224,15 @@ fun Track.toSongEntity(): SongEntity {
         isAvailable = this.isAvailable,
         isExplicit = this.isExplicit,
         likeStatus = this.likeStatus ?: "",
-        thumbnails = this.thumbnails?.last()?.url,
+        thumbnails = this.thumbnails?.last()?.url?.let {
+            if (it.contains("w120")) {
+                return@let Regex("([wh])120").replace(it, "$1544")
+            } else if (it.contains("sddefault")) {
+                return@let it.replace("sddefault", "maxresdefault")
+            } else {
+                return@let it
+            }
+        },
         title = this.title,
         videoType = this.videoType ?: "",
         category = this.category,
