@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.home.Content
 import com.maxrave.simpmusic.databinding.ItemHomeContentArtistBinding
 import com.maxrave.simpmusic.databinding.ItemHomeContentPlaylistBinding
@@ -13,12 +14,14 @@ import com.maxrave.simpmusic.databinding.ItemHomeContentSongBinding
 import com.maxrave.simpmusic.databinding.ItemHomeContentVideoBinding
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.toListName
+import com.maxrave.simpmusic.extension.toTrack
 
 class HomeItemContentAdapter(private var listContent: ArrayList<Content>, private val context: Context): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     private lateinit var mPlaylistListener: onPlaylistItemClickListener
     private lateinit var mAlbumListener: onAlbumItemClickListener
     private lateinit var mSongListener: onSongItemClickListener
     private lateinit var mArtistListener: onArtistItemClickListener
+    private lateinit var mLongClickListener: OnSongOrVideoLongClickListener
     fun updateData(newData: ArrayList<Content>) {
         listContent.clear()
         listContent.addAll(newData)
@@ -44,24 +47,49 @@ class HomeItemContentAdapter(private var listContent: ArrayList<Content>, privat
     interface onArtistItemClickListener {
         fun onArtistItemClick(position: Int)
     }
-    fun setOnSongClickListener(listener: onSongItemClickListener){
+
+    interface OnSongOrVideoLongClickListener {
+        fun onSongOrVideoLongClick(track: Track?)
+    }
+
+    fun setOnSongClickListener(listener: onSongItemClickListener) {
         mSongListener = listener
     }
-    fun setOnPlaylistClickListener(listener: onPlaylistItemClickListener){
+
+    fun setOnPlaylistClickListener(listener: onPlaylistItemClickListener) {
         mPlaylistListener = listener
     }
-    fun setOnAlbumClickListener(listener: onAlbumItemClickListener){
+
+    fun setOnAlbumClickListener(listener: onAlbumItemClickListener) {
         mAlbumListener = listener
     }
-    fun setOnArtistClickListener(listener: onArtistItemClickListener){
+
+    fun setOnArtistClickListener(listener: onArtistItemClickListener) {
         mArtistListener = listener
     }
-    inner class SongViewHolder(var binding: ItemHomeContentSongBinding, var listener: onSongItemClickListener): RecyclerView.ViewHolder(binding.root) {
+
+    fun setOnSongOrVideoLongClickListener(listener: OnSongOrVideoLongClickListener) {
+        mLongClickListener = listener
+    }
+
+    inner class SongViewHolder(
+        var binding: ItemHomeContentSongBinding,
+        var listener: onSongItemClickListener
+    ) : RecyclerView.ViewHolder(binding.root) {
         init {
-            binding.root.setOnClickListener {listener.onSongItemClick(bindingAdapterPosition)}
+            binding.root.setOnClickListener { listener.onSongItemClick(bindingAdapterPosition) }
+            binding.root.setOnLongClickListener {
+                mLongClickListener.onSongOrVideoLongClick(
+                    listContent.getOrNull(
+                        bindingAdapterPosition
+                    )?.toTrack()
+                )
+                true
+            }
         }
-        fun bind(content: Content){
-            with(binding){
+
+        fun bind(content: Content) {
+            with(binding) {
                 if (content.thumbnails.isNotEmpty()) {
                     ivArt.load(content.thumbnails.maxByOrNull { it.width }?.url) {
                         crossfade(true)
@@ -84,6 +112,14 @@ class HomeItemContentAdapter(private var listContent: ArrayList<Content>, privat
     ) : RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener { listener.onSongItemClick(bindingAdapterPosition) }
+            binding.root.setOnLongClickListener {
+                mLongClickListener.onSongOrVideoLongClick(
+                    listContent.getOrNull(
+                        bindingAdapterPosition
+                    )?.toTrack()
+                )
+                true
+            }
         }
 
         fun bind(content: Content) {

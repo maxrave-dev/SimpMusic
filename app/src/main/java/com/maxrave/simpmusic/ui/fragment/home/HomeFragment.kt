@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.ui.fragment.home
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -8,46 +9,71 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.widget.ListPopupWindow
+import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.offline.Download
+import androidx.media3.exoplayer.offline.DownloadRequest
+import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import coil.load
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.snackbar.Snackbar
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.adapter.artist.SeeArtistOfNowPlayingAdapter
 import com.maxrave.simpmusic.adapter.home.GenreAdapter
 import com.maxrave.simpmusic.adapter.home.HomeItemAdapter
+import com.maxrave.simpmusic.adapter.home.HomeItemContentAdapter
 import com.maxrave.simpmusic.adapter.home.MoodsMomentAdapter
 import com.maxrave.simpmusic.adapter.home.QuickPicksAdapter
 import com.maxrave.simpmusic.adapter.home.chart.ArtistChartAdapter
 import com.maxrave.simpmusic.adapter.home.chart.TrackChartAdapter
+import com.maxrave.simpmusic.adapter.playlist.AddToAPlaylistAdapter
 import com.maxrave.simpmusic.common.Config
+import com.maxrave.simpmusic.common.DownloadState
+import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
+import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.home.HomeItem
 import com.maxrave.simpmusic.data.model.home.chart.toTrack
 import com.maxrave.simpmusic.data.queue.Queue
+import com.maxrave.simpmusic.databinding.BottomSheetAddToAPlaylistBinding
+import com.maxrave.simpmusic.databinding.BottomSheetNowPlayingBinding
+import com.maxrave.simpmusic.databinding.BottomSheetSeeArtistOfNowPlayingBinding
 import com.maxrave.simpmusic.databinding.FragmentHomeBinding
+import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.navigateSafe
+import com.maxrave.simpmusic.extension.removeConflicts
+import com.maxrave.simpmusic.extension.setEnabledAll
+import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toTrack
+import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.HomeViewModel
+import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
+import java.time.LocalDateTime
 import java.util.Calendar
 
 @AndroidEntryPoint
+@UnstableApi
 class HomeFragment : Fragment() {
     private var _binding: FragmentHomeBinding? = null
     private val binding get() = _binding!!
 
     private val viewModel by viewModels<HomeViewModel>()
+    private val sharedViewModel by activityViewModels<SharedViewModel>()
     private lateinit var mAdapter: HomeItemAdapter
     private lateinit var moodsMomentAdapter: MoodsMomentAdapter
     private lateinit var genreAdapter: GenreAdapter
@@ -55,9 +81,420 @@ class HomeFragment : Fragment() {
     private lateinit var artistChartAdapter: ArtistChartAdapter
     private lateinit var quickPicksAdapter: QuickPicksAdapter
     private lateinit var newReleaseAdapter: HomeItemAdapter
+    private val onSongOrVideoLongClickListener by lazy {
+        object : HomeItemContentAdapter.OnSongOrVideoLongClickListener {
+            override fun onSongOrVideoLongClick(track: Track?) {
+                if (track != null) {
+                    viewModel.getSongEntity(track)
+                    val dialog = BottomSheetDialog(requireContext())
+                    val bottomSheetView = BottomSheetNowPlayingBinding.inflate(layoutInflater)
+                    with(bottomSheetView) {
+                        viewModel.songEntity.observe(viewLifecycleOwner) { songEntity ->
+                            if (songEntity != null) {
+                                if (songEntity.liked) {
+                                    tvFavorite.text = getString(R.string.liked)
+                                    cbFavorite.isChecked = true
+                                } else {
+                                    tvFavorite.text = getString(R.string.like)
+                                    cbFavorite.isChecked = false
+                                }
 
-    private val items = arrayOf("US", "ZZ", "AR", "AU", "AT", "BE", "BO", "BR", "CA", "CL", "CO", "CR", "CZ", "DK", "DO", "EC", "EG", "SV", "EE", "FI", "FR", "DE", "GT", "HN", "HU", "IS", "IN", "ID", "IE", "IL", "IT", "JP", "KE", "LU", "MX", "NL", "NZ", "NI", "NG", "NO", "PA", "PY", "PE", "PL", "PT", "RO", "RU", "SA", "RS", "ZA", "KR", "ES", "SE", "CH", "TZ", "TR", "UG", "UA", "AE", "GB", "UY", "ZW")
-    private val itemsData = arrayOf("United States", "Global", "Argentina", "Australia", "Austria", "Belgium", "Bolivia", "Brazil", "Canada", "Chile", "Colombia", "Costa Rica", "Czech Republic", "Denmark", "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Estonia", "Finland", "France", "Germany", "Guatemala", "Honduras", "Hungary", "Iceland", "India", "Indonesia", "Ireland", "Israel", "Italy", "Japan", "Kenya", "Luxembourg", "Mexico", "Netherlands", "New Zealand", "Nicaragua", "Nigeria", "Norway", "Panama", "Paraguay", "Peru", "Poland", "Portugal", "Romania", "Russia", "Saudi Arabia", "Serbia", "South Africa", "South Korea", "Spain", "Sweden", "Switzerland", "Tanzania", "Turkey", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "Uruguay", "Zimbabwe")
+                                when (songEntity.downloadState) {
+                                    DownloadState.STATE_NOT_DOWNLOADED -> {
+                                        tvDownload.text = getString(R.string.download)
+                                        ivDownload.setImageResource(R.drawable.outline_download_for_offline_24)
+                                        setEnabledAll(btDownload, true)
+                                    }
+
+                                    DownloadState.STATE_DOWNLOADING -> {
+                                        tvDownload.text = getString(R.string.downloading)
+                                        ivDownload.setImageResource(R.drawable.baseline_downloading_white)
+                                        setEnabledAll(btDownload, true)
+                                    }
+
+                                    DownloadState.STATE_DOWNLOADED -> {
+                                        tvDownload.text = getString(R.string.downloaded)
+                                        ivDownload.setImageResource(R.drawable.baseline_downloaded)
+                                        setEnabledAll(btDownload, true)
+                                    }
+
+                                    DownloadState.STATE_PREPARING -> {
+                                        tvDownload.text = getString(R.string.preparing)
+                                        ivDownload.setImageResource(R.drawable.baseline_downloading_white)
+                                        setEnabledAll(btDownload, true)
+                                    }
+                                }
+                            }
+                        }
+                        btChangeLyricsProvider.visibility = View.GONE
+                        tvSongTitle.text = track.title
+                        tvSongTitle.isSelected = true
+                        tvSongArtist.text = track.artists.toListName().connectArtists()
+                        tvSongArtist.isSelected = true
+                        ivThumbnail.load(track.thumbnails?.last()?.url)
+                        btAddQueue.setOnClickListener {
+                            sharedViewModel.addToQueue(track)
+                        }
+                        btPlayNext.setOnClickListener {
+                            sharedViewModel.playNext(track)
+                        }
+                        btRadio.setOnClickListener {
+                            val args = Bundle()
+                            args.putString("radioId", "RDAMVM${track.videoId}")
+                            args.putString(
+                                "videoId",
+                                track.videoId
+                            )
+                            dialog.dismiss()
+                            findNavController().navigateSafe(
+                                R.id.action_global_playlistFragment,
+                                args
+                            )
+                        }
+                        btLike.setOnClickListener {
+                            if (cbFavorite.isChecked) {
+                                cbFavorite.isChecked = false
+                                tvFavorite.text = getString(R.string.like)
+                                viewModel.updateLikeStatus(track.videoId, false)
+                            } else {
+                                cbFavorite.isChecked = true
+                                tvFavorite.text = getString(R.string.liked)
+                                viewModel.updateLikeStatus(track.videoId, true)
+                            }
+                        }
+
+                        btSeeArtists.setOnClickListener {
+                            val subDialog = BottomSheetDialog(requireContext())
+                            val subBottomSheetView =
+                                BottomSheetSeeArtistOfNowPlayingBinding.inflate(layoutInflater)
+                            if (track.artists != null) {
+                                val artistAdapter = SeeArtistOfNowPlayingAdapter(track.artists)
+                                subBottomSheetView.rvArtists.apply {
+                                    adapter = artistAdapter
+                                    layoutManager = LinearLayoutManager(requireContext())
+                                }
+                                artistAdapter.setOnClickListener(object :
+                                    SeeArtistOfNowPlayingAdapter.OnItemClickListener {
+                                    override fun onItemClick(position: Int) {
+                                        val artist = track.artists[position]
+                                        if (artist.id != null) {
+                                            findNavController().navigateSafe(
+                                                R.id.action_global_artistFragment,
+                                                Bundle().apply {
+                                                    putString("channelId", artist.id)
+                                                })
+                                            subDialog.dismiss()
+                                            dialog.dismiss()
+                                        }
+                                    }
+
+                                })
+                            }
+                            subDialog.setCancelable(true)
+                            subDialog.setContentView(subBottomSheetView.root)
+                            subDialog.show()
+                        }
+                        btShare.setOnClickListener {
+                            val shareIntent = Intent(Intent.ACTION_SEND)
+                            shareIntent.type = "text/plain"
+                            val url = "https://youtube.com/watch?v=${track.videoId}"
+                            shareIntent.putExtra(Intent.EXTRA_TEXT, url)
+                            val chooserIntent =
+                                Intent.createChooser(shareIntent, getString(R.string.share_url))
+                            startActivity(chooserIntent)
+                        }
+                        btAddPlaylist.setOnClickListener {
+                            viewModel.getAllLocalPlaylist()
+                            val listLocalPlaylist: ArrayList<LocalPlaylistEntity> = arrayListOf()
+                            val addPlaylistDialog = BottomSheetDialog(requireContext())
+                            val viewAddPlaylist =
+                                BottomSheetAddToAPlaylistBinding.inflate(layoutInflater)
+                            val addToAPlaylistAdapter = AddToAPlaylistAdapter(arrayListOf())
+                            viewAddPlaylist.rvLocalPlaylists.apply {
+                                adapter = addToAPlaylistAdapter
+                                layoutManager = LinearLayoutManager(requireContext())
+                            }
+                            viewModel.localPlaylist.observe(viewLifecycleOwner) { list ->
+                                Log.d("Check Local Playlist", list.toString())
+                                listLocalPlaylist.clear()
+                                listLocalPlaylist.addAll(list)
+                                addToAPlaylistAdapter.updateList(listLocalPlaylist)
+                            }
+                            addToAPlaylistAdapter.setOnItemClickListener(object :
+                                AddToAPlaylistAdapter.OnItemClickListener {
+                                override fun onItemClick(position: Int) {
+                                    val playlist = listLocalPlaylist[position]
+                                    val tempTrack = ArrayList<String>()
+                                    viewModel.updateInLibrary(track.videoId)
+                                    if (playlist.tracks != null) {
+                                        tempTrack.addAll(playlist.tracks)
+                                    }
+                                    if (!tempTrack.contains(track.videoId) && playlist.syncedWithYouTubePlaylist == 1 && playlist.youtubePlaylistId != null) {
+                                        viewModel.addToYouTubePlaylist(
+                                            playlist.id,
+                                            playlist.youtubePlaylistId,
+                                            track.videoId
+                                        )
+                                    }
+                                    if (!tempTrack.contains(track.videoId)) {
+                                        viewModel.insertPairSongLocalPlaylist(
+                                            PairSongLocalPlaylist(
+                                                playlistId = playlist.id,
+                                                songId = track.videoId,
+                                                position = playlist.tracks?.size ?: 0,
+                                                inPlaylist = LocalDateTime.now()
+                                            )
+                                        )
+                                        tempTrack.add(track.videoId)
+                                    }
+                                    tempTrack.add(track.videoId)
+                                    tempTrack.removeConflicts()
+                                    viewModel.updateLocalPlaylistTracks(tempTrack, playlist.id)
+                                    addPlaylistDialog.dismiss()
+                                    dialog.dismiss()
+                                }
+                            })
+                            addPlaylistDialog.setContentView(viewAddPlaylist.root)
+                            addPlaylistDialog.setCancelable(true)
+                            addPlaylistDialog.show()
+                        }
+                        btSleepTimer.visibility = View.GONE
+                        btDownload.setOnClickListener {
+                            if (tvDownload.text == getString(R.string.download)) {
+                                Log.d("Download", "onClick: ${track.videoId}")
+                                viewModel.updateDownloadState(
+                                    track.videoId,
+                                    DownloadState.STATE_PREPARING
+                                )
+                                val downloadRequest =
+                                    DownloadRequest.Builder(track.videoId, track.videoId.toUri())
+                                        .setData(track.title.toByteArray())
+                                        .setCustomCacheKey(track.videoId)
+                                        .build()
+                                viewModel.updateDownloadState(
+                                    track.videoId,
+                                    DownloadState.STATE_DOWNLOADING
+                                )
+                                viewModel.getDownloadStateFromService(track.videoId)
+                                DownloadService.sendAddDownload(
+                                    requireContext(),
+                                    MusicDownloadService::class.java,
+                                    downloadRequest,
+                                    false
+                                )
+                                lifecycleScope.launch {
+                                    viewModel.downloadState.collect { download ->
+                                        if (download != null) {
+                                            when (download.state) {
+                                                Download.STATE_DOWNLOADING -> {
+                                                    viewModel.updateDownloadState(
+                                                        track.videoId,
+                                                        DownloadState.STATE_DOWNLOADING
+                                                    )
+                                                    tvDownload.text =
+                                                        getString(R.string.downloading)
+                                                    ivDownload.setImageResource(R.drawable.baseline_downloading_white)
+                                                    setEnabledAll(btDownload, true)
+                                                }
+
+                                                Download.STATE_FAILED -> {
+                                                    viewModel.updateDownloadState(
+                                                        track.videoId,
+                                                        DownloadState.STATE_NOT_DOWNLOADED
+                                                    )
+                                                    tvDownload.text = getString(R.string.download)
+                                                    ivDownload.setImageResource(R.drawable.outline_download_for_offline_24)
+                                                    setEnabledAll(btDownload, true)
+                                                    Toast.makeText(
+                                                        requireContext(),
+                                                        getString(androidx.media3.exoplayer.R.string.exo_download_failed),
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                }
+
+                                                Download.STATE_COMPLETED -> {
+                                                    viewModel.updateDownloadState(
+                                                        track.videoId,
+                                                        DownloadState.STATE_DOWNLOADED
+                                                    )
+                                                    Toast.makeText(
+                                                        requireContext(),
+                                                        getString(R.string.downloaded),
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                    tvDownload.text = getString(R.string.downloaded)
+                                                    ivDownload.setImageResource(R.drawable.baseline_downloaded)
+                                                    setEnabledAll(btDownload, true)
+                                                }
+
+                                                else -> {
+                                                    Log.d("Download", "onCreate: ${download.state}")
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            } else if (tvDownload.text == getString(R.string.downloaded) || tvDownload.text == getString(
+                                    R.string.downloading
+                                )
+                            ) {
+                                DownloadService.sendRemoveDownload(
+                                    requireContext(),
+                                    MusicDownloadService::class.java,
+                                    track.videoId,
+                                    false
+                                )
+                                viewModel.updateDownloadState(
+                                    track.videoId,
+                                    DownloadState.STATE_NOT_DOWNLOADED
+                                )
+                                tvDownload.text = getString(R.string.download)
+                                ivDownload.setImageResource(R.drawable.outline_download_for_offline_24)
+                                setEnabledAll(btDownload, true)
+                                Toast.makeText(
+                                    requireContext(),
+                                    getString(R.string.removed_download),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                    }
+                    dialog.setCancelable(true)
+                    dialog.setContentView(bottomSheetView.root)
+                    dialog.show()
+                }
+            }
+        }
+    }
+
+    private val items = arrayOf(
+        "US",
+        "ZZ",
+        "AR",
+        "AU",
+        "AT",
+        "BE",
+        "BO",
+        "BR",
+        "CA",
+        "CL",
+        "CO",
+        "CR",
+        "CZ",
+        "DK",
+        "DO",
+        "EC",
+        "EG",
+        "SV",
+        "EE",
+        "FI",
+        "FR",
+        "DE",
+        "GT",
+        "HN",
+        "HU",
+        "IS",
+        "IN",
+        "ID",
+        "IE",
+        "IL",
+        "IT",
+        "JP",
+        "KE",
+        "LU",
+        "MX",
+        "NL",
+        "NZ",
+        "NI",
+        "NG",
+        "NO",
+        "PA",
+        "PY",
+        "PE",
+        "PL",
+        "PT",
+        "RO",
+        "RU",
+        "SA",
+        "RS",
+        "ZA",
+        "KR",
+        "ES",
+        "SE",
+        "CH",
+        "TZ",
+        "TR",
+        "UG",
+        "UA",
+        "AE",
+        "GB",
+        "UY",
+        "ZW"
+    )
+    private val itemsData = arrayOf(
+        "United States",
+        "Global",
+        "Argentina",
+        "Australia",
+        "Austria",
+        "Belgium",
+        "Bolivia",
+        "Brazil",
+        "Canada",
+        "Chile",
+        "Colombia",
+        "Costa Rica",
+        "Czech Republic",
+        "Denmark",
+        "Dominican Republic",
+        "Ecuador",
+        "Egypt",
+        "El Salvador",
+        "Estonia",
+        "Finland",
+        "France",
+        "Germany",
+        "Guatemala",
+        "Honduras",
+        "Hungary",
+        "Iceland",
+        "India",
+        "Indonesia",
+        "Ireland",
+        "Israel",
+        "Italy",
+        "Japan",
+        "Kenya",
+        "Luxembourg",
+        "Mexico",
+        "Netherlands",
+        "New Zealand",
+        "Nicaragua",
+        "Nigeria",
+        "Norway",
+        "Panama",
+        "Paraguay",
+        "Peru",
+        "Poland",
+        "Portugal",
+        "Romania",
+        "Russia",
+        "Saudi Arabia",
+        "Serbia",
+        "South Africa",
+        "South Korea",
+        "Spain",
+        "Sweden",
+        "Switzerland",
+        "Tanzania",
+        "Turkey",
+        "Uganda",
+        "Ukraine",
+        "United Arab Emirates",
+        "United Kingdom",
+        "Uruguay",
+        "Zimbabwe"
+    )
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -74,13 +511,23 @@ class HomeFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        mAdapter = HomeItemAdapter(arrayListOf(), requireContext(), findNavController())
+        mAdapter = HomeItemAdapter(
+            arrayListOf(),
+            requireContext(),
+            findNavController(),
+            onSongOrVideoLongClickListener
+        )
         moodsMomentAdapter = MoodsMomentAdapter(arrayListOf())
         genreAdapter = GenreAdapter(arrayListOf())
         trackChartAdapter = TrackChartAdapter(arrayListOf(), requireContext())
         artistChartAdapter = ArtistChartAdapter(arrayListOf(), requireContext())
         quickPicksAdapter = QuickPicksAdapter(arrayListOf(), requireContext(), findNavController())
-        newReleaseAdapter = HomeItemAdapter(arrayListOf(), requireContext(), findNavController())
+        newReleaseAdapter = HomeItemAdapter(
+            arrayListOf(),
+            requireContext(),
+            findNavController(),
+            onSongOrVideoLongClickListener
+        )
         initView()
         initObserver()
     }
@@ -382,8 +829,21 @@ class HomeFragment : Fragment() {
 
     private fun showData() {
         binding.shimmerLayout.stopShimmer()
-        binding.shimmerLayout.visibility = View.GONE
-        binding.fullLayout.visibility = View.VISIBLE
+        val shortAnimationDuration = resources.getInteger(android.R.integer.config_shortAnimTime)
+        binding.fullLayout.apply {
+            // Set the content view to 0% opacity but visible, so that it is
+            // visible but fully transparent during the animation.
+            alpha = 0f
+            binding.shimmerLayout.visibility = View.GONE
+            visibility = View.VISIBLE
+
+            // Animate the content view to 100% opacity and clear any animation
+            // listener set on the view.
+            animate()
+                .alpha(1f)
+                .setDuration(shortAnimationDuration.toLong())
+                .setListener(null)
+        }
         binding.swipeRefreshLayout.isRefreshing = false
     }
 

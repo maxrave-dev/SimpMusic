@@ -9,30 +9,54 @@ import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.databinding.ItemQueueTrackBinding
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.toListName
+import java.util.Collections
 
 
-class QueueAdapter(private val listTrack: ArrayList<Track>, val context: Context, private var currentPlaying: Int): RecyclerView.Adapter<QueueAdapter.QueueViewHolder>() {
+class QueueAdapter(
+    private val listTrack: ArrayList<Track>,
+    val context: Context,
+    private var currentPlaying: Int
+) : RecyclerView.Adapter<QueueAdapter.QueueViewHolder>(),
+    RecyclerRowMoveCallback.RecyclerViewRowTouchHelperContract {
     private lateinit var mListener: OnItemClickListener
     private lateinit var mOptionListener: OnOptionClickListener
-    interface OnItemClickListener{
+    private lateinit var mSwapListener: OnSwapListener
+
+    interface OnItemClickListener {
         fun onItemClick(position: Int)
     }
-    fun setOnClickListener(listener: OnItemClickListener){
+
+    fun setOnClickListener(listener: OnItemClickListener) {
         mListener = listener
     }
-    interface OnOptionClickListener{
+
+    fun setOnSwapListener(listener: OnSwapListener) {
+        mSwapListener = listener
+    }
+
+    interface OnOptionClickListener {
         fun onOptionClick(position: Int)
     }
-    fun setOnOptionClickListener(listener: OnOptionClickListener){
+
+    interface OnSwapListener {
+        fun onSwap(from: Int, to: Int)
+    }
+
+    fun setOnOptionClickListener(listener: OnOptionClickListener) {
         mOptionListener = listener
     }
+
     fun setCurrentPlaying(position: Int) {
         currentPlaying = position
         notifyDataSetChanged()
     }
 
-     inner class QueueViewHolder(val binding: ItemQueueTrackBinding, listener: OnItemClickListener, optionClickListener: OnOptionClickListener): RecyclerView.ViewHolder(binding.root) {
-         init {
+    inner class QueueViewHolder(
+        val binding: ItemQueueTrackBinding,
+        listener: OnItemClickListener,
+        optionClickListener: OnOptionClickListener
+    ) : RecyclerView.ViewHolder(binding.root) {
+        init {
              binding.root.setOnClickListener {
                  listener.onItemClick(bindingAdapterPosition)
              }
@@ -82,6 +106,39 @@ class QueueAdapter(private val listTrack: ArrayList<Track>, val context: Context
                 binding.tvArtistName.isSelected = true
             }
         }
+    }
+
+    override fun onRowMoved(from: Int, to: Int) {
+        if (from < to) {
+            for (i in from until to) {
+                Collections.swap(listTrack, i, i + 1)
+            }
+        } else {
+            for (i in from downTo to + 1) {
+                Collections.swap(listTrack, i, i - 1)
+            }
+        }
+        mSwapListener.onSwap(from, to)
+        notifyItemMoved(from, to)
+    }
+
+    override fun onRowMove(from: Int, to: Int) {
+        if (from < to) {
+            for (i in from until to) {
+                Collections.swap(listTrack, i, i + 1)
+            }
+        } else {
+            for (i in from downTo to + 1) {
+                Collections.swap(listTrack, i, i - 1)
+            }
+        }
+        notifyItemMoved(from, to)
+    }
+
+    override fun onRowSelected(myViewHolder: QueueViewHolder?) {
+    }
+
+    override fun onRowClear(myViewHolder: QueueViewHolder?) {
     }
 
 //    override fun onViewAttachedToWindow(holder: QueueViewHolder) {

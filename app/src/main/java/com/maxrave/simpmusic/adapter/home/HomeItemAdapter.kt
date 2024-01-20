@@ -19,11 +19,17 @@ import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.ItemHomeBinding
 import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.toTrack
+import com.maxrave.simpmusic.viewModel.HomeViewModel
 
-class HomeItemAdapter(private var homeItemList: ArrayList<HomeItem>, var context: Context, val navController: NavController): RecyclerView.Adapter<HomeItemAdapter.ViewHolder>() {
+class HomeItemAdapter(
+    private var homeItemList: ArrayList<HomeItem>,
+    var context: Context,
+    val navController: NavController,
+    private val onLongClickListener: HomeItemContentAdapter.OnSongOrVideoLongClickListener
+) : RecyclerView.Adapter<HomeItemAdapter.ViewHolder>() {
     inner class ViewHolder(var binding: ItemHomeBinding) : RecyclerView.ViewHolder(binding.root)
 
-    fun updateData(newData: ArrayList<HomeItem>){
+    fun updateData(newData: ArrayList<HomeItem>) {
         homeItemList.clear()
         homeItemList.addAll(newData)
         notifyDataSetChanged()
@@ -104,14 +110,18 @@ class HomeItemAdapter(private var homeItemList: ArrayList<HomeItem>, var context
                 navController.navigateSafe(R.id.action_global_albumFragment, args)
             }
         })
-        itemAdapter.setOnArtistClickListener(object : HomeItemContentAdapter.onArtistItemClickListener {
+        itemAdapter.setOnArtistClickListener(object :
+            HomeItemContentAdapter.onArtistItemClickListener {
             override fun onArtistItemClick(position: Int) {
                 val args = Bundle()
-                val channelId = homeItemList[holder.bindingAdapterPosition].contents[position]?.browseId ?: homeItemList[holder.bindingAdapterPosition].contents[position]?.playlistId
+                val channelId =
+                    homeItemList[holder.bindingAdapterPosition].contents[position]?.browseId
+                        ?: homeItemList[holder.bindingAdapterPosition].contents[position]?.playlistId
                 Log.d("HomeItemAdapter", "onArtistItemClick: $channelId")
                 args.putString("channelId", channelId)
                 navController.navigateSafe(R.id.action_global_artistFragment, args)
             }
         })
+        itemAdapter.setOnSongOrVideoLongClickListener(onLongClickListener)
     }
 }

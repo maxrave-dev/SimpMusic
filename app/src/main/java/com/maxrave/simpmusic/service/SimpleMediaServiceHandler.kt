@@ -38,6 +38,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.first
+import java.util.Collections
 
 @UnstableApi
 class SimpleMediaServiceHandler constructor(
@@ -229,7 +230,7 @@ class SimpleMediaServiceHandler constructor(
         Log.d("Media Item List", "addMediaItemList: ${player.mediaItemCount}")
     }
 
-    fun playMediaItemInMediaSource(index: Int){
+    fun playMediaItemInMediaSource(index: Int) {
         player.seekTo(index, 0)
         player.prepare()
         player.playWhenReady = true
@@ -238,6 +239,18 @@ class SimpleMediaServiceHandler constructor(
     fun moveMediaItem(fromIndex: Int, newIndex: Int) {
         player.moveMediaItem(fromIndex, newIndex)
         _currentSongIndex.value = currentIndex()
+    }
+
+    fun swap(from: Int, to: Int) {
+        if (from < to) {
+            for (i in from until to) {
+                moveItemDown(i)
+            }
+        } else {
+            for (i in from downTo to + 1) {
+                moveItemUp(i)
+            }
+        }
     }
 
     suspend fun onPlayerEvent(playerEvent: PlayerEvent) {

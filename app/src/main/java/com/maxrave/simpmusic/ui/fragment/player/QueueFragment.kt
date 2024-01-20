@@ -10,6 +10,7 @@ import android.view.WindowManager
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
@@ -18,6 +19,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.adapter.queue.QueueAdapter
+import com.maxrave.simpmusic.adapter.queue.RecyclerRowMoveCallback
 import com.maxrave.simpmusic.databinding.BottomSheetQueueTrackOptionBinding
 import com.maxrave.simpmusic.databinding.QueueBottomSheetBinding
 import com.maxrave.simpmusic.extension.setEnabledAll
@@ -26,6 +28,7 @@ import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+
 
 @AndroidEntryPoint
 class QueueFragment: BottomSheetDialogFragment() {
@@ -91,14 +94,17 @@ class QueueFragment: BottomSheetDialogFragment() {
             adapter = queueAdapter
             layoutManager = LinearLayoutManager(requireContext())
         }
+        val callback: ItemTouchHelper.Callback = RecyclerRowMoveCallback(queueAdapter)
+        val touchHelper = ItemTouchHelper(callback)
+        touchHelper.attachToRecyclerView(binding.rvQueue)
         if (!viewModel.simpleMediaServiceHandler?.catalogMetadata.isNullOrEmpty()) {
             queueAdapter.updateList(viewModel.simpleMediaServiceHandler!!.catalogMetadata)
         }
 
         lifecycleScope.launch {
             val job1 = launch {
-                viewModel.simpleMediaServiceHandler?.stateFlow?.collect{ state ->
-                    when(state) {
+                viewModel.simpleMediaServiceHandler?.stateFlow?.collect { state ->
+                    when (state) {
                         StateSource.STATE_INITIALIZING -> {
                             binding.loadingQueue.visibility = View.VISIBLE
                             binding.rvQueue.visibility = View.VISIBLE
@@ -174,6 +180,12 @@ class QueueFragment: BottomSheetDialogFragment() {
             override fun onItemClick(position: Int) {
                 viewModel.playMediaItemInMediaSource(position)
                 dismiss()
+            }
+        })
+        queueAdapter.setOnSwapListener(object : QueueAdapter.OnSwapListener {
+            override fun onSwap(from: Int, to: Int) {
+                viewModel.simpleMediaServiceHandler?.swap(from, to)
+                queueAdapter.updateList(viewModel.simpleMediaServiceHandler!!.catalogMetadata)
             }
         })
         queueAdapter.setOnOptionClickListener(object : QueueAdapter.OnOptionClickListener {
