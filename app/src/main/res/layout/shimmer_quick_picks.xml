@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical">
+
+    <androidx.cardview.widget.CardView
+        android:layout_width="150sp"
+        android:layout_height="20sp"
+        android:layout_marginBottom="8sp"
+        android:layout_marginTop="8sp"
+        app:cardBackgroundColor="@color/shimmerBackground"
+        app:cardCornerRadius="3sp"
+        style="?attr/materialCardViewElevatedStyle"></androidx.cardview.widget.CardView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:padding="10sp">
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/ivThumbnail"
+                android:layout_alignParentStart="true"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:scaleType="centerCrop"
+                app:cardBackgroundColor="@color/shimmerBackground"
+                app:cardCornerRadius="5sp"
+                style="?attr/materialCardViewElevatedStyle" />
+
+            <LinearLayout
+                android:layout_marginEnd="80dp"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginStart="10dp"
+                android:layout_toEndOf="@+id/ivThumbnail"
+                android:orientation="vertical"
+                android:paddingVertical="3dp">
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="21dp"
+                    android:scaleType="centerCrop"
+                    app:cardBackgroundColor="@color/shimmerBackground"
+                    app:cardCornerRadius="5sp"
+                    android:layout_marginBottom="2dp"
+                    style="?attr/materialCardViewElevatedStyle" />
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="21dp"
+                    android:scaleType="centerCrop"
+                    app:cardBackgroundColor="@color/shimmerBackground"
+                    app:cardCornerRadius="5sp"
+                    android:layout_marginEnd="60dp"
+                    style="?attr/materialCardViewElevatedStyle" />
+            </LinearLayout>
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:padding="10sp">
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/ivThumbnail1"
+                android:layout_alignParentStart="true"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:scaleType="centerCrop"
+                app:cardBackgroundColor="@color/shimmerBackground"
+                app:cardCornerRadius="5sp"
+                style="?attr/materialCardViewElevatedStyle" />
+
+            <LinearLayout
+                android:layout_marginEnd="80dp"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginStart="10dp"
+                android:layout_toEndOf="@+id/ivThumbnail1"
+                android:orientation="vertical"
+                android:paddingVertical="3dp">
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="21dp"
+                    android:scaleType="centerCrop"
+                    app:cardBackgroundColor="@color/shimmerBackground"
+                    app:cardCornerRadius="5sp"
+                    android:layout_marginBottom="2dp"
+                    style="?attr/materialCardViewElevatedStyle" />
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="21dp"
+                    android:scaleType="centerCrop"
+                    app:cardBackgroundColor="@color/shimmerBackground"
+                    app:cardCornerRadius="5sp"
+                    android:layout_marginEnd="60dp"
+                    style="?attr/materialCardViewElevatedStyle" />
+            </LinearLayout>
+
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="70dp"
+            android:padding="10sp">
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/ivThumbnail3"
+                android:layout_alignParentStart="true"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:scaleType="centerCrop"
+                app:cardBackgroundColor="@color/shimmerBackground"
+                app:cardCornerRadius="5sp"
+                style="?attr/materialCardViewElevatedStyle" />
+
+            <LinearLayout
+                android:layout_marginEnd="80dp"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginStart="10dp"
+                android:layout_toEndOf="@+id/ivThumbnail3"
+                android:orientation="vertical"
+                android:paddingVertical="3dp">
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="21dp"
+                    android:scaleType="centerCrop"
+                    app:cardBackgroundColor="@color/shimmerBackground"
+                    app:cardCornerRadius="5sp"
+                    android:layout_marginBottom="2dp"
+                    style="?attr/materialCardViewElevatedStyle" />
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="21dp"
+                    android:scaleType="centerCrop"
+                    app:cardBackgroundColor="@color/shimmerBackground"
+                    app:cardCornerRadius="5sp"
+                    android:layout_marginEnd="60dp"
+                    style="?attr/materialCardViewElevatedStyle" />
+            </LinearLayout>
+
+        </RelativeLayout>
+    </LinearLayout>
+
+</LinearLayout>

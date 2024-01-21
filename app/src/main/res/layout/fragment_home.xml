@@ -47,6 +47,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
+                    <include layout="@layout/shimmer_quick_picks" />
 
                     <include layout="@layout/shimmer_home_fragment" />
 

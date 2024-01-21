@@ -7,11 +7,11 @@ import android.net.Uri
 import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.cache.SimpleCache
+import coil.annotation.ExperimentalCoilApi
+import coil.imageLoader
 import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
@@ -38,10 +38,10 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.zip.ZipEntry
@@ -50,65 +50,77 @@ import kotlin.system.exitProcess
 
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
-    application: Application,
+    private val application: Application,
     private var mainRepository: MainRepository,
     private var database: MusicDatabase,
     private var databaseDao: DatabaseDao,
     @PlayerCache val playerCache: SimpleCache,
     @DownloadCache val downloadCache: SimpleCache,
-    ) : AndroidViewModel(application) {
+) : AndroidViewModel(application) {
 
     @Inject
     lateinit var dataStoreManager: DataStoreManager
 
-    private var _location: MutableLiveData<String> = MutableLiveData()
-    val location: LiveData<String> = _location
-    private var _language: MutableLiveData<String?> = MutableLiveData()
-    val language: LiveData<String?> = _language
-    private var _loggedIn: MutableLiveData<String> = MutableLiveData()
-    val loggedIn: LiveData<String> = _loggedIn
-    private var _normalizeVolume: MutableLiveData<String> = MutableLiveData()
-    val normalizeVolume: LiveData<String> = _normalizeVolume
-    private var _skipSilent: MutableLiveData<String> = MutableLiveData()
-    val skipSilent: LiveData<String> = _skipSilent
-    private var _pipedInstance: MutableLiveData<String> = MutableLiveData()
-    val pipedInstance: LiveData<String> = _pipedInstance
-    private var _savedPlaybackState: MutableLiveData<String> = MutableLiveData()
-    val savedPlaybackState: LiveData<String> = _savedPlaybackState
-    private var _saveRecentSongAndQueue: MutableLiveData<String> = MutableLiveData()
-    val saveRecentSongAndQueue: LiveData<String> = _saveRecentSongAndQueue
-    private var _lastCheckForUpdate: MutableLiveData<String?> = MutableLiveData()
-    val lastCheckForUpdate: LiveData<String?> = _lastCheckForUpdate
-    private var _githubResponse = MutableLiveData<GithubResponse?>()
-    val githubResponse: LiveData<GithubResponse?> = _githubResponse
-    private var _sponsorBlockEnabled: MutableLiveData<String> = MutableLiveData()
-    val sponsorBlockEnabled: LiveData<String> = _sponsorBlockEnabled
-    private var _sponsorBlockCategories: MutableLiveData<ArrayList<String>> = MutableLiveData()
-    val sponsorBlockCategories: LiveData<ArrayList<String>> = _sponsorBlockCategories
-    private var _sendBackToGoogle: MutableLiveData<String> = MutableLiveData()
-    val sendBackToGoogle: LiveData<String> = _sendBackToGoogle
-    private var _mainLyricsProvider: MutableLiveData<String> = MutableLiveData()
-    val mainLyricsProvider: LiveData<String> = _mainLyricsProvider
-    private var _musixmatchLoggedIn: MutableLiveData<String> = MutableLiveData()
-    val musixmatchLoggedIn: LiveData<String> = _musixmatchLoggedIn
-    private var _translationLanguage: MutableLiveData<String> = MutableLiveData()
-    val translationLanguage: LiveData<String> = _translationLanguage
-    private var _useTranslation: MutableLiveData<String> = MutableLiveData()
-    val useTranslation: LiveData<String> = _useTranslation
-    private var _playerCacheLimit: MutableLiveData<Int> = MutableLiveData()
-    val playerCacheLimit: LiveData<Int> = _playerCacheLimit
-    private var _playVideoInsteadOfAudio: MutableLiveData<String> = MutableLiveData()
-    val playVideoInsteadOfAudio: LiveData<String> = _playVideoInsteadOfAudio
-    private var _videoQuality: MutableLiveData<String> = MutableLiveData()
-    val videoQuality: LiveData<String> = _videoQuality
+    private var _location: MutableStateFlow<String?> = MutableStateFlow(null)
+    val location: StateFlow<String?> = _location
+    private var _language: MutableStateFlow<String?> = MutableStateFlow(null)
+    val language: StateFlow<String?> = _language
+    private var _loggedIn: MutableStateFlow<String?> = MutableStateFlow(null)
+    val loggedIn: StateFlow<String?> = _loggedIn
+    private var _normalizeVolume: MutableStateFlow<String?> = MutableStateFlow(null)
+    val normalizeVolume: StateFlow<String?> = _normalizeVolume
+    private var _skipSilent: MutableStateFlow<String?> = MutableStateFlow(null)
+    val skipSilent: StateFlow<String?> = _skipSilent
+    private var _pipedInstance: MutableStateFlow<String?> = MutableStateFlow(null)
+    val pipedInstance: StateFlow<String?> = _pipedInstance
+    private var _savedPlaybackState: MutableStateFlow<String?> = MutableStateFlow(null)
+    val savedPlaybackState: StateFlow<String?> = _savedPlaybackState
+    private var _saveRecentSongAndQueue: MutableStateFlow<String?> = MutableStateFlow(null)
+    val saveRecentSongAndQueue: StateFlow<String?> = _saveRecentSongAndQueue
+    private var _lastCheckForUpdate: MutableStateFlow<String?> = MutableStateFlow(null)
+    val lastCheckForUpdate: StateFlow<String?> = _lastCheckForUpdate
+    private var _githubResponse = MutableStateFlow<GithubResponse?>(null)
+    val githubResponse: StateFlow<GithubResponse?> = _githubResponse
+    private var _sponsorBlockEnabled: MutableStateFlow<String?> = MutableStateFlow(null)
+    val sponsorBlockEnabled: StateFlow<String?> = _sponsorBlockEnabled
+    private var _sponsorBlockCategories: MutableStateFlow<ArrayList<String>?> =
+        MutableStateFlow(null)
+    val sponsorBlockCategories: StateFlow<ArrayList<String>?> = _sponsorBlockCategories
+    private var _sendBackToGoogle: MutableStateFlow<String?> = MutableStateFlow(null)
+    val sendBackToGoogle: StateFlow<String?> = _sendBackToGoogle
+    private var _mainLyricsProvider: MutableStateFlow<String?> = MutableStateFlow(null)
+    val mainLyricsProvider: StateFlow<String?> = _mainLyricsProvider
+    private var _musixmatchLoggedIn: MutableStateFlow<String?> = MutableStateFlow(null)
+    val musixmatchLoggedIn: StateFlow<String?> = _musixmatchLoggedIn
+    private var _translationLanguage: MutableStateFlow<String?> = MutableStateFlow(null)
+    val translationLanguage: StateFlow<String?> = _translationLanguage
+    private var _useTranslation: MutableStateFlow<String?> = MutableStateFlow(null)
+    val useTranslation: StateFlow<String?> = _useTranslation
+    private var _playerCacheLimit: MutableStateFlow<Int?> = MutableStateFlow(null)
+    val playerCacheLimit: StateFlow<Int?> = _playerCacheLimit
+    private var _playVideoInsteadOfAudio: MutableStateFlow<String?> = MutableStateFlow(null)
+    val playVideoInsteadOfAudio: StateFlow<String?> = _playVideoInsteadOfAudio
+    private var _videoQuality: MutableStateFlow<String?> = MutableStateFlow(null)
+    val videoQuality: StateFlow<String?> = _videoQuality
+    private var _thumbCacheSize = MutableStateFlow<Long?>(null)
+    val thumbCacheSize: StateFlow<Long?> = _thumbCacheSize
+
+    @OptIn(ExperimentalCoilApi::class)
+    fun getThumbCacheSize() {
+        viewModelScope.launch {
+
+            val diskCache = application.imageLoader.diskCache
+            _thumbCacheSize.emit(diskCache?.size)
+
+        }
+    }
+
     fun getVideoQuality() {
         viewModelScope.launch {
-            withContext(Dispatchers.Main) {
-                dataStoreManager.videoQuality.collect { videoQuality ->
-                    when (videoQuality) {
-                        VIDEO_QUALITY.items[0].toString() -> _videoQuality.postValue(VIDEO_QUALITY.items[0].toString())
-                        VIDEO_QUALITY.items[1].toString() -> _videoQuality.postValue(VIDEO_QUALITY.items[1].toString())
-                    }
+            dataStoreManager.videoQuality.collect { videoQuality ->
+                when (videoQuality) {
+                    VIDEO_QUALITY.items[0].toString() -> _videoQuality.emit(VIDEO_QUALITY.items[0].toString())
+                    VIDEO_QUALITY.items[1].toString() -> _videoQuality.emit(VIDEO_QUALITY.items[1].toString())
                 }
             }
         }
@@ -116,196 +128,161 @@ class SettingsViewModel @Inject constructor(
 
     fun getTranslationLanguage() {
         viewModelScope.launch {
-            withContext(Dispatchers.Main) {
                 dataStoreManager.translationLanguage.collect { translationLanguage ->
-                    _translationLanguage.postValue(translationLanguage)
-                }
+                    _translationLanguage.emit(translationLanguage)
             }
         }
     }
 
     fun setTranslationLanguage(language: String) {
         viewModelScope.launch {
-            withContext(Dispatchers.Main) {
                 dataStoreManager.setTranslationLanguage(language)
                 getTranslationLanguage()
-            }
         }
     }
     fun getUseTranslation() {
         viewModelScope.launch {
-            withContext(Dispatchers.Main) {
                 dataStoreManager.enableTranslateLyric.collect { useTranslation ->
-                    _useTranslation.postValue(useTranslation)
+                    _useTranslation.emit(useTranslation)
                 }
-            }
         }
     }
     fun setUseTranslation(useTranslation: Boolean) {
         viewModelScope.launch {
-            withContext(Dispatchers.Main) {
                 dataStoreManager.setEnableTranslateLyric(useTranslation)
                 getUseTranslation()
-            }
         }
     }
     fun getMusixmatchLoggedIn() {
         viewModelScope.launch {
-            withContext(Dispatchers.Main) {
                 dataStoreManager.musixmatchLoggedIn.collect { musixmatchLoggedIn ->
-                    _musixmatchLoggedIn.postValue(musixmatchLoggedIn)
+                    _musixmatchLoggedIn.emit(musixmatchLoggedIn)
                 }
-            }
         }
     }
     fun setMusixmatchLoggedIn(loggedIn: Boolean) {
         viewModelScope.launch {
-            withContext(Dispatchers.Main) {
                 dataStoreManager.setMusixmatchLoggedIn(loggedIn)
                 getMusixmatchLoggedIn()
-            }
         }
     }
     fun getLyricsProvider() {
         viewModelScope.launch {
-            withContext(Dispatchers.Main) {
                 dataStoreManager.lyricsProvider.collect { mainLyricsProvider ->
-                    _mainLyricsProvider.postValue(mainLyricsProvider)
+                    _mainLyricsProvider.emit(mainLyricsProvider)
                 }
             }
-        }
     }
     fun setLyricsProvider(provider: String) {
         viewModelScope.launch {
-            withContext(Dispatchers.Main) {
                 dataStoreManager.setLyricsProvider(provider)
                 getLyricsProvider()
-            }
         }
     }
 
     fun checkForUpdate() {
         viewModelScope.launch {
             mainRepository.checkForUpdate().collect {response ->
-                dataStoreManager.putString("CheckForUpdateAt", System.currentTimeMillis().toString())
-                _githubResponse.postValue(response)
+                dataStoreManager.putString(
+                    "CheckForUpdateAt",
+                    System.currentTimeMillis().toString()
+                )
+                _githubResponse.emit(response)
             }
         }
     }
 
     fun getLocation() {
         viewModelScope.launch {
-            withContext(Dispatchers.Main) {
                 dataStoreManager.location.collect { location ->
-                    _location.postValue(location)
+                    _location.emit(location)
                 }
-            }
         }
     }
     fun getLoggedIn() {
         viewModelScope.launch {
-            withContext(Dispatchers.Main) {
                 dataStoreManager.loggedIn.collect { loggedIn ->
-                    _loggedIn.postValue(loggedIn)
+                    _loggedIn.emit(loggedIn)
                 }
-            }
         }
     }
 
     fun changeLocation(location: String) {
         viewModelScope.launch {
-            withContext((Dispatchers.Main)) {
                 dataStoreManager.setLocation(location)
                 YouTube.locale = YouTubeLocale(location, language.value!!)
                 getLocation()
-            }
         }
     }
     fun getSaveRecentSongAndQueue() {
         viewModelScope.launch {
-            withContext(Dispatchers.Main) {
                 dataStoreManager.saveRecentSongAndQueue.collect { saved ->
-                    _saveRecentSongAndQueue.postValue(saved)
+                    _saveRecentSongAndQueue.emit(saved)
                 }
-            }
         }
     }
     fun getLastCheckForUpdate() {
         viewModelScope.launch {
-            withContext(Dispatchers.Main) {
                 dataStoreManager.getString("CheckForUpdateAt").first().let { lastCheckForUpdate ->
-                    _lastCheckForUpdate.postValue(lastCheckForUpdate)
+                    _lastCheckForUpdate.emit(lastCheckForUpdate)
                 }
-            }
         }
     }
 
     fun getSponsorBlockEnabled() {
         viewModelScope.launch {
-            withContext(Dispatchers.Main) {
                 dataStoreManager.sponsorBlockEnabled.first().let { enabled ->
-                    _sponsorBlockEnabled.postValue(enabled)
+                    _sponsorBlockEnabled.emit(enabled)
                 }
             }
-        }
     }
 
     fun setSponsorBlockEnabled(enabled: Boolean) {
         viewModelScope.launch {
-            withContext(Dispatchers.Main) {
-                dataStoreManager.setSponsorBlockEnabled(enabled)
-                getSponsorBlockEnabled()
-            }
+            dataStoreManager.setSponsorBlockEnabled(enabled)
+            getSponsorBlockEnabled()
         }
     }
 
     fun getPlayVideoInsteadOfAudio() {
         viewModelScope.launch {
-            withContext(Dispatchers.Main) {
                 dataStoreManager.watchVideoInsteadOfPlayingAudio.collect { playVideoInsteadOfAudio ->
-                    _playVideoInsteadOfAudio.postValue(playVideoInsteadOfAudio)
+                    _playVideoInsteadOfAudio.emit(playVideoInsteadOfAudio)
                 }
-            }
         }
     }
 
     fun setPlayVideoInsteadOfAudio(playVideoInsteadOfAudio: Boolean) {
         viewModelScope.launch {
-            withContext(Dispatchers.Main) {
                 dataStoreManager.setWatchVideoInsteadOfPlayingAudio(playVideoInsteadOfAudio)
                 getPlayVideoInsteadOfAudio()
-            }
         }
     }
 
     fun getSponsorBlockCategories() {
         viewModelScope.launch {
-            withContext(Dispatchers.Main) {
                 dataStoreManager.getSponsorBlockCategories().let {
-                    _sponsorBlockCategories.postValue(it)
+                    _sponsorBlockCategories.emit(it)
                 }
-            }
         }
     }
+
     fun setSponsorBlockCategories(list: ArrayList<String>) {
         viewModelScope.launch {
-            withContext(Dispatchers.Main) {
-                dataStoreManager.setSponsorBlockCategories(list)
-                getSponsorBlockCategories()
-            }
+            dataStoreManager.setSponsorBlockCategories(list)
+            getSponsorBlockCategories()
         }
     }
-    private var _quality: MutableLiveData<String> = MutableLiveData()
-    val quality: LiveData<String> = _quality
+
+    private var _quality: MutableStateFlow<String?> = MutableStateFlow(null)
+    val quality: StateFlow<String?> = _quality
 
     fun getQuality() {
         viewModelScope.launch {
-            withContext(Dispatchers.Main) {
-                dataStoreManager.quality.collect { quality ->
-                    when (quality) {
-                        QUALITY.items[0].toString() -> _quality.postValue(QUALITY.items[0].toString())
-                        QUALITY.items[1].toString() -> _quality.postValue(QUALITY.items[1].toString())
-                    }
+            dataStoreManager.quality.collect { quality ->
+                when (quality) {
+                    QUALITY.items[0].toString() -> _quality.emit(QUALITY.items[0].toString())
+                    QUALITY.items[1].toString() -> _quality.emit(QUALITY.items[1].toString())
                 }
             }
         }
@@ -313,30 +290,26 @@ class SettingsViewModel @Inject constructor(
 
     fun changeVideoQuality(checkedIndex: Int) {
         viewModelScope.launch {
-            withContext((Dispatchers.Main)) {
                 when (checkedIndex) {
                     0 -> dataStoreManager.setVideoQuality(VIDEO_QUALITY.items[0].toString())
                     1 -> dataStoreManager.setVideoQuality(VIDEO_QUALITY.items[1].toString())
                 }
                 getVideoQuality()
-            }
         }
     }
 
     fun changeQuality(checkedIndex: Int) {
         viewModelScope.launch {
-            withContext((Dispatchers.Main)) {
-                when (checkedIndex) {
-                    0 -> dataStoreManager.setQuality(QUALITY.items[0].toString())
-                    1 -> dataStoreManager.setQuality(QUALITY.items[1].toString())
-                }
-                getQuality()
+            when (checkedIndex) {
+                0 -> dataStoreManager.setQuality(QUALITY.items[0].toString())
+                1 -> dataStoreManager.setQuality(QUALITY.items[1].toString())
             }
+            getQuality()
         }
     }
 
-    private val _cacheSize: MutableLiveData<Long> = MutableLiveData()
-    var cacheSize: LiveData<Long> = _cacheSize
+    private val _cacheSize: MutableStateFlow<Long?> = MutableStateFlow(null)
+    var cacheSize: StateFlow<Long?> = _cacheSize
 
     @UnstableApi
     fun getPlayerCacheSize() {
@@ -354,8 +327,8 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    private val _downloadedCacheSize: MutableLiveData<Long> = MutableLiveData()
-    var downloadedCacheSize: LiveData<Long> = _downloadedCacheSize
+    private val _downloadedCacheSize: MutableStateFlow<Long?> = MutableStateFlow(null)
+    var downloadedCacheSize: StateFlow<Long?> = _downloadedCacheSize
 
     @UnstableApi
     fun getDownloadedCacheSize() {
@@ -447,77 +420,62 @@ class SettingsViewModel @Inject constructor(
 
     fun getLanguage() {
         viewModelScope.launch {
-            withContext(Dispatchers.Main){
                 dataStoreManager.getString(SELECTED_LANGUAGE).collect { language ->
-                    _language.postValue(language)
+                    _language.emit(language)
                 }
-            }
         }
     }
 
     @UnstableApi
     fun changeLanguage(code: String) {
         viewModelScope.launch {
-            withContext((Dispatchers.Main)) {
                 dataStoreManager.putString(SELECTED_LANGUAGE, code)
                 YouTube.locale = YouTubeLocale(location.value!!, code)
                 getLanguage()
-            }
         }
     }
 
     fun clearCookie() {
         viewModelScope.launch {
-            withContext((Dispatchers.Main)) {
                 dataStoreManager.setCookie("")
                 YouTube.cookie = null
                 dataStoreManager.setLoggedIn(false)
-            }
         }
     }
 
     fun getNormalizeVolume() {
         viewModelScope.launch {
-            withContext(Dispatchers.Main) {
                 dataStoreManager.normalizeVolume.collect { normalizeVolume ->
-                    _normalizeVolume.postValue(normalizeVolume)
-                }
+                    _normalizeVolume.emit(normalizeVolume)
             }
         }
     }
     @UnstableApi
     fun setNormalizeVolume(normalizeVolume: Boolean) {
         viewModelScope.launch {
-            withContext((Dispatchers.Main)) {
                 dataStoreManager.setNormalizeVolume(normalizeVolume)
                 getNormalizeVolume()
-            }
         }
     }
     fun getSendBackToGoogle() {
         viewModelScope.launch {
-            withContext(Dispatchers.Main) {
+
                 dataStoreManager.sendBackToGoogle.collect { sendBackToGoogle ->
-                    _sendBackToGoogle.postValue(sendBackToGoogle)
-                }
+                    _sendBackToGoogle.emit(sendBackToGoogle)
             }
         }
     }
     fun setSendBackToGoogle(sendBackToGoogle: Boolean) {
         viewModelScope.launch {
-            withContext((Dispatchers.Main)) {
                 dataStoreManager.setSendBackToGoogle(sendBackToGoogle)
                 getSendBackToGoogle()
-            }
         }
     }
     fun getSkipSilent() {
         viewModelScope.launch {
-            withContext(Dispatchers.Main) {
                 dataStoreManager.skipSilent.collect { skipSilent ->
-                    _skipSilent.postValue(skipSilent)
+                    _skipSilent.emit(skipSilent)
 
-                }
             }
         }
     }
@@ -525,53 +483,43 @@ class SettingsViewModel @Inject constructor(
     @UnstableApi
     fun setSkipSilent(skip: Boolean) {
         viewModelScope.launch {
-            withContext((Dispatchers.Main)) {
                 dataStoreManager.setSkipSilent(skip)
                 getSkipSilent()
-            }
         }
     }
     fun getSavedPlaybackState() {
         viewModelScope.launch {
-            withContext(Dispatchers.Main) {
                 dataStoreManager.saveStateOfPlayback.collect { savedPlaybackState ->
-                    _savedPlaybackState.postValue(savedPlaybackState)
-                }
+                    _savedPlaybackState.emit(savedPlaybackState)
             }
         }
     }
     fun setSavedPlaybackState(savedPlaybackState: Boolean) {
         viewModelScope.launch {
-            withContext((Dispatchers.Main)) {
                 dataStoreManager.setSaveStateOfPlayback(savedPlaybackState)
                 getSavedPlaybackState()
-            }
         }
     }
 
     fun setSaveLastPlayed(b: Boolean) {
         viewModelScope.launch {
-            withContext((Dispatchers.Main)) {
                 dataStoreManager.setSaveRecentSongAndQueue(b)
                 getSaveRecentSongAndQueue()
-            }
         }
     }
 
     fun clearMusixmatchCookie() {
         viewModelScope.launch {
-            withContext((Dispatchers.Main)) {
                 dataStoreManager.setMusixmatchCookie("")
                 YouTube.musixMatchCookie = null
                 dataStoreManager.setMusixmatchLoggedIn(false)
-            }
         }
     }
 
     fun getPlayerCacheLimit() {
         viewModelScope.launch {
             dataStoreManager.maxSongCacheSize.collect {
-                _playerCacheLimit.postValue(it)
+                _playerCacheLimit.emit(it)
             }
         }
     }
@@ -710,6 +658,19 @@ class SettingsViewModel @Inject constructor(
             delay(500)
             getAllGoogleAccount()
             getLoggedIn()
+        }
+    }
+
+    @ExperimentalCoilApi
+    fun clearThumbnailCache() {
+        viewModelScope.launch {
+            application.imageLoader.diskCache?.clear()
+            Toast.makeText(
+                getApplication(),
+                application.getString(R.string.clear_thumbnail_cache),
+                Toast.LENGTH_SHORT
+            ).show()
+            getThumbCacheSize()
         }
     }
 }

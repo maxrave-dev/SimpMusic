@@ -1099,27 +1099,44 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
     }.flowOn(Dispatchers.IO)
     suspend fun getRelatedData(videoId: String): Flow<Resource<ArrayList<Track>>> = flow {
         runCatching {
-            YouTube.nextCustom(videoId).onSuccess { result ->
-                val listSongs: ArrayList<Track> = arrayListOf()
-                val data =
-                    result.contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer.tabs[0].tabRenderer.content?.musicQueueRenderer?.content?.playlistPanelRenderer?.contents
-                parseRelated(data)?.let { list ->
-                    listSongs.addAll(list)
-                }
-                val nextContinuation =
-                    result.contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer.tabs[0].tabRenderer.content?.musicQueueRenderer?.content?.playlistPanelRenderer?.continuations?.get(
-                        0
-                    )?.nextContinuationData?.continuation
-                if (nextContinuation != null) {
-                    Queue.setContinuation(Pair("RDAMVM$videoId", nextContinuation))
-                } else {
+            Queue.setContinuation(null)
+            YouTube.next(WatchEndpoint(playlistId = "RDAMVM$videoId"))
+                .onSuccess { next ->
+                    val data: ArrayList<SongItem> = arrayListOf()
+                    data.addAll(next.items)
+                    val nextContinuation = next.continuation
+                    if (nextContinuation != null) {
+                        Queue.setContinuation(Pair("RDAMVM$videoId", nextContinuation))
+                    } else {
+                        Queue.setContinuation(null)
+                    }
+                    emit(Resource.Success<ArrayList<Track>>(data.toListTrack()))
+                }.onFailure { exception ->
+                    exception.printStackTrace()
                     Queue.setContinuation(null)
+                    emit(Resource.Error<ArrayList<Track>>(exception.message.toString()))
                 }
-                emit(Resource.Success<ArrayList<Track>>(listSongs))
-            }.onFailure { e ->
-                Log.d("Related", "Error: ${e.message}")
-                emit(Resource.Error<ArrayList<Track>>(e.message.toString()))
-            }
+//            YouTube.nextCustom(videoId).onSuccess { result ->
+//                val listSongs: ArrayList<Track> = arrayListOf()
+//                val data =
+//                    result.contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer.tabs[0].tabRenderer.content?.musicQueueRenderer?.content?.playlistPanelRenderer?.contents
+//                parseRelated(data)?.let { list ->
+//                    listSongs.addAll(list)
+//                }
+//                val nextContinuation =
+//                    result.contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer.tabs[0].tabRenderer.content?.musicQueueRenderer?.content?.playlistPanelRenderer?.continuations?.get(
+//                        0
+//                    )?.nextContinuationData?.continuation
+//                if (nextContinuation != null) {
+//                    Queue.setContinuation(Pair("RDAMVM$videoId", nextContinuation))
+//                } else {
+//                    Queue.setContinuation(null)
+//                }
+//                emit(Resource.Success<ArrayList<Track>>(listSongs))
+//            }.onFailure { e ->
+//                Log.d("Related", "Error: ${e.message}")
+//                emit(Resource.Error<ArrayList<Track>>(e.message.toString()))
+//            }
         }
     }.flowOn(Dispatchers.IO)
     suspend fun getYouTubeCaption(videoId: String): Flow<Resource<Lyrics>> = flow {

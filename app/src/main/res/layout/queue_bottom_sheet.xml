@@ -71,6 +71,7 @@
                             <TextView
                                 android:text=""
                                 android:id="@+id/tvSongTitle"
+                                android:textColor="@android:color/white"
                                 android:fontFamily="@font/roboto"
                                 android:textStyle="bold"
                                 android:textSize="16sp"

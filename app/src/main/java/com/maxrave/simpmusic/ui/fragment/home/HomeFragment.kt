@@ -1,7 +1,5 @@
 package com.maxrave.simpmusic.ui.fragment.home
 
-import android.animation.Animator
-import android.animation.Animator.AnimatorListener
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -831,36 +829,8 @@ class HomeFragment : Fragment() {
 
     private fun showData() {
         binding.shimmerLayout.stopShimmer()
-        val shortAnimationDuration = resources.getInteger(android.R.integer.config_shortAnimTime)
-        binding.fullLayout.apply {
-            // Set the content view to 0% opacity but visible, so that it is
-            // visible but fully transparent during the animation.
-            alpha = 0f
-            visibility = View.VISIBLE
-
-            // Animate the content view to 100% opacity and clear any animation
-            // listener set on the view.
-            animate()
-                .alpha(1f)
-                .setDuration(shortAnimationDuration.toLong())
-                .setListener(
-                    object : AnimatorListener {
-                        override fun onAnimationStart(animation: Animator) {
-                            binding.shimmerLayout.visibility = View.GONE
-                        }
-
-                        override fun onAnimationEnd(animation: Animator) {
-                        }
-
-                        override fun onAnimationCancel(animation: Animator) {
-                        }
-
-                        override fun onAnimationRepeat(animation: Animator) {
-                        }
-
-                    }
-                )
-        }
+        binding.shimmerLayout.visibility = View.GONE
+        binding.fullLayout.visibility = View.VISIBLE
         binding.swipeRefreshLayout.isRefreshing = false
     }
 

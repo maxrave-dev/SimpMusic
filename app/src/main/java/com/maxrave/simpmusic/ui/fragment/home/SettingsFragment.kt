@@ -25,7 +25,6 @@ import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import coil.annotation.ExperimentalCoilApi
-import coil.imageLoader
 import com.google.android.flexbox.FlexboxLayout
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.maxrave.simpmusic.R
@@ -126,112 +125,267 @@ class SettingsFragment : Fragment() {
         viewModel.getMusixmatchLoggedIn() //
         viewModel.getPlayVideoInsteadOfAudio()
         viewModel.getVideoQuality()
+        viewModel.getThumbCacheSize()
 
-        val diskCache = context?.imageLoader?.diskCache
-
-        viewModel.musixmatchLoggedIn.observe(viewLifecycleOwner) {
-            if (it == DataStoreManager.TRUE) {
-                binding.tvMusixmatchLoginTitle.text = getString(R.string.log_out_from_musixmatch)
-                binding.tvMusixmatchLogin.text = getString(R.string.logged_in)
-                setEnabledAll(binding.swUseMusixmatchTranslation, true)
-                setEnabledAll(binding.btTranslationLanguage, true)
-            } else if (it == DataStoreManager.FALSE) {
-                binding.tvMusixmatchLoginTitle.text = getString(R.string.log_in_to_Musixmatch)
-                binding.tvMusixmatchLogin.text =
-                    getString(R.string.only_support_email_and_password_type)
-                setEnabledAll(binding.swUseMusixmatchTranslation, false)
-                setEnabledAll(binding.btTranslationLanguage, false)
-            }
-        }
-        viewModel.playVideoInsteadOfAudio.observe(viewLifecycleOwner) {
-            if (it == DataStoreManager.TRUE) {
-                binding.swEnableVideo.isChecked = true
-                setEnabledAll(binding.btVideoQuality, true)
-            } else if (it == DataStoreManager.FALSE) {
-                binding.swEnableVideo.isChecked = false
-                setEnabledAll(binding.btVideoQuality, false)
-            }
-        }
-        viewModel.videoQuality.observe(viewLifecycleOwner) {
-            binding.tvVideoQuality.text = it
-        }
-        viewModel.mainLyricsProvider.observe(viewLifecycleOwner) {
-            if (it == DataStoreManager.YOUTUBE) {
-                binding.tvMainLyricsProvider.text = LYRICS_PROVIDER.items.get(1)
-            } else if (it == DataStoreManager.MUSIXMATCH) {
-                binding.tvMainLyricsProvider.text = LYRICS_PROVIDER.items.get(0)
-            }
-        }
-        viewModel.translationLanguage.observe(viewLifecycleOwner) {
-            binding.tvTranslationLanguage.text = it
-        }
-        viewModel.useTranslation.observe(viewLifecycleOwner) {
-            binding.swUseMusixmatchTranslation.isChecked = it == DataStoreManager.TRUE
-        }
-        viewModel.sendBackToGoogle.observe(viewLifecycleOwner) {
-            binding.swSaveHistory.isChecked = it == DataStoreManager.TRUE
-        }
-        viewModel.location.observe(viewLifecycleOwner) {
-            binding.tvContentCountry.text = it
-        }
-        viewModel.language.observe(viewLifecycleOwner) {
-            Log.w("Language", it.toString())
-            if (it != null) {
-                if (it.contains("id") || it.contains("in")) {
-                    binding.tvLanguage.text = "Bahasa Indonesia"
-                } else {
-                    val temp =
-                        SUPPORTED_LANGUAGE.items.getOrNull(SUPPORTED_LANGUAGE.codes.indexOf(it))
-                    binding.tvLanguage.text = temp
+        lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.CREATED) {
+                val job1 = launch {
+                    viewModel.musixmatchLoggedIn.collect {
+                        if (it != null) {
+                            if (it == DataStoreManager.TRUE) {
+                                binding.tvMusixmatchLoginTitle.text =
+                                    getString(R.string.log_out_from_musixmatch)
+                                binding.tvMusixmatchLogin.text = getString(R.string.logged_in)
+                                setEnabledAll(binding.swUseMusixmatchTranslation, true)
+                                setEnabledAll(binding.btTranslationLanguage, true)
+                            } else if (it == DataStoreManager.FALSE) {
+                                binding.tvMusixmatchLoginTitle.text =
+                                    getString(R.string.log_in_to_Musixmatch)
+                                binding.tvMusixmatchLogin.text =
+                                    getString(R.string.only_support_email_and_password_type)
+                                setEnabledAll(binding.swUseMusixmatchTranslation, false)
+                                setEnabledAll(binding.btTranslationLanguage, false)
+                            }
+                        }
+                    }
                 }
-            } else {
-                binding.tvLanguage.text = "Automatic"
-            }
-        }
-        viewModel.quality.observe(viewLifecycleOwner) {
-            binding.tvQuality.text = it
-        }
-        viewModel.cacheSize.observe(viewLifecycleOwner) {
-            drawDataStat()
-            binding.tvPlayerCache.text = getString(R.string.cache_size, bytesToMB(it).toString())
-        }
-        viewModel.downloadedCacheSize.observe(viewLifecycleOwner) {
-            drawDataStat()
-            binding.tvDownloadedCache.text = getString(R.string.cache_size, bytesToMB(it).toString())
-        }
-        binding.tvThumbnailCache.text = getString(R.string.cache_size, if (diskCache?.size != null) {
-            bytesToMB(diskCache.size)
-        } else {
-            0
-        }.toString())
+                val job2 = launch {
+                    viewModel.playVideoInsteadOfAudio.collect {
+                        if (it == DataStoreManager.TRUE) {
+                            binding.swEnableVideo.isChecked = true
+                            setEnabledAll(binding.btVideoQuality, true)
+                        } else if (it == DataStoreManager.FALSE) {
+                            binding.swEnableVideo.isChecked = false
+                            setEnabledAll(binding.btVideoQuality, false)
+                        }
+                    }
+                }
 
-        viewModel.normalizeVolume.observe(viewLifecycleOwner){
-            binding.swNormalizeVolume.isChecked = it == DataStoreManager.TRUE
-        }
-        viewModel.skipSilent.observe(viewLifecycleOwner){
-            binding.swSkipSilent.isChecked = it == DataStoreManager.TRUE
-        }
-        viewModel.savedPlaybackState.observe(viewLifecycleOwner){
-            binding.swSavePlaybackState.isChecked = it == DataStoreManager.TRUE
-        }
-        viewModel.saveRecentSongAndQueue.observe(viewLifecycleOwner) {
-            binding.swSaveLastPlayed.isChecked = it == DataStoreManager.TRUE
-        }
-        viewModel.sponsorBlockEnabled.observe(viewLifecycleOwner) {
-            binding.swEnableSponsorBlock.isChecked = it == DataStoreManager.TRUE
-        }
-        viewModel.lastCheckForUpdate.observe(viewLifecycleOwner) {
-            if (it != null) {
-                binding.tvCheckForUpdate.text = getString(
-                    R.string.last_checked_at, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-                        .withZone(ZoneId.systemDefault())
-                        .format(Instant.ofEpochMilli(it.toLong()))
-                )
+                val job3 = launch {
+                    viewModel.videoQuality.collect {
+                        binding.tvVideoQuality.text = it
+                    }
+                }
+                val job4 = launch {
+                    viewModel.mainLyricsProvider.collect {
+                        if (it == DataStoreManager.YOUTUBE) {
+                            binding.tvMainLyricsProvider.text = LYRICS_PROVIDER.items.get(1)
+                        } else if (it == DataStoreManager.MUSIXMATCH) {
+                            binding.tvMainLyricsProvider.text = LYRICS_PROVIDER.items.get(0)
+                        }
+                    }
+                }
+                val job5 = launch {
+                    viewModel.translationLanguage.collect {
+                        binding.tvTranslationLanguage.text = it
+                    }
+                }
+                val job6 = launch {
+                    viewModel.useTranslation.collect {
+                        binding.swUseMusixmatchTranslation.isChecked = it == DataStoreManager.TRUE
+                    }
+                }
+                val job7 = launch {
+                    viewModel.sendBackToGoogle.collect {
+                        binding.swSaveHistory.isChecked = it == DataStoreManager.TRUE
+                    }
+                }
+                val job8 = launch {
+                    viewModel.location.collect {
+                        binding.tvContentCountry.text = it
+                    }
+                }
+                val job9 = launch {
+                    viewModel.language.collect {
+                        Log.w("Language", it.toString())
+                        if (it != null) {
+                            if (it.contains("id") || it.contains("in")) {
+                                binding.tvLanguage.text = "Bahasa Indonesia"
+                            } else {
+                                val temp =
+                                    SUPPORTED_LANGUAGE.items.getOrNull(
+                                        SUPPORTED_LANGUAGE.codes.indexOf(
+                                            it
+                                        )
+                                    )
+                                binding.tvLanguage.text = temp
+                            }
+                        } else {
+                            binding.tvLanguage.text = "Automatic"
+                        }
+                    }
+                }
+                val job10 = launch {
+                    viewModel.quality.collect {
+                        binding.tvQuality.text = it
+                    }
+                }
+                val job11 = launch {
+                    viewModel.cacheSize.collect {
+                        if (it != null) {
+                            drawDataStat()
+                            binding.tvPlayerCache.text =
+                                getString(R.string.cache_size, bytesToMB(it).toString())
+                        }
+                    }
+                }
+                val job12 = launch {
+                    viewModel.downloadedCacheSize.collect {
+                        if (it != null) {
+                            drawDataStat()
+                            binding.tvDownloadedCache.text =
+                                getString(R.string.cache_size, bytesToMB(it).toString())
+                        }
+                    }
+                }
+                val job13 = launch {
+                    viewModel.normalizeVolume.collect {
+                        binding.swNormalizeVolume.isChecked = it == DataStoreManager.TRUE
+                    }
+                }
+                val job14 = launch {
+                    viewModel.skipSilent.collect {
+                        binding.swSkipSilent.isChecked = it == DataStoreManager.TRUE
+                    }
+                }
+                val job15 = launch {
+                    viewModel.savedPlaybackState.collect {
+                        binding.swSavePlaybackState.isChecked = it == DataStoreManager.TRUE
+                    }
+                }
+                val job16 = launch {
+                    viewModel.saveRecentSongAndQueue.collect {
+                        binding.swSaveLastPlayed.isChecked = it == DataStoreManager.TRUE
+                    }
+                }
+                val job17 = launch {
+                    viewModel.saveRecentSongAndQueue.collect {
+                        binding.swSaveLastPlayed.isChecked = it == DataStoreManager.TRUE
+                    }
+                }
+                val job18 = launch {
+                    viewModel.sponsorBlockEnabled.collect {
+                        binding.swEnableSponsorBlock.isChecked = it == DataStoreManager.TRUE
+                    }
+                }
+                val job19 = launch {
+                    viewModel.lastCheckForUpdate.collect {
+                        if (it != null) {
+                            binding.tvCheckForUpdate.text = getString(
+                                R.string.last_checked_at,
+                                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                                    .withZone(ZoneId.systemDefault())
+                                    .format(Instant.ofEpochMilli(it.toLong()))
+                            )
+                        }
+                    }
+                }
+                val job20 = launch {
+                    viewModel.playerCacheLimit.collect {
+                        binding.tvLimitPlayerCache.text =
+                            if (it != -1) "$it MB" else getString(R.string.unlimited)
+                    }
+                }
+                val job21 = launch {
+                    viewModel.githubResponse.collect { response ->
+                        if (response != null) {
+                            if (response.tagName != getString(R.string.version_name)) {
+                                binding.tvCheckForUpdate.text = getString(
+                                    R.string.last_checked_at,
+                                    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                                        .withZone(ZoneId.systemDefault())
+                                        .format(Instant.ofEpochMilli(System.currentTimeMillis()))
+                                )
+                                val inputFormat =
+                                    SimpleDateFormat(
+                                        "yyyy-MM-dd'T'HH:mm:ss'Z'",
+                                        Locale.getDefault()
+                                    )
+                                val outputFormat =
+                                    SimpleDateFormat("dd MMM yyyy HH:mm:ss", Locale.getDefault())
+                                val formatted = response.publishedAt?.let { input ->
+                                    inputFormat.parse(input)
+                                        ?.let { outputFormat.format(it) }
+                                }
+                                MaterialAlertDialogBuilder(requireContext())
+                                    .setTitle(getString(R.string.update_available))
+                                    .setMessage(
+                                        getString(
+                                            R.string.update_message,
+                                            response.tagName,
+                                            formatted,
+                                            response.body
+                                        )
+                                    )
+                                    .setPositiveButton(getString(R.string.download)) { _, _ ->
+                                        val browserIntent = Intent(
+                                            Intent.ACTION_VIEW,
+                                            Uri.parse(response.assets?.firstOrNull()?.browserDownloadUrl)
+                                        )
+                                        startActivity(browserIntent)
+                                    }
+                                    .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                                        dialog.dismiss()
+                                    }
+                                    .show()
+                            } else {
+                                Toast.makeText(
+                                    requireContext(),
+                                    getString(R.string.no_update),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                viewModel.getLastCheckForUpdate()
+                                viewModel.lastCheckForUpdate.collect {
+                                    if (it != null) {
+                                        binding.tvCheckForUpdate.text = getString(
+                                            R.string.last_checked_at,
+                                            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                                                .withZone(ZoneId.systemDefault())
+                                                .format(Instant.ofEpochMilli(it.toLong()))
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                val job22 = launch {
+                    viewModel.thumbCacheSize.collect {
+                        binding.tvThumbnailCache.text = getString(
+                            R.string.cache_size, if (it != null) {
+                                bytesToMB(it)
+                            } else {
+                                0
+                            }.toString()
+                        )
+                    }
+                }
+
+                job1.join()
+                job2.join()
+                job3.join()
+                job4.join()
+                job5.join()
+                job6.join()
+                job7.join()
+                job8.join()
+                job9.join()
+                job10.join()
+                job11.join()
+                job12.join()
+                job13.join()
+                job14.join()
+                job15.join()
+                job16.join()
+                job17.join()
+                job18.join()
+                job19.join()
+                job20.join()
+                job21.join()
+                job22.join()
             }
         }
-        viewModel.playerCacheLimit.observe(viewLifecycleOwner) {
-            binding.tvLimitPlayerCache.text = if (it != -1) "$it MB" else getString(R.string.unlimited)
-        }
+
         binding.btLimitPlayerCache.setOnClickListener {
             var checkedIndex = -1
             val dialog = MaterialAlertDialogBuilder(requireContext())
@@ -245,15 +399,11 @@ class SettingsFragment : Fragment() {
                 .setPositiveButton(getString(R.string.change)) { dialog, _ ->
                     if (checkedIndex != -1) {
                         viewModel.setPlayerCacheLimit(LIMIT_CACHE_SIZE.data[checkedIndex])
-                        viewModel.playerCacheLimit.observe(viewLifecycleOwner) {
-                            binding.tvLimitPlayerCache.text =
-                                if (it != -1) "$it MB" else getString(R.string.unlimited)
-                            Toast.makeText(
-                                requireContext(),
-                                getString(R.string.restart_app),
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
+                        Toast.makeText(
+                            requireContext(),
+                            getString(R.string.restart_app),
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                     dialog.dismiss()
                 }
@@ -345,50 +495,6 @@ class SettingsFragment : Fragment() {
         binding.btCheckForUpdate.setOnClickListener {
             binding.tvCheckForUpdate.text = getString(R.string.checking)
             viewModel.checkForUpdate()
-            viewModel.githubResponse.observe(viewLifecycleOwner) { response ->
-                if (response != null) {
-                    if (response.tagName != getString(R.string.version_name)) {
-                        binding.tvCheckForUpdate.text = getString(
-                            R.string.last_checked_at,
-                            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-                                .withZone(ZoneId.systemDefault())
-                                .format(Instant.ofEpochMilli(System.currentTimeMillis()))
-                        )
-                        val inputFormat =
-                            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
-                        val outputFormat = SimpleDateFormat("dd MMM yyyy HH:mm:ss", Locale.getDefault())
-                        val formatted = response.publishedAt?.let { input ->
-                            inputFormat.parse(input)
-                                ?.let { outputFormat.format(it) }
-                        }
-                        MaterialAlertDialogBuilder(requireContext())
-                            .setTitle(getString(R.string.update_available))
-                            .setMessage(getString(R.string.update_message, response.tagName, formatted, response.body))
-                            .setPositiveButton(getString(R.string.download)) { _, _ ->
-                                val browserIntent = Intent(Intent.ACTION_VIEW, Uri.parse(response.assets?.firstOrNull()?.browserDownloadUrl))
-                                startActivity(browserIntent)
-                            }
-                            .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
-                                dialog.dismiss()
-                            }
-                            .show()
-                    }
-                    else {
-                        Toast.makeText(requireContext(), getString(R.string.no_update), Toast.LENGTH_SHORT).show()
-                        viewModel.getLastCheckForUpdate()
-                        viewModel.lastCheckForUpdate.observe(viewLifecycleOwner) {
-                            if (it != null) {
-                                binding.tvCheckForUpdate.text = getString(
-                                    R.string.last_checked_at,
-                                    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-                                        .withZone(ZoneId.systemDefault())
-                                        .format(Instant.ofEpochMilli(it.toLong()))
-                                )
-                            }
-                        }
-                    }
-                }
-            }
         }
 
         binding.btVersion.setOnClickListener {
@@ -442,10 +548,6 @@ class SettingsFragment : Fragment() {
                 }
                 .setPositiveButton(getString(R.string.clear)) { dialog, _ ->
                     viewModel.clearPlayerCache()
-                    viewModel.cacheSize.observe(viewLifecycleOwner) {
-                        drawDataStat()
-                        binding.tvPlayerCache.text = getString(R.string.cache_size, bytesToMB(it).toString())
-                    }
                     dialog.dismiss()
                 }
             dialog.show()
@@ -463,9 +565,6 @@ class SettingsFragment : Fragment() {
                 .setPositiveButton(getString(R.string.change)) { dialog, _ ->
                     if (checkedIndex != -1) {
                         viewModel.changeLocation(SUPPORTED_LOCATION.items[checkedIndex].toString())
-                        viewModel.location.observe(viewLifecycleOwner) {
-                            binding.tvContentCountry.text = it
-                        }
                     }
                     dialog.dismiss()
                 }
@@ -492,27 +591,26 @@ class SettingsFragment : Fragment() {
                             }
                             .setPositiveButton(getString(R.string.change)) { d, _ ->
                                 viewModel.changeLanguage(SUPPORTED_LANGUAGE.codes[checkedIndex])
-                                viewModel.language.observe(viewLifecycleOwner) {
-                                    if (it != null) {
-                                        Log.w("Language", it)
-                                        runCatching {
-                                            SUPPORTED_LANGUAGE.items[SUPPORTED_LANGUAGE.codes.indexOf(
-                                                it
-                                            )]
-                                        }.onSuccess { temp ->
-                                            binding.tvLanguage.text = temp
-                                            val localeList = LocaleListCompat.forLanguageTags(it)
-                                            sharedViewModel.activityRecreate()
-                                            AppCompatDelegate.setApplicationLocales(localeList)
-                                        }
-                                            .onFailure {
-                                                Toast.makeText(
-                                                    requireContext(),
-                                                    getString(R.string.invalid_language_code),
-                                                    Toast.LENGTH_SHORT
-                                                ).show()
-                                            }
+                                if (SUPPORTED_LANGUAGE.codes.getOrNull(checkedIndex) != null) {
+                                    runCatching {
+                                        SUPPORTED_LANGUAGE.items[SUPPORTED_LANGUAGE.codes.indexOf(
+                                            SUPPORTED_LANGUAGE.codes[checkedIndex]
+                                        )]
+                                    }.onSuccess { temp ->
+                                        binding.tvLanguage.text = temp
+                                        val localeList = LocaleListCompat.forLanguageTags(
+                                            SUPPORTED_LANGUAGE.codes.getOrNull(checkedIndex)
+                                        )
+                                        sharedViewModel.activityRecreate()
+                                        AppCompatDelegate.setApplicationLocales(localeList)
                                     }
+                                        .onFailure {
+                                            Toast.makeText(
+                                                requireContext(),
+                                                getString(R.string.invalid_language_code),
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
                                 }
                                 d.dismiss()
                                 dialog.dismiss()
@@ -536,9 +634,6 @@ class SettingsFragment : Fragment() {
                 .setPositiveButton(getString(R.string.change)) { dialog, _ ->
                     if (checkedIndex != -1) {
                         viewModel.changeQuality(checkedIndex)
-                        viewModel.quality.observe(viewLifecycleOwner) {
-                            binding.tvQuality.text = it
-                        }
                     }
                     dialog.dismiss()
                 }
@@ -558,9 +653,6 @@ class SettingsFragment : Fragment() {
                 .setPositiveButton(getString(R.string.change)) { dialog, _ ->
                     if (checkedIndex != -1) {
                         viewModel.changeVideoQuality(checkedIndex)
-                        viewModel.videoQuality.observe(viewLifecycleOwner) {
-                            binding.tvVideoQuality.text = it
-                        }
                     }
                     dialog.dismiss()
                 }
@@ -587,13 +679,6 @@ class SettingsFragment : Fragment() {
                         }
                     }
                     viewModel.getLyricsProvider()
-                    viewModel.mainLyricsProvider.observe(viewLifecycleOwner) {
-                        if (it == DataStoreManager.YOUTUBE) {
-                            binding.tvMainLyricsProvider.text = LYRICS_PROVIDER.items.get(1)
-                        } else if (it == DataStoreManager.MUSIXMATCH) {
-                            binding.tvMainLyricsProvider.text = LYRICS_PROVIDER.items.get(0)
-                        }
-                    }
                     dialog.dismiss()
                 }
             dialog.show()
@@ -612,9 +697,6 @@ class SettingsFragment : Fragment() {
                 if (editText.text.toString().isNotEmpty()) {
                     if (editText.text.toString().length == 2) {
                         viewModel.setTranslationLanguage(editText.text.toString())
-                        viewModel.translationLanguage.observe(viewLifecycleOwner) {
-                            binding.tvTranslationLanguage.text = it
-                        }
                     }
                     else {
                         Toast.makeText(requireContext(), getString(R.string.invalid_language_code), Toast.LENGTH_SHORT).show()
@@ -639,10 +721,6 @@ class SettingsFragment : Fragment() {
                 }
                 .setPositiveButton(getString(R.string.clear)) { dialog, _ ->
                     viewModel.clearDownloadedCache()
-                    viewModel.downloadedCacheSize.observe(viewLifecycleOwner) {
-                        binding.tvPlayerCache.text = getString(R.string.cache_size, bytesToMB(it).toString())
-                        drawDataStat()
-                    }
                     dialog.dismiss()
                 }
             dialog.show()
@@ -655,12 +733,7 @@ class SettingsFragment : Fragment() {
                     dialog.dismiss()
                 }
                 .setPositiveButton(getString(R.string.clear)) { dialog, _ ->
-                    diskCache?.clear()
-                    binding.tvThumbnailCache.text = getString(R.string.cache_size, if (diskCache?.size != null) {
-                        bytesToMB(diskCache.size)
-                    } else {
-                        0
-                    }.toString())
+                    viewModel.clearThumbnailCache()
                     dialog.dismiss()
                 }
             dialog.show()
@@ -698,14 +771,6 @@ class SettingsFragment : Fragment() {
                     viewModel.setSponsorBlockCategories(selectedItem)
                     Log.d("Check category", selectedItem.toString())
                     viewModel.getSponsorBlockCategories()
-                    viewModel.sponsorBlockCategories.observe(viewLifecycleOwner) {
-                        Toast.makeText(
-                            requireContext(),
-                            getString(R.string.saved),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        dialog.dismiss()
-                    }
                 }
                 .setNegativeButton(R.string.cancel) { dialog, _ ->
                     dialog.dismiss()
@@ -746,11 +811,6 @@ class SettingsFragment : Fragment() {
                     }
                     .setPositiveButton(getString(R.string.change)) { dialog, _ ->
                         viewModel.clearPlayerCache()
-                        viewModel.cacheSize.observe(viewLifecycleOwner) {
-                            drawDataStat()
-                            binding.tvPlayerCache.text =
-                                getString(R.string.cache_size, bytesToMB(it).toString())
-                        }
                         if (checked) {
                             viewModel.setPlayVideoInsteadOfAudio(true)
                         } else {
