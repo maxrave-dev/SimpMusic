@@ -8,6 +8,7 @@ Not a simple music player, it's SimpMusic
 - Analyze your playing data, create custom playlists and sync with YouTube Music...
 - Play video option with subtitle
 - Caching and can save data for offline playback
+- Login to YouTube Music account and support multiple accounts
 - Synced lyrics from Musixmatch, YouTube Transcript and translate lyrics (Community translation from Musixmatch)
 - Support SponsorBlock
 - Sleep Timer

@@ -7,17 +7,36 @@ import com.maxrave.simpmusic.databinding.ItemSuggestQueryBinding
 
 class SuggestQueryAdapter(private var suggestQuery: ArrayList<String>): RecyclerView.Adapter<SuggestQueryAdapter.ViewHolder>() {
     private lateinit var mListener: onItemClickListener
-    interface onItemClickListener{
+    private lateinit var mCopyListener: OnCopyClickListener
+
+    interface onItemClickListener {
         fun onItemClick(position: Int)
     }
-    fun setOnClickListener(listener: onItemClickListener){
+
+    interface OnCopyClickListener {
+        fun onCopyClick(position: Int)
+    }
+
+    fun setOnClickListener(listener: onItemClickListener) {
         mListener = listener
     }
-    inner class ViewHolder(val binding: ItemSuggestQueryBinding, listener: onItemClickListener) :
+
+    fun setOnCopyClickListener(listener: OnCopyClickListener) {
+        mCopyListener = listener
+    }
+
+    inner class ViewHolder(
+        val binding: ItemSuggestQueryBinding,
+        listener: onItemClickListener,
+        mCopyClickListener: OnCopyClickListener
+    ) :
         RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
                 listener.onItemClick(bindingAdapterPosition)
+            }
+            binding.btCopySuggestQuery.setOnClickListener {
+                mCopyClickListener.onCopyClick(bindingAdapterPosition)
             }
         }
     }
@@ -28,7 +47,7 @@ class SuggestQueryAdapter(private var suggestQuery: ArrayList<String>): Recycler
     }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val binding = ItemSuggestQueryBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return ViewHolder(binding, mListener)
+        return ViewHolder(binding, mListener, mCopyListener)
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {

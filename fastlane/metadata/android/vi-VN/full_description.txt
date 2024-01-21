@@ -8,6 +8,7 @@ Không chỉ là ứng dụng nghe nhạc, nó là SimpMusic
 - Thống kê dữ liệu nghe nhạc của bạn, tạo danh sách phát tùy chỉnh và đồng bộ với YouTube Music
 - Tuỳ chọn xem video hỗ trợ phụ đề
 - Lưu trữ dữ liệu ngoại tuyến
+- Đăng nhập tài khoản YouTube và hỗ trợ đa tài khoản
 - Lời bài hát được đồng bộ từ Musixmatch và YouTube Transcript, dịch lời bài hát với cộng đồng từ Musixmatch
 - Hỗ trợ SponsorBlock
 - Hẹn giờ đi ngủ

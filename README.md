@@ -26,7 +26,7 @@ A simple music app using YouTube Music for backend
 - Caching and can save data for offline playback
 - Synced lyrics from Musixmatch and YouTube Transcript and translated lyrics (Community translation
   from Musixmatch)
-- Personalize data (*)
+- Personalize data (*) and multi-YouTube-account support
 - Support SponsorBlock
 - Sleep Timer
 - Android Auto

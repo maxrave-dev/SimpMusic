@@ -802,8 +802,13 @@ class SearchFragment : Fragment() {
                 resultAdapter.updateList(resultList)
             }
         }
-        suggestAdapter.setOnClickListener(object: SuggestQueryAdapter.onItemClickListener{
+        suggestAdapter.setOnClickListener(object : SuggestQueryAdapter.onItemClickListener {
             override fun onItemClick(position: Int) {
+                binding.svSearch.setQuery(suggestList[position], true)
+            }
+        })
+        suggestAdapter.setOnCopyClickListener(object : SuggestQueryAdapter.OnCopyClickListener {
+            override fun onCopyClick(position: Int) {
                 binding.svSearch.setQuery(suggestList[position], false)
             }
         })
@@ -813,8 +818,7 @@ class SearchFragment : Fragment() {
                     if (binding.chipGroupTypeSearch.isEnabled) {
                         setEnabledAll(binding.chipGroupTypeSearch, false)
                     }
-                }
-                else {
+                } else {
                     if (!binding.chipGroupTypeSearch.isEnabled) {
                         setEnabledAll(binding.chipGroupTypeSearch, true)
                     }
