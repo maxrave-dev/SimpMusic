@@ -286,4 +286,15 @@
     <string name="quality_video">Chất lượng video</string>
     <string name="add_to_queue">Thêm vào hàng đợi</string>
     <string name="added_to_queue">Đã thêm vào hàng đợi</string>
+    <string name="new_release">Mới phát hành</string>
+    <string name="music_video">Video âm nhạc</string>
+    <string name="your_music_is_always_up_to_date">ÂM NHẠC CỦA BẠN LUÔN ĐƯỢC CẬP NHẬT</string>
+    <string name="youtube_account">Tài khoản YouTube</string>
+    <string name="manage_your_youtube_accounts">Quản lý tất cả tài khoản YouTube của bạn</string>
+    <string name="no_account">Không có tài khoản</string>
+    <string name="add_an_account">Thêm tài khoản</string>
+    <string name="signed_in">Đã đăng nhập</string>
+    <string name="guest">Khách</string>
+    <string name="log_out_warning">Đăng xuất khỏi tất cả các tài khoản?</string>
+    <string name="play_next">Phát tiếp theo</string>
 </resources>

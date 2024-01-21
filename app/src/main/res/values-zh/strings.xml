@@ -57,7 +57,7 @@
     <string name="good_afternoon">下午好</string>
     <string name="good_evening">晚上好</string>
     <string name="good_night">晚安</string>
-    <string name="quick_picks">为你推荐</string>
+    <string name="quick_picks">快速选择</string>
     <string name="this_song_is_not_available">此歌曲不可用</string>
     <string name="in_charts">在图表</string>
     <string name="playlist_name_cannot_be_empty">歌单名称不能为空</string>
@@ -133,10 +133,10 @@
     <string name="now_playing_upper">现在播放</string>
     <string name="language">语言</string>
     <string name="what_do_you_want_to_listen_to">你想听什么？</string>
-    <string name="songs_inArtist">歌曲</string>
+    <string name="songs_inArtist">曲目</string>
     <string name="albums_inArtist">专辑</string>
-    <string name="singles_inArtist">单曲</string>
-    <string name="fans_might_also_like_inArtist">粉丝可能还会喜欢</string>
+    <string name="singles_inArtist">单个</string>
+    <string name="fans_might_also_like_inArtist">粉丝可能也喜欢</string>
     <string name="crash_log">SimpMusic 崩溃了。很抱歉出现此问题。\n将崩溃日志发给开发人员</string>
     <string name="crash">崩溃</string>
     <string name="send">发送</string>
@@ -272,7 +272,7 @@
     <string name="credit_app">使用 YouTube Music 作为后端的简单音乐应用 \n\nSimpMusic 是一个开源项目，可以在没有广告和跟踪的情况下从 YouTube 和 YouTube Music 中流式播放音乐。SimpMusic 提供许多功能：\n\n - 流媒体音乐 \n - 同步歌词 \n - 个性化数据 \n -等等… \n\nSimpMusic始终是免费的，没有广告\n\n Tuan Minh Nguyen Duc(Maxrave-dev) 用 ❤️ 构建</string>
     <string name="issue_tracker">问题跟踪</string>
     <string name="featured_playlists">精选歌单</string>
-    <string name="featured_inArtist">精选</string>
+    <string name="featured_inArtist">精选开启</string>
     <string name="audio_quality">音质</string>
     <string name="play_video_for_video_track_instead_of_audio_only">播放视频播放音轨而非只音频</string>
     <string name="such_as_music_video_lyrics_video_podcasts_and_more">例如音乐视频、歌词视频、播客等更多</string>
@@ -286,4 +286,15 @@
     <string name="quality_video">视频质量</string>
     <string name="add_to_queue">添加到队列</string>
     <string name="added_to_queue">加入队列!</string>
+    <string name="new_release">新建发布</string>
+    <string name="music_video">音乐视频</string>
+    <string name="your_music_is_always_up_to_date">您的所有消息都是最新数据</string>
+    <string name="youtube_account">YouTube帐户</string>
+    <string name="manage_your_youtube_accounts">管理您的 YouTube 账户</string>
+    <string name="no_account">没有账号</string>
+    <string name="add_an_account">添加帐户</string>
+    <string name="signed_in">已登录</string>
+    <string name="guest">访客</string>
+    <string name="log_out_warning">要登出所有账户吗？</string>
+    <string name="play_next">下一个播放</string>
 </resources>

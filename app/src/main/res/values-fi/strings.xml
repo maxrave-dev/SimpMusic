@@ -22,10 +22,10 @@
     <string name="show">Näytä</string>
     <string name="na_na">NA:NA</string>
     <string name="cache_size">%1$s Mt</string>
-    <string name="favorite">Suosikit</string>
+    <string name="favorite">Suosikki</string>
     <string name="followed">Seuratut</string>
     <string name="most_played">Toistetuimmat</string>
-    <string name="Downloaded">Ladatut</string>
+    <string name="Downloaded">Ladattu</string>
     <string name="favorite_playlists">Suosikkisoittolistat</string>
     <string name="no_favorite_playlists">Ei suosikkisoittolistoja</string>
     <string name="downloaded_playlists">Ladatut soittolistat</string>
@@ -57,14 +57,14 @@
     <string name="good_afternoon">Hyvää iltapäivää</string>
     <string name="good_evening">Hyvää iltaa</string>
     <string name="good_night">Hyvää yötä</string>
-    <string name="quick_picks">Pikalista</string>
+    <string name="quick_picks">Pikapoiminnat</string>
     <string name="this_song_is_not_available">Tämä kappale ei ole saatavilla</string>
     <string name="in_charts">listoilla</string>
     <string name="playlist_name_cannot_be_empty">Soittolistan nimi ei voi olla tyhjä</string>
     <string name="this_app_needs_to_access_your_notification">Tämä sovellus tarvitsee käyttöoikeuden ilmoituksiin</string>
     <string name="shared">Jaettu</string>
-    <string name="line_synced">Synkronoitu</string>
-    <string name="unsynced">Synkronointi poistettu</string>
+    <string name="line_synced">Rivisynkronoitu</string>
+    <string name="unsynced">Synkronoimaton</string>
     <string name="playlist_is_empty">Soittolista on tyhjä</string>
     <string name="option">Valinta</string>
     <string name="no_description">Ei kuvausta</string>
@@ -132,11 +132,11 @@
     <string name="settings">Asetukset</string>
     <string name="now_playing_upper">NYT SOI</string>
     <string name="language">Kieli</string>
-    <string name="what_do_you_want_to_listen_to">Mitä haluaisit kuunnella?</string>
+    <string name="what_do_you_want_to_listen_to">Mitä haluat kuunnella?</string>
     <string name="songs_inArtist">Kappaleet</string>
     <string name="albums_inArtist">Albumit</string>
     <string name="singles_inArtist">Singlet</string>
-    <string name="fans_might_also_like_inArtist">Fanit saattavat pitää myös näistä</string>
+    <string name="fans_might_also_like_inArtist">Fanit saattavat myös pitää</string>
     <string name="crash_log">SimpMusic kaatui. Anteeksi tästä ongelmasta.\nLähetä kaatumisloki kehittäjälle</string>
     <string name="crash">Kaatuminen</string>
     <string name="send">Lähetä</string>
@@ -170,7 +170,7 @@
     <string name="save_playback_state">Muista toiston tila</string>
     <string name="save_shuffle_and_repeat_mode">Muista sekoituksen ja toistamisen tila</string>
     <string name="skip_silent">Ohita hiljaisuus</string>
-    <string name="skip_no_music_part">Ohita osat ilman musiikkia</string>
+    <string name="skip_no_music_part">Ohita osa ilman musiikkia</string>
     <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">Aikakatkaisu, tarkista internet-yhteys</string>
     <string name="save_last_played">Muista viimeksi soitettu</string>
     <string name="save_last_played_track_and_queue">Muista viimeksi toistettu kappale ja jono</string>
@@ -181,8 +181,8 @@
     <string name="checking">Tarkistetaan</string>
     <string name="sponsorblock_skip_segment">SponsorBlock: Ohita %1$s-segmentti</string>
     <string name="sponsor">Sponsori</string>
-    <string name="self_promotion">Itsensä promootio</string>
-    <string name="interaction">Interaktio</string>
+    <string name="self_promotion">Itsepromootio</string>
+    <string name="interaction">Vuorovaikutus</string>
     <string name="intro">Intro</string>
     <string name="outro">Outro</string>
     <string name="preview">Näyte</string>
@@ -195,7 +195,7 @@
     <string name="what_segments_will_be_skipped">Valise ohitettavat segmentit</string>
     <string name="save">Tallenna</string>
     <string name="saved">Tallennettu</string>
-    <string name="sponsor_block_intro">SponsorBlock on joukkolähtöinen järjestelmä YouTube-videoiden ärsyttävien osien ohittamiseen.\nLisätietoja: https://sponsor.ajay.app/\nSimpMusicissa SponsorBlock on käytettävissä vain, kun laite on online-tilassa.</string>
+    <string name="sponsor_block_intro">SponsorBlock on joukkoistettu järjestelmä YouTube-videoiden ärsyttävien osien ohittamiseen.\nLisätietoja: https://sponsor.ajay.app/\nSimpMusicissa SponsorBlock on käytettävissä vain, kun laite on online-tilassa</string>
     <string name="skip_sponsor_part_of_video">Ohita videon sponsoriosa</string>
     <string name="customactivityoncrash_error_activity_error_occurred_explanation">Tapahtui odottamaton virhe. Pahoittelemme.</string>
     <string name="customactivityoncrash_error_activity_restart_app">Käynnistä sovellus uudelleen</string>
@@ -211,7 +211,7 @@
     <string name="sleep_timer_off">Uniajastin</string>
     <string name="sleep_minutes">Ajastimen aika (minuutteina)</string>
     <string name="set">Aseta</string>
-    <string name="sleep_timer_off_done">Lopeta uniajastin</string>
+    <string name="sleep_timer_off_done">Uniajastin lopetettu</string>
     <string name="sleep_timer_set_error">Aseta oikea aikamuoto</string>
     <string name="sleep_timer_warning">Poistetaanko uniajastin?</string>
     <string name="yes">Kyllä</string>
@@ -221,7 +221,7 @@
     <string name="videos_inArtist">Videot</string>
     <string name="your_youtube_playlists">YouTube-soittolistasi</string>
     <string name="no_YouTube_playlists">Ei YouTube-soittolistoja</string>
-    <string name="track">kappale(tta)</string>
+    <string name="track">kappale(et)</string>
     <string name="save_to_local_playlist">Tallenna paikalliseen soittolistaan</string>
     <string name="added_local_playlist">Lisätty paikallinen soittolista</string>
     <string name="sync">Synkronoi YouTube Musiciin</string>
@@ -283,8 +283,19 @@
     </plurals>
     <string name="dummy_button">Harjoituspainike</string>
     <string name="dummy_content">HARJOITUS\nSISÄLTÖ</string>
-    <string name="play_video_instead_of_audio_warning">Tämä toiminto poistaa pelaajan välimuistin. Jatkaa?</string>
+    <string name="play_video_instead_of_audio_warning">Tämä toiminto poistaa soittimen välimuistin. Jatka?</string>
     <string name="quality_video">Videon laatu</string>
     <string name="add_to_queue">Lisää jonoon</string>
     <string name="added_to_queue">Lisätty jonoon</string>
+    <string name="new_release">Uusi julkaisu</string>
+    <string name="music_video">Musiikkivideo</string>
+    <string name="your_music_is_always_up_to_date">MUSIIKKISI ON AINA AJAN TASALLA</string>
+    <string name="youtube_account">YouTube-tili</string>
+    <string name="manage_your_youtube_accounts">Hallinnoi YouTube-tilejäsi</string>
+    <string name="no_account">Ei tiliä</string>
+    <string name="add_an_account">Lisää tili</string>
+    <string name="signed_in">Kirjautuneena</string>
+    <string name="guest">Vieras</string>
+    <string name="log_out_warning">Kirjaudu ulos kaikista tileistä?</string>
+    <string name="play_next">Pelaa seuraavaksi</string>
 </resources>

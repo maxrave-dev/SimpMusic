@@ -18,7 +18,9 @@ import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.os.LocaleListCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -837,21 +839,36 @@ class SettingsFragment : Fragment() {
         return dirSize
     }
     private fun drawDataStat() {
-        val mStorageStatsManager = getSystemService(requireContext(), StorageStatsManager::class.java)
-        if (mStorageStatsManager != null) {
-            lifecycleScope.launch {
-                val totalByte = mStorageStatsManager.getTotalBytes(StorageManager.UUID_DEFAULT)
-                val freeSpace = mStorageStatsManager.getFreeBytes(StorageManager.UUID_DEFAULT)
-                val usedSpace = totalByte - freeSpace
-                val simpMusicSize = browseFiles(requireContext().filesDir)
-                val otherApp = simpMusicSize.let { usedSpace.minus(it) }
-                val databaseSize = simpMusicSize - viewModel.playerCache.cacheSpace - viewModel.downloadCache.cacheSpace
-                if (totalByte == freeSpace + otherApp + databaseSize + viewModel.playerCache.cacheSpace + viewModel.downloadCache.cacheSpace) {
-                    (binding.flexBox.getChildAt(0).layoutParams as FlexboxLayout.LayoutParams).flexBasisPercent = otherApp.toFloat().div(totalByte.toFloat())
-                    (binding.flexBox.getChildAt(1).layoutParams as FlexboxLayout.LayoutParams).flexBasisPercent = viewModel.downloadCache.cacheSpace.toFloat().div(totalByte.toFloat())
-                    (binding.flexBox.getChildAt(2).layoutParams as FlexboxLayout.LayoutParams).flexBasisPercent = viewModel.playerCache.cacheSpace.toFloat().div(totalByte.toFloat())
-                    (binding.flexBox.getChildAt(3).layoutParams as FlexboxLayout.LayoutParams).flexBasisPercent = databaseSize.toFloat().div(totalByte.toFloat())
-                    (binding.flexBox.getChildAt(4).layoutParams as FlexboxLayout.LayoutParams).flexBasisPercent = freeSpace.toFloat().div(totalByte.toFloat())
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.CREATED) {
+                launch {
+                    val mStorageStatsManager =
+                        getSystemService(requireContext(), StorageStatsManager::class.java)
+                    if (mStorageStatsManager != null) {
+
+                        val totalByte =
+                            mStorageStatsManager.getTotalBytes(StorageManager.UUID_DEFAULT)
+                        val freeSpace =
+                            mStorageStatsManager.getFreeBytes(StorageManager.UUID_DEFAULT)
+                        val usedSpace = totalByte - freeSpace
+                        val simpMusicSize = browseFiles(requireContext().filesDir)
+                        val otherApp = simpMusicSize.let { usedSpace.minus(it) }
+                        val databaseSize =
+                            simpMusicSize - viewModel.playerCache.cacheSpace - viewModel.downloadCache.cacheSpace
+                        if (totalByte == freeSpace + otherApp + databaseSize + viewModel.playerCache.cacheSpace + viewModel.downloadCache.cacheSpace) {
+                            (binding.flexBox.getChildAt(0).layoutParams as FlexboxLayout.LayoutParams).flexBasisPercent =
+                                otherApp.toFloat().div(totalByte.toFloat())
+                            (binding.flexBox.getChildAt(1).layoutParams as FlexboxLayout.LayoutParams).flexBasisPercent =
+                                viewModel.downloadCache.cacheSpace.toFloat()
+                                    .div(totalByte.toFloat())
+                            (binding.flexBox.getChildAt(2).layoutParams as FlexboxLayout.LayoutParams).flexBasisPercent =
+                                viewModel.playerCache.cacheSpace.toFloat().div(totalByte.toFloat())
+                            (binding.flexBox.getChildAt(3).layoutParams as FlexboxLayout.LayoutParams).flexBasisPercent =
+                                databaseSize.toFloat().div(totalByte.toFloat())
+                            (binding.flexBox.getChildAt(4).layoutParams as FlexboxLayout.LayoutParams).flexBasisPercent =
+                                freeSpace.toFloat().div(totalByte.toFloat())
+                        }
+                    }
                 }
             }
         }

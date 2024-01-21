@@ -287,4 +287,15 @@
     <string name="quality_video">Qualité de la vidéo</string>
     <string name="add_to_queue">Ajouter à la file d\'attente</string>
     <string name="added_to_queue">Ajouté à la file d\'attente</string>
+    <string name="new_release">Nouveautés</string>
+    <string name="music_video">Vidéo musicale</string>
+    <string name="your_music_is_always_up_to_date">VOTRE MUSIQUE EST TOUJOURS À JOUR</string>
+    <string name="youtube_account">Compte YouTube</string>
+    <string name="manage_your_youtube_accounts">Gérez vos comptes YouTube</string>
+    <string name="no_account">Pas de compte</string>
+    <string name="add_an_account">Ajouter un compte</string>
+    <string name="signed_in">Connecté</string>
+    <string name="guest">Invité</string>
+    <string name="log_out_warning">Se déconnecter de tous les comptes ?</string>
+    <string name="play_next">Jouer ensuite</string>
 </resources>

@@ -57,7 +57,7 @@
     <string name="good_afternoon">Selamat Siang</string>
     <string name="good_evening">Selamat Sore</string>
     <string name="good_night">Selamat Malam</string>
-    <string name="quick_picks">Pilihan cepat</string>
+    <string name="quick_picks">Pilihan Cepat</string>
     <string name="this_song_is_not_available">Lagu ini tidak tersedia</string>
     <string name="in_charts">di Charts</string>
     <string name="playlist_name_cannot_be_empty">Nama playlist tidak boleh kosong</string>
@@ -136,7 +136,7 @@
     <string name="songs_inArtist">Lagu</string>
     <string name="albums_inArtist">Album</string>
     <string name="singles_inArtist">Single</string>
-    <string name="fans_might_also_like_inArtist">Penggemar mungkin juga suka</string>
+    <string name="fans_might_also_like_inArtist">Para penggemar juga mungkin menyukai</string>
     <string name="crash_log">SimpMusic mengalami kerusakan. Maaf atas masalah ini.\nKirim log kerusakan ke pengembang</string>
     <string name="crash">Kerusakan</string>
     <string name="send">Kirim</string>
@@ -269,10 +269,10 @@
     <string name="suggest">Saran</string>
     <string name="reload">Memuat ulang</string>
     <string name="added_date">Tanggal ditambahkan</string>
-    <string name="credit_app">Aplikasi musik sederhana yang menggunakan YouTube Music untuk backend \n\nSimpMusic adalah proyek sumber terbuka untuk streaming musik dari YouTube dan YouTube Music tanpa iklan dan pelacakan. SimpMusic menyediakan banyak fitur:\n\n - Streaming musik\n - Lirik yang disinkronkan\n - Personalisasi data\n - dll… \n\nSimpMusic selalu gratis dan tidak ada iklan\n\nDibangun dengan ❤️ oleh Tuan Minh Nguyen Duc (maxrave-dev)</string>
+    <string name="credit_app">Aplikasi musik sederhana yang menggunakan YouTube Music untuk backend \n\nSimpMusic adalah proyek sumber terbuka untuk streaming musik dari YouTube dan YouTube Music tanpa iklan dan pelacakan. SimpMusic menyediakan banyak fitur:\n\n - Streaming musik\n - Lirik yang disinkronkan\n - Personalisasi data\n - dll... \n\nSimpMusic selalu gratis dan tidak ada iklan\n\nDibangun dengan ❤️ oleh Tuan Minh Nguyen Duc (maxrave-dev)</string>
     <string name="issue_tracker">Pelacak Masalah</string>
     <string name="featured_playlists">Rekomendasi Playlist</string>
-    <string name="featured_inArtist">Termasuk di</string>
+    <string name="featured_inArtist">Ditampilkan di</string>
     <string name="audio_quality">Kualitas audio</string>
     <string name="play_video_for_video_track_instead_of_audio_only">Memutar video untuk trek video, bukan hanya audio</string>
     <string name="such_as_music_video_lyrics_video_podcasts_and_more">Seperti Video Musik, Video Lirik, Podcast, dan lainnya</string>
@@ -286,4 +286,15 @@
     <string name="quality_video">Kualitas Video</string>
     <string name="add_to_queue">Tambahkan ke daftar antri</string>
     <string name="added_to_queue">Ditambahkan ke Antrian</string>
+    <string name="new_release">Rilis baru</string>
+    <string name="music_video">Video musik</string>
+    <string name="your_music_is_always_up_to_date">MUSIK ANDA SELALU TERBARU</string>
+    <string name="youtube_account">Akun YouTube</string>
+    <string name="manage_your_youtube_accounts">Kelola Akun YouTube Anda</string>
+    <string name="no_account">Tidak ada akun</string>
+    <string name="add_an_account">Tambahkan akun</string>
+    <string name="signed_in">Masuk</string>
+    <string name="guest">Tamu</string>
+    <string name="log_out_warning">Keluar dari semua akun?</string>
+    <string name="play_next">Mainkan berikutnya</string>
 </resources>
