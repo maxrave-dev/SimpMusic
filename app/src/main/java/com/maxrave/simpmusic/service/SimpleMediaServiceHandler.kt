@@ -38,7 +38,6 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.first
-import java.util.Collections
 
 @UnstableApi
 class SimpleMediaServiceHandler constructor(
@@ -478,11 +477,16 @@ class SimpleMediaServiceHandler constructor(
         player.currentMediaItem?.mediaId?.let { songId ->
             volumeNormalizationJob?.cancel()
             volumeNormalizationJob = coroutineScope.launch(Dispatchers.Main) {
-                mainRepository.getFormat(songId).cancellable().first().let { format ->
+                mainRepository.getNewFormat(songId).cancellable().first().let { format ->
                     if (format != null) {
                         try {
-                            loudnessEnhancer?.setTargetGain(-((format.loudnessDb ?: 0f) * 100).toInt() + 500)
-                            Log.w("Loudness", "mayBeNormalizeVolume: ${loudnessEnhancer?.targetGain}")
+                            loudnessEnhancer?.setTargetGain(
+                                -((format.loudnessDb ?: 0f) * 100).toInt() + 500
+                            )
+                            Log.w(
+                                "Loudness",
+                                "mayBeNormalizeVolume: ${loudnessEnhancer?.targetGain}"
+                            )
                             loudnessEnhancer?.enabled = true
                         } catch (e: Exception) {
                             e.printStackTrace()
@@ -714,18 +718,19 @@ class SimpleMediaServiceHandler constructor(
             val artistName: String = track.artists.toListName().connectArtists()
             if (!catalogMetadata.contains(track)) {
                 if (track.artists.isNullOrEmpty()) {
-                    mainRepository.getFormat(track.videoId).cancellable().first().let { format ->
-                        if (format != null) {
-                            catalogMetadata.add(
-                                track.copy(
-                                    artists = listOf(
-                                        Artist(
-                                            format.uploaderId,
-                                            format.uploader ?: ""
+                    mainRepository.getSongInfo(track.videoId).cancellable().first()
+                        .let { songInfo ->
+                            if (songInfo != null) {
+                                catalogMetadata.add(
+                                    track.copy(
+                                        artists = listOf(
+                                            Artist(
+                                                songInfo.authorId,
+                                                songInfo.author ?: ""
+                                            )
                                         )
                                     )
                                 )
-                            )
                             addMediaItemNotSet(
                                 MediaItem.Builder().setUri(track.videoId)
                                     .setMediaId(track.videoId)
@@ -733,7 +738,7 @@ class SimpleMediaServiceHandler constructor(
                                     .setMediaMetadata(
                                         MediaMetadata.Builder()
                                             .setTitle(track.title)
-                                            .setArtist(format.uploader)
+                                            .setArtist(songInfo.author)
                                             .setArtworkUri(thumbUrl.toUri())
                                             .setAlbumTitle(track.album?.name)
                                             .build()
@@ -803,26 +808,26 @@ class SimpleMediaServiceHandler constructor(
                 thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
             }
             if (downloaded == 1) {
-                if (track.artists.isNullOrEmpty())
-                {
-                    mainRepository.getFormat(track.videoId).cancellable().first().let { format ->
-                        if (format != null) {
-                            val mediaItem = MediaItem.Builder()
-                                .setMediaId(track.videoId)
-                                .setUri(track.videoId)
-                                .setCustomCacheKey(track.videoId)
-                                .setMediaMetadata(
-                                    MediaMetadata.Builder()
-                                        .setArtworkUri(thumbUrl.toUri())
-                                        .setAlbumTitle(track.album?.name)
-                                        .setTitle(track.title)
-                                        .setArtist(format.uploader)
+                if (track.artists.isNullOrEmpty()) {
+                    mainRepository.getSongInfo(track.videoId).cancellable().first()
+                        .let { songInfo ->
+                            if (songInfo != null) {
+                                val mediaItem = MediaItem.Builder()
+                                    .setMediaId(track.videoId)
+                                    .setUri(track.videoId)
+                                    .setCustomCacheKey(track.videoId)
+                                    .setMediaMetadata(
+                                        MediaMetadata.Builder()
+                                            .setArtworkUri(thumbUrl.toUri())
+                                            .setAlbumTitle(track.album?.name)
+                                            .setTitle(track.title)
+                                            .setArtist(songInfo.author)
                                         .build()
                                 )
                                 .build()
                             addMediaItemNotSet(mediaItem)
                             catalogMetadata.add(track.copy(
-                                artists = listOf(Artist(format.uploaderId, format.uploader?: "" ))
+                                artists = listOf(Artist(songInfo.authorId, songInfo.author ?: ""))
                             ))
                         }
                         else {
@@ -869,20 +874,20 @@ class SimpleMediaServiceHandler constructor(
             else {
                 val artistName: String = track.artists.toListName().connectArtists()
                 if (!catalogMetadata.contains(track)) {
-                    if (track.artists.isNullOrEmpty())
-                    {
-                        mainRepository.getFormat(track.videoId).cancellable().first().let { format ->
-                            if (format != null) {
-                                catalogMetadata.add(
-                                    track.copy(
-                                        artists = listOf(
-                                            Artist(
-                                                format.uploaderId,
-                                                format.uploader ?: ""
+                    if (track.artists.isNullOrEmpty()) {
+                        mainRepository.getSongInfo(track.videoId).cancellable().first()
+                            .let { songInfo ->
+                                if (songInfo != null) {
+                                    catalogMetadata.add(
+                                        track.copy(
+                                            artists = listOf(
+                                                Artist(
+                                                    songInfo.authorId,
+                                                    songInfo.author ?: ""
+                                                )
                                             )
                                         )
                                     )
-                                )
                                 addMediaItemNotSet(
                                     MediaItem.Builder().setUri(track.videoId)
                                         .setMediaId(track.videoId)
@@ -890,7 +895,7 @@ class SimpleMediaServiceHandler constructor(
                                         .setMediaMetadata(
                                             MediaMetadata.Builder()
                                                 .setTitle(track.title)
-                                                .setArtist(format.uploader)
+                                                .setArtist(songInfo.author)
                                                 .setArtworkUri(thumbUrl.toUri())
                                                 .setAlbumTitle(track.album?.name)
                                                 .build()
@@ -996,15 +1001,15 @@ class SimpleMediaServiceHandler constructor(
         val artistName: String = track.artists.toListName().connectArtists()
         if (!catalogMetadata.contains(track) && (currentIndex() + 1 in 0..catalogMetadata.size)) {
             if (track.artists.isNullOrEmpty()) {
-                mainRepository.getFormat(track.videoId).cancellable().first().let { format ->
-                    if (format != null) {
+                mainRepository.getSongInfo(track.videoId).cancellable().first().let { songInfo ->
+                    if (songInfo != null) {
                         catalogMetadata.add(
                             currentIndex() + 1,
                             track.copy(
                                 artists = listOf(
                                     Artist(
-                                        format.uploaderId,
-                                        format.uploader ?: ""
+                                        songInfo.authorId,
+                                        songInfo.author ?: ""
                                     )
                                 )
                             )
@@ -1016,7 +1021,7 @@ class SimpleMediaServiceHandler constructor(
                                 .setMediaMetadata(
                                     MediaMetadata.Builder()
                                         .setTitle(track.title)
-                                        .setArtist(format.uploader)
+                                        .setArtist(songInfo.author)
                                         .setArtworkUri(thumbUrl.toUri())
                                         .setAlbumTitle(track.album?.name)
                                         .build()

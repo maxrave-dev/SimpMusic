@@ -2,37 +2,114 @@ package com.maxrave.kotlinytmusicscraper.test
 
 import com.google.gson.annotations.SerializedName
 import com.maxrave.kotlinytmusicscraper.YouTube
+import com.maxrave.kotlinytmusicscraper.Ytmusic
 import com.maxrave.kotlinytmusicscraper.models.GridRenderer
 import com.maxrave.kotlinytmusicscraper.models.MusicResponsiveListItemRenderer
 import com.maxrave.kotlinytmusicscraper.models.MusicTwoRowItemRenderer
 import com.maxrave.kotlinytmusicscraper.models.Run
 import com.maxrave.kotlinytmusicscraper.models.SectionListRenderer
 import com.maxrave.kotlinytmusicscraper.models.Thumbnail
+import com.maxrave.kotlinytmusicscraper.models.YouTubeClient
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
+import io.ktor.client.statement.bodyAsText
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlin.random.Random
 
 
 fun main() {
+    testSongInfo()
+}
+
+fun testSongInfo() {
     runBlocking {
+        YouTube.getYouTubeCaption("vfKiaXKO44M").onSuccess {
+            println(it)
+        }.onFailure {
+            it.printStackTrace()
+        }
+    }
+}
+
+fun testPlayerYouTube() {
+    runBlocking {
+        var time = 0
+        var isLoading = true
+        GlobalScope.launch {
+            while (isLoading) {
+                delay(100)
+                time += 100
+                println("Loading... $time")
+            }
+        }
         YouTube.apply {
             locale = YouTubeLocale("VN", "vi")
-            cookie = ""
-        }.getNotification().onSuccess { account ->
-            println(account)
+        }.player("QZrZbEEAOZ8").onSuccess {
+            println(it)
+            isLoading = false
+            println("\nTime $time ms")
+        }.onFailure {
+            it.printStackTrace()
+            isLoading = false
+            println("\nTime $time ms")
         }
-            .onFailure {
-                it.printStackTrace()
-            }
+    }
+}
+
+suspend fun timer() {
+    GlobalScope.launch {
+        delay(1000)
+        println("World!")
+    }
+}
+
+fun testPlayer() {
+    runBlocking {
+        Ytmusic().apply {
+            locale = YouTubeLocale("VN", "vi")
+            cookie = ""
+        }.player(YouTubeClient.TVHTML5, "ctiKD8jtvV8", null, (1..16).map {
+            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"[Random.Default.nextInt(
+                0,
+                64
+            )]
+        }.joinToString("")).apply {
+            println(bodyAsText())
+        }
+    }
+}
+
+fun testNext() {
+    runBlocking {
+        Ytmusic().apply {
+            locale = YouTubeLocale("VN", "vi")
+        }.next(YouTubeClient.WEB, "Fwsl_XS4sYQ", null, null, null, null).apply {
+//            val response = body<NextResponse>()
+//            println(response)
+//            if (response.contents.twoColumnWatchNextResults?.results?.results?.content?.find {
+//                it?.itemSectionRenderer?.contents?.firstOrNull()?.continuationItemRenderer != null
+//                } != null) {
+//                println("\nHas continuation")
+//                val continuation = response.contents.twoColumnWatchNextResults.results.results.content.find {
+//                    it?.itemSectionRenderer?.contents?.firstOrNull()?.continuationItemRenderer != null
+//                }?.itemSectionRenderer?.contents?.firstOrNull()?.continuationItemRenderer?.continuationEndpoint?.continuationCommand?.token
+//                println("Continuation: $continuation")
+//            }
+            println(bodyAsText())
+        }
     }
 }
 
 fun parseLibraryPlaylist(input: List<GridRenderer.Item>): ArrayList<PlaylistsResult> {
-    val list : ArrayList<PlaylistsResult> = arrayListOf()
+    val list: ArrayList<PlaylistsResult> = arrayListOf()
     if (input.isNotEmpty()) {
         if (input.size >= 2) {
             input[1].musicTwoRowItemRenderer?.let {
-                list.add(PlaylistsResult(
-                    author = it.subtitle?.runs?.get(0)?.text ?: "",
+                list.add(
+                    PlaylistsResult(
+                        author = it.subtitle?.runs?.get(0)?.text ?: "",
                     browseId = it.navigationEndpoint.browseEndpoint?.browseId ?: "",
                     category = "",
                     itemCount = "",

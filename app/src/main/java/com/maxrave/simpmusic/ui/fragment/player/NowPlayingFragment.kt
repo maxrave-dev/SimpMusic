@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.ui.fragment.player
 
+import android.animation.ObjectAnimator
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
@@ -76,6 +77,7 @@ import com.maxrave.simpmusic.service.RepeatState
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.utils.CenterLayoutManager
 import com.maxrave.simpmusic.utils.DisableTouchEventRecyclerView
+import com.maxrave.simpmusic.utils.InteractiveTextMaker
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
@@ -698,27 +700,58 @@ class NowPlayingFragment : Fragment() {
                     }
                 }
                 val job14 = launch {
-                    viewModel.format.collectLatest { format ->
-                        if (format != null) {
+                    viewModel.songInfo.collectLatest { songInfo ->
+                        if (songInfo != null) {
                             binding.uploaderLayout.visibility = View.VISIBLE
-                            binding.tvUploader.text = format.uploader
-                            binding.ivAuthor.load(format.uploaderThumbnail) {
+                            binding.infoLayout.visibility = View.VISIBLE
+                            binding.tvUploader.text = songInfo.author
+                            binding.ivAuthor.load(songInfo.authorThumbnail) {
                                 crossfade(true)
                                 placeholder(R.drawable.holder_video)
                             }
-                            binding.tvSubCount.text = format.uploaderSubCount
-                            if (format.itag == 22 || format.itag == 18) {
+                            binding.tvSubCount.text = songInfo.subscribers
+                            binding.tvPublishAt.text =
+                                getString(R.string.published_at, songInfo.uploadDate)
+                            binding.tvPlayCount.text = getString(
+                                R.string.view_count,
+                                String.format("%,d", songInfo.viewCount)
+                            )
+                            binding.tvLikeCount.text = getString(
+                                R.string.like_and_dislike,
+                                songInfo.like,
+                                songInfo.dislike
+                            )
+                            binding.tvDescription.text =
+                                songInfo.description ?: getString(R.string.no_description)
+                            InteractiveTextMaker.of(binding.tvDescription).setOnTextClickListener {
+                                Log.d("NowPlayingFragment", "Text Clicked $it")
+                                val timestamp = parseTimestampToMilliseconds(it)
+                                if (timestamp != 0.0 && timestamp < runBlocking { viewModel.duration.first() }) {
+                                    viewModel.onUIEvent(UIEvent.UpdateProgress(((timestamp * 100) / runBlocking { viewModel.duration.first() }).toFloat()))
+                                }
+                            }
+                                .setSpecialTextColorRes(R.color.light_blue_A400)
+                                .initialize()
+                        } else {
+                            binding.uploaderLayout.visibility = View.GONE
+                            binding.infoLayout.visibility = View.GONE
+                            binding.playerLayout.visibility = View.GONE
+                            binding.ivArt.visibility = View.VISIBLE
+                        }
+                    }
+                }
+                val job19 = launch {
+                    viewModel.format.collect { f ->
+                        if (f != null) {
+                            if (f.itag == 22 || f.itag == 18) {
                                 binding.playerLayout.visibility = View.VISIBLE
                                 binding.ivArt.visibility = View.INVISIBLE
                                 binding.loadingArt.visibility = View.GONE
-                                viewModel.updateSubtitle(format.youtubeCaptionsUrl)
                             } else {
                                 binding.playerLayout.visibility = View.GONE
                                 binding.ivArt.visibility = View.VISIBLE
                             }
-                        }
-                        else {
-                            binding.uploaderLayout.visibility = View.GONE
+                        } else {
                             binding.playerLayout.visibility = View.GONE
                             binding.ivArt.visibility = View.VISIBLE
                         }
@@ -863,6 +896,29 @@ class NowPlayingFragment : Fragment() {
                 job16.join()
                 job17.join()
                 job18.join()
+                job19.join()
+            }
+        }
+        binding.tvMore.setOnClickListener {
+
+            if (binding.tvDescription.maxLines == 2) {
+                val animation = ObjectAnimator.ofInt(
+                    binding.tvDescription,
+                    "maxLines",
+                    1000
+                )
+                animation.setDuration(1000)
+                animation.start()
+                binding.tvMore.setText(R.string.less)
+            } else {
+                val animation = ObjectAnimator.ofInt(
+                    binding.tvDescription,
+                    "maxLines",
+                    2
+                )
+                animation.setDuration(1000)
+                animation.start()
+                binding.tvMore.setText(R.string.more)
             }
         }
         binding.btFull.setOnClickListener {
@@ -988,7 +1044,7 @@ class NowPlayingFragment : Fragment() {
             findNavController().navigateSafe(
                 R.id.action_global_artistFragment,
                 Bundle().apply {
-                    putString("channelId", runBlocking { viewModel.format.first()?.uploaderId })
+                    putString("channelId", runBlocking { viewModel.songInfo.first()?.authorId })
                 })
         }
         binding.tvSongArtist.setOnClickListener {
@@ -1444,6 +1500,7 @@ class NowPlayingFragment : Fragment() {
                                     binding.lyricsLayout.setCardBackgroundColor(
                                         it1
                                     )
+                                    binding.infoLayout.setCardBackgroundColor(it1)
                                 }
                             }
                             Log.d("Update UI", "updateUI: NULL")
@@ -1644,6 +1701,7 @@ class NowPlayingFragment : Fragment() {
                                     binding.lyricsLayout.setCardBackgroundColor(
                                         it1
                                     )
+                                    binding.infoLayout.setCardBackgroundColor(it1)
                                 }
                             }
                             Log.d("Update UI", "updateUI: NULL")
@@ -1818,5 +1876,41 @@ class NowPlayingFragment : Fragment() {
             miniplayer.visibility = View.VISIBLE
         }
         isFullScreen = false
+    }
+
+    fun parseTimestampToMilliseconds(timestamp: String): Double {
+        val parts = timestamp.split(":")
+        val totalSeconds = when (parts.size) {
+            2 -> {
+                try {
+                    val minutes = parts[0].toDouble()
+                    val seconds = parts[1].toDouble()
+                    (minutes * 60 + seconds)
+                } catch (e: NumberFormatException) {
+                    // Handle parsing error
+                    e.printStackTrace()
+                    return 0.0
+                }
+            }
+
+            3 -> {
+                try {
+                    val hours = parts[0].toDouble()
+                    val minutes = parts[1].toDouble()
+                    val seconds = parts[2].toDouble()
+                    (hours * 3600 + minutes * 60 + seconds)
+                } catch (e: NumberFormatException) {
+                    // Handle parsing error
+                    e.printStackTrace()
+                    return 0.0
+                }
+            }
+
+            else -> {
+                // Handle incorrect format
+                return 0.0
+            }
+        }
+        return totalSeconds * 1000
     }
 }

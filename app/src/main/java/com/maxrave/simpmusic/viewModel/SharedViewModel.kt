@@ -33,11 +33,12 @@ import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.TRUE
-import com.maxrave.simpmusic.data.db.entities.FormatEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.LyricsEntity
+import com.maxrave.simpmusic.data.db.entities.NewFormatEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.SongEntity
+import com.maxrave.simpmusic.data.db.entities.SongInfoEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.metadata.Line
 import com.maxrave.simpmusic.data.model.metadata.Lyrics
@@ -66,7 +67,6 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
@@ -161,8 +161,11 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     var from_backup: String? = null
     private var isRestoring = MutableStateFlow(false)
 
-    private var _format: MutableStateFlow<FormatEntity?> = MutableStateFlow(null)
-    val format: SharedFlow<FormatEntity?> = _format.asSharedFlow()
+    private var _format: MutableStateFlow<NewFormatEntity?> = MutableStateFlow(null)
+    val format: SharedFlow<NewFormatEntity?> = _format.asSharedFlow()
+
+    private var _songInfo: MutableStateFlow<SongInfoEntity?> = MutableStateFlow(null)
+    val songInfo: SharedFlow<SongInfoEntity?> = _songInfo.asSharedFlow()
 
     private var _saveLastPlayedSong: MutableLiveData<Boolean> = MutableLiveData()
     val saveLastPlayedSong: LiveData<Boolean> = _saveLastPlayedSong
@@ -232,6 +235,8 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                     simpleMediaServiceHandler!!.nowPlaying.collectLatest { nowPlaying ->
                         nowPlaying?.let { now ->
                             _format.value = null
+                            _songInfo.value = null
+                            getSongInfo(now.mediaId)
                             getSkipSegments(now.mediaId)
                         }
                         if (nowPlaying != null && getCurrentMediaItemIndex() > 0) {
@@ -317,7 +322,6 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                             }
                         }
                         resetLyrics()
-                        Log.w("Check Youtube Captions URL", formatTemp?.youtubeCaptionsUrl.toString())
                         Log.w("Check CPN", formatTemp?.cpn.toString())
                         formatTemp?.lengthSeconds?.let {
                             getLyricsFromFormat(formatTemp.videoId, it)
@@ -386,7 +390,6 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                             if (second + 20.23f < (duration.first()/1000).toFloat()) {
                                 watchTimeList.add(second + 20.23f)
                                 if (watchTimeUrl != null && cpn != null) {
-                                    Log.w("Check updateWatchTime", _format.value?.uploader.toString())
                                     mainRepository.updateWatchTime(watchTimeUrl, watchTimeList, cpn, playlistId.value).collect { response ->
                                         if (response == 204) {
                                             Log.d("Check updateWatchTime", "Success")
@@ -397,7 +400,6 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                             else {
                                 watchTimeList.clear()
                                 if (watchTimeUrl != null && cpn != null) {
-                                    Log.w("Check updateWatchTime", _format.value?.uploader.toString())
                                     mainRepository.updateWatchTimeFull(watchTimeUrl, cpn, playlistId.value).collect { response ->
                                         if (response == 204) {
                                             Log.d("Check updateWatchTimeFull", "Success")
@@ -1048,13 +1050,22 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     fun getFormat(mediaId: String?) {
         viewModelScope.launch {
             if (mediaId != null){
-                mainRepository.getFormat(mediaId).collect { f ->
-                    if (f != null){
+                mainRepository.getNewFormat(mediaId).collect { f ->
+                    if (f != null) {
                         _format.emit(f)
-                    }
-                    else {
+                    } else {
                         _format.emit(null)
                     }
+                }
+            }
+        }
+    }
+
+    fun getSongInfo(mediaId: String?) {
+        viewModelScope.launch {
+            if (mediaId != null) {
+                mainRepository.getSongInfo(mediaId).collect { song ->
+                    _songInfo.value = song
                 }
             }
         }
@@ -1246,11 +1257,6 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
         _recreateActivity.value = false
     }
 
-    fun updateSubtitle(url: String?) {
-        if (url != null) {
-            simpleMediaServiceHandler?.updateSubtitle(url)
-        }
-    }
 
     fun addToQueue(track: Track) {
         viewModelScope.launch {

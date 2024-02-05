@@ -595,11 +595,104 @@
                             </LinearLayout>
                         </FrameLayout>
                     </com.google.android.material.card.MaterialCardView>
+
+                    <com.google.android.material.card.MaterialCardView
+                        style="@style/Widget.Material3.CardView.Elevated"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="15sp"
+                        android:layout_marginBottom="10sp"
+                        app:cardPreventCornerOverlap="true"
+                        android:id="@+id/infoLayout"
+                        android:focusable="true"
+                        android:clickable="true"
+                        android:foreground="?android:attr/selectableItemBackground">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_margin="10dp"
+                            android:padding="10dp"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:id="@+id/tvPublishAt"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="start"
+                                style="@style/SubTitleToolBar"
+                                android:layout_marginTop="3sp"
+                                android:layout_marginBottom="3sp"
+                                android:text="Publish at 05 thg 10, 2023">
+
+                            </TextView>
+
+                            <TextView
+                                android:id="@+id/tvPlayCount"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="start"
+                                android:textColor="@android:color/white"
+                                android:textSize="18sp"
+                                android:layout_marginTop="3sp"
+                                android:layout_marginBottom="3sp"
+                                android:textStyle="bold"
+                                android:text="500000 lượt xem">
+
+                            </TextView>
+
+                            <TextView
+                                android:id="@+id/tvLikeCount"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="3sp"
+                                android:layout_marginBottom="3sp"
+                                android:maxLines="6"
+                                android:textSize="15sp"
+                                android:textStyle="normal"
+                                android:text="2000 likes và 100 dislikes">
+
+                            </TextView>
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="start"
+                                style="@style/SubTitleToolBar"
+                                android:layout_marginTop="3sp"
+                                android:layout_marginBottom="3sp"
+                                android:text="@string/description">
+
+                            </TextView>
+
+                            <TextView
+                                android:autoLink="web"
+                                android:id="@+id/tvDescription"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/roboto"
+                                android:textStyle="normal"
+                                android:maxLines="2">
+
+                            </TextView>
+
+                            <TextView
+                                android:id="@+id/tvMore"
+                                android:text="@string/more"
+                                android:textColor="@color/md_theme_dark_outlineVariant"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content">
+
+                            </TextView>
+
+
+                        </LinearLayout>
+                    </com.google.android.material.card.MaterialCardView>
+
                     <RelativeLayout
                         android:layout_width="match_parent"
                         android:layout_height="15dp"
-                        android:background="@android:color/transparent">
-                    </RelativeLayout>
+                        android:background="@android:color/transparent"></RelativeLayout>
                 </LinearLayout>
             </LinearLayout>
 

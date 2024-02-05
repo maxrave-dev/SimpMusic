@@ -301,4 +301,9 @@
     <string name="guest">Guest</string>
     <string name="log_out_warning">Log out from all account?</string>
     <string name="play_next">Play next</string>
+    <string name="codec">Codec</string>
+    <string name="plays">Play/View Count</string>
+    <string name="like_and_dislike">%1$d like(s), %2$d dislike(s)</string>
+    <string name="published_at">Published at %1$s</string>
+    <string name="less">Less</string>
 </resources>

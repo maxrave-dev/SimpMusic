@@ -9,16 +9,17 @@ import androidx.room.Transaction
 import androidx.sqlite.db.SupportSQLiteQuery
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
-import com.maxrave.simpmusic.data.db.entities.FormatEntity
 import com.maxrave.simpmusic.data.db.entities.GoogleAccountEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.LyricsEntity
+import com.maxrave.simpmusic.data.db.entities.NewFormatEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.QueueEntity
 import com.maxrave.simpmusic.data.db.entities.SearchHistory
 import com.maxrave.simpmusic.data.db.entities.SetVideoIdEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
+import com.maxrave.simpmusic.data.db.entities.SongInfoEntity
 import com.maxrave.simpmusic.extension.toSQLiteQuery
 import java.time.LocalDateTime
 
@@ -267,11 +268,16 @@ interface DatabaseDao {
     suspend fun getPreparingSongs(): List<SongEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertFormat(format: FormatEntity)
+    suspend fun insertNewFormat(format: NewFormatEntity)
 
-    @Query("SELECT * FROM format WHERE videoId = :videoId")
-    suspend fun getFormat(videoId: String): FormatEntity?
+    @Query("SELECT * FROM new_format WHERE videoId = :videoId")
+    suspend fun getNewFormat(videoId: String): NewFormatEntity?
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertSongInfo(songInfo: SongInfoEntity)
+
+    @Query("SELECT * FROM song_info WHERE videoId = :videoId")
+    suspend fun getSongInfo(videoId: String): SongInfoEntity?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun recoverQueue(queue: QueueEntity)

@@ -63,16 +63,114 @@ android {
     //enable view binding
     buildFeatures {
         viewBinding = true
+        compose = true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.4"
     }
     packaging {
         jniLibs.useLegacyPackaging = true
-        jniLibs.excludes += listOf("META-INF/META-INF/DEPENDENCIES", "META-INF/LICENSE", "META-INF/LICENSE.txt", "META-INF/license.txt", "META-INF/NOTICE", "META-INF/NOTICE.txt", "META-INF/notice.txt", "META-INF/ASL2.0", "META-INF/asm-license.txt", "META-INF/notice.txt", "META-INF/NOTICE.txt", "META-INF/LICENSE.txt", "META-INF/license.txt", "META-INF/notice.txt", "META-INF/NOTICE", "META-INF/LICENSE", "META-INF/notice", "META-INF/notice.txt", "META-INF/NOTICE.txt", "META-INF/LICENSE.txt", "META-INF/license.txt", "META-INF/notice.txt", "META-INF/NOTICE", "META-INF/LICENSE", "META-INF/notice", "META-INF/notice.txt", "META-INF/NOTICE.txt", "META-INF/LICENSE.txt", "META-INF/license.txt", "META-INF/notice.txt", "META-INF/NOTICE", "META-INF/LICENSE", "META-INF/notice", "META-INF/notice.txt", "META-INF/NOTICE.txt", "META-INF/LICENSE.txt", "META-INF/license.txt", "META-INF/notice.txt", "META-INF/NOTICE", "META-INF/LICENSE", "META-INF/notice", "META-INF/notice.txt", "META-INF/NOTICE.txt", "META-INF/LICENSE.txt", "META-INF/license.txt", "META-INF/notice.txt", "META-INF/NOTICE", "META-INF/LICENSE", "META-INF/notice", "META-INF/notice.txt", "META-INF/NOTICE.txt", "META-INF/LICENSE.txt", "META-INF/license.txt", "META-INF/notice.txt", "META-INF/NOTICE", "META-INF/LICENSE", "META-INF/notice", "META-INF/notice.txt", "META-INF/NOTICE.txt", "META-INF/LICENSE.txt", "META-INF/license.txt", "META-INF/notice.txt", "META-INF/NOTICE", "META-INF/LICENSE", "META-INF/notice", "META-INF/notice.txt", "META-INF/NOTICE.txt", "META-INF/LICENSE.txt", "META-INF/license.txt", "META-INF/notice.txt", "META-INF/NOTICE", "META-INF/LICENSE", "META-INF/notice", "META-INF/notice.txt", "META-INF/NOTICE.txt", "META-INF/LICENSE.txt", "META-INF/license.txt", "META-INF/notice", "META-INF/ASL2.0", "META-INF/*.kotlin_module")
+        jniLibs.excludes += listOf(
+            "META-INF/META-INF/DEPENDENCIES",
+            "META-INF/LICENSE",
+            "META-INF/LICENSE.txt",
+            "META-INF/license.txt",
+            "META-INF/NOTICE",
+            "META-INF/NOTICE.txt",
+            "META-INF/notice.txt",
+            "META-INF/ASL2.0",
+            "META-INF/asm-license.txt",
+            "META-INF/notice.txt",
+            "META-INF/NOTICE.txt",
+            "META-INF/LICENSE.txt",
+            "META-INF/license.txt",
+            "META-INF/notice.txt",
+            "META-INF/NOTICE",
+            "META-INF/LICENSE",
+            "META-INF/notice",
+            "META-INF/notice.txt",
+            "META-INF/NOTICE.txt",
+            "META-INF/LICENSE.txt",
+            "META-INF/license.txt",
+            "META-INF/notice.txt",
+            "META-INF/NOTICE",
+            "META-INF/LICENSE",
+            "META-INF/notice",
+            "META-INF/notice.txt",
+            "META-INF/NOTICE.txt",
+            "META-INF/LICENSE.txt",
+            "META-INF/license.txt",
+            "META-INF/notice.txt",
+            "META-INF/NOTICE",
+            "META-INF/LICENSE",
+            "META-INF/notice",
+            "META-INF/notice.txt",
+            "META-INF/NOTICE.txt",
+            "META-INF/LICENSE.txt",
+            "META-INF/license.txt",
+            "META-INF/notice.txt",
+            "META-INF/NOTICE",
+            "META-INF/LICENSE",
+            "META-INF/notice",
+            "META-INF/notice.txt",
+            "META-INF/NOTICE.txt",
+            "META-INF/LICENSE.txt",
+            "META-INF/license.txt",
+            "META-INF/notice.txt",
+            "META-INF/NOTICE",
+            "META-INF/LICENSE",
+            "META-INF/notice",
+            "META-INF/notice.txt",
+            "META-INF/NOTICE.txt",
+            "META-INF/LICENSE.txt",
+            "META-INF/license.txt",
+            "META-INF/notice.txt",
+            "META-INF/NOTICE",
+            "META-INF/LICENSE",
+            "META-INF/notice",
+            "META-INF/notice.txt",
+            "META-INF/NOTICE.txt",
+            "META-INF/LICENSE.txt",
+            "META-INF/license.txt",
+            "META-INF/notice.txt",
+            "META-INF/NOTICE",
+            "META-INF/LICENSE",
+            "META-INF/notice",
+            "META-INF/notice.txt",
+            "META-INF/NOTICE.txt",
+            "META-INF/LICENSE.txt",
+            "META-INF/license.txt",
+            "META-INF/notice.txt",
+            "META-INF/NOTICE",
+            "META-INF/LICENSE",
+            "META-INF/notice",
+            "META-INF/notice.txt",
+            "META-INF/NOTICE.txt",
+            "META-INF/LICENSE.txt",
+            "META-INF/license.txt",
+            "META-INF/notice",
+            "META-INF/ASL2.0",
+            "META-INF/*.kotlin_module"
+        )
     }
 }
 
 dependencies {
 
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
+    //Compose
+    val composeBom = platform("androidx.compose:compose-bom:2024.01.00")
+    implementation(composeBom)
+    androidTestImplementation(composeBom)
+    implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.ui:ui")
+
+    // Android Studio Preview support
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("androidx.activity:activity-compose:1.8.2")
+    // Optional - Integration with ViewModels
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
     //material design3
@@ -80,11 +178,11 @@ dependencies {
     //runtime
     implementation("androidx.startup:startup-runtime:1.1.1")
     implementation(project(mapOf("path" to ":kotlinYtmusicScraper")))
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.2")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
 
     //ExoPlayer
-    val media3_version = "1.2.0"
+    val media3_version = "1.2.1"
 
     implementation("androidx.media3:media3-exoplayer:$media3_version")
     implementation("androidx.media3:media3-ui:$media3_version")

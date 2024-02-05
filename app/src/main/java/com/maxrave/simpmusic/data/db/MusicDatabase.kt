@@ -6,20 +6,21 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
-import com.maxrave.simpmusic.data.db.entities.FormatEntity
 import com.maxrave.simpmusic.data.db.entities.GoogleAccountEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.LyricsEntity
+import com.maxrave.simpmusic.data.db.entities.NewFormatEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.QueueEntity
 import com.maxrave.simpmusic.data.db.entities.SearchHistory
 import com.maxrave.simpmusic.data.db.entities.SetVideoIdEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
+import com.maxrave.simpmusic.data.db.entities.SongInfoEntity
 
 @Database(
-    entities = [SearchHistory::class, SongEntity::class, ArtistEntity::class, AlbumEntity::class, PlaylistEntity::class, LocalPlaylistEntity::class, LyricsEntity::class, FormatEntity::class, QueueEntity::class, SetVideoIdEntity::class, PairSongLocalPlaylist::class, GoogleAccountEntity::class],
-    version = 7,
+    entities = [NewFormatEntity::class, SongInfoEntity::class, SearchHistory::class, SongEntity::class, ArtistEntity::class, AlbumEntity::class, PlaylistEntity::class, LocalPlaylistEntity::class, LyricsEntity::class, QueueEntity::class, SetVideoIdEntity::class, PairSongLocalPlaylist::class, GoogleAccountEntity::class],
+    version = 8,
     exportSchema = true,
     autoMigrations = [AutoMigration(from = 2, to = 3), AutoMigration(
         from = 1,
@@ -27,7 +28,11 @@ import com.maxrave.simpmusic.data.db.entities.SongEntity
     ), AutoMigration(from = 3, to = 4), AutoMigration(from = 2, to = 4), AutoMigration(
         from = 3,
         to = 5
-    ), AutoMigration(4, 5), AutoMigration(6, 7)]
+    ), AutoMigration(4, 5), AutoMigration(6, 7), AutoMigration(
+        7,
+        8,
+        spec = AutoMigration7_8::class
+    )]
 )
 @TypeConverters(Converters::class)
 abstract class MusicDatabase: RoomDatabase() {

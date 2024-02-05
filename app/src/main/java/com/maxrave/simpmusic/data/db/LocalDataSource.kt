@@ -2,16 +2,17 @@ package com.maxrave.simpmusic.data.db
 
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
-import com.maxrave.simpmusic.data.db.entities.FormatEntity
 import com.maxrave.simpmusic.data.db.entities.GoogleAccountEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.LyricsEntity
+import com.maxrave.simpmusic.data.db.entities.NewFormatEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.QueueEntity
 import com.maxrave.simpmusic.data.db.entities.SearchHistory
 import com.maxrave.simpmusic.data.db.entities.SetVideoIdEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
+import com.maxrave.simpmusic.data.db.entities.SongInfoEntity
 import java.time.LocalDateTime
 import javax.inject.Inject
 
@@ -73,18 +74,28 @@ class LocalDataSource @Inject constructor(private val databaseDao: DatabaseDao) 
     suspend fun updateLocalPlaylistThumbnail(thumbnail: String, id: Long) = databaseDao.updateLocalPlaylistThumbnail(thumbnail, id)
     suspend fun updateLocalPlaylistTracks(tracks: List<String>, id: Long) = databaseDao.updateLocalPlaylistTracks(tracks, id)
     suspend fun updateLocalPlaylistInLibrary(inLibrary: LocalDateTime, id: Long) = databaseDao.updateLocalPlaylistInLibrary(inLibrary, id)
-    suspend fun updateLocalPlaylistDownloadState(downloadState: Int, id: Long) = databaseDao.updateLocalPlaylistDownloadState(downloadState, id)
+    suspend fun updateLocalPlaylistDownloadState(downloadState: Int, id: Long) =
+        databaseDao.updateLocalPlaylistDownloadState(downloadState, id)
+
     suspend fun getDownloadedLocalPlaylists() = databaseDao.getDownloadedLocalPlaylists()
-    suspend fun updateLocalPlaylistYouTubePlaylistId(id: Long, ytId: String?) = databaseDao.updateLocalPlaylistYouTubePlaylistId(id, ytId)
-    suspend fun updateLocalPlaylistYouTubePlaylistSynced(id: Long, synced: Int) = databaseDao.updateLocalPlaylistYouTubePlaylistSynced(id, synced)
-    suspend fun updateLocalPlaylistYouTubePlaylistSyncState(id: Long, syncState: Int) = databaseDao.updateLocalPlaylistYouTubePlaylistSyncState(id, syncState)
+    suspend fun updateLocalPlaylistYouTubePlaylistId(id: Long, ytId: String?) =
+        databaseDao.updateLocalPlaylistYouTubePlaylistId(id, ytId)
+
+    suspend fun updateLocalPlaylistYouTubePlaylistSynced(id: Long, synced: Int) =
+        databaseDao.updateLocalPlaylistYouTubePlaylistSynced(id, synced)
+
+    suspend fun updateLocalPlaylistYouTubePlaylistSyncState(id: Long, syncState: Int) =
+        databaseDao.updateLocalPlaylistYouTubePlaylistSyncState(id, syncState)
 
     suspend fun getSavedLyrics(videoId: String) = databaseDao.getLyrics(videoId)
     suspend fun insertLyrics(lyrics: LyricsEntity) = databaseDao.insertLyrics(lyrics)
     suspend fun getPreparingSongs() = databaseDao.getPreparingSongs()
 
-    suspend fun insertFormat(format: FormatEntity) = databaseDao.insertFormat(format)
-    suspend fun getFormat(videoId: String) = databaseDao.getFormat(videoId)
+    suspend fun insertNewFormat(format: NewFormatEntity) = databaseDao.insertNewFormat(format)
+    suspend fun getNewFormat(videoId: String) = databaseDao.getNewFormat(videoId)
+
+    suspend fun insertSongInfo(songInfo: SongInfoEntity) = databaseDao.insertSongInfo(songInfo)
+    suspend fun getSongInfo(videoId: String) = databaseDao.getSongInfo(videoId)
 
     suspend fun recoverQueue(queueEntity: QueueEntity) = databaseDao.recoverQueue(queueEntity)
     suspend fun getQueue() = databaseDao.getQueue()

@@ -228,6 +228,11 @@ class Ytmusic {
         parameter("ctoken", continuation)
     }
 
+    suspend fun returnYouTubeDislike(videoId: String) =
+        httpClient.get("https://returnyoutubedislikeapi.com/Votes?videoId=$videoId") {
+            contentType(ContentType.Application.Json)
+        }
+
     suspend fun player(
         client: YouTubeClient,
         videoId: String,

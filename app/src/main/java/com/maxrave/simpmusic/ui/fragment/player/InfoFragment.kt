@@ -7,18 +7,22 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.util.UnstableApi
+import androidx.navigation.fragment.findNavController
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.databinding.InfoFragmentBinding
 import com.maxrave.simpmusic.extension.connectArtists
+import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class InfoFragment: BottomSheetDialogFragment(){
@@ -79,18 +83,55 @@ class InfoFragment: BottomSheetDialogFragment(){
                     "https://www.youtube.com/watch?v=${data.videoId}".also { youtubeUrl.text = it }
                     title.text = data.title
                     albumName.text = data.album?.name
-                    val format = runBlocking { viewModel.format.first() }
-                    if (format != null){
-                        itag.text = format.itag.toString()
-                        mimeType.text = format.mimeType ?: context?.getString(androidx.media3.ui.R.string.exo_track_unknown)
-                        bitrate.text = (format.bitrate ?: context?.getString(androidx.media3.ui.R.string.exo_track_unknown)).toString()
-                        description.text = format.description ?: context?.getString(androidx.media3.ui.R.string.exo_track_unknown)
+                    albumName.setOnClickListener {
+                        if (!data.album?.id.isNullOrEmpty()) {
+                            findNavController().navigateSafe(
+                                R.id.action_global_albumFragment,
+                                Bundle().apply {
+                                    putString("browseId", data.album?.id)
+                                })
+                        }
                     }
                 }
             }
         }
         binding.toolbar.setNavigationOnClickListener {
             dismiss()
+        }
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.CREATED) {
+                val job1 = launch {
+                    viewModel.format.collect { f ->
+                        if (f != null) {
+                            binding.itag.text = f.itag.toString()
+                            binding.mimeType.text = f.mimeType
+                                ?: context?.getString(androidx.media3.ui.R.string.exo_track_unknown)
+                            binding.codec.text = f.codecs
+                                ?: context?.getString(androidx.media3.ui.R.string.exo_track_unknown)
+                            binding.bitrate.text = (f.bitrate
+                                ?: context?.getString(androidx.media3.ui.R.string.exo_track_unknown)).toString()
+                        }
+                    }
+                }
+                val job2 = launch {
+                    viewModel.songInfo.collect { s ->
+                        if (s != null) {
+                            binding.description.text = s.description
+                                ?: context?.getString(androidx.media3.ui.R.string.exo_track_unknown)
+                            binding.plays.text = s.viewCount?.toString() ?: context?.getString(
+                                androidx.media3.ui.R.string.exo_track_unknown
+                            )
+                            binding.like.text = if (s.like != null && s.dislike != null) {
+                                getString(R.string.like_and_dislike, s.like, s.dislike)
+                            } else {
+                                getString(androidx.media3.ui.R.string.exo_track_unknown)
+                            }
+                        }
+                    }
+                }
+                job1.join()
+                job2.join()
+            }
         }
     }
 }
