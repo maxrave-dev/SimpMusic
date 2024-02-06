@@ -1041,10 +1041,15 @@ class NowPlayingFragment : Fragment() {
             }
         }
         binding.uploaderLayout.setOnClickListener {
+            val browseId = if (!viewModel.songDB.value?.artistId.isNullOrEmpty()) {
+                viewModel.songDB.value?.artistId?.firstOrNull()
+            } else {
+                runBlocking { viewModel.songInfo.first()?.authorId }
+            }
             findNavController().navigateSafe(
                 R.id.action_global_artistFragment,
                 Bundle().apply {
-                    putString("channelId", runBlocking { viewModel.songInfo.first()?.authorId })
+                    putString("channelId", browseId)
                 })
         }
         binding.tvSongArtist.setOnClickListener {
@@ -1240,10 +1245,8 @@ class NowPlayingFragment : Fragment() {
                                                 )
                                                 tempTrack.add(song.videoId)
                                             }
-                                            tempTrack.add(song.videoId)
-                                            tempTrack.removeConflicts()
                                             viewModel.updateLocalPlaylistTracks(
-                                                tempTrack,
+                                                tempTrack.removeConflicts(),
                                                 playlist.id
                                             )
                                             addPlaylistDialog.dismiss()

@@ -491,10 +491,8 @@ class FullscreenFragment : Fragment() {
                                                 )
                                                 tempTrack.add(song.videoId)
                                             }
-                                            tempTrack.add(song.videoId)
-                                            tempTrack.removeConflicts()
                                             viewModel.updateLocalPlaylistTracks(
-                                                tempTrack,
+                                                tempTrack.removeConflicts(),
                                                 playlist.id
                                             )
                                             addPlaylistDialog.dismiss()

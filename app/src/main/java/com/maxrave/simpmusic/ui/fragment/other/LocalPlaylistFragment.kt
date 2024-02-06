@@ -253,9 +253,10 @@ class LocalPlaylistFragment : Fragment() {
                         ))
                         tempTrack.add(song.videoId)
                     }
-                    tempTrack.removeConflicts()
+
                     viewModel.localPlaylist.value?.id?.let {
-                        viewModel.updateLocalPlaylistTracks(tempTrack,
+                        viewModel.updateLocalPlaylistTracks(
+                            tempTrack.removeConflicts(),
                             it
                         )
                     }

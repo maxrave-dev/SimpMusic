@@ -280,9 +280,11 @@ class MostPlayedFragment: Fragment() {
                                     )
                                     tempTrack.add(song.videoId)
                                 }
-                                tempTrack.add(song.videoId)
-                                tempTrack.removeConflicts()
-                                viewModel.updateLocalPlaylistTracks(tempTrack, playlist.id)
+
+                                viewModel.updateLocalPlaylistTracks(
+                                    tempTrack.removeConflicts(),
+                                    playlist.id
+                                )
                                 addPlaylistDialog.dismiss()
                                 dialog.dismiss()
                             }

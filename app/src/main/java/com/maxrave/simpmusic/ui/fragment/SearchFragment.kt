@@ -570,9 +570,10 @@ class SearchFragment : Fragment() {
                                         )
                                         tempTrack.add(track.videoId)
                                     }
-                                    tempTrack.add(track.videoId)
-                                    tempTrack.removeConflicts()
-                                    viewModel.updateLocalPlaylistTracks(tempTrack, playlist.id)
+                                    viewModel.updateLocalPlaylistTracks(
+                                        tempTrack.removeConflicts(),
+                                        playlist.id
+                                    )
                                     addPlaylistDialog.dismiss()
                                     dialog.dismiss()
                                 }

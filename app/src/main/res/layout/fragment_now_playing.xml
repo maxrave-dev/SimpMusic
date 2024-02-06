@@ -375,6 +375,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="15sp"
                         app:cardPreventCornerOverlap="true"
+                        android:keepScreenOn="true"
                         android:id="@+id/lyricsLayout">
 
                         <LinearLayout
