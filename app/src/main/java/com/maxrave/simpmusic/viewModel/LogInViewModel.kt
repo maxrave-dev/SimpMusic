@@ -16,6 +16,9 @@ class LogInViewModel @Inject constructor(private val dataStore: DataStoreManager
     private val _status: MutableLiveData<Boolean> = MutableLiveData(false)
     var status: LiveData<Boolean> = _status
 
+    private val _spotifyStatus: MutableLiveData<Boolean> = MutableLiveData(false)
+    var spotifyStatus: LiveData<Boolean> = _spotifyStatus
+
     fun saveCookie(cookie: String) {
         viewModelScope.launch {
             Log.d("LogInViewModel", "saveCookie: $cookie")
@@ -23,6 +26,20 @@ class LogInViewModel @Inject constructor(private val dataStore: DataStoreManager
             dataStore.setLoggedIn(true)
             YouTube.cookie = cookie
             _status.postValue(true)
+        }
+    }
+
+    fun saveSpotifySpdc(cookie: String) {
+        viewModelScope.launch {
+            cookie.split("; ")
+                .filter { it.isNotEmpty() }
+                .associate {
+                    val (key, value) = it.split("=")
+                    key to value
+                }.let {
+                    dataStore.setSpdc(it["sp_dc"] ?: "")
+                    _spotifyStatus.postValue(true)
+                }
         }
     }
 }

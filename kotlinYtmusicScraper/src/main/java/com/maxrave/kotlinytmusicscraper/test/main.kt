@@ -11,6 +11,9 @@ import com.maxrave.kotlinytmusicscraper.models.SectionListRenderer
 import com.maxrave.kotlinytmusicscraper.models.Thumbnail
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
+import com.maxrave.kotlinytmusicscraper.models.response.spotify.CanvasResponse
+import com.maxrave.kotlinytmusicscraper.models.response.spotify.TokenResponse
+import io.ktor.client.call.body
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.delay
@@ -20,7 +23,39 @@ import kotlin.random.Random
 
 
 fun main() {
-    testSongInfo()
+    testSpotifySearch()
+}
+
+fun testCanvas() {
+    runBlocking {
+        Ytmusic().getSpotifyCanvas(
+            trackId = "3ZbZtdEw9U0uZW4tZItIwq",
+            token = "BQDIkioHDShrZmAkWkc1B3s_EvJbO-VrvQyFvB_b9qkURCJU_L-sTXDHbpDeH2jSkEDY5sFQbJVGw7CMfaWSOVUuY0YFNtgxbdZxZ8CJLRNtP-pXIFNDAkbpV62msPKfaes76uTMiegMVH93Ids1z9xnrGHRBD_itq4lMZyNbRDhCxB5Uxcqs_2RvWvuL6NROF7kBs5eZAWuIB4_A-_6q4Qr_gVn3rUxji3VKMFA5DrMSQffhOHvtUd1A3EZb3NDSkiRRBY1cKo11vJhs65wlvR9FflvBfvx_enJxomwmyteU-g_dH62u_CfFmA"
+        ).apply {
+            println(body<CanvasResponse>())
+        }
+    }
+}
+
+fun testSpotifyToken() {
+    runBlocking {
+        Ytmusic().getSpotifyToken().apply {
+            println(body<TokenResponse>())
+        }
+    }
+}
+
+fun testSpotifySearch() {
+    runBlocking {
+        YouTube.searchSpotifyTrack(
+            "MD Anniversary",
+            "BQDdkJU15Qu4R0RSZgZWTTo64Cn_dD1mBHCQVD2Z3zw4MLzRNAlgRUhLMCVVlGG-WYdbydQnwTu_vKzzV3fjw5S5zQuEvsEERNet1Hv-YMJV5P-xLEw"
+        ).onSuccess {
+            println(it)
+        }.onFailure {
+            it.printStackTrace()
+        }
+    }
 }
 
 fun testSongInfo() {

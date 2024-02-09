@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.media3.common.Player
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
@@ -379,6 +380,90 @@ class DataStoreManager @Inject constructor(private val settingsDataStore: DataSt
         }
     }
 
+    val spdc = settingsDataStore.data.map { preferences ->
+        preferences[SPDC] ?: ""
+    }
+
+    suspend fun setSpdc(spdc: String) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[SPDC] = spdc
+            }
+        }
+    }
+
+    val spotifyLyrics: Flow<String> = settingsDataStore.data.map { preferences ->
+        preferences[SPOTIFY_LYRICS] ?: FALSE
+    }
+
+    suspend fun setSpotifyLyrics(spotifyLyrics: Boolean) {
+        withContext(Dispatchers.IO) {
+            if (spotifyLyrics) {
+                settingsDataStore.edit { settings ->
+                    settings[SPOTIFY_LYRICS] = TRUE
+                }
+            } else {
+                settingsDataStore.edit { settings ->
+                    settings[SPOTIFY_LYRICS] = FALSE
+                }
+            }
+        }
+    }
+
+    val spotifyCanvas: Flow<String> = settingsDataStore.data.map { preferences ->
+        preferences[SPOTIFY_CANVAS] ?: FALSE
+    }
+
+    suspend fun setSpotifyCanvas(spotifyCanvas: Boolean) {
+        withContext(Dispatchers.IO) {
+            if (spotifyCanvas) {
+                settingsDataStore.edit { settings ->
+                    settings[SPOTIFY_CANVAS] = TRUE
+                }
+            } else {
+                settingsDataStore.edit { settings ->
+                    settings[SPOTIFY_CANVAS] = FALSE
+                }
+            }
+        }
+    }
+
+    val spotifyPersonalToken: Flow<String> = settingsDataStore.data.map { preferences ->
+        preferences[SPOTIFY_PERSONAL_TOKEN] ?: ""
+    }
+
+    suspend fun setSpotifyPersonalToken(token: String) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[SPOTIFY_PERSONAL_TOKEN] = token
+            }
+        }
+    }
+
+    val spotifyPersonalTokenExpires: Flow<Long> = settingsDataStore.data.map { preferences ->
+        preferences[SPOTIFY_PERSONAL_TOKEN_EXPIRES] ?: 0
+    }
+
+    suspend fun setSpotifyPersonalTokenExpires(expires: Long) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[SPOTIFY_PERSONAL_TOKEN_EXPIRES] = expires
+            }
+        }
+    }
+
+    val spotifyClientToken: Flow<String> = settingsDataStore.data.map { preferences ->
+        preferences[SPOTIFY_CLIENT_TOKEN] ?: ""
+    }
+
+    suspend fun setSpotifyClientToken(token: String) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[SPOTIFY_CLIENT_TOKEN] = token
+            }
+        }
+    }
+
     companion object Settings {
         val COOKIE = stringPreferencesKey("cookie")
         val LOGGED_IN = stringPreferencesKey("logged_in")
@@ -408,6 +493,12 @@ class DataStoreManager @Inject constructor(private val settingsDataStore: DataSt
         val WATCH_VIDEO_INSTEAD_OF_PLAYING_AUDIO =
             stringPreferencesKey("watch_video_instead_of_playing_audio")
         val VIDEO_QUALITY = stringPreferencesKey("video_quality")
+        val SPDC = stringPreferencesKey("sp_dc")
+        val SPOTIFY_LYRICS = stringPreferencesKey("spotify_lyrics")
+        val SPOTIFY_CANVAS = stringPreferencesKey("spotify_canvas")
+        val SPOTIFY_PERSONAL_TOKEN = stringPreferencesKey("spotify_personal_token")
+        val SPOTIFY_PERSONAL_TOKEN_EXPIRES = longPreferencesKey("spotify_personal_token_expires")
+        val SPOTIFY_CLIENT_TOKEN = stringPreferencesKey("spotify_client_token")
         const val REPEAT_MODE_OFF = "REPEAT_MODE_OFF"
         const val REPEAT_ONE = "REPEAT_ONE"
         const val REPEAT_ALL = "REPEAT_ALL"

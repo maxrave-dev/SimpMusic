@@ -399,8 +399,6 @@ class MainActivity : AppCompatActivity() {
         binding.root.addOnLayoutChangeListener { v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
             val rect = Rect(left, top, right, bottom)
             val oldRect = Rect(oldLeft, oldTop, oldRight, oldBottom)
-            Log.w("Old Rect", "onCreate: $oldRect, $oldLeft $oldTop $oldRight $oldBottom")
-            Log.w("New Rect", "onCreate: $rect, $left $top $right $bottom")
             if ((rect.width() != oldRect.width() || rect.height() != oldRect.height()) && oldRect != Rect(
                     0,
                     0,

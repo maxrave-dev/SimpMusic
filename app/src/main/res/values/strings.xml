@@ -306,4 +306,13 @@
     <string name="like_and_dislike">%1$d like(s), %2$d dislike(s)</string>
     <string name="published_at">Published at %1$s</string>
     <string name="less">Less</string>
+    <string name="spotify">Spotify</string>
+    <string name="log_in_to_spotify">Log in to Spotify</string>
+    <string name="intro_login_to_spotify">Log in for Spotify Lyrics, Canvas and more</string>
+    <string name="enable_spotify_lyrics">Enable Spotify Lyrics</string>
+    <string name="spotify_lyrícs_info">More lyrics without translation</string>
+    <string name="enable_canvas">Enable Canvas</string>
+    <string name="canvas_info">Show Spotify Canvas in SimpMusic</string>
+    <string name="spotify_lyrics_provider">Lyrics provided by Spotify</string>
+    <string name="offline_mode">Offline mode</string>
 </resources>

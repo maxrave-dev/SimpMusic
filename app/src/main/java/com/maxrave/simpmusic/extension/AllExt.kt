@@ -24,6 +24,7 @@ import com.maxrave.kotlinytmusicscraper.models.SongItem
 import com.maxrave.kotlinytmusicscraper.models.VideoItem
 import com.maxrave.kotlinytmusicscraper.models.musixmatch.MusixmatchTranslationLyricsResponse
 import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
+import com.maxrave.kotlinytmusicscraper.models.response.spotify.SpotifyLyricsResponse
 import com.maxrave.kotlinytmusicscraper.models.youtube.Transcript
 import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
 import com.maxrave.simpmusic.common.SETTINGS_FILENAME
@@ -541,8 +542,7 @@ fun com.maxrave.kotlinytmusicscraper.models.lyrics.Lyrics.toLyrics(): Lyrics {
             lines = lines,
             syncType = this.lyrics!!.syncType
         )
-    }
-    else {
+    } else {
         return Lyrics(
             error = true,
             lines = null,
@@ -551,10 +551,36 @@ fun com.maxrave.kotlinytmusicscraper.models.lyrics.Lyrics.toLyrics(): Lyrics {
     }
 
 }
+
+fun SpotifyLyricsResponse.toLyrics(): Lyrics {
+    val lines: ArrayList<Line> = arrayListOf()
+    this.lyrics.lines.forEach {
+        lines.add(
+            Line(
+                endTimeMs = it.endTimeMs,
+                startTimeMs = it.startTimeMs,
+                syllables = listOf(),
+                words = it.words
+            )
+        )
+    }
+    return Lyrics(
+        error = false,
+        lines = lines,
+        syncType = this.lyrics.syncType
+    )
+
+}
+
 fun PipedResponse.toTrack(videoId: String): Track {
     return Track(
         album = null,
-        artists = listOf(Artist(this.uploaderUrl?.replace("/channel/", ""), this.uploader.toString())),
+        artists = listOf(
+            Artist(
+                this.uploaderUrl?.replace("/channel/", ""),
+                this.uploader.toString()
+            )
+        ),
         duration = "",
         durationSeconds = 0,
         isAvailable = false,

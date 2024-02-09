@@ -40,6 +40,10 @@ import com.maxrave.kotlinytmusicscraper.models.response.NextResponse
 import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
 import com.maxrave.kotlinytmusicscraper.models.response.PlayerResponse
 import com.maxrave.kotlinytmusicscraper.models.response.SearchResponse
+import com.maxrave.kotlinytmusicscraper.models.response.spotify.CanvasResponse
+import com.maxrave.kotlinytmusicscraper.models.response.spotify.PersonalTokenResponse
+import com.maxrave.kotlinytmusicscraper.models.response.spotify.SpotifyLyricsResponse
+import com.maxrave.kotlinytmusicscraper.models.response.spotify.TokenResponse
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.kotlinytmusicscraper.models.splitBySeparator
 import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
@@ -847,6 +851,30 @@ object YouTube {
 
     suspend fun getNotification() = runCatching {
         ytMusic.getNotification().bodyAsText()
+    }
+
+    /***
+     * Spotify Implementation
+     */
+    suspend fun getClientToken() = runCatching {
+        ytMusic.getSpotifyToken().body<TokenResponse>()
+    }
+
+    suspend fun getPersonalToken(spdc: String) = runCatching {
+        ytMusic.getSpotifyLyricsToken(spdc).body<PersonalTokenResponse>()
+    }
+
+    suspend fun searchSpotifyTrack(query: String, token: String) = runCatching {
+        ytMusic.searchSpotifyTrack(query, token)
+            .body<com.maxrave.kotlinytmusicscraper.models.response.spotify.SearchResponse>()
+    }
+
+    suspend fun getSpotifyLyrics(trackId: String, token: String) = runCatching {
+        ytMusic.getSpotifyLyrics(token, trackId).body<SpotifyLyricsResponse>()
+    }
+
+    suspend fun getSpotifyCanvas(trackId: String, token: String) = runCatching {
+        ytMusic.getSpotifyCanvas(trackId, token).body<CanvasResponse>()
     }
 
     const val MAX_GET_QUEUE_SIZE = 1000

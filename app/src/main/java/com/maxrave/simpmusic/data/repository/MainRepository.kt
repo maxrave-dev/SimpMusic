@@ -95,6 +95,7 @@ import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.math.abs
 
 //@ActivityRetainedScoped
 @Singleton
@@ -1152,12 +1153,99 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                 Log.w("Lyrics", "lyrics: ${lyrics.toLyrics()}")
                 emit(Resource.Success<Lyrics>(lyrics.toLyrics()))
             }.onFailure { e ->
-                    Log.d("Lyrics", "Error: ${e.message}")
-                    emit(Resource.Error<Lyrics>(e.message.toString()))
-                }
+                Log.d("Lyrics", "Error: ${e.message}")
+                emit(Resource.Error<Lyrics>(e.message.toString()))
+            }
         }
     }
-    suspend fun getLyricsData(query: String, durationInt: Int? = null): Flow<Pair<String, Resource<Lyrics>>> = flow {
+
+    suspend fun getSpotifyLyrics(query: String, duration: Int?): Flow<Resource<Lyrics>> = flow {
+        runCatching {
+            val q =
+                query.replace(
+                    Regex("\\((feat\\.|ft.|cùng với|con|mukana|com|avec|合作音乐人: ) "),
+                    " "
+                ).replace(
+                    Regex("( và | & | и | e | und |, |和| dan)"), " "
+                ).replace("  ", " ").replace(Regex("([()])"), "").replace(".", " ")
+                    .replace("  ", " ").replace(" ", "%2520")
+            Log.d("Lyrics", "query: $q")
+            var spotifyPersonalToken = ""
+            if (dataStoreManager.spotifyPersonalToken.first()
+                    .isNotEmpty() && dataStoreManager.spotifyPersonalTokenExpires.first() > System.currentTimeMillis() && dataStoreManager.spotifyPersonalTokenExpires.first() != 0L
+            ) {
+                spotifyPersonalToken = dataStoreManager.spotifyPersonalToken.first()
+                Log.d("Lyrics", "spotifyPersonalToken: $spotifyPersonalToken")
+            } else if (dataStoreManager.spdc.first().isNotEmpty()) {
+                YouTube.getPersonalToken(dataStoreManager.spdc.first()).onSuccess {
+                    spotifyPersonalToken = it.accessToken
+                    dataStoreManager.setSpotifyPersonalToken(spotifyPersonalToken)
+                    dataStoreManager.setSpotifyPersonalTokenExpires(it.accessTokenExpirationTimestampMs)
+                    Log.d("Lyrics", "spotifyPersonalToken: $spotifyPersonalToken")
+                }.onFailure {
+                    it.printStackTrace()
+                    emit(Resource.Error<Lyrics>("Not found"))
+                }
+            }
+            if (spotifyPersonalToken.isNotEmpty()) {
+                var clientToken = dataStoreManager.spotifyClientToken.first()
+                Log.d("Lyrics", "clientToken: $clientToken")
+                YouTube.searchSpotifyTrack(q, clientToken).onSuccess { searchResponse ->
+                    val track = if (duration != null && duration != 0) {
+                        searchResponse.tracks.items.find { abs(((it.duration_ms / 1000) - duration)) < 3 }
+                            ?: searchResponse.tracks.items.firstOrNull()
+                    } else {
+                        searchResponse.tracks.items.firstOrNull()
+                    }
+                    Log.d("Lyrics", "track: $track")
+                    if (track != null) {
+                        YouTube.getSpotifyLyrics(track.id, spotifyPersonalToken).onSuccess {
+                            emit(Resource.Success<Lyrics>(it.toLyrics()))
+                        }.onFailure {
+                            it.printStackTrace()
+                            emit(Resource.Error<Lyrics>("Not found"))
+                        }
+                    } else {
+                        emit(Resource.Error<Lyrics>("Not found"))
+                    }
+                }.onFailure { throwable ->
+                    throwable.printStackTrace()
+                    YouTube.getClientToken().onSuccess {
+                        clientToken = it.accessToken
+                        Log.w("Lyrics", "clientToken: $clientToken")
+                        dataStoreManager.setSpotifyClientToken(clientToken)
+                        YouTube.searchSpotifyTrack(q, clientToken).onSuccess { searchResponse ->
+                            val track = if (duration != null && duration != 0) {
+                                searchResponse.tracks.items.find { abs(((it.duration_ms / 1000) - duration)) < 3 }
+                                    ?: searchResponse.tracks.items.firstOrNull()
+                            } else {
+                                searchResponse.tracks.items.firstOrNull()
+                            }
+                            Log.d("Lyrics", "track: $track")
+                            if (track != null) {
+                                YouTube.getSpotifyLyrics(track.id, spotifyPersonalToken).onSuccess {
+                                    emit(Resource.Success<Lyrics>(it.toLyrics()))
+                                }.onFailure {
+                                    it.printStackTrace()
+                                    emit(Resource.Error<Lyrics>("Not found"))
+                                }
+                            } else {
+                                emit(Resource.Error<Lyrics>("Not found"))
+                            }
+                        }
+                    }.onFailure {
+                        it.printStackTrace()
+                        emit(Resource.Error<Lyrics>("Not found"))
+                    }
+                }
+            }
+        }
+    }
+
+    suspend fun getLyricsData(
+        query: String,
+        durationInt: Int? = null
+    ): Flow<Pair<String, Resource<Lyrics>>> = flow {
         runCatching {
 //            val q = query.replace(Regex("\\([^)]*?(feat.|ft.|cùng với|con)[^)]*?\\)"), "")
 //                .replace("  ", " ")
@@ -1181,42 +1269,69 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                     }
             }
             YouTube.searchMusixmatchTrackId(q, musixMatchUserToken!!).onSuccess { searchResult ->
-                val list = arrayListOf<String>()
-                for (i in searchResult.message.body.track_list) {
-                    list.add(i.track.track_name + " " + i.track.artist_name)
-                }
-                var id = ""
-                var track: SearchMusixmatchResponse.Message.Body.Track.TrackX? = null
-                Log.d("DURATION", "duration: $durationInt")
-                val bestMatchingIndex = bestMatchingIndex(q, list)
-                if (durationInt != null && durationInt != 0) {
-                    val trackLengthList = arrayListOf<Int>()
+                Log.d("Lyrics", "searchResult: $searchResult")
+                if (searchResult.message.body.track_list.isNotEmpty()) {
+                    val list = arrayListOf<String>()
                     for (i in searchResult.message.body.track_list) {
-                        trackLengthList.add(i.track.track_length)
+                        list.add(i.track.track_name + " " + i.track.artist_name)
                     }
-                    val closestIndex = trackLengthList.minByOrNull { kotlin.math.abs(it - durationInt) }
-                    if (closestIndex != null && kotlin.math.abs(closestIndex - durationInt) < 2) {
-                        id += searchResult.message.body.track_list.find { it.track.track_length == closestIndex }?.track?.track_id.toString()
-                        track = searchResult.message.body.track_list.find { it.track.track_length == closestIndex }?.track
-                    }
-                    if (id == "") {
-                        if (list.get(bestMatchingIndex).contains(searchResult.message.body.track_list.get(bestMatchingIndex).track.track_name) && query.contains(searchResult.message.body.track_list.get(bestMatchingIndex).track.track_name)) {
-                            Log.w("Lyrics", "item: ${searchResult.message.body.track_list.get(bestMatchingIndex).track.track_name}")
+                    var id = ""
+                    var track: SearchMusixmatchResponse.Message.Body.Track.TrackX? = null
+                    Log.d("DURATION", "duration: $durationInt")
+                    val bestMatchingIndex = bestMatchingIndex(q, list)
+                    if (durationInt != null && durationInt != 0) {
+                        val trackLengthList = arrayListOf<Int>()
+                        for (i in searchResult.message.body.track_list) {
+                            trackLengthList.add(i.track.track_length)
+                        }
+                        val closestIndex =
+                            trackLengthList.minByOrNull { kotlin.math.abs(it - durationInt) }
+                        if (closestIndex != null && kotlin.math.abs(closestIndex - durationInt) < 2) {
+                            id += searchResult.message.body.track_list.find { it.track.track_length == closestIndex }?.track?.track_id.toString()
+                            track =
+                                searchResult.message.body.track_list.find { it.track.track_length == closestIndex }?.track
+                        }
+                        if (id == "") {
+                            if (list.get(bestMatchingIndex).contains(
+                                    searchResult.message.body.track_list.get(bestMatchingIndex).track.track_name
+                                ) && query.contains(
+                                    searchResult.message.body.track_list.get(
+                                        bestMatchingIndex
+                                    ).track.track_name
+                                )
+                            ) {
+                                Log.w(
+                                    "Lyrics",
+                                    "item: ${
+                                        searchResult.message.body.track_list.get(bestMatchingIndex).track.track_name
+                                    }"
+                                )
+                                id += searchResult.message.body.track_list.get(bestMatchingIndex).track.track_id.toString()
+                                track =
+                                    searchResult.message.body.track_list.get(bestMatchingIndex).track
+                            }
+                        }
+                    } else {
+                        if (list.get(bestMatchingIndex)
+                                .contains(searchResult.message.body.track_list.get(bestMatchingIndex).track.track_name) && query.contains(
+                                searchResult.message.body.track_list.get(bestMatchingIndex).track.track_name
+                            )
+                        ) {
+                            Log.w(
+                                "Lyrics",
+                                "item: ${searchResult.message.body.track_list.get(bestMatchingIndex).track.track_name}"
+                            )
                             id += searchResult.message.body.track_list.get(bestMatchingIndex).track.track_id.toString()
-                            track = searchResult.message.body.track_list.get(bestMatchingIndex).track
+                            track =
+                                searchResult.message.body.track_list.get(bestMatchingIndex).track
                         }
                     }
-                }
-                else {
-                    if (list.get(bestMatchingIndex).contains(searchResult.message.body.track_list.get(bestMatchingIndex).track.track_name) && query.contains(searchResult.message.body.track_list.get(bestMatchingIndex).track.track_name)) {
-                        Log.w("Lyrics", "item: ${searchResult.message.body.track_list.get(bestMatchingIndex).track.track_name}")
-                        id += searchResult.message.body.track_list.get(bestMatchingIndex).track.track_id.toString()
-                        track = searchResult.message.body.track_list.get(bestMatchingIndex).track
-                    }
-                }
-                Log.d("DURATION", "id: $id")
-                Log.w("item lyrics", searchResult.message.body.track_list.find { it.track.track_id == id.toInt() }?.track?.track_name + " " + searchResult.message.body.track_list.find { it.track.track_id == id.toInt() }?.track?.artist_name)
-                if (id != "" && track != null) {
+                    Log.d("DURATION", "id: $id")
+                    Log.w(
+                        "item lyrics",
+                        searchResult.message.body.track_list.find { it.track.track_id == id.toInt() }?.track?.track_name + " " + searchResult.message.body.track_list.find { it.track.track_id == id.toInt() }?.track?.artist_name
+                    )
+                    if (id != "" && track != null) {
 //                    YouTube.getMusixmatchLyrics(id, musixMatchUserToken!!).onSuccess {
 //                        if (it != null) {
 //                            emit(Pair(id, Resource.Success<Lyrics>(it.toLyrics())))
@@ -1229,26 +1344,28 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
 //                        it.printStackTrace()
 //                        emit(Pair(id, Resource.Error<Lyrics>("Not found")))
 //                    }
-                    YouTube.getMusixmatchLyricsByQ(track, musixMatchUserToken!!).onSuccess {
-                        if (it != null) {
-                            emit(Pair(id, Resource.Success<Lyrics>(it.toLyrics())))
-                        }
-                        else {
-                            Log.w("Lyrics", "Error: Lỗi getLyrics ${it.toString()}")
+                        YouTube.getMusixmatchLyricsByQ(track, musixMatchUserToken!!).onSuccess {
+                            if (it != null) {
+                                emit(Pair(id, Resource.Success<Lyrics>(it.toLyrics())))
+                            } else {
+                                Log.w("Lyrics", "Error: Lỗi getLyrics ${it.toString()}")
+                                emit(Pair(id, Resource.Error<Lyrics>("Not found")))
+                            }
+                        }.onFailure { throwable ->
+                            throwable.printStackTrace()
                             emit(Pair(id, Resource.Error<Lyrics>("Not found")))
                         }
-                    }.onFailure { throwable ->
-                        throwable.printStackTrace()
-                        emit(Pair(id, Resource.Error<Lyrics>("Not found")))
                     }
-                }
 //                bestMatchingIndex(q, list).let { index ->
 //                    Log.w("Lyrics", "item: ${searchResult.message.body.track_list.get(index).track.track_name}")
 //                    searchResult.message.body.track_list.get(index).track.track_id.let { trackId ->
 //
 //                    }
 //                }
-                else {
+                    else {
+                        emit(Pair("", Resource.Error<Lyrics>("Not found")))
+                    }
+                } else {
                     emit(Pair("", Resource.Error<Lyrics>("Not found")))
                 }
             }

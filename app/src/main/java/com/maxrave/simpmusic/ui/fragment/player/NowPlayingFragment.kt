@@ -79,6 +79,7 @@ import com.maxrave.simpmusic.utils.CenterLayoutManager
 import com.maxrave.simpmusic.utils.DisableTouchEventRecyclerView
 import com.maxrave.simpmusic.utils.InteractiveTextMaker
 import com.maxrave.simpmusic.utils.Resource
+import com.maxrave.simpmusic.viewModel.LyricsProvider
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import dagger.hilt.android.AndroidEntryPoint
@@ -859,13 +860,24 @@ class NowPlayingFragment : Fragment() {
                     }
                 }
                 val job17 = launch {
-                    viewModel._lyrics.collectLatest { lyrics ->
-                        if (lyrics != null && lyrics is Resource.Success) {
-                            if (viewModel.getLyricsProvier() == DataStoreManager.MUSIXMATCH) {
+                    viewModel.lyricsProvider.collect {
+                        when (it) {
+                            LyricsProvider.SPOTIFY -> {
+                                binding.tvLyricsProvider.text =
+                                    getString(R.string.spotify_lyrics_provider)
+                            }
+
+                            LyricsProvider.MUSIXMATCH -> {
                                 binding.tvLyricsProvider.text = getString(R.string.lyrics_provider)
                             }
-                            else if (viewModel.getLyricsProvier() == DataStoreManager.YOUTUBE) {
-                                binding.tvLyricsProvider.text = getString(R.string.lyrics_provider_youtube)
+
+                            LyricsProvider.YOUTUBE -> {
+                                binding.tvLyricsProvider.text =
+                                    getString(R.string.lyrics_provider_youtube)
+                            }
+
+                            else -> {
+                                binding.tvLyricsProvider.text = getString(R.string.offline_mode)
                             }
                         }
                     }
@@ -916,7 +928,7 @@ class NowPlayingFragment : Fragment() {
                     "maxLines",
                     2
                 )
-                animation.setDuration(1000)
+                animation.setDuration(200)
                 animation.start()
                 binding.tvMore.setText(R.string.more)
             }

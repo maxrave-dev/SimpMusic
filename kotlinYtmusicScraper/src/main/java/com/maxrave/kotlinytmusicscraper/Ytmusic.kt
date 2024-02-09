@@ -19,6 +19,7 @@ import com.maxrave.kotlinytmusicscraper.models.body.NextBody
 import com.maxrave.kotlinytmusicscraper.models.body.NotificationBody
 import com.maxrave.kotlinytmusicscraper.models.body.PlayerBody
 import com.maxrave.kotlinytmusicscraper.models.body.SearchBody
+import com.maxrave.kotlinytmusicscraper.models.body.spotify.CanvasBody
 import com.maxrave.kotlinytmusicscraper.models.musixmatch.SearchMusixmatchResponse
 import com.maxrave.kotlinytmusicscraper.utils.CustomRedirectConfig
 import com.maxrave.kotlinytmusicscraper.utils.parseCookieString
@@ -32,6 +33,7 @@ import io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
 import io.ktor.client.plugins.cookies.HttpCookies
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.client.request.forms.FormDataContent
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.headers
@@ -40,14 +42,17 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
+import io.ktor.http.Parameters
 import io.ktor.http.contentType
 import io.ktor.http.parameters
 import io.ktor.http.userAgent
 import io.ktor.serialization.kotlinx.KotlinxSerializationConverter
 import io.ktor.serialization.kotlinx.json.json
+import io.ktor.serialization.kotlinx.protobuf.protobuf
 import io.ktor.serialization.kotlinx.xml.xml
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.protobuf.ProtoBuf
 import nl.adaptivity.xmlutil.XmlDeclMode
 import nl.adaptivity.xmlutil.serialization.XML
 import java.lang.reflect.Type
@@ -57,6 +62,7 @@ import java.util.Locale
 class Ytmusic {
     private var httpClient = createClient()
     private var musixmatchClient = createMusixmatchClient()
+    private var spotifyClient = createSpotifyClient()
 
     var locale = YouTubeLocale(
         gl = Locale.getDefault().country,
@@ -83,6 +89,55 @@ class Ytmusic {
             httpClient.close()
             httpClient = createClient()
         }
+
+    @OptIn(ExperimentalSerializationApi::class)
+    private fun createSpotifyClient() = HttpClient(OkHttp) {
+        expectSuccess = true
+        followRedirects = false
+
+        install(HttpSend) {
+            maxSendCount = 100
+        }
+        install(HttpCookies) {
+            storage = AcceptAllCookiesStorage()
+        }
+        install(CustomRedirectConfig) {
+            checkHttpMethod = false
+            allowHttpsDowngrade = true
+        }
+        install(ContentNegotiation) {
+            register(
+                ContentType.Text.Plain, KotlinxSerializationConverter(
+                    Json {
+                        prettyPrint = true
+                        isLenient = true
+                        ignoreUnknownKeys = true
+                        explicitNulls = false
+                        encodeDefaults = true
+                    }
+                )
+            )
+            json(Json {
+                prettyPrint = true
+                isLenient = true
+                ignoreUnknownKeys = true
+                explicitNulls = false
+                encodeDefaults = true
+            })
+            protobuf(ProtoBuf {
+                encodeDefaults = true
+            })
+        }
+        install(ContentEncoding) {
+            brotli(1.0F)
+            gzip(0.9F)
+            deflate(0.8F)
+        }
+        defaultRequest {
+            url("https://api.spotify.com")
+        }
+    }
+
     @OptIn(ExperimentalSerializationApi::class)
     private fun createMusixmatchClient() = HttpClient(OkHttp) {
         expectSuccess = true
@@ -703,6 +758,76 @@ class Ytmusic {
             setBody(
                 NotificationBody(
                     context = YouTubeClient.NOTIFICATION_CLIENT.toContext(locale, visitorData)
+                )
+            )
+        }
+
+    /***
+     * Spotify WEB API
+     * Please don't use my client id and client secret for your project. Create your own client id and client secret in Spotify Web API page.
+     */
+
+    private val spotify_client_id = "721d6f670f074b1497e74fc59125a6f3"
+    private val spotify_client_secret = "efddc083fa974d39bc6369a892c07ced"
+
+    suspend fun getSpotifyToken() = httpClient.post("https://accounts.spotify.com/api/token") {
+        userAgent(YouTubeClient.WEB.userAgent)
+        contentType(ContentType.Application.FormUrlEncoded)
+        setBody(
+            FormDataContent(
+                Parameters.build {
+                    append("grant_type", "client_credentials")
+                    append("client_id", spotify_client_id)
+                    append("client_secret", spotify_client_secret)
+                }
+            )
+        )
+    }
+
+    suspend fun getSpotifyLyricsToken(spdc: String) =
+        spotifyClient.get("https://open.spotify.com/get_access_token?reason=transport&productType=web_player") {
+            userAgent(YouTubeClient.WEB.userAgent)
+            contentType(ContentType.Application.Json)
+            header("Cookie", "sp_dc=$spdc")
+        }
+
+    suspend fun getSpotifyLyrics(token: String, trackId: String) =
+        spotifyClient.get("https://spclient.wg.spotify.com/color-lyrics/v2/track/$trackId?format=json&vocalRemoval=false&market=from_token") {
+            userAgent(YouTubeClient.WEB.userAgent)
+            contentType(ContentType.Application.Json)
+            header("Authorization", "Bearer $token")
+            header("App-platform", "WebPlayer")
+        }
+
+    suspend fun searchSpotifyTrack(q: String, token: String) =
+        spotifyClient.get("https://api.spotify.com/v1/search") {
+            userAgent(YouTubeClient.WEB.userAgent)
+            contentType(ContentType.Application.Json)
+            header("Authorization", "Bearer $token")
+            parameter("q", q)
+            parameter("type", "track")
+            parameter("limit", "3")
+        }
+
+    suspend fun getSpotifyCanvas(trackId: String, token: String) =
+        spotifyClient.post("https://spclient.wg.spotify.com/canvaz-cache/v0/canvases") {
+            headers {
+                append(HttpHeaders.Accept, "application/protobuf")
+                append(HttpHeaders.ContentType, "application/protobuf")
+                append(
+                    HttpHeaders
+                        .AcceptEncoding, "gzip, deflate, br"
+                )
+                append(HttpHeaders.Authorization, "Bearer $token")
+                append(HttpHeaders.UserAgent, "Spotify/8.5.49 iOS/Version 13.3.1 (Build 17D50)")
+            }
+            setBody(
+                CanvasBody(
+                    tracks = listOf(
+                        CanvasBody.Track(
+                            track_uri = "spotify:track:$trackId"
+                        )
+                    )
                 )
             )
         }

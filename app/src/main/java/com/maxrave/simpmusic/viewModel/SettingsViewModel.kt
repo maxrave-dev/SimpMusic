@@ -673,4 +673,71 @@ class SettingsViewModel @Inject constructor(
             getThumbCacheSize()
         }
     }
+
+    private var _spotifyLogIn: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val spotifyLogIn: StateFlow<Boolean> = _spotifyLogIn
+
+    fun getSpotifyLogIn() {
+        viewModelScope.launch {
+            dataStoreManager.spdc.collect { loggedIn ->
+                if (loggedIn.isNotEmpty()) {
+                    _spotifyLogIn.emit(true)
+                } else {
+                    _spotifyLogIn.emit(false)
+                }
+            }
+        }
+
+    }
+
+    fun setSpotifyLogIn(loggedIn: Boolean) {
+        viewModelScope.launch {
+            _spotifyLogIn.emit(loggedIn)
+            getSpotifyLogIn()
+        }
+    }
+
+    private var _spotifyLyrics: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val spotifyLyrics: StateFlow<Boolean> = _spotifyLyrics
+
+    private var _spotifyCanvas: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val spotifyCanvas: StateFlow<Boolean> = _spotifyCanvas
+
+    fun getSpotifyLyrics() {
+        viewModelScope.launch {
+            dataStoreManager.spotifyLyrics.collect {
+                if (it == DataStoreManager.TRUE) {
+                    _spotifyLyrics.emit(true)
+                } else {
+                    _spotifyLyrics.emit(false)
+                }
+            }
+        }
+    }
+
+    fun setSpotifyLyrics(loggedIn: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setSpotifyLyrics(loggedIn)
+            getSpotifyLyrics()
+        }
+    }
+
+    fun getSpotifyCanvas() {
+        viewModelScope.launch {
+            dataStoreManager.spotifyCanvas.collect {
+                if (it == DataStoreManager.TRUE) {
+                    _spotifyCanvas.emit(true)
+                } else {
+                    _spotifyCanvas.emit(false)
+                }
+            }
+        }
+    }
+
+    fun setSpotifyCanvas(loggedIn: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setSpotifyCanvas(loggedIn)
+            getSpotifyCanvas()
+        }
+    }
 }

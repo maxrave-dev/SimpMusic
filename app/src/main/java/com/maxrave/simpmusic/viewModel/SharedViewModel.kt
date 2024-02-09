@@ -170,6 +170,10 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     private var _saveLastPlayedSong: MutableLiveData<Boolean> = MutableLiveData()
     val saveLastPlayedSong: LiveData<Boolean> = _saveLastPlayedSong
 
+    private var _lyricsProvider: MutableStateFlow<LyricsProvider> =
+        MutableStateFlow(LyricsProvider.MUSIXMATCH)
+    val lyricsProvider: StateFlow<LyricsProvider> = _lyricsProvider
+
     var recentPosition: String = 0L.toString()
 
     val intent: MutableStateFlow<Intent?> = MutableStateFlow(null)
@@ -529,6 +533,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
             resetLyrics()
             mainRepository.getSavedLyrics(track.videoId).collect { lyrics ->
                 if (lyrics != null) {
+                    _lyricsProvider.value = LyricsProvider.OFFLINE
                     _lyrics.value = Resource.Success(lyrics.toLyrics())
                     val lyricsData = lyrics.toLyrics()
                     Log.d("Check Lyrics In DB", lyricsData.toString())
@@ -541,6 +546,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                         when(_lyrics.value) {
                             is Resource.Success -> {
                                 if (_lyrics.value?.data != null) {
+                                    _lyricsProvider.value = LyricsProvider.MUSIXMATCH
                                     insertLyrics(_lyrics.value?.data!!.toLyricsEntity(track.videoId))
                                     parseLyrics(_lyrics.value?.data)
                                     if (dataStoreManager.enableTranslateLyric.first() == TRUE) {
@@ -1159,6 +1165,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                                 when (response.second) {
                                     is Resource.Success -> {
                                         if (response.second.data != null) {
+                                            _lyricsProvider.value = LyricsProvider.MUSIXMATCH
                                             insertLyrics(response.second.data!!.toLyricsEntity(videoId))
                                             parseLyrics(response.second.data)
                                             if (dataStoreManager.enableTranslateLyric.first() == TRUE) {
@@ -1171,16 +1178,32 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                                                     }
 
                                             }
+                                        } else if (dataStoreManager.spotifyLyrics.first() == TRUE) {
+                                            getSpotifyLyrics(
+                                                song.toTrack().copy(
+                                                    durationSeconds = duration
+                                                ),
+                                                "${song.title} $artist", duration
+                                            )
                                         }
                                     }
 
                                     is Resource.Error -> {
                                         if (_lyrics.value?.message != "reset") {
-                                            getSavedLyrics(
-                                                song.toTrack().copy(
-                                                    durationSeconds = duration
-                                                ), "${song.title} $artist"
-                                            )
+                                            if (dataStoreManager.spotifyLyrics.first() == TRUE) {
+                                                getSpotifyLyrics(
+                                                    song.toTrack().copy(
+                                                        durationSeconds = duration
+                                                    ),
+                                                    "${song.title} $artist", duration
+                                                )
+                                            } else {
+                                                getSavedLyrics(
+                                                    song.toTrack().copy(
+                                                        durationSeconds = duration
+                                                    ), "${song.title} $artist"
+                                                )
+                                            }
                                         }
                                     }
 
@@ -1199,21 +1222,72 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                         when (response) {
                             is Resource.Success -> {
                                 if (response.data != null) {
+                                    _lyricsProvider.value = LyricsProvider.YOUTUBE
                                     insertLyrics(response.data.toLyricsEntity(videoId))
                                     parseLyrics(response.data)
+                                } else if (dataStoreManager.spotifyLyrics.first() == TRUE) {
+                                    if (song != null) {
+                                        getSpotifyLyrics(
+                                            song.toTrack().copy(
+                                                durationSeconds = duration
+                                            ),
+                                            "${song.title} ${song.artistName?.firstOrNull() ?: simpleMediaServiceHandler?.nowPlaying?.first()?.mediaMetadata?.artist ?: ""}",
+                                            duration
+                                        )
+                                    }
                                 }
                             }
                             is Resource.Error -> {
                                 if (_lyrics.value?.message != "reset" && song != null) {
-                                    getSavedLyrics(
-                                        song.toTrack().copy(
-                                            durationSeconds = duration
-                                        ), "${song.title} ${song.artistName?.firstOrNull() ?: simpleMediaServiceHandler?.nowPlaying?.first()?.mediaMetadata?.artist ?: ""}"
-                                    )
+                                    if (dataStoreManager.spotifyLyrics.first() == TRUE) {
+                                        getSpotifyLyrics(
+                                            song.toTrack().copy(
+                                                durationSeconds = duration
+                                            ),
+                                            "${song.title} ${song.artistName?.firstOrNull() ?: simpleMediaServiceHandler?.nowPlaying?.first()?.mediaMetadata?.artist ?: ""}",
+                                            duration
+                                        )
+                                    } else {
+                                        getSavedLyrics(
+                                            song.toTrack().copy(
+                                                durationSeconds = duration
+                                            ),
+                                            "${song.title} ${song.artistName?.firstOrNull() ?: simpleMediaServiceHandler?.nowPlaying?.first()?.mediaMetadata?.artist ?: ""}"
+                                        )
+                                    }
+
+
                                 }
                             }
                         }
 
+                    }
+                }
+            }
+        }
+    }
+
+    fun getSpotifyLyrics(track: Track, query: String, duration: Int? = null) {
+        viewModelScope.launch {
+            Log.d("Check SpotifyLyrics", "SpotifyLyrics $query")
+            mainRepository.getSpotifyLyrics(query, duration).collect { response ->
+                Log.d("Check SpotifyLyrics", response.toString())
+                _lyrics.value = response
+                when (response) {
+                    is Resource.Success -> {
+                        if (response.data != null) {
+                            _lyricsProvider.value = LyricsProvider.SPOTIFY
+                            insertLyrics(response.data.toLyricsEntity(query))
+                            parseLyrics(response.data)
+                        }
+                    }
+
+                    is Resource.Error -> {
+                        if (_lyrics.value?.message != "reset") {
+                            getSavedLyrics(
+                                track, query
+                            )
+                        }
                     }
                 }
             }
@@ -1297,3 +1371,10 @@ data class LyricDict(
     val nextLyric: List<String>?,
     val prevLyrics: List<String>?
 )
+
+enum class LyricsProvider {
+    MUSIXMATCH,
+    YOUTUBE,
+    SPOTIFY,
+    OFFLINE
+}
