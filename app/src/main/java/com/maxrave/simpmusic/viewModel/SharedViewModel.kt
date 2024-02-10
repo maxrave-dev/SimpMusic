@@ -17,6 +17,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.exoplayer.offline.Download
 import com.maxrave.kotlinytmusicscraper.YouTube
+import com.maxrave.kotlinytmusicscraper.models.response.spotify.CanvasResponse
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
 import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
@@ -174,6 +175,11 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
         MutableStateFlow(LyricsProvider.MUSIXMATCH)
     val lyricsProvider: StateFlow<LyricsProvider> = _lyricsProvider
 
+    private var _canvas: MutableStateFlow<CanvasResponse?> = MutableStateFlow(null)
+    val canvas: StateFlow<CanvasResponse?> = _canvas
+
+    private var canvasJob: Job? = null
+
     var recentPosition: String = 0L.toString()
 
     val intent: MutableStateFlow<Intent?> = MutableStateFlow(null)
@@ -240,6 +246,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                         nowPlaying?.let { now ->
                             _format.value = null
                             _songInfo.value = null
+                            _canvas.value = null
                             getSongInfo(now.mediaId)
                             getSkipSegments(now.mediaId)
                         }
@@ -329,6 +336,9 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                         Log.w("Check CPN", formatTemp?.cpn.toString())
                         formatTemp?.lengthSeconds?.let {
                             getLyricsFromFormat(formatTemp.videoId, it)
+                            if (dataStoreManager.spotifyCanvas.first() == TRUE) {
+                                getCanvas(formatTemp.videoId, it)
+                            }
                         }
                     }
                 }
@@ -341,6 +351,18 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                 job7.join()
                 job8.join()
             }
+        }
+    }
+
+    suspend fun getCanvas(videoId: String, duration: Int) {
+        canvasJob?.cancel()
+        viewModelScope.launch {
+            canvasJob = launch {
+                mainRepository.getCanvas(videoId, duration).collect { response ->
+                    _canvas.value = response
+                }
+            }
+            canvasJob?.join()
         }
     }
 

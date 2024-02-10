@@ -1,18 +1,23 @@
 package com.maxrave.simpmusic.ui.fragment.player
 
 import android.animation.ObjectAnimator
+import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
+import android.graphics.Insets
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.TransitionDrawable
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.WindowInsets
 import android.view.animation.AnimationUtils
 import android.widget.Toast
 import androidx.core.graphics.ColorUtils
@@ -23,10 +28,13 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
+import androidx.media3.ui.AspectRatioFrameLayout
 import androidx.navigation.fragment.findNavController
 import androidx.palette.graphics.Palette
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -117,6 +125,10 @@ class NowPlayingFragment : Fragment() {
     private lateinit var disableScrolling: DisableTouchEventRecyclerView
     private var overlayJob: Job? = null
 
+    private var canvasOverlayJob: Job? = null
+
+    private var player: ExoPlayer? = null
+
     private var isFullScreen = false
 
 //    private lateinit var songChangeListener: OnNowPlayingSongChangeListener
@@ -129,11 +141,49 @@ class NowPlayingFragment : Fragment() {
 //        }
 //    }
 
-//    override fun onResume() {
-//        Log.d("NowPlayingFragment", "onResume")
-//        updateUIfromCurrentMediaItem(viewModel.getCurrentMediaItem())
-//        super.onResume()
-//    }
+    override fun onResume() {
+        Log.d("NowPlayingFragment", "onResume")
+        super.onResume()
+        val track = viewModel.canvas.value?.canvases?.firstOrNull()
+        if (track != null && track.canvas_url.contains(".mp4")) {
+            player?.stop()
+            player?.release()
+            player = ExoPlayer.Builder(requireContext()).build()
+            binding.playerCanvas.player = player
+            binding.playerCanvas.resizeMode = AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+            player?.repeatMode = Player.REPEAT_MODE_ONE
+            player?.setMediaItem(
+                MediaItem.fromUri(track.canvas_url)
+            )
+            player?.prepare()
+            player?.play()
+        }
+    }
+
+    fun getScreenHeight(activity: Activity): Int {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val windowMetrics = activity.windowManager.currentWindowMetrics
+            val insets: Insets = windowMetrics.windowInsets
+                .getInsetsIgnoringVisibility(WindowInsets.Type.systemBars())
+            (windowMetrics.bounds.height())
+        } else {
+            val displayMetrics = DisplayMetrics()
+            activity.windowManager.defaultDisplay.getMetrics(displayMetrics)
+            (displayMetrics.heightPixels)
+        }
+    }
+
+    override fun onStop() {
+        super.onStop()
+        player?.stop()
+        player?.release()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        player?.stop()
+        player?.release()
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -152,6 +202,12 @@ class NowPlayingFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        binding.canvasLayout.apply {
+            val layoutParamsCopy = layoutParams
+            layoutParamsCopy.height = getScreenHeight(requireActivity())
+            layoutParams = layoutParamsCopy
+            Log.w("Check Height", layoutParams.height.toString())
+        }
         val activity = requireActivity()
         val bottom = activity.findViewById<BottomNavigationView>(R.id.bottom_navigation_view)
         val miniplayer = activity.findViewById<SwipeLayout>(R.id.miniplayer)
@@ -706,6 +762,11 @@ class NowPlayingFragment : Fragment() {
                             binding.uploaderLayout.visibility = View.VISIBLE
                             binding.infoLayout.visibility = View.VISIBLE
                             binding.tvUploader.text = songInfo.author
+                            binding.tvSmallArtist.text = songInfo.author
+                            binding.ivSmallArtist.load(songInfo.authorThumbnail) {
+                                crossfade(true)
+                                placeholder(R.drawable.holder)
+                            }
                             binding.ivAuthor.load(songInfo.authorThumbnail) {
                                 crossfade(true)
                                 placeholder(R.drawable.holder_video)
@@ -891,6 +952,143 @@ class NowPlayingFragment : Fragment() {
                         }
                     }
                 }
+                val job20 = launch {
+                    viewModel.canvas.collect {
+                        val canva = it?.canvases?.firstOrNull()
+                        if (canva != null) {
+                            if (canva.canvas_url.contains(".mp4")) {
+                                player?.stop()
+                                player?.release()
+                                player = ExoPlayer.Builder(requireContext()).build()
+                                binding.playerCanvas.visibility = View.VISIBLE
+                                binding.ivCanvas.visibility = View.GONE
+                                player?.setMediaItem(
+                                    MediaItem.Builder()
+                                        .setUri(
+                                            canva.canvas_url.toUri()
+                                        )
+                                        .build()
+                                )
+                                binding.playerCanvas.player = player
+                                binding.playerCanvas.resizeMode =
+                                    AspectRatioFrameLayout.RESIZE_MODE_ZOOM
+                                player?.prepare()
+                                player?.play()
+                                player?.repeatMode = Player.REPEAT_MODE_ONE
+                            } else {
+                                binding.playerCanvas.visibility = View.GONE
+                                binding.ivCanvas.visibility = View.VISIBLE
+                                binding.ivCanvas.load(canva.canvas_url) {
+                                    crossfade(true)
+                                }
+                            }
+
+                            binding.middleLayout.visibility = View.INVISIBLE
+                            binding.canvasLayout.visibility = View.VISIBLE
+                            binding.rootLayout.background = ColorDrawable(
+                                resources.getColor(
+                                    R.color.md_theme_dark_background,
+                                    null
+                                )
+                            )
+                            binding.overlayCanvas.visibility = View.VISIBLE
+                            binding.smallArtistLayout.visibility = View.GONE
+                            val shortAnimationDuration =
+                                resources.getInteger(android.R.integer.config_mediumAnimTime)
+                            canvasOverlayJob = lifecycleScope.launch {
+                                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                                    delay(5000)
+                                    binding.overlayCanvas.visibility = View.GONE
+                                    binding.infoControllerLayout.visibility = View.INVISIBLE
+                                    binding.smallArtistLayout.visibility = View.VISIBLE
+                                    binding.rootLayout.smoothScrollTo(0, 0)
+                                }
+                            }
+                            binding.root.setOnScrollChangeListener { v, scrollX, scrollY, oldScrollX, oldScrollY ->
+                                if (scrollY > 0 && binding.overlayCanvas.visibility == View.GONE) {
+                                    binding.overlayCanvas.alpha = 0f
+                                    binding.overlayCanvas.apply {
+                                        visibility = View.VISIBLE
+                                        animate()
+                                            .alpha(1f)
+                                            .setDuration(shortAnimationDuration.toLong())
+                                            .setListener(null)
+                                    }
+                                    binding.infoControllerLayout.alpha = 0f
+                                    binding.infoControllerLayout.apply {
+                                        visibility = View.VISIBLE
+                                        animate()
+                                            .alpha(1f)
+                                            .setDuration(shortAnimationDuration.toLong())
+                                            .setListener(null)
+                                    }
+                                    binding.smallArtistLayout.visibility = View.GONE
+                                    canvasOverlayJob?.cancel()
+                                } else if (scrollY == 0 && binding.overlayCanvas.visibility == View.VISIBLE) {
+                                    canvasOverlayJob = lifecycleScope.launch {
+                                        repeatOnLifecycle(Lifecycle.State.CREATED) {
+                                            delay(5000)
+                                            binding.overlayCanvas.visibility = View.GONE
+                                            binding.infoControllerLayout.visibility = View.INVISIBLE
+                                            binding.smallArtistLayout.visibility = View.VISIBLE
+                                        }
+                                    }
+                                }
+                            }
+                            binding.helpMeBro.setOnClickListener {
+
+                                if (binding.root.scrollY == 0) {
+                                    if (binding.overlayCanvas.visibility == View.VISIBLE) {
+                                        binding.overlayCanvas.visibility = View.GONE
+                                        binding.infoControllerLayout.visibility = View.INVISIBLE
+                                        binding.smallArtistLayout.visibility = View.VISIBLE
+                                        canvasOverlayJob?.cancel()
+                                    } else {
+                                        binding.overlayCanvas.alpha = 0f
+                                        binding.overlayCanvas.apply {
+                                            visibility = View.VISIBLE
+                                            animate()
+                                                .alpha(1f)
+                                                .setDuration(shortAnimationDuration.toLong())
+                                                .setListener(null)
+                                        }
+                                        binding.infoControllerLayout.alpha = 0f
+                                        binding.infoControllerLayout.apply {
+                                            visibility = View.VISIBLE
+                                            animate()
+                                                .alpha(1f)
+                                                .setDuration(shortAnimationDuration.toLong())
+                                                .setListener(null)
+                                        }
+                                        binding.smallArtistLayout.visibility = View.GONE
+                                        canvasOverlayJob = lifecycleScope.launch {
+                                            repeatOnLifecycle(Lifecycle.State.CREATED) {
+                                                delay(5000)
+                                                binding.overlayCanvas.visibility = View.GONE
+                                                binding.infoControllerLayout.visibility =
+                                                    View.INVISIBLE
+                                                binding.smallArtistLayout.visibility = View.VISIBLE
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            player?.stop()
+                            player?.release()
+                            binding.helpMeBro.setOnClickListener {
+
+                            }
+                            binding.root.setOnScrollChangeListener { v, scrollX, scrollY, oldScrollX, oldScrollY ->
+
+                            }
+                            binding.overlayCanvas.visibility = View.GONE
+                            binding.infoControllerLayout.visibility = View.VISIBLE
+                            binding.canvasLayout.visibility = View.INVISIBLE
+                            binding.middleLayout.visibility = View.VISIBLE
+                        }
+                    }
+                }
                 job1.join()
                 job2.join()
                 job3.join()
@@ -909,6 +1107,7 @@ class NowPlayingFragment : Fragment() {
                 job17.join()
                 job18.join()
                 job19.join()
+                job20.join()
             }
         }
         binding.tvMore.setOnClickListener {
@@ -1064,9 +1263,22 @@ class NowPlayingFragment : Fragment() {
                     putString("channelId", browseId)
                 })
         }
+        binding.smallArtistLayout.setOnClickListener {
+            val browseId = if (!viewModel.songDB.value?.artistId.isNullOrEmpty()) {
+                viewModel.songDB.value?.artistId?.firstOrNull()
+            } else {
+                runBlocking { viewModel.songInfo.first()?.authorId }
+            }
+            findNavController().navigateSafe(
+                R.id.action_global_artistFragment,
+                Bundle().apply {
+                    putString("channelId", browseId)
+                })
+        }
         binding.tvSongArtist.setOnClickListener {
             if (!viewModel.simpleMediaServiceHandler?.catalogMetadata.isNullOrEmpty()) {
-                val song = viewModel.simpleMediaServiceHandler!!.catalogMetadata[viewModel.getCurrentMediaItemIndex()]
+                val song =
+                    viewModel.simpleMediaServiceHandler!!.catalogMetadata[viewModel.getCurrentMediaItemIndex()]
                 if (song.artists?.firstOrNull()?.id != null) {
                     findNavController().navigateSafe(
                         R.id.action_global_artistFragment,
@@ -1496,7 +1708,7 @@ class NowPlayingFragment : Fragment() {
                         Log.d("Update UI", "onSuccess: ")
                         if (viewModel.gradientDrawable.value != null) {
                             viewModel.gradientDrawable.observe(viewLifecycleOwner) {
-                                if (it != null) {
+                                if (it != null && viewModel.canvas.value == null) {
                                     var start = binding.rootLayout.background
                                     if (start == null) {
                                         start = ColorDrawable(Color.BLACK)
@@ -1697,7 +1909,7 @@ class NowPlayingFragment : Fragment() {
                         Log.d("Update UI", "onSuccess: ")
                         if (viewModel.gradientDrawable.value != null) {
                             viewModel.gradientDrawable.observe(viewLifecycleOwner) {
-                                if (it != null) {
+                                if (it != null && viewModel.canvas.value == null) {
                                     var start = binding.rootLayout.background
                                     if (start == null) {
                                         start = ColorDrawable(Color.BLACK)

@@ -23,14 +23,14 @@ import kotlin.random.Random
 
 
 fun main() {
-    testSpotifySearch()
+    testCanvas()
 }
 
 fun testCanvas() {
     runBlocking {
         Ytmusic().getSpotifyCanvas(
             trackId = "3ZbZtdEw9U0uZW4tZItIwq",
-            token = "BQDIkioHDShrZmAkWkc1B3s_EvJbO-VrvQyFvB_b9qkURCJU_L-sTXDHbpDeH2jSkEDY5sFQbJVGw7CMfaWSOVUuY0YFNtgxbdZxZ8CJLRNtP-pXIFNDAkbpV62msPKfaes76uTMiegMVH93Ids1z9xnrGHRBD_itq4lMZyNbRDhCxB5Uxcqs_2RvWvuL6NROF7kBs5eZAWuIB4_A-_6q4Qr_gVn3rUxji3VKMFA5DrMSQffhOHvtUd1A3EZb3NDSkiRRBY1cKo11vJhs65wlvR9FflvBfvx_enJxomwmyteU-g_dH62u_CfFmA"
+            token = "BQCODA5o34QNampQh2AayzKtflNN20t2E5YrCLh7bUsOrgDnCasutSE9TVd0GXd7np4m_hspbyd1PGk-5gbewvdv7y7ReCNMGiqtiJr0kDUZOF81xC2B-R68jVVZDdnOnUroYH8aYBrubIjhKZUQIKezpoIgram1fTJGbyQKmoVX_DLxZd27snQsQQvPQOQRyGwOD1Xyczbicnli8mIsh5XcrTL6UvmUfkB4w3Q7NEFFLddBMJZQxvTD5DllwSd3UA1K_cBIgCayaJpQZH1jIhIFTWUhy_CJDbqNgirX2z7kZ-cLuTtdwmtzzLY"
         ).apply {
             println(body<CanvasResponse>())
         }

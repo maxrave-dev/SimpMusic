@@ -1,14 +1,8 @@
-import java.util.Properties
-
 plugins {
     id("com.android.library")
     id("org.jetbrains.kotlin.android")
     kotlin("plugin.serialization")
     id("com.mikepenz.aboutlibraries.plugin")
-}
-
-val properties = Properties().apply {
-    load(rootProject.file("local.properties").inputStream())
 }
 
 android {

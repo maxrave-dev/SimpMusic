@@ -13,6 +13,7 @@ import com.maxrave.kotlinytmusicscraper.models.musixmatch.MusixmatchCredential
 import com.maxrave.kotlinytmusicscraper.models.musixmatch.MusixmatchTranslationLyricsResponse
 import com.maxrave.kotlinytmusicscraper.models.musixmatch.SearchMusixmatchResponse
 import com.maxrave.kotlinytmusicscraper.models.response.SearchResponse
+import com.maxrave.kotlinytmusicscraper.models.response.spotify.CanvasResponse
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
 import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
@@ -1159,6 +1160,92 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
         }
     }
 
+    suspend fun getCanvas(videoId: String, duration: Int): Flow<CanvasResponse?> = flow {
+        runCatching {
+            getSongById(videoId).first().let { song ->
+                val q = "${song?.title} ${song?.artistName?.firstOrNull() ?: ""}".replace(
+                    Regex("\\((feat\\.|ft.|cùng với|con|mukana|com|avec|合作音乐人: ) "),
+                    " "
+                ).replace(
+                    Regex("( và | & | и | e | und |, |和| dan)"), " "
+                ).replace("  ", " ").replace(Regex("([()])"), "").replace(".", " ")
+                    .replace("  ", " ")
+                var spotifyPersonalToken = ""
+                if (dataStoreManager.spotifyPersonalToken.first()
+                        .isNotEmpty() && dataStoreManager.spotifyPersonalTokenExpires.first() > System.currentTimeMillis() && dataStoreManager.spotifyPersonalTokenExpires.first() != 0L
+                ) {
+                    spotifyPersonalToken = dataStoreManager.spotifyPersonalToken.first()
+                    Log.d("Lyrics", "spotifyPersonalToken: $spotifyPersonalToken")
+                } else if (dataStoreManager.spdc.first().isNotEmpty()) {
+                    YouTube.getPersonalToken(dataStoreManager.spdc.first()).onSuccess {
+                        spotifyPersonalToken = it.accessToken
+                        dataStoreManager.setSpotifyPersonalToken(spotifyPersonalToken)
+                        dataStoreManager.setSpotifyPersonalTokenExpires(it.accessTokenExpirationTimestampMs)
+                        Log.d("Lyrics", "spotifyPersonalToken: $spotifyPersonalToken")
+                    }.onFailure {
+                        it.printStackTrace()
+                        emit(null)
+                    }
+                }
+                if (spotifyPersonalToken.isNotEmpty()) {
+                    var clientToken = dataStoreManager.spotifyClientToken.first()
+                    Log.d("Lyrics", "clientToken: $clientToken")
+                    YouTube.searchSpotifyTrack(q, clientToken).onSuccess { searchResponse ->
+                        val track = if (duration != 0) {
+                            searchResponse.tracks.items.find { abs(((it.duration_ms / 1000) - duration)) < 1 }
+                                ?: searchResponse.tracks.items.firstOrNull()
+                        } else {
+                            searchResponse.tracks.items.firstOrNull()
+                        }
+                        Log.d("Lyrics", "track: $track")
+                        if (track != null) {
+                            YouTube.getSpotifyCanvas(track.id, spotifyPersonalToken).onSuccess {
+                                Log.w("Spotify Canvas", "canvas: $it")
+                                emit(it)
+                            }.onFailure {
+                                it.printStackTrace()
+                                emit(null)
+                            }
+                        } else {
+                            emit(null)
+                        }
+                    }.onFailure { throwable ->
+                        throwable.printStackTrace()
+                        YouTube.getClientToken().onSuccess { tokenResponse ->
+                            clientToken = tokenResponse.accessToken
+                            Log.w("Lyrics", "clientToken: $clientToken")
+                            dataStoreManager.setSpotifyClientToken(clientToken)
+                            YouTube.searchSpotifyTrack(q, clientToken).onSuccess { searchResponse ->
+                                val track = if (duration != 0) {
+                                    searchResponse.tracks.items.find { abs(((it.duration_ms / 1000) - duration)) < 1 }
+                                        ?: searchResponse.tracks.items.firstOrNull()
+                                } else {
+                                    searchResponse.tracks.items.firstOrNull()
+                                }
+                                Log.d("Lyrics", "track: $track")
+                                if (track != null) {
+                                    YouTube.getSpotifyCanvas(track.id, spotifyPersonalToken)
+                                        .onSuccess {
+                                            Log.w("Spotify Canvas", "canvas: $it")
+                                            emit(it)
+                                        }.onFailure {
+                                        it.printStackTrace()
+                                        emit(null)
+                                    }
+                                } else {
+                                    emit(null)
+                                }
+                            }
+                        }.onFailure {
+                            it.printStackTrace()
+                            emit(null)
+                        }
+                    }
+                }
+            }
+        }
+    }.flowOn(Dispatchers.IO)
+
     suspend fun getSpotifyLyrics(query: String, duration: Int?): Flow<Resource<Lyrics>> = flow {
         runCatching {
             val q =
@@ -1168,7 +1255,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                 ).replace(
                     Regex("( và | & | и | e | und |, |和| dan)"), " "
                 ).replace("  ", " ").replace(Regex("([()])"), "").replace(".", " ")
-                    .replace("  ", " ").replace(" ", "%2520")
+                    .replace("  ", " ")
             Log.d("Lyrics", "query: $q")
             var spotifyPersonalToken = ""
             if (dataStoreManager.spotifyPersonalToken.first()
@@ -1192,7 +1279,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                 Log.d("Lyrics", "clientToken: $clientToken")
                 YouTube.searchSpotifyTrack(q, clientToken).onSuccess { searchResponse ->
                     val track = if (duration != null && duration != 0) {
-                        searchResponse.tracks.items.find { abs(((it.duration_ms / 1000) - duration)) < 3 }
+                        searchResponse.tracks.items.find { abs(((it.duration_ms / 1000) - duration)) < 1 }
                             ?: searchResponse.tracks.items.firstOrNull()
                     } else {
                         searchResponse.tracks.items.firstOrNull()
@@ -1216,7 +1303,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                         dataStoreManager.setSpotifyClientToken(clientToken)
                         YouTube.searchSpotifyTrack(q, clientToken).onSuccess { searchResponse ->
                             val track = if (duration != null && duration != 0) {
-                                searchResponse.tracks.items.find { abs(((it.duration_ms / 1000) - duration)) < 3 }
+                                searchResponse.tracks.items.find { abs(((it.duration_ms / 1000) - duration)) < 1 }
                                     ?: searchResponse.tracks.items.firstOrNull()
                             } else {
                                 searchResponse.tracks.items.firstOrNull()
