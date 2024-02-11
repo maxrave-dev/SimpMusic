@@ -454,6 +454,7 @@ class FullscreenFragment : Fragment() {
                                     val viewAddPlaylist =
                                         BottomSheetAddToAPlaylistBinding.inflate(layoutInflater)
                                     val addToAPlaylistAdapter = AddToAPlaylistAdapter(arrayListOf())
+                                    addToAPlaylistAdapter.setVideoId(song.videoId)
                                     viewAddPlaylist.rvLocalPlaylists.apply {
                                         adapter = addToAPlaylistAdapter
                                         layoutManager = LinearLayoutManager(requireContext())

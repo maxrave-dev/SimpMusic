@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:focusable="true"
     android:clickable="true"
     android:foreground="?android:attr/selectableItemBackground"
@@ -7,10 +8,15 @@
     android:layout_width="match_parent"
     android:orientation="vertical">
 
+    <RelativeLayout
+        android:padding="10sp"
+        android:layout_width="match_parent"
+        android:layout_height="65sp">
+
         <RelativeLayout
-            android:padding="10sp"
-            android:layout_width="match_parent"
-            android:layout_height="65sp">
+            android:id="@+id/firstLayout"
+            android:layout_width="50dp"
+            android:layout_height="50dp">
 
             <ImageView
                 android:layout_width="50sp"
@@ -20,10 +26,24 @@
 
             </ImageView>
 
+            <com.airbnb.lottie.LottieAnimationView
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:id="@+id/ivPlaying"
+                android:layout_alignParentStart="true"
+                app:lottie_rawRes="@raw/audio_playing_animation"
+                app:lottie_autoPlay="true"
+                app:lottie_loop="true"
+                android:visibility="gone">
+
+            </com.airbnb.lottie.LottieAnimationView>
+        </RelativeLayout>
+
             <LinearLayout
+                android:id="@+id/info_layout"
                 android:layout_height="match_parent"
                 android:layout_width="wrap_content"
-                android:layout_toEndOf="@+id/ivThumbnail"
+                android:layout_toEndOf="@+id/firstLayout"
                 android:layout_toStartOf="@id/btMore"
                 android:layout_marginEnd="10dp"
                 android:layout_marginStart="20sp"
@@ -47,22 +67,40 @@
 
                 </TextView>
 
-                <TextView
-                    android:text=""
-                    android:id="@+id/tvSongArtist"
-                    android:fontFamily="@font/roboto"
-                    android:textStyle="normal"
-                    android:textSize="13sp"
-                    android:singleLine="true"
-                    android:ellipsize="marquee"
-                    android:marqueeRepeatLimit="marquee_forever"
-                    android:focusable="true"
-                    android:focusableInTouchMode="true"
-                    android:scrollHorizontally="true"
+                <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
 
-                </TextView>
+                    <ImageView
+                        android:visibility="gone"
+                        android:id="@+id/ivDownloaded"
+                        android:layout_width="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:layout_height="20dp"
+                        android:layout_alignParentStart="true"
+                        android:layout_marginEnd="10dp"
+                        android:src="@drawable/download_for_offline_white">
+
+                    </ImageView>
+
+                    <TextView
+                        android:layout_toEndOf="@id/ivDownloaded"
+                        android:text=""
+                        android:id="@+id/tvSongArtist"
+                        android:fontFamily="@font/roboto"
+                        android:textStyle="normal"
+                        android:textSize="13sp"
+                        android:singleLine="true"
+                        android:ellipsize="marquee"
+                        android:marqueeRepeatLimit="marquee_forever"
+                        android:focusable="true"
+                        android:focusableInTouchMode="true"
+                        android:scrollHorizontally="true"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+
+                    </TextView>
+                </RelativeLayout>
             </LinearLayout>
 
 

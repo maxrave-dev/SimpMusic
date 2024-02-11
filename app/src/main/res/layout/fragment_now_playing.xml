@@ -42,7 +42,9 @@
                     android:layout_marginHorizontal="@dimen/_30sdp"
                     android:layout_marginBottom="@dimen/_20sdp"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content">
+                    android:layout_height="wrap_content"
+                    android:clickable="true"
+                    android:focusable="true">
 
                     <com.google.android.material.imageview.ShapeableImageView
                         android:layout_alignParentStart="true"
@@ -454,6 +456,19 @@
                                     android:id="@+id/btSongInfo"
                                     android:focusable="true"
                                     android:clickable="true">
+
+                                </ImageButton>
+
+                                <ImageButton
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:src="@drawable/baseline_add_24"
+                                    android:background="?attr/actionBarItemBackground"
+                                    android:id="@+id/btAddToYouTubeLiked"
+                                    android:focusable="true"
+                                    android:layout_marginEnd="15dp"
+                                    android:clickable="true"
+                                    android:layout_toStartOf="@id/btQueue">
 
                                 </ImageButton>
 

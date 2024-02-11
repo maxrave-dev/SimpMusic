@@ -12,7 +12,9 @@ import androidx.appcompat.widget.SearchView
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadRequest
@@ -542,7 +544,8 @@ class SearchFragment : Fragment() {
                                 adapter = addToAPlaylistAdapter
                                 layoutManager = LinearLayoutManager(requireContext())
                             }
-                            viewModel.localPlaylist.observe(viewLifecycleOwner) {list ->
+                            addToAPlaylistAdapter.setVideoId(track.videoId)
+                            viewModel.localPlaylist.observe(viewLifecycleOwner) { list ->
                                 Log.d("Check Local Playlist", list.toString())
                                 listLocalPlaylist.clear()
                                 listLocalPlaylist.addAll(list)
@@ -814,16 +817,33 @@ class SearchFragment : Fragment() {
             }
         })
         lifecycleScope.launch {
-            viewModel.loading.observe(viewLifecycleOwner) { loading ->
-                if (loading) {
-                    if (binding.chipGroupTypeSearch.isEnabled) {
-                        setEnabledAll(binding.chipGroupTypeSearch, false)
-                    }
-                } else {
-                    if (!binding.chipGroupTypeSearch.isEnabled) {
-                        setEnabledAll(binding.chipGroupTypeSearch, true)
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                val job1 = launch {
+                    sharedViewModel.downloadList.collect {
+                        resultAdapter.setDownloadedList(it)
                     }
                 }
+                val job2 = launch {
+                    sharedViewModel.simpleMediaServiceHandler?.nowPlaying?.collect {
+                        resultAdapter.setNowPlaying(it?.mediaId)
+                    }
+                }
+                val job3 = launch {
+                    viewModel.loading.observe(viewLifecycleOwner) { loading ->
+                        if (loading) {
+                            if (binding.chipGroupTypeSearch.isEnabled) {
+                                setEnabledAll(binding.chipGroupTypeSearch, false)
+                            }
+                        } else {
+                            if (!binding.chipGroupTypeSearch.isEnabled) {
+                                setEnabledAll(binding.chipGroupTypeSearch, true)
+                            }
+                        }
+                    }
+                }
+                job1.join()
+                job2.join()
+                job3.join()
             }
         }
     }

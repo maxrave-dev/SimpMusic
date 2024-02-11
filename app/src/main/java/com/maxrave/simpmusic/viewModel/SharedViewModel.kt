@@ -69,6 +69,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -92,6 +93,9 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     val songDB: LiveData<SongEntity?> = _songDB
     private var _liked: MutableStateFlow<Boolean> = MutableStateFlow(false)
     val liked: SharedFlow<Boolean> = _liked.asSharedFlow()
+
+    private var _downloadList: MutableStateFlow<ArrayList<SongEntity>?> = MutableStateFlow(null)
+    val downloadList: SharedFlow<ArrayList<SongEntity>?> = _downloadList.asSharedFlow()
 
     protected val context
         get() = getApplication<Application>()
@@ -189,6 +193,9 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     var playlistId: MutableStateFlow<String?> = MutableStateFlow(null)
     private var initJob: Job? = null
 
+    private var _listYouTubeLiked: MutableStateFlow<ArrayList<String>?> = MutableStateFlow(null)
+    val listYouTubeLiked: SharedFlow<ArrayList<String>?> = _listYouTubeLiked.asSharedFlow()
+
     var loadingMore: MutableStateFlow<Boolean> = MutableStateFlow(false)
     var isFullScreen: Boolean = false
     var isSubtitle: Boolean = true
@@ -247,6 +254,7 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                             _format.value = null
                             _songInfo.value = null
                             _canvas.value = null
+                            canvasJob?.cancel()
                             getSongInfo(now.mediaId)
                             getSkipSegments(now.mediaId)
                         }
@@ -336,10 +344,15 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                         Log.w("Check CPN", formatTemp?.cpn.toString())
                         formatTemp?.lengthSeconds?.let {
                             getLyricsFromFormat(formatTemp.videoId, it)
-                            if (dataStoreManager.spotifyCanvas.first() == TRUE) {
+                            if (dataStoreManager.spotifyCanvas.first() == TRUE && formatTemp.itag != 22 && formatTemp.itag != 18) {
                                 getCanvas(formatTemp.videoId, it)
                             }
                         }
+                    }
+                }
+                val job9 = launch {
+                    mainRepository.getDownloadedSongsAsFlow().distinctUntilChanged().collect {
+                        _downloadList.value = it?.toCollection(ArrayList())
                     }
                 }
 
@@ -350,6 +363,19 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                 job6.join()
                 job7.join()
                 job8.join()
+                job9.join()
+            }
+        }
+        if (runBlocking { dataStoreManager.loggedIn.first() } == TRUE) {
+            getYouTubeLiked()
+        }
+    }
+
+    private fun getYouTubeLiked() {
+        viewModelScope.launch {
+            mainRepository.getPlaylistData("VLLM").collect { response ->
+                val list = response.data?.tracks?.map { it.videoId }?.toCollection(ArrayList())
+                _listYouTubeLiked.value = list
             }
         }
     }
@@ -1367,6 +1393,53 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
             simpleMediaServiceHandler?.playNext(song)
             Toast.makeText(context, context.getString(R.string.play_next), Toast.LENGTH_SHORT)
                 .show()
+        }
+    }
+
+    fun logInToYouTube() = dataStoreManager.loggedIn
+    fun addToYouTubeLiked() {
+        viewModelScope.launch {
+            val videoId = simpleMediaServiceHandler?.nowPlaying?.first()?.mediaId
+            if (videoId != null) {
+                val like = (listYouTubeLiked.first()?.contains(videoId) == true)
+                if (!like) {
+                    mainRepository.addToYouTubeLiked(simpleMediaServiceHandler?.nowPlaying?.first()?.mediaId)
+                        .collect { response ->
+                            if (response == 200) {
+                                Toast.makeText(
+                                    context,
+                                    context.getString(R.string.added_to_youtube_liked),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                getYouTubeLiked()
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    context.getString(R.string.error),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                } else {
+                    mainRepository.removeFromYouTubeLiked(simpleMediaServiceHandler?.nowPlaying?.first()?.mediaId)
+                        .collect {
+                            if (it == 200) {
+                                Toast.makeText(
+                                    context,
+                                    context.getString(R.string.removed_from_youtube_liked),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                                getYouTubeLiked()
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    context.getString(R.string.error),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
+                }
+            }
         }
     }
 }

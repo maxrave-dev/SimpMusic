@@ -1,6 +1,7 @@
 package com.maxrave.simpmusic.adapter.album
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.maxrave.simpmusic.data.db.entities.SongEntity
@@ -9,6 +10,7 @@ import com.maxrave.simpmusic.databinding.ItemAlbumTrackBinding
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toTrack
+import com.maxrave.simpmusic.extension.toVideoIdList
 
 
 class TrackAdapter(private var trackList: ArrayList<Any>): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
@@ -16,25 +18,92 @@ class TrackAdapter(private var trackList: ArrayList<Any>): RecyclerView.Adapter<
     interface OnItemClickListener{
         fun onItemClick(position: Int)
     }
-    fun setOnClickListener(listener: OnItemClickListener){
+
+    fun setOnClickListener(listener: OnItemClickListener) {
         mListener = listener
     }
-    fun updateList(newList: ArrayList<Any>){
+
+    fun updateList(newList: ArrayList<Any>) {
         trackList.clear()
         trackList.addAll(newList)
         notifyDataSetChanged()
     }
-    inner class TrackViewHolder(val binding: ItemAlbumTrackBinding, rootListener: OnItemClickListener): RecyclerView.ViewHolder(binding.root) {
+
+    private var downloadedList = arrayListOf<SongEntity>()
+    private var playingTrackVideoId: String? = null
+    fun setDownloadedList(downloadedList: ArrayList<SongEntity>?) {
+        val oldList = arrayListOf<SongEntity>()
+        oldList.addAll(this.downloadedList)
+        this.downloadedList = downloadedList ?: arrayListOf()
+        trackList.mapIndexed { index, result ->
+            if (result is Track || result is SongEntity) {
+                val videoId = when (result) {
+                    is Track -> result.videoId
+                    is SongEntity -> result.videoId
+                    else -> null
+                }
+                if (downloadedList != null) {
+                    if (downloadedList.toVideoIdList().contains(videoId) && !oldList.toVideoIdList()
+                            .contains(videoId)
+                    ) {
+                        notifyItemChanged(index)
+                    } else if (!downloadedList.toVideoIdList()
+                            .contains(videoId) && oldList.toVideoIdList().contains(videoId)
+                    ) {
+                        notifyItemChanged(index)
+                    }
+                }
+            }
+        }
+    }
+
+    fun setNowPlaying(it: String?) {
+        val oldPlayingTrackVideoId = playingTrackVideoId
+        playingTrackVideoId = it
+        trackList.mapIndexed { index, result ->
+            if (result is Track || result is SongEntity) {
+                val videoId = when (result) {
+                    is Track -> result.videoId
+                    is SongEntity -> result.videoId
+                    else -> null
+                }
+                if (videoId == playingTrackVideoId) {
+                    notifyItemChanged(index)
+                } else if (videoId == oldPlayingTrackVideoId) {
+                    notifyItemChanged(index)
+                }
+
+            }
+        }
+    }
+
+    inner class TrackViewHolder(
+        val binding: ItemAlbumTrackBinding,
+        rootListener: OnItemClickListener
+    ) : RecyclerView.ViewHolder(binding.root) {
         init {
             binding.rootLayout.setOnClickListener {
                 rootListener.onItemClick(bindingAdapterPosition)
             }
         }
-        fun bind(track: Track){
-            with(binding){
+
+        fun bind(track: Track) {
+            with(binding) {
                 tvSongName.text = track.title
                 tvArtistName.text = track.artists.toListName().connectArtists()
                 tvPosition.text = (bindingAdapterPosition + 1).toString()
+                if (downloadedList.toVideoIdList().contains(track.videoId)) {
+                    ivDownloaded.visibility = View.VISIBLE
+                } else {
+                    ivDownloaded.visibility = View.GONE
+                }
+                if (track.videoId == playingTrackVideoId) {
+                    ivPlaying.visibility = View.VISIBLE
+                    tvPosition.visibility = View.GONE
+                } else {
+                    ivPlaying.visibility = View.GONE
+                    tvPosition.visibility = View.VISIBLE
+                }
             }
         }
     }
@@ -49,6 +118,18 @@ class TrackAdapter(private var trackList: ArrayList<Any>): RecyclerView.Adapter<
                 tvSongName.text = songEntity.title
                 tvArtistName.text = songEntity.artistName?.connectArtists()
                 tvPosition.text = (bindingAdapterPosition + 1).toString()
+                if (downloadedList.toVideoIdList().contains(songEntity.videoId)) {
+                    ivDownloaded.visibility = View.VISIBLE
+                } else {
+                    ivDownloaded.visibility = View.GONE
+                }
+                if (songEntity.videoId == playingTrackVideoId) {
+                    ivPlaying.visibility = View.VISIBLE
+                    tvPosition.visibility = View.GONE
+                } else {
+                    ivPlaying.visibility = View.GONE
+                    tvPosition.visibility = View.VISIBLE
+                }
             }
         }
     }

@@ -95,6 +95,7 @@ import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -177,12 +178,14 @@ class NowPlayingFragment : Fragment() {
         super.onStop()
         player?.stop()
         player?.release()
+        canvasOverlayJob?.cancel()
     }
 
     override fun onPause() {
         super.onPause()
         player?.stop()
         player?.release()
+        canvasOverlayJob?.cancel()
     }
 
     override fun onCreateView(
@@ -581,6 +584,13 @@ class NowPlayingFragment : Fragment() {
                                 updateUIfromCurrentMediaItem(song)
                                 viewModel.simpleMediaServiceHandler?.setCurrentSongIndex(viewModel.getCurrentMediaItemIndex())
                                 viewModel.changeSongTransitionToFalse()
+                                if (viewModel.listYouTubeLiked.first()
+                                        ?.contains(song.mediaId) == true
+                                ) {
+                                    binding.btAddToYouTubeLiked.setImageResource(R.drawable.done)
+                                } else {
+                                    binding.btAddToYouTubeLiked.setImageResource(R.drawable.baseline_add_24)
+                                }
                             }
                         }
                     }
@@ -995,17 +1005,21 @@ class NowPlayingFragment : Fragment() {
                             binding.smallArtistLayout.visibility = View.GONE
                             val shortAnimationDuration =
                                 resources.getInteger(android.R.integer.config_mediumAnimTime)
-                            canvasOverlayJob = lifecycleScope.launch {
-                                repeatOnLifecycle(Lifecycle.State.CREATED) {
-                                    delay(5000)
-                                    binding.overlayCanvas.visibility = View.GONE
-                                    binding.infoControllerLayout.visibility = View.INVISIBLE
-                                    binding.smallArtistLayout.visibility = View.VISIBLE
-                                    binding.rootLayout.smoothScrollTo(0, 0)
+                            canvasOverlayJob?.cancel()
+                            if (binding.root.scrollY == 0 && binding.root.scrollX == 0) {
+                                canvasOverlayJob = lifecycleScope.launch {
+                                    repeatOnLifecycle(Lifecycle.State.CREATED) {
+                                        delay(5000)
+                                        binding.overlayCanvas.visibility = View.GONE
+                                        binding.infoControllerLayout.visibility = View.INVISIBLE
+                                        binding.smallArtistLayout.visibility = View.VISIBLE
+                                        binding.rootLayout.smoothScrollTo(0, 0)
+                                    }
                                 }
                             }
                             binding.root.setOnScrollChangeListener { v, scrollX, scrollY, oldScrollX, oldScrollY ->
                                 if (scrollY > 0 && binding.overlayCanvas.visibility == View.GONE) {
+                                    canvasOverlayJob?.cancel()
                                     binding.overlayCanvas.alpha = 0f
                                     binding.overlayCanvas.apply {
                                         visibility = View.VISIBLE
@@ -1023,8 +1037,7 @@ class NowPlayingFragment : Fragment() {
                                             .setListener(null)
                                     }
                                     binding.smallArtistLayout.visibility = View.GONE
-                                    canvasOverlayJob?.cancel()
-                                } else if (scrollY == 0 && binding.overlayCanvas.visibility == View.VISIBLE) {
+                                } else if (scrollY == 0 && scrollX == 0 && binding.overlayCanvas.visibility == View.VISIBLE) {
                                     canvasOverlayJob = lifecycleScope.launch {
                                         repeatOnLifecycle(Lifecycle.State.CREATED) {
                                             delay(5000)
@@ -1037,13 +1050,14 @@ class NowPlayingFragment : Fragment() {
                             }
                             binding.helpMeBro.setOnClickListener {
 
-                                if (binding.root.scrollY == 0) {
+                                if (binding.root.scrollY == 0 && binding.root.scrollX == 0) {
                                     if (binding.overlayCanvas.visibility == View.VISIBLE) {
+                                        canvasOverlayJob?.cancel()
                                         binding.overlayCanvas.visibility = View.GONE
                                         binding.infoControllerLayout.visibility = View.INVISIBLE
                                         binding.smallArtistLayout.visibility = View.VISIBLE
-                                        canvasOverlayJob?.cancel()
                                     } else {
+                                        canvasOverlayJob?.cancel()
                                         binding.overlayCanvas.alpha = 0f
                                         binding.overlayCanvas.apply {
                                             visibility = View.VISIBLE
@@ -1074,6 +1088,7 @@ class NowPlayingFragment : Fragment() {
                                 }
                             }
                         } else {
+                            canvasOverlayJob?.cancel()
                             player?.stop()
                             player?.release()
                             binding.helpMeBro.setOnClickListener {
@@ -1086,6 +1101,24 @@ class NowPlayingFragment : Fragment() {
                             binding.infoControllerLayout.visibility = View.VISIBLE
                             binding.canvasLayout.visibility = View.INVISIBLE
                             binding.middleLayout.visibility = View.VISIBLE
+                        }
+                    }
+                }
+                val job21 = launch {
+                    viewModel.logInToYouTube().distinctUntilChanged().collect {
+                        if (it == DataStoreManager.TRUE) {
+                            setEnabledAll(binding.btAddToYouTubeLiked, true)
+                        } else {
+                            setEnabledAll(binding.btAddToYouTubeLiked, false)
+                        }
+                    }
+                }
+                val job22 = launch {
+                    viewModel.listYouTubeLiked.collect {
+                        if (it?.contains(viewModel.simpleMediaServiceHandler?.nowPlaying?.first()?.mediaId) == true) {
+                            binding.btAddToYouTubeLiked.setImageResource(R.drawable.done)
+                        } else {
+                            binding.btAddToYouTubeLiked.setImageResource(R.drawable.baseline_add_24)
                         }
                     }
                 }
@@ -1108,7 +1141,12 @@ class NowPlayingFragment : Fragment() {
                 job18.join()
                 job19.join()
                 job20.join()
+                job21.join()
+                job22.join()
             }
+        }
+        binding.btAddToYouTubeLiked.setOnClickListener {
+            viewModel.addToYouTubeLiked()
         }
         binding.tvMore.setOnClickListener {
 
@@ -1432,6 +1470,7 @@ class NowPlayingFragment : Fragment() {
                                     val viewAddPlaylist =
                                         BottomSheetAddToAPlaylistBinding.inflate(layoutInflater)
                                     val addToAPlaylistAdapter = AddToAPlaylistAdapter(arrayListOf())
+                                    addToAPlaylistAdapter.setVideoId(song.videoId)
                                     viewAddPlaylist.rvLocalPlaylists.apply {
                                         adapter = addToAPlaylistAdapter
                                         layoutManager = LinearLayoutManager(requireContext())
@@ -1521,8 +1560,9 @@ class NowPlayingFragment : Fragment() {
                                     subDialog.show()
                                 }
                                 btChangeLyricsProvider.setOnClickListener {
-                                    var mainLyricsProvider = viewModel.getLyricsProvier()
-                                    var checkedIndex = if (mainLyricsProvider == DataStoreManager.MUSIXMATCH) 0 else 1
+                                    val mainLyricsProvider = viewModel.getLyricsProvier()
+                                    var checkedIndex =
+                                        if (mainLyricsProvider == DataStoreManager.MUSIXMATCH) 0 else 1
                                     val dialogChange = MaterialAlertDialogBuilder(requireContext())
                                         .setTitle(getString(R.string.main_lyrics_provider))
                                         .setSingleChoiceItems(LYRICS_PROVIDER.items, checkedIndex) { _, which ->
@@ -1708,7 +1748,7 @@ class NowPlayingFragment : Fragment() {
                         Log.d("Update UI", "onSuccess: ")
                         if (viewModel.gradientDrawable.value != null) {
                             viewModel.gradientDrawable.observe(viewLifecycleOwner) {
-                                if (it != null && viewModel.canvas.value == null) {
+                                if (it != null && viewModel.canvas.value?.canvases.isNullOrEmpty()) {
                                     var start = binding.rootLayout.background
                                     if (start == null) {
                                         start = ColorDrawable(Color.BLACK)
@@ -1909,7 +1949,7 @@ class NowPlayingFragment : Fragment() {
                         Log.d("Update UI", "onSuccess: ")
                         if (viewModel.gradientDrawable.value != null) {
                             viewModel.gradientDrawable.observe(viewLifecycleOwner) {
-                                if (it != null && viewModel.canvas.value == null) {
+                                if (it != null && viewModel.canvas.value?.canvases.isNullOrEmpty()) {
                                     var start = binding.rootLayout.background
                                     if (start == null) {
                                         start = ColorDrawable(Color.BLACK)
@@ -2103,6 +2143,8 @@ class NowPlayingFragment : Fragment() {
             miniplayer.visibility = View.VISIBLE
         }
         isFullScreen = false
+        overlayJob?.cancel()
+        canvasOverlayJob?.cancel()
     }
 
     fun parseTimestampToMilliseconds(timestamp: String): Double {

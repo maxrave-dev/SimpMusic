@@ -120,8 +120,11 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
     suspend fun getDownloadedSongs(): Flow<List<SongEntity>?> =
         flow { emit(localDataSource.getDownloadedSongs()) }.flowOn(Dispatchers.IO)
 
+    suspend fun getDownloadedSongsAsFlow() = localDataSource.getDownloadedSongsAsFlow()
+
     suspend fun getDownloadingSongs(): Flow<List<SongEntity>?> =
         flow { emit(localDataSource.getDownloadingSongs()) }.flowOn(Dispatchers.IO)
+
     suspend fun getPreparingSongs(): Flow<List<SongEntity>> =
         flow { emit(localDataSource.getPreparingSongs()) }.flowOn(Dispatchers.IO)
 
@@ -2006,13 +2009,46 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
             }
         }
     }.flowOn(Dispatchers.IO)
-    suspend fun updateWatchTimeFull(watchTime: String, cpn: String, playlistId: String?): Flow<Int> = flow {
+
+    suspend fun updateWatchTimeFull(
+        watchTime: String,
+        cpn: String,
+        playlistId: String?
+    ): Flow<Int> = flow {
         runCatching {
             YouTube.updateWatchTimeFull(watchTime, cpn, playlistId).onSuccess { response ->
                 emit(response)
             }.onFailure {
                 it.printStackTrace()
                 emit(0)
+            }
+        }
+    }.flowOn(Dispatchers.IO)
+
+    suspend fun addToYouTubeLiked(mediaId: String?): Flow<Int> = flow {
+        if (mediaId != null) {
+            runCatching {
+                YouTube.addToLiked(mediaId).onSuccess {
+                    Log.d("Liked", "Success: $it")
+                    emit(it)
+                }.onFailure {
+                    it.printStackTrace()
+                    emit(0)
+                }
+            }
+        }
+    }.flowOn(Dispatchers.IO)
+
+    suspend fun removeFromYouTubeLiked(mediaId: String?): Flow<Int> = flow {
+        if (mediaId != null) {
+            runCatching {
+                YouTube.removeFromLiked(mediaId).onSuccess {
+                    Log.d("Liked", "Success: $it")
+                    emit(it)
+                }.onFailure {
+                    it.printStackTrace()
+                    emit(0)
+                }
             }
         }
     }.flowOn(Dispatchers.IO)

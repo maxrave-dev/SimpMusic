@@ -471,6 +471,7 @@ class PlaylistFragment: Fragment() {
                         val viewAddPlaylist =
                             BottomSheetAddToAPlaylistBinding.inflate(layoutInflater)
                         val addToAPlaylistAdapter = AddToAPlaylistAdapter(arrayListOf())
+                        addToAPlaylistAdapter.setVideoId(song.videoId)
                         viewAddPlaylist.rvLocalPlaylists.apply {
                             adapter = addToAPlaylistAdapter
                             layoutManager = LinearLayoutManager(requireContext())
@@ -662,7 +663,17 @@ class PlaylistFragment: Fragment() {
         }
         lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.CREATED) {
-                launch {
+                val job1 = launch {
+                    sharedViewModel.downloadList.collect {
+                        playlistItemAdapter.setDownloadedList(it)
+                    }
+                }
+                val job2 = launch {
+                    sharedViewModel.simpleMediaServiceHandler?.nowPlaying?.collect {
+                        playlistItemAdapter.setNowPlaying(it?.mediaId)
+                    }
+                }
+                val job3 = launch {
                     viewModel.playlistDownloadState.collectLatest { playlistDownloadState ->
                         when (playlistDownloadState) {
                             DownloadState.STATE_PREPARING -> {
@@ -693,6 +704,9 @@ class PlaylistFragment: Fragment() {
                         }
                     }
                 }
+                job1.join()
+                job2.join()
+                job3.join()
             }
         }
     }

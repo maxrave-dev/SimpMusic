@@ -53,6 +53,7 @@ import com.maxrave.simpmusic.extension.removeConflicts
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.viewModel.LocalPlaylistViewModel
+import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -68,6 +69,7 @@ class LocalPlaylistFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel by activityViewModels<LocalPlaylistViewModel>()
+    private val sharedViewModel by activityViewModels<SharedViewModel>()
 
     lateinit var listTrack: ArrayList<Any>
     private lateinit var playlistAdapter: PlaylistItemAdapter
@@ -666,9 +668,21 @@ class LocalPlaylistFragment : Fragment() {
                         }
                     }
                 }
+                val job4 = launch {
+                    sharedViewModel.downloadList.collect {
+                        playlistAdapter.setDownloadedList(it)
+                    }
+                }
+                val job5 = launch {
+                    sharedViewModel.simpleMediaServiceHandler?.nowPlaying?.collect {
+                        playlistAdapter.setNowPlaying(it?.mediaId)
+                    }
+                }
                 job1.join()
                 job2.join()
                 job3.join()
+                job4.join()
+                job5.join()
             }
         }
     }

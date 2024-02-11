@@ -341,6 +341,7 @@ class ArtistFragment: Fragment(){
                         val viewAddPlaylist =
                             BottomSheetAddToAPlaylistBinding.inflate(layoutInflater)
                         val addToAPlaylistAdapter = AddToAPlaylistAdapter(arrayListOf())
+                        addToAPlaylistAdapter.setVideoId(song.videoId)
                         viewAddPlaylist.rvLocalPlaylists.apply {
                             adapter = addToAPlaylistAdapter
                             layoutManager = LinearLayoutManager(requireContext())
@@ -561,6 +562,7 @@ class ArtistFragment: Fragment(){
                                     .show()
                                 findNavController().popBackStack()
                             }
+
                             else -> {
                                 binding.loadingLayout.visibility = View.VISIBLE
                                 binding.topAppBarLayout.visibility = View.GONE
@@ -570,8 +572,20 @@ class ArtistFragment: Fragment(){
                         }
                     }
                 }
+                val job1 = launch {
+                    sharedViewModel.downloadList.collect {
+                        popularAdapter.setDownloadedList(it)
+                    }
+                }
+                val job2 = launch {
+                    sharedViewModel.simpleMediaServiceHandler?.nowPlaying?.collect {
+                        popularAdapter.setNowPlaying(it?.mediaId)
+                    }
+                }
                 artistJob.join()
                 followJob.join()
+                job1.join()
+                job2.join()
             }
         }
 

@@ -315,4 +315,6 @@
     <string name="canvas_info">Show Spotify Canvas in SimpMusic</string>
     <string name="spotify_lyrics_provider">Lyrics provided by Spotify</string>
     <string name="offline_mode">Offline mode</string>
+    <string name="added_to_youtube_liked">Added to YouTube Liked</string>
+    <string name="removed_from_youtube_liked">Removed from YouTube Liked</string>
 </resources>

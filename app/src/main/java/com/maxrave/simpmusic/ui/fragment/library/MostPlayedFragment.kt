@@ -11,7 +11,9 @@ import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadRequest
@@ -248,6 +250,7 @@ class MostPlayedFragment: Fragment() {
                         val addPlaylistDialog = BottomSheetDialog(requireContext())
                         val viewAddPlaylist = BottomSheetAddToAPlaylistBinding.inflate(layoutInflater)
                         val addToAPlaylistAdapter = AddToAPlaylistAdapter(arrayListOf())
+                        addToAPlaylistAdapter.setVideoId(song.videoId)
                         viewAddPlaylist.rvLocalPlaylists.apply {
                             adapter = addToAPlaylistAdapter
                             layoutManager = LinearLayoutManager(requireContext())
@@ -407,6 +410,22 @@ class MostPlayedFragment: Fragment() {
 
         binding.topAppBar.setNavigationOnClickListener {
             findNavController().popBackStack()
+        }
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                val job1 = launch {
+                    sharedViewModel.downloadList.collect {
+                        mostPlayedAdapter.setDownloadedList(it)
+                    }
+                }
+                val job2 = launch {
+                    sharedViewModel.simpleMediaServiceHandler?.nowPlaying?.collect {
+                        mostPlayedAdapter.setNowPlaying(it?.mediaId)
+                    }
+                }
+                job1.join()
+                job2.join()
+            }
         }
     }
 }

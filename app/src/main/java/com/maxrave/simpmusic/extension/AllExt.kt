@@ -488,6 +488,14 @@ fun Lyrics.toLyricsEntity(videoId: String): LyricsEntity {
     )
 }
 
+fun Collection<SongEntity>.toVideoIdList(): List<String> {
+    val list = mutableListOf<String>()
+    for (item in this) {
+        list.add(item.videoId)
+    }
+    return list
+}
+
 fun setEnabledAll(v: View, enabled: Boolean) {
     v.isEnabled = enabled
     v.isFocusable = enabled

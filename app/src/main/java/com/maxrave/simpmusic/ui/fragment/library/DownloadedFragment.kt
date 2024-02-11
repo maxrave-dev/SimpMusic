@@ -10,6 +10,9 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.fragment.findNavController
@@ -42,6 +45,7 @@ import com.maxrave.simpmusic.viewModel.DownloadedViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
+import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 
 @AndroidEntryPoint
@@ -206,6 +210,7 @@ class DownloadedFragment : Fragment() {
                         val addPlaylistDialog = BottomSheetDialog(requireContext())
                         val viewAddPlaylist = BottomSheetAddToAPlaylistBinding.inflate(layoutInflater)
                         val addToAPlaylistAdapter = AddToAPlaylistAdapter(arrayListOf())
+                        addToAPlaylistAdapter.setVideoId(song.videoId)
                         viewAddPlaylist.rvLocalPlaylists.apply {
                             adapter = addToAPlaylistAdapter
                             layoutManager = LinearLayoutManager(requireContext())
@@ -334,6 +339,23 @@ class DownloadedFragment : Fragment() {
 
         binding.topAppBar.setNavigationOnClickListener {
             findNavController().popBackStack()
+        }
+
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                val job1 = launch {
+                    sharedViewModel.downloadList.collect {
+                        downloadedAdapter.setDownloadedList(it)
+                    }
+                }
+                val job2 = launch {
+                    sharedViewModel.simpleMediaServiceHandler?.nowPlaying?.collect {
+                        downloadedAdapter.setNowPlaying(it?.mediaId)
+                    }
+                }
+                job1.join()
+                job2.join()
+            }
         }
     }
 }

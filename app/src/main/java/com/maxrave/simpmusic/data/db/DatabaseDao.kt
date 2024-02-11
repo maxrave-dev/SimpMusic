@@ -21,6 +21,7 @@ import com.maxrave.simpmusic.data.db.entities.SetVideoIdEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.db.entities.SongInfoEntity
 import com.maxrave.simpmusic.extension.toSQLiteQuery
+import kotlinx.coroutines.flow.Flow
 import java.time.LocalDateTime
 
 @Dao
@@ -132,6 +133,9 @@ interface DatabaseDao {
 
     @Query("SELECT * FROM song WHERE downloadState = 3")
     suspend fun getDownloadedSongs(): List<SongEntity>?
+
+    @Query("SELECT * FROM song WHERE downloadState = 3")
+    fun getDownloadedSongsAsFlow(): Flow<List<SongEntity>?>
 
     @Query("SELECT * FROM song WHERE downloadState = 1 OR downloadState = 2")
     suspend fun getDownloadingSongs(): List<SongEntity>?

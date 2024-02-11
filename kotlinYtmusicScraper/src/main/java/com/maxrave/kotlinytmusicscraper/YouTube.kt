@@ -877,6 +877,14 @@ object YouTube {
         ytMusic.getSpotifyCanvas(trackId, token).body<CanvasResponse>()
     }
 
+    suspend fun addToLiked(mediaId: String) = runCatching {
+        ytMusic.addToLiked(mediaId).status.value
+    }
+
+    suspend fun removeFromLiked(mediaId: String) = runCatching {
+        ytMusic.removeFromLiked(mediaId).status.value
+    }
+
     const val MAX_GET_QUEUE_SIZE = 1000
 
     private const val VISITOR_DATA_PREFIX = "Cgt"

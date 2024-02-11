@@ -49,6 +49,7 @@ import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.AlbumViewModel
+import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -61,6 +62,7 @@ import kotlin.random.Random
 @UnstableApi
 class AlbumFragment: Fragment() {
     private val viewModel by activityViewModels<AlbumViewModel>()
+    private val sharedViewModel by activityViewModels<SharedViewModel>()
 
     private var _binding: FragmentAlbumBinding? = null
     private val binding get() = _binding!!
@@ -210,18 +212,21 @@ class AlbumFragment: Fragment() {
                 }
                 findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
             }
-            else if (viewModel.albumEntity.value != null && viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED){
+            else if (viewModel.albumEntity.value != null && viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                 val args = Bundle()
                 args.putString("type", Config.ALBUM_CLICK)
-                args.putString("videoId", viewModel.albumEntity.value?.tracks?.get(0))
+                args.putString("videoId", songsAdapter.getList()[0].videoId)
                 args.putString("from", "Album \"${viewModel.albumEntity.value?.title}\"")
                 if (viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                     args.putInt("downloaded", 1)
                 }
-                args.putString("playlistId", viewModel.albumEntity.value?.browseId?.replaceFirst("VL", ""))
+                args.putString(
+                    "playlistId",
+                    viewModel.albumEntity.value?.browseId?.replaceFirst("VL", "")
+                )
                 Queue.clear()
-                Queue.setNowPlaying(viewModel.listTrack.value?.get(0)!!.toTrack())
-                Queue.addAll(viewModel.listTrack.value.toArrayListTrack())
+                Queue.setNowPlaying(songsAdapter.getList()[0])
+                Queue.addAll(songsAdapter.getList())
                 if (Queue.getQueue().size >= 1) {
                     Queue.removeFirstTrackForPlaylistAndAlbum()
                 }
@@ -350,13 +355,24 @@ class AlbumFragment: Fragment() {
         }
         lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                launch {
+                val job1 = launch {
+                    sharedViewModel.downloadList.collect {
+                        songsAdapter.setDownloadedList(it)
+                    }
+                }
+                val job2 = launch {
+                    sharedViewModel.simpleMediaServiceHandler?.nowPlaying?.collect {
+                        songsAdapter.setNowPlaying(it?.mediaId)
+                    }
+                }
+                val job3 = launch {
                     viewModel.albumDownloadState.collectLatest { albumDownloadState ->
                         when (albumDownloadState) {
                             DownloadState.STATE_PREPARING -> {
                                 binding.btDownload.visibility = View.GONE
                                 binding.animationDownloading.visibility = View.VISIBLE
                             }
+
                             DownloadState.STATE_DOWNLOADING -> {
                                 binding.btDownload.visibility = View.GONE
                                 binding.animationDownloading.visibility = View.VISIBLE
@@ -366,6 +382,7 @@ class AlbumFragment: Fragment() {
                                 binding.animationDownloading.visibility = View.GONE
                                 binding.btDownload.setImageResource(R.drawable.baseline_downloaded)
                             }
+
                             DownloadState.STATE_NOT_DOWNLOADED -> {
                                 binding.btDownload.visibility = View.VISIBLE
                                 binding.animationDownloading.visibility = View.GONE
@@ -374,6 +391,9 @@ class AlbumFragment: Fragment() {
                         }
                     }
                 }
+                job1.join()
+                job2.join()
+                job3.join()
 //                launch {
 //                    viewModel.listJob.collectLatest {jobs->
 //                        Log.d("AlbumFragment", "ListJob: $jobs")

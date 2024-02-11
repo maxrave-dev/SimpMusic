@@ -14,6 +14,7 @@ import com.maxrave.kotlinytmusicscraper.models.body.EditPlaylistBody
 import com.maxrave.kotlinytmusicscraper.models.body.FormData
 import com.maxrave.kotlinytmusicscraper.models.body.GetQueueBody
 import com.maxrave.kotlinytmusicscraper.models.body.GetSearchSuggestionsBody
+import com.maxrave.kotlinytmusicscraper.models.body.LikeBody
 import com.maxrave.kotlinytmusicscraper.models.body.MusixmatchCredentialsBody
 import com.maxrave.kotlinytmusicscraper.models.body.NextBody
 import com.maxrave.kotlinytmusicscraper.models.body.NotificationBody
@@ -761,6 +762,27 @@ class Ytmusic {
                 )
             )
         }
+
+
+    suspend fun addToLiked(videoId: String) = httpClient.post("like/like") {
+        ytClient(YouTubeClient.WEB_REMIX, true)
+        setBody(
+            LikeBody(
+                context = YouTubeClient.WEB_REMIX.toContext(locale, visitorData),
+                target = LikeBody.Target(videoId)
+            )
+        )
+    }
+
+    suspend fun removeFromLiked(videoId: String) = httpClient.post("like/removelike") {
+        ytClient(YouTubeClient.WEB_REMIX, true)
+        setBody(
+            LikeBody(
+                context = YouTubeClient.WEB_REMIX.toContext(locale, visitorData),
+                target = LikeBody.Target(videoId)
+            )
+        )
+    }
 
     /***
      * Spotify WEB API

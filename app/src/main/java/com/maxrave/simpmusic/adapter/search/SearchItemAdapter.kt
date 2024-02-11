@@ -2,6 +2,7 @@ package com.maxrave.simpmusic.adapter.search
 
 import android.content.Context
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
@@ -26,22 +27,78 @@ import com.maxrave.simpmusic.databinding.ItemSongsSearchResultBinding
 import com.maxrave.simpmusic.databinding.ItemsVideosSearchResultBinding
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.toListName
+import com.maxrave.simpmusic.extension.toVideoIdList
 
 class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var context: Context): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     private lateinit var mListener: onItemClickListener
 
-    interface onItemClickListener{
+    private var downloadedList = arrayListOf<SongEntity>()
+    private var playingTrackVideoId: String? = null
+
+    interface onItemClickListener {
         fun onItemClick(position: Int, type: String)
         fun onOptionsClick(position: Int, type: String)
     }
-    fun setOnClickListener(listener: onItemClickListener){
+
+    fun setOnClickListener(listener: onItemClickListener) {
         mListener = listener
     }
+
     fun getCurrentList(): ArrayList<Any> = searchResultList
 
+    fun setDownloadedList(downloadedList: ArrayList<SongEntity>?) {
+        val oldList = arrayListOf<SongEntity>()
+        oldList.addAll(this.downloadedList)
+        this.downloadedList = downloadedList ?: arrayListOf()
+        searchResultList.mapIndexed { index, result ->
+            if (result is SongsResult || result is SongEntity || result is VideosResult) {
+                val videoId = when (result) {
+                    is SongsResult -> result.videoId
+                    is SongEntity -> result.videoId
+                    is VideosResult -> result.videoId
+                    else -> null
+                }
+                if (downloadedList != null) {
+                    if (downloadedList.toVideoIdList().contains(videoId) && !oldList.toVideoIdList()
+                            .contains(videoId)
+                    ) {
+                        notifyItemChanged(index)
+                    } else if (!downloadedList.toVideoIdList()
+                            .contains(videoId) && oldList.toVideoIdList().contains(videoId)
+                    ) {
+                        notifyItemChanged(index)
+                    }
+                }
+            }
+        }
+    }
+
+    fun setNowPlaying(it: String?) {
+        val oldPlayingTrackVideoId = playingTrackVideoId
+        playingTrackVideoId = it
+        searchResultList.mapIndexed { index, result ->
+            if (result is SongsResult || result is SongEntity || result is VideosResult) {
+                val videoId = when (result) {
+                    is SongsResult -> result.videoId
+                    is SongEntity -> result.videoId
+                    is VideosResult -> result.videoId
+                    else -> null
+                }
+                if (videoId == playingTrackVideoId) {
+                    notifyItemChanged(index)
+                } else if (videoId == oldPlayingTrackVideoId) {
+                    notifyItemChanged(index)
+                }
+
+            }
+        }
+    }
 
 
-    inner class SongViewHolder(val binding: ItemSongsSearchResultBinding, listener: onItemClickListener): RecyclerView.ViewHolder(binding.root) {
+    inner class SongViewHolder(
+        val binding: ItemSongsSearchResultBinding,
+        listener: onItemClickListener
+    ) : RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
                 listener.onItemClick(bindingAdapterPosition, SONG_CLICK)
@@ -73,6 +130,18 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
                 tvSongTitle.isSelected = true
                 tvSongArtist.isSelected = true
                 tvSongAlbum.isSelected = true
+                if (downloadedList.toVideoIdList().contains(song.videoId)) {
+                    ivDownloaded.visibility = View.VISIBLE
+                } else {
+                    ivDownloaded.visibility = View.GONE
+                }
+                if (song.videoId == playingTrackVideoId) {
+                    ivPlaying.visibility = View.VISIBLE
+                    ivThumbnail.visibility = View.GONE
+                } else {
+                    ivPlaying.visibility = View.GONE
+                    ivThumbnail.visibility = View.VISIBLE
+                }
             }
         }
     }
@@ -100,6 +169,18 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
                 tvSongTitle.isSelected = true
                 tvSongArtist.isSelected = true
                 tvSongAlbum.isSelected = true
+                if (downloadedList.toVideoIdList().contains(song.videoId)) {
+                    ivDownloaded.visibility = View.VISIBLE
+                } else {
+                    ivDownloaded.visibility = View.GONE
+                }
+                if (song.videoId == playingTrackVideoId) {
+                    ivPlaying.visibility = View.VISIBLE
+                    ivThumbnail.visibility = View.GONE
+                } else {
+                    ivPlaying.visibility = View.GONE
+                    ivThumbnail.visibility = View.VISIBLE
+                }
             }
         }
     }
@@ -127,6 +208,18 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
                 }
                 tvView.text = video.views
                 tvVideoTitle.isSelected = true
+                if (downloadedList.toVideoIdList().contains(video.videoId)) {
+                    ivDownloaded.visibility = View.VISIBLE
+                } else {
+                    ivDownloaded.visibility = View.GONE
+                }
+                if (video.videoId == playingTrackVideoId) {
+                    ivPlaying.visibility = View.VISIBLE
+                    ivThumbnail.visibility = View.GONE
+                } else {
+                    ivPlaying.visibility = View.GONE
+                    ivThumbnail.visibility = View.VISIBLE
+                }
             }
         }
     }

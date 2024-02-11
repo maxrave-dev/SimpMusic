@@ -210,6 +210,7 @@ class HomeFragment : Fragment() {
                             val viewAddPlaylist =
                                 BottomSheetAddToAPlaylistBinding.inflate(layoutInflater)
                             val addToAPlaylistAdapter = AddToAPlaylistAdapter(arrayListOf())
+                            addToAPlaylistAdapter.setVideoId(track.videoId)
                             viewAddPlaylist.rvLocalPlaylists.apply {
                                 adapter = addToAPlaylistAdapter
                                 layoutManager = LinearLayoutManager(requireContext())
