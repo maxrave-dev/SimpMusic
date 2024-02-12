@@ -394,6 +394,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
 
     suspend fun getHomeData(): Flow<Resource<ArrayList<HomeItem>>> = flow {
         runCatching {
+            val limit = dataStoreManager.homeLimit.first()
             YouTube.customQuery(browseId = "FEmusic_home").onSuccess { result ->
                 val list: ArrayList<HomeItem> = arrayListOf()
                 if (result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(0)?.tabRenderer?.content?.sectionListRenderer?.contents?.get(
@@ -427,19 +428,20 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
                     result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(0)?.tabRenderer?.content?.sectionListRenderer?.contents
                 list.addAll(parseMixedContent(data, context))
                 var count = 0
-                while (count < 5 && continueParam != null) {
-                    YouTube.customQuery(browseId = "", continuation = continueParam).onSuccess { response ->
-                        continueParam =
-                            response.continuationContents?.sectionListContinuation?.continuations?.get(
-                                0
-                            )?.nextContinuationData?.continuation
-                        Log.d("Repository", "continueParam: $continueParam")
-                        val dataContinue =
-                            response.continuationContents?.sectionListContinuation?.contents
-                        list.addAll(parseMixedContent(dataContinue, context))
-                        count++
-                        Log.d("Repository", "count: $count")
-                    }.onFailure {
+                while (count < limit && continueParam != null) {
+                    YouTube.customQuery(browseId = "", continuation = continueParam)
+                        .onSuccess { response ->
+                            continueParam =
+                                response.continuationContents?.sectionListContinuation?.continuations?.get(
+                                    0
+                                )?.nextContinuationData?.continuation
+                            Log.d("Repository", "continueParam: $continueParam")
+                            val dataContinue =
+                                response.continuationContents?.sectionListContinuation?.contents
+                            list.addAll(parseMixedContent(dataContinue, context))
+                            count++
+                            Log.d("Repository", "count: $count")
+                        }.onFailure {
                         Log.e("Repository", "Error: ${it.message}")
                         count++
                     }
@@ -804,15 +806,18 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
     suspend fun getPlaylistData(playlistId: String): Flow<Resource<PlaylistBrowse>> = flow {
         runCatching {
             var id = ""
-            if (!playlistId.startsWith("VL")) {
-                id += "VL$playlistId"
+            id += if (!playlistId.startsWith("VL")) {
+                "VL$playlistId"
             } else {
-                id += playlistId
+                playlistId
             }
             Log.d("Repository", "playlist id: $id")
             YouTube.customQuery(browseId = id, setLogin = true).onSuccess { result ->
                 val listContent: ArrayList<MusicShelfRenderer.Content> = arrayListOf()
-                val data: List<MusicShelfRenderer.Content>? = result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(0)?.tabRenderer?.content?.sectionListRenderer?.contents?.get(0)?.musicPlaylistShelfRenderer?.contents
+                val data: List<MusicShelfRenderer.Content>? =
+                    result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(0)?.tabRenderer?.content?.sectionListRenderer?.contents?.get(
+                        0
+                    )?.musicPlaylistShelfRenderer?.contents
                 if (data != null) {
                     Log.d("Data", "data: $data")
                     Log.d("Data", "data size: ${data.size}")

@@ -62,6 +62,7 @@ import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.time.LocalDateTime
@@ -403,6 +404,30 @@ class PlaylistFragment: Fragment() {
                     tvSongTitle.isSelected = true
                     tvSongArtist.text = song.artists.toListName().connectArtists()
                     tvSongArtist.isSelected = true
+                    if (song.album != null) {
+                        setEnabledAll(btAlbum, true)
+                        tvAlbum.text = song.album.name
+                    } else {
+                        tvAlbum.text = getString(R.string.no_album)
+                        setEnabledAll(btAlbum, false)
+                    }
+                    btAlbum.setOnClickListener {
+                        val albumId = song.album?.id
+                        if (albumId != null) {
+                            findNavController().navigateSafe(
+                                R.id.action_global_albumFragment,
+                                Bundle().apply {
+                                    putString("browseId", albumId)
+                                })
+                            dialog.dismiss()
+                        } else {
+                            Toast.makeText(
+                                requireContext(),
+                                getString(R.string.no_album),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
                     btAddQueue.setOnClickListener {
                         sharedViewModel.addToQueue(song)
                     }
@@ -429,6 +454,12 @@ class PlaylistFragment: Fragment() {
                             cbFavorite.isChecked = true
                             tvFavorite.text = getString(R.string.liked)
                             viewModel.updateLikeStatus(song.videoId, 1)
+                        }
+                        lifecycleScope.launch {
+                            if (sharedViewModel.simpleMediaServiceHandler?.nowPlaying?.first()?.mediaId == song.videoId) {
+                                delay(500)
+                                sharedViewModel.refreshSongDB()
+                            }
                         }
                     }
                     btSeeArtists.setOnClickListener {

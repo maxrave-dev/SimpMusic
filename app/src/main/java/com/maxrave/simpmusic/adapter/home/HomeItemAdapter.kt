@@ -19,7 +19,6 @@ import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.ItemHomeBinding
 import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.toTrack
-import com.maxrave.simpmusic.viewModel.HomeViewModel
 
 class HomeItemAdapter(
     private var homeItemList: ArrayList<HomeItem>,

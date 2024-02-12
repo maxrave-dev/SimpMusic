@@ -28,6 +28,7 @@ import androidx.navigation.fragment.findNavController
 import androidx.palette.graphics.Palette
 import androidx.recyclerview.widget.LinearLayoutManager
 import coil.ImageLoader
+import coil.load
 import coil.request.CachePolicy
 import coil.request.ImageRequest
 import coil.size.Size
@@ -36,27 +37,37 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.adapter.artist.SeeArtistOfNowPlayingAdapter
+import com.maxrave.simpmusic.adapter.playlist.AddToAPlaylistAdapter
 import com.maxrave.simpmusic.adapter.playlist.PlaylistItemAdapter
 import com.maxrave.simpmusic.adapter.playlist.SuggestItemAdapter
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.DownloadState
+import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
+import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.data.queue.Queue
+import com.maxrave.simpmusic.databinding.BottomSheetAddToAPlaylistBinding
 import com.maxrave.simpmusic.databinding.BottomSheetEditPlaylistTitleBinding
 import com.maxrave.simpmusic.databinding.BottomSheetLocalPlaylistBinding
-import com.maxrave.simpmusic.databinding.BottomSheetLocalPlaylistItemBinding
+import com.maxrave.simpmusic.databinding.BottomSheetNowPlayingBinding
+import com.maxrave.simpmusic.databinding.BottomSheetSeeArtistOfNowPlayingBinding
 import com.maxrave.simpmusic.databinding.FragmentLocalPlaylistBinding
+import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.removeConflicts
+import com.maxrave.simpmusic.extension.setEnabledAll
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.viewModel.LocalPlaylistViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -189,23 +200,197 @@ class LocalPlaylistFragment : Fragment() {
         })
         playlistAdapter.setOnOptionClickListener(object : PlaylistItemAdapter.OnOptionClickListener{
             override fun onOptionClick(position: Int) {
+                val song = playlistAdapter.getListTrack().getOrNull(position) as SongEntity
                 val dialog = BottomSheetDialog(requireContext())
-                val viewDialog = BottomSheetLocalPlaylistItemBinding.inflate(layoutInflater)
-                viewDialog.btDelete.setOnClickListener {
-                    val temp = playlistAdapter.getListTrack().getOrNull(position) as SongEntity
-                    viewModel.deleteItem(temp, id!!)
-                    if (viewModel.localPlaylist.value?.syncedWithYouTubePlaylist == 1 && viewModel.localPlaylist.value?.youtubePlaylistId != null) {
-                        val videoId = viewModel.listTrack.value?.get(position)?.videoId
-                        viewModel.removeYouTubePlaylistItem(
-                            viewModel.localPlaylist.value?.youtubePlaylistId!!,
-                            videoId!!
-                        )
+                val bottomSheetView = BottomSheetNowPlayingBinding.inflate(layoutInflater)
+                with(bottomSheetView) {
+                    btSleepTimer.visibility = View.GONE
+                    btDelete.visibility = View.VISIBLE
+                    if (song.liked) {
+                        tvFavorite.text = getString(R.string.liked)
+                        cbFavorite.isChecked = true
+
+                    } else {
+                        tvFavorite.text = getString(R.string.like)
+                        cbFavorite.isChecked = false
+                    }
+                    btAddQueue.setOnClickListener {
+                        sharedViewModel.addToQueue(song.toTrack())
+                    }
+                    btPlayNext.setOnClickListener {
+                        sharedViewModel.playNext(song.toTrack())
+                    }
+                    setEnabledAll(btAlbum, true)
+                    tvAlbum.text = song.albumName
+                    btAlbum.setOnClickListener {
+                        val albumId = song.albumId
+                        findNavController().navigateSafe(
+                            R.id.action_global_albumFragment,
+                            Bundle().apply {
+                                putString("browseId", albumId)
+                            })
                         dialog.dismiss()
                     }
+                    btChangeLyricsProvider.visibility = View.GONE
+                    tvSongTitle.text = song.title
+                    tvSongTitle.isSelected = true
+                    tvSongArtist.text = song.artistName?.connectArtists()
+                    tvSongArtist.isSelected = true
+                    ivThumbnail.load(song.thumbnails)
+                    btRadio.setOnClickListener {
+                        val args = Bundle()
+                        args.putString("radioId", "RDAMVM${song.videoId}")
+                        args.putString(
+                            "videoId",
+                            song.videoId
+                        )
+                        dialog.dismiss()
+                        findNavController().navigateSafe(R.id.action_global_playlistFragment, args)
+                    }
+                    btLike.setOnClickListener {
+                        if (cbFavorite.isChecked) {
+                            cbFavorite.isChecked = false
+                            tvFavorite.text = getString(R.string.like)
+                            viewModel.updateLikeStatus(song.videoId, 0)
+                            playlistAdapter.setLikedTrack(position, false)
+                        } else {
+                            cbFavorite.isChecked = true
+                            tvFavorite.text = getString(R.string.liked)
+                            viewModel.updateLikeStatus(song.videoId, 1)
+                            playlistAdapter.setLikedTrack(position, true)
+                        }
+                        lifecycleScope.launch {
+                            if (sharedViewModel.simpleMediaServiceHandler?.nowPlaying?.first()?.mediaId == song.videoId) {
+                                delay(500)
+                                sharedViewModel.refreshSongDB()
+                            }
+                        }
+                    }
+                    btSeeArtists.setOnClickListener {
+                        val subDialog = BottomSheetDialog(requireContext())
+                        val subBottomSheetView =
+                            BottomSheetSeeArtistOfNowPlayingBinding.inflate(layoutInflater)
+                        if (!song.artistName.isNullOrEmpty()) {
+                            val artistAdapter =
+                                SeeArtistOfNowPlayingAdapter(arrayListOf<Artist>().apply {
+                                    List(song.artistName.size) { i ->
+                                        add(
+                                            Artist(
+                                                song.artistId?.getOrNull(i),
+                                                song.artistName.get(i)
+                                            )
+                                        )
+                                    }
+                                })
+                            subBottomSheetView.rvArtists.apply {
+                                adapter = artistAdapter
+                                layoutManager = LinearLayoutManager(requireContext())
+                            }
+                            artistAdapter.setOnClickListener(object :
+                                SeeArtistOfNowPlayingAdapter.OnItemClickListener {
+                                override fun onItemClick(position: Int) {
+                                    val artist = song.artistId?.getOrNull(position)
+                                    if (artist != null) {
+                                        findNavController().navigateSafe(
+                                            R.id.action_global_artistFragment,
+                                            Bundle().apply {
+                                                putString("channelId", artist)
+                                            })
+                                        subDialog.dismiss()
+                                        dialog.dismiss()
+                                    }
+                                }
+
+                            })
+                        }
+                        subDialog.setCancelable(true)
+                        subDialog.setContentView(subBottomSheetView.root)
+                        subDialog.show()
+                    }
+                    btDownload.visibility = View.GONE
+                    btAddPlaylist.setOnClickListener {
+                        viewModel.getAllLocalPlaylist()
+                        val listLocalPlaylist: ArrayList<LocalPlaylistEntity> = arrayListOf()
+                        val addPlaylistDialog = BottomSheetDialog(requireContext())
+                        val viewAddPlaylist =
+                            BottomSheetAddToAPlaylistBinding.inflate(layoutInflater)
+                        val addToAPlaylistAdapter = AddToAPlaylistAdapter(arrayListOf())
+                        addToAPlaylistAdapter.setVideoId(song.videoId)
+                        viewAddPlaylist.rvLocalPlaylists.apply {
+                            adapter = addToAPlaylistAdapter
+                            layoutManager = LinearLayoutManager(requireContext())
+                        }
+                        viewModel.listAllLocalPlaylist.observe(viewLifecycleOwner) { list ->
+                            Log.d("Check Local Playlist", list.toString())
+                            listLocalPlaylist.clear()
+                            listLocalPlaylist.addAll(list)
+                            addToAPlaylistAdapter.updateList(listLocalPlaylist)
+                        }
+                        addToAPlaylistAdapter.setOnItemClickListener(object :
+                            AddToAPlaylistAdapter.OnItemClickListener {
+                            override fun onItemClick(position: Int) {
+                                val playlist = listLocalPlaylist[position]
+                                viewModel.updateInLibrary(song.videoId)
+                                val tempTrack = ArrayList<String>()
+                                if (playlist.tracks != null) {
+                                    tempTrack.addAll(playlist.tracks)
+                                }
+                                if (!tempTrack.contains(song.videoId) && playlist.syncedWithYouTubePlaylist == 1 && playlist.youtubePlaylistId != null) {
+                                    viewModel.addToYouTubePlaylist(
+                                        playlist.id,
+                                        playlist.youtubePlaylistId,
+                                        song.videoId
+                                    )
+                                }
+                                if (!tempTrack.contains(song.videoId)) {
+                                    viewModel.insertPairSongLocalPlaylist(
+                                        PairSongLocalPlaylist(
+                                            playlistId = playlist.id,
+                                            songId = song.videoId,
+                                            position = playlist.tracks?.size ?: 0,
+                                            inPlaylist = LocalDateTime.now()
+                                        )
+                                    )
+                                    tempTrack.add(song.videoId)
+                                }
+
+                                viewModel.updateLocalPlaylistTracks(
+                                    tempTrack.removeConflicts(),
+                                    playlist.id
+                                )
+                                addPlaylistDialog.dismiss()
+                                dialog.dismiss()
+                            }
+                        })
+                        addPlaylistDialog.setContentView(viewAddPlaylist.root)
+                        addPlaylistDialog.setCancelable(true)
+                        addPlaylistDialog.show()
+                    }
+                    btShare.setOnClickListener {
+                        val shareIntent = Intent(Intent.ACTION_SEND)
+                        shareIntent.type = "text/plain"
+                        val url = "https://youtube.com/watch?v=${song.videoId}"
+                        shareIntent.putExtra(Intent.EXTRA_TEXT, url)
+                        val chooserIntent =
+                            Intent.createChooser(shareIntent, getString(R.string.share_url))
+                        startActivity(chooserIntent)
+                    }
+                    btDelete.setOnClickListener {
+                        val temp = playlistAdapter.getListTrack().getOrNull(position) as SongEntity
+                        viewModel.deleteItem(temp, id!!)
+                        if (viewModel.localPlaylist.value?.syncedWithYouTubePlaylist == 1 && viewModel.localPlaylist.value?.youtubePlaylistId != null) {
+                            val videoId = viewModel.listTrack.value?.get(position)?.videoId
+                            viewModel.removeYouTubePlaylistItem(
+                                viewModel.localPlaylist.value?.youtubePlaylistId!!,
+                                videoId!!
+                            )
+                            dialog.dismiss()
+                        }
+                    }
+                    dialog.setCancelable(true)
+                    dialog.setContentView(bottomSheetView.root)
+                    dialog.show()
                 }
-                dialog.setContentView(viewDialog.root)
-                dialog.setCancelable(true)
-                dialog.show()
             }
         })
         suggestAdapter.setOnItemClickListener(object : SuggestItemAdapter.OnItemClickListener{

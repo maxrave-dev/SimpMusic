@@ -375,6 +375,30 @@ class FullscreenFragment : Fragment() {
                                 tvSongArtist.text = song.artists.toListName().connectArtists()
                                 tvSongArtist.isSelected = true
                                 ivThumbnail.load(song.thumbnails?.last()?.url)
+                                if (song.album != null) {
+                                    setEnabledAll(btAlbum, true)
+                                    tvAlbum.text = song.album.name
+                                } else {
+                                    tvAlbum.text = getString(R.string.no_album)
+                                    setEnabledAll(btAlbum, false)
+                                }
+                                btAlbum.setOnClickListener {
+                                    val albumId = song.album?.id
+                                    if (albumId != null) {
+                                        findNavController().navigateSafe(
+                                            R.id.action_global_albumFragment,
+                                            Bundle().apply {
+                                                putString("browseId", albumId)
+                                            })
+                                        dialog.dismiss()
+                                    } else {
+                                        Toast.makeText(
+                                            requireContext(),
+                                            getString(R.string.no_album),
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
 
                                 btLike.setOnClickListener {
                                     if (cbFavorite.isChecked) {

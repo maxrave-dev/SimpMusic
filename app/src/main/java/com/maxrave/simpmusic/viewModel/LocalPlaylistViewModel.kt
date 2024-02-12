@@ -550,4 +550,22 @@ class LocalPlaylistViewModel @Inject constructor(
         _listPair.value = null
     }
 
+    fun updateLikeStatus(videoId: String, likeStatus: Int) {
+        viewModelScope.launch {
+            mainRepository.updateLikeStatus(likeStatus = likeStatus, videoId = videoId)
+        }
+    }
+
+    private var _listAllLocalPlaylist: MutableLiveData<List<LocalPlaylistEntity>> =
+        MutableLiveData()
+    val listAllLocalPlaylist: LiveData<List<LocalPlaylistEntity>> = _listAllLocalPlaylist
+
+    fun getAllLocalPlaylist() {
+        viewModelScope.launch {
+            mainRepository.getAllLocalPlaylists().collect { values ->
+                _listAllLocalPlaylist.postValue(values)
+            }
+        }
+    }
+
 }

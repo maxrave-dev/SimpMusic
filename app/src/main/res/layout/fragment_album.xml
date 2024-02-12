@@ -55,7 +55,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 app:navigationIcon="@drawable/baseline_arrow_back_ios_24"
-                app:title="ASCEND"
                 app:titleTextAppearance="@style/album_name"
                 android:id="@+id/topAppBar"
                 app:layout_collapseMode="pin"

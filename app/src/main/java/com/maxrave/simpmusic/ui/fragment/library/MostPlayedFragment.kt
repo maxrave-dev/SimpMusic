@@ -48,6 +48,8 @@ import com.maxrave.simpmusic.viewModel.MostPlayedViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 
@@ -165,6 +167,30 @@ class MostPlayedFragment: Fragment() {
                     tvSongArtist.text = song.artistName?.connectArtists()
                     tvSongArtist.isSelected = true
                     ivThumbnail.load(song.thumbnails)
+                    if (song.albumName != null) {
+                        setEnabledAll(btAlbum, true)
+                        tvAlbum.text = song.albumName
+                    } else {
+                        tvAlbum.text = getString(R.string.no_album)
+                        setEnabledAll(btAlbum, false)
+                    }
+                    btAlbum.setOnClickListener {
+                        val albumId = song.albumId
+                        if (albumId != null) {
+                            findNavController().navigateSafe(
+                                R.id.action_global_albumFragment,
+                                Bundle().apply {
+                                    putString("browseId", albumId)
+                                })
+                            dialog.dismiss()
+                        } else {
+                            Toast.makeText(
+                                requireContext(),
+                                getString(R.string.no_album),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
                     btRadio.setOnClickListener {
                         val args = Bundle()
                         args.putString("radioId", "RDAMVM${song.videoId}")
@@ -206,6 +232,12 @@ class MostPlayedFragment: Fragment() {
                                         cbFavorite.isChecked = false
                                     }
                                 }
+                            }
+                        }
+                        lifecycleScope.launch {
+                            if (sharedViewModel.simpleMediaServiceHandler?.nowPlaying?.first()?.mediaId == song.videoId) {
+                                delay(500)
+                                sharedViewModel.refreshSongDB()
                             }
                         }
                     }

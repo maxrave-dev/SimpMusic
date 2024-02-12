@@ -27,6 +27,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import coil.annotation.ExperimentalCoilApi
 import com.google.android.flexbox.FlexboxLayout
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.slider.Slider
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.adapter.account.AccountAdapter
 import com.maxrave.simpmusic.common.LIMIT_CACHE_SIZE
@@ -124,6 +125,7 @@ class SettingsFragment : Fragment() {
         viewModel.getLyricsProvider() //
         viewModel.getUseTranslation() //
         viewModel.getMusixmatchLoggedIn() //
+        viewModel.getHomeLimit()
         viewModel.getPlayVideoInsteadOfAudio()
         viewModel.getVideoQuality()
         viewModel.getThumbCacheSize()
@@ -398,7 +400,14 @@ class SettingsFragment : Fragment() {
                         }
                     }
                 }
-
+                val job26 = launch {
+                    viewModel.homeLimit.collect {
+                        binding.tvHomeLimit.text = it.toString()
+                        if (it != null) {
+                            binding.sliderHomeLimit.value = it.toFloat()
+                        }
+                    }
+                }
                 job1.join()
                 job2.join()
                 job3.join()
@@ -424,9 +433,18 @@ class SettingsFragment : Fragment() {
                 job23.join()
                 job24.join()
                 job25.join()
+                job26.join()
             }
         }
+        binding.sliderHomeLimit.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
+            override fun onStartTrackingTouch(slider: Slider) {
+                // Responds to when slider's touch event is being started
+            }
 
+            override fun onStopTrackingTouch(slider: Slider) {
+                viewModel.setHomeLimit(slider.value.toInt())
+            }
+        })
         binding.btLimitPlayerCache.setOnClickListener {
             var checkedIndex = -1
             val dialog = MaterialAlertDialogBuilder(requireContext())

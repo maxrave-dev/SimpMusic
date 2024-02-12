@@ -104,6 +104,8 @@ class SettingsViewModel @Inject constructor(
     val videoQuality: StateFlow<String?> = _videoQuality
     private var _thumbCacheSize = MutableStateFlow<Long?>(null)
     val thumbCacheSize: StateFlow<Long?> = _thumbCacheSize
+    private var _homeLimit = MutableStateFlow<Int?>(null)
+    val homeLimit: StateFlow<Int?> = _homeLimit
 
     @OptIn(ExperimentalCoilApi::class)
     fun getThumbCacheSize() {
@@ -738,6 +740,21 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
             dataStoreManager.setSpotifyCanvas(loggedIn)
             getSpotifyCanvas()
+        }
+    }
+
+    fun getHomeLimit() {
+        viewModelScope.launch {
+            dataStoreManager.homeLimit.collect {
+                _homeLimit.emit(it)
+            }
+        }
+    }
+
+    fun setHomeLimit(limit: Int) {
+        viewModelScope.launch {
+            dataStoreManager.setHomeLimit(limit)
+            getHomeLimit()
         }
     }
 }

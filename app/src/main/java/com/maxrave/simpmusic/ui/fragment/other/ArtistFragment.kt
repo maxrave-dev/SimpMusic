@@ -54,6 +54,7 @@ import com.maxrave.simpmusic.databinding.FragmentArtistBinding
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.removeConflicts
+import com.maxrave.simpmusic.extension.setEnabledAll
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.extension.toTrack
@@ -61,7 +62,9 @@ import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.ArtistViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import kotlin.math.abs
@@ -93,6 +96,7 @@ class ArtistFragment: Fragment(){
 
     override fun onDestroyView() {
         super.onDestroyView()
+        requireArguments().clear()
         requireActivity().window.statusBarColor = ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark)
         _binding = null
     }
@@ -136,14 +140,16 @@ class ArtistFragment: Fragment(){
             layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
         }
         val channelId = requireArguments().getString("channelId")
-        fetchData(channelId.toString())
+        if (channelId != null) {
+            fetchData(channelId)
+        }
 
         binding.toolBar.setNavigationOnClickListener {
             findNavController().popBackStack()
         }
         binding.btShuffle.setOnClickListener {
             val id = viewModel.artistBrowse.value?.data?.songs?.browseId
-            if (id != null){
+            if (id != null) {
                 val args = Bundle()
                 args.putString("id", id)
                 findNavController().navigateSafe(R.id.action_global_playlistFragment, args)
@@ -275,6 +281,17 @@ class ArtistFragment: Fragment(){
                     btPlayNext.setOnClickListener {
                         sharedViewModel.playNext(song.toTrack())
                     }
+                    setEnabledAll(btAlbum, true)
+                    tvAlbum.text = song.album.name
+                    btAlbum.setOnClickListener {
+                        val albumId = song.album.id
+                        findNavController().navigateSafe(
+                            R.id.action_global_albumFragment,
+                            Bundle().apply {
+                                putString("browseId", albumId)
+                            })
+                        dialog.dismiss()
+                    }
                     btChangeLyricsProvider.visibility = View.GONE
                     tvSongTitle.text = song.title
                     tvSongTitle.isSelected = true
@@ -300,6 +317,12 @@ class ArtistFragment: Fragment(){
                             cbFavorite.isChecked = true
                             tvFavorite.text = getString(R.string.liked)
                             viewModel.updateLikeStatus(song.videoId, 1)
+                        }
+                        lifecycleScope.launch {
+                            if (sharedViewModel.simpleMediaServiceHandler?.nowPlaying?.first()?.mediaId == song.videoId) {
+                                delay(500)
+                                sharedViewModel.refreshSongDB()
+                            }
                         }
                     }
                     btSeeArtists.setOnClickListener {

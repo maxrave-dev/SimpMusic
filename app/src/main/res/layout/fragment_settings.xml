@@ -160,6 +160,42 @@
 
                 </LinearLayout>
 
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginVertical="5sp"
+                    android:layout_marginStart="15sp"
+                    android:id="@+id/btHomeLimit">
+
+                    <TextView
+                        android:textSize="16sp"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textColor="@android:color/white"
+                        android:text="@string/home_limit">
+
+                    </TextView>
+
+                    <TextView
+                        android:id="@+id/tvHomeLimit"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textSize="16sp"
+                        android:text="">
+
+                    </TextView>
+
+                    <com.google.android.material.slider.Slider
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/sliderHomeLimit"
+                        android:valueFrom="3"
+                        android:valueTo="8"
+                        android:stepSize="1"
+                        android:layout_marginVertical="8dp" />
+
+                </LinearLayout>
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">

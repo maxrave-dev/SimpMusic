@@ -101,6 +101,40 @@
             </com.google.android.material.divider.MaterialDivider>
 
             <RelativeLayout
+                android:visibility="gone"
+                android:id="@+id/btDelete"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:focusable="true"
+                android:clickable="true"
+                android:foreground="?android:attr/selectableItemBackground"
+                android:paddingHorizontal="20sp"
+                android:layout_marginBottom="5sp">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:id="@+id/ivDelete"
+                    android:padding="12sp"
+                    android:src="@drawable/baseline_delete_24">
+
+                </ImageView>
+
+                <TextView
+                    android:id="@+id/tvDelete"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toEndOf="@+id/ivDelete"
+                    android:text="@string/delete_song_from_playlist"
+                    android:layout_centerVertical="true"
+                    android:layout_marginStart="10sp"
+                    android:textSize="16sp">
+
+                </TextView>
+            </RelativeLayout>
+
+            <RelativeLayout
                 android:id="@+id/btLike"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -287,6 +321,38 @@
                     android:layout_height="wrap_content"
                     android:layout_toEndOf="@+id/ivSeeArtists"
                     android:text="@string/artists"
+                    android:layout_centerVertical="true"
+                    android:layout_marginStart="10sp"
+                    android:textSize="16sp">
+
+                </TextView>
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:id="@+id/btAlbum"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:focusable="true"
+                android:clickable="true"
+                android:foreground="?android:attr/selectableItemBackground"
+                android:paddingHorizontal="20sp">
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:id="@+id/ivAlbum"
+                    android:padding="12sp"
+                    android:src="@drawable/baseline_album_24">
+
+                </ImageView>
+
+                <TextView
+                    android:id="@+id/tvAlbum"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_toEndOf="@+id/ivAlbum"
+                    android:text="@string/no_album"
                     android:layout_centerVertical="true"
                     android:layout_marginStart="10sp"
                     android:textSize="16sp">

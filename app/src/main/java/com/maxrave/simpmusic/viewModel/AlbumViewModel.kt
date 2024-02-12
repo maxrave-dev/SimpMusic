@@ -4,7 +4,6 @@ import android.app.Application
 import android.graphics.drawable.GradientDrawable
 import android.util.Log
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
@@ -22,6 +21,7 @@ import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -39,16 +39,17 @@ class AlbumViewModel @Inject constructor(
     lateinit var downloadUtils: DownloadUtils
 
     var gradientDrawable: MutableLiveData<GradientDrawable> = MutableLiveData()
-    var loading = MutableLiveData<Boolean>()
+    private var _loading: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    var loading: MutableStateFlow<Boolean> = _loading
 
-    private val _albumBrowse: MutableLiveData<Resource<AlbumBrowse>?> = MutableLiveData()
-    var albumBrowse: LiveData<Resource<AlbumBrowse>?> = _albumBrowse
+    private var _albumBrowse: MutableStateFlow<Resource<AlbumBrowse>?> = MutableStateFlow(null)
+    val albumBrowse: StateFlow<Resource<AlbumBrowse>?> = _albumBrowse
 
-    private val _browseId: MutableLiveData<String> = MutableLiveData()
-    var browseId: LiveData<String> = _browseId
+    private var _browseId: MutableStateFlow<String?> = MutableStateFlow(null)
+    val browseId: StateFlow<String?> = _browseId
 
-    private var _albumEntity: MutableLiveData<AlbumEntity> = MutableLiveData()
-    var albumEntity: LiveData<AlbumEntity> = _albumEntity
+    private var _albumEntity: MutableStateFlow<AlbumEntity?> = MutableStateFlow(null)
+    val albumEntity: StateFlow<AlbumEntity?> = _albumEntity
 
     private var _liked: MutableStateFlow<Boolean> = MutableStateFlow(false)
     var liked: MutableStateFlow<Boolean> = _liked
@@ -239,8 +240,8 @@ class AlbumViewModel @Inject constructor(
         }
     }
 
-    private var _listTrack: MutableLiveData<List<SongEntity>> = MutableLiveData()
-    var listTrack: LiveData<List<SongEntity>> = _listTrack
+    private var _listTrack: MutableStateFlow<List<SongEntity>?> = MutableStateFlow(null)
+    var listTrack: StateFlow<List<SongEntity>?> = _listTrack
 
     fun getListTrack(tracks: List<String>?) {
         viewModelScope.launch {
@@ -250,8 +251,20 @@ class AlbumViewModel @Inject constructor(
         }
     }
 
+    private var _listTrackForDownload: MutableStateFlow<List<SongEntity>?> = MutableStateFlow(null)
+    var listTrackForDownload: StateFlow<List<SongEntity>?> = _listTrackForDownload
+
+    fun getListTrackForDownload(tracks: List<String>?) {
+        viewModelScope.launch {
+            mainRepository.getSongsByListVideoId(tracks!!).collect { values ->
+                _listTrackForDownload.value = values
+            }
+        }
+    }
+
     fun clearAlbumBrowse() {
         _albumBrowse.value = null
+        _albumEntity.value = null
     }
 
     fun getLocation() {

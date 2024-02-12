@@ -317,4 +317,6 @@
     <string name="offline_mode">Offline mode</string>
     <string name="added_to_youtube_liked">Added to YouTube Liked</string>
     <string name="removed_from_youtube_liked">Removed from YouTube Liked</string>
+    <string name="home_limit">Fetch home data limit</string>
+    <string name="no_album">No album</string>
 </resources>

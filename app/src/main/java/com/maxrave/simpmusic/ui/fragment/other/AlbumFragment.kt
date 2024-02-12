@@ -83,6 +83,7 @@ class AlbumFragment: Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
+        requireArguments().clear()
         requireActivity().window.statusBarColor = ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark)
         _binding = null
     }
@@ -112,7 +113,6 @@ class AlbumFragment: Fragment() {
         val downloaded = arguments?.getInt("downloaded")
         if (browseId == null || browseId == viewModel.browseId.value){
             browseId = viewModel.browseId.value
-            fetchDataFromViewModel()
         }
         if (browseId != null){
             Log.d("Check null", "onViewCreated: $downloaded")
@@ -293,43 +293,7 @@ class AlbumFragment: Fragment() {
                     delay(1000)
                     viewModel.listJob.emit(arrayListOf())
                 }
-                viewModel.getListTrack(viewModel.albumBrowse.value?.data?.tracks?.toListVideoId())
-                viewModel.listTrack.observe(viewLifecycleOwner) {listTrack->
-                    if (!listTrack.isNullOrEmpty()) {
-                        val listJob: ArrayList<SongEntity> = arrayListOf()
-                        for (song in listTrack){
-                            if (song.downloadState == DownloadState.STATE_NOT_DOWNLOADED) {
-                                listJob.add(song)
-                            }
-                        }
-                        viewModel.listJob.value = listJob
-                        Log.d("AlbumFragment", "ListJob: ${viewModel.listJob.value}")
-                        viewModel.updatePlaylistDownloadState(
-                            browseId!!,
-                            DownloadState.STATE_DOWNLOADING
-                        )
-                        listJob.forEach {job ->
-                            val downloadRequest =
-                                DownloadRequest.Builder(job.videoId, job.videoId.toUri())
-                                    .setData(job.title.toByteArray())
-                                    .setCustomCacheKey(job.videoId)
-                                    .build()
-                            viewModel.updateDownloadState(
-                                job.videoId,
-                                DownloadState.STATE_DOWNLOADING
-                            )
-                            DownloadService.sendAddDownload(
-                                requireContext(),
-                                MusicDownloadService::class.java,
-                                downloadRequest,
-                                false
-                            )
-                            viewModel.getDownloadStateFromService(job.videoId)
-                        }
-                        viewModel.downloadFullAlbumState(browseId)
-                    }
-                }
-
+                viewModel.getListTrackForDownload(viewModel.albumBrowse.value?.data?.tracks?.toListVideoId())
             }
             else if (viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                 Toast.makeText(requireContext(), getString(R.string.downloaded), Toast.LENGTH_SHORT).show()
@@ -391,9 +355,200 @@ class AlbumFragment: Fragment() {
                         }
                     }
                 }
+                val loadingJob = launch {
+                    viewModel.loading.collectLatest { loading ->
+                        if (loading) {
+                            binding.rootLayout.visibility = View.GONE
+                            binding.loadingLayout.visibility = View.VISIBLE
+                        } else {
+                            binding.rootLayout.visibility = View.VISIBLE
+                            binding.loadingLayout.visibility = View.GONE
+                        }
+                    }
+                }
+                val browseIdJob = launch {
+                    viewModel.browseId.collectLatest { browseId ->
+                        if (browseId != null) {
+                            fetchData(browseId, downloaded ?: 0)
+                        }
+                    }
+                }
+                val albumBrowseJob = launch {
+                    viewModel.albumBrowse.collect { response ->
+                        if (response != null) {
+                            when (response) {
+                                is Resource.Success -> {
+                                    response.data.let {
+                                        if (it != null) {
+                                            (viewModel.browseId.value ?: browseId)?.let { id ->
+                                                viewModel.insertAlbum(it.toAlbumEntity(id))
+                                                it.thumbnails?.lastOrNull()?.url?.let { url ->
+                                                    loadImage(
+                                                        url, id
+                                                    )
+                                                }
+                                            }
+                                            with(binding) {
+                                                topAppBar.title = it.title
+                                                btArtist.text = it.artists[0].name
+                                                tvYearAndCategory.text = context?.getString(
+                                                    R.string.year_and_category,
+                                                    it.year,
+                                                    it.type
+                                                )
+                                                tvTrackCountAndDuration.text = context?.getString(
+                                                    R.string.album_length,
+                                                    it.trackCount.toString(),
+                                                    it.duration
+                                                )
+                                                if (it.description == null || it.description == "") {
+                                                    tvDescription.originalText =
+                                                        getString(R.string.no_description)
+                                                } else {
+                                                    tvDescription.originalText =
+                                                        it.description.toString()
+                                                }
+
+                                                val tempList = arrayListOf<Any>()
+                                                for (i in it.tracks) {
+                                                    tempList.add(i)
+                                                }
+                                                songsAdapter.updateList(tempList)
+                                                binding.rootLayout.visibility = View.VISIBLE
+                                                binding.loadingLayout.visibility = View.GONE
+                                            }
+                                        }
+                                    }
+                                }
+
+                                is Resource.Error -> {
+                                    Snackbar.make(
+                                        binding.root,
+                                        response.message.toString(),
+                                        Snackbar.LENGTH_LONG
+                                    ).show()
+                                    findNavController().popBackStack()
+                                }
+
+                            }
+                        }
+                    }
+                }
+                val albumEntity = launch {
+                    viewModel.albumEntity.collect { albumEntity ->
+                        if (albumEntity != null) {
+                            with(binding) {
+                                when (albumEntity.downloadState) {
+                                    DownloadState.STATE_DOWNLOADED -> {
+                                        btDownload.visibility = View.VISIBLE
+                                        animationDownloading.visibility = View.GONE
+                                        btDownload.setImageResource(R.drawable.baseline_downloaded)
+                                    }
+
+                                    DownloadState.STATE_DOWNLOADING -> {
+                                        btDownload.visibility = View.GONE
+                                        animationDownloading.visibility = View.VISIBLE
+                                    }
+
+                                    DownloadState.STATE_NOT_DOWNLOADED -> {
+                                        btDownload.visibility = View.VISIBLE
+                                        animationDownloading.visibility = View.GONE
+                                        btDownload.setImageResource(R.drawable.download_button)
+                                    }
+                                }
+                                binding.cbLove.isChecked = albumEntity.liked
+                            }
+                            if (viewModel.albumBrowse.value?.data == null) {
+                                with(binding) {
+                                    topAppBar.title = albumEntity.title
+                                    btArtist.text = albumEntity.artistName?.get(0) ?: "Unknown"
+                                    tvYearAndCategory.text = context?.getString(
+                                        R.string.year_and_category,
+                                        albumEntity.year,
+                                        albumEntity.type
+                                    )
+                                    tvTrackCountAndDuration.text = context?.getString(
+                                        R.string.album_length,
+                                        albumEntity.trackCount.toString(),
+                                        albumEntity.duration
+                                    )
+                                    if (albumEntity.description == "") {
+                                        tvDescription.originalText =
+                                            getString(R.string.no_description)
+                                    } else {
+                                        tvDescription.originalText = albumEntity.description
+                                    }
+                                    loadImage(albumEntity.thumbnails!!, albumEntity.browseId)
+                                    viewModel.getListTrack(albumEntity.tracks)
+                                }
+                            }
+                        }
+                    }
+                }
+                val listTrackJob = launch {
+                    viewModel.listTrack.collect { listTrack ->
+                        if (listTrack != null) {
+                            val tempList = arrayListOf<Any>()
+                            for (i in listTrack) {
+                                tempList.add(i)
+                            }
+                            if (viewModel.albumEntity.value != null) {
+                                tempList.sortBy {
+                                    (viewModel.albumEntity.value?.tracks?.indexMap())?.get(
+                                        (it as SongEntity).videoId
+                                    )
+                                }
+                            }
+                            songsAdapter.updateList(tempList)
+                        }
+                    }
+                }
+                val downloadJob = launch {
+                    viewModel.listTrackForDownload.collect { listTrack ->
+                        if (!listTrack.isNullOrEmpty()) {
+                            val listJob: ArrayList<SongEntity> = arrayListOf()
+                            for (song in listTrack) {
+                                if (song.downloadState == DownloadState.STATE_NOT_DOWNLOADED) {
+                                    listJob.add(song)
+                                }
+                            }
+                            viewModel.listJob.value = listJob
+                            Log.d("AlbumFragment", "ListJob: ${viewModel.listJob.value}")
+                            viewModel.updatePlaylistDownloadState(
+                                browseId!!,
+                                DownloadState.STATE_DOWNLOADING
+                            )
+                            listJob.forEach { job ->
+                                val downloadRequest =
+                                    DownloadRequest.Builder(job.videoId, job.videoId.toUri())
+                                        .setData(job.title.toByteArray())
+                                        .setCustomCacheKey(job.videoId)
+                                        .build()
+                                viewModel.updateDownloadState(
+                                    job.videoId,
+                                    DownloadState.STATE_DOWNLOADING
+                                )
+                                DownloadService.sendAddDownload(
+                                    requireContext(),
+                                    MusicDownloadService::class.java,
+                                    downloadRequest,
+                                    false
+                                )
+                                viewModel.getDownloadStateFromService(job.videoId)
+                            }
+                            viewModel.downloadFullAlbumState(browseId)
+                        }
+                    }
+                }
                 job1.join()
                 job2.join()
                 job3.join()
+                loadingJob.join()
+                browseIdJob.join()
+                albumBrowseJob.join()
+                albumEntity.join()
+                listTrackJob.join()
+                downloadJob.join()
 //                launch {
 //                    viewModel.listJob.collectLatest {jobs->
 //                        Log.d("AlbumFragment", "ListJob: $jobs")
@@ -423,185 +578,200 @@ class AlbumFragment: Fragment() {
             //job2.join()
         }
     }
-    private fun fetchDataFromViewModel() {
-            val response = viewModel.albumBrowse.value
-            when (response){
-                is Resource.Success -> {
-                    response.data.let {
-                        with(binding){
-                            topAppBar.title = it?.title
-                            btArtist.text = it?.artists?.get(0)?.name
-                            tvYearAndCategory.text= context?.getString(R.string.year_and_category, it?.year, it?.type)
-                            tvTrackCountAndDuration.text = context?.getString(R.string.album_length, it?.trackCount.toString(), it?.duration)
-                            if (it?.description == null || it.description == ""){
-                                tvDescription.originalText = "No description"
-                            }
-                            else {
-                                tvDescription.originalText = it.description.toString()
-                            }
-                            when (it?.thumbnails?.size!!){
-                                1 -> loadImage(it.thumbnails[0].url, viewModel.browseId.value!!)
-                                2 -> loadImage(it.thumbnails[1].url, viewModel.browseId.value!!)
-                                3 -> loadImage(it.thumbnails[2].url, viewModel.browseId.value!!)
-                                4 -> loadImage(it.thumbnails[3].url, viewModel.browseId.value!!)
-                                else -> {}
-                            }
-                            val tempList = arrayListOf<Any>()
-                            for (i in it.tracks){
-                                tempList.add(i)
-                            }
-                            songsAdapter.updateList(tempList)
-                            binding.rootLayout.visibility = View.VISIBLE
-                            binding.loadingLayout.visibility = View.GONE
-                            val albumEntity = viewModel.albumEntity.value
-                            if (albumEntity != null) {
-                                viewModel.checkAllSongDownloaded(it.tracks as ArrayList<Track>)
-                                viewModel.albumEntity.observe(viewLifecycleOwner){albumEntity2 ->
-                                    when (albumEntity2.downloadState) {
-                                        DownloadState.STATE_DOWNLOADED -> {
-                                            btDownload.visibility = View.VISIBLE
-                                            animationDownloading.visibility = View.GONE
-                                            btDownload.setImageResource(R.drawable.baseline_downloaded)
-                                        }
-                                        DownloadState.STATE_DOWNLOADING -> {
-                                            btDownload.visibility = View.GONE
-                                            animationDownloading.visibility = View.VISIBLE
-                                        }
-                                        DownloadState.STATE_NOT_DOWNLOADED -> {
-                                            btDownload.visibility = View.VISIBLE
-                                            animationDownloading.visibility = View.GONE
-                                            btDownload.setImageResource(R.drawable.download_button)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                is Resource.Error -> {
-                    Snackbar.make(binding.root, response.message.toString(), Snackbar.LENGTH_LONG).show()
-                    findNavController().popBackStack()
-                }
-
-                else -> {}
-        }
-    }
+//    private fun fetchDataFromViewModel() {
+//            val response = viewModel.albumBrowse.value
+//            when (response){
+//                is Resource.Success -> {
+//                    response.data.let {
+//                        with(binding){
+//                            topAppBar.title = it?.title
+//                            btArtist.text = it?.artists?.get(0)?.name
+//                            tvYearAndCategory.text= context?.getString(R.string.year_and_category, it?.year, it?.type)
+//                            tvTrackCountAndDuration.text = context?.getString(R.string.album_length, it?.trackCount.toString(), it?.duration)
+//                            if (it?.description == null || it.description == ""){
+//                                tvDescription.originalText = "No description"
+//                            }
+//                            else {
+//                                tvDescription.originalText = it.description.toString()
+//                            }
+//                            when (it?.thumbnails?.size!!){
+//                                1 -> loadImage(it.thumbnails[0].url, viewModel.browseId.value!!)
+//                                2 -> loadImage(it.thumbnails[1].url, viewModel.browseId.value!!)
+//                                3 -> loadImage(it.thumbnails[2].url, viewModel.browseId.value!!)
+//                                4 -> loadImage(it.thumbnails[3].url, viewModel.browseId.value!!)
+//                                else -> {}
+//                            }
+//                            val tempList = arrayListOf<Any>()
+//                            for (i in it.tracks){
+//                                tempList.add(i)
+//                            }
+//                            songsAdapter.updateList(tempList)
+//                            binding.rootLayout.visibility = View.VISIBLE
+//                            binding.loadingLayout.visibility = View.GONE
+//                            val albumEntity = viewModel.albumEntity.value
+//                            if (albumEntity != null) {
+//                                viewModel.checkAllSongDownloaded(it.tracks as ArrayList<Track>)
+//                                viewModel.albumEntity.observe(viewLifecycleOwner){albumEntity2 ->
+//                                    if (albumEntity2 != null) {
+//                                        when (albumEntity2.downloadState) {
+//                                            DownloadState.STATE_DOWNLOADED -> {
+//                                                btDownload.visibility = View.VISIBLE
+//                                                animationDownloading.visibility = View.GONE
+//                                                btDownload.setImageResource(R.drawable.baseline_downloaded)
+//                                            }
+//
+//                                            DownloadState.STATE_DOWNLOADING -> {
+//                                                btDownload.visibility = View.GONE
+//                                                animationDownloading.visibility = View.VISIBLE
+//                                            }
+//
+//                                            DownloadState.STATE_NOT_DOWNLOADED -> {
+//                                                btDownload.visibility = View.VISIBLE
+//                                                animationDownloading.visibility = View.GONE
+//                                                btDownload.setImageResource(R.drawable.download_button)
+//                                            }
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//                is Resource.Error -> {
+//                    Snackbar.make(binding.root, response.message.toString(), Snackbar.LENGTH_LONG).show()
+//                    findNavController().popBackStack()
+//                }
+//
+//                else -> {}
+//        }
+//    }
 
     private fun fetchData(browseId: String, downloaded: Int = 0) {
+        viewModel.clearAlbumBrowse()
         if (downloaded == 0) {
-            viewModel.clearAlbumBrowse()
             viewModel.browseAlbum(browseId)
-            viewModel.albumBrowse.observe(viewLifecycleOwner) { response ->
-                when (response){
-                    is Resource.Success -> {
-                        response.data.let {
-                            if (it != null){
-                                viewModel.insertAlbum(it.toAlbumEntity(browseId))
-                                with(binding){
-                                    topAppBar.title = it.title
-                                    btArtist.text = it.artists[0].name
-                                    tvYearAndCategory.text= context?.getString(R.string.year_and_category, it.year, it.type)
-                                    tvTrackCountAndDuration.text = context?.getString(R.string.album_length, it.trackCount.toString(), it.duration)
-                                    if (it.description == null || it.description == ""){
-                                        tvDescription.originalText = getString(R.string.no_description)
-                                    }
-                                    else {
-                                        tvDescription.originalText = it.description.toString()
-                                    }
-                                    when (it.thumbnails?.size!!){
-                                        1 -> loadImage(it.thumbnails[0].url, browseId)
-                                        2 -> loadImage(it.thumbnails[1].url, browseId)
-                                        3 -> loadImage(it.thumbnails[2].url, browseId)
-                                        4 -> loadImage(it.thumbnails[3].url, browseId)
-                                        else -> {}
-                                    }
-                                    val tempList = arrayListOf<Any>()
-                                    for (i in it.tracks){
-                                        tempList.add(i)
-                                    }
-                                    songsAdapter.updateList(tempList)
-                                    binding.rootLayout.visibility = View.VISIBLE
-                                    binding.loadingLayout.visibility = View.GONE
-                                    viewModel.albumEntity.observe(viewLifecycleOwner) {albumEntity ->
-                                        if (albumEntity != null) {
-                                            when (albumEntity.downloadState) {
-                                                DownloadState.STATE_DOWNLOADED -> {
-                                                    btDownload.visibility = View.VISIBLE
-                                                    animationDownloading.visibility = View.GONE
-                                                    btDownload.setImageResource(R.drawable.baseline_downloaded)
-                                                }
-                                                DownloadState.STATE_DOWNLOADING -> {
-                                                    btDownload.visibility = View.GONE
-                                                    animationDownloading.visibility = View.VISIBLE
-                                                }
-                                                DownloadState.STATE_NOT_DOWNLOADED -> {
-                                                    btDownload.visibility = View.VISIBLE
-                                                    animationDownloading.visibility = View.GONE
-                                                    btDownload.setImageResource(R.drawable.download_button)
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    is Resource.Error -> {
-                        Snackbar.make(binding.root, response.message.toString(), Snackbar.LENGTH_LONG).show()
-                        findNavController().popBackStack()
-                    }
-
-                    else -> {}
-                }
-            }
-        }
-        else if (downloaded == 1){
+        } else if (downloaded == 1) {
             viewModel.getAlbum(browseId)
-            with(binding){
-                viewModel.albumEntity.observe(viewLifecycleOwner) {albumEntity ->
-                    if (albumEntity != null) {
-                        when (albumEntity.downloadState) {
-                            DownloadState.STATE_DOWNLOADED -> {
-                                btDownload.visibility = View.VISIBLE
-                                animationDownloading.visibility = View.GONE
-                                btDownload.setImageResource(R.drawable.baseline_downloaded)
-                            }
-                            DownloadState.STATE_DOWNLOADING -> {
-                                btDownload.visibility = View.GONE
-                                animationDownloading.visibility = View.VISIBLE
-                            }
-                            DownloadState.STATE_NOT_DOWNLOADED -> {
-                                btDownload.visibility = View.VISIBLE
-                                animationDownloading.visibility = View.GONE
-                                btDownload.setImageResource(R.drawable.download_button)
-                            }
-                        }
-                    }
-                    topAppBar.title = albumEntity.title
-                    btArtist.text = albumEntity.artistName?.get(0) ?: "Unknown"
-                    tvYearAndCategory.text= context?.getString(R.string.year_and_category, albumEntity.year, albumEntity.type)
-                    tvTrackCountAndDuration.text = context?.getString(R.string.album_length, albumEntity.trackCount.toString(), albumEntity.duration)
-                    if (albumEntity.description == ""){
-                        tvDescription.originalText = getString(R.string.no_description)
-                    }
-                    else {
-                        tvDescription.originalText = albumEntity.description.toString()
-                    }
-                    loadImage(albumEntity.thumbnails!!, browseId)
-                    viewModel.getListTrack(albumEntity.tracks)
-                    viewModel.listTrack.observe(viewLifecycleOwner) { listTrack ->
-                        val tempList = arrayListOf<Any>()
-                        for (i in listTrack){
-                            tempList.add(i)
-                        }
-                        tempList.sortBy { (albumEntity.tracks?.indexMap())?.get((it as SongEntity).videoId) }
-                        songsAdapter.updateList(tempList)
-                    }
-                    binding.rootLayout.visibility = View.VISIBLE
-                    binding.loadingLayout.visibility = View.GONE
-                }
-            }
         }
+
+
+//        if (downloaded == 0) {
+//            viewModel.browseAlbum(browseId)
+//            viewModel.albumBrowse.observe(viewLifecycleOwner) { response ->
+//                when (response){
+//                    is Resource.Success -> {
+//                        response.data.let {
+//                            if (it != null){
+//                                viewModel.insertAlbum(it.toAlbumEntity(browseId))
+//                                with(binding){
+//                                    topAppBar.title = it.title
+//                                    btArtist.text = it.artists[0].name
+//                                    tvYearAndCategory.text= context?.getString(R.string.year_and_category, it.year, it.type)
+//                                    tvTrackCountAndDuration.text = context?.getString(R.string.album_length, it.trackCount.toString(), it.duration)
+//                                    if (it.description == null || it.description == ""){
+//                                        tvDescription.originalText = getString(R.string.no_description)
+//                                    }
+//                                    else {
+//                                        tvDescription.originalText = it.description.toString()
+//                                    }
+//                                    when (it.thumbnails?.size!!){
+//                                        1 -> loadImage(it.thumbnails[0].url, browseId)
+//                                        2 -> loadImage(it.thumbnails[1].url, browseId)
+//                                        3 -> loadImage(it.thumbnails[2].url, browseId)
+//                                        4 -> loadImage(it.thumbnails[3].url, browseId)
+//                                        else -> {}
+//                                    }
+//                                    val tempList = arrayListOf<Any>()
+//                                    for (i in it.tracks){
+//                                        tempList.add(i)
+//                                    }
+//                                    songsAdapter.updateList(tempList)
+//                                    binding.rootLayout.visibility = View.VISIBLE
+//                                    binding.loadingLayout.visibility = View.GONE
+//                                    viewModel.albumEntity.observe(viewLifecycleOwner) {albumEntity ->
+//                                        if (albumEntity != null) {
+//                                            when (albumEntity.downloadState) {
+//                                                DownloadState.STATE_DOWNLOADED -> {
+//                                                    btDownload.visibility = View.VISIBLE
+//                                                    animationDownloading.visibility = View.GONE
+//                                                    btDownload.setImageResource(R.drawable.baseline_downloaded)
+//                                                }
+//                                                DownloadState.STATE_DOWNLOADING -> {
+//                                                    btDownload.visibility = View.GONE
+//                                                    animationDownloading.visibility = View.VISIBLE
+//                                                }
+//                                                DownloadState.STATE_NOT_DOWNLOADED -> {
+//                                                    btDownload.visibility = View.VISIBLE
+//                                                    animationDownloading.visibility = View.GONE
+//                                                    btDownload.setImageResource(R.drawable.download_button)
+//                                                }
+//                                            }
+//                                        }
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                    is Resource.Error -> {
+//                        Snackbar.make(binding.root, response.message.toString(), Snackbar.LENGTH_LONG).show()
+//                        findNavController().popBackStack()
+//                    }
+//
+//                    else -> {}
+//                }
+//            }
+//        }
+//        else if (downloaded == 1){
+//            viewModel.getAlbum(browseId)
+//            with(binding){
+//                viewModel.albumEntity.observe(viewLifecycleOwner) {albumEntity ->
+//                    if (albumEntity != null) {
+//                        when (albumEntity.downloadState) {
+//                            DownloadState.STATE_DOWNLOADED -> {
+//                                btDownload.visibility = View.VISIBLE
+//                                animationDownloading.visibility = View.GONE
+//                                btDownload.setImageResource(R.drawable.baseline_downloaded)
+//                            }
+//                            DownloadState.STATE_DOWNLOADING -> {
+//                                btDownload.visibility = View.GONE
+//                                animationDownloading.visibility = View.VISIBLE
+//                            }
+//                            DownloadState.STATE_NOT_DOWNLOADED -> {
+//                                btDownload.visibility = View.VISIBLE
+//                                animationDownloading.visibility = View.GONE
+//                                btDownload.setImageResource(R.drawable.download_button)
+//                            }
+//                        }
+//                    }
+//                    if (albumEntity != null) {
+//                        topAppBar.title = albumEntity.title
+//                        btArtist.text = albumEntity.artistName?.get(0) ?: "Unknown"
+//                        tvYearAndCategory.text= context?.getString(R.string.year_and_category, albumEntity.year, albumEntity.type)
+//                        tvTrackCountAndDuration.text = context?.getString(R.string.album_length, albumEntity.trackCount.toString(), albumEntity.duration)
+//                        if (albumEntity.description == ""){
+//                            tvDescription.originalText = getString(R.string.no_description)
+//                        }
+//                        else {
+//                            tvDescription.originalText = albumEntity.description.toString()
+//                        }
+//                        loadImage(albumEntity.thumbnails!!, browseId)
+//                        viewModel.getListTrack(albumEntity.tracks)
+//                    }
+//                    viewModel.listTrack.observe(viewLifecycleOwner) { listTrack ->
+//                        val tempList = arrayListOf<Any>()
+//                        for (i in listTrack){
+//                            tempList.add(i)
+//                        }
+//                        if (albumEntity != null) {
+//                            tempList.sortBy { (albumEntity.tracks?.indexMap())?.get((it as SongEntity).videoId) }
+//                        }
+//                        songsAdapter.updateList(tempList)
+//                    }
+//                    binding.rootLayout.visibility = View.VISIBLE
+//                    binding.loadingLayout.visibility = View.GONE
+//                }
+//            }
+//        }
     }
     private fun loadImage(url: String, albumId: String){
         val request = ImageRequest.Builder(requireContext())

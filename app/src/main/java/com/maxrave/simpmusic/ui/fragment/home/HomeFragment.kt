@@ -61,6 +61,8 @@ import com.maxrave.simpmusic.viewModel.HomeViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.time.LocalDateTime
@@ -132,6 +134,30 @@ class HomeFragment : Fragment() {
                         tvSongArtist.text = track.artists.toListName().connectArtists()
                         tvSongArtist.isSelected = true
                         ivThumbnail.load(track.thumbnails?.last()?.url)
+                        if (track.album != null) {
+                            setEnabledAll(btAlbum, true)
+                            tvAlbum.text = track.album.name
+                        } else {
+                            tvAlbum.text = getString(R.string.no_album)
+                            setEnabledAll(btAlbum, false)
+                        }
+                        btAlbum.setOnClickListener {
+                            val albumId = track.album?.id
+                            if (albumId != null) {
+                                findNavController().navigateSafe(
+                                    R.id.action_global_albumFragment,
+                                    Bundle().apply {
+                                        putString("browseId", albumId)
+                                    })
+                                dialog.dismiss()
+                            } else {
+                                Toast.makeText(
+                                    requireContext(),
+                                    getString(R.string.no_album),
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
                         btAddQueue.setOnClickListener {
                             sharedViewModel.addToQueue(track)
                         }
@@ -160,6 +186,12 @@ class HomeFragment : Fragment() {
                                 cbFavorite.isChecked = true
                                 tvFavorite.text = getString(R.string.liked)
                                 viewModel.updateLikeStatus(track.videoId, true)
+                            }
+                            lifecycleScope.launch {
+                                if (sharedViewModel.simpleMediaServiceHandler?.nowPlaying?.first()?.mediaId == track.videoId) {
+                                    delay(500)
+                                    sharedViewModel.refreshSongDB()
+                                }
                             }
                         }
 

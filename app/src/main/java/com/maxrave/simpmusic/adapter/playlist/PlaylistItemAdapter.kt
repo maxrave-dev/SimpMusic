@@ -203,4 +203,12 @@ class PlaylistItemAdapter(private var playlistItemList: ArrayList<Any>): Recycle
             )
         }
     }
+
+    fun setLikedTrack(position: Int, like: Boolean) {
+        if (playlistItemList[position] is SongEntity) {
+            val track = playlistItemList[position] as SongEntity
+            playlistItemList[position] = track.copy(liked = like)
+            notifyItemChanged(position)
+        }
+    }
 }

@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
@@ -41,11 +42,14 @@ import com.maxrave.simpmusic.databinding.FragmentLibraryBinding
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.removeConflicts
+import com.maxrave.simpmusic.extension.setEnabledAll
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.viewModel.LibraryViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 
@@ -289,6 +293,30 @@ class LibraryFragment : Fragment() {
                     tvSongArtist.text = song.artistName?.connectArtists()
                     tvSongArtist.isSelected = true
                     ivThumbnail.load(song.thumbnails)
+                    if (song.albumName != null) {
+                        setEnabledAll(btAlbum, true)
+                        tvAlbum.text = song.albumName
+                    } else {
+                        tvAlbum.text = getString(R.string.no_album)
+                        setEnabledAll(btAlbum, false)
+                    }
+                    btAlbum.setOnClickListener {
+                        val albumId = song.albumId
+                        if (albumId != null) {
+                            findNavController().navigateSafe(
+                                R.id.action_global_albumFragment,
+                                Bundle().apply {
+                                    putString("browseId", albumId)
+                                })
+                            dialog.dismiss()
+                        } else {
+                            Toast.makeText(
+                                requireContext(),
+                                getString(R.string.no_album),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
                     btRadio.setOnClickListener {
                         val args = Bundle()
                         args.putString("radioId", "RDAMVM${song.videoId}")
@@ -329,6 +357,12 @@ class LibraryFragment : Fragment() {
                                 listRecentlyAdded.clear()
                                 listRecentlyAdded.addAll(temp)
                                 adapterItem.updateList(listRecentlyAdded)
+                            }
+                        }
+                        lifecycleScope.launch {
+                            if (sharedViewModel.simpleMediaServiceHandler?.nowPlaying?.first()?.mediaId == song.videoId) {
+                                delay(500)
+                                sharedViewModel.refreshSongDB()
                             }
                         }
                     }

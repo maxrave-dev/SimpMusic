@@ -268,11 +268,17 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 }
+                val likedJob = launch {
+                    viewModel.liked.collect {
+                        binding.cbFavorite.isChecked = it
+                    }
+                }
                 job2.join()
                 job3.join()
                 job5.join()
                 job6.join()
                 job4.join()
+                likedJob.join()
             }
         }
     }

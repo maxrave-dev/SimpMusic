@@ -45,6 +45,8 @@ import com.maxrave.simpmusic.viewModel.DownloadedViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 
@@ -158,6 +160,30 @@ class DownloadedFragment : Fragment() {
                     tvSongArtist.text = song.artistName?.connectArtists()
                     tvSongArtist.isSelected = true
                     ivThumbnail.load(song.thumbnails)
+                    if (song.albumName != null) {
+                        setEnabledAll(btAlbum, true)
+                        tvAlbum.text = song.albumName
+                    } else {
+                        tvAlbum.text = getString(R.string.no_album)
+                        setEnabledAll(btAlbum, false)
+                    }
+                    btAlbum.setOnClickListener {
+                        val albumId = song.albumId
+                        if (albumId != null) {
+                            findNavController().navigateSafe(
+                                R.id.action_global_albumFragment,
+                                Bundle().apply {
+                                    putString("browseId", albumId)
+                                })
+                            dialog.dismiss()
+                        } else {
+                            Toast.makeText(
+                                requireContext(),
+                                getString(R.string.no_album),
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
                     btAddQueue.setOnClickListener {
                         sharedViewModel.addToQueue(song.toTrack())
                     }
@@ -193,7 +219,7 @@ class DownloadedFragment : Fragment() {
                             cbFavorite.isChecked = true
                             tvFavorite.text = getString(R.string.liked)
                             viewModel.updateLikeStatus(song.videoId, 1)
-                            viewModel.listDownloadedSong.observe(viewLifecycleOwner){ downloaded ->
+                            viewModel.listDownloadedSong.observe(viewLifecycleOwner) { downloaded ->
                                 listDownloaded.clear()
                                 val tempDownloaded = mutableListOf<SongEntity>()
                                 for (i in downloaded.size - 1 downTo 0) {
@@ -201,6 +227,12 @@ class DownloadedFragment : Fragment() {
                                 }
                                 listDownloaded.addAll(tempDownloaded)
                                 downloadedAdapter.updateList(listDownloaded)
+                            }
+                        }
+                        lifecycleScope.launch {
+                            if (sharedViewModel.simpleMediaServiceHandler?.nowPlaying?.first()?.mediaId == song.videoId) {
+                                delay(500)
+                                sharedViewModel.refreshSongDB()
                             }
                         }
                     }

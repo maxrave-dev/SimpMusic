@@ -464,6 +464,18 @@ class DataStoreManager @Inject constructor(private val settingsDataStore: DataSt
         }
     }
 
+    val homeLimit: Flow<Int> = settingsDataStore.data.map { preferences ->
+        preferences[HOME_LIMIT] ?: 5
+    }
+
+    suspend fun setHomeLimit(limit: Int) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[HOME_LIMIT] = limit
+            }
+        }
+    }
+
     companion object Settings {
         val COOKIE = stringPreferencesKey("cookie")
         val LOGGED_IN = stringPreferencesKey("logged_in")
@@ -499,6 +511,7 @@ class DataStoreManager @Inject constructor(private val settingsDataStore: DataSt
         val SPOTIFY_PERSONAL_TOKEN = stringPreferencesKey("spotify_personal_token")
         val SPOTIFY_PERSONAL_TOKEN_EXPIRES = longPreferencesKey("spotify_personal_token_expires")
         val SPOTIFY_CLIENT_TOKEN = stringPreferencesKey("spotify_client_token")
+        val HOME_LIMIT = intPreferencesKey("home_limit")
         const val REPEAT_MODE_OFF = "REPEAT_MODE_OFF"
         const val REPEAT_ONE = "REPEAT_ONE"
         const val REPEAT_ALL = "REPEAT_ALL"
