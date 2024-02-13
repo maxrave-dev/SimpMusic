@@ -56,6 +56,7 @@ data class AlbumItem(
     override val title: String,
     val artists: List<Artist>?,
     val year: Int? = null,
+    val isSingle: Boolean = false,
     override val thumbnail: String,
     override val explicit: Boolean = false,
 ) : YTItem() {

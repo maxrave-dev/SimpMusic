@@ -136,7 +136,7 @@
     <string name="songs_inArtist">Kappaleet</string>
     <string name="albums_inArtist">Albumit</string>
     <string name="singles_inArtist">Singlet</string>
-    <string name="fans_might_also_like_inArtist">Fanit saattavat myös pitää</string>
+    <string name="fans_might_also_like_inArtist">Fanit saattavat pitää myös näistä</string>
     <string name="crash_log">SimpMusic kaatui. Anteeksi tästä ongelmasta.\nLähetä kaatumisloki kehittäjälle</string>
     <string name="crash">Kaatuminen</string>
     <string name="send">Lähetä</string>

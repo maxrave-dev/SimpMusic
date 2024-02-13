@@ -75,20 +75,22 @@ data class ArtistPage(
                                 name = it.text,
                                 id = it.navigationEndpoint?.browseEndpoint?.browseId
                             )
-                } ?: return null,
-                album = renderer.flexColumns.lastOrNull()?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()
-                    ?.let {
-                        Album(
-                            name = it.text,
-                            id = it.navigationEndpoint?.browseEndpoint?.browseId!!
-                        )
-                    },
-                duration = null,
-                thumbnail = renderer.thumbnail?.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
-                explicit = renderer.badges?.find {
-                    it.musicInlineBadgeRenderer.icon.iconType == "MUSIC_EXPLICIT_BADGE"
-                } != null
-            )
+                        } ?: return null,
+                    album = renderer.flexColumns.lastOrNull()?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()
+                        ?.let {
+                            Album(
+                                name = it.text,
+                                id = it.navigationEndpoint?.browseEndpoint?.browseId!!
+                            )
+                        },
+                    duration = null,
+                    thumbnail = renderer.thumbnail?.musicThumbnailRenderer?.getThumbnailUrl()
+                        ?: return null,
+                    thumbnails = renderer.thumbnail.musicThumbnailRenderer.thumbnail,
+                    explicit = renderer.badges?.find {
+                        it.musicInlineBadgeRenderer.icon.iconType == "MUSIC_EXPLICIT_BADGE"
+                    } != null
+                )
         }
 
         fun fromMusicTwoRowItemRenderer(renderer: MusicTwoRowItemRenderer): YTItem? {
@@ -106,7 +108,9 @@ data class ArtistPage(
                         }),
                         album = null,
                         duration = null,
-                        thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
+                        thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
+                            ?: return null,
+                        thumbnails = renderer.thumbnailRenderer.musicThumbnailRenderer.thumbnail,
                         explicit = renderer.subtitleBadges?.find {
                             it.musicInlineBadgeRenderer.icon.iconType == "MUSIC_EXPLICIT_BADGE"
                         } != null
@@ -128,7 +132,8 @@ data class ArtistPage(
                             ?: return null,
                         explicit = renderer.subtitleBadges?.find {
                             it.musicInlineBadgeRenderer.icon.iconType == "MUSIC_EXPLICIT_BADGE"
-                        } != null
+                        } != null,
+                        isSingle = renderer.subtitle?.runs?.size == 1
                     )
                 }
                 renderer.isPlaylist -> {

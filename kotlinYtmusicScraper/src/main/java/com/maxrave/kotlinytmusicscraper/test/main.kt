@@ -9,6 +9,7 @@ import com.maxrave.kotlinytmusicscraper.models.MusicTwoRowItemRenderer
 import com.maxrave.kotlinytmusicscraper.models.Run
 import com.maxrave.kotlinytmusicscraper.models.SectionListRenderer
 import com.maxrave.kotlinytmusicscraper.models.Thumbnail
+import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
 import com.maxrave.kotlinytmusicscraper.models.response.spotify.CanvasResponse
@@ -23,7 +24,19 @@ import kotlin.random.Random
 
 
 fun main() {
-    testCanvas()
+    runBlocking {
+        YouTube.apply {
+            locale = YouTubeLocale("ID", "id")
+        }.next(
+            WatchEndpoint(
+                videoId = "bfKKVGYMKgs"
+            )
+        ).onSuccess {
+            println(it)
+        }.onFailure {
+            it.printStackTrace()
+        }
+    }
 }
 
 fun testCanvas() {

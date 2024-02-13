@@ -297,4 +297,22 @@
     <string name="guest">Khách</string>
     <string name="log_out_warning">Đăng xuất khỏi tất cả các tài khoản?</string>
     <string name="play_next">Phát tiếp theo</string>
+    <string name="codec">Bộ giải mã</string>
+    <string name="plays">Lượt phát/xem</string>
+    <string name="like_and_dislike">%1$d thích, %2$d không thích</string>
+    <string name="published_at">Phát hành lúc %1$s</string>
+    <string name="less">Ẩn bớt</string>
+    <string name="spotify">Spotify</string>
+    <string name="log_in_to_spotify">Đăng nhập vào Spotify</string>
+    <string name="intro_login_to_spotify">Đăng nhập để dùng lời bài hát từ Spotify, Spotify Canvas và hơn nữa</string>
+    <string name="enable_spotify_lyrics">Bật lời bài hát từ Spotify</string>
+    <string name="spotify_lyrícs_info">Nhiều lời bài hát hơn nhưng không có dịch</string>
+    <string name="enable_canvas">Bật Canvas</string>
+    <string name="canvas_info">Hiện thỉ Spotify Canvas trong SimpMusic</string>
+    <string name="spotify_lyrics_provider">Lời bài hát được cung cấp bởi Spotify</string>
+    <string name="offline_mode">Chế độ ngoại tuyến</string>
+    <string name="added_to_youtube_liked">Thêm vào danh sách phát YouTube Yêu Thích</string>
+    <string name="removed_from_youtube_liked">Đã xoá khỏi danh sách phát YouTube Yêu Thích</string>
+    <string name="home_limit">Giới hạn lấy dữ liệu trang chủ</string>
+    <string name="no_album">Không có album</string>
 </resources>

@@ -35,7 +35,8 @@ fun parseCookieString(cookie: String): Map<String, String> =
 
 fun String.parseTime(): Int? {
     try {
-        val parts = split(":").map { it.toInt() }
+        val parts =
+            if (this.contains(":")) split(":").map { it.toInt() } else split(".").map { it.toInt() }
         if (parts.size == 2) {
             return parts[0] * 60 + parts[1]
         }

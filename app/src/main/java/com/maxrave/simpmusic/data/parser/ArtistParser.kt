@@ -8,7 +8,6 @@ import com.maxrave.kotlinytmusicscraper.models.PlaylistItem
 import com.maxrave.kotlinytmusicscraper.models.SongItem
 import com.maxrave.kotlinytmusicscraper.models.VideoItem
 import com.maxrave.kotlinytmusicscraper.pages.ArtistPage
-import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.data.model.browse.artist.Albums
 import com.maxrave.simpmusic.data.model.browse.artist.ArtistBrowse
 import com.maxrave.simpmusic.data.model.browse.artist.Related
@@ -25,20 +24,24 @@ import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 
 fun parseArtistData(data: ArtistPage, context: Context): ArtistBrowse {
-    for (i in data.sections){
+    for (i in data.sections) {
         Log.d("data", "title: ${i.title}")
     }
-    val songSection = data.sections.find { it.title == context.getString(R.string.songs_inArtist) }
-    val albumSection = data.sections.find { it.title == context.getString(R.string.albums_inArtist) }
-    val singleSection = data.sections.find { it.title == context.getString(R.string.singles_inArtist) }
+    val songSection = data.sections.find { it.items.firstOrNull() is SongItem }
+    val albumSection = data.sections.find { artistSection ->
+        artistSection.items.firstOrNull().let { it is AlbumItem && !it.isSingle }
+    }
+    val singleSection = data.sections.find { artistSection ->
+        artistSection.items.firstOrNull().let { it is AlbumItem && it.isSingle }
+    }
     val videoSection =
-        data.sections.find { it.title == context.getString(R.string.videos_inArtist) }
+        data.sections.find { it.items.firstOrNull() is VideoItem }
     val featuredOnSection =
-        data.sections.find { it.title == context.getString(R.string.featured_inArtist) }
+        data.sections.find { it.items.firstOrNull() is PlaylistItem }
     Log.w("ArtistParser", "videoSection: ${videoSection?.items}")
     Log.w("ArtistParser", "featuredOnSection: ${featuredOnSection?.items}")
-    val relatedSection = data.sections.find { it.title == context.getString(R.string.fans_might_also_like_inArtist) }
-    val listSong : ArrayList<ResultSong> = arrayListOf()
+    val relatedSection = data.sections.find { it.items.firstOrNull() is ArtistItem }
+    val listSong: ArrayList<ResultSong> = arrayListOf()
     val listAlbum: ArrayList<ResultAlbum> = arrayListOf()
     val listSingle: ArrayList<ResultSingle> = arrayListOf()
     val listRelated: ArrayList<ResultRelated> = arrayListOf()

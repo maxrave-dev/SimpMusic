@@ -136,7 +136,7 @@
     <string name="songs_inArtist">Lagu</string>
     <string name="albums_inArtist">Album</string>
     <string name="singles_inArtist">Single</string>
-    <string name="fans_might_also_like_inArtist">Para penggemar juga mungkin menyukai</string>
+    <string name="fans_might_also_like_inArtist">Penggemar mungkin juga suka</string>
     <string name="crash_log">SimpMusic mengalami kerusakan. Maaf atas masalah ini.\nKirim log kerusakan ke pengembang</string>
     <string name="crash">Kerusakan</string>
     <string name="send">Kirim</string>
@@ -272,7 +272,7 @@
     <string name="credit_app">Aplikasi musik sederhana yang menggunakan YouTube Music untuk backend \n\nSimpMusic adalah proyek sumber terbuka untuk streaming musik dari YouTube dan YouTube Music tanpa iklan dan pelacakan. SimpMusic menyediakan banyak fitur:\n\n - Streaming musik\n - Lirik yang disinkronkan\n - Personalisasi data\n - dll... \n\nSimpMusic selalu gratis dan tidak ada iklan\n\nDibangun dengan ❤️ oleh Tuan Minh Nguyen Duc (maxrave-dev)</string>
     <string name="issue_tracker">Pelacak Masalah</string>
     <string name="featured_playlists">Rekomendasi Playlist</string>
-    <string name="featured_inArtist">Ditampilkan di</string>
+    <string name="featured_inArtist">Termasuk di</string>
     <string name="audio_quality">Kualitas audio</string>
     <string name="play_video_for_video_track_instead_of_audio_only">Memutar video untuk trek video, bukan hanya audio</string>
     <string name="such_as_music_video_lyrics_video_podcasts_and_more">Seperti Video Musik, Video Lirik, Podcast, dan lainnya</string>
@@ -296,5 +296,23 @@
     <string name="signed_in">Masuk</string>
     <string name="guest">Tamu</string>
     <string name="log_out_warning">Keluar dari semua akun?</string>
-    <string name="play_next">Mainkan berikutnya</string>
+    <string name="play_next">Putar selanjutnya</string>
+    <string name="codec">Codec</string>
+    <string name="plays">Jumlah Putar/Lihat</string>
+    <string name="like_and_dislike">%1$d Suka, %2$d Tidak suka</string>
+    <string name="published_at">Dirilis pada %1$s</string>
+    <string name="less">Ringkas</string>
+    <string name="spotify">Spotify</string>
+    <string name="log_in_to_spotify">Masuk ke Spotify</string>
+    <string name="intro_login_to_spotify">Masuk untuk Lirik Spotify, Kanvas DLL</string>
+    <string name="enable_spotify_lyrics">Aktifkan Lirik Spotify</string>
+    <string name="spotify_lyrícs_info">Lirik lainnya tanpa terjemahan</string>
+    <string name="enable_canvas">Aktifkan Kanvas</string>
+    <string name="canvas_info">Tampilkan Kanvas Spotify di SimpMusic</string>
+    <string name="spotify_lyrics_provider">Lirik yang disediakan oleh Spotify</string>
+    <string name="offline_mode">Mode Offline</string>
+    <string name="added_to_youtube_liked">Ditambahkan ke YouTube Disukai</string>
+    <string name="removed_from_youtube_liked">Dihapus dari YouTube Disukai</string>
+    <string name="home_limit">Batasi data Beranda</string>
+    <string name="no_album">Album tidak tersedia</string>
 </resources>
