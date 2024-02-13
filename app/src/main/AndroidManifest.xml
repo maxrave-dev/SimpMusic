@@ -131,7 +131,7 @@
             android:resource="@array/preloaded_fonts" />
         <meta-data
             android:name="androidx.car.app.TintableAttributionIcon"
-            android:resource="@drawable/logo_simpmusic_01_removebg_preview" />
+            android:resource="@drawable/monochrome" />
 
         <service
             android:name=".service.SimpleMediaService"

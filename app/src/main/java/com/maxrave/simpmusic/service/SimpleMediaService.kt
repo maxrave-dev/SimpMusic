@@ -85,7 +85,7 @@ class SimpleMediaService : MediaLibraryService() {
         setMediaNotificationProvider(
             DefaultMediaNotificationProvider(this, { MEDIA_NOTIFICATION.NOTIFICATION_ID }, MEDIA_NOTIFICATION.NOTIFICATION_CHANNEL_ID, R.string.notification_channel_name)
                 .apply {
-                    setSmallIcon(R.drawable.logo_simpmusic_01_removebg_preview)
+                    setSmallIcon(R.drawable.monochrome)
                 }
         )
         player = ExoPlayer.Builder(this)

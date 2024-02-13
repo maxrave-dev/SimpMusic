@@ -904,16 +904,18 @@ class SearchFragment : Fragment() {
                         response.data.let {
                             resultList.clear()
                             if (it != null) {
-                                for (i in it){
+                                for (i in it) {
                                     resultList += i
                                 }
                             }
-                            resultAdapter.updateList(resultList)
-                            binding.refreshSearch.isRefreshing = false
-                            binding.shimmerLayout.stopShimmer()
-                            binding.shimmerLayout.visibility = View.GONE
-                            setEnabledAll(binding.chipGroupTypeSearch, true)
-                            binding.resultList.smoothScrollToPosition(0)
+                            if (viewModel.searchType.value == "videos") {
+                                resultAdapter.updateList(resultList)
+                                binding.refreshSearch.isRefreshing = false
+                                binding.shimmerLayout.stopShimmer()
+                                binding.shimmerLayout.visibility = View.GONE
+                                setEnabledAll(binding.chipGroupTypeSearch, true)
+                                binding.resultList.smoothScrollToPosition(0)
+                            }
                         }
                     }
                     is Resource.Error -> {
@@ -948,16 +950,18 @@ class SearchFragment : Fragment() {
                             Log.d("SearchFragment", "observeAlbumList: $it")
                             resultList.clear()
                             if (it != null) {
-                                for (i in it){
+                                for (i in it) {
                                     resultList += i
                                 }
                             }
-                            resultAdapter.updateList(resultList)
-                            binding.refreshSearch.isRefreshing = false
-                            binding.shimmerLayout.stopShimmer()
-                            binding.shimmerLayout.visibility = View.GONE
-                            setEnabledAll(binding.chipGroupTypeSearch, true)
-                            binding.resultList.smoothScrollToPosition(0)
+                            if (viewModel.searchType.value == "albums") {
+                                resultAdapter.updateList(resultList)
+                                binding.refreshSearch.isRefreshing = false
+                                binding.shimmerLayout.stopShimmer()
+                                binding.shimmerLayout.visibility = View.GONE
+                                setEnabledAll(binding.chipGroupTypeSearch, true)
+                                binding.resultList.smoothScrollToPosition(0)
+                            }
                         }
                     }
                     is Resource.Error -> {
@@ -1001,12 +1005,14 @@ class SearchFragment : Fragment() {
                                         resultList += i
                                     }
                                 }
-                                resultAdapter.updateList(resultList)
-                                binding.shimmerLayout.stopShimmer()
-                                binding.shimmerLayout.visibility = View.GONE
-                                binding.refreshSearch.isRefreshing = false
-                                setEnabledAll(binding.chipGroupTypeSearch, true)
-                                binding.resultList.smoothScrollToPosition(0)
+                                if (viewModel.searchType.value == "featured_playlists") {
+                                    resultAdapter.updateList(resultList)
+                                    binding.shimmerLayout.stopShimmer()
+                                    binding.shimmerLayout.visibility = View.GONE
+                                    binding.refreshSearch.isRefreshing = false
+                                    setEnabledAll(binding.chipGroupTypeSearch, true)
+                                    binding.resultList.smoothScrollToPosition(0)
+                                }
                             }
                         }
 
@@ -1053,12 +1059,14 @@ class SearchFragment : Fragment() {
                                         resultList += i
                                     }
                                 }
-                                resultAdapter.updateList(resultList)
-                                binding.shimmerLayout.stopShimmer()
-                                binding.shimmerLayout.visibility = View.GONE
-                                binding.refreshSearch.isRefreshing = false
-                                setEnabledAll(binding.chipGroupTypeSearch, true)
-                                binding.resultList.smoothScrollToPosition(0)
+                                if (viewModel.searchType.value == "podcasts") {
+                                    resultAdapter.updateList(resultList)
+                                    binding.shimmerLayout.stopShimmer()
+                                    binding.shimmerLayout.visibility = View.GONE
+                                    binding.refreshSearch.isRefreshing = false
+                                    setEnabledAll(binding.chipGroupTypeSearch, true)
+                                    binding.resultList.smoothScrollToPosition(0)
+                                }
                             }
                         }
 
@@ -1098,19 +1106,24 @@ class SearchFragment : Fragment() {
                     when (response) {
                         is Resource.Success -> {
                             response.data.let { playlistsResultArrayList ->
-                                Log.d("SearchFragment", "observePlaylistsList: $playlistsResultArrayList")
+                                Log.d(
+                                    "SearchFragment",
+                                    "observePlaylistsList: $playlistsResultArrayList"
+                                )
                                 resultList.clear()
                                 if (playlistsResultArrayList != null) {
-                                    for (i in playlistsResultArrayList){
+                                    for (i in playlistsResultArrayList) {
                                         resultList += i
                                     }
                                 }
-                                resultAdapter.updateList(resultList)
-                                binding.shimmerLayout.stopShimmer()
-                                binding.shimmerLayout.visibility = View.GONE
-                                binding.refreshSearch.isRefreshing = false
-                                setEnabledAll(binding.chipGroupTypeSearch, true)
-                                binding.resultList.smoothScrollToPosition(0)
+                                if (viewModel.searchType.value == "playlists") {
+                                    resultAdapter.updateList(resultList)
+                                    binding.shimmerLayout.stopShimmer()
+                                    binding.shimmerLayout.visibility = View.GONE
+                                    binding.refreshSearch.isRefreshing = false
+                                    setEnabledAll(binding.chipGroupTypeSearch, true)
+                                    binding.resultList.smoothScrollToPosition(0)
+                                }
                             }
                         }
                         is Resource.Error -> {
@@ -1144,19 +1157,24 @@ class SearchFragment : Fragment() {
                     when (response) {
                         is Resource.Success -> {
                             response.data.let { artistsResultArrayList ->
-                                Log.d("SearchFragment", "observeArtistList: $artistsResultArrayList")
+                                Log.d(
+                                    "SearchFragment",
+                                    "observeArtistList: $artistsResultArrayList"
+                                )
                                 resultList.clear()
                                 if (artistsResultArrayList != null) {
-                                    for (i in artistsResultArrayList){
+                                    for (i in artistsResultArrayList) {
                                         resultList += i
                                     }
                                 }
-                                resultAdapter.updateList(resultList)
-                                binding.shimmerLayout.stopShimmer()
-                                binding.shimmerLayout.visibility = View.GONE
-                                binding.refreshSearch.isRefreshing = false
-                                setEnabledAll(binding.chipGroupTypeSearch, true)
-                                binding.resultList.smoothScrollToPosition(0)
+                                if (viewModel.searchType.value == "artists") {
+                                    resultAdapter.updateList(resultList)
+                                    binding.shimmerLayout.stopShimmer()
+                                    binding.shimmerLayout.visibility = View.GONE
+                                    binding.refreshSearch.isRefreshing = false
+                                    setEnabledAll(binding.chipGroupTypeSearch, true)
+                                    binding.resultList.smoothScrollToPosition(0)
+                                }
                             }
                         }
                         is Resource.Error -> {
@@ -1193,16 +1211,18 @@ class SearchFragment : Fragment() {
                                 Log.d("SearchFragment", "observeSongList: $songsResultArrayList")
                                 resultList.clear()
                                 if (songsResultArrayList != null) {
-                                    for (i in songsResultArrayList){
+                                    for (i in songsResultArrayList) {
                                         resultList += i
                                     }
                                 }
-                                resultAdapter.updateList(resultList)
-                                binding.shimmerLayout.stopShimmer()
-                                binding.shimmerLayout.visibility = View.GONE
-                                binding.refreshSearch.isRefreshing = false
-                                setEnabledAll(binding.chipGroupTypeSearch, true)
-                                binding.resultList.smoothScrollToPosition(0)
+                                if (viewModel.searchType.value == "songs") {
+                                    resultAdapter.updateList(resultList)
+                                    binding.shimmerLayout.stopShimmer()
+                                    binding.shimmerLayout.visibility = View.GONE
+                                    binding.refreshSearch.isRefreshing = false
+                                    setEnabledAll(binding.chipGroupTypeSearch, true)
+                                    binding.resultList.smoothScrollToPosition(0)
+                                }
                             }
                         }
                         is Resource.Error -> {
@@ -1440,9 +1460,12 @@ class SearchFragment : Fragment() {
                                 temp.addAll(featuredPlaylist)
                                 temp.addAll(podcast)
                             }
-                        }
-                        catch (e: Exception){
-                            Snackbar.make(requireActivity().findViewById(R.id.mini_player_container), e.message.toString(), Snackbar.LENGTH_LONG)
+                        } catch (e: Exception) {
+                            Snackbar.make(
+                                requireActivity().findViewById(R.id.mini_player_container),
+                                e.message.toString(),
+                                Snackbar.LENGTH_LONG
+                            )
                                 .setAction(getString(R.string.retry)) {
                                     fetchSearchAll(query)
                                 }
@@ -1450,16 +1473,18 @@ class SearchFragment : Fragment() {
                                 .setDuration(3000)
                                 .show()
                         }
-                        resultList.clear()
-                        viewModel.searchAllResult.postValue(temp)
-                        searchAllResult.addAll(temp)
-                        resultList.addAll(temp)
-                        resultAdapter.updateList(resultList)
-                        binding.shimmerLayout.stopShimmer()
-                        binding.shimmerLayout.visibility = View.GONE
-                        binding.refreshSearch.isRefreshing = false
-                        setEnabledAll(binding.chipGroupTypeSearch, true)
-                        binding.resultList.smoothScrollToPosition(0)
+                        if (viewModel.searchType.value == "all") {
+                            resultList.clear()
+                            viewModel.searchAllResult.postValue(temp)
+                            searchAllResult.addAll(temp)
+                            resultList.addAll(temp)
+                            resultAdapter.updateList(resultList)
+                            binding.shimmerLayout.stopShimmer()
+                            binding.shimmerLayout.visibility = View.GONE
+                            binding.refreshSearch.isRefreshing = false
+                            setEnabledAll(binding.chipGroupTypeSearch, true)
+                            binding.resultList.smoothScrollToPosition(0)
+                        }
                     }
                 }
             }

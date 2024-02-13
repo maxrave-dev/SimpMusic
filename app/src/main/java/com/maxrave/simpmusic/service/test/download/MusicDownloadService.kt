@@ -34,7 +34,7 @@ class MusicDownloadService : DownloadService(
     override fun getForegroundNotification(downloads: MutableList<Download>, notMetRequirements: Int): Notification =
         downloadUtil.downloadNotificationHelper.buildProgressNotification(
             this,
-            R.drawable.logo_simpmusic_01_removebg_preview,
+            R.drawable.monochrome,
             null,
             if (downloads.size == 1) Util.fromUtf8Bytes(downloads[0].request.data)
             else resources.getQuantityString(R.plurals.n_song, downloads.size, downloads.size),
