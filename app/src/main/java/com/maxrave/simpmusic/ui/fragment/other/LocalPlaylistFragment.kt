@@ -3,6 +3,8 @@ package com.maxrave.simpmusic.ui.fragment.other
 import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.TransitionDrawable
 import android.os.Build.ID
@@ -997,7 +999,9 @@ class LocalPlaylistFragment : Fragment() {
                     if (viewModel.gradientDrawable.value != null) {
                         viewModel.gradientDrawable.observe(viewLifecycleOwner) {
                             if (it != null) {
-                                val start = binding.topAppBarLayout.background
+                                val start = binding.topAppBarLayout.background ?: ColorDrawable(
+                                    Color.TRANSPARENT
+                                )
                                 val transition = TransitionDrawable(arrayOf(start, it))
                                 binding.topAppBarLayout.background = transition
                                 transition.isCrossFadeEnabled = true

@@ -2,6 +2,8 @@ package com.maxrave.simpmusic.ui.fragment.other
 
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.TransitionDrawable
 import android.os.Bundle
@@ -272,7 +274,9 @@ class PodcastFragment : Fragment() {
                                 viewModel.gradientDrawable.observe(viewLifecycleOwner)
                                 { gradient ->
                                     if (gradient != null) {
-                                        val start = topAppBarLayout.background
+                                        val start = topAppBarLayout.background ?: ColorDrawable(
+                                            Color.TRANSPARENT
+                                        )
                                         val transition =
                                             TransitionDrawable(arrayOf(start, gradient))
                                         topAppBarLayout.background = transition

@@ -2,6 +2,8 @@ package com.maxrave.simpmusic.ui.fragment.other
 
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.Color
+import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.TransitionDrawable
 import android.os.Bundle
@@ -776,7 +778,9 @@ class PlaylistFragment: Fragment() {
                                     //fullRootLayout.background = gradient
 //                                    toolbarBackground = gradient?.colors?.get(0)
                                     if (gradient != null) {
-                                        val start = topAppBarLayout.background
+                                        val start = topAppBarLayout.background ?: ColorDrawable(
+                                            Color.TRANSPARENT
+                                        )
                                         val transition =
                                             TransitionDrawable(arrayOf(start, gradient))
                                         topAppBarLayout.background = transition
@@ -875,7 +879,9 @@ class PlaylistFragment: Fragment() {
 //                                    fullRootLayout.background = gradient
 //                                    toolbarBackground = gradient?.colors?.get(0)
                                     if (gradient != null) {
-                                        val start = topAppBarLayout.background
+                                        val start = topAppBarLayout.background ?: ColorDrawable(
+                                            Color.TRANSPARENT
+                                        )
                                         val transition =
                                             TransitionDrawable(arrayOf(start, gradient))
                                         topAppBarLayout.background = transition
@@ -944,7 +950,10 @@ class PlaylistFragment: Fragment() {
 //                                            toolbarBackground = gradient?.colors?.get(0)
 //                                            topAppBarLayout.background = ColorDrawable(toolbarBackground!!)
                                             if (gradient != null) {
-                                                val start = topAppBarLayout.background
+                                                val start =
+                                                    topAppBarLayout.background ?: ColorDrawable(
+                                                        Color.TRANSPARENT
+                                                    )
                                                 val transition =
                                                     TransitionDrawable(arrayOf(start, gradient))
                                                 topAppBarLayout.background = transition
@@ -1036,6 +1045,7 @@ class PlaylistFragment: Fragment() {
 //                                topAppBarLayout.background = ColorDrawable(toolbarBackground!!)
                                 if (gradient != null) {
                                     val start = topAppBarLayout.background
+                                        ?: ColorDrawable(Color.TRANSPARENT)
                                     val transition = TransitionDrawable(arrayOf(start, gradient))
                                     topAppBarLayout.background = transition
                                     transition.isCrossFadeEnabled = true
