@@ -62,7 +62,7 @@
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/card"
                     android:layout_width="match_parent"
-                    android:layout_height="60sp"
+                    android:layout_height="wrap_content"
                     app:cardCornerRadius="8sp"
                     app:strokeColor="@color/md_theme_dark_inverseOnSurface"
                     app:strokeWidth="0.1dp"
@@ -72,7 +72,7 @@
 
                     <RelativeLayout
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent">
+                        android:layout_height="wrap_content">
 
                         <RelativeLayout
                             android:layout_width="match_parent"
