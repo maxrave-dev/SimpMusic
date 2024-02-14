@@ -23,8 +23,17 @@ import com.google.common.util.concurrent.ListenableFuture
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.MEDIA_CUSTOM_COMMAND
 import com.maxrave.simpmusic.data.db.entities.SongEntity
+import com.maxrave.simpmusic.data.model.browse.album.Track
+import com.maxrave.simpmusic.data.model.home.HomeItem
 import com.maxrave.simpmusic.data.repository.MainRepository
+import com.maxrave.simpmusic.extension.connectArtists
+import com.maxrave.simpmusic.extension.toListName
+import com.maxrave.simpmusic.extension.toListTrack
 import com.maxrave.simpmusic.extension.toMediaItem
+import com.maxrave.simpmusic.extension.toPlaylistEntity
+import com.maxrave.simpmusic.extension.toSongEntity
+import com.maxrave.simpmusic.extension.toTrack
+import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -39,6 +48,8 @@ class SimpleMediaSessionCallback @Inject constructor(
 ) : MediaLibrarySession.Callback {
     var toggleLike: () -> Unit = {}
     private val scope = CoroutineScope(Dispatchers.Main + Job())
+    val searchTempList = mutableListOf<Track>()
+    val listHomeItem = mutableListOf<HomeItem>()
 
     override fun onConnect(
         session: MediaSession,
@@ -100,6 +111,51 @@ class SimpleMediaSessionCallback @Inject constructor(
         )
     )
 
+    override fun onSearch(
+        session: MediaLibrarySession,
+        browser: MediaSession.ControllerInfo,
+        query: String,
+        params: MediaLibraryService.LibraryParams?
+    ): ListenableFuture<LibraryResult<Void>> = scope.future(Dispatchers.IO) {
+        val searchResult = mainRepository.getSearchDataSong(query).first().let { resource ->
+            when (resource) {
+                is Resource.Success -> {
+                    resource.data?.let {
+                        searchTempList.clear()
+                        searchTempList.addAll(it.toListTrack())
+                    }
+                    resource.data
+                }
+
+                else -> emptyList()
+            }
+        }
+        if (searchResult != null) {
+            session.notifySearchResultChanged(browser, query, searchResult.size, params)
+        }
+        LibraryResult.ofVoid()
+    }
+
+    @UnstableApi
+    override fun onGetSearchResult(
+        session: MediaLibrarySession,
+        browser: MediaSession.ControllerInfo,
+        query: String,
+        page: Int,
+        pageSize: Int,
+        params: MediaLibraryService.LibraryParams?
+    ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> {
+        return scope.future(Dispatchers.IO) {
+            LibraryResult.ofItemList(
+                searchTempList.map {
+                    it.toMediaItemWithoutPath()
+                },
+                params
+            )
+        }
+    }
+
+    @UnstableApi
     override fun onGetChildren(
         session: MediaLibrarySession,
         browser: MediaSession.ControllerInfo,
@@ -108,9 +164,24 @@ class SimpleMediaSessionCallback @Inject constructor(
         pageSize: Int,
         params: MediaLibraryService.LibraryParams?,
     ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>> = scope.future(Dispatchers.IO) {
-        LibraryResult.ofItemList(
+        val rootExtras = Bundle().apply {
+            putBoolean(
+                MEDIA_SEARCH_SUPPORTED,
+                true
+            )
+        }
+        val libraryParams =
+            MediaLibraryService.LibraryParams.Builder().setExtras(rootExtras).build()
+        return@future LibraryResult.ofItemList(
             when (parentId) {
                 ROOT -> listOf(
+                    browsableMediaItem(
+                        HOME,
+                        context.getString(R.string.home),
+                        context.getString(R.string.available_online),
+                        drawableUri(R.drawable.home_android_auto),
+                        MediaMetadata.MEDIA_TYPE_FOLDER_MIXED
+                    ),
                     browsableMediaItem(
                         SONG,
                         context.getString(R.string.songs),
@@ -142,8 +213,65 @@ class SimpleMediaSessionCallback @Inject constructor(
                         )
                     }
 
+                HOME -> {
+                    val temp = mainRepository.getHomeData().first().data
+                    listHomeItem.clear()
+                    listHomeItem.addAll(temp ?: emptyList())
+                    temp?.map {
+                        browsableMediaItem(
+                            "$HOME/${it.title}",
+                            it.title,
+                            it.subtitle,
+                            null,
+                            MediaMetadata.MEDIA_TYPE_FOLDER_MIXED
+                        )
+                    } ?: emptyList()
+                }
+
                 else -> {
                     when {
+                        parentId.startsWith("$HOME/") -> {
+                            if (parentId.split("/").size == 2) {
+                                val homeItem = listHomeItem.find {
+                                    it.title == parentId.split("/").getOrNull(1)
+                                }
+                                homeItem?.contents?.filter { it?.playlistId != null || it?.videoId != null }
+                                    ?.mapNotNull {
+                                        if (it?.playlistId != null) {
+                                            browsableMediaItem(
+                                                id = "$HOME/${homeItem.title}/${PLAYLIST}/${it.playlistId}",
+                                                title = it.title,
+                                                subtitle = it.description,
+                                                iconUri = it.thumbnails.lastOrNull()?.url?.toUri(),
+                                                mediaType = MediaMetadata.MEDIA_TYPE_PLAYLIST
+                                            )
+                                        } else if (it?.videoId != null) {
+                                            it.toTrack().toSongEntity()
+                                                .toMediaItem("$HOME/${homeItem.title}/$SONG")
+                                        } else null
+                                    }
+                                    ?: emptyList()
+                            } else {
+                                val playlistId = parentId.split("/").getOrNull(3)
+                                if (playlistId != null) {
+                                    val playlist =
+                                        mainRepository.getPlaylistData(playlistId).first()
+                                    if (playlist.data?.tracks.isNullOrEmpty()) {
+                                        emptyList()
+                                    } else {
+                                        mainRepository.insertPlaylist(playlist.data!!.toPlaylistEntity())
+                                        playlist.data.tracks.map { track ->
+                                            track.toSongEntity().also {
+                                                mainRepository.insertSong(it).first()
+                                            }.toMediaItem(parentId)
+                                        }
+                                    }
+                                } else {
+                                    emptyList()
+                                }
+                            }
+                        }
+
                         parentId.startsWith("$PLAYLIST/") -> {
                             val playlistId = parentId.split("/").getOrNull(1)
                             if (playlistId != null) {
@@ -166,7 +294,7 @@ class SimpleMediaSessionCallback @Inject constructor(
                 }
 
             },
-            params
+            libraryParams
         )
     }
 
@@ -176,8 +304,10 @@ class SimpleMediaSessionCallback @Inject constructor(
         browser: MediaSession.ControllerInfo,
         mediaId: String,
     ): ListenableFuture<LibraryResult<MediaItem>> = scope.future(Dispatchers.IO) {
-        mainRepository.getSongById(mediaId).first()?.toMediaItem()?.let {
-            LibraryResult.ofItem(it, null)
+        mainRepository.getSongById(mediaId).first()?.let {
+            LibraryResult.ofItem(it.toMediaItem(), null)
+        } ?: mainRepository.getFullMetadata(mediaId).first()?.let {
+            LibraryResult.ofItem(it.toTrack().toMediaItemWithoutPath(), null)
         } ?: LibraryResult.ofError(LibraryResult.RESULT_ERROR_UNKNOWN)
     }
 
@@ -198,11 +328,25 @@ class SimpleMediaSessionCallback @Inject constructor(
             SONG -> {
                 val songId = path.getOrNull(1) ?: return@future defaultResult
                 val allSongs = mainRepository.getAllSongs().first().sortedBy { it.inLibrary }
-                MediaSession.MediaItemsWithStartPosition(
-                    allSongs.map { it.toMediaItem() },
-                    allSongs.indexOfFirst { it.videoId == songId }.takeIf { it != -1 } ?: 0,
-                    startPositionMs
-                )
+                if (allSongs.find { it.videoId == songId } == null) {
+                    val song = searchTempList.find { it.videoId == songId }
+                        ?: mainRepository.getFullMetadata(songId).first()?.toTrack()
+                        ?: return@future defaultResult
+                    mainRepository.insertSong(song.toSongEntity()).first()
+                    val cloneList = allSongs.toMutableList()
+                    cloneList.add(0, song.toSongEntity())
+                    MediaSession.MediaItemsWithStartPosition(
+                        cloneList.map { it.toMediaItem() },
+                        cloneList.indexOfFirst { it.videoId == songId }.takeIf { it != -1 } ?: 0,
+                        startPositionMs
+                    )
+                } else {
+                    MediaSession.MediaItemsWithStartPosition(
+                        allSongs.map { it.toMediaItem() },
+                        allSongs.indexOfFirst { it.videoId == songId }.takeIf { it != -1 } ?: 0,
+                        startPositionMs
+                    )
+                }
             }
 
             PLAYLIST -> {
@@ -223,6 +367,49 @@ class SimpleMediaSessionCallback @Inject constructor(
                         startPositionMs
                     )
                 }
+            }
+
+            HOME -> {
+                val type = path.getOrNull(2) ?: return@future defaultResult
+                val content = listHomeItem.find { it.title == path.getOrNull(1) }?.contents
+                if (type == SONG) {
+                    val songId = path.getOrNull(3) ?: return@future defaultResult
+                    val songs = content?.filter { it?.videoId != null }?.mapNotNull {
+                        it?.toTrack()
+                    }
+                    if (songs.isNullOrEmpty()) {
+                        defaultResult
+                    } else {
+                        songs.forEach {
+                            mainRepository.insertSong(it.toSongEntity()).first()
+                        }
+                        MediaSession.MediaItemsWithStartPosition(
+                            songs.map { it.toMediaItem() },
+                            songs.indexOfFirst { it.videoId == songId }.takeIf { it != -1 } ?: 0,
+                            startPositionMs
+                        )
+                    }
+                } else if (type == PLAYLIST) {
+                    val songId = path.getOrNull(4) ?: return@future defaultResult
+                    val playlistId = path.getOrNull(3) ?: return@future defaultResult
+                    val playlistEntity = mainRepository.getPlaylist(playlistId).first()
+                    if (playlistEntity?.tracks.isNullOrEmpty()) {
+                        defaultResult
+                    } else if (playlistEntity?.tracks?.isNotEmpty() == true) {
+                        playlistEntity.tracks.let { it ->
+                            mainRepository.getSongsByListVideoId(it).first()
+                                .map { it.toMediaItem() }
+                        }
+                            .let { mediaItemList ->
+                                MediaSession.MediaItemsWithStartPosition(
+                                    mediaItemList,
+                                    mediaItemList.indexOfFirst { it.mediaId == songId }
+                                        .takeIf { it != -1 } ?: 0,
+                                    startPositionMs
+                                )
+                            }
+                    } else defaultResult
+                } else return@future defaultResult
             }
 
             else -> defaultResult
@@ -274,9 +461,28 @@ class SimpleMediaSessionCallback @Inject constructor(
             )
             .build()
 
+    private fun Track.toMediaItemWithoutPath(path: String? = SONG) =
+        MediaItem.Builder()
+            .setMediaId(if (path == null) this.videoId else "$path/${this.videoId}")
+            .setMediaMetadata(
+                MediaMetadata.Builder()
+                    .setTitle(this.title)
+                    .setSubtitle(this.artists?.toListName()?.connectArtists())
+                    .setArtist(this.artists?.toListName()?.connectArtists())
+                    .setArtworkUri(this.thumbnails?.lastOrNull()?.url?.toUri())
+                    .setIsPlayable(true)
+                    .setIsBrowsable(false)
+                    .setMediaType(MediaMetadata.MEDIA_TYPE_MUSIC)
+                    .build()
+            )
+            .build()
+
     companion object {
         const val ROOT = "root"
         const val SONG = "song"
+        const val HOME = "home"
+        const val ONLINE_PLAYLIST = "online_playlist"
         const val PLAYLIST = "playlist"
+        const val MEDIA_SEARCH_SUPPORTED = "android.media.browse.SEARCH_SUPPORTED"
     }
 }

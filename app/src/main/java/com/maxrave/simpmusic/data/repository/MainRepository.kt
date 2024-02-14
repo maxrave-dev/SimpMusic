@@ -1850,6 +1850,7 @@ class MainRepository @Inject constructor(private val localDataSource: LocalDataS
     }.flowOn(Dispatchers.IO)
 
     fun getFullMetadata(videoId: String): Flow<YouTubeInitialPage?> = flow {
+        Log.w("getFullMetadata", "videoId: $videoId")
         YouTube.getFullMetadata(videoId).onSuccess {
             emit(it)
         }.onFailure {
