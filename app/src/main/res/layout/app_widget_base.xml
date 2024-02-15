@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:id="@+id/image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            tools:ignore="ContentDescription" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/canvas_overlay"></RelativeLayout>
+    </FrameLayout>
+
+    <LinearLayout
+        android:id="@+id/media_actions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:gravity="center_vertical"
+        android:layoutDirection="ltr"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:id="@+id/button_prev"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_weight="1"
+            tools:src="@drawable/baseline_skip_previous_24"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="@dimen/_18sdp"
+            android:foreground="@drawable/widget_selector"
+            tools:ignore="ContentDescription" />
+
+        <ImageView
+            android:id="@+id/button_toggle_play_pause"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:padding="@dimen/_10sdp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="@drawable/widget_selector"
+            android:layout_weight="1"
+            tools:ignore="ContentDescription" />
+
+        <ImageView
+            android:id="@+id/button_next"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:padding="@dimen/_18sdp"
+            android:clickable="true"
+            android:focusable="true"
+            android:foreground="@drawable/widget_selector"
+            android:layout_weight="1"
+            tools:ignore="ContentDescription" />
+
+
+    </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/clickable_area"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@id/media_actions"
+        android:layout_alignParentTop="true" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_toStartOf="@+id/logo"
+            android:layout_alignParentStart="true"
+            android:id="@+id/media_titles"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <TextView
+                android:id="@+id/title"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center_vertical"
+                android:singleLine="true"
+                android:textSize="18sp"
+                android:textColor="@android:color/white"
+                android:textStyle="bold"
+                tools:text="Title" />
+
+            <TextView
+                android:id="@+id/text"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center_vertical"
+                android:singleLine="true"
+                android:textColor="@android:color/white"
+                android:textSize="13sp"
+                android:textStyle="normal"
+                tools:text="Text" />
+
+        </LinearLayout>
+
+        <ImageView
+            android:id="@+id/logo"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginHorizontal="15dp"
+            android:layout_centerVertical="true"
+            android:scaleType="centerCrop"
+            android:layout_alignParentEnd="true">
+
+        </ImageView>
+    </RelativeLayout>
+
+</RelativeLayout>

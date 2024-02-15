@@ -17,6 +17,7 @@ android {
         targetSdk = 34
         versionCode = 16
         versionName = "0.2.0"
+        vectorDrawables.useSupportLibrary = true
 
         ksp {
             arg("room.schemaLocation", "$projectDir/schemas")
@@ -51,6 +52,7 @@ android {
         }
         debug {
             applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
         }
     }
     compileOptions {

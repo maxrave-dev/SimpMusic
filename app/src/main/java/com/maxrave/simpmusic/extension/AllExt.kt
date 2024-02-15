@@ -4,6 +4,7 @@ import android.app.ActivityManager
 import android.app.Service
 import android.content.Context
 import android.graphics.Color
+import android.graphics.Point
 import android.os.Bundle
 import android.text.Html
 import android.view.View
@@ -509,6 +510,12 @@ fun setEnabledAll(v: View, enabled: Boolean) {
         val vg = v
         for (i in 0 until vg.childCount) setEnabledAll(vg.getChildAt(i), enabled)
     }
+}
+
+fun getScreenSize(context: Context): Point {
+    val x: Int = context.resources.displayMetrics.widthPixels
+    val y: Int = context.resources.displayMetrics.heightPixels
+    return Point(x, y)
 }
 
 fun ArrayList<String>.removeConflicts(): ArrayList<String> {

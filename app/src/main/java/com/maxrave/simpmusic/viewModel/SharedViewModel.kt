@@ -6,6 +6,8 @@ import android.content.Intent
 import android.graphics.drawable.GradientDrawable
 import android.util.Log
 import android.widget.Toast
+import androidx.appcompat.content.res.AppCompatResources
+import androidx.core.graphics.drawable.toBitmap
 import androidx.core.net.toUri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
@@ -16,6 +18,8 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.exoplayer.offline.Download
+import coil.ImageLoader
+import coil.request.ImageRequest
 import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.models.response.spotify.CanvasResponse
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
@@ -48,6 +52,7 @@ import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.di.DownloadCache
 import com.maxrave.simpmusic.extension.connectArtists
+import com.maxrave.simpmusic.extension.getScreenSize
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toLyrics
 import com.maxrave.simpmusic.extension.toLyricsEntity
@@ -58,6 +63,7 @@ import com.maxrave.simpmusic.service.RepeatState
 import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
 import com.maxrave.simpmusic.service.SimpleMediaState
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
+import com.maxrave.simpmusic.ui.widget.BasicWidget
 import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -193,12 +199,16 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     var playlistId: MutableStateFlow<String?> = MutableStateFlow(null)
     private var initJob: Job? = null
 
+    private var downloadImageForWidgetJob: Job? = null
+
     private var _listYouTubeLiked: MutableStateFlow<ArrayList<String>?> = MutableStateFlow(null)
     val listYouTubeLiked: SharedFlow<ArrayList<String>?> = _listYouTubeLiked.asSharedFlow()
 
     var loadingMore: MutableStateFlow<Boolean> = MutableStateFlow(false)
     var isFullScreen: Boolean = false
     var isSubtitle: Boolean = true
+
+    private val basicWidget = BasicWidget.instance
 
     //    init {
 //        Log.w("Check SharedViewModel init", (simpleMediaServiceHandler != null).toString())
@@ -223,18 +233,25 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                             is SimpleMediaState.Buffering -> {
                                 notReady.value = true
                             }
+
                             SimpleMediaState.Initial -> _uiState.value = UIState.Initial
                             SimpleMediaState.Ended -> {
                                 _uiState.value = UIState.Ended
                                 Log.d("Check lại videoId", videoId.value.toString())
                             }
-                            is SimpleMediaState.Playing -> isPlaying.value = mediaState.isPlaying
+
+                            is SimpleMediaState.Playing -> {
+                                isPlaying.value = mediaState.isPlaying
+                                basicWidget.updatePlayingState(context, mediaState.isPlaying)
+                            }
+
                             is SimpleMediaState.Progress -> {
-                                if (_duration.value > 0){
+                                if (_duration.value > 0) {
                                     calculateProgressValues(mediaState.progress)
                                     _progressMillis.value = mediaState.progress
                                 }
                             }
+
                             is SimpleMediaState.Loading -> {
                                 _bufferedPercentage.value = mediaState.bufferedPercentage
                                 _duration.value = mediaState.duration
@@ -257,6 +274,52 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                             canvasJob?.cancel()
                             getSongInfo(now.mediaId)
                             getSkipSegments(now.mediaId)
+                            basicWidget.performUpdate(context, simpleMediaServiceHandler!!, null)
+                            downloadImageForWidgetJob?.cancel()
+                            downloadImageForWidgetJob = viewModelScope.launch {
+                                val p = getScreenSize(context)
+                                val widgetImageSize = p.x.coerceAtMost(p.y)
+                                val imageRequest = ImageRequest.Builder(context)
+                                    .data(nowPlaying.mediaMetadata.artworkUri)
+                                    .size(widgetImageSize)
+                                    .placeholder(R.drawable.holder_video)
+                                    .target(
+                                        onSuccess = { drawable ->
+                                            basicWidget.updateImage(
+                                                context,
+                                                drawable.toBitmap(widgetImageSize, widgetImageSize)
+                                            )
+                                        },
+                                        onStart = { holder ->
+                                            if (holder != null) {
+                                                basicWidget.updateImage(
+                                                    context,
+                                                    holder.toBitmap(
+                                                        widgetImageSize,
+                                                        widgetImageSize
+                                                    )
+                                                )
+                                            }
+                                        },
+                                        onError = {
+                                            AppCompatResources.getDrawable(
+                                                context,
+                                                R.drawable.holder_video
+                                            )
+                                                ?.let { it1 ->
+                                                    basicWidget.updateImage(
+                                                        context,
+                                                        it1.toBitmap(
+                                                            widgetImageSize,
+                                                            widgetImageSize
+                                                        )
+                                                    )
+                                                }
+                                        }
+
+                                    ).build()
+                                ImageLoader(context).execute(imageRequest)
+                            }
                         }
                         if (nowPlaying != null && getCurrentMediaItemIndex() > 0) {
                             _nowPlayingMediaItem.postValue(nowPlaying)

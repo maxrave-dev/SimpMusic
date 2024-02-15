@@ -74,4 +74,10 @@
     <color name="light_blue_A200">#FF40C4FF</color>
     <color name="light_blue_A400">#FF00B0FF</color>
     <color name="black_overlay">#66000000</color>
+
+    <color name="card_background">#9C000000</color>
+    <color name="card_shadow_1">#B4202020</color>
+    <color name="card_shadow_2">#2D151515</color>
+    <color name="light_blue_50">#FFE1F5FE</color>
+    <color name="light_blue_200">#FF81D4FA</color>
 </resources>

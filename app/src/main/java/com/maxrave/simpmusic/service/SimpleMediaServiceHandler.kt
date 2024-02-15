@@ -40,7 +40,7 @@ import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.first
 
 @UnstableApi
-class SimpleMediaServiceHandler constructor(
+class SimpleMediaServiceHandler(
     val player: ExoPlayer,
     private val mediaSession: MediaSession,
     mediaSessionCallback: SimpleMediaSessionCallback,

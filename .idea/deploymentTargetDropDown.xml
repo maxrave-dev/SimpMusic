@@ -2,6 +2,9 @@
 <project version="4">
   <component name="deploymentTargetDropDown">
     <value>
+      <entry key="PreviewMediaLayout">
+        <State />
+      </entry>
       <entry key="app">
         <State />
       </entry>

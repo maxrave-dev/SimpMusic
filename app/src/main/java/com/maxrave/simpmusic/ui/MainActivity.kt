@@ -1,8 +1,12 @@
 package com.maxrave.simpmusic.ui
 
 import android.Manifest
+import android.appwidget.AppWidgetManager
+import android.content.BroadcastReceiver
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.ServiceConnection
 import android.content.res.Configuration
 import android.graphics.Bitmap
@@ -21,6 +25,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
@@ -61,6 +66,9 @@ import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.setTextAnimation
 import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
+import com.maxrave.simpmusic.ui.widget.BaseAppWidget.Companion.APP_WIDGET_UPDATE
+import com.maxrave.simpmusic.ui.widget.BaseAppWidget.Companion.EXTRA_APP_WIDGET_NAME
+import com.maxrave.simpmusic.ui.widget.BasicWidget
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import dagger.hilt.android.AndroidEntryPoint
@@ -503,7 +511,6 @@ class MainActivity : AppCompatActivity() {
             viewModel.onUIEvent(UIEvent.PlayPause)
         }
         lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.CREATED) {
                 val job1 = launch {
                     viewModel.intent.collectLatest { intent ->
                         if (intent != null){
@@ -587,7 +594,6 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
                 job1.join()
-            }
         }
         lifecycleScope.launch {
              val job1 = launch {

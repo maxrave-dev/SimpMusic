@@ -44,6 +44,7 @@ import com.maxrave.simpmusic.di.DownloadCache
 import com.maxrave.simpmusic.di.PlayerCache
 import com.maxrave.simpmusic.service.test.CoilBitmapLoader
 import com.maxrave.simpmusic.ui.MainActivity
+import com.maxrave.simpmusic.ui.widget.BasicWidget
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.cancellable
@@ -111,6 +112,21 @@ class SimpleMediaService : MediaLibraryService() {
 
     @UnstableApi
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent != null && intent.action != null) {
+            when (intent.action) {
+                BasicWidget.ACTION_TOGGLE_PAUSE -> {
+                    if (player.isPlaying) player.pause() else player.play()
+                }
+
+                BasicWidget.ACTION_SKIP -> {
+                    player.seekToNext()
+                }
+
+                BasicWidget.ACTION_REWIND -> {
+                    player.seekToPrevious()
+                }
+            }
+        }
         return super.onStartCommand(intent, flags, startId)
     }
 

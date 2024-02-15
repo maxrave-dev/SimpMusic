@@ -19,17 +19,18 @@
         <item name="android:fontFamily">@font/jetbrains_mono_bold</item>
         <item name="android:textStyle">bold</item>
     </style>
-    <style name="album_name"
-        parent="TextAppearance.Material3.BodyMedium">
+
+    <style name="album_name" parent="TextAppearance.Material3.BodyMedium">
         <item name="android:textColor">@android:color/white</item>
         <item name="android:textSize">25sp</item>
         <item name="android:textStyle">bold</item>
         <item name="android:fontFamily">@font/roboto_bold</item>
     </style>
-    <style name="collapsingTitleTransparent"
-        parent="@android:style/TextAppearance">
+
+    <style name="collapsingTitleTransparent" parent="@android:style/TextAppearance">
         <item name="android:textColor">#00000000</item>
     </style>
+
     <style name="ShapeAppearanceOverlay.MaterialCardView.Cut" parent="">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSizeTopRight">8dp</item>
@@ -37,6 +38,7 @@
         <item name="cornerSizeBottomRight">0dp</item>
         <item name="cornerSizeBottomLeft">0dp</item>
     </style>
+
     <style name="TitleToolBar">
         <item name="android:textColor">@android:color/white</item>
         <item name="android:fontFamily">@font/roboto</item>
@@ -69,5 +71,15 @@
 
     <style name="SimpMusicBlackBottomSheetDialog" parent="Widget.MaterialComponents.BottomSheet.Modal">
         <item name="backgroundTint">@color/md_theme_dark_background</item>
+    </style>
+
+    <style name="Widget.SimpMusic.AppWidget.Container" parent="android:Widget">
+        <item name="android:id">@android:id/background</item>
+        <item name="android:background">?android:attr/colorBackground</item>
+    </style>
+
+    <style name="Widget.SimpMusic.AppWidget.InnerView" parent="android:Widget">
+        <item name="android:background">?android:attr/colorBackground</item>
+        <item name="android:textColor">?android:attr/textColorPrimary</item>
     </style>
 </resources>
