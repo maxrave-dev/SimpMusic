@@ -26,7 +26,7 @@
             android:layout_marginEnd="5sp"
             android:layout_above="@+id/bottom_navigation_view">
             <LinearLayout
-                android:layout_width="60sp"
+                android:layout_width="120dp"
                 android:layout_height="60sp"
                 android:weightSum="1"
                 android:id="@+id/llBottom">
@@ -34,23 +34,35 @@
                     android:id="@+id/cardBottom"
                     android:layout_width="match_parent"
                     android:layout_height="60sp"
-                    style="?attr/materialCardViewFilledStyle"
+                    style="?attr/materialCardViewElevatedStyle"
                     app:cardCornerRadius="0sp"
                     android:layout_gravity="bottom"
                     app:cardPreventCornerOverlap="true">
-                    <RelativeLayout
+
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
+                        android:orientation="horizontal"
                         android:background="@android:color/transparent">
+
                         <ImageButton
-                            android:background="@android:color/transparent"
+                            android:background="@null"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:src="@drawable/baseline_skip_next_24"
+                            android:id="@+id/btSkipNext"
+                            android:layout_weight="1"
+                            android:layout_gravity="center_vertical"></ImageButton>
+
+                        <ImageButton
+                            android:layout_weight="1"
+                            android:background="@null"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:src="@drawable/baseline_close_24"
                             android:id="@+id/btRemoveMiniPlayer"
-                            android:layout_centerInParent="true">
-                        </ImageButton>
-                    </RelativeLayout>
+                            android:layout_gravity="center_vertical"></ImageButton>
+                    </LinearLayout>
 
                 </com.google.android.material.card.MaterialCardView>
             </LinearLayout>
@@ -59,14 +71,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:weightSum="1">
+
                 <com.google.android.material.card.MaterialCardView
                     android:id="@+id/card"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    app:cardCornerRadius="8sp"
-                    app:strokeColor="@color/md_theme_dark_inverseOnSurface"
-                    app:strokeWidth="0.1dp"
-                    app:cardElevation="1dp"
+                    app:cardCornerRadius="10dp"
+                    style="?attr/materialCardViewElevatedStyle"
+                    app:cardElevation="3dp"
                     android:layout_gravity="bottom"
                     app:cardPreventCornerOverlap="true">
 

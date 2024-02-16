@@ -319,7 +319,8 @@
     <string name="removed_from_youtube_liked">Removed from YouTube Liked</string>
     <string name="home_limit">Fetch home data limit</string>
     <string name="no_album">No album</string>
-    <string name="appwidget_text">EXAMPLE</string>
-    <string name="add_widget">Add widget</string>
-    <string name="app_widget_description">This is an app widget description</string>
+    <string name="app_widget_description">Player widget</string>
+    <string name="guide_miniplayer_content">Swipe to show skip and close button</string>
+    <string name="guide_suggest_content">Show suggested songs by AI based on your playlist</string>
+    <string name="guide_liked_title">Add to YouTube Liked Playlist</string>
 </resources>

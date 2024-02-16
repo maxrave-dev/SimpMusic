@@ -271,6 +271,7 @@ dependencies {
     implementation ("com.mikepenz:aboutlibraries:${latestAboutLibsRelease}")
 
     implementation("com.google.android.flexbox:flexbox:3.0.0")
+    implementation("com.github.skydoves:balloon:1.6.4")
 
 }
 hilt {

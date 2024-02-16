@@ -383,7 +383,6 @@ class SettingsViewModel @Inject constructor(
     @UnstableApi
     fun restore(context: Context, uri: Uri) {
         runCatching {
-            runBlocking { dataStoreManager.restore(true)}
             context.applicationContext.contentResolver.openInputStream(uri)?.use {
                 it.zipInputStream().use { inputStream ->
                     var entry = inputStream.nextEntry
@@ -412,6 +411,7 @@ class SettingsViewModel @Inject constructor(
                 }
             }
             context.stopService(Intent(context, SimpleMediaService::class.java))
+            runBlocking { dataStoreManager.restore(true) }
             context.startActivity(Intent(context, MainActivity::class.java))
             exitProcess(0)
         }.onFailure {

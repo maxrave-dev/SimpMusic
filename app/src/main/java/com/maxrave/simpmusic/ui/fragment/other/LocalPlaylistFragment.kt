@@ -45,6 +45,7 @@ import com.maxrave.simpmusic.adapter.playlist.PlaylistItemAdapter
 import com.maxrave.simpmusic.adapter.playlist.SuggestItemAdapter
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.DownloadState
+import com.maxrave.simpmusic.common.STATUS_DONE
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.SongEntity
@@ -65,6 +66,10 @@ import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.viewModel.LocalPlaylistViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
+import com.skydoves.balloon.ArrowPositionRules
+import com.skydoves.balloon.Balloon
+import com.skydoves.balloon.BalloonAnimation
+import com.skydoves.balloon.BalloonSizeSpec
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -92,6 +97,7 @@ class LocalPlaylistFragment : Fragment() {
 
     private var id: Long? = null
 
+    @UnstableApi
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
@@ -879,6 +885,7 @@ class LocalPlaylistFragment : Fragment() {
         _binding = null
     }
 
+    @UnstableApi
     private fun fetchDataFromDatabase() {
         viewModel.clearLocalPlaylist()
         viewModel.id.postValue(id)
@@ -900,9 +907,29 @@ class LocalPlaylistFragment : Fragment() {
                 }
                 if (localPlaylist.syncedWithYouTubePlaylist == 0) {
                     binding.btSuggest.visibility = View.GONE
-                }
-                else if (localPlaylist.syncedWithYouTubePlaylist == 1) {
+                } else if (localPlaylist.syncedWithYouTubePlaylist == 1) {
                     binding.btSuggest.visibility = View.VISIBLE
+                    if (!sharedViewModel.isFirstSuggestions) {
+                        val balloon = Balloon.Builder(requireContext())
+                            .setWidthRatio(0.5f)
+                            .setHeight(BalloonSizeSpec.WRAP)
+                            .setText(getString(R.string.guide_suggest_content))
+                            .setTextColorResource(R.color.md_theme_dark_onSurface)
+                            .setTextSize(11f)
+                            .setArrowPositionRules(ArrowPositionRules.ALIGN_ANCHOR)
+                            .setArrowSize(10)
+                            .setArrowPosition(0.5f)
+                            .setPadding(12)
+                            .setAutoDismissDuration(5000L)
+                            .setCornerRadius(8f)
+                            .setBackgroundColorResource(R.color.md_theme_dark_onSecondary)
+                            .setBalloonAnimation(BalloonAnimation.ELASTIC)
+                            .setLifecycleOwner(viewLifecycleOwner)
+                            .build()
+                        balloon.showAlignTop(binding.btSuggest)
+                        sharedViewModel.putString("suggest_guide", STATUS_DONE)
+                        sharedViewModel.isFirstSuggestions = false
+                    }
                 }
             }
             binding.tvTrackCountAndTimeCreated.text = getString(R.string.album_length,

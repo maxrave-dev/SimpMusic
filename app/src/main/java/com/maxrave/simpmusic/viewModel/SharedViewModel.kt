@@ -35,13 +35,16 @@ import com.maxrave.simpmusic.common.Config.SONG_CLICK
 import com.maxrave.simpmusic.common.Config.VIDEO_CLICK
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
+import com.maxrave.simpmusic.common.STATUS_DONE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.TRUE
+import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.LyricsEntity
 import com.maxrave.simpmusic.data.db.entities.NewFormatEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
+import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.db.entities.SongInfoEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
@@ -87,7 +90,11 @@ import javax.inject.Inject
 
 @HiltViewModel
 @UnstableApi
-class SharedViewModel @Inject constructor(private var dataStoreManager: DataStoreManager, @DownloadCache private val downloadedCache: SimpleCache, private val mainRepository: MainRepository, private val application: Application) : AndroidViewModel(application){
+class SharedViewModel @Inject constructor(private var dataStoreManager: DataStoreManager, @DownloadCache private val downloadedCache: SimpleCache, private val mainRepository: MainRepository, private val application: Application) : AndroidViewModel(application) {
+    var isFirstLiked: Boolean = false
+    var isFirstMiniplayer: Boolean = false
+    var isFirstSuggestions: Boolean = false
+
     @Inject
     lateinit var downloadUtils: DownloadUtils
 
@@ -226,6 +233,17 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
 //    }
     fun init() {
         if (simpleMediaServiceHandler != null) {
+            runBlocking {
+                dataStoreManager.getString("miniplayer_guide").first().let {
+                    isFirstMiniplayer = it != STATUS_DONE
+                }
+                dataStoreManager.getString("suggest_guide").first().let {
+                    isFirstSuggestions = it != STATUS_DONE
+                }
+                dataStoreManager.getString("liked_guide").first().let {
+                    isFirstLiked = it != STATUS_DONE
+                }
+            }
             initJob = viewModelScope.launch {
                 val job1 = launch {
                     simpleMediaServiceHandler!!.simpleMediaState.collect { mediaState ->
@@ -600,17 +618,65 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                 isRestoring.value = restoring == TRUE
                 isRestoring.collect { it ->
                     if (it) {
-                        Toast.makeText(context, context.getString(R.string.restore_success), Toast.LENGTH_SHORT).show()
-                        mainRepository.getDownloadedSongs().collect { songs ->
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.restore_success),
+                            Toast.LENGTH_SHORT
+                        ).show()
+                        mainRepository.getDownloadedSongs().first().let { songs ->
                             songs?.forEach { song ->
                                 if (!downloadedCache.keys.contains(song.videoId)) {
-                                    mainRepository.updateDownloadState(song.videoId, DownloadState.STATE_NOT_DOWNLOADED)
+                                    mainRepository.updateDownloadState(
+                                        song.videoId,
+                                        DownloadState.STATE_NOT_DOWNLOADED
+                                    )
                                 }
                             }
-                            withContext(Dispatchers.Main) {
-                                dataStoreManager.restore(false)
-                                isRestoring.value = false
+                        }
+                        mainRepository.getAllDownloadedPlaylist().first().let { list ->
+                            for (data in list) {
+                                when (data) {
+                                    is AlbumEntity -> {
+                                        if (data.tracks.isNullOrEmpty() || (!downloadedCache.keys.containsAll(
+                                                data.tracks
+                                            ))
+                                        ) {
+                                            mainRepository.updateAlbumDownloadState(
+                                                data.browseId,
+                                                DownloadState.STATE_NOT_DOWNLOADED
+                                            )
+                                        }
+                                    }
+
+                                    is PlaylistEntity -> {
+                                        if (data.tracks.isNullOrEmpty() || (!downloadedCache.keys.containsAll(
+                                                data.tracks
+                                            ))
+                                        ) {
+                                            mainRepository.updatePlaylistDownloadState(
+                                                data.id,
+                                                DownloadState.STATE_NOT_DOWNLOADED
+                                            )
+                                        }
+                                    }
+
+                                    is LocalPlaylistEntity -> {
+                                        if (data.tracks.isNullOrEmpty() || (!downloadedCache.keys.containsAll(
+                                                data.tracks
+                                            ))
+                                        ) {
+                                            mainRepository.updateLocalPlaylistDownloadState(
+                                                DownloadState.STATE_NOT_DOWNLOADED,
+                                                data.id
+                                            )
+                                        }
+                                    }
+                                }
                             }
+                        }
+                        withContext(Dispatchers.Main) {
+                            dataStoreManager.restore(false)
+                            isRestoring.value = false
                         }
                     }
                 }

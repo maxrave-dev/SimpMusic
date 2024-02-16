@@ -60,6 +60,7 @@ import com.maxrave.simpmusic.common.Config.SONG_CLICK
 import com.maxrave.simpmusic.common.Config.VIDEO_CLICK
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.LYRICS_PROVIDER
+import com.maxrave.simpmusic.common.STATUS_DONE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
@@ -88,6 +89,10 @@ import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.LyricsProvider
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
+import com.skydoves.balloon.ArrowPositionRules
+import com.skydoves.balloon.Balloon
+import com.skydoves.balloon.BalloonAnimation
+import com.skydoves.balloon.BalloonSizeSpec
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.Job
@@ -1111,6 +1116,27 @@ class NowPlayingFragment : Fragment() {
                     viewModel.logInToYouTube().distinctUntilChanged().collect {
                         if (it == DataStoreManager.TRUE) {
                             setEnabledAll(binding.btAddToYouTubeLiked, true)
+                            if (viewModel.isFirstLiked) {
+                                val balloon = Balloon.Builder(requireContext())
+                                    .setWidthRatio(0.5f)
+                                    .setHeight(BalloonSizeSpec.WRAP)
+                                    .setText(getString(R.string.guide_liked_title))
+                                    .setTextColorResource(R.color.md_theme_dark_onSurface)
+                                    .setTextSize(11f)
+                                    .setArrowPositionRules(ArrowPositionRules.ALIGN_ANCHOR)
+                                    .setArrowSize(10)
+                                    .setArrowPosition(0.5f)
+                                    .setAutoDismissDuration(5000L)
+                                    .setPadding(12)
+                                    .setCornerRadius(8f)
+                                    .setBackgroundColorResource(R.color.md_theme_dark_onSecondary)
+                                    .setBalloonAnimation(BalloonAnimation.ELASTIC)
+                                    .setLifecycleOwner(viewLifecycleOwner)
+                                    .build()
+                                balloon.showAlignTop(binding.btAddToYouTubeLiked)
+                                viewModel.putString("liked_guide", STATUS_DONE)
+                                viewModel.isFirstSuggestions = false
+                            }
                         } else {
                             setEnabledAll(binding.btAddToYouTubeLiked, false)
                         }
@@ -2168,6 +2194,27 @@ class NowPlayingFragment : Fragment() {
             miniplayer.animation =
                 AnimationUtils.loadAnimation(requireContext(), R.anim.bottom_to_top)
             miniplayer.visibility = View.VISIBLE
+            if (viewModel.isFirstMiniplayer) {
+                val balloon = Balloon.Builder(requireContext())
+                    .setWidthRatio(0.5f)
+                    .setHeight(BalloonSizeSpec.WRAP)
+                    .setText(getString(R.string.guide_miniplayer_content))
+                    .setTextColorResource(R.color.md_theme_dark_onSurface)
+                    .setTextSize(11f)
+                    .setArrowPositionRules(ArrowPositionRules.ALIGN_ANCHOR)
+                    .setAutoDismissDuration(5000L)
+                    .setArrowSize(10)
+                    .setArrowPosition(0.5f)
+                    .setPadding(8)
+                    .setCornerRadius(8f)
+                    .setBackgroundColorResource(R.color.md_theme_dark_onSecondary)
+                    .setBalloonAnimation(BalloonAnimation.ELASTIC)
+                    .setLifecycleOwner(activity)
+                    .build()
+                balloon.showAlignTop(miniplayer)
+                viewModel.putString("miniplayer_guide", STATUS_DONE)
+                viewModel.isFirstMiniplayer = false
+            }
         }
         isFullScreen = false
         overlayJob?.cancel()

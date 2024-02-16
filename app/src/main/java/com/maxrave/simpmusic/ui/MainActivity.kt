@@ -1,12 +1,8 @@
 package com.maxrave.simpmusic.ui
 
 import android.Manifest
-import android.appwidget.AppWidgetManager
-import android.content.BroadcastReceiver
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.content.ServiceConnection
 import android.content.res.Configuration
 import android.graphics.Bitmap
@@ -25,7 +21,6 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
@@ -66,9 +61,6 @@ import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.setTextAnimation
 import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
-import com.maxrave.simpmusic.ui.widget.BaseAppWidget.Companion.APP_WIDGET_UPDATE
-import com.maxrave.simpmusic.ui.widget.BaseAppWidget.Companion.EXTRA_APP_WIDGET_NAME
-import com.maxrave.simpmusic.ui.widget.BasicWidget
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
 import dagger.hilt.android.AndroidEntryPoint
@@ -481,13 +473,15 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onStartClose(layout: SwipeLayout?) {
+                binding.card.radius = 10f
             }
 
             override fun onClose(layout: SwipeLayout?) {
-                binding.card.radius = 8f
+                binding.card.radius = 10f
             }
 
             override fun onUpdate(layout: SwipeLayout?, leftOffset: Int, topOffset: Int) {
+                binding.card.radius = 10f
             }
 
             override fun onHandRelease(layout: SwipeLayout?, xvel: Float, yvel: Float) {
@@ -499,7 +493,11 @@ class MainActivity : AppCompatActivity() {
             viewModel.isServiceRunning.postValue(false)
             viewModel.videoId.postValue(null)
             binding.miniplayer.visibility = View.GONE
-            binding.card.radius = 8f
+            binding.card.radius = 10f
+        }
+        binding.btSkipNext.setOnClickListener {
+            viewModel.onUIEvent(UIEvent.Next)
+            binding.card.radius = 10f
         }
 
         binding.card.setOnClickListener {
