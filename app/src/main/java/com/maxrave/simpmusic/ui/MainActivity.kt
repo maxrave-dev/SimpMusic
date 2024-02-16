@@ -451,9 +451,9 @@ class MainActivity : AppCompatActivity() {
             else -> {}
         }
 
-        navController.addOnDestinationChangedListener { _, destination, _ ->
+        navController.addOnDestinationChangedListener { nav, destination, _ ->
             when (destination.id) {
-                R.id.bottom_navigation_item_home, R.id.settingsFragment, R.id.recentlySongsFragment -> {
+                R.id.bottom_navigation_item_home, R.id.settingsFragment, R.id.recentlySongsFragment, R.id.moodFragment -> {
                     binding.bottomNavigationView.menu.findItem(R.id.bottom_navigation_item_home)?.isChecked =
                         true
                 }
@@ -466,6 +466,26 @@ class MainActivity : AppCompatActivity() {
                 R.id.bottom_navigation_item_library, R.id.downloadedFragment, R.id.mostPlayedFragment, R.id.followedFragment, R.id.favoriteFragment, R.id.localPlaylistFragment -> {
                     binding.bottomNavigationView.menu.findItem(R.id.bottom_navigation_item_library)?.isChecked =
                         true
+                }
+
+                R.id.playlistFragment, R.id.artistFragment, R.id.albumFragment -> {
+                    val currentBackStack = nav.previousBackStackEntry?.destination?.id
+                    when (currentBackStack) {
+                        R.id.bottom_navigation_item_library, R.id.downloadedFragment, R.id.mostPlayedFragment, R.id.followedFragment, R.id.favoriteFragment, R.id.localPlaylistFragment -> {
+                            binding.bottomNavigationView.menu.findItem(R.id.bottom_navigation_item_library)?.isChecked =
+                                true
+                        }
+
+                        R.id.bottom_navigation_item_search -> {
+                            binding.bottomNavigationView.menu.findItem(R.id.bottom_navigation_item_search)?.isChecked =
+                                true
+                        }
+
+                        R.id.bottom_navigation_item_home, R.id.settingsFragment, R.id.recentlySongsFragment, R.id.moodFragment -> {
+                            binding.bottomNavigationView.menu.findItem(R.id.bottom_navigation_item_home)?.isChecked =
+                                true
+                        }
+                    }
                 }
 
                 else -> {}
@@ -484,15 +504,15 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onStartClose(layout: SwipeLayout?) {
-                binding.card.radius = 10f
+                binding.card.radius = 12f
             }
 
             override fun onClose(layout: SwipeLayout?) {
-                binding.card.radius = 10f
+                binding.card.radius = 12f
             }
 
             override fun onUpdate(layout: SwipeLayout?, leftOffset: Int, topOffset: Int) {
-                binding.card.radius = 10f
+                binding.card.radius = 12f
             }
 
             override fun onHandRelease(layout: SwipeLayout?, xvel: Float, yvel: Float) {
@@ -504,11 +524,11 @@ class MainActivity : AppCompatActivity() {
             viewModel.isServiceRunning.postValue(false)
             viewModel.videoId.postValue(null)
             binding.miniplayer.visibility = View.GONE
-            binding.card.radius = 10f
+            binding.card.radius = 12f
         }
         binding.btSkipNext.setOnClickListener {
             viewModel.onUIEvent(UIEvent.Next)
-            binding.card.radius = 10f
+            binding.card.radius = 12f
         }
 
         binding.card.setOnClickListener {
