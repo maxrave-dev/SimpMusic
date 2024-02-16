@@ -315,4 +315,8 @@
     <string name="removed_from_youtube_liked">Đã xoá khỏi danh sách phát YouTube Yêu Thích</string>
     <string name="home_limit">Giới hạn lấy dữ liệu trang chủ</string>
     <string name="no_album">Không có album</string>
+    <string name="app_widget_description">Tiện ích trình phát nhạc</string>
+    <string name="guide_miniplayer_content">Vuốt để hiện thị nút bỏ qua và nút đóng trình phát</string>
+    <string name="guide_suggest_content">Hiện những bài hát được đề xuất bởi AI dựa trên danh sách phát của bạn</string>
+    <string name="guide_liked_title">Thêm vào danh sách phát YouTube</string>
 </resources>

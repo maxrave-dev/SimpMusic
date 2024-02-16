@@ -316,4 +316,8 @@
     <string name="removed_from_youtube_liked">Eliminado de la lista de reproducción de YouTube Liked</string>
     <string name="home_limit">Obtener límite de datos de casa</string>
     <string name="no_album">Sin álbum</string>
+    <string name="app_widget_description">Widget de Jugador</string>
+    <string name="guide_miniplayer_content">Desliza para mostrar el botón saltar y cerrar</string>
+    <string name="guide_suggest_content">Mostrar canciones sugeridas por IA basadas en tu lista de reproducción</string>
+    <string name="guide_liked_title">Agregar a la lista de reproducción que me gusta de YouTube</string>
 </resources>

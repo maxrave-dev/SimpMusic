@@ -315,4 +315,8 @@
     <string name="removed_from_youtube_liked">Dihapus dari YouTube Disukai</string>
     <string name="home_limit">Batasi data Beranda</string>
     <string name="no_album">Album tidak tersedia</string>
+    <string name="app_widget_description">Widget pemain</string>
+    <string name="guide_miniplayer_content">Gesek untuk menampilkan tombol lewati dan tutup</string>
+    <string name="guide_suggest_content">Tampilkan lagu yang disarankan oleh AI berdasarkan playlist Anda</string>
+    <string name="guide_liked_title">Tambahkan ke Daftar Putar yang Disukai YouTube</string>
 </resources>

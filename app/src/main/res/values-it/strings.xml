@@ -2,7 +2,7 @@
 <resources>
     <string name="app_name">SimpMusic</string>
     <string name="demo_description">Puoi trovarci anche con: musica dance elettronica 2023 edm top canzoni dance elettroniche 2023 canzoni edm musica edm 2023 musica dance elettronica migliore musica electro dance popolare canzoni edm top canzoni edm 2023 musica edm top canzoni dance elettroniche 2023 canzoni edm popolari 2023 migliore musica electro dance 2023 Non importa come sia la tua giornata, puoi sempre ascoltare buona musica: 1. EDM Hits Playlist - Popular EDM Hits in 2023 - Vorremmo tenerti con noi per molti anni a partire da ora! Quindi, nel prossimo anno, potreste trovare la nostra playlist in questo modo: EDM 2024 ♫ Top EDM Songs 2024</string>
-    <string name="Song_and_artist_name">Canzone • %1$s</string>
+    <string name="Song_and_artist_name">Brano • %1$s</string>
     <string name="playlist_and_author">Playlist • %1$s</string>
     <string name="album_and_artist_name">Album • %1$s</string>
     <string name="subscribers">%1$s iscritti</string>
@@ -11,7 +11,7 @@
     <string name="view_count">%1$s visualizzazioni</string>
     <string name="lyrics_provider">Testi  forniti da Musixmatch</string>
     <string name="clear_search_history">Cancella la cronologia delle ricerche</string>
-    <string name="liked">Piaciuti</string>
+    <string name="liked">Salvato</string>
     <string name="like">Mi piace</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="download">Scarica</string>
@@ -279,7 +279,7 @@
     <string name="video_quality">Qualità video</string>
     <plurals name="n_song">
         <item quantity="one">%d canzone</item>
-        <item quantity="other">%d songs</item>
+        <item quantity="other">%d brani</item>
     </plurals>
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENUTO</string>
@@ -287,4 +287,37 @@
     <string name="quality_video">Qualità video</string>
     <string name="add_to_queue">Aggiungi alla coda</string>
     <string name="added_to_queue">Aggiunto alla coda</string>
+    <string name="new_release">Nuova versione</string>
+    <string name="music_video">Video musicale</string>
+    <string name="your_music_is_always_up_to_date">LA TUA MUSICA È SEMPRE AGGIORNATA</string>
+    <string name="youtube_account">Account YouTube</string>
+    <string name="manage_your_youtube_accounts">Gestisci i tuoi account YouTube</string>
+    <string name="no_account">Nessun account</string>
+    <string name="add_an_account">Aggiungi un account</string>
+    <string name="signed_in">Accesso eseguito</string>
+    <string name="guest">Ospite</string>
+    <string name="log_out_warning">Disconnettersi da tutti gli account?</string>
+    <string name="play_next">Riproduci successivo</string>
+    <string name="codec">Codec</string>
+    <string name="plays">Conteggio Riproduzioni/Visualizzazioni</string>
+    <string name="like_and_dislike">%1$d like(s), %2$d dislike(s)</string>
+    <string name="published_at">Pubblicato il %1$s</string>
+    <string name="less">Meno</string>
+    <string name="spotify">Spotify</string>
+    <string name="log_in_to_spotify">Accedi a Spotify</string>
+    <string name="intro_login_to_spotify">Accedi per i Testi, i Canvas e altro ancora da Spotify</string>
+    <string name="enable_spotify_lyrics">Abilita Testi da Spotify</string>
+    <string name="spotify_lyrícs_info">Più testi senza traduzione</string>
+    <string name="enable_canvas">Abilita Canvas</string>
+    <string name="canvas_info">Mostra i Canvas di Spotify in SimpMusic</string>
+    <string name="spotify_lyrics_provider">Testi forniti da Spotify</string>
+    <string name="offline_mode">Modalità offline</string>
+    <string name="added_to_youtube_liked">Aggiunto ai Mi piace di YouTube</string>
+    <string name="removed_from_youtube_liked">Rimosso dai Mi piace di YouTube</string>
+    <string name="home_limit">Limite dati home</string>
+    <string name="no_album">Nessun album</string>
+    <string name="app_widget_description">Widget giocatore</string>
+    <string name="guide_miniplayer_content">Scorri per mostrare il pulsante salta e chiudi</string>
+    <string name="guide_suggest_content">Mostra i brani suggeriti da AI in base alla tua playlist</string>
+    <string name="guide_liked_title">Aggiungi alla playlist dei preferiti di YouTube</string>
 </resources>

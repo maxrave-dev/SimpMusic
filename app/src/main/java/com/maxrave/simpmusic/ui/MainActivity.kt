@@ -45,7 +45,6 @@ import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.FIRST_TIME_MIGRATION
-import com.maxrave.simpmusic.common.RESTORE_SUCCESSFUL
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.common.SPONSOR_BLOCK
 import com.maxrave.simpmusic.common.STATUS_DONE
@@ -325,8 +324,6 @@ class MainActivity : AppCompatActivity() {
         if (data != null) {
             viewModel.intent.value = intent
         }
-
-        viewModel.checkIsRestoring()
         Log.d("Italy", "Key: ${Locale.ITALY.toLanguageTag()}")
 
         // Check if the migration has already been done or not
@@ -380,6 +377,7 @@ class MainActivity : AppCompatActivity() {
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
 //            WindowCompat.setDecorFitsSystemWindows(window, false)
         enableEdgeToEdge()
+        viewModel.checkIsRestoring()
 //        } else {
 //            window.decorView.systemUiVisibility = View.SYSTEM_UI_FLAG_FULLSCREEN
 //        }
@@ -543,9 +541,6 @@ class MainActivity : AppCompatActivity() {
                 val job1 = launch {
                     viewModel.intent.collectLatest { intent ->
                         if (intent != null) {
-                            if (intent.action == RESTORE_SUCCESSFUL) {
-                                viewModel.checkIsRestoring()
-                            }
                             data = intent.data ?: intent.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
                             Log.d("MainActivity", "onCreate: $data")
                             if (data != null) {
