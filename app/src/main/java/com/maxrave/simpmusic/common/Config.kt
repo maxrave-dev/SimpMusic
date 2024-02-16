@@ -128,3 +128,5 @@ const val FIRST_TIME_MIGRATION = "first_time_migration"
 const val SELECTED_LANGUAGE = "selected_language"
 
 const val STATUS_DONE = "status_done"
+
+const val RESTORE_SUCCESSFUL = "restore_successful"

@@ -45,6 +45,7 @@ import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.FIRST_TIME_MIGRATION
+import com.maxrave.simpmusic.common.RESTORE_SUCCESSFUL
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.common.SPONSOR_BLOCK
 import com.maxrave.simpmusic.common.STATUS_DONE
@@ -427,13 +428,23 @@ class MainActivity : AppCompatActivity() {
         val navHostFragment = supportFragmentManager.findFragmentById(R.id.fragment_container_view)
         val navController = navHostFragment?.findNavController()
         binding.bottomNavigationView.setupWithNavController(navController!!)
+        binding.bottomNavigationView.setOnItemReselectedListener {
+            val id = navController.currentDestination?.id
+            if (id != R.id.bottom_navigation_item_home && id != R.id.bottom_navigation_item_search && id != R.id.bottom_navigation_item_library) {
+                navController.popBackStack(it.itemId, inclusive = false)
+            } else if (id == R.id.bottom_navigation_item_home) {
+                viewModel.homeRefresh()
+            }
+        }
         when (action) {
             "com.maxrave.simpmusic.action.HOME" -> {
                 binding.bottomNavigationView.selectedItemId = R.id.bottom_navigation_item_home
             }
+
             "com.maxrave.simpmusic.action.SEARCH" -> {
                 binding.bottomNavigationView.selectedItemId = R.id.bottom_navigation_item_search
             }
+
             "com.maxrave.simpmusic.action.LIBRARY" -> {
                 binding.bottomNavigationView.selectedItemId = R.id.bottom_navigation_item_library
             }
@@ -452,7 +463,7 @@ class MainActivity : AppCompatActivity() {
                         true
                 }
 
-                R.id.bottom_navigation_item_library, R.id.downloadedFragment, R.id.mostPlayedFragment, R.id.followedFragment, R.id.favoriteFragment -> {
+                R.id.bottom_navigation_item_library, R.id.downloadedFragment, R.id.mostPlayedFragment, R.id.followedFragment, R.id.favoriteFragment, R.id.localPlaylistFragment -> {
                     binding.bottomNavigationView.menu.findItem(R.id.bottom_navigation_item_library)?.isChecked =
                         true
                 }
@@ -511,17 +522,23 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
                 val job1 = launch {
                     viewModel.intent.collectLatest { intent ->
-                        if (intent != null){
+                        if (intent != null) {
+                            if (intent.action == RESTORE_SUCCESSFUL) {
+                                viewModel.checkIsRestoring()
+                            }
                             data = intent.data ?: intent.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
                             Log.d("MainActivity", "onCreate: $data")
                             if (data != null) {
                                 when (val path = data!!.pathSegments.firstOrNull()) {
-                                    "playlist" -> data!!.getQueryParameter("list")?.let { playlistId ->
-                                        if (playlistId.startsWith("OLAK5uy_")) {
-                                            viewModel.intent.value = null
-                                            navController.navigateSafe(R.id.action_global_albumFragment, Bundle().apply {
-                                                putString("browseId", playlistId)
-                                            })
+                                    "playlist" -> data!!.getQueryParameter("list")
+                                        ?.let { playlistId ->
+                                            if (playlistId.startsWith("OLAK5uy_")) {
+                                                viewModel.intent.value = null
+                                                navController.navigateSafe(
+                                                    R.id.action_global_albumFragment,
+                                                    Bundle().apply {
+                                                        putString("browseId", playlistId)
+                                                    })
                                         }
                                         else if (playlistId.startsWith("VL")) {
                                             viewModel.intent.value = null

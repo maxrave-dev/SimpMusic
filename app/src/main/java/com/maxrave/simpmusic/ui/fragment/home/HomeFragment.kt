@@ -28,6 +28,9 @@ import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.snackbar.Snackbar
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.R.drawable
+import com.maxrave.simpmusic.R.layout
+import com.maxrave.simpmusic.R.string
 import com.maxrave.simpmusic.adapter.artist.SeeArtistOfNowPlayingAdapter
 import com.maxrave.simpmusic.adapter.home.GenreAdapter
 import com.maxrave.simpmusic.adapter.home.HomeItemAdapter
@@ -62,6 +65,7 @@ import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -94,35 +98,35 @@ class HomeFragment : Fragment() {
                         viewModel.songEntity.observe(viewLifecycleOwner) { songEntity ->
                             if (songEntity != null) {
                                 if (songEntity.liked) {
-                                    tvFavorite.text = getString(R.string.liked)
+                                    tvFavorite.text = getString(string.liked)
                                     cbFavorite.isChecked = true
                                 } else {
-                                    tvFavorite.text = getString(R.string.like)
+                                    tvFavorite.text = getString(string.like)
                                     cbFavorite.isChecked = false
                                 }
 
                                 when (songEntity.downloadState) {
                                     DownloadState.STATE_NOT_DOWNLOADED -> {
-                                        tvDownload.text = getString(R.string.download)
-                                        ivDownload.setImageResource(R.drawable.outline_download_for_offline_24)
+                                        tvDownload.text = getString(string.download)
+                                        ivDownload.setImageResource(drawable.outline_download_for_offline_24)
                                         setEnabledAll(btDownload, true)
                                     }
 
                                     DownloadState.STATE_DOWNLOADING -> {
-                                        tvDownload.text = getString(R.string.downloading)
-                                        ivDownload.setImageResource(R.drawable.baseline_downloading_white)
+                                        tvDownload.text = getString(string.downloading)
+                                        ivDownload.setImageResource(drawable.baseline_downloading_white)
                                         setEnabledAll(btDownload, true)
                                     }
 
                                     DownloadState.STATE_DOWNLOADED -> {
-                                        tvDownload.text = getString(R.string.downloaded)
-                                        ivDownload.setImageResource(R.drawable.baseline_downloaded)
+                                        tvDownload.text = getString(string.downloaded)
+                                        ivDownload.setImageResource(drawable.baseline_downloaded)
                                         setEnabledAll(btDownload, true)
                                     }
 
                                     DownloadState.STATE_PREPARING -> {
-                                        tvDownload.text = getString(R.string.preparing)
-                                        ivDownload.setImageResource(R.drawable.baseline_downloading_white)
+                                        tvDownload.text = getString(string.preparing)
+                                        ivDownload.setImageResource(drawable.baseline_downloading_white)
                                         setEnabledAll(btDownload, true)
                                     }
                                 }
@@ -138,7 +142,7 @@ class HomeFragment : Fragment() {
                             setEnabledAll(btAlbum, true)
                             tvAlbum.text = track.album.name
                         } else {
-                            tvAlbum.text = getString(R.string.no_album)
+                            tvAlbum.text = getString(string.no_album)
                             setEnabledAll(btAlbum, false)
                         }
                         btAlbum.setOnClickListener {
@@ -153,7 +157,7 @@ class HomeFragment : Fragment() {
                             } else {
                                 Toast.makeText(
                                     requireContext(),
-                                    getString(R.string.no_album),
+                                    getString(string.no_album),
                                     Toast.LENGTH_SHORT
                                 ).show()
                             }
@@ -180,11 +184,11 @@ class HomeFragment : Fragment() {
                         btLike.setOnClickListener {
                             if (cbFavorite.isChecked) {
                                 cbFavorite.isChecked = false
-                                tvFavorite.text = getString(R.string.like)
+                                tvFavorite.text = getString(string.like)
                                 viewModel.updateLikeStatus(track.videoId, false)
                             } else {
                                 cbFavorite.isChecked = true
-                                tvFavorite.text = getString(R.string.liked)
+                                tvFavorite.text = getString(string.liked)
                                 viewModel.updateLikeStatus(track.videoId, true)
                             }
                             lifecycleScope.launch {
@@ -232,7 +236,7 @@ class HomeFragment : Fragment() {
                             val url = "https://youtube.com/watch?v=${track.videoId}"
                             shareIntent.putExtra(Intent.EXTRA_TEXT, url)
                             val chooserIntent =
-                                Intent.createChooser(shareIntent, getString(R.string.share_url))
+                                Intent.createChooser(shareIntent, getString(string.share_url))
                             startActivity(chooserIntent)
                         }
                         btAddPlaylist.setOnClickListener {
@@ -294,7 +298,7 @@ class HomeFragment : Fragment() {
                         }
                         btSleepTimer.visibility = View.GONE
                         btDownload.setOnClickListener {
-                            if (tvDownload.text == getString(R.string.download)) {
+                            if (tvDownload.text == getString(string.download)) {
                                 Log.d("Download", "onClick: ${track.videoId}")
                                 viewModel.updateDownloadState(
                                     track.videoId,
@@ -326,8 +330,8 @@ class HomeFragment : Fragment() {
                                                         DownloadState.STATE_DOWNLOADING
                                                     )
                                                     tvDownload.text =
-                                                        getString(R.string.downloading)
-                                                    ivDownload.setImageResource(R.drawable.baseline_downloading_white)
+                                                        getString(string.downloading)
+                                                    ivDownload.setImageResource(drawable.baseline_downloading_white)
                                                     setEnabledAll(btDownload, true)
                                                 }
 
@@ -336,8 +340,8 @@ class HomeFragment : Fragment() {
                                                         track.videoId,
                                                         DownloadState.STATE_NOT_DOWNLOADED
                                                     )
-                                                    tvDownload.text = getString(R.string.download)
-                                                    ivDownload.setImageResource(R.drawable.outline_download_for_offline_24)
+                                                    tvDownload.text = getString(string.download)
+                                                    ivDownload.setImageResource(drawable.outline_download_for_offline_24)
                                                     setEnabledAll(btDownload, true)
                                                     Toast.makeText(
                                                         requireContext(),
@@ -353,11 +357,11 @@ class HomeFragment : Fragment() {
                                                     )
                                                     Toast.makeText(
                                                         requireContext(),
-                                                        getString(R.string.downloaded),
+                                                        getString(string.downloaded),
                                                         Toast.LENGTH_SHORT
                                                     ).show()
-                                                    tvDownload.text = getString(R.string.downloaded)
-                                                    ivDownload.setImageResource(R.drawable.baseline_downloaded)
+                                                    tvDownload.text = getString(string.downloaded)
+                                                    ivDownload.setImageResource(drawable.baseline_downloaded)
                                                     setEnabledAll(btDownload, true)
                                                 }
 
@@ -368,8 +372,8 @@ class HomeFragment : Fragment() {
                                         }
                                     }
                                 }
-                            } else if (tvDownload.text == getString(R.string.downloaded) || tvDownload.text == getString(
-                                    R.string.downloading
+                            } else if (tvDownload.text == getString(string.downloaded) || tvDownload.text == getString(
+                                    string.downloading
                                 )
                             ) {
                                 DownloadService.sendRemoveDownload(
@@ -382,12 +386,12 @@ class HomeFragment : Fragment() {
                                     track.videoId,
                                     DownloadState.STATE_NOT_DOWNLOADED
                                 )
-                                tvDownload.text = getString(R.string.download)
-                                ivDownload.setImageResource(R.drawable.outline_download_for_offline_24)
+                                tvDownload.text = getString(string.download)
+                                ivDownload.setImageResource(drawable.outline_download_for_offline_24)
                                 setEnabledAll(btDownload, true)
                                 Toast.makeText(
                                     requireContext(),
-                                    getString(R.string.removed_download),
+                                    getString(string.removed_download),
                                     Toast.LENGTH_SHORT
                                 ).show()
                             }
@@ -570,19 +574,19 @@ class HomeFragment : Fragment() {
         val formatter = SimpleDateFormat("HH")
         when (formatter.format(date).toInt()) {
             in 6..12 -> {
-                binding.topAppBar.subtitle = getString(R.string.good_morning)
+                binding.topAppBar.subtitle = getString(string.good_morning)
             }
 
             in 13..17 -> {
-                binding.topAppBar.subtitle = getString(R.string.good_afternoon)
+                binding.topAppBar.subtitle = getString(string.good_afternoon)
             }
 
             in 18..23 -> {
-                binding.topAppBar.subtitle = getString(R.string.good_evening)
+                binding.topAppBar.subtitle = getString(string.good_evening)
             }
 
             else -> {
-                binding.topAppBar.subtitle = getString(R.string.good_night)
+                binding.topAppBar.subtitle = getString(string.good_night)
             }
         }
         Log.d("Check", formatter.format(date))
@@ -656,7 +660,7 @@ class HomeFragment : Fragment() {
                 } else {
                     Toast.makeText(
                         requireContext(),
-                        getString(R.string.this_song_is_not_available), Toast.LENGTH_SHORT
+                        getString(string.this_song_is_not_available), Toast.LENGTH_SHORT
                     ).show()
                 }
             }
@@ -669,7 +673,7 @@ class HomeFragment : Fragment() {
                     Queue.setNowPlaying(firstQueue)
                     val args = Bundle()
                     args.putString("videoId", song.videoId)
-                    args.putString("from", "\"${song.title}\" ${getString(R.string.in_charts)}")
+                    args.putString("from", "\"${song.title}\" ${getString(string.in_charts)}")
                     args.putString("type", Config.SONG_CLICK)
                     findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
                 }
@@ -684,7 +688,7 @@ class HomeFragment : Fragment() {
             com.google.android.material.R.attr.listPopupWindowStyle
         )
         listPopup.anchorView = binding.btRegionCode
-        val codeAdapter = ArrayAdapter(requireContext(), R.layout.item_list_popup, itemsData)
+        val codeAdapter = ArrayAdapter(requireContext(), layout.item_list_popup, itemsData)
         listPopup.setAdapter(codeAdapter)
         listPopup.setOnItemClickListener { _, _, position, _ ->
             binding.btRegionCode.text = itemsData[position]
@@ -751,7 +755,8 @@ class HomeFragment : Fragment() {
                 is Resource.Success -> {
                     response.data?.let { homeItemList ->
                         val homeItemListWithoutQuickPicks = arrayListOf<HomeItem>()
-                        val firstHomeItem = homeItemList.find { it.title == getString(R.string.quick_picks) }
+                        val firstHomeItem =
+                            homeItemList.find { it.title == getString(string.quick_picks) }
                         if (firstHomeItem != null)
                         {
                             val temp = firstHomeItem.contents.filterNotNull()
@@ -827,9 +832,27 @@ class HomeFragment : Fragment() {
         }
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.CREATED) {
-                viewModel.showSnackBarErrorState.collect {
-                    showSnackBarError(it)
+                val job1 = launch {
+                    viewModel.showSnackBarErrorState.collect {
+                        showSnackBarError(it)
+                    }
                 }
+                val job2 = launch {
+                    sharedViewModel.homeRefresh.collectLatest {
+                        if (it) {
+                            if (binding.fullLayout.scrollY == 0) {
+                                binding.swipeRefreshLayout.isRefreshing = true
+                                sharedViewModel.homeRefreshDone()
+                                fetchHomeData()
+                            } else {
+                                binding.fullLayout.smoothScrollTo(0, 0)
+                                sharedViewModel.homeRefreshDone()
+                            }
+                        }
+                    }
+                }
+                job1.join()
+                job2.join()
             }
         }
     }
@@ -844,7 +867,7 @@ class HomeFragment : Fragment() {
             requireActivity().findViewById(R.id.mini_player_container),
             message,
             Snackbar.LENGTH_LONG
-        ).setAction(getString(R.string.retry)) {
+        ).setAction(getString(string.retry)) {
             fetchHomeData()
         }
             .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))

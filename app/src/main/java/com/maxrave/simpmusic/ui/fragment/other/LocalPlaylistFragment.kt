@@ -909,7 +909,7 @@ class LocalPlaylistFragment : Fragment() {
                     binding.btSuggest.visibility = View.GONE
                 } else if (localPlaylist.syncedWithYouTubePlaylist == 1) {
                     binding.btSuggest.visibility = View.VISIBLE
-                    if (!sharedViewModel.isFirstSuggestions) {
+                    if (sharedViewModel.isFirstSuggestions) {
                         val balloon = Balloon.Builder(requireContext())
                             .setWidthRatio(0.5f)
                             .setHeight(BalloonSizeSpec.WRAP)

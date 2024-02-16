@@ -19,6 +19,7 @@ import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DB_NAME
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.QUALITY
+import com.maxrave.simpmusic.common.RESTORE_SUCCESSFUL
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.common.SETTINGS_FILENAME
 import com.maxrave.simpmusic.common.VIDEO_QUALITY
@@ -411,8 +412,9 @@ class SettingsViewModel @Inject constructor(
                 }
             }
             context.stopService(Intent(context, SimpleMediaService::class.java))
-            runBlocking { dataStoreManager.restore(true) }
-            context.startActivity(Intent(context, MainActivity::class.java))
+            context.startActivity(Intent(context, MainActivity::class.java).apply {
+                action = RESTORE_SUCCESSFUL
+            })
             exitProcess(0)
         }.onFailure {
             it.printStackTrace()

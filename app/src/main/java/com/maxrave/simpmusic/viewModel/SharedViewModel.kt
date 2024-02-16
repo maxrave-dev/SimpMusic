@@ -69,7 +69,6 @@ import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.ui.widget.BasicWidget
 import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -83,7 +82,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -177,7 +175,6 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
     private var language: String? = null
     private var quality: String? = null
     var from_backup: String? = null
-    private var isRestoring = MutableStateFlow(false)
 
     private var _format: MutableStateFlow<NewFormatEntity?> = MutableStateFlow(null)
     val format: SharedFlow<NewFormatEntity?> = _format.asSharedFlow()
@@ -614,69 +611,58 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
 
     fun checkIsRestoring() {
         viewModelScope.launch {
-            dataStoreManager.isRestoringDatabase.first().let { restoring ->
-                isRestoring.value = restoring == TRUE
-                isRestoring.collect { it ->
-                    if (it) {
-                        Toast.makeText(
-                            context,
-                            context.getString(R.string.restore_success),
-                            Toast.LENGTH_SHORT
-                        ).show()
-                        mainRepository.getDownloadedSongs().first().let { songs ->
-                            songs?.forEach { song ->
-                                if (!downloadedCache.keys.contains(song.videoId)) {
-                                    mainRepository.updateDownloadState(
-                                        song.videoId,
-                                        DownloadState.STATE_NOT_DOWNLOADED
-                                    )
-                                }
+            Toast.makeText(
+                context,
+                context.getString(R.string.restore_success),
+                Toast.LENGTH_SHORT
+            ).show()
+            mainRepository.getDownloadedSongs().first().let { songs ->
+                songs?.forEach { song ->
+                    if (!downloadedCache.keys.contains(song.videoId)) {
+                        mainRepository.updateDownloadState(
+                            song.videoId,
+                            DownloadState.STATE_NOT_DOWNLOADED
+                        )
+                    }
+                }
+            }
+            mainRepository.getAllDownloadedPlaylist().first().let { list ->
+                for (data in list) {
+                    when (data) {
+                        is AlbumEntity -> {
+                            if (data.tracks.isNullOrEmpty() || (!downloadedCache.keys.containsAll(
+                                    data.tracks
+                                ))
+                            ) {
+                                mainRepository.updateAlbumDownloadState(
+                                    data.browseId,
+                                    DownloadState.STATE_NOT_DOWNLOADED
+                                )
                             }
                         }
-                        mainRepository.getAllDownloadedPlaylist().first().let { list ->
-                            for (data in list) {
-                                when (data) {
-                                    is AlbumEntity -> {
-                                        if (data.tracks.isNullOrEmpty() || (!downloadedCache.keys.containsAll(
-                                                data.tracks
-                                            ))
-                                        ) {
-                                            mainRepository.updateAlbumDownloadState(
-                                                data.browseId,
-                                                DownloadState.STATE_NOT_DOWNLOADED
-                                            )
-                                        }
-                                    }
 
-                                    is PlaylistEntity -> {
-                                        if (data.tracks.isNullOrEmpty() || (!downloadedCache.keys.containsAll(
-                                                data.tracks
-                                            ))
-                                        ) {
-                                            mainRepository.updatePlaylistDownloadState(
-                                                data.id,
-                                                DownloadState.STATE_NOT_DOWNLOADED
-                                            )
-                                        }
-                                    }
-
-                                    is LocalPlaylistEntity -> {
-                                        if (data.tracks.isNullOrEmpty() || (!downloadedCache.keys.containsAll(
-                                                data.tracks
-                                            ))
-                                        ) {
-                                            mainRepository.updateLocalPlaylistDownloadState(
-                                                DownloadState.STATE_NOT_DOWNLOADED,
-                                                data.id
-                                            )
-                                        }
-                                    }
-                                }
+                        is PlaylistEntity -> {
+                            if (data.tracks.isNullOrEmpty() || (!downloadedCache.keys.containsAll(
+                                    data.tracks
+                                ))
+                            ) {
+                                mainRepository.updatePlaylistDownloadState(
+                                    data.id,
+                                    DownloadState.STATE_NOT_DOWNLOADED
+                                )
                             }
                         }
-                        withContext(Dispatchers.Main) {
-                            dataStoreManager.restore(false)
-                            isRestoring.value = false
+
+                        is LocalPlaylistEntity -> {
+                            if (data.tracks.isNullOrEmpty() || (!downloadedCache.keys.containsAll(
+                                    data.tracks
+                                ))
+                            ) {
+                                mainRepository.updateLocalPlaylistDownloadState(
+                                    DownloadState.STATE_NOT_DOWNLOADED,
+                                    data.id
+                                )
+                            }
                         }
                     }
                 }
@@ -1570,6 +1556,17 @@ class SharedViewModel @Inject constructor(private var dataStoreManager: DataStor
                 }
             }
         }
+    }
+
+    private var _homeRefresh: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val homeRefresh: StateFlow<Boolean> = _homeRefresh.asStateFlow()
+
+    fun homeRefresh() {
+        _homeRefresh.value = true
+    }
+
+    fun homeRefreshDone() {
+        _homeRefresh.value = false
     }
 }
 sealed class UIEvent {

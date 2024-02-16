@@ -37,14 +37,6 @@ class DataStoreManager @Inject constructor(private val settingsDataStore: DataSt
         preferences[QUALITY] ?: COMMON_QUALITY.items[0].toString()
     }
 
-    suspend fun restore(isRestoring: Boolean) {
-        withContext(Dispatchers.IO) {
-            settingsDataStore.edit { settings ->
-                settings[IS_RESTORING_DATABASE] = if (isRestoring) TRUE else FALSE
-            }
-        }
-    }
-
     suspend fun setQuality(quality: String) {
         withContext(Dispatchers.IO) {
             settingsDataStore.edit { settings ->
@@ -69,9 +61,6 @@ class DataStoreManager @Inject constructor(private val settingsDataStore: DataSt
         }
     }
 
-    val isRestoringDatabase: Flow<String> = settingsDataStore.data.map { preferences ->
-        preferences[IS_RESTORING_DATABASE] ?: FALSE
-    }
     val loggedIn: Flow<String> = settingsDataStore.data.map { preferences ->
         preferences[LOGGED_IN] ?: FALSE
     }
@@ -482,7 +471,6 @@ class DataStoreManager @Inject constructor(private val settingsDataStore: DataSt
         val LOCATION = stringPreferencesKey("location")
         val QUALITY = stringPreferencesKey("quality")
         val NORMALIZE_VOLUME = stringPreferencesKey("normalize_volume")
-        val IS_RESTORING_DATABASE = stringPreferencesKey("is_restoring_database")
         val SKIP_SILENT = stringPreferencesKey("skip_silent")
         val SAVE_STATE_OF_PLAYBACK = stringPreferencesKey("save_state_of_playback")
         val SAVE_RECENT_SONG = stringPreferencesKey("save_recent_song")
