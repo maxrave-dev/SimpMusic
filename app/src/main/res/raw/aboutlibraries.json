@@ -104,14 +104,14 @@
           "name": "The Android Open Source Project"
         }
       ],
-      "artifactVersion": "1.7.0",
+      "artifactVersion": "1.7.1",
       "description": "Provides source annotations for tooling and readability.",
       "scm": {
         "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
         "url": "https://cs.android.com/androidx/platform/frameworks/support"
       },
       "name": "Annotation",
-      "website": "https://developer.android.com/jetpack/androidx/releases/annotation#1.7.0",
+      "website": "https://developer.android.com/jetpack/androidx/releases/annotation#1.7.1",
       "licenses": [
         "Apache-2.0"
       ]
@@ -3123,6 +3123,28 @@
       "description": "",
       "name": "com.github.giangpham96:expandable-text",
       "licenses": [
+      ]
+    },
+    {
+      "uniqueId": "com.github.skydoves:balloon",
+      "funding": [
+      ],
+      "developers": [
+        {
+          "name": "Jaewoong Eum"
+        }
+      ],
+      "artifactVersion": "1.6.4",
+      "description": "Modernized and sophisticated tooltips, fully customizable with an arrow and animations for Android.",
+      "scm": {
+        "connection": "scm:git:git://github.com/skydoves/balloon.git",
+        "url": "https://github.com/skydoves/balloon/",
+        "developerConnection": "scm:git:git://github.com/skydoves/balloon.git"
+      },
+      "name": "balloon",
+      "website": "https://github.com/skydoves/balloon/",
+      "licenses": [
+        "Apache-2.0"
       ]
     },
     {
