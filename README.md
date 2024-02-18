@@ -66,15 +66,15 @@
 
 - This app uses hidden API from YouTube Music with some tricks to get data from YouTube Music.
 - Use Spotify Web API and some tricks to get Spotify Canvas and Lyrics 
-- Thanks for [InnerTune](https://github.com/z-huang/InnerTune/) for the idea to get data from YouTube Music. This repo is my inspiration to create this app
+- Thanks to [InnerTune](https://github.com/z-huang/InnerTune/) for the idea to get data from YouTube Music. This repo is my inspiration to create this app
 - My app is using [SponsorBlock](https://sponsor.ajay.app/) to skip sponsor in YouTube videos.
-- ReturnYouTubeDislike for getting information of votes
+- ReturnYouTubeDislike for getting information on votes
 - Lyrics data from Musixmatch. More information [Musixmatch](https://developer.musixmatch.com/)
 
 ## Privacy
 
 SimpMusic doesn't have any tracker or third-party server for collecting user data. If YouTube
-logged-in user enable "Send back to Google" feature, SimpMusic only use YouTube Music Tracking API
+logged-in users enable "Send back to Google" feature, SimpMusic only uses YouTube Music Tracking API
 to send listening history and listening record of video to Google for better recommendations and
 supporting artist or YouTube Creator (For API reference,
 see [this](https://github.com/maxrave-dev/SimpMusic/blob/13f7ab6e5fa521b62a9fd31a1cefdc2787a1a8af/kotlinYtmusicScraper/src/main/java/com/maxrave/kotlinytmusicscraper/Ytmusic.kt#L639C4-L666C1)).
@@ -85,7 +85,7 @@ see [this](https://github.com/maxrave-dev/SimpMusic/blob/13f7ab6e5fa521b62a9fd31
 ## Translation
 
 [![Crowdin](https://badges.crowdin.net/simpmusic/localized.svg)](https://crowdin.com/project/simpmusic)  
-You can help me to translate this app into your language by using Crowdin [SimpMusic on Crowdin](https://crowdin.com/project/simpmusic)
+You can help me translate this app into your language by using Crowdin [SimpMusic on Crowdin](https://crowdin.com/project/simpmusic)
 
 ## FAQ
 
@@ -117,4 +117,6 @@ Support me to maintain SimpMusic. Thanks for using <3
 |||
 
 ### MOMO or Vietnamese banking
-<img scr="https://github.com/maxrave-dev/SimpMusic/assets/113747128/0d340f95-315d-418c-93b9-ee292f27f745" width="300">
+<p float="left">
+	<img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/asset/52770992.jpg?raw=true" width="300">
+</p>
