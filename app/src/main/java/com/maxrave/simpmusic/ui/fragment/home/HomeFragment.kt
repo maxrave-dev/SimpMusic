@@ -720,7 +720,7 @@ class HomeFragment : Fragment() {
         viewModel.loading.observe(viewLifecycleOwner) { loading ->
             if (!loading) {
                 if (viewModel.regionCodeChart.value != null) {
-                    for (i in 1..items.size) {
+                    for (i in items.indices) {
                         if (viewModel.regionCodeChart.value == items[i]) {
                             binding.btRegionCode.text = itemsData[i]
                             break

@@ -1,22 +1,0 @@
-
->kotlin:S6615ˆ" Remove this useless initializer.(µ·ƒìşÿÿÿÿ
-7kotlin:S125ê"Remove this commented out code.(‰ç¬¶
-Ckotlin:S125°"Remove this commented out code.(Ê¡œİşÿÿÿÿ8©“˜œ“1
->kotlin:S125Å"Remove this commented out code.(éèòå8©“˜œ“1
-Ckotlin:S125Õ"Remove this commented out code.(»Èï±şÿÿÿÿ8ª“˜œ“1
->kotlin:S125ô"Remove this commented out code.(»ˆšÀ8ª“˜œ“1
-5kotlin:S6310¿"Avoid hardcoded dispatchers.(Í¡·Ş
-Fkotlin:S108Å")Either remove or fill this block of code.(ë÷æÒøÿÿÿÿ
-Fkotlin:S108È")Either remove or fill this block of code.(€¸¦’üÿÿÿÿ
-?kotlin:S6305B" Don't expose mutable flow types.(ïÁ¶”8üÙ’œ“1
-2kotlin:S1128"Remove this unused import.(ï›’
-7kotlin:S1128	"Remove this unused import.(éÕïÖøÿÿÿÿ
-2kotlin:S1128"Remove this unused import.(µ¤“ˆ
-7kotlin:S1128"Remove this unused import.(òóªøÿÿÿÿ
-1kotlin:S1128,"Remove this unused import.(ú•Êy
-7kotlin:S1128-"Remove this unused import.(Ó¸Ñÿÿÿÿÿ
-kkotlin:S3776„"RRefactor this method to reduce its Cognitive Complexity from 16 to the 15 allowed.(Ä–ª
-rkotlin:S3776µ"RRefactor this method to reduce its Cognitive Complexity from 49 to the 15 allowed.(¹À½’8è“˜œ“1
-wkotlin:S3776"RRefactor this method to reduce its Cognitive Complexity from 28 to the 15 allowed.(¥§©¼úÿÿÿÿ8è“˜œ“1
-rkotlin:S3776Ô"RRefactor this method to reduce its Cognitive Complexity from 16 to the 15 allowed.(¸ù´ä8è“˜œ“1
-]kotlin:S6511¿"=Merge chained "if" statements into a single "when" statement.(¹Íü¹8ò“˜œ“1
