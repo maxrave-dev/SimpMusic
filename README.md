@@ -25,7 +25,7 @@
 <a href="https://www.buymeacoffee.com/maxrave"><img alt="Buy me a Coffee" height="50" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/donate/buymeacoffee-singular_vector.svg"></a>
 <a
 href="https://liberapay.com/maxrave/"><img alt="liberapay" height="50"
-src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/donate/buymeacoffee-singular_vector.svg"></a>
+src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/donate/liberapay-singular_vector.svg"></a>
 
 
 
