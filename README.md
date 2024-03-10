@@ -108,14 +108,6 @@ sometimes, some songs or videos get the wrong lyric
 Simply, because I love this name. It's a combination of Simple and Music. But SimpMusic is not simple
 app, it's all you need for a music streaming app.
 
-## Donate
-
-Support me to maintain SimpMusic. Thanks for using <3
-|||
-|---|---|
-| [<img src="https://liberapay.com/assets/liberapay/icon-v2_black-on-yellow.svg?save_as=liberapay_logo_black-on-yellow.svg" height="40">]()         | [Liberapay](https://liberapay.com/maxrave/) |
-|||
-
 ### MOMO or Vietnamese banking
 <p float="left">
 	<img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/asset/52770992.jpg?raw=true" width="300">
