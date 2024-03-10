@@ -14,6 +14,11 @@
 <a href="https://nightly.link/maxrave-dev/SimpMusic/workflows/android/dev/app.zip"><img src="https://raw.githubusercontent.com/NeoApplications/Neo-Backup/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" height="80"></a>
 </div>
 
+> **Warning**
+>
+>This app is in the beta stage, so it may have many bugs and make it crash. If you find any bugs,
+> please create an issue or contact me via email or disocrd sever.
+
 ## Support
 
 
@@ -22,10 +27,6 @@
 <a href="https://www.buymeacoffee.com/maxrave"><img alt="Buy me a Coffee" height="56" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/donate/buymeacoffee-singular_vector.svg"></a>
 
 
-> **Warning**
->
->This app is in the beta stage, so it may have many bugs and make it crash. If you find any bugs,
-> please create an issue or contact me via email.
 
 ## Features
 
