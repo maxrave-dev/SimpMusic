@@ -17,7 +17,7 @@
 > **Warning**
 >
 >This app is in the beta stage, so it may have many bugs and make it crash. If you find any bugs,
-> please create an issue or contact me via email or disocrd sever.
+> please create an issue or contact me via email or discord sever.
 
 ## Support
 
