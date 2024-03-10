@@ -136,7 +136,7 @@
                         android:layout_height="@dimen/_260sdp"
                         android:layout_marginHorizontal="@dimen/_25sdp"
                         android:layout_gravity="center_horizontal"
-                        android:layout_marginTop="@dimen/_60sdp">
+                        android:layout_marginVertical="@dimen/_60sdp">
 
                         <com.google.android.material.imageview.ShapeableImageView
                             android:id="@+id/ivArt"
@@ -225,7 +225,6 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:layout_marginTop="@dimen/_75sdp"
                         android:layout_marginHorizontal="@dimen/_25sdp">
 
                         <LinearLayout
@@ -442,6 +441,7 @@
                             </RelativeLayout>
 
                             <RelativeLayout
+                                android:id="@+id/belowControllerButtonLayout"
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
                                 android:orientation="horizontal"

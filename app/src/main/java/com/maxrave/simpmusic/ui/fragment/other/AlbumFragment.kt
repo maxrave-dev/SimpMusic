@@ -18,6 +18,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
@@ -53,6 +54,8 @@ import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlin.math.abs
@@ -325,8 +328,14 @@ class AlbumFragment: Fragment() {
                     }
                 }
                 val job2 = launch {
-                    sharedViewModel.simpleMediaServiceHandler?.nowPlaying?.collect {
-                        songsAdapter.setNowPlaying(it?.mediaId)
+                    combine(sharedViewModel.simpleMediaServiceHandler?.nowPlaying ?: flowOf<MediaItem?>(null), sharedViewModel.isPlaying) { nowPlaying, isPlaying ->
+                        Pair(nowPlaying, isPlaying)
+                    }.collect {
+                        if (it.first != null && it.second) {
+                            songsAdapter.setNowPlaying(it.first!!.mediaId)
+                        } else {
+                            songsAdapter.setNowPlaying(null)
+                        }
                     }
                 }
                 val job3 = launch {

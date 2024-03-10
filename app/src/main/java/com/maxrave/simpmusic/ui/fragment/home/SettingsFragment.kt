@@ -930,7 +930,7 @@ class SettingsFragment : Fragment() {
                     .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
                         dialog.dismiss()
                     }
-                    .setPositiveButton(getString(R.string.log_out)) { dialog, _ ->
+                    .setPositiveButton(getString(R.string.log_out_from_spotify)) { dialog, _ ->
                         viewModel.setSpotifyLogIn(false)
                     }
                 subAlertDialogBuilder.show()

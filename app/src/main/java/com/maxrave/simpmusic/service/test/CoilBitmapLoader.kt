@@ -17,22 +17,28 @@ import kotlinx.coroutines.guava.future
 import java.util.concurrent.ExecutionException
 
 @UnstableApi
-class CoilBitmapLoader(private val context: Context): BitmapLoader {
+class CoilBitmapLoader(private val context: Context) : BitmapLoader {
+    override fun supportsMimeType(mimeType: String): Boolean {
+        return true
+    }
+
     override fun decodeBitmap(data: ByteArray): ListenableFuture<Bitmap> {
         return GlobalScope.future(Dispatchers.IO) {
             BitmapFactory.decodeByteArray(data, 0, data.size) ?: error("Could not decode image data")
         }
     }
 
-    override fun loadBitmap(uri: Uri, options: BitmapFactory.Options?): ListenableFuture<Bitmap> {
+    override fun loadBitmap(uri: Uri): ListenableFuture<Bitmap> {
         return GlobalScope.future(Dispatchers.IO) {
             val result =
-                (context.imageLoader.execute(
-                    ImageRequest.Builder(context)
-                        .data(uri)
-                        .allowHardware(false)
-                        .build()
-                ))
+                (
+                    context.imageLoader.execute(
+                        ImageRequest.Builder(context)
+                            .data(uri)
+                            .allowHardware(false)
+                            .build(),
+                    )
+                )
             if (result is ErrorResult) {
                 throw ExecutionException(result.throwable)
             }

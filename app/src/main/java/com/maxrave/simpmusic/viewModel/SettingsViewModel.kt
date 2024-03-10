@@ -699,6 +699,10 @@ class SettingsViewModel @Inject constructor(
     fun setSpotifyLogIn(loggedIn: Boolean) {
         viewModelScope.launch {
             _spotifyLogIn.emit(loggedIn)
+            if (!loggedIn) {
+                dataStoreManager.setSpdc("")
+                delay(500)
+            }
             getSpotifyLogIn()
         }
     }
