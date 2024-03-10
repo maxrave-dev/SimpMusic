@@ -48,7 +48,7 @@ src="https://github.com/liberapay/liberapay.com/blob/master/www/assets/liberapay
 
 > (*) For users who chose "Send back to Google" feature
 
-## Screenshot
+## Screenshots
 
 <p align="center">  
   <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/fastlane/metadata/android/en-US/images/phoneScreenshots/2.jpg?raw=true" width="200" />  
