@@ -29,7 +29,8 @@ src="https://github.com/liberapay/liberapay.com/blob/master/www/assets/liberapay
 
 [Or go to my MOMO/Vietnamese banking barcode](###MOMO-or- Vietnamese-banking)
 
-[Go to Real Cool Heading section](#real-cool-heading)
+[Go to Real Cool Heading section](###MOMO-or- Vietnamese-banking)
+)
 
 
 ## Features
