@@ -111,8 +111,3 @@ sometimes, some songs or videos get the wrong lyric
 
 Simply, because I love this name. It's a combination of Simple and Music. But SimpMusic is not simple
 app, it's all you need for a music streaming app.
-
-### MOMO or Vietnamese banking
-<p float="left">
-	<img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/asset/52770992.jpg?raw=true" width="300">
-</p>
