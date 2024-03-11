@@ -27,9 +27,7 @@
 href="https://liberapay.com/maxrave/"><img alt="liberapay" height="50"
 src="https://github.com/liberapay/liberapay.com/blob/master/www/assets/liberapay/logo-v2_black-on-yellow.svg"></a>
 
-[Or go to my MOMO/Vietnamese banking barcode](###MOMO-or- Vietnamese-banking)
-
-[Go to Real Cool Heading section](#MOMO-or-Vietnamese-banking)
+[Or click here for my MOMO/Vietnamese Banking Barcode.](#MOMO-or-Vietnamese-banking)
 
 
 ## Features
