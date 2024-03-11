@@ -27,9 +27,9 @@
 href="https://liberapay.com/maxrave/"><img alt="liberapay" height="50"
 src="https://github.com/liberapay/liberapay.com/blob/master/www/assets/liberapay/logo-v2_black-on-yellow.svg"></a>
 
-### MOMO or Vietnamese banking
+# MOMO/Vietnamese banking
 <p float="center">
-	<img src="https://github.com/owencz1998/SimpMusic/blob/dev/asset%2FScreenshot_20240311_084440_GitHub.jpg?raw=true" width="125">
+	<img src="https://github.com/owencz1998/SimpMusic/blob/dev/asset%2FScreenshot_20240311_084440_GitHub.jpg?raw=true" width="120">
 </p>
 
 
