@@ -17,7 +17,7 @@
 >This app is in the beta stage, so it may have many bugs and make it crash. If you find any bugs,
 > please create an issue or contact me via email or discord sever.
 
-## Support
+## Support/Donation
 
 
 <a href="https://simpmusic.tech/"><img alt="Visit the website" height="50" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/documentation/website_vector.svg"></a>
