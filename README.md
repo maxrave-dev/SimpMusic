@@ -29,7 +29,7 @@ src="https://github.com/liberapay/liberapay.com/blob/master/www/assets/liberapay
 	
 
 
-## Features
+## Features ✨️
 
 - Play music from YouTube Music or YouTube free without ads in the background
 - Browsing Home, Charts, Podcast, Moods & Genre with YouTube Music data at high speed
