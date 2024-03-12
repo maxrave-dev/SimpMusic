@@ -92,6 +92,12 @@ see [this](https://github.com/maxrave-dev/SimpMusic/blob/13f7ab6e5fa521b62a9fd31
 [![Crowdin](https://badges.crowdin.net/simpmusic/localized.svg)](https://crowdin.com/project/simpmusic)  
 You can help me translate this app into your language by using Crowdin [SimpMusic on Crowdin](https://crowdin.com/project/simpmusic)
 
+
+### Supported languages:
+<a href="https://hosted.weblate.org/engage/simpmusic/">
+  <img src="https://hosted.weblate.org/widgets/simpmusic/-/app/multi-auto.svg" alt="Translation status" />
+</a>
+
 ## FAQ
 
 #### 1. Wrong Lyrics?
