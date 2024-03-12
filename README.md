@@ -12,11 +12,6 @@
 <a href="https://nightly.link/maxrave-dev/SimpMusic/workflows/android/dev/app.zip"><img src="https://raw.githubusercontent.com/NeoApplications/Neo-Backup/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" height="70"></a>
 </div>
 
-> **Warning**
->
->This app is in the beta stage, so it may have many bugs and make it crash. If you find any bugs,
-> please create an issue or contact me via email or discord sever.
-
 ## Support/Donation
 
 <a href="https://simpmusic.tech/"><img alt="Visit the website" height="50" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/documentation/website_vector.svg"></a>
@@ -112,3 +107,8 @@ sometimes, some songs or videos get the wrong lyric
 
 Simply, because I love this name. It's a combination of Simple and Music. But SimpMusic is not simple
 app, it's all you need for a music streaming app.
+
+> **Warning**
+>
+>This app is in the beta stage, so it may have many bugs and make it crash. If you find any bugs,
+> please create an issue or contact me via email or discord sever.
