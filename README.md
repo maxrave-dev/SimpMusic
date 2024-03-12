@@ -24,7 +24,7 @@ src="https://github.com/liberapay/liberapay.com/blob/master/www/assets/liberapay
 **MOMO/Vietnamese Banking.**
 
 <p float="center">
-<img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/asset/52770992.jpg?raw=true" width="150">
+<img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/asset/52770992.jpg?raw=true" width="100">
 </p>
 	
 
