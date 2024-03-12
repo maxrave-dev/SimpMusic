@@ -13,7 +13,6 @@
 </div>
 
 ## Support/Donation
-
 <a href="https://simpmusic.tech/"><img alt="Visit the website" height="50" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/documentation/website_vector.svg"></a>
 <a href="https://discord.gg/Rq5tWVM9Hg"><img alt="Discord Server" height="50" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/social/discord-plural_vector.svg"></a>
 <a href="https://www.buymeacoffee.com/maxrave"><img alt="Buy me a Coffee" height="50" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/donate/buymeacoffee-singular_vector.svg"></a>
@@ -27,8 +26,6 @@ src="https://github.com/liberapay/liberapay.com/blob/master/www/assets/liberapay
 <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/asset/52770992.jpg?raw=true" width="100">
 </p>
 	
-
-
 ## Features ✨️
 
 - Play music from YouTube Music or YouTube free without ads in the background
