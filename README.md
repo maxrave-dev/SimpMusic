@@ -20,7 +20,7 @@
 href="https://liberapay.com/maxrave/"><img alt="liberapay" height="50"
 src="https://github.com/liberapay/liberapay.com/blob/master/www/assets/liberapay/logo-v2_black-on-yellow.svg"></a>
 
-## [MOMO/VIETNAMESE BANKING](##Support-&-Donations)
+# [MOMO/VIETNAMESE BANKING](##Support-&-Donations)
 
 <p float="center">
 <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/asset/52770992.jpg?raw=true" width="100">
@@ -94,20 +94,20 @@ see [this](https://github.com/maxrave-dev/SimpMusic/blob/13f7ab6e5fa521b62a9fd31
 [![Crowdin](https://badges.crowdin.net/simpmusic/localized.svg)](https://crowdin.com/project/simpmusic)  
 You can help me translate this app into your language by using Crowdin [SimpMusic on Crowdin](https://crowdin.com/project/simpmusic)
 
-## Developer/Team
-### [maxrave-dev](https://github.com/maxrave-dev/SimpMusic): Founder/Developer/Designer 
-
-### [owen connor](https://github.com/owencz1998): Discord Sever Admin. 
-
 ## FAQ
 
 #### 1. Wrong Lyrics?
 
-YouTube Music is not an official partner of Musixmatch so you can't get lyrics directly if using YouTube "
+YouTube Music is not an official partner of Musixmatch so you can't get lyrics directly if using YouTube"
 videoId" parameter. So I need to use some "String Matcher" and "Duration" for search lyrics. So
-sometimes, some songs or videos get the wrong lyric
+sometimes, some songs or videos get the wrong lyric's
 
 #### 2. Why the name or brand is "SimpMusic"?
 
-Simply, because I love this name. It's a combination of Simple and Music. But SimpMusic is not simple
-app, it's all you need for a music streaming app.
+Simply, because I love this name. It's a combination of Simple and Music. But SimpMusic is not a simple app, it's all you need for a powerful music streaming app.
+
+## Developer/Team
+
+### [maxrave-dev](https://github.com/maxrave-dev/SimpMusic): Founder/Developer/Designer 
+
+### [owen connor](https://github.com/owencz1998): Discord Sever Admin. 
