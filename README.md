@@ -45,6 +45,11 @@ src="https://github.com/liberapay/liberapay.com/blob/master/www/assets/liberapay
 
 > (*) For users who chose "Send back to Google" feature
 
+> **Warning**
+
+>This app is in the beta stage, so it may have many bugs and make it crash. If you find any bugs,
+> please create an issue or contact me via email or discord sever.
+
 ## Screenshots
 
 <p align="center">  
@@ -84,16 +89,15 @@ to send listening history and listening record of video to Google for better rec
 supporting artist or YouTube Creator (For API reference,
 see [this](https://github.com/maxrave-dev/SimpMusic/blob/13f7ab6e5fa521b62a9fd31a1cefdc2787a1a8af/kotlinYtmusicScraper/src/main/java/com/maxrave/kotlinytmusicscraper/Ytmusic.kt#L639C4-L666C1)).
 
-## Developer/Team
-### [maxrave-dev](https://github.com/maxrave-dev/SimpMusic): Founder/Developer/Designer 
-
-### [Owencz1998](https://github.com/owenconnor): Discord Sever Admin. 
-
 ## Translation
 
 [![Crowdin](https://badges.crowdin.net/simpmusic/localized.svg)](https://crowdin.com/project/simpmusic)  
 You can help me translate this app into your language by using Crowdin [SimpMusic on Crowdin](https://crowdin.com/project/simpmusic)
 
+## Developer/Team
+### [maxrave-dev](https://github.com/maxrave-dev/SimpMusic): Founder/Developer/Designer 
+
+### [owen connor](https://github.com/owencz1998): Discord Sever Admin. 
 
 ## FAQ
 
@@ -107,8 +111,3 @@ sometimes, some songs or videos get the wrong lyric
 
 Simply, because I love this name. It's a combination of Simple and Music. But SimpMusic is not simple
 app, it's all you need for a music streaming app.
-
-> **Warning**
->
->This app is in the beta stage, so it may have many bugs and make it crash. If you find any bugs,
-> please create an issue or contact me via email or discord sever.
