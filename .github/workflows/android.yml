@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - 'dev'
+      - 'jetpack_compose'
     paths-ignore:
       - 'README.md'
       - 'fastlane/**'
