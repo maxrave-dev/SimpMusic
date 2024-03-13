@@ -7,7 +7,7 @@ data class MusicCarouselShelfRenderer(
     val header: Header?,
     val contents: List<Content>,
     val itemSize: String,
-    val numItemsPerColumn: Int?,
+    val numItemsPerColumn: String?,
 ) {
     @Serializable
     data class Header(

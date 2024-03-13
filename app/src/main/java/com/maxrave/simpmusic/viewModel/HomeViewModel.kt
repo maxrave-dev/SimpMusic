@@ -4,7 +4,6 @@ import android.app.Application
 import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
@@ -41,6 +40,7 @@ import kotlinx.coroutines.runBlocking
 import java.time.LocalDateTime
 import javax.inject.Inject
 
+@UnstableApi
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val mainRepository: MainRepository,
@@ -50,29 +50,30 @@ class HomeViewModel @Inject constructor(
     @Inject
     lateinit var downloadUtils: DownloadUtils
 
-    private val _homeItemList: MutableLiveData<Resource<ArrayList<HomeItem>>> = MutableLiveData()
-    val homeItemList: LiveData<Resource<ArrayList<HomeItem>>> = _homeItemList
-    private val _exploreMoodItem: MutableLiveData<Resource<Mood>> = MutableLiveData()
-    val exploreMoodItem: LiveData<Resource<Mood>> = _exploreMoodItem
-    private val _accountInfo: MutableLiveData<Pair<String?, String?>?> = MutableLiveData()
-    val accountInfo: LiveData<Pair<String?, String?>?> = _accountInfo
+    private val _homeItemList: MutableStateFlow<ArrayList<HomeItem>> =
+        MutableStateFlow(arrayListOf())
+    val homeItemList: StateFlow<ArrayList<HomeItem>> = _homeItemList
+    private val _exploreMoodItem: MutableStateFlow<Mood?> = MutableStateFlow(null)
+    val exploreMoodItem: StateFlow<Mood?> = _exploreMoodItem
+    private val _accountInfo: MutableStateFlow<Pair<String?, String?>?> = MutableStateFlow(null)
+    val accountInfo: StateFlow<Pair<String?, String?>?> = _accountInfo
 
     val showSnackBarErrorState = MutableSharedFlow<String>()
 
-    private val _chart: MutableLiveData<Resource<Chart>> = MutableLiveData()
-    val chart: LiveData<Resource<Chart>> = _chart
-    private val _newRelease: MutableLiveData<Resource<ArrayList<HomeItem>>> = MutableLiveData()
-    val newRelease: LiveData<Resource<ArrayList<HomeItem>>> = _newRelease
-    var regionCodeChart: MutableLiveData<String> = MutableLiveData()
+    private val _chart: MutableStateFlow<Chart?> = MutableStateFlow(null)
+    val chart: StateFlow<Chart?> = _chart
+    private val _newRelease: MutableStateFlow<ArrayList<HomeItem>> = MutableStateFlow(arrayListOf())
+    val newRelease: StateFlow<ArrayList<HomeItem>> = _newRelease
+    var regionCodeChart: MutableStateFlow<String?> = MutableStateFlow(null)
 
-    val loading = MutableLiveData<Boolean>()
-    val loadingChart = MutableLiveData<Boolean>()
+    val loading = MutableStateFlow<Boolean>(false)
+    val loadingChart = MutableStateFlow<Boolean>(false)
     val errorMessage = MutableLiveData<String>()
     private var regionCode: String = ""
     private var language: String = ""
 
-    private val _songEntity: MutableLiveData<SongEntity?> = MutableLiveData()
-    val songEntity: LiveData<SongEntity?> = _songEntity
+    private val _songEntity: MutableStateFlow<SongEntity?> = MutableStateFlow(null)
+    val songEntity: StateFlow<SongEntity?> = _songEntity
 
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         onError("Exception handled: ${throwable.localizedMessage}")
@@ -99,7 +100,7 @@ class HomeViewModel @Inject constructor(
             val job3 = launch {
                 dataStoreManager.cookie.distinctUntilChanged().collect {
                     getHomeItemList()
-                    _accountInfo.postValue(
+                    _accountInfo.emit(
                         Pair(
                             dataStoreManager.getString("AccountName").first(),
                             dataStoreManager.getString("AccountThumbUrl").first()
@@ -115,7 +116,10 @@ class HomeViewModel @Inject constructor(
     }
 
     fun getHomeItemList() {
-        language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() ?: SUPPORTED_LANGUAGE.codes.first() }
+        language = runBlocking {
+            dataStoreManager.getString(SELECTED_LANGUAGE).first()
+                ?: SUPPORTED_LANGUAGE.codes.first()
+        }
         regionCode = runBlocking { dataStoreManager.location.first() }
         loading.value = true
         viewModelScope.launch {
@@ -136,16 +140,47 @@ class HomeViewModel @Inject constructor(
                 val exploreMoodItem = result.mood
                 val chart = result.chart
                 val newRelease = result.newRelease
-                _homeItemList.value = home
-                _exploreMoodItem.value = exploreMoodItem
+                when (home) {
+                    is Resource.Success -> {
+                        _homeItemList.value = home.data ?: arrayListOf()
+                    }
+
+                    else -> {
+                        _homeItemList.value = arrayListOf()
+                    }
+                }
+                when (chart) {
+                    is Resource.Success -> {
+                        _chart.value = chart.data
+                    }
+
+                    else -> {
+                        _chart.value = null
+                    }
+                }
+                when (newRelease) {
+                    is Resource.Success -> {
+                        _newRelease.value = newRelease.data ?: arrayListOf()
+                    }
+
+                    else -> {
+                        _newRelease.value = arrayListOf()
+                    }
+                }
+                when (exploreMoodItem) {
+                    is Resource.Success -> {
+                        _exploreMoodItem.value = exploreMoodItem.data
+                    }
+
+                    else -> {
+                        _exploreMoodItem.value = null
+                    }
+                }
                 regionCodeChart.value = "ZZ"
-                _chart.value = chart
-                _newRelease.value = newRelease
                 Log.d("HomeViewModel", "getHomeItemList: $result")
-                loading.value = false
                 dataStoreManager.cookie.first().let {
                     if (it != "") {
-                        _accountInfo.postValue(
+                        _accountInfo.emit(
                             Pair(
                                 dataStoreManager.getString("AccountName").first(),
                                 dataStoreManager.getString("AccountThumbUrl").first()
@@ -164,6 +199,7 @@ class HomeViewModel @Inject constructor(
                     Log.w("Error", "getHomeItemList: ${exploreMoodItem.message}")
                     Log.w("Error", "getHomeItemList: ${chart.message}")
                 }
+                loading.value = false
             }
         }
     }
@@ -172,10 +208,18 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             loadingChart.value = true
             mainRepository.getChartData(
-                region).collect { values ->
+                region
+            ).collect { values ->
                 regionCodeChart.value = region
-                _chart.value = values
-                Log.d("HomeViewModel", "getHomeItemList: ${chart.value?.data}")
+                when (values) {
+                    is Resource.Success -> {
+                        _chart.value = values.data
+                    }
+
+                    else -> {
+                        _chart.value = null
+                    }
+                }
                 loadingChart.value = false
             }
         }
@@ -202,17 +246,20 @@ class HomeViewModel @Inject constructor(
                 println("Insert song $it")
             }
             mainRepository.getSongById(track.videoId).collect { values ->
+                Log.w("HomeViewModel", "getSongEntity: $values")
                 _songEntity.value = values
             }
         }
     }
 
-    private var _listLocalPlaylist: MutableLiveData<List<LocalPlaylistEntity>> = MutableLiveData()
-    val localPlaylist: LiveData<List<LocalPlaylistEntity>> = _listLocalPlaylist
+    private var _listLocalPlaylist: MutableStateFlow<List<LocalPlaylistEntity>> = MutableStateFlow(
+        listOf()
+    )
+    val localPlaylist: StateFlow<List<LocalPlaylistEntity>> = _listLocalPlaylist
     fun getAllLocalPlaylist() {
         viewModelScope.launch {
             mainRepository.getAllLocalPlaylists().collect { values ->
-                _listLocalPlaylist.postValue(values)
+                _listLocalPlaylist.emit(values)
             }
         }
     }

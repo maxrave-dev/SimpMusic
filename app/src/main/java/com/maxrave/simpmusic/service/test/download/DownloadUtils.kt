@@ -36,7 +36,8 @@ class DownloadUtils @Inject constructor(
     @PlayerCache private val playerCache: SimpleCache,
     @DownloadCache private val downloadCache: SimpleCache,
     private val mainRepository: MainRepository,
-    databaseProvider: DatabaseProvider) {
+    databaseProvider: DatabaseProvider
+) {
 
 
     private val dataSourceFactory = ResolvingDataSource.Factory(
@@ -57,13 +58,12 @@ class DownloadUtils @Inject constructor(
         if (playerCache.isCached(mediaId, dataSpec.position, length)) {
             Log.w("DownloadUtils", "Cached: $mediaId")
             return@Factory dataSpec
-        }
-        else {
+        } else {
             runBlocking(Dispatchers.IO) {
                 Log.w("DownloadUtils", "Not cached: $mediaId")
                 var extract: DataSpec? = null
                 mainRepository.getStream(mediaId, 251).cancellable().collect { values ->
-                    if (values != null){
+                    if (values != null) {
                         extract = dataSpec.withUri((values).toUri())
                     }
                 }
@@ -73,7 +73,13 @@ class DownloadUtils @Inject constructor(
         }
     }
     val downloadNotificationHelper = DownloadNotificationHelper(context, CHANNEL_ID)
-    val downloadManager: DownloadManager = DownloadManager(context, databaseProvider, downloadCache, dataSourceFactory, Executors.newFixedThreadPool(10)).apply {
+    val downloadManager: DownloadManager = DownloadManager(
+        context,
+        databaseProvider,
+        downloadCache,
+        dataSourceFactory,
+        Executors.newFixedThreadPool(10)
+    ).apply {
         maxParallelDownloads = 20
         minRetryCount = 3
         addListener(
@@ -99,11 +105,21 @@ class DownloadUtils @Inject constructor(
         downloads.value = result
         downloadManager.addListener(
             object : DownloadManager.Listener {
-                override fun onDownloadChanged(downloadManager: DownloadManager, download: Download, finalException: Exception?) {
+                override fun onDownloadChanged(
+                    downloadManager: DownloadManager,
+                    download: Download,
+                    finalException: Exception?
+                ) {
                     downloads.update { map ->
                         map.toMutableMap().apply {
                             set(download.request.id, download)
                         }
+                    }
+                    if (download.state == Download.STATE_COMPLETED && playerCache.keys.contains(
+                            download.request.id
+                        )
+                    ) {
+                        playerCache.removeResource(download.request.id)
                     }
                 }
             }

@@ -124,7 +124,9 @@ data class ArtistPage(
                             ?: return null,
                         playlistId = renderer.thumbnailOverlay?.musicItemThumbnailOverlayRenderer?.content
                             ?.musicPlayButtonRenderer?.playNavigationEndpoint
-                            ?.watchPlaylistEndpoint?.playlistId ?: return null,
+                            ?.watchPlaylistEndpoint?.playlistId
+                            ?: renderer.navigationEndpoint.browseEndpoint.browseId.removePrefix("VL")
+                            ?: return null,
                         title = renderer.title.runs?.firstOrNull()?.text ?: return null,
                         artists = null,
                         year = renderer.subtitle?.runs?.lastOrNull()?.text?.toIntOrNull(),
@@ -136,28 +138,33 @@ data class ArtistPage(
                         isSingle = renderer.subtitle?.runs?.size == 1
                     )
                 }
+
                 renderer.isPlaylist -> {
                     print("isPlaylist")
                     // Playlist from YouTube Music
                     PlaylistItem(
-                        id = renderer.navigationEndpoint.browseEndpoint?.browseId?.removePrefix("VL") ?: return null,
+                        id = renderer.navigationEndpoint.browseEndpoint?.browseId?.removePrefix("VL")
+                            ?: return null,
                         title = renderer.title.runs?.firstOrNull()?.text ?: return null,
                         author = Artist(
                             name = renderer.subtitle?.runs?.lastOrNull()?.text ?: return null,
                             id = null
                         ),
                         songCountText = null,
-                        thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
+                        thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
+                            ?: return null,
                         playEndpoint = renderer.thumbnailOverlay
                             ?.musicItemThumbnailOverlayRenderer?.content
                             ?.musicPlayButtonRenderer?.playNavigationEndpoint
                             ?.watchPlaylistEndpoint ?: return null,
                         shuffleEndpoint = renderer.menu?.menuRenderer?.items?.find {
                             it.menuNavigationItemRenderer?.icon?.iconType == "MUSIC_SHUFFLE"
-                        }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint ?: return null,
+                        }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint
+                            ?: return null,
                         radioEndpoint = renderer.menu.menuRenderer.items.find {
                             it.menuNavigationItemRenderer?.icon?.iconType == "MIX"
-                        }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint ?: return null
+                        }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint
+                            ?: return null
                     )
                 }
 
@@ -179,6 +186,7 @@ data class ArtistPage(
                         subscribers = renderer.subtitle?.runs?.firstOrNull()?.text ?: return null,
                     )
                 }
+
                 renderer.isVideo -> {
                     print("isVideo")
                     VideoItem(
@@ -192,7 +200,12 @@ data class ArtistPage(
                             val artist = mutableListOf<Artist>()
                             for (i in list.indices) {
                                 if (i % 2 == 0 && i != list.lastIndex) {
-                                    artist.add(Artist(list[i].text, list[i].navigationEndpoint?.browseEndpoint?.browseId))
+                                    artist.add(
+                                        Artist(
+                                            list[i].text,
+                                            list[i].navigationEndpoint?.browseEndpoint?.browseId
+                                        )
+                                    )
                                 }
                             }
                             artist

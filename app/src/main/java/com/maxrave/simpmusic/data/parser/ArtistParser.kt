@@ -26,6 +26,7 @@ import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 fun parseArtistData(data: ArtistPage, context: Context): ArtistBrowse {
     for (i in data.sections) {
         Log.d("data", "title: ${i.title}")
+        Log.d("data", "items: ${i.items}")
     }
     val songSection = data.sections.find { it.items.firstOrNull() is SongItem }
     val albumSection = data.sections.find { artistSection ->
@@ -47,7 +48,7 @@ fun parseArtistData(data: ArtistPage, context: Context): ArtistBrowse {
     val listRelated: ArrayList<ResultRelated> = arrayListOf()
     val listVideo: ArrayList<ResultVideo> = arrayListOf()
     val listFeaturedOn: ArrayList<ResultPlaylist> = arrayListOf()
-    albumSection?.items?.forEach { album->
+    albumSection?.items?.forEach { album ->
         listAlbum.add(
             ResultAlbum(
                 browseId = (album as AlbumItem).browseId,
@@ -62,7 +63,10 @@ fun parseArtistData(data: ArtistPage, context: Context): ArtistBrowse {
         val single = it as AlbumItem
         listSingle.add(
             ResultSingle(
-                browseId = single.browseId, thumbnails = listOf(Thumbnail(544, single.thumbnail, 544)), title = single.title, year = single.year.toString()
+                browseId = single.browseId,
+                thumbnails = listOf(Thumbnail(544, single.thumbnail, 544)),
+                title = single.title,
+                year = single.year.toString()
             )
         )
     }
@@ -72,7 +76,12 @@ fun parseArtistData(data: ArtistPage, context: Context): ArtistBrowse {
             ResultSong(
                 videoId = song.id,
                 title = song.title,
-                artists = song.artists.map { artist -> Artist(id = artist.id ?: "", name = artist.name) },
+                artists = song.artists.map { artist ->
+                    Artist(
+                        id = artist.id ?: "",
+                        name = artist.name
+                    )
+                },
                 album = Album(id = song.album?.id ?: "", name = song.album?.name ?: ""),
                 likeStatus = "INDIFFERENT",
                 thumbnails = listOf(Thumbnail(544, song.thumbnail, 544)),
@@ -109,7 +118,12 @@ fun parseArtistData(data: ArtistPage, context: Context): ArtistBrowse {
         val video = it as VideoItem
         listVideo.add(
             ResultVideo(
-                artists = video.artists.map { artist -> Artist(id = artist.id ?: "", name = artist.name) },
+                artists = video.artists.map { artist ->
+                    Artist(
+                        id = artist.id ?: "",
+                        name = artist.name
+                    )
+                },
                 category = null,
                 duration = null,
                 durationSeconds = video.duration,
@@ -121,7 +135,7 @@ fun parseArtistData(data: ArtistPage, context: Context): ArtistBrowse {
                 views = video.view,
                 year = "",
 
-            )
+                )
         )
     }
     Log.d("ArtistParser", "listSong: ${listSong.size}")
