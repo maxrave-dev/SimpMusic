@@ -87,7 +87,7 @@ see [this](https://github.com/maxrave-dev/SimpMusic/blob/13f7ab6e5fa521b62a9fd31
 ## Developer/Team
 ### [maxrave-dev](https://github.com/maxrave-dev/SimpMusic): Founder/Developer/Designer 
 
-[Owen Connor](https://github.com/owenconnor): Discord Sever Admin. 
+[Owencz1998](https://github.com/owenconnor): Discord Sever Admin. 
 
 ## Translation
 
