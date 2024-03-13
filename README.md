@@ -84,19 +84,16 @@ to send listening history and listening record of video to Google for better rec
 supporting artist or YouTube Creator (For API reference,
 see [this](https://github.com/maxrave-dev/SimpMusic/blob/13f7ab6e5fa521b62a9fd31a1cefdc2787a1a8af/kotlinYtmusicScraper/src/main/java/com/maxrave/kotlinytmusicscraper/Ytmusic.kt#L639C4-L666C1)).
 
-## Developer
-### [maxrave-dev](https://github.com/maxrave-dev/SimpMusic): Founder/Developer/Designer
+## Developer/Team
+### [maxrave-dev](https://github.com/maxrave-dev/SimpMusic): Founder/Developer/Designer 
+
+[Owen Connor](https://github.com/owenconnor): Discord Sever Admin. 
 
 ## Translation
 
 [![Crowdin](https://badges.crowdin.net/simpmusic/localized.svg)](https://crowdin.com/project/simpmusic)  
 You can help me translate this app into your language by using Crowdin [SimpMusic on Crowdin](https://crowdin.com/project/simpmusic)
 
-
-### Supported languages:
-<a href="https://hosted.weblate.org/engage/simpmusic/">
-  <img src="https://hosted.weblate.org/widgets/simpmusic/-/app/multi-auto.svg" alt="Translation status" />
-</a>
 
 ## FAQ
 
