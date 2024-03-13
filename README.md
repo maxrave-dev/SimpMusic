@@ -41,7 +41,7 @@ src="https://github.com/liberapay/liberapay.com/blob/master/www/assets/liberapay
 - Support SponsorBlock, Return YouTube Dislike
 - Sleep Timer
 - Android Auto with online content
-- And many more
+- And many more!
 
 > (*) For users who chose "Send back to Google" feature
 
