@@ -323,4 +323,6 @@
     <string name="guide_miniplayer_content">Swipe to show skip and close button</string>
     <string name="guide_suggest_content">Show suggested songs by AI based on your playlist</string>
     <string name="guide_liked_title">Add to YouTube Liked Playlist</string>
+    <string name="log_out_from_spotify">Log out from Spotify</string>
+    <string name="delete">Delete</string>
 </resources>

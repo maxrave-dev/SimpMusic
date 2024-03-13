@@ -14,6 +14,7 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadRequest
@@ -49,7 +50,9 @@ import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 
@@ -435,8 +438,14 @@ class FavoriteFragment : Fragment() {
                     }
                 }
                 val job2 = launch {
-                    sharedViewModel.simpleMediaServiceHandler?.nowPlaying?.collect {
-                        likedAdapter.setNowPlaying(it?.mediaId)
+                    combine(sharedViewModel.simpleMediaServiceHandler?.nowPlaying ?: flowOf<MediaItem?>(null), sharedViewModel.isPlaying) { nowPlaying, isPlaying ->
+                        Pair(nowPlaying, isPlaying)
+                    }.collect {
+                        if (it.first != null && it.second) {
+                            likedAdapter.setNowPlaying(it.first!!.mediaId)
+                        } else {
+                            likedAdapter.setNowPlaying(null)
+                        }
                     }
                 }
                 job1.join()

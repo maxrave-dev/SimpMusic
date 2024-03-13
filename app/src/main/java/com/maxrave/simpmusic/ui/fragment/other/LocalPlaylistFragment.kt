@@ -23,6 +23,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
@@ -75,6 +76,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -867,8 +869,14 @@ class LocalPlaylistFragment : Fragment() {
                     }
                 }
                 val job5 = launch {
-                    sharedViewModel.simpleMediaServiceHandler?.nowPlaying?.collect {
-                        playlistAdapter.setNowPlaying(it?.mediaId)
+                    combine(sharedViewModel.simpleMediaServiceHandler?.nowPlaying ?: flowOf<MediaItem?>(null), sharedViewModel.isPlaying) { nowPlaying, isPlaying ->
+                        Pair(nowPlaying, isPlaying)
+                    }.collect {
+                        if (it.first != null && it.second) {
+                            playlistAdapter.setNowPlaying(it.first!!.mediaId)
+                        } else {
+                            playlistAdapter.setNowPlaying(null)
+                        }
                     }
                 }
                 job1.join()

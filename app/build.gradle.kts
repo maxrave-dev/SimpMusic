@@ -1,10 +1,10 @@
 plugins {
-    id ("com.android.application")
-    id ("org.jetbrains.kotlin.android")
-    id ("androidx.navigation.safeargs")
-    id ("com.google.dagger.hilt.android")
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
+    id("androidx.navigation.safeargs")
+    id("com.google.dagger.hilt.android")
     id("com.google.devtools.ksp")
-    id ("com.mikepenz.aboutlibraries.plugin")
+    id("com.mikepenz.aboutlibraries.plugin")
 }
 
 android {
@@ -23,23 +23,23 @@ android {
             arg("room.schemaLocation", "$projectDir/schemas")
         }
 
-        resourceConfigurations += listOf(
-            "en",
-            "vi",
-            "it",
-            "de",
-            "ru",
-            "tr",
-            "fi",
-            "pl",
-            "pt",
-            "fr",
-            "es",
-            "zh",
-            "in"
-        )
+        resourceConfigurations +=
+            listOf(
+                "en",
+                "vi",
+                "it",
+                "de",
+                "ru",
+                "tr",
+                "fi",
+                "pl",
+                "pt",
+                "fr",
+                "es",
+                "zh",
+                "in",
+            )
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
     }
 
     buildTypes {
@@ -47,7 +47,7 @@ android {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
-                "proguard-rules.pro"
+                "proguard-rules.pro",
             )
         }
         debug {
@@ -62,7 +62,7 @@ android {
     kotlinOptions {
         jvmTarget = JavaVersion.VERSION_1_8.toString()
     }
-    //enable view binding
+    // enable view binding
     buildFeatures {
         viewBinding = true
         compose = true
@@ -72,94 +72,95 @@ android {
     }
     packaging {
         jniLibs.useLegacyPackaging = true
-        jniLibs.excludes += listOf(
-            "META-INF/META-INF/DEPENDENCIES",
-            "META-INF/LICENSE",
-            "META-INF/LICENSE.txt",
-            "META-INF/license.txt",
-            "META-INF/NOTICE",
-            "META-INF/NOTICE.txt",
-            "META-INF/notice.txt",
-            "META-INF/ASL2.0",
-            "META-INF/asm-license.txt",
-            "META-INF/notice.txt",
-            "META-INF/NOTICE.txt",
-            "META-INF/LICENSE.txt",
-            "META-INF/license.txt",
-            "META-INF/notice.txt",
-            "META-INF/NOTICE",
-            "META-INF/LICENSE",
-            "META-INF/notice",
-            "META-INF/notice.txt",
-            "META-INF/NOTICE.txt",
-            "META-INF/LICENSE.txt",
-            "META-INF/license.txt",
-            "META-INF/notice.txt",
-            "META-INF/NOTICE",
-            "META-INF/LICENSE",
-            "META-INF/notice",
-            "META-INF/notice.txt",
-            "META-INF/NOTICE.txt",
-            "META-INF/LICENSE.txt",
-            "META-INF/license.txt",
-            "META-INF/notice.txt",
-            "META-INF/NOTICE",
-            "META-INF/LICENSE",
-            "META-INF/notice",
-            "META-INF/notice.txt",
-            "META-INF/NOTICE.txt",
-            "META-INF/LICENSE.txt",
-            "META-INF/license.txt",
-            "META-INF/notice.txt",
-            "META-INF/NOTICE",
-            "META-INF/LICENSE",
-            "META-INF/notice",
-            "META-INF/notice.txt",
-            "META-INF/NOTICE.txt",
-            "META-INF/LICENSE.txt",
-            "META-INF/license.txt",
-            "META-INF/notice.txt",
-            "META-INF/NOTICE",
-            "META-INF/LICENSE",
-            "META-INF/notice",
-            "META-INF/notice.txt",
-            "META-INF/NOTICE.txt",
-            "META-INF/LICENSE.txt",
-            "META-INF/license.txt",
-            "META-INF/notice.txt",
-            "META-INF/NOTICE",
-            "META-INF/LICENSE",
-            "META-INF/notice",
-            "META-INF/notice.txt",
-            "META-INF/NOTICE.txt",
-            "META-INF/LICENSE.txt",
-            "META-INF/license.txt",
-            "META-INF/notice.txt",
-            "META-INF/NOTICE",
-            "META-INF/LICENSE",
-            "META-INF/notice",
-            "META-INF/notice.txt",
-            "META-INF/NOTICE.txt",
-            "META-INF/LICENSE.txt",
-            "META-INF/license.txt",
-            "META-INF/notice.txt",
-            "META-INF/NOTICE",
-            "META-INF/LICENSE",
-            "META-INF/notice",
-            "META-INF/notice.txt",
-            "META-INF/NOTICE.txt",
-            "META-INF/LICENSE.txt",
-            "META-INF/license.txt",
-            "META-INF/notice",
-            "META-INF/ASL2.0",
-            "META-INF/*.kotlin_module"
-        )
+        jniLibs.excludes +=
+            listOf(
+                "META-INF/META-INF/DEPENDENCIES",
+                "META-INF/LICENSE",
+                "META-INF/LICENSE.txt",
+                "META-INF/license.txt",
+                "META-INF/NOTICE",
+                "META-INF/NOTICE.txt",
+                "META-INF/notice.txt",
+                "META-INF/ASL2.0",
+                "META-INF/asm-license.txt",
+                "META-INF/notice.txt",
+                "META-INF/NOTICE.txt",
+                "META-INF/LICENSE.txt",
+                "META-INF/license.txt",
+                "META-INF/notice.txt",
+                "META-INF/NOTICE",
+                "META-INF/LICENSE",
+                "META-INF/notice",
+                "META-INF/notice.txt",
+                "META-INF/NOTICE.txt",
+                "META-INF/LICENSE.txt",
+                "META-INF/license.txt",
+                "META-INF/notice.txt",
+                "META-INF/NOTICE",
+                "META-INF/LICENSE",
+                "META-INF/notice",
+                "META-INF/notice.txt",
+                "META-INF/NOTICE.txt",
+                "META-INF/LICENSE.txt",
+                "META-INF/license.txt",
+                "META-INF/notice.txt",
+                "META-INF/NOTICE",
+                "META-INF/LICENSE",
+                "META-INF/notice",
+                "META-INF/notice.txt",
+                "META-INF/NOTICE.txt",
+                "META-INF/LICENSE.txt",
+                "META-INF/license.txt",
+                "META-INF/notice.txt",
+                "META-INF/NOTICE",
+                "META-INF/LICENSE",
+                "META-INF/notice",
+                "META-INF/notice.txt",
+                "META-INF/NOTICE.txt",
+                "META-INF/LICENSE.txt",
+                "META-INF/license.txt",
+                "META-INF/notice.txt",
+                "META-INF/NOTICE",
+                "META-INF/LICENSE",
+                "META-INF/notice",
+                "META-INF/notice.txt",
+                "META-INF/NOTICE.txt",
+                "META-INF/LICENSE.txt",
+                "META-INF/license.txt",
+                "META-INF/notice.txt",
+                "META-INF/NOTICE",
+                "META-INF/LICENSE",
+                "META-INF/notice",
+                "META-INF/notice.txt",
+                "META-INF/NOTICE.txt",
+                "META-INF/LICENSE.txt",
+                "META-INF/license.txt",
+                "META-INF/notice.txt",
+                "META-INF/NOTICE",
+                "META-INF/LICENSE",
+                "META-INF/notice",
+                "META-INF/notice.txt",
+                "META-INF/NOTICE.txt",
+                "META-INF/LICENSE.txt",
+                "META-INF/license.txt",
+                "META-INF/notice.txt",
+                "META-INF/NOTICE",
+                "META-INF/LICENSE",
+                "META-INF/notice",
+                "META-INF/notice.txt",
+                "META-INF/NOTICE.txt",
+                "META-INF/LICENSE.txt",
+                "META-INF/license.txt",
+                "META-INF/notice",
+                "META-INF/ASL2.0",
+                "META-INF/*.kotlin_module",
+            )
     }
 }
 
 dependencies {
 
-    //Compose
+    // Compose
     val composeBom = platform("androidx.compose:compose-bom:2024.01.00")
     implementation(composeBom)
     androidTestImplementation(composeBom)
@@ -175,16 +176,16 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
-    //material design3
+    // material design3
     implementation("com.google.android.material:material:1.11.0")
-    //runtime
+    // runtime
     implementation("androidx.startup:startup-runtime:1.1.1")
     implementation(project(mapOf("path" to ":kotlinYtmusicScraper")))
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
 
-    //ExoPlayer
-    val media3_version = "1.2.1"
+    // ExoPlayer
+    val media3_version = "1.3.0"
 
     implementation("androidx.media3:media3-exoplayer:$media3_version")
     implementation("androidx.media3:media3-ui:$media3_version")
@@ -196,11 +197,10 @@ dependencies {
     implementation("androidx.media3:media3-exoplayer-workmanager:$media3_version")
     implementation("androidx.media3:media3-datasource-okhttp:$media3_version")
 
-    //palette color
+    // palette color
     implementation("androidx.palette:palette-ktx:1.0.0")
-    //expandable text view
+    // expandable text view
     implementation("com.github.giangpham96:expandable-text:2.0.0")
-
 
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     testImplementation("junit:junit:4.13.2")
@@ -210,69 +210,67 @@ dependencies {
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
     ksp("androidx.room:room-compiler:2.6.1")
-    //Legacy Support
+    // Legacy Support
     implementation("androidx.legacy:legacy-support-v4:1.0.0")
-    //Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.7.3")
-    //Navigation
+    // Coroutines
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.8.0")
+    // Navigation
     implementation("androidx.navigation:navigation-fragment-ktx:2.7.7")
     implementation("androidx.navigation:navigation-ui-ktx:2.7.7")
 
     implementation("com.google.code.gson:gson:2.10.1")
 
-    //Coil
-    implementation("io.coil-kt:coil:2.5.0")
-    //Glide
+    // Coil
+    implementation("io.coil-kt:coil:2.6.0")
+    // Glide
     implementation("com.github.bumptech.glide:glide:4.16.0")
-    //Easy Permissions
+    // Easy Permissions
     implementation("pub.devrel:easypermissions:3.0.0")
-    //Palette Color
+    // Palette Color
     implementation("androidx.palette:palette-ktx:1.0.0")
 
-    //Preference
+    // Preference
     implementation("androidx.preference:preference-ktx:1.2.1")
 
-    //fragment ktx
+    // fragment ktx
     implementation("androidx.fragment:fragment-ktx:1.6.2")
-    //Hilt
+    // Hilt
     implementation("com.google.dagger:hilt-android:2.50")
     ksp("com.google.dagger:hilt-compiler:2.50")
     ksp("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.8.0")
-    //DataStore
+    // DataStore
     implementation("androidx.datastore:datastore-preferences:1.0.0")
-    //Swipe To Refresh
+    // Swipe To Refresh
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.2.0-alpha01")
-    //Insetter
+    // Insetter
     implementation("dev.chrisbanes.insetter:insetter:0.6.1")
     implementation("dev.chrisbanes.insetter:insetter-dbx:0.6.1")
 
-    //Shimmer
+    // Shimmer
     implementation("com.facebook.shimmer:shimmer:0.5.0")
 
-    //Lottie
+    // Lottie
     val lottieVersion = "6.3.0"
     implementation("com.airbnb.android:lottie:$lottieVersion")
 
-    //Paging 3
-    val paging_version= "3.2.1"
+    // Paging 3
+    val paging_version = "3.2.1"
     implementation("androidx.paging:paging-runtime-ktx:$paging_version")
 
     implementation("com.daimajia.swipelayout:library:1.2.0@aar")
 
-
-    //Custom Activity On Crash
-    implementation ("cat.ereza:customactivityoncrash:2.4.0")
+    // Custom Activity On Crash
+    implementation("cat.ereza:customactivityoncrash:2.4.0")
 
     implementation("com.intuit.sdp:sdp-android:1.1.0")
     implementation("com.intuit.ssp:ssp-android:1.1.0")
 
     val latestAboutLibsRelease = "10.10.0"
-    implementation ("com.mikepenz:aboutlibraries:${latestAboutLibsRelease}")
+    implementation("com.mikepenz:aboutlibraries:$latestAboutLibsRelease")
 
     implementation("com.google.android.flexbox:flexbox:3.0.0")
     implementation("com.github.skydoves:balloon:1.6.4")
-
 }
 hilt {
     enableAggregatingTask = true

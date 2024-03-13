@@ -26,8 +26,7 @@ import java.time.LocalDateTime
 
 @Dao
 interface DatabaseDao {
-
-    //Transaction request with multiple queries
+    // Transaction request with multiple queries
     @Transaction
     suspend fun getAllRecentData(): List<Any> {
         val a = mutableListOf<Any>()
@@ -35,26 +34,37 @@ interface DatabaseDao {
         a.addAll(getAllArtists())
         a.addAll(getAllAlbums())
         a.addAll(getAllPlaylists())
-        val sortedList = a.sortedWith<Any>(Comparator { p0, p1 ->
-            val timeP0: LocalDateTime? = when (p0) {
-                is SongEntity -> p0.inLibrary
-                is ArtistEntity -> p0.inLibrary
-                is AlbumEntity -> p0.inLibrary
-                is PlaylistEntity -> p0.inLibrary
-                else -> null
-            }
-            val timeP1: LocalDateTime? = when (p1) {
-                is SongEntity -> p1.inLibrary
-                is ArtistEntity -> p1.inLibrary
-                is AlbumEntity -> p1.inLibrary
-                is PlaylistEntity -> p1.inLibrary
-                else -> null
-            }
-            if (timeP0 == null || timeP1 == null) {
-                return@Comparator if (timeP0 == null && timeP1 == null) 0 else if (timeP0 == null) -1 else 1
-            }
-            timeP0.compareTo(timeP1) // Sort in descending order by inLibrary time
-        })
+        val sortedList =
+            a.sortedWith<Any>(
+                Comparator { p0, p1 ->
+                    val timeP0: LocalDateTime? =
+                        when (p0) {
+                            is SongEntity -> p0.inLibrary
+                            is ArtistEntity -> p0.inLibrary
+                            is AlbumEntity -> p0.inLibrary
+                            is PlaylistEntity -> p0.inLibrary
+                            else -> null
+                        }
+                    val timeP1: LocalDateTime? =
+                        when (p1) {
+                            is SongEntity -> p1.inLibrary
+                            is ArtistEntity -> p1.inLibrary
+                            is AlbumEntity -> p1.inLibrary
+                            is PlaylistEntity -> p1.inLibrary
+                            else -> null
+                        }
+                    if (timeP0 == null || timeP1 == null) {
+                        return@Comparator if (timeP0 == null && timeP1 == null) {
+                            0
+                        } else if (timeP0 == null) {
+                            -1
+                        } else {
+                            1
+                        }
+                    }
+                    timeP0.compareTo(timeP1) // Sort in descending order by inLibrary time
+                },
+            )
         return sortedList.takeLast(20)
     }
 
@@ -63,24 +73,33 @@ interface DatabaseDao {
         val a = mutableListOf<Any>()
         a.addAll(getDownloadedAlbums())
         a.addAll(getDownloadedPlaylists())
-        val sortedList = a.sortedWith<Any>(
-            Comparator { p0, p1 ->
-                val timeP0: LocalDateTime? = when (p0) {
-                    is AlbumEntity -> p0.inLibrary
-                    is PlaylistEntity -> p0.inLibrary
-                    else -> null
-                }
-                val timeP1: LocalDateTime? = when (p1) {
-                    is AlbumEntity -> p1.inLibrary
-                    is PlaylistEntity -> p1.inLibrary
-                    else -> null
-                }
-                if (timeP0 == null || timeP1 == null) {
-                    return@Comparator if (timeP0 == null && timeP1 == null) 0 else if (timeP0 == null) -1 else 1
-                }
-                timeP0.compareTo(timeP1) // Sort in descending order by inLibrary time
-            }
-        )
+        val sortedList =
+            a.sortedWith<Any>(
+                Comparator { p0, p1 ->
+                    val timeP0: LocalDateTime? =
+                        when (p0) {
+                            is AlbumEntity -> p0.inLibrary
+                            is PlaylistEntity -> p0.inLibrary
+                            else -> null
+                        }
+                    val timeP1: LocalDateTime? =
+                        when (p1) {
+                            is AlbumEntity -> p1.inLibrary
+                            is PlaylistEntity -> p1.inLibrary
+                            else -> null
+                        }
+                    if (timeP0 == null || timeP1 == null) {
+                        return@Comparator if (timeP0 == null && timeP1 == null) {
+                            0
+                        } else if (timeP0 == null) {
+                            -1
+                        } else {
+                            1
+                        }
+                    }
+                    timeP0.compareTo(timeP1) // Sort in descending order by inLibrary time
+                },
+            )
         return sortedList
     }
 
@@ -94,9 +113,12 @@ interface DatabaseDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSearchHistory(searchHistory: SearchHistory)
 
-    //Song
+    // Song
     @Query("SELECT * FROM song ORDER BY inLibrary DESC LIMIT :limit OFFSET :offset")
-    suspend fun getRecentSongs(limit: Int, offset: Int): List<SongEntity>
+    suspend fun getRecentSongs(
+        limit: Int,
+        offset: Int,
+    ): List<SongEntity>
 
     @Query("SELECT * FROM song")
     suspend fun getAllSongs(): List<SongEntity>
@@ -114,10 +136,16 @@ interface DatabaseDao {
     suspend fun updateTotalPlayTime(videoId: String)
 
     @Query("UPDATE song SET inLibrary = :inLibrary WHERE videoId = :videoId")
-    suspend fun updateSongInLibrary(inLibrary: LocalDateTime, videoId: String)
+    suspend fun updateSongInLibrary(
+        inLibrary: LocalDateTime,
+        videoId: String,
+    )
 
     @Query("UPDATE song SET liked = :liked WHERE videoId = :videoId")
-    suspend fun updateLiked(liked: Int, videoId: String)
+    suspend fun updateLiked(
+        liked: Int,
+        videoId: String,
+    )
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertSong(song: SongEntity): Long
@@ -126,10 +154,16 @@ interface DatabaseDao {
     suspend fun getMostPlayedSongs(): List<SongEntity>
 
     @Query("UPDATE song SET downloadState = :downloadState WHERE videoId = :videoId")
-    suspend fun updateDownloadState(downloadState: Int, videoId: String)
+    suspend fun updateDownloadState(
+        downloadState: Int,
+        videoId: String,
+    )
 
     @Query("UPDATE song SET durationSeconds = :durationSeconds WHERE videoId = :videoId")
-    suspend fun updateDurationSeconds(durationSeconds: Int, videoId: String)
+    suspend fun updateDurationSeconds(
+        durationSeconds: Int,
+        videoId: String,
+    )
 
     @Query("SELECT * FROM song WHERE downloadState = 3")
     suspend fun getDownloadedSongs(): List<SongEntity>?
@@ -143,7 +177,7 @@ interface DatabaseDao {
     @Query("SELECT * FROM song WHERE videoId IN (:primaryKeyList)")
     fun getSongByListVideoId(primaryKeyList: List<String>): List<SongEntity>
 
-    //Artist
+    // Artist
     @Query("SELECT * FROM artist")
     suspend fun getAllArtists(): List<ArtistEntity>
 
@@ -157,12 +191,18 @@ interface DatabaseDao {
     suspend fun insertArtist(artist: ArtistEntity)
 
     @Query("UPDATE artist SET followed = :followed WHERE channelId = :channelId")
-    suspend fun updateFollowed(followed: Int, channelId: String)
+    suspend fun updateFollowed(
+        followed: Int,
+        channelId: String,
+    )
 
     @Query("UPDATE artist SET inLibrary = :inLibrary WHERE channelId = :channelId")
-    suspend fun updateArtistInLibrary(inLibrary: LocalDateTime, channelId: String)
+    suspend fun updateArtistInLibrary(
+        inLibrary: LocalDateTime,
+        channelId: String,
+    )
 
-    //Album
+    // Album
     @Query("SELECT * FROM album")
     suspend fun getAllAlbums(): List<AlbumEntity>
 
@@ -176,18 +216,27 @@ interface DatabaseDao {
     suspend fun insertAlbum(album: AlbumEntity)
 
     @Query("UPDATE album SET liked = :liked WHERE browseId = :browseId")
-    suspend fun updateAlbumLiked(liked: Int, browseId: String)
+    suspend fun updateAlbumLiked(
+        liked: Int,
+        browseId: String,
+    )
 
     @Query("UPDATE album SET inLibrary = :inLibrary WHERE browseId = :browseId")
-    suspend fun updateAlbumInLibrary(inLibrary: LocalDateTime, browseId: String)
+    suspend fun updateAlbumInLibrary(
+        inLibrary: LocalDateTime,
+        browseId: String,
+    )
 
     @Query("UPDATE album SET downloadState = :downloadState WHERE browseId = :browseId")
-    suspend fun updateAlbumDownloadState(downloadState: Int, browseId: String)
+    suspend fun updateAlbumDownloadState(
+        downloadState: Int,
+        browseId: String,
+    )
 
     @Query("SELECT * FROM album WHERE downloadState = 3")
     suspend fun getDownloadedAlbums(): List<AlbumEntity>
 
-    //Playlist
+    // Playlist
     @Query("SELECT * FROM playlist")
     suspend fun getAllPlaylists(): List<PlaylistEntity>
 
@@ -204,18 +253,27 @@ interface DatabaseDao {
     suspend fun insertRadioPlaylist(playlist: PlaylistEntity)
 
     @Query("UPDATE playlist SET liked = :liked WHERE id = :playlistId")
-    suspend fun updatePlaylistLiked(liked: Int, playlistId: String)
+    suspend fun updatePlaylistLiked(
+        liked: Int,
+        playlistId: String,
+    )
 
     @Query("UPDATE playlist SET inLibrary = :inLibrary WHERE id = :playlistId")
-    suspend fun updatePlaylistInLibrary(inLibrary: LocalDateTime, playlistId: String)
+    suspend fun updatePlaylistInLibrary(
+        inLibrary: LocalDateTime,
+        playlistId: String,
+    )
 
     @Query("UPDATE playlist SET downloadState = :downloadState WHERE id = :playlistId")
-    suspend fun updatePlaylistDownloadState(downloadState: Int, playlistId: String)
+    suspend fun updatePlaylistDownloadState(
+        downloadState: Int,
+        playlistId: String,
+    )
 
     @Query("SELECT * FROM playlist WHERE downloadState = 3")
     suspend fun getDownloadedPlaylists(): List<PlaylistEntity>
 
-    //Local Playlist
+    // Local Playlist
     @Query("SELECT * FROM local_playlist")
     suspend fun getAllLocalPlaylists(): List<LocalPlaylistEntity>
 
@@ -229,31 +287,55 @@ interface DatabaseDao {
     suspend fun deleteLocalPlaylist(id: Long)
 
     @Query("UPDATE local_playlist SET title = :title WHERE id = :id")
-    suspend fun updateLocalPlaylistTitle(title: String, id: Long)
+    suspend fun updateLocalPlaylistTitle(
+        title: String,
+        id: Long,
+    )
 
     @Query("UPDATE local_playlist SET tracks = :tracks WHERE id = :id")
-    suspend fun updateLocalPlaylistTracks(tracks: List<String>, id: Long)
+    suspend fun updateLocalPlaylistTracks(
+        tracks: List<String>,
+        id: Long,
+    )
 
     @Query("UPDATE local_playlist SET thumbnail = :thumbnail WHERE id = :id")
-    suspend fun updateLocalPlaylistThumbnail(thumbnail: String, id: Long)
+    suspend fun updateLocalPlaylistThumbnail(
+        thumbnail: String,
+        id: Long,
+    )
 
     @Query("UPDATE local_playlist SET inLibrary = :inLibrary WHERE id = :id")
-    suspend fun updateLocalPlaylistInLibrary(inLibrary: LocalDateTime, id: Long)
+    suspend fun updateLocalPlaylistInLibrary(
+        inLibrary: LocalDateTime,
+        id: Long,
+    )
 
     @Query("UPDATE local_playlist SET downloadState = :downloadState WHERE id = :id")
-    suspend fun updateLocalPlaylistDownloadState(downloadState: Int, id: Long)
+    suspend fun updateLocalPlaylistDownloadState(
+        downloadState: Int,
+        id: Long,
+    )
 
     @Query("SELECT * FROM local_playlist WHERE downloadState = 3")
     suspend fun getDownloadedLocalPlaylists(): List<LocalPlaylistEntity>
 
     @Query("UPDATE local_playlist SET youtubePlaylistId = :youtubePlaylistId WHERE id = :id")
-    suspend fun updateLocalPlaylistYouTubePlaylistId(id: Long, youtubePlaylistId: String?)
+    suspend fun updateLocalPlaylistYouTubePlaylistId(
+        id: Long,
+        youtubePlaylistId: String?,
+    )
 
     @Query("UPDATE local_playlist SET synced_with_youtube_playlist = :synced WHERE id = :id")
-    suspend fun updateLocalPlaylistYouTubePlaylistSynced(id: Long, synced: Int)
+    suspend fun updateLocalPlaylistYouTubePlaylistSynced(
+        id: Long,
+        synced: Int,
+    )
 
     @Query("UPDATE local_playlist SET youtube_sync_state = :state WHERE id = :id")
-    suspend fun updateLocalPlaylistYouTubePlaylistSyncState(id: Long, state: Int)
+    suspend fun updateLocalPlaylistYouTubePlaylistSyncState(
+        id: Long,
+        state: Int,
+    )
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLyrics(lyrics: LyricsEntity)
@@ -301,7 +383,7 @@ interface DatabaseDao {
     @Query("SELECT * FROM set_video_id WHERE videoId = :videoId")
     suspend fun getSetVideoId(videoId: String): SetVideoIdEntity?
 
-    //PairSongLocalPlaylist
+    // PairSongLocalPlaylist
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPairSongLocalPlaylist(pairSongLocalPlaylist: PairSongLocalPlaylist)
 
@@ -309,9 +391,12 @@ interface DatabaseDao {
     suspend fun getPlaylistPairSong(playlistId: Long): List<PairSongLocalPlaylist>?
 
     @Query("DELETE FROM pair_song_local_playlist WHERE songId = :videoId AND playlistId = :playlistId")
-    suspend fun deletePairSongLocalPlaylist(playlistId: Long, videoId: String)
+    suspend fun deletePairSongLocalPlaylist(
+        playlistId: Long,
+        videoId: String,
+    )
 
-    //GoogleAccountEntity
+    // GoogleAccountEntity
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertGoogleAccount(googleAccountEntity: GoogleAccountEntity)
 
@@ -322,9 +407,17 @@ interface DatabaseDao {
     suspend fun getUsedGoogleAccount(): GoogleAccountEntity?
 
     @Query("UPDATE googleaccountentity SET isUsed = :isUsed WHERE email = :email")
-    suspend fun updateGoogleAccountUsed(isUsed: Boolean, email: String)
+    suspend fun updateGoogleAccountUsed(
+        isUsed: Boolean,
+        email: String,
+    )
 
     @Query("DELETE FROM googleaccountentity WHERE email = :email")
     suspend fun deleteGoogleAccount(email: String)
 
+    @Query("UPDATE song SET inLibrary = :inLibrary WHERE videoId = :videoId")
+    suspend fun setInLibrary(
+        videoId: String,
+        inLibrary: LocalDateTime,
+    )
 }
