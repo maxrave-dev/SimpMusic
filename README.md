@@ -85,9 +85,9 @@ supporting artist or YouTube Creator (For API reference,
 see [this](https://github.com/maxrave-dev/SimpMusic/blob/13f7ab6e5fa521b62a9fd31a1cefdc2787a1a8af/kotlinYtmusicScraper/src/main/java/com/maxrave/kotlinytmusicscraper/Ytmusic.kt#L639C4-L666C1)).
 
 ## Developer/Team
-### [maxrave-dev](https://github.com/maxrave-dev/SimpMusic): Founder/Developer/Designer 
+###[maxrave-dev](https://github.com/maxrave-dev/SimpMusic): Founder/Developer/Designer 
 
-[Owencz1998](https://github.com/owenconnor): Discord Sever Admin. 
+###[Owencz1998](https://github.com/owenconnor): Discord Sever Admin. 
 
 ## Translation
 
