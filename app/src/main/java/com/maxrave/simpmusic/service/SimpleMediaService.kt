@@ -84,7 +84,12 @@ class SimpleMediaService : MediaLibraryService() {
         super.onCreate()
         Log.w("Service", "Simple Media Service Created")
         setMediaNotificationProvider(
-            DefaultMediaNotificationProvider(this, { MEDIA_NOTIFICATION.NOTIFICATION_ID }, MEDIA_NOTIFICATION.NOTIFICATION_CHANNEL_ID, R.string.notification_channel_name)
+            DefaultMediaNotificationProvider(
+                this,
+                { MEDIA_NOTIFICATION.NOTIFICATION_ID },
+                MEDIA_NOTIFICATION.NOTIFICATION_CHANNEL_ID,
+                R.string.notification_channel_name
+            )
                 .apply {
                     setSmallIcon(R.drawable.mono)
                 }
@@ -268,7 +273,13 @@ class SimpleMediaService : MediaLibraryService() {
     @UnstableApi
     fun provideMediaSourceFactory(): DefaultMediaSourceFactory =
         DefaultMediaSourceFactory(
-            provideResolvingDataSourceFactory(provideCacheDataSource(downloadCache, playerCache), downloadCache, playerCache, mainRepository, dataStoreManager),
+            provideResolvingDataSourceFactory(
+                provideCacheDataSource(downloadCache, playerCache),
+                downloadCache,
+                playerCache,
+                mainRepository,
+                dataStoreManager
+            ),
             provideExtractorFactory()
         )
 
@@ -325,7 +336,8 @@ class SimpleMediaService : MediaLibraryService() {
         MediaSession.Builder(context, player)
             .setCallback(callback)
             .setSessionActivity(
-                PendingIntent.getActivity(context, 0, Intent(context, MainActivity::class.java),
+                PendingIntent.getActivity(
+                    context, 0, Intent(context, MainActivity::class.java),
                     PendingIntent.FLAG_IMMUTABLE
                 )
             )

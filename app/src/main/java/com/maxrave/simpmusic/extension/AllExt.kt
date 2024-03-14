@@ -69,6 +69,7 @@ fun Context.isMyServiceRunning(serviceClass: Class<out Service>) = try {
 fun SearchHistory.toQuery(): String {
     return this.query
 }
+
 fun List<SearchHistory>.toQueryList(): ArrayList<String> {
     val list = ArrayList<String>()
     for (item in this) {
@@ -76,6 +77,7 @@ fun List<SearchHistory>.toQueryList(): ArrayList<String> {
     }
     return list
 }
+
 fun ResultSong.toTrack(): Track {
     return Track(
         album = album,
@@ -95,6 +97,7 @@ fun ResultSong.toTrack(): Track {
         year = ""
     )
 }
+
 fun ResultVideo.toTrack(): Track {
     return Track(
         album = null,
@@ -120,7 +123,7 @@ fun SongsResult.toTrack(): Track {
         this.album,
         this.artists,
         this.duration ?: "",
-        this.durationSeconds?: 0,
+        this.durationSeconds ?: 0,
         true,
         this.isExplicit ?: false,
         "",
@@ -134,10 +137,11 @@ fun SongsResult.toTrack(): Track {
         ""
     )
 }
+
 fun SongItem.toTrack(): Track {
     return Track(
-        album = this.album.let { Album(it?.id ?: "", it?.name ?: "")},
-        artists = this.artists.map { artist -> Artist(id = artist.id ?: "", name = artist.name)  },
+        album = this.album.let { Album(it?.id ?: "", it?.name ?: "") },
+        artists = this.artists.map { artist -> Artist(id = artist.id ?: "", name = artist.name) },
         duration = this.duration.toString(),
         durationSeconds = this.duration,
         isAvailable = false,
@@ -153,10 +157,11 @@ fun SongItem.toTrack(): Track {
         year = null
     )
 }
+
 fun VideoItem.toTrack(): Track {
     return Track(
-        album = this.album.let { Album(it?.id ?: "", it?.name ?: "")} ,
-        artists = this.artists.map { artist -> Artist(id = artist.id ?: "", name = artist.name)  },
+        album = this.album.let { Album(it?.id ?: "", it?.name ?: "") },
+        artists = this.artists.map { artist -> Artist(id = artist.id ?: "", name = artist.name) },
         duration = this.duration.toString(),
         durationSeconds = this.duration,
         isAvailable = false,
@@ -183,24 +188,27 @@ fun List<SongItem>?.toListTrack(): ArrayList<Track> {
     }
     return listTrack
 }
+
 fun List<Artist>?.toListName(): List<String> {
     val list = mutableListOf<String>()
-    if (this != null){
+    if (this != null) {
         for (item in this) {
             list.add(item.name)
         }
     }
     return list
 }
+
 fun List<Artist>?.toListId(): List<String> {
     val list = mutableListOf<String>()
-    if (this != null){
+    if (this != null) {
         for (item in this) {
             list.add(item.id ?: "")
         }
     }
     return list
 }
+
 fun List<String>.connectArtists(): String {
     val stringBuilder = StringBuilder()
 
@@ -214,6 +222,7 @@ fun List<String>.connectArtists(): String {
 
     return stringBuilder.toString()
 }
+
 fun Track.toSongEntity(): SongEntity {
     return SongEntity(
         videoId = this.videoId,
@@ -255,7 +264,7 @@ fun String?.removeDuplicateWords(): String {
 
 fun SongEntity.toTrack(): Track {
     val listArtist = mutableListOf<Artist>()
-    if (this.artistName != null ) {
+    if (this.artistName != null) {
         for (i in 0 until this.artistName.size) {
             listArtist.add(Artist(this.artistId?.get(i) ?: "", this.artistName[i]))
         }
@@ -268,7 +277,7 @@ fun SongEntity.toTrack(): Track {
         isAvailable = this.isAvailable,
         isExplicit = this.isExplicit,
         likeStatus = this.likeStatus,
-        thumbnails = listOf(Thumbnail(720, this.thumbnails ?: "",1080)),
+        thumbnails = listOf(Thumbnail(720, this.thumbnails ?: "", 1080)),
         title = this.title,
         videoId = this.videoId,
         videoType = this.videoType,
@@ -278,6 +287,7 @@ fun SongEntity.toTrack(): Track {
         year = ""
     )
 }
+
 fun List<SongEntity>?.toArrayListTrack(): ArrayList<Track> {
     val listTrack: ArrayList<Track> = arrayListOf()
     if (this != null) {
@@ -295,7 +305,7 @@ fun MediaItem?.toSongEntity(): SongEntity? {
         albumName = this.mediaMetadata.albumTitle.toString(),
         artistId = null,
         artistName = listOf(this.mediaMetadata.artist.toString()),
-        duration =  "",
+        duration = "",
         durationSeconds = 0,
         isAvailable = true,
         isExplicit = false,
@@ -372,19 +382,20 @@ fun VideosResult.toTrack(): Track {
     return Track(
         album = null,
         artists = this.artists,
-        duration = this.duration?: "",
-        durationSeconds = this.durationSeconds?: 0,
+        duration = this.duration ?: "",
+        durationSeconds = this.durationSeconds ?: 0,
         isAvailable = true,
         isExplicit = false,
         likeStatus = "INDIFFERENT",
         thumbnails = thumbList,
         title = this.title,
         videoId = this.videoId,
-        videoType = this.videoType?: "",
+        videoType = this.videoType ?: "",
         category = this.category,
         feedbackTokens = null,
         resultType = this.resultType,
-        year = "")
+        year = ""
+    )
 }
 
 @JvmName("VideoResulttoTrack")
@@ -415,6 +426,7 @@ fun Content.toTrack(): Track {
         year = ""
     )
 }
+
 fun List<Track>.toListVideoId(): List<String> {
     val list = mutableListOf<String>()
     for (item in this) {
@@ -423,7 +435,7 @@ fun List<Track>.toListVideoId(): List<String> {
     return list
 }
 
-fun AlbumBrowse.toAlbumEntity(id : String): AlbumEntity {
+fun AlbumBrowse.toAlbumEntity(id: String): AlbumEntity {
     return AlbumEntity(
         browseId = id,
         artistId = this.artists.toListId(),
@@ -466,7 +478,13 @@ fun Track.addThumbnails(): Track {
         isAvailable = this.isAvailable,
         isExplicit = this.isExplicit,
         likeStatus = this.likeStatus,
-        thumbnails = listOf(Thumbnail(720, "https://i.ytimg.com/vi/${this.videoId}/maxresdefault.jpg", 1280)),
+        thumbnails = listOf(
+            Thumbnail(
+                720,
+                "https://i.ytimg.com/vi/${this.videoId}/maxresdefault.jpg",
+                1280
+            )
+        ),
         title = this.title,
         videoId = this.videoId,
         videoType = this.videoType,
@@ -601,7 +619,13 @@ fun PipedResponse.toTrack(videoId: String): Track {
         isAvailable = false,
         isExplicit = false,
         likeStatus = "INDIFFERENT",
-        thumbnails = listOf(Thumbnail(720,  this.thumbnailUrl ?: "https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg", 1080)),
+        thumbnails = listOf(
+            Thumbnail(
+                720,
+                this.thumbnailUrl ?: "https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg",
+                1080
+            )
+        ),
         title = this.title ?: " ",
         videoId = videoId,
         videoType = "Song",
@@ -638,16 +662,21 @@ fun YouTubeInitialPage.toTrack(): Track {
         year = ""
     )
 }
+
 fun MusixmatchTranslationLyricsResponse.toLyrics(originalLyrics: Lyrics): Lyrics? {
     if (this.message.body.translations_list.isEmpty()) {
         return null
-    }
-    else {
+    } else {
         val listTranslation = this.message.body.translations_list
         val translation = originalLyrics.copy(
             lines = originalLyrics.lines?.mapIndexed { index, line ->
                 line.copy(
-                    words = if (!line.words.contains("♫")) {listTranslation.find { it.translation.matched_line == line.words || it.translation.subtitle_matched_line == line.words || it.translation.snippet == line.words }?.translation?.description ?: ""} else {line.words}
+                    words = if (!line.words.contains("♫")) {
+                        listTranslation.find { it.translation.matched_line == line.words || it.translation.subtitle_matched_line == line.words || it.translation.snippet == line.words }?.translation?.description
+                            ?: ""
+                    } else {
+                        line.words
+                    }
                 )
             }
         )
@@ -681,6 +710,7 @@ fun NavController.navigateSafe(resId: Int, bundle: Bundle? = null) {
         }
     }
 }
+
 fun <A, B> zip(first: LiveData<A>, second: LiveData<B>): Flow<Pair<A, B>> {
     val mediatorLiveData = MediatorLiveData<Pair<A, B>>()
 
@@ -784,6 +814,12 @@ fun View.fadInAnimation(duration: Long = 300, completion: (() -> Unit)? = null) 
                 it()
             }
         }
+}
+
+infix fun <E> Collection<E>.symmetricDifference(other: Collection<E>): Set<E> {
+    val left = this subtract other
+    val right = other subtract this
+    return left union right
 }
 
 operator fun File.div(child: String): File = File(this, child)

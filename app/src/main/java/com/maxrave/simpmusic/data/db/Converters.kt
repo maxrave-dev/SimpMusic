@@ -81,4 +81,16 @@ class Converters {
     @TypeConverter
     fun dateToTimestamp(date: LocalDateTime?): Long? =
         date?.atZone(ZoneOffset.UTC)?.toInstant()?.toEpochMilli()
+
+    @TypeConverter
+    fun fromListMapToString(list: List<Map<String, String>>): String {
+        val gson = Gson()
+        return gson.toJson(list)
+    }
+
+    @TypeConverter
+    fun fromStringToListMap(value: String): List<Map<String, String>> {
+        val listType: Type = object : TypeToken<ArrayList<Map<String, String>>>() {}.type
+        return Gson().fromJson(value, listType)
+    }
 }

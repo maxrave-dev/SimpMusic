@@ -181,6 +181,11 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
+
+    val work_version = "2.9.0"
+    implementation("androidx.work:work-runtime-ktx:$work_version")
+    androidTestImplementation("androidx.work:work-testing:$work_version")
+
     //material design3
     implementation("com.google.android.material:material:1.11.0")
     //runtime
@@ -246,6 +251,8 @@ dependencies {
     implementation("androidx.fragment:fragment-ktx:1.6.2")
     //Hilt
     implementation("com.google.dagger:hilt-android:2.50")
+    implementation("androidx.hilt:hilt-work:1.2.0")
+    ksp("androidx.hilt:hilt-compiler:1.2.0")
     ksp("com.google.dagger:hilt-compiler:2.50")
     ksp("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.8.0")
     //DataStore

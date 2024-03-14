@@ -3,14 +3,27 @@ package com.maxrave.simpmusic
 import android.app.Application
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.hilt.work.HiltWorkerFactory
 import androidx.media3.common.util.UnstableApi
+import androidx.work.Configuration
 import cat.ereza.customactivityoncrash.config.CaocConfig
 import com.maxrave.simpmusic.ui.MainActivity
 import dagger.hilt.android.HiltAndroidApp
+import javax.inject.Inject
 
 
 @HiltAndroidApp
-class SimpMusicApplication: Application(){
+class SimpMusicApplication : Application(), Configuration.Provider {
+
+    @Inject
+    lateinit var workerFactory: HiltWorkerFactory
+
+    override val workManagerConfiguration: Configuration
+        get() = Configuration.Builder()
+            .setWorkerFactory(workerFactory)
+            .setMinimumLoggingLevel(Log.WARN)
+            .build()
+
     @UnstableApi
     override fun onCreate() {
         super.onCreate()

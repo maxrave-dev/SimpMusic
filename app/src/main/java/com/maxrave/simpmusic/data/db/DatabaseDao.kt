@@ -9,10 +9,12 @@ import androidx.room.Transaction
 import androidx.sqlite.db.SupportSQLiteQuery
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
+import com.maxrave.simpmusic.data.db.entities.FollowedArtistSingleAndAlbum
 import com.maxrave.simpmusic.data.db.entities.GoogleAccountEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.LyricsEntity
 import com.maxrave.simpmusic.data.db.entities.NewFormatEntity
+import com.maxrave.simpmusic.data.db.entities.NotificationEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.QueueEntity
@@ -420,4 +422,25 @@ interface DatabaseDao {
         videoId: String,
         inLibrary: LocalDateTime,
     )
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertFollowedArtistSingleAndAlbum(followedArtistSingleAndAlbum: FollowedArtistSingleAndAlbum)
+
+    @Query("SELECT * FROM followed_artist_single_and_album WHERE channelId = :channelId")
+    suspend fun getFollowedArtistSingleAndAlbum(channelId: String): FollowedArtistSingleAndAlbum?
+
+    @Query("DELETE FROM followed_artist_single_and_album WHERE channelId = :channelId")
+    suspend fun deleteFollowedArtistSingleAndAlbum(channelId: String)
+
+    @Query("SELECT * FROM followed_artist_single_and_album")
+    suspend fun getAllFollowedArtistSingleAndAlbum(): List<FollowedArtistSingleAndAlbum>?
+
+    @Insert
+    suspend fun insertNotification(notificationEntity: NotificationEntity)
+
+    @Query("SELECT * FROM notification")
+    suspend fun getAllNotification(): List<NotificationEntity>
+
+    @Query("DELETE FROM notification WHERE id = :id")
+    suspend fun deleteNotification(id: Long)
 }
