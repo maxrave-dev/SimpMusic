@@ -114,4 +114,4 @@ Simply, because I love this name. It's a combination of Simple and Music. But Si
 
 ### [maxrave-dev](https://github.com/maxrave-dev/SimpMusic): Founder/Developer/Designer 
 
-### [owen connor](https://github.com/owencz1998): Discord Sever Admin. 
+### [owen connor](https://github.com/owencz1998): Discord Server Admin. 
