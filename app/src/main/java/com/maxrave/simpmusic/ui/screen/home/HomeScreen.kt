@@ -2,6 +2,7 @@ package com.maxrave.simpmusic.ui.screen.home
 
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.LinearOutSlowInEasing
@@ -100,11 +101,16 @@ fun HomeScreen(
         mutableStateOf(homeData.find { it.subtitle == accountInfo?.first } != null)
     }
     val regionChart by viewModel.regionCodeChart.collectAsState()
-    val pullToRefreshState = rememberPullToRefreshState(
-        50.dp
-    )
-    val scaleFraction = if (pullToRefreshState.isRefreshing) 1f else
-        LinearOutSlowInEasing.transform(pullToRefreshState.progress).coerceIn(0f, 1f)
+    val pullToRefreshState =
+        rememberPullToRefreshState(
+            50.dp,
+        )
+    val scaleFraction =
+        if (pullToRefreshState.isRefreshing) {
+            1f
+        } else {
+            LinearOutSlowInEasing.transform(pullToRefreshState.progress).coerceIn(0f, 1f)
+        }
     if (pullToRefreshState.isRefreshing) {
         viewModel.getHomeItemList()
         if (!loading) {
@@ -114,10 +120,11 @@ fun HomeScreen(
     Column {
         HomeTopAppBar(navController)
         Box(
-            modifier = Modifier
-                .nestedScroll(pullToRefreshState.nestedScrollConnection)
-                .padding(vertical = 8.dp),
-            contentAlignment = Alignment.Center
+            modifier =
+                Modifier
+                    .nestedScroll(pullToRefreshState.nestedScrollConnection)
+                    .padding(vertical = 8.dp),
+            contentAlignment = Alignment.Center,
         ) {
             Spacer(modifier = Modifier.height(8.dp))
             Crossfade(targetState = loading, label = "Home Shimmer") { loading ->
@@ -127,30 +134,41 @@ fun HomeScreen(
                             androidx.compose.animation.AnimatedVisibility(visible = accountInfo != null && accountShow) {
                                 AccountLayout(
                                     accountName = accountInfo?.first ?: "",
-                                    url = accountInfo?.second ?: ""
+                                    url = accountInfo?.second ?: "",
                                 )
                             }
                         }
                         item {
-                            androidx.compose.animation.AnimatedVisibility(visible = homeData.find {
-                                it.title == context.getString(
-                                    R.string.quick_picks
+                            androidx.compose.animation.AnimatedVisibility(
+                                visible =
+                                    homeData.find {
+                                        it.title ==
+                                            context.getString(
+                                                R.string.quick_picks,
+                                            )
+                                    } != null,
+                            ) {
+                                QuickPicks(
+                                    homeItem =
+                                        homeData.find {
+                                            it.title ==
+                                                context.getString(
+                                                    R.string.quick_picks,
+                                                )
+                                        } ?: return@AnimatedVisibility,
+                                    navController = navController,
                                 )
-                            } != null) {
-                                QuickPicks(homeItem = homeData.find {
-                                    it.title == context.getString(
-                                        R.string.quick_picks
-                                    )
-                                } ?: return@AnimatedVisibility, navController = navController)
                             }
                         }
                         items(homeData) {
-                            if (it.title != context.getString(R.string.quick_picks)) HomeItem(
-                                homeViewModel = viewModel,
-                                sharedViewModel = sharedViewModel,
-                                data = it,
-                                navController = navController
-                            )
+                            if (it.title != context.getString(R.string.quick_picks)) {
+                                HomeItem(
+                                    homeViewModel = viewModel,
+                                    sharedViewModel = sharedViewModel,
+                                    data = it,
+                                    navController = navController,
+                                )
+                            }
                         }
                         items(newRelease) {
                             androidx.compose.animation.AnimatedVisibility(visible = newRelease.isNotEmpty()) {
@@ -158,7 +176,7 @@ fun HomeScreen(
                                     homeViewModel = viewModel,
                                     sharedViewModel = sharedViewModel,
                                     data = it,
-                                    navController = navController
+                                    navController = navController,
                                 )
                             }
                         }
@@ -167,7 +185,7 @@ fun HomeScreen(
                                 moodMomentAndGenre?.let {
                                     MoodMomentAndGenre(
                                         mood = it,
-                                        navController = navController
+                                        navController = navController,
                                     )
                                 }
                             }
@@ -176,40 +194,50 @@ fun HomeScreen(
                             Column(
                                 Modifier
                                     .padding(vertical = 10.dp),
-                                verticalArrangement = Arrangement.SpaceBetween
+                                verticalArrangement = Arrangement.SpaceBetween,
                             ) {
                                 ChartTitle()
                                 Spacer(modifier = Modifier.height(5.dp))
-                                DropdownButton(
-                                    items = CHART_SUPPORTED_COUNTRY.itemsData.toList(),
-                                    defaultSelected = if (regionChart != null) CHART_SUPPORTED_COUNTRY.items.getOrNull(
-                                        CHART_SUPPORTED_COUNTRY.itemsData.indexOf(regionChart)
-                                    )
-                                        ?: CHART_SUPPORTED_COUNTRY.itemsData[1] else CHART_SUPPORTED_COUNTRY.itemsData[1],
-                                ) {
-                                    viewModel.exploreChart(
-                                        CHART_SUPPORTED_COUNTRY.items[CHART_SUPPORTED_COUNTRY.itemsData.indexOf(
-                                            it
-                                        )]
-                                    )
+                                Crossfade(targetState = regionChart) {
+                                    Log.w("HomeScreen", "regionChart: $it")
+                                    if (it != null) {
+                                        DropdownButton(
+                                            items = CHART_SUPPORTED_COUNTRY.itemsData.toList(),
+                                            defaultSelected =
+                                                CHART_SUPPORTED_COUNTRY.itemsData.getOrNull(
+                                                    CHART_SUPPORTED_COUNTRY.items.indexOf(it),
+                                                )
+                                                    ?: CHART_SUPPORTED_COUNTRY.itemsData[1],
+                                        ) {
+                                            viewModel.exploreChart(
+                                                CHART_SUPPORTED_COUNTRY.items[
+                                                    CHART_SUPPORTED_COUNTRY.itemsData.indexOf(
+                                                        it,
+                                                    ),
+                                                ],
+                                            )
+                                        }
+                                    }
                                 }
                                 Spacer(modifier = Modifier.height(5.dp))
                                 Crossfade(
-                                    targetState = chartLoading, label = "Chart",
+                                    targetState = chartLoading,
+                                    label = "Chart",
                                 ) { loading ->
                                     if (!loading) {
                                         chart?.let {
                                             ChartData(
                                                 chart = it,
                                                 navController = navController,
-                                                context = context
+                                                context = context,
                                             )
                                         }
                                     } else {
                                         CenterLoadingBox(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .height(400.dp)
+                                            modifier =
+                                                Modifier
+                                                    .fillMaxWidth()
+                                                    .height(400.dp),
                                         )
                                     }
                                 }
@@ -225,10 +253,11 @@ fun HomeScreen(
             }
 
             PullToRefreshContainer(
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .graphicsLayer(scaleX = scaleFraction, scaleY = scaleFraction),
-                state = pullToRefreshState
+                modifier =
+                    Modifier
+                        .align(Alignment.TopCenter)
+                        .graphicsLayer(scaleX = scaleFraction, scaleY = scaleFraction),
+                state = pullToRefreshState,
             )
         }
     }
@@ -236,14 +265,13 @@ fun HomeScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeTopAppBar(
-    navController: NavController
-) {
-    val hour = remember {
-        val date = Calendar.getInstance().time
-        val formatter = SimpleDateFormat("HH")
-        formatter.format(date).toInt()
-    }
+fun HomeTopAppBar(navController: NavController) {
+    val hour =
+        remember {
+            val date = Calendar.getInstance().time
+            val formatter = SimpleDateFormat("HH")
+            formatter.format(date).toInt()
+        }
     TopAppBar(
         title = {
             Column {
@@ -251,81 +279,89 @@ fun HomeTopAppBar(
                     text = stringResource(id = R.string.app_name),
                     style = typo.titleMedium,
                     color = Color.White,
-                    modifier = Modifier.padding(bottom = 4.dp)
+                    modifier = Modifier.padding(bottom = 4.dp),
                 )
                 Text(
-                    text = when (hour) {
-                        in 6..12 -> {
-                            stringResource(R.string.good_morning)
-                        }
+                    text =
+                        when (hour) {
+                            in 6..12 -> {
+                                stringResource(R.string.good_morning)
+                            }
 
-                        in 13..17 -> {
-                            stringResource(R.string.good_afternoon)
-                        }
+                            in 13..17 -> {
+                                stringResource(R.string.good_afternoon)
+                            }
 
-                        in 18..23 -> {
-                            stringResource(R.string.good_evening)
-                        }
+                            in 18..23 -> {
+                                stringResource(R.string.good_evening)
+                            }
 
-                        else -> {
-                            stringResource(R.string.good_night)
-                        }
-                    },
+                            else -> {
+                                stringResource(R.string.good_night)
+                            }
+                        },
                     style = typo.bodySmall,
                 )
             }
         },
         actions = {
+            RippleIconButton(resId = R.drawable.outline_notifications_24) {
+                navController.navigateSafe(R.id.action_global_notificationFragment)
+            }
             RippleIconButton(resId = R.drawable.baseline_history_24) {
                 navController.navigateSafe(R.id.action_bottom_navigation_item_home_to_recentlySongsFragment)
             }
             RippleIconButton(resId = R.drawable.baseline_settings_24) {
                 navController.navigateSafe(R.id.action_bottom_navigation_item_home_to_settingsFragment)
             }
-        }
+        },
     )
 }
 
 @Composable
 fun AccountLayout(
     accountName: String,
-    url: String
+    url: String,
 ) {
     Column {
         Text(
             text = stringResource(id = R.string.welcome_back),
             style = typo.bodyMedium,
             color = Color.White,
-            modifier = Modifier.padding(bottom = 3.dp)
+            modifier = Modifier.padding(bottom = 3.dp),
         )
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 5.dp, vertical = 5.dp)
+            modifier = Modifier.padding(horizontal = 5.dp, vertical = 5.dp),
         ) {
             CoilImage(
                 imageModel = { url },
-                imageOptions = ImageOptions(
-                    contentScale = ContentScale.Crop,
-                    alignment = Alignment.Center,
-                ),
+                imageOptions =
+                    ImageOptions(
+                        contentScale = ContentScale.Crop,
+                        alignment = Alignment.Center,
+                    ),
                 previewPlaceholder = painterResource(id = R.drawable.holder),
-                component = rememberImageComponent {
-                    CrossfadePlugin(
-                        duration = 550
-                    )
-                },
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(
-                        CircleShape
-                    )
+                component =
+                    rememberImageComponent {
+                        CrossfadePlugin(
+                            duration = 550,
+                        )
+                    },
+                modifier =
+                    Modifier
+                        .size(40.dp)
+                        .clip(
+                            CircleShape,
+                        ),
             )
             Text(
                 text = accountName,
                 style = typo.headlineMedium,
                 color = Color.White,
-                modifier = Modifier
-                    .padding(start = 8.dp)
+                modifier =
+                    Modifier
+                        .padding(start = 8.dp),
             )
         }
     }
@@ -334,11 +370,11 @@ fun AccountLayout(
 @Composable
 fun QuickPicks(
     homeItem: HomeItem,
-    navController: NavController
+    navController: NavController,
 ) {
     Column(
         Modifier
-            .padding(vertical = 8.dp)
+            .padding(vertical = 8.dp),
     ) {
         Text(
             text = stringResource(id = R.string.let_s_start_with_a_radio),
@@ -348,9 +384,10 @@ fun QuickPicks(
             text = stringResource(id = R.string.quick_picks),
             style = typo.headlineMedium,
             maxLines = 1,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 5.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 5.dp),
         )
         LazyHorizontalGrid(rows = GridCells.Fixed(3), modifier = Modifier.height(210.dp)) {
             items(homeItem.contents) {
@@ -378,7 +415,7 @@ fun MoodMomentAndGenre(
 ) {
     Column(
         Modifier
-            .padding(vertical = 8.dp)
+            .padding(vertical = 8.dp),
     ) {
         Text(
             text = stringResource(id = R.string.let_s_pick_a_playlist_for_you),
@@ -388,16 +425,20 @@ fun MoodMomentAndGenre(
             text = stringResource(id = R.string.moods_amp_moment),
             style = typo.headlineMedium,
             maxLines = 1,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 5.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 5.dp),
         )
         LazyHorizontalGrid(rows = GridCells.Fixed(3), modifier = Modifier.height(210.dp)) {
             items(mood.moodsMoments) {
                 MoodMomentAndGenreHomeItem(title = it.title) {
-                    navController.navigateSafe(R.id.action_global_moodFragment, Bundle().apply {
-                        putString("params", it.params)
-                    })
+                    navController.navigateSafe(
+                        R.id.action_global_moodFragment,
+                        Bundle().apply {
+                            putString("params", it.params)
+                        },
+                    )
                 }
             }
         }
@@ -405,16 +446,20 @@ fun MoodMomentAndGenre(
             text = stringResource(id = R.string.genre),
             style = typo.headlineMedium,
             maxLines = 1,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 5.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 5.dp),
         )
         LazyHorizontalGrid(rows = GridCells.Fixed(3), modifier = Modifier.height(210.dp)) {
             items(mood.genres) {
                 MoodMomentAndGenreHomeItem(title = it.title) {
-                    navController.navigateSafe(R.id.action_global_moodFragment, Bundle().apply {
-                        putString("params", it.params)
-                    })
+                    navController.navigateSafe(
+                        R.id.action_global_moodFragment,
+                        Bundle().apply {
+                            putString("params", it.params)
+                        },
+                    )
                 }
             }
         }
@@ -423,9 +468,7 @@ fun MoodMomentAndGenre(
 
 @Composable
 fun ChartTitle() {
-    Column(
-
-    ) {
+    Column {
         Text(
             text = stringResource(id = R.string.what_is_best_choice_today),
             style = typo.bodyMedium,
@@ -434,34 +477,40 @@ fun ChartTitle() {
             text = stringResource(id = R.string.chart),
             style = typo.headlineMedium,
             maxLines = 1,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 5.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 5.dp),
         )
     }
 }
 
 @Composable
-fun ChartData(chart: Chart, navController: NavController, context: Context) {
+fun ChartData(
+    chart: Chart,
+    navController: NavController,
+    context: Context,
+) {
     Column {
         AnimatedVisibility(
             visible = !chart.songs.isNullOrEmpty(),
             enter = fadeIn(animationSpec = tween(2000)),
-            exit = fadeOut(animationSpec = tween(2000))
+            exit = fadeOut(animationSpec = tween(2000)),
         ) {
             Column {
                 Text(
                     text = stringResource(id = R.string.top_tracks),
                     style = typo.headlineMedium,
                     maxLines = 1,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 10.dp)
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 10.dp),
                 )
                 if (!chart.songs.isNullOrEmpty()) {
                     LazyHorizontalGrid(
                         rows = GridCells.Fixed(3),
-                        modifier = Modifier.height(210.dp)
+                        modifier = Modifier.height(210.dp),
                     ) {
                         items(chart.songs.size) {
                             val data = chart.songs[it]
@@ -472,12 +521,12 @@ fun ChartData(chart: Chart, navController: NavController, context: Context) {
                                 args.putString("videoId", data.videoId)
                                 args.putString(
                                     "from",
-                                    "\"${data.title}\" ${context.getString(R.string.in_charts)}"
+                                    "\"${data.title}\" ${context.getString(R.string.in_charts)}",
                                 )
                                 args.putString("type", Config.SONG_CLICK)
                                 navController.navigateSafe(
                                     R.id.action_global_nowPlayingFragment,
-                                    args
+                                    args,
                                 )
                             }, data = data, position = it + 1)
                         }
@@ -489,9 +538,10 @@ fun ChartData(chart: Chart, navController: NavController, context: Context) {
             text = stringResource(id = R.string.top_videos),
             style = typo.headlineMedium,
             maxLines = 1,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 10.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 10.dp),
         )
         LazyRow {
             items(chart.videos.items.size) {
@@ -505,12 +555,13 @@ fun ChartData(chart: Chart, navController: NavController, context: Context) {
                         args.putString("videoId", data.videoId)
                         args.putString(
                             "from",
-                            "\"${data.title}\" ${context.getString(R.string.in_charts)}"
+                            "\"${data.title}\" ${context.getString(R.string.in_charts)}",
                         )
                         args.putString("type", Config.VIDEO_CLICK)
                         navController.navigateSafe(R.id.action_global_nowPlayingFragment, args)
                     },
-                    data = data, position = it + 1
+                    data = data,
+                    position = it + 1,
                 )
             }
         }
@@ -518,9 +569,10 @@ fun ChartData(chart: Chart, navController: NavController, context: Context) {
             text = stringResource(id = R.string.top_artists),
             style = typo.headlineMedium,
             maxLines = 1,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 10.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 10.dp),
         )
         LazyHorizontalGrid(rows = GridCells.Fixed(3), modifier = Modifier.height(240.dp)) {
             items(chart.artists.itemArtists.size) {
@@ -531,7 +583,6 @@ fun ChartData(chart: Chart, navController: NavController, context: Context) {
                     navController.navigateSafe(R.id.action_global_artistFragment, args)
                 }, data = data, context = context)
             }
-
         }
         AnimatedVisibility(visible = !chart.trending.isNullOrEmpty()) {
             Column {
@@ -539,14 +590,15 @@ fun ChartData(chart: Chart, navController: NavController, context: Context) {
                     text = stringResource(id = R.string.trending),
                     style = typo.headlineMedium,
                     maxLines = 1,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 10.dp)
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 10.dp),
                 )
                 if (!chart.trending.isNullOrEmpty()) {
                     LazyHorizontalGrid(
                         rows = GridCells.Fixed(3),
-                        modifier = Modifier.height(210.dp)
+                        modifier = Modifier.height(210.dp),
                     ) {
                         items(chart.trending.size) {
                             val data = chart.trending[it]
@@ -557,12 +609,12 @@ fun ChartData(chart: Chart, navController: NavController, context: Context) {
                                 args.putString("videoId", data.videoId)
                                 args.putString(
                                     "from",
-                                    "\"${data.title}\" ${context.getString(R.string.in_charts)}"
+                                    "\"${data.title}\" ${context.getString(R.string.in_charts)}",
                                 )
                                 args.putString("type", Config.VIDEO_CLICK)
                                 navController.navigateSafe(
                                     R.id.action_global_nowPlayingFragment,
-                                    args
+                                    args,
                                 )
                             }, data = data, position = null)
                         }

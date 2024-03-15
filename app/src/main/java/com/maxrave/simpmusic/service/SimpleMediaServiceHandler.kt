@@ -32,12 +32,18 @@ import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.toListName
-import kotlinx.coroutines.*
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 @UnstableApi
 class SimpleMediaServiceHandler(
@@ -47,9 +53,8 @@ class SimpleMediaServiceHandler(
     private val dataStoreManager: DataStoreManager,
     private val mainRepository: MainRepository,
     var coroutineScope: LifecycleCoroutineScope,
-    private val context: Context
+    private val context: Context,
 ) : Player.Listener {
-
     private var loudnessEnhancer: LoudnessEnhancer? = null
 
     private var volumeNormalizationJob: Job? = null
@@ -93,9 +98,9 @@ class SimpleMediaServiceHandler(
 
     private var toggleLikeJob: Job? = null
 
-    private var loadJob : Job? = null
+    private var loadJob: Job? = null
 
-    //Add MusicSource to this
+    // Add MusicSource to this
     var catalogMetadata: ArrayList<Track> = (arrayListOf())
 
     var added: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -114,38 +119,50 @@ class SimpleMediaServiceHandler(
         toggleLikeJob = Job()
         loadJob = Job()
         skipSilent = runBlocking { dataStoreManager.skipSilent.first() == DataStoreManager.TRUE }
-        normalizeVolume = runBlocking { dataStoreManager.normalizeVolume.first() == DataStoreManager.TRUE }
-        if (runBlocking{ dataStoreManager.saveStateOfPlayback.first() } == DataStoreManager.TRUE ) {
+        normalizeVolume =
+            runBlocking { dataStoreManager.normalizeVolume.first() == DataStoreManager.TRUE }
+        if (runBlocking { dataStoreManager.saveStateOfPlayback.first() } == DataStoreManager.TRUE) {
             Log.d("CHECK INIT", "TRUE")
             val shuffleKey = runBlocking { dataStoreManager.shuffleKey.first() }
             val repeatKey = runBlocking { dataStoreManager.repeatKey.first() }
             Log.d("CHECK INIT", "Shuffle: $shuffleKey")
             Log.d("CHECK INIT", "Repeat: $repeatKey")
             player.shuffleModeEnabled = shuffleKey == DataStoreManager.TRUE
-            player.repeatMode = when (repeatKey) {
-                DataStoreManager.REPEAT_ONE -> Player.REPEAT_MODE_ONE
-                DataStoreManager.REPEAT_ALL -> Player.REPEAT_MODE_ALL
-                DataStoreManager.REPEAT_MODE_OFF -> Player.REPEAT_MODE_OFF
-                else -> {Player.REPEAT_MODE_OFF}
-            }
+            player.repeatMode =
+                when (repeatKey) {
+                    DataStoreManager.REPEAT_ONE -> Player.REPEAT_MODE_ONE
+                    DataStoreManager.REPEAT_ALL -> Player.REPEAT_MODE_ALL
+                    DataStoreManager.REPEAT_MODE_OFF -> Player.REPEAT_MODE_OFF
+                    else -> {
+                        Player.REPEAT_MODE_OFF
+                    }
+                }
         }
         _shuffle.value = player.shuffleModeEnabled
-        _repeat.value = when (player.repeatMode) {
-            Player.REPEAT_MODE_ONE -> RepeatState.One
-            Player.REPEAT_MODE_ALL -> RepeatState.All
-            Player.REPEAT_MODE_OFF -> RepeatState.None
-            else -> {RepeatState.None}
-        }
+        _repeat.value =
+            when (player.repeatMode) {
+                Player.REPEAT_MODE_ONE -> RepeatState.One
+                Player.REPEAT_MODE_ALL -> RepeatState.All
+                Player.REPEAT_MODE_OFF -> RepeatState.None
+                else -> {
+                    RepeatState.None
+                }
+            }
         _nowPlaying.value = player.currentMediaItem
         mediaSessionCallback.apply {
             toggleLike = ::toggleLike
         }
     }
+
     private fun toggleLike() {
         toggleLikeJob?.cancel()
-        toggleLikeJob = coroutineScope.launch {
-            mainRepository.updateLikeStatus(player.currentMediaItem?.mediaId ?: "", if (!(_liked.value)) 1 else 0)
-        }
+        toggleLikeJob =
+            coroutineScope.launch {
+                mainRepository.updateLikeStatus(
+                    player.currentMediaItem?.mediaId ?: "",
+                    if (!(_liked.value)) 1 else 0,
+                )
+            }
         _liked.value = !(_liked.value)
         updateNotification()
     }
@@ -154,24 +171,27 @@ class SimpleMediaServiceHandler(
         _liked.value = liked
         updateNotification()
     }
-    //Set sleep timer
+
+    // Set sleep timer
     @OptIn(DelicateCoroutinesApi::class)
     fun sleepStart(minutes: Int) {
         _sleepDone.value = false
         sleepTimerJob?.cancel()
-        sleepTimerJob = coroutineScope.launch(Dispatchers.Main) {
-            _sleepMinutes.value = minutes
-            var count = minutes
-            while (count > 0) {
-                delay(60 * 1000L)
-                count--
-                _sleepMinutes.value = count
+        sleepTimerJob =
+            coroutineScope.launch(Dispatchers.Main) {
+                _sleepMinutes.value = minutes
+                var count = minutes
+                while (count > 0) {
+                    delay(60 * 1000L)
+                    count--
+                    _sleepMinutes.value = count
+                }
+                player.pause()
+                _sleepMinutes.value = 0
+                _sleepDone.value = true
             }
-            player.pause()
-            _sleepMinutes.value = 0
-            _sleepDone.value = true
-        }
     }
+
     fun sleepStop() {
         _sleepDone.value = false
         sleepTimerJob?.cancel()
@@ -193,7 +213,10 @@ class SimpleMediaServiceHandler(
         _currentSongIndex.value = currentIndex()
     }
 
-    fun addMediaItem(mediaItem: MediaItem, playWhenReady: Boolean = true) {
+    fun addMediaItem(
+        mediaItem: MediaItem,
+        playWhenReady: Boolean = true,
+    ) {
         player.clearMediaItems()
         player.setMediaItem(mediaItem)
         player.prepare()
@@ -209,7 +232,10 @@ class SimpleMediaServiceHandler(
         updateNextPreviousTrackAvailability()
     }
 
-    fun addMediaItemNotSet(mediaItem: MediaItem, index: Int) {
+    fun addMediaItemNotSet(
+        mediaItem: MediaItem,
+        index: Int,
+    ) {
         player.addMediaItem(index, mediaItem)
         if (player.mediaItemCount == 1) {
             player.prepare()
@@ -235,12 +261,18 @@ class SimpleMediaServiceHandler(
         player.playWhenReady = true
     }
 
-    fun moveMediaItem(fromIndex: Int, newIndex: Int) {
+    fun moveMediaItem(
+        fromIndex: Int,
+        newIndex: Int,
+    ) {
         player.moveMediaItem(fromIndex, newIndex)
         _currentSongIndex.value = currentIndex()
     }
 
-    fun swap(from: Int, to: Int) {
+    fun swap(
+        from: Int,
+        to: Int,
+    ) {
         if (from < to) {
             for (i in from until to) {
                 moveItemDown(i)
@@ -266,11 +298,15 @@ class SimpleMediaServiceHandler(
                     startProgressUpdate()
                 }
             }
+
             PlayerEvent.Next -> player.seekToNext()
             PlayerEvent.Previous -> player.seekToPrevious()
-            PlayerEvent.Stop -> {stopProgressUpdate()
-            player.stop()}
-            is PlayerEvent.UpdateProgress -> player.seekTo((player.duration * playerEvent.newProgress/100).toLong())
+            PlayerEvent.Stop -> {
+                stopProgressUpdate()
+                player.stop()
+            }
+
+            is PlayerEvent.UpdateProgress -> player.seekTo((player.duration * playerEvent.newProgress / 100).toLong())
             PlayerEvent.Shuffle -> {
                 if (player.shuffleModeEnabled) {
                     player.shuffleModeEnabled = false
@@ -280,30 +316,36 @@ class SimpleMediaServiceHandler(
                     _shuffle.value = true
                 }
             }
+
             PlayerEvent.Repeat -> {
                 when (player.repeatMode) {
                     ExoPlayer.REPEAT_MODE_OFF -> {
                         player.repeatMode = ExoPlayer.REPEAT_MODE_ONE
                         _repeat.value = RepeatState.One
                     }
+
                     ExoPlayer.REPEAT_MODE_ONE -> {
                         player.repeatMode = ExoPlayer.REPEAT_MODE_ALL
                         _repeat.value = RepeatState.All
                     }
+
                     ExoPlayer.REPEAT_MODE_ALL -> {
                         player.repeatMode = ExoPlayer.REPEAT_MODE_OFF
                         _repeat.value = RepeatState.None
                     }
+
                     else -> {
-                        when(_repeat.value) {
+                        when (_repeat.value) {
                             RepeatState.None -> {
                                 player.repeatMode = ExoPlayer.REPEAT_MODE_ONE
                                 _repeat.value = RepeatState.One
                             }
+
                             RepeatState.One -> {
                                 player.repeatMode = ExoPlayer.REPEAT_MODE_ALL
                                 _repeat.value = RepeatState.All
                             }
+
                             RepeatState.All -> {
                                 player.repeatMode = ExoPlayer.REPEAT_MODE_OFF
                                 _repeat.value = RepeatState.None
@@ -315,13 +357,16 @@ class SimpleMediaServiceHandler(
         }
     }
 
-    override fun onEvents(player: Player, events: Player.Events) {
+    override fun onEvents(
+        player: Player,
+        events: Player.Events,
+    ) {
         val shouldBePlaying = !(player.playbackState == Player.STATE_ENDED || !player.playWhenReady)
         if (events.containsAny(
                 Player.EVENT_PLAYBACK_STATE_CHANGED,
                 Player.EVENT_PLAY_WHEN_READY_CHANGED,
                 Player.EVENT_IS_PLAYING_CHANGED,
-                Player.EVENT_POSITION_DISCONTINUITY
+                Player.EVENT_POSITION_DISCONTINUITY,
             )
         ) {
             if (shouldBePlaying) {
@@ -338,23 +383,33 @@ class SimpleMediaServiceHandler(
     }
 
     override fun onPlayerError(error: PlaybackException) {
-        when(error.errorCode) {
+        when (error.errorCode) {
             PlaybackException.ERROR_CODE_TIMEOUT -> {
                 Log.e("Player Error", "onPlayerError: ${error.message}")
-                Toast.makeText(context,
-                    context.getString(R.string.time_out_check_internet_connection_or_change_piped_instance_in_settings), Toast.LENGTH_LONG).show()
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.time_out_check_internet_connection_or_change_piped_instance_in_settings),
+                    Toast.LENGTH_LONG,
+                ).show()
                 player.pause()
             }
+
             else -> {
                 Log.e("Player Error", "onPlayerError: ${error.message}")
-                Toast.makeText(context,
-                    context.getString(R.string.time_out_check_internet_connection_or_change_piped_instance_in_settings), Toast.LENGTH_LONG).show()
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.time_out_check_internet_connection_or_change_piped_instance_in_settings),
+                    Toast.LENGTH_LONG,
+                ).show()
                 player.pause()
             }
         }
     }
 
-    override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+    override fun onMediaItemTransition(
+        mediaItem: MediaItem?,
+        reason: Int,
+    ) {
         Log.w("Smooth Switching Transition", "Current Position: ${player.currentPosition}")
         mayBeNormalizeVolume()
         Log.w("REASON", "onMediaItemTransition: $reason")
@@ -364,25 +419,28 @@ class SimpleMediaServiceHandler(
         updateNotification()
     }
 
-
     @SuppressLint("SwitchIntDef")
     override fun onPlaybackStateChanged(playbackState: Int) {
         when (playbackState) {
             ExoPlayer.STATE_IDLE -> _simpleMediaState.value = SimpleMediaState.Initial
             ExoPlayer.STATE_ENDED -> _simpleMediaState.value = SimpleMediaState.Ended
-            ExoPlayer.STATE_BUFFERING -> _simpleMediaState.value =
-                SimpleMediaState.Buffering(player.currentPosition)
-            ExoPlayer.STATE_READY -> _simpleMediaState.value =
-                SimpleMediaState.Ready(player.duration)
+            ExoPlayer.STATE_BUFFERING ->
+                _simpleMediaState.value =
+                    SimpleMediaState.Buffering(player.currentPosition)
+
+            ExoPlayer.STATE_READY ->
+                _simpleMediaState.value =
+                    SimpleMediaState.Ready(player.duration)
         }
     }
 
     override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
-        when (shuffleModeEnabled){
+        when (shuffleModeEnabled) {
             true -> {
                 _shuffle.value = true
             }
-            false ->{
+
+            false -> {
                 _shuffle.value = false
             }
         }
@@ -390,7 +448,7 @@ class SimpleMediaServiceHandler(
     }
 
     override fun onRepeatModeChanged(repeatMode: Int) {
-        when (repeatMode){
+        when (repeatMode) {
             ExoPlayer.REPEAT_MODE_OFF -> _repeat.value = RepeatState.None
             ExoPlayer.REPEAT_MODE_ONE -> _repeat.value = RepeatState.One
             ExoPlayer.REPEAT_MODE_ALL -> _repeat.value = RepeatState.All
@@ -412,19 +470,23 @@ class SimpleMediaServiceHandler(
         updateNextPreviousTrackAvailability()
     }
 
-    private suspend fun startProgressUpdate() = job.run {
-        while (true) {
-            delay(100)
-            _simpleMediaState.value = SimpleMediaState.Progress(player.currentPosition)
+    private suspend fun startProgressUpdate() =
+        job.run {
+            while (true) {
+                delay(100)
+                _simpleMediaState.value = SimpleMediaState.Progress(player.currentPosition)
+            }
         }
-    }
 
-    private suspend fun startBufferedUpdate() = job.run {
-        while (true){
-            delay(500)
-            _simpleMediaState.value = SimpleMediaState.Loading(player.bufferedPercentage, player.duration)
+    private suspend fun startBufferedUpdate() =
+        job.run {
+            while (true) {
+                delay(500)
+                _simpleMediaState.value =
+                    SimpleMediaState.Loading(player.bufferedPercentage, player.duration)
+            }
         }
-    }
+
     fun currentIndex(): Int {
         return player.currentMediaItemIndex
     }
@@ -441,15 +503,18 @@ class SimpleMediaServiceHandler(
         job?.cancel()
         _simpleMediaState.value = SimpleMediaState.Playing(isPlaying = false)
     }
+
     private fun stopBufferedUpdate() {
         job?.cancel()
-        _simpleMediaState.value = SimpleMediaState.Loading(player.bufferedPercentage, player.duration)
+        _simpleMediaState.value =
+            SimpleMediaState.Loading(player.bufferedPercentage, player.duration)
     }
 
     @OptIn(DelicateCoroutinesApi::class)
     override fun onIsLoadingChanged(isLoading: Boolean) {
         super.onIsLoadingChanged(isLoading)
-        _simpleMediaState.value = SimpleMediaState.Loading(player.bufferedPercentage, player.duration)
+        _simpleMediaState.value =
+            SimpleMediaState.Loading(player.bufferedPercentage, player.duration)
         if (isLoading) {
             coroutineScope.launch(Dispatchers.Main) {
                 startBufferedUpdate()
@@ -460,7 +525,9 @@ class SimpleMediaServiceHandler(
     }
 
     private fun mayBeNormalizeVolume() {
-        runBlocking { normalizeVolume = dataStoreManager.normalizeVolume.first() == DataStoreManager.TRUE }
+        runBlocking {
+            normalizeVolume = dataStoreManager.normalizeVolume.first() == DataStoreManager.TRUE
+        }
         if (!normalizeVolume) {
             loudnessEnhancer?.enabled = false
             loudnessEnhancer?.release()
@@ -470,40 +537,46 @@ class SimpleMediaServiceHandler(
             return
         }
 
-        if (loudnessEnhancer == null) {
+        if (loudnessEnhancer == null && player.audioSessionId != C.AUDIO_SESSION_ID_UNSET) {
             loudnessEnhancer = LoudnessEnhancer(player.audioSessionId)
         }
 
         player.currentMediaItem?.mediaId?.let { songId ->
             volumeNormalizationJob?.cancel()
-            volumeNormalizationJob = coroutineScope.launch(Dispatchers.Main) {
-                mainRepository.getNewFormat(songId).cancellable().first().let { format ->
-                    if (format != null) {
-                        try {
-                            loudnessEnhancer?.setTargetGain(
-                                -((format.loudnessDb ?: 0f) * 100).toInt() + 500
-                            )
-                            Log.w(
-                                "Loudness",
-                                "mayBeNormalizeVolume: ${loudnessEnhancer?.targetGain}"
-                            )
-                            loudnessEnhancer?.enabled = true
-                        } catch (e: Exception) {
-                            e.printStackTrace()
+            volumeNormalizationJob =
+                coroutineScope.launch(Dispatchers.Main) {
+                    mainRepository.getNewFormat(songId).cancellable().first().let { format ->
+                        if (format != null) {
+                            try {
+                                loudnessEnhancer?.setTargetGain(
+                                    -((format.loudnessDb ?: 0f) * 100).toInt() + 500,
+                                )
+                                Log.w(
+                                    "Loudness",
+                                    "mayBeNormalizeVolume: ${loudnessEnhancer?.targetGain}",
+                                )
+                                loudnessEnhancer?.enabled = true
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
                         }
                     }
                 }
-            }
         }
     }
+
     private fun maybeSkipSilent() {
         skipSilent = runBlocking { dataStoreManager.skipSilent.first() } == DataStoreManager.TRUE
         player.skipSilenceEnabled = skipSilent
     }
+
     fun mayBeSaveRecentSong() {
         runBlocking {
             if (dataStoreManager.saveRecentSongAndQueue.first() == DataStoreManager.TRUE) {
-                dataStoreManager.saveRecentSong(player.currentMediaItem?.mediaId ?: "", player.contentPosition)
+                dataStoreManager.saveRecentSong(
+                    player.currentMediaItem?.mediaId ?: "",
+                    player.contentPosition,
+                )
                 Log.d("Check saved", player.currentMediaItem?.mediaMetadata?.title.toString())
                 val temp: ArrayList<Track> = ArrayList()
                 temp.clear()
@@ -519,51 +592,65 @@ class SimpleMediaServiceHandler(
                 }
                 Log.w("Check recover queue", temp.toString())
                 mainRepository.recoverQueue(temp)
-                dataStoreManager.putString(DataStoreManager.RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE, DataStoreManager.FALSE)
+                dataStoreManager.putString(
+                    DataStoreManager.RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE,
+                    DataStoreManager.FALSE,
+                )
             }
         }
     }
+
     fun mayBeSavePlaybackState() {
-        if (runBlocking{ dataStoreManager.saveStateOfPlayback.first() } == DataStoreManager.TRUE ) {
-            runBlocking { dataStoreManager.recoverShuffleAndRepeatKey(player.shuffleModeEnabled, player.repeatMode) }
+        if (runBlocking { dataStoreManager.saveStateOfPlayback.first() } == DataStoreManager.TRUE) {
+            runBlocking {
+                dataStoreManager.recoverShuffleAndRepeatKey(
+                    player.shuffleModeEnabled,
+                    player.repeatMode,
+                )
+            }
         }
     }
+
     fun editSkipSilent(skip: Boolean) {
         skipSilent = skip
         maybeSkipSilent()
     }
+
     fun editNormalizeVolume(normalize: Boolean) {
         normalizeVolume = normalize
     }
 
-    fun seekTo(position: String)  {
+    fun seekTo(position: String) {
         player.seekTo(position.toLong())
         Log.d("Check seek", "seekTo: ${player.currentPosition}")
     }
+
     fun skipSegment(position: Long) {
         if (position in 0..player.duration) {
             player.seekTo(position)
-        }
-        else if (position > player.duration) {
+        } else if (position > player.duration) {
             player.seekToNext()
         }
     }
+
     private fun sendOpenEqualizerIntent() {
-        context.sendBroadcast (
+        context.sendBroadcast(
             Intent(AudioEffect.ACTION_OPEN_AUDIO_EFFECT_CONTROL_SESSION).apply {
                 putExtra(AudioEffect.EXTRA_AUDIO_SESSION, player.audioSessionId)
                 putExtra(AudioEffect.EXTRA_PACKAGE_NAME, context.packageName)
                 putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MUSIC)
-            }
+            },
         )
     }
+
     private fun sendCloseEqualizerIntent() {
         context.sendBroadcast(
             Intent(AudioEffect.ACTION_CLOSE_AUDIO_EFFECT_CONTROL_SESSION).apply {
                 putExtra(AudioEffect.EXTRA_AUDIO_SESSION, player.audioSessionId)
-            }
+            },
         )
     }
+
     fun release() {
         player.stop()
         player.playWhenReady = false
@@ -599,38 +686,62 @@ class SimpleMediaServiceHandler(
 
     private fun updateNotification() {
         updateNotificationJob?.cancel()
-        updateNotificationJob = coroutineScope.launch {
-            val liked = mainRepository.getSongById(player.currentMediaItem?.mediaId ?: "").first()?.liked
-            if (liked != null) {
-                _liked.value = liked
-            }
-            mediaSession.setCustomLayout(
-                listOf(
-                    CommandButton.Builder()
-                        .setDisplayName(if (liked == true) context.getString(R.string.liked) else context.getString(R.string.like))
-                        .setIconResId(if (liked == true) R.drawable.baseline_favorite_24 else R.drawable.baseline_favorite_border_24)
-                        .setSessionCommand(SessionCommand(MEDIA_CUSTOM_COMMAND.LIKE, Bundle()))
-                        .build(),
-                    CommandButton.Builder()
-                        .setDisplayName(
-                            when (player.repeatMode) {
-                                Player.REPEAT_MODE_ONE -> context.getString(androidx.media3.ui.R.string.exo_controls_repeat_one_description)
-                                Player.REPEAT_MODE_ALL -> context.getString(androidx.media3.ui.R.string.exo_controls_repeat_all_description)
-                                else -> context.getString(androidx.media3.ui.R.string.exo_controls_repeat_off_description)
-                            }
-                        )
-                        .setSessionCommand(SessionCommand(MEDIA_CUSTOM_COMMAND.REPEAT, Bundle()))
-                        .setIconResId(
-                            when (player.repeatMode) {
-                                Player.REPEAT_MODE_ONE -> R.drawable.baseline_repeat_one_24
-                                Player.REPEAT_MODE_ALL -> R.drawable.repeat_on
-                                else -> R.drawable.baseline_repeat_24_enable
-                            }
-                        )
-                        .build()
+        updateNotificationJob =
+            coroutineScope.launch {
+                val liked =
+                    mainRepository.getSongById(player.currentMediaItem?.mediaId ?: "")
+                        .first()?.liked
+                if (liked != null) {
+                    _liked.value = liked
+                }
+                mediaSession.setCustomLayout(
+                    listOf(
+                        CommandButton.Builder()
+                            .setDisplayName(
+                                if (liked == true) {
+                                    context.getString(R.string.liked)
+                                } else {
+                                    context.getString(
+                                        R.string.like,
+                                    )
+                                },
+                            )
+                            .setIconResId(if (liked == true) R.drawable.baseline_favorite_24 else R.drawable.baseline_favorite_border_24)
+                            .setSessionCommand(SessionCommand(MEDIA_CUSTOM_COMMAND.LIKE, Bundle()))
+                            .build(),
+                        CommandButton.Builder()
+                            .setDisplayName(
+                                when (player.repeatMode) {
+                                    Player.REPEAT_MODE_ONE ->
+                                        context.getString(
+                                            androidx.media3.ui.R.string.exo_controls_repeat_one_description,
+                                        )
+
+                                    Player.REPEAT_MODE_ALL ->
+                                        context.getString(
+                                            androidx.media3.ui.R.string.exo_controls_repeat_all_description,
+                                        )
+
+                                    else -> context.getString(androidx.media3.ui.R.string.exo_controls_repeat_off_description)
+                                },
+                            )
+                            .setSessionCommand(
+                                SessionCommand(
+                                    MEDIA_CUSTOM_COMMAND.REPEAT,
+                                    Bundle(),
+                                ),
+                            )
+                            .setIconResId(
+                                when (player.repeatMode) {
+                                    Player.REPEAT_MODE_ONE -> R.drawable.baseline_repeat_one_24
+                                    Player.REPEAT_MODE_ALL -> R.drawable.repeat_on
+                                    else -> R.drawable.baseline_repeat_24_enable
+                                },
+                            )
+                            .build(),
+                    ),
                 )
-            )
-        }
+            }
     }
 
     fun getPlayerDuration(): Long {
@@ -670,12 +781,16 @@ class SimpleMediaServiceHandler(
     }
 
     @UnstableApi
-    fun addFirstMediaItemToIndex(mediaItem: MediaItem?, index: Int) {
-        if (mediaItem != null){
+    fun addFirstMediaItemToIndex(
+        mediaItem: MediaItem?,
+        index: Int,
+    ) {
+        if (mediaItem != null) {
             Log.d("MusicSource", "addFirstMediaItem: ${mediaItem.mediaId}")
             moveMediaItem(0, index)
         }
     }
+
     fun reset() {
         _currentSongIndex.value = 0
         catalogMetadata.clear()
@@ -683,14 +798,17 @@ class SimpleMediaServiceHandler(
     }
 
     @UnstableApi
-    suspend fun load(downloaded: Int = 0, index: Int? = null) {
+    suspend fun load(
+        downloaded: Int = 0,
+        index: Int? = null,
+    ) {
         updateCatalog(downloaded).let {
             _stateFlow.value = StateSource.STATE_INITIALIZED
             if (index != null) {
                 when (index) {
                     -1 -> {
-
                     }
+
                     else -> {
                         Log.w("Check index", "load: $index")
                         addFirstMediaItemToIndex(getMediaItemWithIndex(0), index)
@@ -710,8 +828,9 @@ class SimpleMediaServiceHandler(
         _stateFlow.value = StateSource.STATE_INITIALIZING
         for (i in 0 until listTrack.size) {
             val track = listTrack[i]
-            var thumbUrl = track.thumbnails?.last()?.url
-                ?: "http://i.ytimg.com/vi/${track.videoId}/maxresdefault.jpg"
+            var thumbUrl =
+                track.thumbnails?.last()?.url
+                    ?: "http://i.ytimg.com/vi/${track.videoId}/maxresdefault.jpg"
             if (thumbUrl.contains("w120")) {
                 thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
             }
@@ -723,50 +842,52 @@ class SimpleMediaServiceHandler(
                             if (songInfo != null) {
                                 catalogMetadata.add(
                                     track.copy(
-                                        artists = listOf(
-                                            Artist(
-                                                songInfo.authorId,
-                                                songInfo.author ?: ""
-                                            )
+                                        artists =
+                                            listOf(
+                                                Artist(
+                                                    songInfo.authorId,
+                                                    songInfo.author ?: "",
+                                                ),
+                                            ),
+                                    ),
+                                )
+                                addMediaItemNotSet(
+                                    MediaItem.Builder().setUri(track.videoId)
+                                        .setMediaId(track.videoId)
+                                        .setCustomCacheKey(track.videoId)
+                                        .setMediaMetadata(
+                                            MediaMetadata.Builder()
+                                                .setTitle(track.title)
+                                                .setArtist(songInfo.author)
+                                                .setArtworkUri(thumbUrl.toUri())
+                                                .setAlbumTitle(track.album?.name)
+                                                .build(),
                                         )
-                                    )
+                                        .build(),
                                 )
-                            addMediaItemNotSet(
-                                MediaItem.Builder().setUri(track.videoId)
-                                    .setMediaId(track.videoId)
-                                    .setCustomCacheKey(track.videoId)
-                                    .setMediaMetadata(
-                                        MediaMetadata.Builder()
-                                            .setTitle(track.title)
-                                            .setArtist(songInfo.author)
-                                            .setArtworkUri(thumbUrl.toUri())
-                                            .setAlbumTitle(track.album?.name)
-                                            .build()
-                                    )
-                                    .build()
-                            )
-                        } else {
-                            val mediaItem = MediaItem.Builder()
-                                .setMediaId(track.videoId)
-                                .setUri(track.videoId)
-                                .setCustomCacheKey(track.videoId)
-                                .setMediaMetadata(
-                                    MediaMetadata.Builder()
-                                        .setArtworkUri(thumbUrl.toUri())
-                                        .setAlbumTitle(track.album?.name)
-                                        .setTitle(track.title)
-                                        .setArtist("Various Artists")
+                            } else {
+                                val mediaItem =
+                                    MediaItem.Builder()
+                                        .setMediaId(track.videoId)
+                                        .setUri(track.videoId)
+                                        .setCustomCacheKey(track.videoId)
+                                        .setMediaMetadata(
+                                            MediaMetadata.Builder()
+                                                .setArtworkUri(thumbUrl.toUri())
+                                                .setAlbumTitle(track.album?.name)
+                                                .setTitle(track.title)
+                                                .setArtist("Various Artists")
+                                                .build(),
+                                        )
                                         .build()
+                                addMediaItemNotSet(mediaItem)
+                                catalogMetadata.add(
+                                    track.copy(
+                                        artists = listOf(Artist("", "Various Artists")),
+                                    ),
                                 )
-                                .build()
-                            addMediaItemNotSet(mediaItem)
-                            catalogMetadata.add(
-                                track.copy(
-                                    artists = listOf(Artist("", "Various Artists"))
-                                )
-                            )
+                            }
                         }
-                    }
                 } else {
                     addMediaItemNotSet(
                         MediaItem.Builder().setUri(track.videoId)
@@ -778,15 +899,15 @@ class SimpleMediaServiceHandler(
                                     .setArtist(artistName)
                                     .setArtworkUri(thumbUrl.toUri())
                                     .setAlbumTitle(track.album?.name)
-                                    .build()
+                                    .build(),
                             )
-                            .build()
+                            .build(),
                     )
                     catalogMetadata.add(track)
                 }
                 Log.d(
                     "MusicSource",
-                    "updateCatalog: ${track.title}, ${catalogMetadata.size}"
+                    "updateCatalog: ${track.title}, ${catalogMetadata.size}",
                 )
                 added.value = true
                 Log.d("MusicSource", "updateCatalog: ${track.title}")
@@ -802,8 +923,9 @@ class SimpleMediaServiceHandler(
         tempQueue.addAll(Queue.getQueue())
         for (i in 0 until tempQueue.size) {
             val track = tempQueue[i]
-            var thumbUrl = track.thumbnails?.last()?.url
-                ?: "http://i.ytimg.com/vi/${track.videoId}/maxresdefault.jpg"
+            var thumbUrl =
+                track.thumbnails?.last()?.url
+                    ?: "http://i.ytimg.com/vi/${track.videoId}/maxresdefault.jpg"
             if (thumbUrl.contains("w120")) {
                 thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
             }
@@ -812,66 +934,76 @@ class SimpleMediaServiceHandler(
                     mainRepository.getSongInfo(track.videoId).cancellable().first()
                         .let { songInfo ->
                             if (songInfo != null) {
-                                val mediaItem = MediaItem.Builder()
-                                    .setMediaId(track.videoId)
-                                    .setUri(track.videoId)
-                                    .setCustomCacheKey(track.videoId)
-                                    .setMediaMetadata(
-                                        MediaMetadata.Builder()
-                                            .setArtworkUri(thumbUrl.toUri())
-                                            .setAlbumTitle(track.album?.name)
-                                            .setTitle(track.title)
-                                            .setArtist(songInfo.author)
+                                val mediaItem =
+                                    MediaItem.Builder()
+                                        .setMediaId(track.videoId)
+                                        .setUri(track.videoId)
+                                        .setCustomCacheKey(track.videoId)
+                                        .setMediaMetadata(
+                                            MediaMetadata.Builder()
+                                                .setArtworkUri(thumbUrl.toUri())
+                                                .setAlbumTitle(track.album?.name)
+                                                .setTitle(track.title)
+                                                .setArtist(songInfo.author)
+                                                .build(),
+                                        )
                                         .build()
+                                addMediaItemNotSet(mediaItem)
+                                catalogMetadata.add(
+                                    track.copy(
+                                        artists =
+                                            listOf(
+                                                Artist(
+                                                    songInfo.authorId,
+                                                    songInfo.author ?: "",
+                                                ),
+                                            ),
+                                    ),
                                 )
-                                .build()
-                            addMediaItemNotSet(mediaItem)
-                            catalogMetadata.add(track.copy(
-                                artists = listOf(Artist(songInfo.authorId, songInfo.author ?: ""))
-                            ))
-                        }
-                        else {
-                            val mediaItem = MediaItem.Builder()
-                                .setMediaId(track.videoId)
-                                .setUri(track.videoId)
-                                .setCustomCacheKey(track.videoId)
-                                .setMediaMetadata(
-                                    MediaMetadata.Builder()
-                                        .setArtworkUri(thumbUrl.toUri())
-                                        .setAlbumTitle(track.album?.name)
-                                        .setTitle(track.title)
-                                        .setArtist("Various Artists")
+                            } else {
+                                val mediaItem =
+                                    MediaItem.Builder()
+                                        .setMediaId(track.videoId)
+                                        .setUri(track.videoId)
+                                        .setCustomCacheKey(track.videoId)
+                                        .setMediaMetadata(
+                                            MediaMetadata.Builder()
+                                                .setArtworkUri(thumbUrl.toUri())
+                                                .setAlbumTitle(track.album?.name)
+                                                .setTitle(track.title)
+                                                .setArtist("Various Artists")
+                                                .build(),
+                                        )
                                         .build()
+                                addMediaItemNotSet(mediaItem)
+                                catalogMetadata.add(
+                                    track.copy(
+                                        artists = listOf(Artist("", "Various Artists")),
+                                    ),
                                 )
-                                .build()
-                            addMediaItemNotSet(mediaItem)
-                            catalogMetadata.add(track.copy(
-                                artists = listOf(Artist("", "Various Artists" ))
-                            ))
+                            }
                         }
-                    }
-                }
-                else {
-                    val mediaItem = MediaItem.Builder()
-                        .setMediaId(track.videoId)
-                        .setUri(track.videoId)
-                        .setCustomCacheKey(track.videoId)
-                        .setMediaMetadata(
-                            MediaMetadata.Builder()
-                                .setArtworkUri(thumbUrl.toUri())
-                                .setAlbumTitle(track.album?.name)
-                                .setTitle(track.title)
-                                .setArtist(track.artists.toListName().connectArtists())
-                                .build()
-                        )
-                        .build()
+                } else {
+                    val mediaItem =
+                        MediaItem.Builder()
+                            .setMediaId(track.videoId)
+                            .setUri(track.videoId)
+                            .setCustomCacheKey(track.videoId)
+                            .setMediaMetadata(
+                                MediaMetadata.Builder()
+                                    .setArtworkUri(thumbUrl.toUri())
+                                    .setAlbumTitle(track.album?.name)
+                                    .setTitle(track.title)
+                                    .setArtist(track.artists.toListName().connectArtists())
+                                    .build(),
+                            )
+                            .build()
                     addMediaItemNotSet(mediaItem)
                     catalogMetadata.add(track)
                 }
                 Log.d("MusicSource", "updateCatalog: ${track.title}, ${catalogMetadata.size}")
                 added.value = true
-            }
-            else {
+            } else {
                 val artistName: String = track.artists.toListName().connectArtists()
                 if (!catalogMetadata.contains(track)) {
                     if (track.artists.isNullOrEmpty()) {
@@ -880,51 +1012,53 @@ class SimpleMediaServiceHandler(
                                 if (songInfo != null) {
                                     catalogMetadata.add(
                                         track.copy(
-                                            artists = listOf(
-                                                Artist(
-                                                    songInfo.authorId,
-                                                    songInfo.author ?: ""
-                                                )
+                                            artists =
+                                                listOf(
+                                                    Artist(
+                                                        songInfo.authorId,
+                                                        songInfo.author ?: "",
+                                                    ),
+                                                ),
+                                        ),
+                                    )
+                                    addMediaItemNotSet(
+                                        MediaItem.Builder().setUri(track.videoId)
+                                            .setMediaId(track.videoId)
+                                            .setCustomCacheKey(track.videoId)
+                                            .setMediaMetadata(
+                                                MediaMetadata.Builder()
+                                                    .setTitle(track.title)
+                                                    .setArtist(songInfo.author)
+                                                    .setArtworkUri(thumbUrl.toUri())
+                                                    .setAlbumTitle(track.album?.name)
+                                                    .build(),
                                             )
-                                        )
+                                            .build(),
                                     )
-                                addMediaItemNotSet(
-                                    MediaItem.Builder().setUri(track.videoId)
-                                        .setMediaId(track.videoId)
-                                        .setCustomCacheKey(track.videoId)
-                                        .setMediaMetadata(
-                                            MediaMetadata.Builder()
-                                                .setTitle(track.title)
-                                                .setArtist(songInfo.author)
-                                                .setArtworkUri(thumbUrl.toUri())
-                                                .setAlbumTitle(track.album?.name)
-                                                .build()
-                                        )
-                                        .build()
-                                )
-                            }
-                            else {
-                                val mediaItem = MediaItem.Builder()
-                                    .setMediaId(track.videoId)
-                                    .setUri(track.videoId)
-                                    .setCustomCacheKey(track.videoId)
-                                    .setMediaMetadata(
-                                        MediaMetadata.Builder()
-                                            .setArtworkUri(thumbUrl.toUri())
-                                            .setAlbumTitle(track.album?.name)
-                                            .setTitle(track.title)
-                                            .setArtist("Various Artists")
+                                } else {
+                                    val mediaItem =
+                                        MediaItem.Builder()
+                                            .setMediaId(track.videoId)
+                                            .setUri(track.videoId)
+                                            .setCustomCacheKey(track.videoId)
+                                            .setMediaMetadata(
+                                                MediaMetadata.Builder()
+                                                    .setArtworkUri(thumbUrl.toUri())
+                                                    .setAlbumTitle(track.album?.name)
+                                                    .setTitle(track.title)
+                                                    .setArtist("Various Artists")
+                                                    .build(),
+                                            )
                                             .build()
+                                    addMediaItemNotSet(mediaItem)
+                                    catalogMetadata.add(
+                                        track.copy(
+                                            artists = listOf(Artist("", "Various Artists")),
+                                        ),
                                     )
-                                    .build()
-                                addMediaItemNotSet(mediaItem)
-                                catalogMetadata.add(track.copy(
-                                    artists = listOf(Artist("", "Various Artists" ))
-                                ))
+                                }
                             }
-                        }
-                    }
-                    else {
+                    } else {
                         addMediaItemNotSet(
                             MediaItem.Builder().setUri(track.videoId)
                                 .setMediaId(track.videoId)
@@ -935,15 +1069,15 @@ class SimpleMediaServiceHandler(
                                         .setArtist(artistName)
                                         .setArtworkUri(thumbUrl.toUri())
                                         .setAlbumTitle(track.album?.name)
-                                        .build()
+                                        .build(),
                                 )
-                                .build()
+                                .build(),
                         )
                         catalogMetadata.add(track)
                     }
                     Log.d(
                         "MusicSource",
-                        "updateCatalog: ${track.title}, ${catalogMetadata.size}"
+                        "updateCatalog: ${track.title}, ${catalogMetadata.size}",
                     )
                     added.value = true
                     Log.d("MusicSource", "updateCatalog: ${track.title}")
@@ -952,19 +1086,22 @@ class SimpleMediaServiceHandler(
         }
         return true
     }
+
     fun addQueueToPlayer() {
         Log.d("Check Queue in handler", Queue.getQueue().toString())
         loadJob?.cancel()
-        loadJob = coroutineScope.launch {
-            load()
-        }
+        loadJob =
+            coroutineScope.launch {
+                load()
+            }
     }
 
     fun loadPlaylistOrAlbum(index: Int? = null) {
         loadJob?.cancel()
-        loadJob = coroutineScope.launch {
-            load(index = index)
-        }
+        loadJob =
+            coroutineScope.launch {
+                load(index = index)
+            }
     }
 
     fun setCurrentSongIndex(index: Int) {
@@ -975,17 +1112,18 @@ class SimpleMediaServiceHandler(
         val index = currentIndex()
         val mediaItem = player.currentMediaItem
         Log.w("Subtitle", "updateSubtitle: $url")
-        val subtitle = SubtitleConfiguration.Builder(url.plus("&fmt=ttml").toUri())
-            .setId(mediaItem?.mediaId)
-            .setMimeType(MimeTypes.APPLICATION_TTML)
-            .setLanguage("en")
-            .setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
-            .build()
+        val subtitle =
+            SubtitleConfiguration.Builder(url.plus("&fmt=ttml").toUri())
+                .setId(mediaItem?.mediaId)
+                .setMimeType(MimeTypes.APPLICATION_TTML)
+                .setLanguage("en")
+                .setSelectionFlags(C.SELECTION_FLAG_DEFAULT)
+                .build()
         val new = mediaItem?.buildUpon()?.setSubtitleConfigurations(listOf(subtitle))?.build()
         if (new != null) {
             player.replaceMediaItem(
                 index,
-                new
+                new,
             )
             println("update subtitle" + player.currentMediaItem?.localConfiguration?.subtitleConfigurations?.firstOrNull()?.uri.toString())
         }
@@ -993,8 +1131,9 @@ class SimpleMediaServiceHandler(
 
     suspend fun playNext(track: Track) {
         _stateFlow.value = StateSource.STATE_INITIALIZING
-        var thumbUrl = track.thumbnails?.last()?.url
-            ?: "http://i.ytimg.com/vi/${track.videoId}/maxresdefault.jpg"
+        var thumbUrl =
+            track.thumbnails?.last()?.url
+                ?: "http://i.ytimg.com/vi/${track.videoId}/maxresdefault.jpg"
         if (thumbUrl.contains("w120")) {
             thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
         }
@@ -1006,13 +1145,14 @@ class SimpleMediaServiceHandler(
                         catalogMetadata.add(
                             currentIndex() + 1,
                             track.copy(
-                                artists = listOf(
-                                    Artist(
-                                        songInfo.authorId,
-                                        songInfo.author ?: ""
-                                    )
-                                )
-                            )
+                                artists =
+                                    listOf(
+                                        Artist(
+                                            songInfo.authorId,
+                                            songInfo.author ?: "",
+                                        ),
+                                    ),
+                            ),
                         )
                         addMediaItemNotSet(
                             MediaItem.Builder().setUri(track.videoId)
@@ -1024,30 +1164,32 @@ class SimpleMediaServiceHandler(
                                         .setArtist(songInfo.author)
                                         .setArtworkUri(thumbUrl.toUri())
                                         .setAlbumTitle(track.album?.name)
-                                        .build()
+                                        .build(),
                                 )
-                                .build(), currentIndex() + 1
+                                .build(),
+                            currentIndex() + 1,
                         )
                     } else {
-                        val mediaItem = MediaItem.Builder()
-                            .setMediaId(track.videoId)
-                            .setUri(track.videoId)
-                            .setCustomCacheKey(track.videoId)
-                            .setMediaMetadata(
-                                MediaMetadata.Builder()
-                                    .setArtworkUri(thumbUrl.toUri())
-                                    .setAlbumTitle(track.album?.name)
-                                    .setTitle(track.title)
-                                    .setArtist("Various Artists")
-                                    .build()
-                            )
-                            .build()
+                        val mediaItem =
+                            MediaItem.Builder()
+                                .setMediaId(track.videoId)
+                                .setUri(track.videoId)
+                                .setCustomCacheKey(track.videoId)
+                                .setMediaMetadata(
+                                    MediaMetadata.Builder()
+                                        .setArtworkUri(thumbUrl.toUri())
+                                        .setAlbumTitle(track.album?.name)
+                                        .setTitle(track.title)
+                                        .setArtist("Various Artists")
+                                        .build(),
+                                )
+                                .build()
                         addMediaItemNotSet(mediaItem, currentIndex() + 1)
                         catalogMetadata.add(
                             currentIndex() + 1,
                             track.copy(
-                                artists = listOf(Artist("", "Various Artists"))
-                            )
+                                artists = listOf(Artist("", "Various Artists")),
+                            ),
                         )
                     }
                 }
@@ -1062,55 +1204,71 @@ class SimpleMediaServiceHandler(
                                 .setArtist(artistName)
                                 .setArtworkUri(thumbUrl.toUri())
                                 .setAlbumTitle(track.album?.name)
-                                .build()
+                                .build(),
                         )
                         .build(),
-                    currentIndex() + 1
+                    currentIndex() + 1,
                 )
                 catalogMetadata.add(currentIndex() + 1, track)
             }
             Log.d(
                 "MusicSource",
-                "updateCatalog: ${track.title}, ${catalogMetadata.size}"
+                "updateCatalog: ${track.title}, ${catalogMetadata.size}",
             )
             added.value = true
             Log.d("MusicSource", "updateCatalog: ${track.title}")
         }
         _stateFlow.value = StateSource.STATE_INITIALIZED
     }
-
 }
 
 sealed class RepeatState {
     data object None : RepeatState()
+
     data object All : RepeatState()
+
     data object One : RepeatState()
 }
 
 sealed class PlayerEvent {
     data object PlayPause : PlayerEvent()
+
     data object Backward : PlayerEvent()
+
     data object Forward : PlayerEvent()
+
     data object Stop : PlayerEvent()
+
     data object Next : PlayerEvent()
+
     data object Previous : PlayerEvent()
+
     data object Shuffle : PlayerEvent()
+
     data object Repeat : PlayerEvent()
+
     data class UpdateProgress(val newProgress: Float) : PlayerEvent()
 }
 
 sealed class SimpleMediaState {
     data object Initial : SimpleMediaState()
+
     data object Ended : SimpleMediaState()
+
     data class Ready(val duration: Long) : SimpleMediaState()
-    data class Loading(val bufferedPercentage: Int, val duration: Long): SimpleMediaState()
+
+    data class Loading(val bufferedPercentage: Int, val duration: Long) : SimpleMediaState()
+
     data class Progress(val progress: Long) : SimpleMediaState()
+
     data class Buffering(val position: Long) : SimpleMediaState()
+
     data class Playing(val isPlaying: Boolean) : SimpleMediaState()
 }
+
 enum class StateSource {
     STATE_CREATED,
     STATE_INITIALIZING,
     STATE_INITIALIZED,
-    STATE_ERROR
+    STATE_ERROR,
 }

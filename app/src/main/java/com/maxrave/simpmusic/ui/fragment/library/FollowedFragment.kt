@@ -18,7 +18,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 
 @AndroidEntryPoint
-class FollowedFragment: Fragment() {
+class FollowedFragment : Fragment() {
     private var _binding: FragmentFollowedBinding? = null
     private val binding get() = _binding!!
 
@@ -30,7 +30,7 @@ class FollowedFragment: Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
         _binding = FragmentFollowedBinding.inflate(inflater, container, false)
         binding.topAppBarLayout.applyInsetter {
@@ -41,7 +41,10 @@ class FollowedFragment: Fragment() {
         return binding.root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
         super.onViewCreated(view, savedInstanceState)
         listFollowed = ArrayList<Any>()
         followedAdapter = SearchItemAdapter(arrayListOf(), requireContext())
@@ -51,30 +54,39 @@ class FollowedFragment: Fragment() {
         }
 
         viewModel.getListLikedSong()
-        viewModel.listFollowedArtist.observe(viewLifecycleOwner){ followed ->
+        viewModel.listFollowedArtist.observe(viewLifecycleOwner) { followed ->
             listFollowed.clear()
             for (i in followed.size - 1 downTo 0) {
                 listFollowed.add(followed[i])
             }
+            listFollowed.sortBy { (it as ArtistEntity).name }
             followedAdapter.updateList(listFollowed)
         }
 
-
-        followedAdapter.setOnClickListener(object : SearchItemAdapter.onItemClickListener {
-            override fun onItemClick(position: Int, type: String) {
-                if (type == "artist") {
-                    val data = listFollowed[position] as ArtistEntity
-                    findNavController().navigateSafe(R.id.action_global_artistFragment, Bundle().apply {
-                        putString("channelId", data.channelId)
-                    })
+        followedAdapter.setOnClickListener(
+            object : SearchItemAdapter.onItemClickListener {
+                override fun onItemClick(
+                    position: Int,
+                    type: String,
+                ) {
+                    if (type == "artist") {
+                        val data = listFollowed[position] as ArtistEntity
+                        findNavController().navigateSafe(
+                            R.id.action_global_artistFragment,
+                            Bundle().apply {
+                                putString("channelId", data.channelId)
+                            },
+                        )
+                    }
                 }
-            }
 
-            override fun onOptionsClick(position: Int, type: String) {
-
-            }
-
-        })
+                override fun onOptionsClick(
+                    position: Int,
+                    type: String,
+                ) {
+                }
+            },
+        )
 
         binding.topAppBar.setNavigationOnClickListener {
             findNavController().popBackStack()

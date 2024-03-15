@@ -77,11 +77,9 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import javax.inject.Inject
 
-
 @UnstableApi
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
-
     private lateinit var binding: ActivityMainBinding
     val viewModel by viewModels<SharedViewModel>()
     private var action: String? = null
@@ -93,99 +91,116 @@ class MainActivity : AppCompatActivity() {
     @Inject
     lateinit var mainRepository: MainRepository
 
-    private val serviceConnection = object : ServiceConnection {
-        override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            if (service is SimpleMediaService.MusicBinder) {
-                Log.w("MainActivity", "onServiceConnected: ")
+    private val serviceConnection =
+        object : ServiceConnection {
+            override fun onServiceConnected(
+                name: ComponentName?,
+                service: IBinder?,
+            ) {
+                if (service is SimpleMediaService.MusicBinder) {
+                    Log.w("MainActivity", "onServiceConnected: ")
 
-                viewModel.simpleMediaServiceHandler = SimpleMediaServiceHandler(
-                    player = service.service.player,
-                    mediaSession = service.service.mediaSession,
-                    mediaSessionCallback = service.service.simpleMediaSessionCallback,
-                    dataStoreManager = dataStoreManager,
-                    mainRepository = mainRepository,
-                    context = service.service,
-                    coroutineScope = lifecycleScope
-                )
+                    viewModel.simpleMediaServiceHandler =
+                        SimpleMediaServiceHandler(
+                            player = service.service.player,
+                            mediaSession = service.service.mediaSession,
+                            mediaSessionCallback = service.service.simpleMediaSessionCallback,
+                            dataStoreManager = dataStoreManager,
+                            mainRepository = mainRepository,
+                            context = service.service,
+                            coroutineScope = lifecycleScope,
+                        )
 
-                viewModel.init()
-                mayBeRestoreLastPlayedTrackAndQueue()
-                runCollect()
-                Log.w("TEST", viewModel.simpleMediaServiceHandler?.player.toString())
+                    viewModel.init()
+                    mayBeRestoreLastPlayedTrackAndQueue()
+                    runCollect()
+                    Log.w("TEST", viewModel.simpleMediaServiceHandler?.player.toString())
+                }
+            }
+
+            override fun onServiceDisconnected(name: ComponentName?) {
+                Log.w("MainActivity", "onServiceDisconnected: ")
+                viewModel.simpleMediaServiceHandler = null
             }
         }
-
-        override fun onServiceDisconnected(name: ComponentName?) {
-            Log.w("MainActivity", "onServiceDisconnected: ")
-            viewModel.simpleMediaServiceHandler = null
-        }
-    }
 
     private fun runCollect() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.CREATED) {
-                val job5 = launch {
-                    viewModel.simpleMediaServiceHandler?.nowPlaying?.collect {
-                        if (it != null) {
-                            Log.w(
-                                "Test service",
-                                viewModel.simpleMediaServiceHandler?.getCurrentMediaItem()?.mediaMetadata?.title.toString()
-                            )
-                            binding.songTitle.setTextAnimation(it.mediaMetadata.title.toString())
-                            binding.songTitle.isSelected = true
-                            binding.songArtist.setTextAnimation(it.mediaMetadata.artist.toString())
-                            binding.songArtist.isSelected = true
-                            binding.ivArt.load(it.mediaMetadata.artworkUri) {
-                                crossfade(true)
-                                crossfade(300)
-                                placeholder(R.drawable.outline_album_24)
-                                transformations(object : Transformation {
-                                    override val cacheKey: String
-                                        get() = it.mediaMetadata.artworkUri.toString()
+                val job5 =
+                    launch {
+                        viewModel.simpleMediaServiceHandler?.nowPlaying?.collect {
+                            if (it != null) {
+                                Log.w(
+                                    "Test service",
+                                    viewModel.simpleMediaServiceHandler?.getCurrentMediaItem()?.mediaMetadata?.title.toString(),
+                                )
+                                binding.songTitle.setTextAnimation(it.mediaMetadata.title.toString())
+                                binding.songTitle.isSelected = true
+                                binding.songArtist.setTextAnimation(it.mediaMetadata.artist.toString())
+                                binding.songArtist.isSelected = true
+                                binding.ivArt.load(it.mediaMetadata.artworkUri) {
+                                    crossfade(true)
+                                    crossfade(300)
+                                    placeholder(R.drawable.outline_album_24)
+                                    transformations(
+                                        object : Transformation {
+                                            override val cacheKey: String
+                                                get() = it.mediaMetadata.artworkUri.toString()
 
-                                    override suspend fun transform(
-                                        input: Bitmap,
-                                        size: Size
-                                    ): Bitmap {
-                                        val p = Palette.from(input).generate()
-                                        val defaultColor = 0x000000
-                                        var startColor = p.getDarkVibrantColor(defaultColor)
-                                        Log.d("Check Start Color", "transform: $startColor")
-                                        if (startColor == defaultColor) {
-                                            startColor = p.getDarkMutedColor(defaultColor)
-                                            if (startColor == defaultColor) {
-                                                startColor = p.getVibrantColor(defaultColor)
+                                            override suspend fun transform(
+                                                input: Bitmap,
+                                                size: Size,
+                                            ): Bitmap {
+                                                val p = Palette.from(input).generate()
+                                                val defaultColor = 0x000000
+                                                var startColor = p.getDarkVibrantColor(defaultColor)
+                                                Log.d("Check Start Color", "transform: $startColor")
                                                 if (startColor == defaultColor) {
-                                                    startColor = p.getMutedColor(defaultColor)
+                                                    startColor = p.getDarkMutedColor(defaultColor)
                                                     if (startColor == defaultColor) {
-                                                        startColor =
-                                                            p.getLightVibrantColor(defaultColor)
+                                                        startColor = p.getVibrantColor(defaultColor)
                                                         if (startColor == defaultColor) {
                                                             startColor =
-                                                                p.getLightMutedColor(defaultColor)
+                                                                p.getMutedColor(defaultColor)
+                                                            if (startColor == defaultColor) {
+                                                                startColor =
+                                                                    p.getLightVibrantColor(
+                                                                        defaultColor,
+                                                                    )
+                                                                if (startColor == defaultColor) {
+                                                                    startColor =
+                                                                        p.getLightMutedColor(
+                                                                            defaultColor,
+                                                                        )
+                                                                }
+                                                            }
                                                         }
                                                     }
+                                                    Log.d(
+                                                        "Check Start Color",
+                                                        "transform: $startColor",
+                                                    )
                                                 }
+                                                val endColor = 0x1b1a1f
+                                                val gd =
+                                                    GradientDrawable(
+                                                        GradientDrawable.Orientation.TOP_BOTTOM,
+                                                        intArrayOf(startColor, endColor),
+                                                    )
+                                                gd.cornerRadius = 0f
+                                                gd.gradientType = GradientDrawable.LINEAR_GRADIENT
+                                                gd.gradientRadius = 0.5f
+                                                gd.alpha = 150
+                                                val bg =
+                                                    ColorUtils.setAlphaComponent(startColor, 255)
+                                                binding.card.setCardBackgroundColor(bg)
+                                                binding.cardBottom.setCardBackgroundColor(bg)
+                                                return input
                                             }
-                                            Log.d("Check Start Color", "transform: $startColor")
-                                        }
-                                        val endColor = 0x1b1a1f
-                                        val gd = GradientDrawable(
-                                            GradientDrawable.Orientation.TOP_BOTTOM,
-                                            intArrayOf(startColor, endColor)
-                                        )
-                                        gd.cornerRadius = 0f
-                                        gd.gradientType = GradientDrawable.LINEAR_GRADIENT
-                                        gd.gradientRadius = 0.5f
-                                        gd.alpha = 150
-                                        val bg = ColorUtils.setAlphaComponent(startColor, 255)
-                                        binding.card.setCardBackgroundColor(bg)
-                                        binding.cardBottom.setCardBackgroundColor(bg)
-                                        return input
-                                    }
-
-                                })
-                            }
+                                        },
+                                    )
+                                }
 //                            val request = ImageRequest.Builder(this@MainActivity)
 //                                .data(it.mediaMetadata.artworkUri)
 //                                .target(
@@ -236,47 +251,52 @@ class MainActivity : AppCompatActivity() {
 //                                })
 //                                .build()
 //                            ImageLoader(this@MainActivity).execute(request)
+                            }
                         }
                     }
-                }
-                val job2 = launch {
-                    viewModel.progress.collect {
-                        binding.progressBar.progress = (it * 100).toInt()
+                val job2 =
+                    launch {
+                        viewModel.progress.collect {
+                            binding.progressBar.progress = (it * 100).toInt()
+                        }
                     }
-                }
 
-                val job6 = launch {
-                    viewModel.simpleMediaServiceHandler?.liked?.collect { liked ->
-                        binding.cbFavorite.isChecked = liked
-                    }
-                }
-                val job3 = launch {
-                    viewModel.isPlaying.collect {
-                        if (it) {
-                            binding.btPlayPause.setImageResource(R.drawable.baseline_pause_24)
-                        } else {
-                            binding.btPlayPause.setImageResource(R.drawable.baseline_play_arrow_24)
+                val job6 =
+                    launch {
+                        viewModel.simpleMediaServiceHandler?.liked?.collect { liked ->
+                            binding.cbFavorite.isChecked = liked
                         }
                     }
-                }
-                val job4 = launch {
-                    viewModel.simpleMediaServiceHandler?.sleepDone?.collect { done ->
-                        if (done) {
-                            MaterialAlertDialogBuilder(this@MainActivity)
-                                .setTitle(getString(R.string.sleep_timer_off))
-                                .setMessage(getString(R.string.good_night))
-                                .setPositiveButton(getString(R.string.yes)) { d, _ ->
-                                    d.dismiss()
-                                }
-                                .show()
+                val job3 =
+                    launch {
+                        viewModel.isPlaying.collect {
+                            if (it) {
+                                binding.btPlayPause.setImageResource(R.drawable.baseline_pause_24)
+                            } else {
+                                binding.btPlayPause.setImageResource(R.drawable.baseline_play_arrow_24)
+                            }
                         }
                     }
-                }
-                val likedJob = launch {
-                    viewModel.liked.collect {
-                        binding.cbFavorite.isChecked = it
+                val job4 =
+                    launch {
+                        viewModel.simpleMediaServiceHandler?.sleepDone?.collect { done ->
+                            if (done) {
+                                MaterialAlertDialogBuilder(this@MainActivity)
+                                    .setTitle(getString(R.string.sleep_timer_off))
+                                    .setMessage(getString(R.string.good_night))
+                                    .setPositiveButton(getString(R.string.yes)) { d, _ ->
+                                        d.dismiss()
+                                    }
+                                    .show()
+                            }
+                        }
                     }
-                }
+                val likedJob =
+                    launch {
+                        viewModel.liked.collect {
+                            binding.cbFavorite.isChecked = it
+                        }
+                    }
                 job2.join()
                 job3.join()
                 job5.join()
@@ -298,7 +318,7 @@ class MainActivity : AppCompatActivity() {
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
-        grantResults: IntArray
+        grantResults: IntArray,
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this)
@@ -338,9 +358,9 @@ class MainActivity : AppCompatActivity() {
                     "Contains",
                     "onCreate: ${
                         SUPPORTED_LANGUAGE.codes.contains(
-                            Locale.getDefault().toLanguageTag()
+                            Locale.getDefault().toLanguageTag(),
                         )
-                    }"
+                    }",
                 )
                 putString(SELECTED_LANGUAGE, Locale.getDefault().toLanguageTag())
                 if (SUPPORTED_LOCATION.items.contains(Locale.getDefault().country)) {
@@ -348,16 +368,18 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     putString("location", "US")
                 }
-                YouTube.locale = YouTubeLocale(
-                    gl = getString("location") ?: "US",
-                    hl = Locale.getDefault().toLanguageTag()
-                )
+                YouTube.locale =
+                    YouTubeLocale(
+                        gl = getString("location") ?: "US",
+                        hl = Locale.getDefault().toLanguageTag(),
+                    )
             } else {
                 putString(SELECTED_LANGUAGE, "en-US")
-                YouTube.locale = YouTubeLocale(
-                    gl = getString("location") ?: "US",
-                    hl = "en-US"
-                )
+                YouTube.locale =
+                    YouTubeLocale(
+                        gl = getString("location") ?: "US",
+                        hl = "en-US",
+                    )
             }
             // Fetch the selected language from wherever it was stored. In this case its SharedPref
             getString(SELECTED_LANGUAGE)?.let {
@@ -369,19 +391,21 @@ class MainActivity : AppCompatActivity() {
                 putString(FIRST_TIME_MIGRATION, STATUS_DONE)
             }
         }
-        if (AppCompatDelegate.getApplicationLocales().toLanguageTags() != getString(
-                SELECTED_LANGUAGE
+        if (AppCompatDelegate.getApplicationLocales().toLanguageTags() !=
+            getString(
+                SELECTED_LANGUAGE,
             )
         ) {
             Log.d(
                 "Locale Key",
-                "onCreate: ${AppCompatDelegate.getApplicationLocales().toLanguageTags()}"
+                "onCreate: ${AppCompatDelegate.getApplicationLocales().toLanguageTags()}",
             )
             putString(SELECTED_LANGUAGE, AppCompatDelegate.getApplicationLocales().toLanguageTags())
-            YouTube.locale = YouTubeLocale(
-                gl = getString("location") ?: "US",
-                hl = AppCompatDelegate.getApplicationLocales().toLanguageTags()
-            )
+            YouTube.locale =
+                YouTubeLocale(
+                    gl = getString("location") ?: "US",
+                    hl = AppCompatDelegate.getApplicationLocales().toLanguageTags(),
+                )
         }
 //
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -399,7 +423,7 @@ class MainActivity : AppCompatActivity() {
                     this,
                     getString(R.string.this_app_needs_to_access_your_notification),
                     1,
-                    Manifest.permission.POST_NOTIFICATIONS
+                    Manifest.permission.POST_NOTIFICATIONS,
                 )
             }
         }
@@ -415,11 +439,12 @@ class MainActivity : AppCompatActivity() {
         binding.root.addOnLayoutChangeListener { v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
             val rect = Rect(left, top, right, bottom)
             val oldRect = Rect(oldLeft, oldTop, oldRight, oldBottom)
-            if ((rect.width() != oldRect.width() || rect.height() != oldRect.height()) && oldRect != Rect(
+            if ((rect.width() != oldRect.width() || rect.height() != oldRect.height()) && oldRect !=
+                Rect(
                     0,
                     0,
                     0,
-                    0
+                    0,
                 )
             ) {
                 viewModel.activityRecreate()
@@ -430,7 +455,7 @@ class MainActivity : AppCompatActivity() {
                 padding()
             }
         }
-        window.navigationBarColor = Color.parseColor("#CB0B0A0A")
+        window.navigationBarColor = Color.parseColor("#E80B0A0A")
         if (!isMyServiceRunning(SimpleMediaService::class.java)) {
             binding.miniplayer.visibility = View.GONE
         }
@@ -504,31 +529,40 @@ class MainActivity : AppCompatActivity() {
 
         binding.miniplayer.showMode = SwipeLayout.ShowMode.PullOut
         binding.miniplayer.addDrag(SwipeLayout.DragEdge.Right, binding.llBottom)
-        binding.miniplayer.addSwipeListener(object : SwipeLayout.SwipeListener {
-            override fun onStartOpen(layout: SwipeLayout?) {
-                binding.card.radius = 0f
-            }
+        binding.miniplayer.addSwipeListener(
+            object : SwipeLayout.SwipeListener {
+                override fun onStartOpen(layout: SwipeLayout?) {
+                    binding.card.radius = 0f
+                }
 
-            override fun onOpen(layout: SwipeLayout?) {
-                binding.card.radius = 0f
-            }
+                override fun onOpen(layout: SwipeLayout?) {
+                    binding.card.radius = 0f
+                }
 
-            override fun onStartClose(layout: SwipeLayout?) {
-                binding.card.radius = 12f
-            }
+                override fun onStartClose(layout: SwipeLayout?) {
+                    binding.card.radius = 12f
+                }
 
-            override fun onClose(layout: SwipeLayout?) {
-                binding.card.radius = 12f
-            }
+                override fun onClose(layout: SwipeLayout?) {
+                    binding.card.radius = 12f
+                }
 
-            override fun onUpdate(layout: SwipeLayout?, leftOffset: Int, topOffset: Int) {
-                binding.card.radius = 12f
-            }
+                override fun onUpdate(
+                    layout: SwipeLayout?,
+                    leftOffset: Int,
+                    topOffset: Int,
+                ) {
+                    binding.card.radius = 12f
+                }
 
-            override fun onHandRelease(layout: SwipeLayout?, xvel: Float, yvel: Float) {
-            }
-
-        })
+                override fun onHandRelease(
+                    layout: SwipeLayout?,
+                    xvel: Float,
+                    yvel: Float,
+                ) {
+                }
+            },
+        )
         binding.btRemoveMiniPlayer.setOnClickListener {
             viewModel.stopPlayer()
             viewModel.isServiceRunning.postValue(false)
@@ -550,54 +584,64 @@ class MainActivity : AppCompatActivity() {
             viewModel.onUIEvent(UIEvent.PlayPause)
         }
         lifecycleScope.launch {
-            val job1 = launch {
-                viewModel.intent.collectLatest { intent ->
-                    if (intent != null) {
-                        data = intent.data ?: intent.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
-                        Log.d("MainActivity", "onCreate: $data")
-                        if (data != null) {
-                            when (val path = data!!.pathSegments.firstOrNull()) {
-                                "playlist" -> data!!.getQueryParameter("list")
-                                    ?.let { playlistId ->
-                                        if (playlistId.startsWith("OLAK5uy_")) {
-                                            viewModel.intent.value = null
-                                            navController.navigateSafe(
-                                                R.id.action_global_albumFragment,
-                                                Bundle().apply {
-                                                    putString("browseId", playlistId)
-                                                })
-                                        } else if (playlistId.startsWith("VL")) {
-                                            viewModel.intent.value = null
-                                            navController.navigateSafe(
-                                                R.id.action_global_playlistFragment,
-                                                Bundle().apply {
-                                                    putString("id", playlistId)
-                                                })
-                                        } else {
-                                            viewModel.intent.value = null
-                                            navController.navigateSafe(
-                                                R.id.action_global_playlistFragment,
-                                                Bundle().apply {
-                                                    putString("id", "VL$playlistId")
-                                                })
-                                        }
-                                    }
+            val job1 =
+                launch {
+                    viewModel.intent.collectLatest { intent ->
+                        if (intent != null) {
+                            if (intent.action == "com.maxrave.simpmusic.service.test.notification.NOTIFICATION") {
+                                navController.navigateSafe(R.id.action_global_notificationFragment)
+                            }
+                            data = intent.data ?: intent.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
+                            Log.d("MainActivity", "onCreate: $data")
+                            if (data != null) {
+                                when (val path = data!!.pathSegments.firstOrNull()) {
+                                    "playlist" ->
+                                        data!!.getQueryParameter("list")
+                                            ?.let { playlistId ->
+                                                if (playlistId.startsWith("OLAK5uy_")) {
+                                                    viewModel.intent.value = null
+                                                    navController.navigateSafe(
+                                                        R.id.action_global_albumFragment,
+                                                        Bundle().apply {
+                                                            putString("browseId", playlistId)
+                                                        },
+                                                    )
+                                                } else if (playlistId.startsWith("VL")) {
+                                                    viewModel.intent.value = null
+                                                    navController.navigateSafe(
+                                                        R.id.action_global_playlistFragment,
+                                                        Bundle().apply {
+                                                            putString("id", playlistId)
+                                                        },
+                                                    )
+                                                } else {
+                                                    viewModel.intent.value = null
+                                                    navController.navigateSafe(
+                                                        R.id.action_global_playlistFragment,
+                                                        Bundle().apply {
+                                                            putString("id", "VL$playlistId")
+                                                        },
+                                                    )
+                                                }
+                                            }
 
-                                "channel", "c" -> data!!.lastPathSegment?.let { artistId ->
-                                    if (artistId.startsWith("UC")) {
-                                        viewModel.intent.value = null
-                                        navController.navigateSafe(
-                                            R.id.action_global_artistFragment,
-                                            Bundle().apply {
-                                                putString("channelId", artistId)
-                                            })
-                                    } else {
-                                        Toast.makeText(
-                                            this@MainActivity,
-                                            getString(R.string.this_link_is_not_supported),
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    }
+                                    "channel", "c" ->
+                                        data!!.lastPathSegment?.let { artistId ->
+                                            if (artistId.startsWith("UC")) {
+                                                viewModel.intent.value = null
+                                                navController.navigateSafe(
+                                                    R.id.action_global_artistFragment,
+                                                    Bundle().apply {
+                                                        putString("channelId", artistId)
+                                                    },
+                                                )
+                                            } else {
+                                                Toast.makeText(
+                                                    this@MainActivity,
+                                                    getString(R.string.this_link_is_not_supported),
+                                                    Toast.LENGTH_SHORT,
+                                                ).show()
+                                            }
 //                                    else {
 //                                        viewModel.convertNameToId(artistId)
 //                                        viewModel.artistId.observe(this@MainActivity) {channelId ->
@@ -615,74 +659,78 @@ class MainActivity : AppCompatActivity() {
 //                                            }
 //                                        }
 //                                    }
-                                }
+                                        }
 
-                                else -> when {
-                                    path == "watch" -> data!!.getQueryParameter("v")
-                                    data!!.host == "youtu.be" -> path
-                                    else -> null
-                                }?.let { videoId ->
-                                    val args = Bundle()
-                                    args.putString("videoId", videoId)
-                                    args.putString("from", getString(R.string.shared))
-                                    args.putString("type", Config.SHARE)
-                                    viewModel.videoId.value = videoId
-                                    hideBottomNav()
-                                    if (navController.currentDestination?.id == R.id.nowPlayingFragment) {
-                                        findNavController(R.id.fragment_container_view).popBackStack()
-                                        navController.navigateSafe(
-                                            R.id.action_global_nowPlayingFragment,
-                                            args
+                                    else ->
+                                        when {
+                                            path == "watch" -> data!!.getQueryParameter("v")
+                                            data!!.host == "youtu.be" -> path
+                                            else -> null
+                                        }?.let { videoId ->
+                                            val args = Bundle()
+                                            args.putString("videoId", videoId)
+                                            args.putString("from", getString(R.string.shared))
+                                            args.putString("type", Config.SHARE)
+                                            viewModel.videoId.value = videoId
+                                            hideBottomNav()
+                                            if (navController.currentDestination?.id == R.id.nowPlayingFragment) {
+                                                findNavController(R.id.fragment_container_view).popBackStack()
+                                                navController.navigateSafe(
+                                                    R.id.action_global_nowPlayingFragment,
+                                                    args,
+                                                )
+                                            } else {
+                                                navController.navigateSafe(
+                                                    R.id.action_global_nowPlayingFragment,
+                                                    args,
+                                                )
+                                            }
+                                        }
+                                }
+                            }
+                        }
+                    }
+                }
+            job1.join()
+        }
+        lifecycleScope.launch {
+            val job1 =
+                launch {
+                    viewModel.progress.collect { progress ->
+                        val skipSegments = viewModel.skipSegments.first()
+                        val enabled = viewModel.sponsorBlockEnabled()
+                        val listCategory = viewModel.sponsorBlockCategories()
+                        if (skipSegments != null && enabled == DataStoreManager.TRUE) {
+                            for (skip in skipSegments) {
+                                if (listCategory.contains(skip.category)) {
+                                    val firstPart = (skip.segment[0] / skip.videoDuration).toFloat()
+                                    val secondPart =
+                                        (skip.segment[1] / skip.videoDuration).toFloat()
+                                    if (progress in firstPart..secondPart) {
+                                        Log.w(
+                                            "Seek to",
+                                            (skip.segment[1] / skip.videoDuration).toFloat()
+                                                .toString(),
                                         )
-                                    } else {
-                                        navController.navigateSafe(
-                                            R.id.action_global_nowPlayingFragment,
-                                            args
-                                        )
+                                        viewModel.skipSegment((skip.segment[1] * 1000).toLong())
+                                        Toast.makeText(
+                                            this@MainActivity,
+                                            getString(
+                                                R.string.sponsorblock_skip_segment,
+                                                getString(
+                                                    SPONSOR_BLOCK.listName.get(
+                                                        SPONSOR_BLOCK.list.indexOf(skip.category),
+                                                    ),
+                                                ).lowercase(),
+                                            ),
+                                            Toast.LENGTH_SHORT,
+                                        ).show()
                                     }
                                 }
                             }
                         }
                     }
                 }
-            }
-            job1.join()
-        }
-        lifecycleScope.launch {
-            val job1 = launch {
-                viewModel.progress.collect { progress ->
-                    val skipSegments = viewModel.skipSegments.first()
-                    val enabled = viewModel.sponsorBlockEnabled()
-                    val listCategory = viewModel.sponsorBlockCategories()
-                    if (skipSegments != null && enabled == DataStoreManager.TRUE) {
-                        for (skip in skipSegments) {
-                            if (listCategory.contains(skip.category)) {
-                                val firstPart = (skip.segment[0] / skip.videoDuration).toFloat()
-                                val secondPart = (skip.segment[1] / skip.videoDuration).toFloat()
-                                if (progress in firstPart..secondPart) {
-                                    Log.w(
-                                        "Seek to",
-                                        (skip.segment[1] / skip.videoDuration).toFloat().toString()
-                                    )
-                                    viewModel.skipSegment((skip.segment[1] * 1000).toLong())
-                                    Toast.makeText(
-                                        this@MainActivity,
-                                        getString(
-                                            R.string.sponsorblock_skip_segment,
-                                            getString(
-                                                SPONSOR_BLOCK.listName.get(
-                                                    SPONSOR_BLOCK.list.indexOf(skip.category)
-                                                )
-                                            ).lowercase()
-                                        ), Toast.LENGTH_SHORT
-                                    ).show()
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
 
             job1.join()
         }
@@ -708,21 +756,23 @@ class MainActivity : AppCompatActivity() {
         if (getString(RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE) == DataStoreManager.FALSE) {
             Log.d("Restore", "mayBeRestoreLastPlayedTrackAndQueue: ")
             viewModel.getSaveLastPlayedSong()
-            val queue = viewModel.saveLastPlayedSong.switchMap { saved: Boolean ->
-                if (saved) {
-                    viewModel.from.postValue(viewModel.from_backup)
-                    viewModel.simpleMediaServiceHandler?.reset()
-                    viewModel.getSavedSongAndQueue()
-                    return@switchMap viewModel.savedQueue
-                } else {
-                    return@switchMap null
+            val queue =
+                viewModel.saveLastPlayedSong.switchMap { saved: Boolean ->
+                    if (saved) {
+                        viewModel.from.postValue(viewModel.from_backup)
+                        viewModel.simpleMediaServiceHandler?.reset()
+                        viewModel.getSavedSongAndQueue()
+                        return@switchMap viewModel.savedQueue
+                    } else {
+                        return@switchMap null
+                    }
                 }
-            }
-            val result: MediatorLiveData<List<Track>> = MediatorLiveData<List<Track>>().apply {
-                addSource(queue) {
-                    value = it ?: listOf()
+            val result: MediatorLiveData<List<Track>> =
+                MediatorLiveData<List<Track>>().apply {
+                    addSource(queue) {
+                        value = it ?: listOf()
+                    }
                 }
-            }
             binding.miniplayer.visibility = View.GONE
             result.observe(this) { data ->
                 val queueData = data
@@ -835,10 +885,11 @@ class MainActivity : AppCompatActivity() {
                     val inputFormat =
                         SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
                     val outputFormat = SimpleDateFormat("dd MMM yyyy HH:mm:ss", Locale.getDefault())
-                    val formatted = response.publishedAt?.let { input ->
-                        inputFormat.parse(input)
-                            ?.let { outputFormat.format(it) }
-                    }
+                    val formatted =
+                        response.publishedAt?.let { input ->
+                            inputFormat.parse(input)
+                                ?.let { outputFormat.format(it) }
+                        }
 
                     MaterialAlertDialogBuilder(this)
                         .setTitle(getString(R.string.update_available))
@@ -847,14 +898,15 @@ class MainActivity : AppCompatActivity() {
                                 R.string.update_message,
                                 response.tagName,
                                 formatted,
-                                response.body
-                            )
+                                response.body,
+                            ),
                         )
                         .setPositiveButton(getString(R.string.download)) { _, _ ->
-                            val browserIntent = Intent(
-                                Intent.ACTION_VIEW,
-                                Uri.parse(response.assets?.firstOrNull()?.browserDownloadUrl)
-                            )
+                            val browserIntent =
+                                Intent(
+                                    Intent.ACTION_VIEW,
+                                    Uri.parse(response.assets?.firstOrNull()?.browserDownloadUrl),
+                                )
                             startActivity(browserIntent)
                         }
                         .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
@@ -866,7 +918,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun putString(key: String, value: String) {
+    private fun putString(
+        key: String,
+        value: String,
+    ) {
         viewModel.putString(key, value)
     }
 
@@ -878,7 +933,6 @@ class MainActivity : AppCompatActivity() {
         super.onConfigurationChanged(newConfig)
         viewModel.activityRecreate()
     }
-
 }
 
 val LocalPlayerAwareWindowInsets =

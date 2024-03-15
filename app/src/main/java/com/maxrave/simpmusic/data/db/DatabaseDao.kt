@@ -439,7 +439,7 @@ interface DatabaseDao {
     suspend fun insertNotification(notificationEntity: NotificationEntity)
 
     @Query("SELECT * FROM notification")
-    suspend fun getAllNotification(): List<NotificationEntity>
+    suspend fun getAllNotification(): List<NotificationEntity>?
 
     @Query("DELETE FROM notification WHERE id = :id")
     suspend fun deleteNotification(id: Long)

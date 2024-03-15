@@ -328,4 +328,9 @@
     <string name="trending">Trending</string>
     <string name="new_singles">New singles</string>
     <string name="new_albums">New albums</string>
+    <string name="notification">Notification</string>
+    <string name="month_s_ago">%1$d month(s) ago</string>
+    <string name="day_s_ago">%1$d day(s) ago</string>
+    <string name="hour_s_ago">%1$d hour(s) ago</string>
+    <string name="no_notification">No notification</string>
 </resources>

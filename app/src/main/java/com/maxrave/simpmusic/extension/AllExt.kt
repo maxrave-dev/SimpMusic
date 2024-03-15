@@ -28,6 +28,7 @@ import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
 import com.maxrave.kotlinytmusicscraper.models.response.spotify.SpotifyLyricsResponse
 import com.maxrave.kotlinytmusicscraper.models.youtube.Transcript
 import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
+import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.SETTINGS_FILENAME
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.LyricsEntity
@@ -53,18 +54,21 @@ import kotlinx.coroutines.flow.Flow
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
+import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
 val Context.dataStore by preferencesDataStore(name = SETTINGS_FILENAME)
 
-fun Context.isMyServiceRunning(serviceClass: Class<out Service>) = try {
-    (getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager)
-        .getRunningServices(Int.MAX_VALUE)
-        .any { it.service.className == serviceClass.name }
-} catch (e: Exception) {
-    false
-}
+fun Context.isMyServiceRunning(serviceClass: Class<out Service>) =
+    try {
+        (getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager)
+            .getRunningServices(Int.MAX_VALUE)
+            .any { it.service.className == serviceClass.name }
+    } catch (e: Exception) {
+        false
+    }
 
 fun SearchHistory.toQuery(): String {
     return this.query
@@ -94,7 +98,7 @@ fun ResultSong.toTrack(): Track {
         category = null,
         feedbackTokens = null,
         resultType = null,
-        year = ""
+        year = "",
     )
 }
 
@@ -114,7 +118,7 @@ fun ResultVideo.toTrack(): Track {
         category = null,
         feedbackTokens = null,
         resultType = null,
-        year = ""
+        year = "",
     )
 }
 
@@ -134,7 +138,7 @@ fun SongsResult.toTrack(): Track {
         this.category,
         this.feedbackTokens,
         this.resultType,
-        ""
+        "",
     )
 }
 
@@ -154,7 +158,7 @@ fun SongItem.toTrack(): Track {
         category = null,
         feedbackTokens = null,
         resultType = null,
-        year = null
+        year = null,
     )
 }
 
@@ -174,7 +178,7 @@ fun VideoItem.toTrack(): Track {
         category = null,
         feedbackTokens = null,
         resultType = null,
-        year = null
+        year = null,
     )
 }
 
@@ -235,28 +239,30 @@ fun Track.toSongEntity(): SongEntity {
         isAvailable = this.isAvailable,
         isExplicit = this.isExplicit,
         likeStatus = this.likeStatus ?: "",
-        thumbnails = this.thumbnails?.last()?.url?.let {
-            if (it.contains("w120")) {
-                return@let Regex("([wh])120").replace(it, "$1544")
-            } else if (it.contains("sddefault")) {
-                return@let it.replace("sddefault", "maxresdefault")
-            } else {
-                return@let it
-            }
-        },
+        thumbnails =
+            this.thumbnails?.last()?.url?.let {
+                if (it.contains("w120")) {
+                    return@let Regex("([wh])120").replace(it, "$1544")
+                } else if (it.contains("sddefault")) {
+                    return@let it.replace("sddefault", "maxresdefault")
+                } else {
+                    return@let it
+                }
+            },
         title = this.title,
         videoType = this.videoType ?: "",
         category = this.category,
         resultType = this.resultType,
         liked = false,
         totalPlayTime = 0,
-        downloadState = 0
+        downloadState = 0,
     )
 }
 
 fun String?.removeDuplicateWords(): String {
-    if (this == null) return "null"
-    else {
+    if (this == null) {
+        return "null"
+    } else {
         val regex = Regex("\\b(\\w+)\\b\\s*(?=.*\\b\\1\\b)")
         return this.replace(regex, "")
     }
@@ -284,7 +290,7 @@ fun SongEntity.toTrack(): Track {
         category = this.category,
         feedbackTokens = null,
         resultType = null,
-        year = ""
+        year = "",
     )
 }
 
@@ -299,26 +305,30 @@ fun List<SongEntity>?.toArrayListTrack(): ArrayList<Track> {
 }
 
 fun MediaItem?.toSongEntity(): SongEntity? {
-    return if (this != null) SongEntity(
-        videoId = this.mediaId,
-        albumId = null,
-        albumName = this.mediaMetadata.albumTitle.toString(),
-        artistId = null,
-        artistName = listOf(this.mediaMetadata.artist.toString()),
-        duration = "",
-        durationSeconds = 0,
-        isAvailable = true,
-        isExplicit = false,
-        likeStatus = "INDIFFERENT",
-        thumbnails = this.mediaMetadata.artworkUri.toString(),
-        title = this.mediaMetadata.title.toString(),
-        videoType = "",
-        category = "",
-        resultType = "",
-        liked = false,
-        totalPlayTime = 0,
-        downloadState = 0
-    ) else null
+    return if (this != null) {
+        SongEntity(
+            videoId = this.mediaId,
+            albumId = null,
+            albumName = this.mediaMetadata.albumTitle.toString(),
+            artistId = null,
+            artistName = listOf(this.mediaMetadata.artist.toString()),
+            duration = "",
+            durationSeconds = 0,
+            isAvailable = true,
+            isExplicit = false,
+            likeStatus = "INDIFFERENT",
+            thumbnails = this.mediaMetadata.artworkUri.toString(),
+            title = this.mediaMetadata.title.toString(),
+            videoType = "",
+            category = "",
+            resultType = "",
+            liked = false,
+            totalPlayTime = 0,
+            downloadState = 0,
+        )
+    } else {
+        null
+    }
 }
 
 @JvmName("MediaItemtoSongEntity")
@@ -334,7 +344,7 @@ fun SongEntity.toMediaItem(): MediaItem {
                 .setArtist(this.artistName?.connectArtists())
                 .setArtworkUri(this.thumbnails?.toUri())
                 .setAlbumTitle(this.albumName)
-                .build()
+                .build(),
         )
         .build()
 }
@@ -352,7 +362,7 @@ fun Track.toMediaItem(): MediaItem {
                 .setArtist(this.artists.toListName().connectArtists())
                 .setArtworkUri(this.thumbnails?.lastOrNull()?.url?.toUri())
                 .setAlbumTitle(this.album?.name)
-                .build()
+                .build(),
         )
         .build()
 }
@@ -394,7 +404,7 @@ fun VideosResult.toTrack(): Track {
         category = this.category,
         feedbackTokens = null,
         resultType = this.resultType,
-        year = ""
+        year = "",
     )
 }
 
@@ -423,7 +433,7 @@ fun Content.toTrack(): Track {
         category = null,
         feedbackTokens = null,
         resultType = null,
-        year = ""
+        year = "",
     )
 }
 
@@ -449,7 +459,7 @@ fun AlbumBrowse.toAlbumEntity(id: String): AlbumEntity {
         trackCount = this.trackCount,
         tracks = this.tracks.toListVideoId(),
         type = this.type,
-        year = this.year
+        year = this.year,
     )
 }
 
@@ -465,7 +475,7 @@ fun PlaylistBrowse.toPlaylistEntity(): PlaylistEntity {
         title = this.title,
         trackCount = this.trackCount,
         tracks = this.tracks.toListVideoId(),
-        year = this.year
+        year = this.year,
     )
 }
 
@@ -478,32 +488,38 @@ fun Track.addThumbnails(): Track {
         isAvailable = this.isAvailable,
         isExplicit = this.isExplicit,
         likeStatus = this.likeStatus,
-        thumbnails = listOf(
-            Thumbnail(
-                720,
-                "https://i.ytimg.com/vi/${this.videoId}/maxresdefault.jpg",
-                1280
-            )
-        ),
+        thumbnails =
+            listOf(
+                Thumbnail(
+                    720,
+                    "https://i.ytimg.com/vi/${this.videoId}/maxresdefault.jpg",
+                    1280,
+                ),
+            ),
         title = this.title,
         videoId = this.videoId,
         videoType = this.videoType,
         category = this.category,
         feedbackTokens = this.feedbackTokens,
         resultType = this.resultType,
-        year = this.year
+        year = this.year,
     )
 }
 
 fun LyricsEntity.toLyrics(): Lyrics {
     return Lyrics(
-        error = this.error, lines = this.lines, syncType = this.syncType
+        error = this.error,
+        lines = this.lines,
+        syncType = this.syncType,
     )
 }
 
 fun Lyrics.toLyricsEntity(videoId: String): LyricsEntity {
     return LyricsEntity(
-        videoId = videoId, error = this.error, lines = this.lines, syncType = this.syncType
+        videoId = videoId,
+        error = this.error,
+        lines = this.lines,
+        syncType = this.syncType,
     )
 }
 
@@ -515,7 +531,10 @@ fun Collection<SongEntity>.toVideoIdList(): List<String> {
     return list
 }
 
-fun setEnabledAll(v: View, enabled: Boolean) {
+fun setEnabledAll(
+    v: View,
+    enabled: Boolean,
+) {
     v.isEnabled = enabled
     v.isFocusable = enabled
     if (v is ImageButton) {
@@ -566,23 +585,22 @@ fun com.maxrave.kotlinytmusicscraper.models.lyrics.Lyrics.toLyrics(): Lyrics {
                     endTimeMs = it.endTimeMs,
                     startTimeMs = it.startTimeMs,
                     syllables = it.syllables ?: listOf(),
-                    words = it.words
-                )
+                    words = it.words,
+                ),
             )
         }
         return Lyrics(
             error = false,
             lines = lines,
-            syncType = this.lyrics!!.syncType
+            syncType = this.lyrics!!.syncType,
         )
     } else {
         return Lyrics(
             error = true,
             lines = null,
-            syncType = null
+            syncType = null,
         )
     }
-
 }
 
 fun SpotifyLyricsResponse.toLyrics(): Lyrics {
@@ -593,46 +611,47 @@ fun SpotifyLyricsResponse.toLyrics(): Lyrics {
                 endTimeMs = it.endTimeMs,
                 startTimeMs = it.startTimeMs,
                 syllables = listOf(),
-                words = it.words
-            )
+                words = it.words,
+            ),
         )
     }
     return Lyrics(
         error = false,
         lines = lines,
-        syncType = this.lyrics.syncType
+        syncType = this.lyrics.syncType,
     )
-
 }
 
 fun PipedResponse.toTrack(videoId: String): Track {
     return Track(
         album = null,
-        artists = listOf(
-            Artist(
-                this.uploaderUrl?.replace("/channel/", ""),
-                this.uploader.toString()
-            )
-        ),
+        artists =
+            listOf(
+                Artist(
+                    this.uploaderUrl?.replace("/channel/", ""),
+                    this.uploader.toString(),
+                ),
+            ),
         duration = "",
         durationSeconds = 0,
         isAvailable = false,
         isExplicit = false,
         likeStatus = "INDIFFERENT",
-        thumbnails = listOf(
-            Thumbnail(
-                720,
-                this.thumbnailUrl ?: "https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg",
-                1080
-            )
-        ),
+        thumbnails =
+            listOf(
+                Thumbnail(
+                    720,
+                    this.thumbnailUrl ?: "https://i.ytimg.com/vi/$videoId/maxresdefault.jpg",
+                    1080,
+                ),
+            ),
         title = this.title ?: " ",
         videoId = videoId,
         videoType = "Song",
         category = "",
         feedbackTokens = null,
         resultType = null,
-        year = ""
+        year = "",
     )
 }
 
@@ -641,12 +660,13 @@ fun YouTubeInitialPage.toTrack(): Track {
 
     return Track(
         album = null,
-        artists = listOf(
-            Artist(
-                name = initialPage.videoDetails?.author ?: "",
-                id = initialPage.videoDetails?.channelId
-            )
-        ),
+        artists =
+            listOf(
+                Artist(
+                    name = initialPage.videoDetails?.author ?: "",
+                    id = initialPage.videoDetails?.channelId,
+                ),
+            ),
         duration = initialPage.videoDetails?.lengthSeconds,
         durationSeconds = initialPage.videoDetails?.lengthSeconds?.toInt() ?: 0,
         isAvailable = false,
@@ -659,7 +679,7 @@ fun YouTubeInitialPage.toTrack(): Track {
         category = "",
         feedbackTokens = null,
         resultType = "",
-        year = ""
+        year = "",
     )
 }
 
@@ -668,40 +688,49 @@ fun MusixmatchTranslationLyricsResponse.toLyrics(originalLyrics: Lyrics): Lyrics
         return null
     } else {
         val listTranslation = this.message.body.translations_list
-        val translation = originalLyrics.copy(
-            lines = originalLyrics.lines?.mapIndexed { index, line ->
-                line.copy(
-                    words = if (!line.words.contains("♫")) {
-                        listTranslation.find { it.translation.matched_line == line.words || it.translation.subtitle_matched_line == line.words || it.translation.snippet == line.words }?.translation?.description
-                            ?: ""
-                    } else {
-                        line.words
-                    }
-                )
-            }
-        )
+        val translation =
+            originalLyrics.copy(
+                lines =
+                    originalLyrics.lines?.mapIndexed { index, line ->
+                        line.copy(
+                            words =
+                                if (!line.words.contains("♫")) {
+                                    listTranslation.find {
+                                        it.translation.matched_line == line.words || it.translation.subtitle_matched_line == line.words || it.translation.snippet == line.words
+                                    }?.translation?.description
+                                        ?: ""
+                                } else {
+                                    line.words
+                                },
+                        )
+                    },
+            )
         return translation
     }
 }
 
 fun Transcript.toLyrics(): Lyrics {
-    val lines = this.text.map {
-        Line(
-            endTimeMs = "0",
-            startTimeMs = (it.start.toFloat() * 1000).toInt().toString(),
-            syllables = listOf(),
-            words = Html.fromHtml(it.content, Html.FROM_HTML_MODE_COMPACT).toString()
-        )
-    }
+    val lines =
+        this.text.map {
+            Line(
+                endTimeMs = "0",
+                startTimeMs = (it.start.toFloat() * 1000).toInt().toString(),
+                syllables = listOf(),
+                words = Html.fromHtml(it.content, Html.FROM_HTML_MODE_COMPACT).toString(),
+            )
+        }
     val sortedLine = lines.sortedBy { it.startTimeMs.toInt() }
     return Lyrics(
         error = false,
         lines = sortedLine,
-        syncType = "LINE_SYNCED"
+        syncType = "LINE_SYNCED",
     )
 }
 
-fun NavController.navigateSafe(resId: Int, bundle: Bundle? = null) {
+fun NavController.navigateSafe(
+    resId: Int,
+    bundle: Bundle? = null,
+) {
     if (currentDestination?.id != resId) {
         if (bundle != null) {
             navigate(resId, bundle)
@@ -711,7 +740,10 @@ fun NavController.navigateSafe(resId: Int, bundle: Bundle? = null) {
     }
 }
 
-fun <A, B> zip(first: LiveData<A>, second: LiveData<B>): Flow<Pair<A, B>> {
+fun <A, B> zip(
+    first: LiveData<A>,
+    second: LiveData<B>,
+): Flow<Pair<A, B>> {
     val mediatorLiveData = MediatorLiveData<Pair<A, B>>()
 
     var isFirstEmitted = false
@@ -757,7 +789,7 @@ fun PodcastBrowse.EpisodeItem.toTrack(): Track {
         category = "Podcast",
         feedbackTokens = null,
         resultType = "Podcast",
-        year = this.createdDay
+        year = this.createdDay,
     )
 }
 
@@ -773,7 +805,7 @@ fun List<PodcastBrowse.EpisodeItem>.toListTrack(): ArrayList<Track> {
 fun TextView.setTextAnimation(
     text: String,
     duration: Long = 300,
-    completion: (() -> Unit)? = null
+    completion: (() -> Unit)? = null,
 ) {
     if (text != "null") {
         fadOutAnimation(duration) {
@@ -790,7 +822,7 @@ fun TextView.setTextAnimation(
 fun View.fadOutAnimation(
     duration: Long = 300,
     visibility: Int = View.INVISIBLE,
-    completion: (() -> Unit)? = null
+    completion: (() -> Unit)? = null,
 ) {
     animate()
         .alpha(0f)
@@ -803,7 +835,10 @@ fun View.fadOutAnimation(
         }
 }
 
-fun View.fadInAnimation(duration: Long = 300, completion: (() -> Unit)? = null) {
+fun View.fadInAnimation(
+    duration: Long = 300,
+    completion: (() -> Unit)? = null,
+) {
     alpha = 0f
     visibility = View.VISIBLE
     animate()
@@ -822,8 +857,26 @@ infix fun <E> Collection<E>.symmetricDifference(other: Collection<E>): Set<E> {
     return left union right
 }
 
-operator fun File.div(child: String): File = File(this, child)
-fun String.toSQLiteQuery(): SimpleSQLiteQuery = SimpleSQLiteQuery(this)
-fun InputStream.zipInputStream(): ZipInputStream = ZipInputStream(this)
-fun OutputStream.zipOutputStream(): ZipOutputStream = ZipOutputStream(this)
+fun LocalDateTime.formatTimeAgo(context: Context): String {
+    val now = LocalDateTime.now()
+    val hoursDiff = ChronoUnit.HOURS.between(this, now)
+    val daysDiff = ChronoUnit.DAYS.between(this, now)
+    val monthsDiff = ChronoUnit.MONTHS.between(this, now)
 
+    return when {
+        monthsDiff >= 1 -> context.getString(R.string.month_s_ago, monthsDiff)
+        daysDiff >= 30 -> context.getString(R.string.month_s_ago, daysDiff / 30)
+        hoursDiff >= 24 -> context.getString(R.string.day_s_ago, daysDiff)
+        hoursDiff > 1 -> context.getString(R.string.hour_s_ago, hoursDiff)
+        hoursDiff <= 1 -> context.getString(R.string.recently)
+        else -> context.getString(androidx.media3.ui.R.string.exo_track_unknown)
+    }
+}
+
+operator fun File.div(child: String): File = File(this, child)
+
+fun String.toSQLiteQuery(): SimpleSQLiteQuery = SimpleSQLiteQuery(this)
+
+fun InputStream.zipInputStream(): ZipInputStream = ZipInputStream(this)
+
+fun OutputStream.zipOutputStream(): ZipOutputStream = ZipOutputStream(this)

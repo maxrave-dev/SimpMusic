@@ -9,21 +9,20 @@
         android:id="@+id/bottom_navigation_item_search"
         android:name="com.maxrave.simpmusic.ui.fragment.SearchFragment"
         android:label="fragment_search"
-        tools:layout="@layout/fragment_search" >
+        tools:layout="@layout/fragment_search">
         <action
             android:id="@+id/action_bottom_navigation_item_search_to_artistFragment"
             app:destination="@id/artistFragment"
             app:enterAnim="@anim/bottom_to_top"
             app:exitAnim="@anim/top_to_bottom"
             app:popEnterAnim="@anim/bottom_to_top"
-            app:popExitAnim="@anim/top_to_bottom">
-        </action>
+            app:popExitAnim="@anim/top_to_bottom"></action>
     </fragment>
     <fragment
         android:id="@+id/bottom_navigation_item_library"
         android:name="com.maxrave.simpmusic.ui.fragment.library.LibraryFragment"
         android:label="fragment_library"
-        tools:layout="@layout/fragment_library" >
+        tools:layout="@layout/fragment_library">
         <action
             android:id="@+id/action_bottom_navigation_item_library_to_favoriteFragment"
             app:destination="@id/favoriteFragment"
@@ -283,6 +282,17 @@
     <action
         android:id="@+id/action_global_spotifyLogInFragment"
         app:destination="@id/spotifyLogInFragment"
+        app:enterAnim="@anim/bottom_to_top"
+        app:exitAnim="@anim/top_to_bottom"
+        app:popEnterAnim="@anim/bottom_to_top"
+        app:popExitAnim="@anim/top_to_bottom" />
+    <fragment
+        android:id="@+id/notificationFragment"
+        android:name="com.maxrave.simpmusic.ui.fragment.home.NotificationFragment"
+        android:label="NotificationFragment" />
+    <action
+        android:id="@+id/action_global_notificationFragment"
+        app:destination="@id/notificationFragment"
         app:enterAnim="@anim/bottom_to_top"
         app:exitAnim="@anim/top_to_bottom"
         app:popEnterAnim="@anim/bottom_to_top"
