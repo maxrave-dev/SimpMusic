@@ -24,6 +24,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
@@ -31,6 +32,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -78,6 +80,7 @@ import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.animation.crossfade.CrossfadePlugin
 import com.skydoves.landscapist.coil.CoilImage
 import com.skydoves.landscapist.components.rememberImageComponent
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 
@@ -90,6 +93,7 @@ fun HomeScreen(
     navController: NavController,
 ) {
     val context = LocalContext.current
+    val scrollState = rememberLazyListState()
     val accountInfo by viewModel.accountInfo.collectAsState()
     val homeData by viewModel.homeItemList.collectAsState()
     val newRelease by viewModel.newRelease.collectAsState()
@@ -101,9 +105,10 @@ fun HomeScreen(
         mutableStateOf(homeData.find { it.subtitle == accountInfo?.first } != null)
     }
     val regionChart by viewModel.regionCodeChart.collectAsState()
+    val homeRefresh by sharedViewModel.homeRefresh.collectAsState()
     val pullToRefreshState =
         rememberPullToRefreshState(
-            50.dp,
+            20.dp,
         )
     val scaleFraction =
         if (pullToRefreshState.isRefreshing) {
@@ -115,21 +120,56 @@ fun HomeScreen(
         viewModel.getHomeItemList()
         if (!loading) {
             pullToRefreshState.endRefresh()
+            sharedViewModel.homeRefreshDone()
+        }
+    }
+    LaunchedEffect(key1 = homeRefresh) {
+        Log.w("HomeScreen", "homeRefresh: $homeRefresh")
+        if (homeRefresh) {
+            Log.w(
+                "HomeScreen",
+                "scrollState.firstVisibleItemIndex: ${scrollState.firstVisibleItemIndex}"
+            )
+            if (scrollState.firstVisibleItemIndex == 1) {
+                Log.w(
+                    "HomeScreen",
+                    "scrollState.canScrollBackward: ${scrollState.canScrollBackward}"
+                )
+                pullToRefreshState.startRefresh()
+            } else {
+                Log.w(
+                    "HomeScreen",
+                    "scrollState.canScrollBackward: ${scrollState.canScrollBackward}"
+                )
+                launch { scrollState.scrollToItem(0, 0) }
+                sharedViewModel.homeRefreshDone()
+            }
         }
     }
     Column {
         HomeTopAppBar(navController)
         Box(
             modifier =
-                Modifier
-                    .nestedScroll(pullToRefreshState.nestedScrollConnection)
-                    .padding(vertical = 8.dp),
+            Modifier
+                .nestedScroll(pullToRefreshState.nestedScrollConnection)
+                .padding(vertical = 8.dp),
             contentAlignment = Alignment.Center,
         ) {
+            PullToRefreshContainer(
+                modifier =
+                Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 15.dp)
+                    .graphicsLayer(scaleX = scaleFraction, scaleY = scaleFraction),
+                state = pullToRefreshState,
+            )
             Spacer(modifier = Modifier.height(8.dp))
             Crossfade(targetState = loading, label = "Home Shimmer") { loading ->
                 if (!loading) {
-                    LazyColumn(modifier = Modifier.padding(horizontal = 15.dp)) {
+                    LazyColumn(
+                        modifier = Modifier.padding(horizontal = 15.dp),
+                        state = scrollState,
+                    ) {
                         item {
                             androidx.compose.animation.AnimatedVisibility(visible = accountInfo != null && accountShow) {
                                 AccountLayout(
@@ -141,21 +181,21 @@ fun HomeScreen(
                         item {
                             androidx.compose.animation.AnimatedVisibility(
                                 visible =
-                                    homeData.find {
-                                        it.title ==
+                                homeData.find {
+                                    it.title ==
                                             context.getString(
                                                 R.string.quick_picks,
                                             )
-                                    } != null,
+                                } != null,
                             ) {
                                 QuickPicks(
                                     homeItem =
-                                        homeData.find {
-                                            it.title ==
+                                    homeData.find {
+                                        it.title ==
                                                 context.getString(
                                                     R.string.quick_picks,
                                                 )
-                                        } ?: return@AnimatedVisibility,
+                                    } ?: return@AnimatedVisibility,
                                     navController = navController,
                                 )
                             }
@@ -204,10 +244,10 @@ fun HomeScreen(
                                         DropdownButton(
                                             items = CHART_SUPPORTED_COUNTRY.itemsData.toList(),
                                             defaultSelected =
-                                                CHART_SUPPORTED_COUNTRY.itemsData.getOrNull(
-                                                    CHART_SUPPORTED_COUNTRY.items.indexOf(it),
-                                                )
-                                                    ?: CHART_SUPPORTED_COUNTRY.itemsData[1],
+                                            CHART_SUPPORTED_COUNTRY.itemsData.getOrNull(
+                                                CHART_SUPPORTED_COUNTRY.items.indexOf(it),
+                                            )
+                                                ?: CHART_SUPPORTED_COUNTRY.itemsData[1],
                                         ) {
                                             viewModel.exploreChart(
                                                 CHART_SUPPORTED_COUNTRY.items[
@@ -235,9 +275,9 @@ fun HomeScreen(
                                     } else {
                                         CenterLoadingBox(
                                             modifier =
-                                                Modifier
-                                                    .fillMaxWidth()
-                                                    .height(400.dp),
+                                            Modifier
+                                                .fillMaxWidth()
+                                                .height(400.dp),
                                         )
                                     }
                                 }
@@ -251,14 +291,6 @@ fun HomeScreen(
                     HomeShimmer()
                 }
             }
-
-            PullToRefreshContainer(
-                modifier =
-                    Modifier
-                        .align(Alignment.TopCenter)
-                        .graphicsLayer(scaleX = scaleFraction, scaleY = scaleFraction),
-                state = pullToRefreshState,
-            )
         }
     }
 }
@@ -283,23 +315,23 @@ fun HomeTopAppBar(navController: NavController) {
                 )
                 Text(
                     text =
-                        when (hour) {
-                            in 6..12 -> {
-                                stringResource(R.string.good_morning)
-                            }
+                    when (hour) {
+                        in 6..12 -> {
+                            stringResource(R.string.good_morning)
+                        }
 
-                            in 13..17 -> {
-                                stringResource(R.string.good_afternoon)
-                            }
+                        in 13..17 -> {
+                            stringResource(R.string.good_afternoon)
+                        }
 
-                            in 18..23 -> {
-                                stringResource(R.string.good_evening)
-                            }
+                        in 18..23 -> {
+                            stringResource(R.string.good_evening)
+                        }
 
-                            else -> {
-                                stringResource(R.string.good_night)
-                            }
-                        },
+                        else -> {
+                            stringResource(R.string.good_night)
+                        }
+                    },
                     style = typo.bodySmall,
                 )
             }
@@ -337,31 +369,31 @@ fun AccountLayout(
             CoilImage(
                 imageModel = { url },
                 imageOptions =
-                    ImageOptions(
-                        contentScale = ContentScale.Crop,
-                        alignment = Alignment.Center,
-                    ),
+                ImageOptions(
+                    contentScale = ContentScale.Crop,
+                    alignment = Alignment.Center,
+                ),
                 previewPlaceholder = painterResource(id = R.drawable.holder),
                 component =
-                    rememberImageComponent {
-                        CrossfadePlugin(
-                            duration = 550,
-                        )
-                    },
+                rememberImageComponent {
+                    CrossfadePlugin(
+                        duration = 550,
+                    )
+                },
                 modifier =
-                    Modifier
-                        .size(40.dp)
-                        .clip(
-                            CircleShape,
-                        ),
+                Modifier
+                    .size(40.dp)
+                    .clip(
+                        CircleShape,
+                    ),
             )
             Text(
                 text = accountName,
                 style = typo.headlineMedium,
                 color = Color.White,
                 modifier =
-                    Modifier
-                        .padding(start = 8.dp),
+                Modifier
+                    .padding(start = 8.dp),
             )
         }
     }
@@ -385,9 +417,9 @@ fun QuickPicks(
             style = typo.headlineMedium,
             maxLines = 1,
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 5.dp),
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 5.dp),
         )
         LazyHorizontalGrid(rows = GridCells.Fixed(3), modifier = Modifier.height(210.dp)) {
             items(homeItem.contents) {
@@ -426,9 +458,9 @@ fun MoodMomentAndGenre(
             style = typo.headlineMedium,
             maxLines = 1,
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 5.dp),
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 5.dp),
         )
         LazyHorizontalGrid(rows = GridCells.Fixed(3), modifier = Modifier.height(210.dp)) {
             items(mood.moodsMoments) {
@@ -447,9 +479,9 @@ fun MoodMomentAndGenre(
             style = typo.headlineMedium,
             maxLines = 1,
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 5.dp),
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 5.dp),
         )
         LazyHorizontalGrid(rows = GridCells.Fixed(3), modifier = Modifier.height(210.dp)) {
             items(mood.genres) {
@@ -478,9 +510,9 @@ fun ChartTitle() {
             style = typo.headlineMedium,
             maxLines = 1,
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 5.dp),
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 5.dp),
         )
     }
 }
@@ -503,9 +535,9 @@ fun ChartData(
                     style = typo.headlineMedium,
                     maxLines = 1,
                     modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 10.dp),
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 10.dp),
                 )
                 if (!chart.songs.isNullOrEmpty()) {
                     LazyHorizontalGrid(
@@ -539,9 +571,9 @@ fun ChartData(
             style = typo.headlineMedium,
             maxLines = 1,
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 10.dp),
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 10.dp),
         )
         LazyRow {
             items(chart.videos.items.size) {
@@ -570,9 +602,9 @@ fun ChartData(
             style = typo.headlineMedium,
             maxLines = 1,
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 10.dp),
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 10.dp),
         )
         LazyHorizontalGrid(rows = GridCells.Fixed(3), modifier = Modifier.height(240.dp)) {
             items(chart.artists.itemArtists.size) {
@@ -591,9 +623,9 @@ fun ChartData(
                     style = typo.headlineMedium,
                     maxLines = 1,
                     modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 10.dp),
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 10.dp),
                 )
                 if (!chart.trending.isNullOrEmpty()) {
                     LazyHorizontalGrid(
