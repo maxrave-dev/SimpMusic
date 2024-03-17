@@ -1,5 +1,6 @@
+
 <div align="center">
-	<img src="https://raw.githubusercontent.com/maxrave-dev/SimpMusic/dev/fastlane/metadata/android/en-US/images/featureGraphic.png" height="400">
+	<img src="https://raw.githubusercontent.com/maxrave-dev/SimpMusic/dev/fastlane/metadata/android/en-US/images/featureGraphic.png">
 <h1>SimpMusic</h1>A FOSS YouTube Music client for Android with many features from<br>Spotify, Musixmatch, SponsorBlock, ReturnYouTubeDislike<br>
 <br>
 <a href="https://github.com/maxrave-dev/SimpMusic/releases"><img src="https://img.shields.io/github/v/release/maxrave-dev/SimpMusic"></a>
@@ -13,15 +14,8 @@
 <a href="https://nightly.link/maxrave-dev/SimpMusic/workflows/android/dev/app.zip"><img src="https://github.com/maxrave-dev/SimpMusic/actions/workflows/android.yml/badge.svg"></a><br/>
 <a href="https://nightly.link/maxrave-dev/SimpMusic/workflows/android/dev/app.zip"><img src="https://raw.githubusercontent.com/NeoApplications/Neo-Backup/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" height="80"></a>
 </div>
-
-
-
-> **Warning**
->
->This app is in the beta stage, so it may have many bugs and make it crash. If you find any bugs,
-> please create an issue or contact me via email.
-
-## Features
+	
+## Features ✨️
 
 - Play music from YouTube Music or YouTube free without ads in the background
 - Browsing Home, Charts, Podcast, Moods & Genre with YouTube Music data at high speed
@@ -36,11 +30,16 @@
 - Support SponsorBlock, Return YouTube Dislike
 - Sleep Timer
 - Android Auto with online content
-- And many more
+- And many more!
 
 > (*) For users who chose "Send back to Google" feature
 
-## Screenshot
+> **Warning**
+
+>This app is in the beta stage, so it may have many bugs and make it crash. If you find any bugs,
+> please create an issue or contact me via email or discord sever.
+
+## Screenshots
 
 <p align="center">  
   <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/fastlane/metadata/android/en-US/images/phoneScreenshots/2.jpg?raw=true" width="200" />  
@@ -79,9 +78,6 @@ to send listening history and listening record of video to Google for better rec
 supporting artist or YouTube Creator (For API reference,
 see [this](https://github.com/maxrave-dev/SimpMusic/blob/13f7ab6e5fa521b62a9fd31a1cefdc2787a1a8af/kotlinYtmusicScraper/src/main/java/com/maxrave/kotlinytmusicscraper/Ytmusic.kt#L639C4-L666C1)).
 
-## Developer
-### [maxrave-dev](https://github.com/maxrave-dev/SimpMusic): Founder/Developer/Designer
-
 ## Translation
 
 [![Crowdin](https://badges.crowdin.net/simpmusic/localized.svg)](https://crowdin.com/project/simpmusic)  
@@ -91,29 +87,32 @@ You can help me translate this app into your language by using Crowdin [SimpMusi
 
 #### 1. Wrong Lyrics?
 
-YouTube Music is not an official partner of Musixmatch so you can't get lyrics directly if using YouTube "
+YouTube Music is not an official partner of Musixmatch so you can't get lyrics directly if using YouTube"
 videoId" parameter. So I need to use some "String Matcher" and "Duration" for search lyrics. So
-sometimes, some songs or videos get the wrong lyric
+sometimes, some songs or videos get the wrong lyric's
 
 #### 2. Why the name or brand is "SimpMusic"?
 
-Simply, because I love this name. It's a combination of Simple and Music. But SimpMusic is not simple
-app, it's all you need for a music streaming app.
+Simply, because I love this name. It's a combination of Simple and Music. But SimpMusic is not a simple app, it's all you need for a powerful music streaming app.
 
-## Support
+## Developer/Team
 
-Join my Discord server to update the newest features, tips, and report bugs  
-|   [<img src="https://upload.wikimedia.org/wikipedia/vi/7/72/Discord_logo.svg.png" height="40">]() | [Discord](https://discord.gg/Rq5tWVM9Hg) |  
-|---------|---------|
+### [maxrave-dev](https://github.com/maxrave-dev/SimpMusic): Founder/Developer/Designer 
 
-## Donate
+### [owen connor](https://github.com/owencz1998): Discord Server Admin. 
 
-Support me to maintain SimpMusic. Thanks for using <3
-|||
-|---|---|
-|   [<img src="https://github.com/maxrave-dev/SimpMusic/assets/113747128/97f0f21d-17b9-42e4-9487-6e9391ac126b" height="40">]() | [Buy Me A Coffee](https://www.buymeacoffee.com/maxrave) |
-| [<img src="https://liberapay.com/assets/liberapay/icon-v2_black-on-yellow.svg?save_as=liberapay_logo_black-on-yellow.svg" height="40">]()         | [Liberapay](https://liberapay.com/maxrave/) |
-|||
+## Support & Donations
+<div align="left">
+<a href="https://simpmusic.tech/"><img alt="Visit the website" height="50" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/documentation/website_vector.svg"></a>
+&nbsp;
+<a href="https://discord.gg/Rq5tWVM9Hg"><img alt="Discord Server" height="50" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/social/discord-plural_vector.svg"></a>
+&nbsp;
+<br>
+<a href="https://www.buymeacoffee.com/maxrave"><img alt="Buy me a Coffee" height="50" src="https://cdn.jsdelivr.net/npm/@intergrav/devins-badges@3/assets/cozy/donate/buymeacoffee-singular_vector.svg"></a>
+&nbsp;
+<a href="https://liberapay.com/maxrave/"><img alt="liberapay" height="50"
+src="https://raw.githubusercontent.com/liberapay/liberapay.com/master/www/assets/liberapay/logo-v2_black-on-yellow.svg"></a>
+<div/>
 
 ### MOMO or Vietnamese banking
 <p float="left">
