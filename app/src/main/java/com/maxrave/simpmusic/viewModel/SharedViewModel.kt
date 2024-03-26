@@ -120,7 +120,7 @@ class SharedViewModel
         private var _downloadList: MutableStateFlow<ArrayList<SongEntity>?> = MutableStateFlow(null)
         val downloadList: SharedFlow<ArrayList<SongEntity>?> = _downloadList.asSharedFlow()
 
-        protected val context
+        private val context
             get() = getApplication<Application>()
 
         val isServiceRunning = MutableLiveData<Boolean>(false)
@@ -363,7 +363,7 @@ class SharedViewModel
                                                 ImageLoader(context).execute(imageRequest)
                                             }
                                     }
-                                    if (nowPlaying != null && getCurrentMediaItemIndex() > 0) {
+                                    if (nowPlaying != null) {
                                         _nowPlayingMediaItem.postValue(nowPlaying)
                                         var downloaded = false
                                         val tempSong =
@@ -381,7 +381,6 @@ class SharedViewModel
                                                     _songDB.value = songEntity
                                                     if (songEntity != null) {
                                                         _liked.value = songEntity.liked
-                                                        simpleMediaServiceHandler!!.like(songEntity.liked)
                                                         downloaded =
                                                             songEntity.downloadState == DownloadState.STATE_DOWNLOADED
                                                         Log.d("Check like", songEntity.toString())
@@ -429,8 +428,7 @@ class SharedViewModel
                             launch {
                                 simpleMediaServiceHandler!!.liked.collect { liked ->
                                     if (liked != _liked.value) {
-                                        simpleMediaServiceHandler!!.nowPlaying.first()
-                                            ?.let { updateLikeStatus(it.mediaId, liked) }
+                                        refreshSongDB()
                                     }
                                 }
                             }
@@ -1199,6 +1197,9 @@ class SharedViewModel
                     } else {
                         mainRepository.updateLikeStatus(videoId, 0)
                     }
+                    delay(500)
+                    refreshSongDB()
+                    updateLikeInNotification(likeStatus)
                 }
             }
         }

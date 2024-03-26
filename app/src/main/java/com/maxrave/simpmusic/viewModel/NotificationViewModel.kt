@@ -24,8 +24,10 @@ class NotificationViewModel
 
         init {
             viewModelScope.launch {
-                mainRepository.getAllNotifications().collect {
-                    _listNotification.value = it
+                mainRepository.getAllNotifications().collect { notificationEntities ->
+                    _listNotification.value = notificationEntities?.sortedByDescending {
+                        it.time
+                    }
                 }
             }
         }

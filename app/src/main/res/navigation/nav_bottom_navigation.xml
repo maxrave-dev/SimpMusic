@@ -289,7 +289,11 @@
     <fragment
         android:id="@+id/notificationFragment"
         android:name="com.maxrave.simpmusic.ui.fragment.home.NotificationFragment"
-        android:label="NotificationFragment" />
+        android:label="NotificationFragment">
+        <deepLink
+            android:id="@+id/deepLink"
+            app:uri="simpmusic://notification" />
+    </fragment>
     <action
         android:id="@+id/action_global_notificationFragment"
         app:destination="@id/notificationFragment"

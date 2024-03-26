@@ -712,8 +712,12 @@ class NowPlayingFragment : Fragment() {
                                 val index = viewModel.getActiveLyrics(it)
                                 if (index != null) {
                                     if (lyrics?.lines?.get(0)?.words == "Lyrics not found") {
-                                        binding.lyricsLayout.visibility = View.GONE
-                                        binding.lyricsTextLayout.visibility = View.GONE
+                                        if (binding.lyricsLayout.visibility != View.GONE) {
+                                            binding.lyricsLayout.visibility = View.GONE
+                                        }
+                                        if (binding.lyricsTextLayout.visibility != View.GONE) {
+                                            binding.lyricsTextLayout.visibility = View.GONE
+                                        }
                                     } else {
                                         viewModel._lyrics.value!!.data?.let { it1 ->
                                             lyricsAdapter.updateOriginalLyrics(
@@ -740,9 +744,13 @@ class NowPlayingFragment : Fragment() {
                                         }
 
                                         if (binding.btFull.text == getString(R.string.show)) {
-                                            binding.lyricsTextLayout.visibility = View.VISIBLE
+                                            if (binding.lyricsTextLayout.visibility != View.VISIBLE) {
+                                                binding.lyricsTextLayout.visibility = View.VISIBLE
+                                            }
                                         }
-                                        binding.lyricsLayout.visibility = View.VISIBLE
+                                        if (binding.lyricsLayout.visibility != View.VISIBLE) {
+                                            binding.lyricsLayout.visibility = View.VISIBLE
+                                        }
 //                                    if (temp.nowLyric != null) {
 //                                        binding.tvNowLyrics.visibility = View.VISIBLE
 //                                        binding.tvNowLyrics.text = temp.nowLyric
@@ -774,8 +782,12 @@ class NowPlayingFragment : Fragment() {
                                     }
                                 }
                             } else {
-                                binding.lyricsLayout.visibility = View.GONE
-                                binding.lyricsTextLayout.visibility = View.GONE
+                                if (binding.lyricsLayout.visibility != View.GONE) {
+                                    binding.lyricsLayout.visibility = View.GONE
+                                }
+                                if (binding.lyricsTextLayout.visibility != View.GONE) {
+                                    binding.lyricsTextLayout.visibility = View.GONE
+                                }
                             }
                         }
                     }
@@ -814,7 +826,9 @@ class NowPlayingFragment : Fragment() {
                 val job10 =
                     launch {
                         viewModel.liked.collect { liked ->
-                            binding.cbFavorite.isChecked = liked
+                            if (binding.cbFavorite.isChecked != liked) {
+                                binding.cbFavorite.isChecked = liked
+                            }
                         }
                     }
                 val job11 =
@@ -1381,21 +1395,23 @@ class NowPlayingFragment : Fragment() {
             findNavController().navigateSafe(R.id.action_global_infoFragment)
         }
         binding.cbFavorite.setOnCheckedChangeListener { _, isChecked ->
-            if (!isChecked) {
-                viewModel.songDB.value?.let { nowPlayingSong ->
-                    viewModel.updateLikeStatus(
-                        nowPlayingSong.videoId,
-                        false,
-                    )
-                    viewModel.updateLikeInNotification(false)
-                }
-            } else {
-                viewModel.songDB.value?.let { nowPlayingSong ->
-                    viewModel.updateLikeStatus(
-                        nowPlayingSong.videoId,
-                        true,
-                    )
-                    viewModel.updateLikeInNotification(true)
+            Log.w("Where Like", isChecked.toString() + "Now Playing Listener")
+            if (isChecked != runBlocking { viewModel.liked.first() }) {
+                viewModel.updateLikeInNotification(isChecked)
+                if (!isChecked) {
+                    viewModel.nowPlayingMediaItem.value?.let { nowPlayingSong ->
+                        viewModel.updateLikeStatus(
+                            nowPlayingSong.mediaId,
+                            false,
+                        )
+                    }
+                } else {
+                    viewModel.nowPlayingMediaItem.value?.let { nowPlayingSong ->
+                        viewModel.updateLikeStatus(
+                            nowPlayingSong.mediaId,
+                            true,
+                        )
+                    }
                 }
             }
         }

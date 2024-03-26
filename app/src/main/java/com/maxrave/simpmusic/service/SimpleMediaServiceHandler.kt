@@ -162,9 +162,9 @@ class SimpleMediaServiceHandler(
                     player.currentMediaItem?.mediaId ?: "",
                     if (!(_liked.value)) 1 else 0,
                 )
+                delay(500)
+                updateNotification()
             }
-        _liked.value = !(_liked.value)
-        updateNotification()
     }
 
     fun like(liked: Boolean) {

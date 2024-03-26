@@ -260,13 +260,6 @@ class MainActivity : AppCompatActivity() {
                             binding.progressBar.progress = (it * 100).toInt()
                         }
                     }
-
-                val job6 =
-                    launch {
-                        viewModel.simpleMediaServiceHandler?.liked?.collect { liked ->
-                            binding.cbFavorite.isChecked = liked
-                        }
-                    }
                 val job3 =
                     launch {
                         viewModel.isPlaying.collect {
@@ -294,13 +287,14 @@ class MainActivity : AppCompatActivity() {
                 val likedJob =
                     launch {
                         viewModel.liked.collect {
-                            binding.cbFavorite.isChecked = it
+                            if (binding.cbFavorite.isChecked != it) {
+                                binding.cbFavorite.isChecked = it
+                            }
                         }
                     }
                 job2.join()
                 job3.join()
                 job5.join()
-                job6.join()
                 job4.join()
                 likedJob.join()
             }
@@ -588,9 +582,6 @@ class MainActivity : AppCompatActivity() {
                 launch {
                     viewModel.intent.collectLatest { intent ->
                         if (intent != null) {
-                            if (intent.action == "com.maxrave.simpmusic.service.test.notification.NOTIFICATION") {
-                                navController.navigateSafe(R.id.action_global_notificationFragment)
-                            }
                             data = intent.data ?: intent.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
                             Log.d("MainActivity", "onCreate: $data")
                             if (data != null) {
@@ -736,18 +727,21 @@ class MainActivity : AppCompatActivity() {
         }
         binding.card.animation = AnimationUtils.loadAnimation(this, R.anim.bottom_to_top)
         binding.cbFavorite.setOnCheckedChangeListener { _, isChecked ->
-            if (!isChecked) {
-                Log.d("cbFavorite", "onCheckedChanged: $isChecked")
-                viewModel.nowPlayingMediaItem.value?.let { nowPlayingSong ->
-                    viewModel.updateLikeStatus(nowPlayingSong.mediaId, false)
-                    viewModel.updateLikeInNotification(false)
+            if (isChecked != runBlocking { viewModel.liked.first() }) {
+                if (!isChecked) {
+                    Log.d("cbFavorite", "onCheckedChanged: $isChecked")
+                    viewModel.nowPlayingMediaItem.value?.let { nowPlayingSong ->
+                        viewModel.updateLikeStatus(nowPlayingSong.mediaId, false)
+                        viewModel.updateLikeInNotification(false)
+                    }
+                } else {
+                    Log.d("cbFavorite", "onCheckedChanged: $isChecked")
+                    viewModel.nowPlayingMediaItem.value?.let { nowPlayingSong ->
+                        viewModel.updateLikeStatus(nowPlayingSong.mediaId, true)
+                        viewModel.updateLikeInNotification(true)
+                    }
                 }
-            } else {
-                Log.d("cbFavorite", "onCheckedChanged: $isChecked")
-                viewModel.nowPlayingMediaItem.value?.let { nowPlayingSong ->
-                    viewModel.updateLikeStatus(nowPlayingSong.mediaId, true)
-                    viewModel.updateLikeInNotification(true)
-                }
+                Log.w("Where like", "Like in MainActivity listener")
             }
         }
     }

@@ -27,6 +27,8 @@ object Config {
     const val RECOVER_TRACK_QUEUE = "RECOVER_TRACK_QUEUE"
 
     val REMOVED_SONG_DATE_TIME = LocalDateTime.of(2003, Month.AUGUST, 26, 3, 0)
+
+    const val OPEN_NOTIFICATION_ACTION = "com.maxrave.simpmusic.service.test.notification.NOTIFICATION"
 }
 
 object DownloadState {

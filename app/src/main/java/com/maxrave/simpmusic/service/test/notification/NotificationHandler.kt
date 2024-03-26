@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.drawable.BitmapDrawable
+import android.os.Bundle
 import androidx.annotation.OptIn
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.ActivityCompat
@@ -15,10 +16,12 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.media3.common.util.UnstableApi
+import androidx.navigation.NavDeepLinkBuilder
 import coil.ImageLoader
 import coil.request.ImageRequest
 import coil.request.SuccessResult
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.ui.MainActivity
 import kotlinx.coroutines.runBlocking
 
@@ -31,18 +34,11 @@ object NotificationHandler {
         noti: NotificationModel,
     ) {
         //  No back-stack when launched
-        val intent =
-            Intent(context, MainActivity::class.java).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            }
-        intent.action = "com.maxrave.simpmusic.service.test.notification.NOTIFICATION"
-        val pendingIntent =
-            PendingIntent.getActivity(
-                context,
-                0,
-                intent,
-                PendingIntent.FLAG_IMMUTABLE,
-            )
+        val pendingIntent = NavDeepLinkBuilder(context)
+            .setGraph(R.navigation.nav_bottom_navigation)
+            .setDestination(R.id.notificationFragment)
+            .setComponentName(MainActivity::class.java)
+            .createPendingIntent()
 
         val bitmap =
             runBlocking {
