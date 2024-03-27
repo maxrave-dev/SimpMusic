@@ -15,6 +15,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.graphics.drawable.toBitmap
+import androidx.core.net.toUri
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavDeepLinkBuilder
 import coil.ImageLoader
@@ -34,11 +35,14 @@ object NotificationHandler {
         noti: NotificationModel,
     ) {
         //  No back-stack when launched
-        val pendingIntent = NavDeepLinkBuilder(context)
-            .setGraph(R.navigation.nav_bottom_navigation)
-            .setDestination(R.id.notificationFragment)
-            .setComponentName(MainActivity::class.java)
-            .createPendingIntent()
+        val action = Intent(context, MainActivity::class.java)
+        action.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+        action.data = "simpmusic://notification".toUri()
+        var pendingIntent =
+            PendingIntent.getActivity(
+                context, 0, action,
+                PendingIntent.FLAG_IMMUTABLE
+            )
 
         val bitmap =
             runBlocking {

@@ -585,6 +585,10 @@ class MainActivity : AppCompatActivity() {
                             data = intent.data ?: intent.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
                             Log.d("MainActivity", "onCreate: $data")
                             if (data != null) {
+                                if (data == Uri.parse("simpmusic://notification")) {
+                                    navController.navigateSafe(R.id.action_global_notificationFragment)
+                                } else {
+                                    Log.d("MainActivity", "onCreate: $data")
                                 when (val path = data!!.pathSegments.firstOrNull()) {
                                     "playlist" ->
                                         data!!.getQueryParameter("list")
@@ -677,6 +681,7 @@ class MainActivity : AppCompatActivity() {
                                                 )
                                             }
                                         }
+                                    }
                                 }
                             }
                         }
