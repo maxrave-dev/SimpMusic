@@ -286,10 +286,9 @@ class MainActivity : AppCompatActivity() {
                     }
                 val likedJob =
                     launch {
-                        viewModel.liked.collect {
-                            if (binding.cbFavorite.isChecked != it) {
-                                binding.cbFavorite.isChecked = it
-                            }
+                        viewModel.liked.collectLatest {
+                            Log.w("Check Like", "Collect from main activity $it")
+                            binding.cbFavorite.isChecked = it
                         }
                     }
                 job2.join()
@@ -365,14 +364,14 @@ class MainActivity : AppCompatActivity() {
                 YouTube.locale =
                     YouTubeLocale(
                         gl = getString("location") ?: "US",
-                        hl = Locale.getDefault().toLanguageTag(),
+                        hl = Locale.getDefault().toLanguageTag().substring(0..1),
                     )
             } else {
                 putString(SELECTED_LANGUAGE, "en-US")
                 YouTube.locale =
                     YouTubeLocale(
                         gl = getString("location") ?: "US",
-                        hl = "en-US",
+                        hl = "en-US".substring(0..1),
                     )
             }
             // Fetch the selected language from wherever it was stored. In this case its SharedPref
@@ -398,7 +397,7 @@ class MainActivity : AppCompatActivity() {
             YouTube.locale =
                 YouTubeLocale(
                     gl = getString("location") ?: "US",
-                    hl = AppCompatDelegate.getApplicationLocales().toLanguageTags(),
+                    hl = AppCompatDelegate.getApplicationLocales().toLanguageTags().substring(0..1),
                 )
         }
 //
@@ -731,22 +730,12 @@ class MainActivity : AppCompatActivity() {
             job1.join()
         }
         binding.card.animation = AnimationUtils.loadAnimation(this, R.anim.bottom_to_top)
-        binding.cbFavorite.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked != runBlocking { viewModel.liked.first() }) {
-                if (!isChecked) {
-                    Log.d("cbFavorite", "onCheckedChanged: $isChecked")
-                    viewModel.nowPlayingMediaItem.value?.let { nowPlayingSong ->
-                        viewModel.updateLikeStatus(nowPlayingSong.mediaId, false)
-                        viewModel.updateLikeInNotification(false)
-                    }
-                } else {
-                    Log.d("cbFavorite", "onCheckedChanged: $isChecked")
-                    viewModel.nowPlayingMediaItem.value?.let { nowPlayingSong ->
-                        viewModel.updateLikeStatus(nowPlayingSong.mediaId, true)
-                        viewModel.updateLikeInNotification(true)
-                    }
-                }
-                Log.w("Where like", "Like in MainActivity listener")
+        binding.cbFavorite.setOnClickListener {
+            viewModel.nowPlayingMediaItem.value?.let { nowPlayingSong ->
+                viewModel.updateLikeStatus(
+                    nowPlayingSong.mediaId,
+                    !runBlocking { viewModel.liked.first() },
+                )
             }
         }
     }

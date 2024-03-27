@@ -380,10 +380,10 @@ class SharedViewModel
                                                 .collectLatest { songEntity ->
                                                     _songDB.value = songEntity
                                                     if (songEntity != null) {
+                                                        Log.w("Check like", "SharedViewModel nowPlaying collect ${songEntity.liked}")
                                                         _liked.value = songEntity.liked
                                                         downloaded =
                                                             songEntity.downloadState == DownloadState.STATE_DOWNLOADED
-                                                        Log.d("Check like", songEntity.toString())
                                                     }
                                                 }
                                             mainRepository.updateSongInLibrary(
@@ -852,6 +852,7 @@ class SharedViewModel
                         .collect { songEntity ->
                             _songDB.value = songEntity
                             if (songEntity != null) {
+                                Log.w("Check like", "loadMediaItemFromTrack ${songEntity.liked}")
                                 _liked.value = songEntity.liked
                             }
                         }
@@ -1191,7 +1192,6 @@ class SharedViewModel
             println("Update Like Status $videoId $likeStatus")
             viewModelScope.launch {
                 if (simpleMediaServiceHandler?.nowPlaying?.first()?.mediaId == videoId) {
-                    _liked.value = likeStatus
                     if (likeStatus) {
                         mainRepository.updateLikeStatus(videoId, 1)
                     } else {
@@ -1212,6 +1212,7 @@ class SharedViewModel
                 mainRepository.getSongById(videoId).collect { songEntity ->
                     _songDB.value = songEntity
                     if (songEntity != null) {
+                        Log.w("Check like", "SharedViewModel updateDownloadState ${songEntity.liked}")
                         _liked.value = songEntity.liked
                     }
                 }
@@ -1221,10 +1222,13 @@ class SharedViewModel
 
         fun refreshSongDB() {
             viewModelScope.launch {
-                mainRepository.getSongById(videoId.value!!).collect { songEntity ->
-                    _songDB.value = songEntity
-                    if (songEntity != null) {
-                        _liked.value = songEntity.liked
+                nowPlayingMediaItem.value?.mediaId?.let {
+                    mainRepository.getSongById(it).collect { songEntity ->
+                        _songDB.value = songEntity
+                        if (songEntity != null) {
+                            Log.w("Check like", "SharedViewModel refreshSongDB ${songEntity.liked}")
+                            _liked.value = songEntity.liked
+                        }
                     }
                 }
             }

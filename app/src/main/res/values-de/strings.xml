@@ -21,7 +21,7 @@
     <string name="show">Anzeigen</string>
     <string name="na_na">--:--</string>
     <string name="cache_size">%1$s MB</string>
-    <string name="favorite">Favorisieren</string>
+    <string name="favorite">Favoriten</string>
     <string name="followed">Gefolgt</string>
     <string name="most_played">Meistgespielt</string>
     <string name="Downloaded">Heruntergeladen</string>
@@ -319,4 +319,15 @@
     <string name="guide_miniplayer_content">Wischen Sie, um die Schaltfläche „Überspringen“ und „Schließen“ anzuzeigen</string>
     <string name="guide_suggest_content">Zeigen Sie von der KI vorgeschlagene Songs basierend auf Ihrer Playlist an</string>
     <string name="guide_liked_title">Zur YouTube-Playlist „Likes“ hinzufügen</string>
+    <string name="log_out_from_spotify">Von Spotify abmelden</string>
+    <string name="delete">Löschen</string>
+    <string name="top_videos">Top Videos</string>
+    <string name="trending">Im Trend</string>
+    <string name="new_singles">Neue Singles</string>
+    <string name="new_albums">Neue Alben</string>
+    <string name="notification">Benachrichtigung</string>
+    <string name="month_s_ago">Vor %1$d Monaten</string>
+    <string name="day_s_ago">Vor %d Tagen</string>
+    <string name="hour_s_ago">Vor %1$d Stunden</string>
+    <string name="no_notification">Keine Benachrichtigung</string>
 </resources>

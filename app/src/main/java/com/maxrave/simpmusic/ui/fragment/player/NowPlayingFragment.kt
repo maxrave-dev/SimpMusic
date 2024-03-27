@@ -824,10 +824,9 @@ class NowPlayingFragment : Fragment() {
                     }
                 val job10 =
                     launch {
-                        viewModel.liked.collect { liked ->
-                            if (binding.cbFavorite.isChecked != liked) {
-                                binding.cbFavorite.isChecked = liked
-                            }
+                        viewModel.liked.collectLatest { liked ->
+                            Log.w("Check Like", "Collect from main activity $liked")
+                            binding.cbFavorite.isChecked = liked
                         }
                     }
                 val job11 =
@@ -1394,25 +1393,12 @@ class NowPlayingFragment : Fragment() {
         binding.btSongInfo.setOnClickListener {
             findNavController().navigateSafe(R.id.action_global_infoFragment)
         }
-        binding.cbFavorite.setOnCheckedChangeListener { _, isChecked ->
-            Log.w("Where Like", isChecked.toString() + "Now Playing Listener")
-            if (isChecked != runBlocking { viewModel.liked.first() }) {
-                viewModel.updateLikeInNotification(isChecked)
-                if (!isChecked) {
-                    viewModel.nowPlayingMediaItem.value?.let { nowPlayingSong ->
-                        viewModel.updateLikeStatus(
-                            nowPlayingSong.mediaId,
-                            false,
-                        )
-                    }
-                } else {
-                    viewModel.nowPlayingMediaItem.value?.let { nowPlayingSong ->
-                        viewModel.updateLikeStatus(
-                            nowPlayingSong.mediaId,
-                            true,
-                        )
-                    }
-                }
+        binding.cbFavorite.setOnClickListener {
+            viewModel.nowPlayingMediaItem.value?.let { nowPlayingSong ->
+                viewModel.updateLikeStatus(
+                    nowPlayingSong.mediaId,
+                    !runBlocking { viewModel.liked.first() },
+                )
             }
         }
         binding.uploaderLayout.setOnClickListener {

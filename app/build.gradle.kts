@@ -15,8 +15,8 @@ android {
         applicationId = "com.maxrave.simpmusic"
         minSdk = 26
         targetSdk = 34
-        versionCode = 16
-        versionName = "0.2.0"
+        versionCode = 17
+        versionName = "0.2.1"
         vectorDrawables.useSupportLibrary = true
 
         ksp {
@@ -36,7 +36,9 @@ android {
             "fr",
             "es",
             "zh",
-            "in"
+            "in",
+            "ar",
+            "ja",
         )
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 

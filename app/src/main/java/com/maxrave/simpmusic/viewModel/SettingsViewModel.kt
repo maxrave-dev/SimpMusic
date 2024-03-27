@@ -436,7 +436,8 @@ class SettingsViewModel @Inject constructor(
     fun changeLanguage(code: String) {
         viewModelScope.launch {
                 dataStoreManager.putString(SELECTED_LANGUAGE, code)
-                YouTube.locale = YouTubeLocale(location.value!!, code)
+                Log.w("SettingsViewModel", "changeLanguage: $code")
+                YouTube.locale = YouTubeLocale(location.value!!, code.substring(0..1))
                 getLanguage()
         }
     }

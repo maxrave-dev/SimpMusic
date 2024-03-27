@@ -37,7 +37,7 @@
     <string name="restore_failed">Échec de la restauration</string>
     <string name="restore_success">Restauration réussie</string>
     <string name="search">Rechercher</string>
-    <string name="songs">Musiques</string>
+    <string name="songs">Chansons</string>
     <string name="albums">Albums</string>
     <string name="playlists">Playlists</string>
     <string name="artists">Artistes</string>
@@ -297,4 +297,27 @@
     <string name="guest">Invité</string>
     <string name="log_out_warning">Se déconnecter de tous les comptes ?</string>
     <string name="play_next">Jouer ensuite</string>
+    <string name="codec">Codec</string>
+    <string name="plays">Nombre de Lectures/Vues</string>
+    <string name="like_and_dislike">%1$d j\'aime, %2$d je n\'aime pas</string>
+    <string name="published_at">Publié à %1$s</string>
+    <string name="less">Moins</string>
+    <string name="spotify">Spotify</string>
+    <string name="log_in_to_spotify">Se connecter avec Spotify</string>
+    <string name="intro_login_to_spotify">Connectez-vous pour des paroles Spotify, Canevas, et plus encore</string>
+    <string name="enable_spotify_lyrics">Activer les Paroles Spotify</string>
+    <string name="spotify_lyrícs_info">Plus de paroles sans traduction</string>
+    <string name="enable_canvas">Activer Canvas</string>
+    <string name="canvas_info">Afficher le Canevas Spotify dans SimpMusic</string>
+    <string name="spotify_lyrics_provider">Paroles fournies par Spotify</string>
+    <string name="offline_mode">Mode hors connexion</string>
+    <string name="added_to_youtube_liked">Ajouté à YouTube Aimé</string>
+    <string name="removed_from_youtube_liked">Supprimer de YouTube Aimé</string>
+    <string name="home_limit">Limite de réseau pour actualiser la page accueil</string>
+    <string name="no_album">Aucun album</string>
+    <string name="app_widget_description">Widget lecteur</string>
+    <string name="guide_miniplayer_content">Glisser pour afficher le bouton ignorer et fermer</string>
+    <string name="guide_suggest_content">Afficher les chansons suggérées par l\'IA à partir de votre playlist</string>
+    <string name="guide_liked_title">Ajouter à la playlist YouTube J\'aime</string>
+    <string name="log_out_from_spotify">Log out from Spotify</string>
 </resources>

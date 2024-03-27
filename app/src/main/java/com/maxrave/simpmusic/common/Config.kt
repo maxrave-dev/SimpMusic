@@ -28,7 +28,6 @@ object Config {
 
     val REMOVED_SONG_DATE_TIME = LocalDateTime.of(2003, Month.AUGUST, 26, 3, 0)
 
-    const val OPEN_NOTIFICATION_ACTION = "com.maxrave.simpmusic.service.test.notification.NOTIFICATION"
 }
 
 object DownloadState {
@@ -172,6 +171,8 @@ object SUPPORTED_LANGUAGE {
             "Español",
             "简体中文",
             "Bahasa Indonesia",
+            "اللغة العربية",
+            "日本語"
         )
     val codes: Array<String> =
         arrayOf(
@@ -188,6 +189,8 @@ object SUPPORTED_LANGUAGE {
             "es-ES",
             "zh-CN",
             "in-ID",
+            "ar-SA",
+            "ja-JP"
         )
 }
 

@@ -14,7 +14,7 @@
     <string name="like">Beğen</string>
     <string name="hello_blank_fragment">Merhaba boş parça</string>
     <string name="download">İndir</string>
-    <string name="downloaded">İndirildi</string>
+    <string name="downloaded">İndirilenler</string>
     <string name="downloading">İndiriliyor</string>
     <string name="preparing">Hazırlanıyor</string>
     <string name="hide">Gizle</string>
@@ -22,9 +22,9 @@
     <string name="na_na">--:--</string>
     <string name="cache_size">%1$s MB</string>
     <string name="favorite">Favori</string>
-    <string name="followed">Takip edildi</string>
-    <string name="most_played">En Çok Oynatılan</string>
-    <string name="Downloaded">İndirildi</string>
+    <string name="followed">Takip edilenler</string>
+    <string name="most_played">En Çok Oynatılanlar</string>
+    <string name="Downloaded">İndirilenler</string>
     <string name="favorite_playlists">Favori Oynatma Listeleri</string>
     <string name="no_favorite_playlists">Favori oynatma listesi yok</string>
     <string name="downloaded_playlists">İndirilen Oynatma Listeleri</string>
@@ -68,7 +68,7 @@
     <string name="option">Seçenek</string>
     <string name="no_description">Açıklama yok</string>
     <string name="in_search">Arama\'da</string>
-    <string name="clear_player_cache">Oyuncu Önbelleğini Temizle</string>
+    <string name="clear_player_cache">Oynatıcı Önbelleğini Temizle</string>
     <string name="cancel">İptal</string>
     <string name="clear">Temizle</string>
     <string name="content_country">İçerik Bölgesi</string>
@@ -98,7 +98,7 @@
     <string name="genre">Tür</string>
     <string name="what_is_best_choice_today">BUGÜN EN İYİ SEÇİM NEDİR</string>
     <string name="chart">Çizelge</string>
-    <string name="global">Genel</string>
+    <string name="global">Evrensel</string>
     <string name="top_tracks">En Çok Dinlenen Şarkılar</string>
     <string name="top_artists">En Çok Dinlenen Sanatçılar</string>
     <string name="your_playlist">Oynatma Listeniz</string>
@@ -257,7 +257,7 @@
     <string name="translation_language_message">Dil kodunu yazın (Örn: en) (2 harf). SimpMusic\'in dili ile aynı şekilde ayarlamak istiyorsanız, lütfen düzenleme kutusunu boş bırakın.</string>
     <string name="invalid_language_code">Geçersiz dil kodu</string>
     <string name="lyrics_provider_youtube">Şarkı sözleri YouTube tarafından sağlanmıştır</string>
-    <string name="limit_player_cache">Oyuncu Önbelleğini Sınırla</string>
+    <string name="limit_player_cache">Oynatıcı Önbelleğini Sınırla</string>
     <string name="unlimited">Sınırsız</string>
     <string name="third_party_libraries">Üçüncü taraf kütüphaneleri</string>
     <string name="description_and_licenses">Açıklama ve lisanslar</string>
@@ -282,11 +282,11 @@
     </plurals>
     <string name="dummy_button">Sahte Buton</string>
     <string name="dummy_content">SAHTE\nİÇERİK</string>
-    <string name="play_video_instead_of_audio_warning">Bu eylem oyuncu önbelleğini silecektir. Devam edelim mi?</string>
+    <string name="play_video_instead_of_audio_warning">Bu eylem oynatıcı önbelleğini silecektir. Devam edilsin mi?</string>
     <string name="quality_video">Video Kalitesi</string>
     <string name="add_to_queue">Kuyruğa ekle</string>
     <string name="added_to_queue">Kuyruğa eklendi</string>
-    <string name="new_release">Yeni sürüm</string>
+    <string name="new_release">Yeni çıkanlar</string>
     <string name="music_video">Video Klip</string>
     <string name="your_music_is_always_up_to_date">MÜZİĞİNİZ HER ZAMAN GÜNCEL</string>
     <string name="youtube_account">YouTube Hesabı</string>
@@ -319,4 +319,15 @@
     <string name="guide_miniplayer_content">Atla ve kapat düğmesini göstermek için kaydırın</string>
     <string name="guide_suggest_content">Çalma listenize göre yapay zekanın önerdiği şarkıları göster</string>
     <string name="guide_liked_title">YouTube Beğenilen Oynatma Listesine Ekle</string>
+    <string name="log_out_from_spotify">Spotify\'dan çıkış yap</string>
+    <string name="delete">Sil</string>
+    <string name="top_videos">En İyi Videolar</string>
+    <string name="trending">Öne Çıkanlar</string>
+    <string name="new_singles">Yeni singlelar</string>
+    <string name="new_albums">Yeni albümler</string>
+    <string name="notification">Bildirim</string>
+    <string name="month_s_ago">%1$d ay önce</string>
+    <string name="day_s_ago">%1$d gün önce</string>
+    <string name="hour_s_ago">%1$d saat önce</string>
+    <string name="no_notification">Bildirim yok</string>
 </resources>
