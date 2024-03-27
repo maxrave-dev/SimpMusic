@@ -283,34 +283,32 @@ class NowPlayingFragment : Fragment() {
 
         disableScrolling = DisableTouchEventRecyclerView()
 
+        val onLyricsClickObject = object : LyricsAdapter.OnItemClickListener {
+            override fun onItemClick(line: Line?) {
+                Log.w("Check line", line.toString())
+                if (line != null) {
+                    val duration = runBlocking { viewModel.duration.first() }
+                    Log.w("Check duration", duration.toString())
+                    if (duration > 0 && line.startTimeMs.toLong() < duration) {
+                        Log.w(
+                            "Check seek",
+                            (line.startTimeMs.toLong().toDouble() / duration).toFloat().toString(),
+                        )
+                        val seek =
+                            ((line.startTimeMs.toLong() * 100).toDouble() / duration).toFloat()
+                        viewModel.onUIEvent(UIEvent.UpdateProgress(seek))
+                    }
+                }
+            }
+        }
+
         lyricsAdapter = LyricsAdapter(null)
         lyricsAdapter.setOnItemClickListener(
-            object : LyricsAdapter.OnItemClickListener {
-                override fun onItemClick(line: Line?) {
-                    // No Implementation
-                }
-            },
+            onLyricsClickObject
         )
         lyricsFullAdapter = LyricsAdapter(null)
         lyricsFullAdapter.setOnItemClickListener(
-            object : LyricsAdapter.OnItemClickListener {
-                override fun onItemClick(line: Line?) {
-                    Log.w("Check line", line.toString())
-                    if (line != null) {
-                        val duration = runBlocking { viewModel.duration.first() }
-                        Log.w("Check duration", duration.toString())
-                        if (duration > 0 && line.startTimeMs.toLong() < duration) {
-                            Log.w(
-                                "Check seek",
-                                (line.startTimeMs.toLong().toDouble() / duration).toFloat().toString(),
-                            )
-                            val seek =
-                                ((line.startTimeMs.toLong() * 100).toDouble() / duration).toFloat()
-                            viewModel.onUIEvent(UIEvent.UpdateProgress(seek))
-                        }
-                    }
-                }
-            },
+            onLyricsClickObject
         )
         binding.rvLyrics.apply {
             adapter = lyricsAdapter
@@ -705,10 +703,9 @@ class NowPlayingFragment : Fragment() {
                                         Config.SyncState.LINE_SYNCED -> getString(R.string.line_synced)
                                         Config.SyncState.UNSYNCED -> getString(R.string.unsynced)
                                     }
-                                viewModel._lyrics.value?.data?.let {
-                                    lyricsFullAdapter.updateOriginalLyrics(it)
-                                    lyricsFullAdapter.setActiveLyrics(-1)
-                                }
+//                                viewModel._lyrics.value?.data?.let {
+//
+//                                }
                                 val index = viewModel.getActiveLyrics(it)
                                 if (index != null) {
                                     if (lyrics?.lines?.get(0)?.words == "Lyrics not found") {
@@ -723,18 +720,20 @@ class NowPlayingFragment : Fragment() {
                                             lyricsAdapter.updateOriginalLyrics(
                                                 it1,
                                             )
-                                            if (viewModel.getLyricsSyncState() == Config.SyncState.LINE_SYNCED) {
-                                                binding.rvLyrics.addOnItemTouchListener(disableScrolling)
+                                            lyricsFullAdapter.updateOriginalLyrics(it1)
+                                            if (viewModel.getLyricsSyncState() == Config.SyncState.LINE_SYNCED && lyricsAdapter.index != index) {
+//                                                binding.rvLyrics.addOnItemTouchListener(disableScrolling)
                                                 lyricsAdapter.setActiveLyrics(index)
                                                 lyricsFullAdapter.setActiveLyrics(index)
                                                 if (index == -1) {
                                                     binding.rvLyrics.smoothScrollToPosition(0)
-                                                } else {
+                                                } else  {
                                                     binding.rvLyrics.smoothScrollToPosition(index)
                                                 }
-                                            } else if (viewModel.getLyricsSyncState() == Config.SyncState.UNSYNCED) {
+                                            } else if (viewModel.getLyricsSyncState() == Config.SyncState.UNSYNCED && lyricsAdapter.index != -1) {
                                                 lyricsAdapter.setActiveLyrics(-1)
-                                                binding.rvLyrics.removeOnItemTouchListener(disableScrolling)
+                                                lyricsFullAdapter.setActiveLyrics(-1)
+//                                                binding.rvLyrics.removeOnItemTouchListener(disableScrolling)
                                             }
 //                                        it1.lines?.find { line -> line.words == temp.nowLyric }
 //                                            ?.let { it2 ->
@@ -1085,6 +1084,7 @@ class NowPlayingFragment : Fragment() {
 
                                 binding.middleLayout.visibility = View.INVISIBLE
                                 binding.canvasLayout.visibility = View.VISIBLE
+                                binding.playerView.visibility = View.GONE
                                 binding.rootLayout.background =
                                     ColorDrawable(
                                         resources.getColor(

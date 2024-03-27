@@ -11,6 +11,7 @@ import com.maxrave.simpmusic.databinding.ItemLyricsNormalBinding
 
 class LyricsAdapter(private var originalLyrics: Lyrics?, var translated: Lyrics? = null): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
+    var index = -1
     private var activeLyrics: Line? = null
 
     interface OnItemClickListener {
@@ -38,6 +39,7 @@ class LyricsAdapter(private var originalLyrics: Lyrics?, var translated: Lyrics?
     }
 
     fun setActiveLyrics(index: Int) {
+        this.index = index
         if (index == -1) {
             if (activeLyrics != null) {
                 activeLyrics = null
