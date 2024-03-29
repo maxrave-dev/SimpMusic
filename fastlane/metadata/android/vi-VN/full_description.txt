@@ -2,7 +2,7 @@ Không chỉ là ứng dụng nghe nhạc, nó là SimpMusic
 
 <br><b>Tính năng:</b>
 
-- Nghe nhạc từ YouTube Music hoặc YouTube miễn phí không có quảng cáo trong nền
+- Nghe nhạc chất lượng cao từ YouTube Music hoặc YouTube miễn phí không có quảng cáo trong nền
 - Duyệt tất cả các nội dung như bảng xếp hạng, thể loại, tâm trạng, podcast, ... từ YouTube Music với tốc độ cao
 - Tìm kiếm mọi thứ trên YouTube
 - Thống kê dữ liệu nghe nhạc của bạn, tạo danh sách phát tùy chỉnh và đồng bộ với YouTube Music

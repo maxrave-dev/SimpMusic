@@ -42,21 +42,20 @@
 ## Screenshots
 
 <p align="center">  
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/fastlane/metadata/android/en-US/images/phoneScreenshots/2.jpg?raw=true" width="200" />  
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/fastlane/metadata/android/en-US/images/phoneScreenshots/3.jpg?raw=true" width="200" />  
-   <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/fastlane/metadata/android/en-US/images/phoneScreenshots/4.jpg?raw=true" width="200" />  
-   <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/fastlane/metadata/android/en-US/images/phoneScreenshots/5.jpg?raw=true" width="200" />  
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/2.jpg?raw=true" width="200" />  
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/3.jpg?raw=true" width="200" />  
+   <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/4.jpg?raw=true" width="200" />  
+   <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/5.jpg?raw=true" width="200" />  
 </p>  
 <p align="center">  
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/fastlane/metadata/android/en-US/images/phoneScreenshots/6.jpg?raw=true" width="200" />  
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/fastlane/metadata/android/en-US/images/phoneScreenshots/7.jpg?raw=true" width="200" />  
-   <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/fastlane/metadata/android/en-US/images/phoneScreenshots/8.jpg?raw=true" width="200" />  
-   <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/fastlane/metadata/android/en-US/images/phoneScreenshots/9.jpg?raw=true" width="200" />  
-</p>  
-</p>  
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/6.jpg?raw=true" width="200" />  
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/7.jpg?raw=true" width="200" />  
+   <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/8.jpg?raw=true" width="200" />  
+   <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/9.jpg?raw=true" width="200" />  
+</p> 
 <p align="center">  
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/fastlane/metadata/android/en-US/images/phoneScreenshots/10.jpg?raw=true" width="200" />  
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/dev/fastlane/metadata/android/en-US/images/phoneScreenshots/11.jpg?raw=true" width="200" /> 
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/10.jpg?raw=true" width="200" />  
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/11.jpg?raw=true" width="200" /> 
 </p>  
 
 #### More [screenshot](https://photos.app.goo.gl/AbieoXG5ctDrpwzp7) here.

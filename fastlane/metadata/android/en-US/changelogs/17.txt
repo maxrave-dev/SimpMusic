@@ -1,0 +1,13 @@
+- Playing music w/ 256kps quality (if using YT Music Premium account)
+- Notification for new releases of all followed artists (Exclusive)
+- Add all songs of playlist to queue
+- Delete songs from recently played
+- Save chart's country
+- Save current track and queue when app is crashed
+- Add Japanese and Arabic translations
+- Fixed bugs in miniplayer for small screens
+- Fixed can't log out from Spotify
+- Fixed playing animation when paused
+- Fixed no albums and singles in artist page
+- Fixed like song completely
+- Fixed click on lyrics to seek
