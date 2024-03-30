@@ -1188,9 +1188,9 @@ class SharedViewModel
         fun like(videoId: String) {
             updateLikeStatus(videoId, true)
             viewModelScope.launch {
-                dataStoreManager.coupleLocalAndYouTubeLike.collect {
+                dataStoreManager.coupleLocalAndYouTubeLike.first().let {
                     if (it == DataStoreManager.TRUE) {
-                        logInToYouTube().collect {
+                        logInToYouTube().first().let {
                             if (it == DataStoreManager.TRUE) {
                                 val result = listYouTubeLiked.first()?.contains(videoId)
                                 if (result == null || result == false) {
@@ -1206,9 +1206,9 @@ class SharedViewModel
         fun unlike(videoId: String) {
             updateLikeStatus(videoId, false)
             viewModelScope.launch {
-                dataStoreManager.coupleLocalAndYouTubeLike.collect {
+                dataStoreManager.coupleLocalAndYouTubeLike.first().let {
                     if (it == DataStoreManager.TRUE) {
-                        logInToYouTube().collect {
+                        logInToYouTube().first().let {
                             if (it == DataStoreManager.TRUE) {
                                 if ((listYouTubeLiked.first()?.contains(videoId) == true)) {
                                     addToYouTubeLiked()
