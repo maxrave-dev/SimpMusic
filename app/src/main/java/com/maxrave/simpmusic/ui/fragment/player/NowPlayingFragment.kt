@@ -1395,7 +1395,7 @@ class NowPlayingFragment : Fragment() {
         }
         binding.cbFavorite.setOnClickListener {
             viewModel.nowPlayingMediaItem.value?.let { nowPlayingSong ->
-                viewModel.updateLikeStatus(
+                viewModel.updateLike(
                     nowPlayingSong.mediaId,
                     !runBlocking { viewModel.liked.first() },
                 )
@@ -1537,11 +1537,11 @@ class NowPlayingFragment : Fragment() {
                                     if (cbFavorite.isChecked) {
                                         cbFavorite.isChecked = false
                                         tvFavorite.text = getString(R.string.like)
-                                        viewModel.updateLikeStatus(song.videoId, false)
+                                        viewModel.updateLike(song.videoId, false)
                                     } else {
                                         cbFavorite.isChecked = true
                                         tvFavorite.text = getString(R.string.liked)
-                                        viewModel.updateLikeStatus(song.videoId, true)
+                                        viewModel.updateLike(song.videoId, true)
                                     }
                                 }
                                 btPlayNext.visibility = View.GONE

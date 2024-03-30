@@ -217,6 +217,8 @@
     <string name="welcome_back">Bem-vindo de volta,</string>
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">Envie seu histórico de música para o servidor do Youtube Music. Assim, o sistema de recomendações do YT Music ficará melhor. Funcional apenas se estiver logado</string>
     <string name="send_back_listening_data_to_google">Enviar dados de reprodução para o Google</string>
+    <string name="couple_local_like_and_youtube_like">TODO</string>
+    <string name="using_the_local_like_button_the_youtube_like_playlist_will_be_maintained_as_well_only_if_logged_in">TODO</string>
     <string name="videos_inArtist">Vídeos</string>
     <string name="your_youtube_playlists">Suas Playlists do YouTube</string>
     <string name="no_YouTube_playlists">Nenhuma playlist do YouTube</string>

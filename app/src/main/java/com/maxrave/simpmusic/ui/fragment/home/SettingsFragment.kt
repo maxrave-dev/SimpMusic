@@ -117,6 +117,7 @@ class SettingsFragment : Fragment() {
         viewModel.getSkipSilent()
         viewModel.getSavedPlaybackState()
         viewModel.getSendBackToGoogle()
+        viewModel.getCoupleLocalAndYouTubeLike()
         viewModel.getSaveRecentSongAndQueue()
         viewModel.getLastCheckForUpdate()
         viewModel.getSponsorBlockEnabled()
@@ -408,6 +409,11 @@ class SettingsFragment : Fragment() {
                         }
                     }
                 }
+                val job27 = launch {
+                    viewModel.coupleLocalAndYouTubeLike.collect {
+                        binding.swCoupleLocalAndYouTubeLike.isChecked = it == DataStoreManager.TRUE
+                    }
+                }
                 job1.join()
                 job2.join()
                 job3.join()
@@ -434,6 +440,7 @@ class SettingsFragment : Fragment() {
                 job24.join()
                 job25.join()
                 job26.join()
+                job27.join()
             }
         }
         binding.sliderHomeLimit.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
@@ -914,6 +921,9 @@ class SettingsFragment : Fragment() {
             } else {
                 viewModel.setSendBackToGoogle(false)
             }
+        }
+        binding.swCoupleLocalAndYouTubeLike.setOnCheckedChangeListener { _, checked ->
+            viewModel.setCoupleLocalAndYouTubeLike(checked)
         }
         binding.swUseMusixmatchTranslation.setOnCheckedChangeListener { _, checked ->
             if (checked) {

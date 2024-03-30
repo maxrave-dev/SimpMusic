@@ -265,6 +265,25 @@ class DataStoreManager
             }
         }
 
+        val coupleLocalAndYouTubeLike =
+            settingsDataStore.data.map { preferences ->
+                preferences[COUPLE_LOCAL_AND_YOUTUBE_LIKE] ?: FALSE
+            }
+
+        suspend fun setCoupleLocalAndYouTubeLike(coupleLocalAndYouTubeLike: Boolean) {
+            withContext(Dispatchers.IO) {
+                if (coupleLocalAndYouTubeLike) {
+                    settingsDataStore.edit { settings ->
+                        settings[COUPLE_LOCAL_AND_YOUTUBE_LIKE] = TRUE
+                    }
+                } else {
+                    settingsDataStore.edit { settings ->
+                        settings[COUPLE_LOCAL_AND_YOUTUBE_LIKE] = FALSE
+                    }
+                }
+            }
+        }
+
         val sponsorBlockEnabled =
             settingsDataStore.data.map { preferences ->
                 preferences[SPONSOR_BLOCK_ENABLED] ?: FALSE
@@ -560,6 +579,7 @@ class DataStoreManager
             val SHUFFLE_KEY = stringPreferencesKey("shuffle_key")
             val REPEAT_KEY = stringPreferencesKey("repeat_key")
             val SEND_BACK_TO_GOOGLE = stringPreferencesKey("send_back_to_google")
+            val COUPLE_LOCAL_AND_YOUTUBE_LIKE = stringPreferencesKey("couple_local_and_youtube_like")
             val FROM_SAVED_PLAYLIST = stringPreferencesKey("from_saved_playlist")
             val MUSIXMATCH_LOGGED_IN = stringPreferencesKey("musixmatch_logged_in")
             val YOUTUBE = "youtube"

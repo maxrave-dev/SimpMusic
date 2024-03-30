@@ -76,15 +76,7 @@ import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.time.LocalDateTime
@@ -1185,7 +1177,50 @@ class SharedViewModel
             _translateLyrics.value = null
         }
 
-        fun updateLikeStatus(
+        fun updateLike(videoId: String, likeStatus: Boolean) {
+            if (likeStatus) {
+                like(videoId)
+            } else {
+                unlike(videoId)
+            }
+        }
+
+        fun like(videoId: String) {
+            updateLikeStatus(videoId, true)
+            viewModelScope.launch {
+                dataStoreManager.coupleLocalAndYouTubeLike.collect {
+                    if (it == DataStoreManager.TRUE) {
+                        logInToYouTube().collect {
+                            if (it == DataStoreManager.TRUE) {
+                                val result = listYouTubeLiked.first()?.contains(videoId)
+                                if (result == null || result == false) {
+                                    addToYouTubeLiked()
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        fun unlike(videoId: String) {
+            updateLikeStatus(videoId, false)
+            viewModelScope.launch {
+                dataStoreManager.coupleLocalAndYouTubeLike.collect {
+                    if (it == DataStoreManager.TRUE) {
+                        logInToYouTube().collect {
+                            if (it == DataStoreManager.TRUE) {
+                                if ((listYouTubeLiked.first()?.contains(videoId) == true)) {
+                                    addToYouTubeLiked()
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private fun updateLikeStatus(
             videoId: String,
             likeStatus: Boolean,
         ) {

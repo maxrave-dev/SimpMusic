@@ -217,6 +217,8 @@
     <string name="welcome_back">Tervetuloa takaisin,</string>
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">Lataamalla kuunteluhistoria YouTube Music -palvelimelle parannetaan YT Music -suosituksia. Toimii vain sisäänkirjautuneena</string>
     <string name="send_back_listening_data_to_google">Lähetä kuuntelutiedot Googlelle</string>
+    <string name="couple_local_like_and_youtube_like">TODO</string>
+    <string name="using_the_local_like_button_the_youtube_like_playlist_will_be_maintained_as_well_only_if_logged_in">TODO</string>
     <string name="videos_inArtist">Videot</string>
     <string name="your_youtube_playlists">YouTube-soittolistasi</string>
     <string name="no_YouTube_playlists">Ei YouTube-soittolistoja</string>

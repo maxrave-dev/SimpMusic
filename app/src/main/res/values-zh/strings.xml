@@ -217,6 +217,8 @@
     <string name="welcome_back">欢迎回来</string>
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">将您的听歌历史上传到 YouTube Music 服务器，它将使 YT Music 推荐系统更好。只在登录后才工作</string>
     <string name="send_back_listening_data_to_google">发送回听数据到 Google</string>
+    <string name="couple_local_like_and_youtube_like">TODO</string>
+    <string name="using_the_local_like_button_the_youtube_like_playlist_will_be_maintained_as_well_only_if_logged_in">TODO</string>
     <string name="videos_inArtist">视频</string>
     <string name="your_youtube_playlists">您的 YouTube 歌单</string>
     <string name="no_YouTube_playlists">没有 YouTube 歌单</string>

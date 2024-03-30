@@ -218,6 +218,8 @@
     <string name="welcome_back">Welcome back,</string>
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">Upload your listening history to YouTube Music server, it will make YT Music recommendation system better. Working only if logged in</string>
     <string name="send_back_listening_data_to_google">Send back listening data to Google</string>
+    <string name="couple_local_like_and_youtube_like">Couple local like and YT like</string>
+    <string name="using_the_local_like_button_the_youtube_like_playlist_will_be_maintained_as_well_only_if_logged_in">Using the local like button, the YT like playlist will be maintained as well. Working only if logged in</string>
     <string name="videos_inArtist">Videos</string>
     <string name="your_youtube_playlists">Your YouTube Playlists</string>
     <string name="no_YouTube_playlists">No YouTube Playlists</string>

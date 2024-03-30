@@ -732,7 +732,7 @@ class MainActivity : AppCompatActivity() {
         binding.card.animation = AnimationUtils.loadAnimation(this, R.anim.bottom_to_top)
         binding.cbFavorite.setOnClickListener {
             viewModel.nowPlayingMediaItem.value?.let { nowPlayingSong ->
-                viewModel.updateLikeStatus(
+                viewModel.updateLike(
                     nowPlayingSong.mediaId,
                     !runBlocking { viewModel.liked.first() },
                 )

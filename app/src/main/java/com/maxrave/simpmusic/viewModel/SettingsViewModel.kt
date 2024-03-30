@@ -88,6 +88,8 @@ class SettingsViewModel @Inject constructor(
     val sponsorBlockCategories: StateFlow<ArrayList<String>?> = _sponsorBlockCategories
     private var _sendBackToGoogle: MutableStateFlow<String?> = MutableStateFlow(null)
     val sendBackToGoogle: StateFlow<String?> = _sendBackToGoogle
+    private var _coupleLocalAndYouTubeLike: MutableStateFlow<String?> = MutableStateFlow(null)
+    val coupleLocalAndYouTubeLike: StateFlow<String?> = _coupleLocalAndYouTubeLike
     private var _mainLyricsProvider: MutableStateFlow<String?> = MutableStateFlow(null)
     val mainLyricsProvider: StateFlow<String?> = _mainLyricsProvider
     private var _musixmatchLoggedIn: MutableStateFlow<String?> = MutableStateFlow(null)
@@ -466,7 +468,6 @@ class SettingsViewModel @Inject constructor(
     }
     fun getSendBackToGoogle() {
         viewModelScope.launch {
-
                 dataStoreManager.sendBackToGoogle.collect { sendBackToGoogle ->
                     _sendBackToGoogle.emit(sendBackToGoogle)
             }
@@ -476,6 +477,19 @@ class SettingsViewModel @Inject constructor(
         viewModelScope.launch {
                 dataStoreManager.setSendBackToGoogle(sendBackToGoogle)
                 getSendBackToGoogle()
+        }
+    }
+    fun getCoupleLocalAndYouTubeLike() {
+        viewModelScope.launch {
+                dataStoreManager.coupleLocalAndYouTubeLike.collect { coupleLocalAndYouTubeLike ->
+                    _coupleLocalAndYouTubeLike.emit(coupleLocalAndYouTubeLike)
+            }
+        }
+    }
+    fun setCoupleLocalAndYouTubeLike(coupleLocalAndYouTubeLike: Boolean) {
+        viewModelScope.launch {
+                dataStoreManager.setCoupleLocalAndYouTubeLike(coupleLocalAndYouTubeLike)
+                getCoupleLocalAndYouTubeLike()
         }
     }
     fun getSkipSilent() {

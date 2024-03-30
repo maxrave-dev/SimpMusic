@@ -217,6 +217,8 @@
     <string name="welcome_back">مرحبًا بك مجددًا</string>
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">تحميل سجل الاستماع الخاص بك إلى خادم YouTube Music، سوف يجعل نظام توصية YT Music أفضل. يعمل فقط في حالة تسجيل الدخول</string>
     <string name="send_back_listening_data_to_google">إرسال بيانات الاستماع مرة أخرى إلى جوجل</string>
+    <string name="couple_local_like_and_youtube_like">TODO</string>
+    <string name="using_the_local_like_button_the_youtube_like_playlist_will_be_maintained_as_well_only_if_logged_in">TODO</string>
     <string name="videos_inArtist">مقاطع الفيديو</string>
     <string name="your_youtube_playlists">قوائم تشغيل YouTube الخاصة بك</string>
     <string name="no_YouTube_playlists">لا توجد قوائم تشغيل YouTube</string>

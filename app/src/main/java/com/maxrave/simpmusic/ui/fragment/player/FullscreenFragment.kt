@@ -404,11 +404,11 @@ class FullscreenFragment : Fragment() {
                                     if (cbFavorite.isChecked) {
                                         cbFavorite.isChecked = false
                                         tvFavorite.text = getString(R.string.like)
-                                        viewModel.updateLikeStatus(song.videoId, false)
+                                        viewModel.unlike(song.videoId)
                                     } else {
                                         cbFavorite.isChecked = true
                                         tvFavorite.text = getString(R.string.liked)
-                                        viewModel.updateLikeStatus(song.videoId, true)
+                                        viewModel.like(song.videoId)
                                     }
                                 }
                                 btRadio.setOnClickListener {
