@@ -71,7 +71,7 @@ android {
         compose = true
     }
     composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.4"
+        kotlinCompilerExtensionVersion = "1.5.11"
     }
     packaging {
         jniLibs.useLegacyPackaging = true
@@ -195,8 +195,8 @@ dependencies {
     implementation(project(mapOf("path" to ":kotlinYtmusicScraper")))
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
-    debugImplementation("androidx.compose.ui:ui-tooling:1.6.3")
-    debugImplementation("androidx.compose.ui:ui-tooling-preview:1.6.3")
+    debugImplementation("androidx.compose.ui:ui-tooling:1.6.4")
+    debugImplementation("androidx.compose.ui:ui-tooling-preview:1.6.4")
 
     //ExoPlayer
     val media3_version = "1.3.0"
