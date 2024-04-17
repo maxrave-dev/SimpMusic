@@ -39,6 +39,7 @@ android {
             "in",
             "ar",
             "ja",
+            "zh-rTW",
         )
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
