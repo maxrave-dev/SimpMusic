@@ -192,7 +192,7 @@ object SUPPORTED_LANGUAGE {
             "in-ID",
             "ar-SA",
             "ja-JP",
-            "zh-rTW",
+            "zh-Hant-TW",
         )
 }
 

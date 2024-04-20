@@ -39,7 +39,7 @@ android {
             "in",
             "ar",
             "ja",
-            "zh-rTW",
+            "b+zh+Hant+TW",
         )
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -163,7 +163,7 @@ android {
 
 dependencies {
 
-    implementation("androidx.wear.compose:compose-material3:1.0.0-alpha19")
+    implementation("androidx.wear.compose:compose-material3:1.0.0-alpha21")
     //Compose
     val composeBom = platform("androidx.compose:compose-bom:2024.02.02")
     implementation(composeBom)
@@ -177,12 +177,12 @@ dependencies {
 
     // Android Studio Preview support
     implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.activity:activity-compose:1.8.2")
+    implementation("androidx.activity:activity-compose:1.9.0")
     // Optional - Integration with ViewModels
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
 
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-    implementation("androidx.core:core-ktx:1.12.0")
+    implementation("androidx.core:core-ktx:1.13.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
 
     val work_version = "2.9.0"
@@ -196,11 +196,11 @@ dependencies {
     implementation(project(mapOf("path" to ":kotlinYtmusicScraper")))
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
-    debugImplementation("androidx.compose.ui:ui-tooling:1.6.4")
-    debugImplementation("androidx.compose.ui:ui-tooling-preview:1.6.4")
+    debugImplementation("androidx.compose.ui:ui-tooling:1.6.6")
+    debugImplementation("androidx.compose.ui:ui-tooling-preview:1.6.6")
 
     //ExoPlayer
-    val media3_version = "1.3.0"
+    val media3_version = "1.3.1"
 
     implementation("androidx.media3:media3-exoplayer:$media3_version")
     implementation("androidx.media3:media3-ui:$media3_version")
@@ -259,7 +259,7 @@ dependencies {
     ksp("com.google.dagger:hilt-compiler:2.50")
     ksp("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.8.0")
     //DataStore
-    implementation("androidx.datastore:datastore-preferences:1.0.0")
+    implementation("androidx.datastore:datastore-preferences:1.1.0")
     //Swipe To Refresh
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.2.0-alpha01")
     //Insetter
