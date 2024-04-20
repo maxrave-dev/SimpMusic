@@ -15,12 +15,21 @@ import com.maxrave.simpmusic.extension.toVideoIdList
 
 class TrackAdapter(private var trackList: ArrayList<Any>): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     private lateinit var mListener: OnItemClickListener
+    private lateinit var mOptionListener: OnOptionClickListener
     interface OnItemClickListener{
         fun onItemClick(position: Int)
     }
 
+    interface OnOptionClickListener{
+        fun onOptionClick(position: Int)
+    }
+
     fun setOnClickListener(listener: OnItemClickListener) {
         mListener = listener
+    }
+
+    fun setOnOptionClickListener(listener: OnOptionClickListener){
+        mOptionListener = listener
     }
 
     fun updateList(newList: ArrayList<Any>) {
@@ -79,11 +88,15 @@ class TrackAdapter(private var trackList: ArrayList<Any>): RecyclerView.Adapter<
 
     inner class TrackViewHolder(
         val binding: ItemAlbumTrackBinding,
-        rootListener: OnItemClickListener
+        rootListener: OnItemClickListener,
+        optionListener: OnOptionClickListener
     ) : RecyclerView.ViewHolder(binding.root) {
         init {
             binding.rootLayout.setOnClickListener {
                 rootListener.onItemClick(bindingAdapterPosition)
+            }
+            binding.btMore.setOnClickListener {
+                optionListener.onOptionClick(bindingAdapterPosition)
             }
         }
 
@@ -107,10 +120,13 @@ class TrackAdapter(private var trackList: ArrayList<Any>): RecyclerView.Adapter<
             }
         }
     }
-    inner class SongEntityViewHolder(val binding: ItemAlbumTrackBinding, rootListener: OnItemClickListener): RecyclerView.ViewHolder(binding.root) {
+    inner class SongEntityViewHolder(val binding: ItemAlbumTrackBinding, rootListener: OnItemClickListener, optionListener: OnOptionClickListener): RecyclerView.ViewHolder(binding.root) {
         init {
             binding.rootLayout.setOnClickListener {
                 rootListener.onItemClick(bindingAdapterPosition)
+            }
+            binding.btMore.setOnClickListener {
+                optionListener.onOptionClick(bindingAdapterPosition)
             }
         }
         fun bind(songEntity: SongEntity){
@@ -137,10 +153,10 @@ class TrackAdapter(private var trackList: ArrayList<Any>): RecyclerView.Adapter<
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         return when (viewType) {
             TYPE_TRACK -> {
-                TrackViewHolder(ItemAlbumTrackBinding.inflate(LayoutInflater.from(parent.context), parent, false), mListener)
+                TrackViewHolder(ItemAlbumTrackBinding.inflate(LayoutInflater.from(parent.context), parent, false), mListener, mOptionListener)
             }
             TYPE_SONG_ENTITY -> {
-                SongEntityViewHolder(ItemAlbumTrackBinding.inflate(LayoutInflater.from(parent.context), parent, false), mListener)
+                SongEntityViewHolder(ItemAlbumTrackBinding.inflate(LayoutInflater.from(parent.context), parent, false), mListener, mOptionListener)
             }
             else -> {
                 throw IllegalArgumentException("Invalid type of data $viewType")

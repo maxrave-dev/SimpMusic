@@ -300,10 +300,10 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onNewIntent(intent: Intent?) {
+    override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        action = intent?.action
-        data = intent?.data ?: intent?.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
+        action = intent.action
+        data = intent.data ?: intent.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
         Log.d("MainActivity", "onNewIntent: $data")
         viewModel.intent.value = intent
     }

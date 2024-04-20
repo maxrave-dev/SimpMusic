@@ -730,8 +730,8 @@ class SearchFragment : Fragment() {
         })
         searchHistoryAdapter.setOnDeleteClickListener(object: SearchHistoryItemAdapter.onDeleteClickListener{
             override fun onDeleteClick(position: Int) {
-                searchHistory.removeAt(position)
-                viewModel.searchHistory.value?.removeAt(position)
+                searchHistory.remove(searchHistoryAdapter.getCurrentList()[position])
+                viewModel.searchHistory.value?.remove(searchHistoryAdapter.getCurrentList()[position])
                 observeSearchHistory()
             }
         })
