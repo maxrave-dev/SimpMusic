@@ -19,6 +19,7 @@ import android.view.ViewGroup
 import android.view.ViewTreeObserver
 import android.view.animation.AnimationUtils
 import android.widget.Toast
+import androidx.compose.ui.platform.ComposeView
 import androidx.core.graphics.ColorUtils
 import androidx.core.net.toUri
 import androidx.core.view.marginBottom
@@ -46,7 +47,6 @@ import coil.request.CachePolicy
 import coil.size.Size
 import coil.transform.RoundedCornersTransformation
 import coil.transform.Transformation
-import com.daimajia.swipe.SwipeLayout
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -264,7 +264,7 @@ class NowPlayingFragment : Fragment() {
         }
         val activity = requireActivity()
         val bottom = activity.findViewById<BottomNavigationView>(R.id.bottom_navigation_view)
-        val miniplayer = activity.findViewById<SwipeLayout>(R.id.miniplayer)
+        val miniplayer = activity.findViewById<ComposeView>(R.id.miniplayer)
 
         bottom.visibility = View.GONE
         miniplayer.visibility = View.GONE
@@ -2293,7 +2293,7 @@ class NowPlayingFragment : Fragment() {
         val activity = requireActivity()
         activity.window.navigationBarColor = Color.parseColor("#CB0B0A0A")
         val bottom = activity.findViewById<BottomNavigationView>(R.id.bottom_navigation_view)
-        val miniplayer = activity.findViewById<SwipeLayout>(R.id.miniplayer)
+        val miniplayer = activity.findViewById<ComposeView>(R.id.miniplayer)
         if (!isFullScreen) {
             bottom.animation = AnimationUtils.loadAnimation(requireContext(), R.anim.bottom_to_top)
             bottom.visibility = View.VISIBLE

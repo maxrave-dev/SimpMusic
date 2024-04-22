@@ -46,7 +46,7 @@ data class AlbumPage(
                         ?: return null,
                     thumbnails = renderer.thumbnail.musicThumbnailRenderer.thumbnail,
                     explicit = renderer.badges?.find {
-                        it.musicInlineBadgeRenderer.icon.iconType == "MUSIC_EXPLICIT_BADGE"
+                        it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                     } != null
                 )
             }

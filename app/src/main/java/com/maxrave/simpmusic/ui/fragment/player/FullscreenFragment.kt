@@ -9,6 +9,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.compose.ui.platform.ComposeView
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -25,7 +26,6 @@ import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import coil.load
-import com.daimajia.swipe.SwipeLayout
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -82,7 +82,7 @@ class FullscreenFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         val activity = requireActivity()
         val bottom = activity.findViewById<BottomNavigationView>(R.id.bottom_navigation_view)
-        val miniplayer = activity.findViewById<SwipeLayout>(R.id.miniplayer)
+        val miniplayer = activity.findViewById<ComposeView>(R.id.miniplayer)
         bottom.visibility = View.GONE
         miniplayer.visibility = View.GONE
         if (!viewModel.isFullScreen) {

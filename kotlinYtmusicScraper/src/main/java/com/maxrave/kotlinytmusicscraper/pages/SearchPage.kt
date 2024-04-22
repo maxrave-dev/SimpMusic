@@ -5,15 +5,11 @@ import com.maxrave.kotlinytmusicscraper.models.AlbumItem
 import com.maxrave.kotlinytmusicscraper.models.Artist
 import com.maxrave.kotlinytmusicscraper.models.ArtistItem
 import com.maxrave.kotlinytmusicscraper.models.MusicResponsiveListItemRenderer
-import com.maxrave.kotlinytmusicscraper.models.NavigationEndpoint
 import com.maxrave.kotlinytmusicscraper.models.PlaylistItem
 import com.maxrave.kotlinytmusicscraper.models.SongItem
-import com.maxrave.kotlinytmusicscraper.models.Thumbnail
 import com.maxrave.kotlinytmusicscraper.models.Thumbnails
-import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
 import com.maxrave.kotlinytmusicscraper.models.YTItem
 import com.maxrave.kotlinytmusicscraper.models.oddElements
-import com.maxrave.kotlinytmusicscraper.models.simpmusic.Author
 import com.maxrave.kotlinytmusicscraper.models.splitBySeparator
 import com.maxrave.kotlinytmusicscraper.utils.parseTime
 
@@ -71,7 +67,7 @@ object SearchPage {
                         thumbnail = renderer.thumbnail?.musicThumbnailRenderer?.getThumbnailUrl()
                             ?: return null,
                         explicit = renderer.badges?.find {
-                            it.musicInlineBadgeRenderer.icon.iconType == "MUSIC_EXPLICIT_BADGE"
+                            it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                         } != null,
                         thumbnails = renderer.thumbnail.musicThumbnailRenderer.thumbnail
                     )
@@ -114,7 +110,7 @@ object SearchPage {
                         thumbnail = renderer.thumbnail?.musicThumbnailRenderer?.getThumbnailUrl()
                             ?: return null,
                         explicit = renderer.badges?.find {
-                            it.musicInlineBadgeRenderer.icon.iconType == "MUSIC_EXPLICIT_BADGE"
+                            it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                         } != null
                     )
                 }

@@ -88,7 +88,7 @@ data class ArtistPage(
                         ?: return null,
                     thumbnails = renderer.thumbnail.musicThumbnailRenderer.thumbnail,
                     explicit = renderer.badges?.find {
-                        it.musicInlineBadgeRenderer.icon.iconType == "MUSIC_EXPLICIT_BADGE"
+                        it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                     } != null
                 )
         }
@@ -112,7 +112,7 @@ data class ArtistPage(
                             ?: return null,
                         thumbnails = renderer.thumbnailRenderer.musicThumbnailRenderer.thumbnail,
                         explicit = renderer.subtitleBadges?.find {
-                            it.musicInlineBadgeRenderer.icon.iconType == "MUSIC_EXPLICIT_BADGE"
+                            it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                         } != null
                     )
                 }
@@ -133,7 +133,7 @@ data class ArtistPage(
                         thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
                             ?: return null,
                         explicit = renderer.subtitleBadges?.find {
-                            it.musicInlineBadgeRenderer.icon.iconType == "MUSIC_EXPLICIT_BADGE"
+                            it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                         } != null,
                         isSingle = renderer.subtitle?.runs?.size == 1
                     )

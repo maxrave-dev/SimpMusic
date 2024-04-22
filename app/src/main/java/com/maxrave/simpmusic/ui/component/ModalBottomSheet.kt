@@ -419,8 +419,7 @@ fun CheckBoxActionButton(
     var stateChecked by remember { mutableStateOf(defaultChecked) }
     Box(
         modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentHeight(Alignment.CenterVertically)
+            .wrapContentSize(align = Alignment.Center)
             .clickable(
                 interactionSource = remember {
                     MutableInteractionSource()

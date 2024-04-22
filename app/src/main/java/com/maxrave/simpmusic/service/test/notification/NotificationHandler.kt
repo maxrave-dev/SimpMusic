@@ -8,7 +8,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.drawable.BitmapDrawable
-import android.os.Bundle
 import androidx.annotation.OptIn
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.ActivityCompat
@@ -17,12 +16,10 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.net.toUri
 import androidx.media3.common.util.UnstableApi
-import androidx.navigation.NavDeepLinkBuilder
 import coil.ImageLoader
 import coil.request.ImageRequest
 import coil.request.SuccessResult
 import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.ui.MainActivity
 import kotlinx.coroutines.runBlocking
 
@@ -50,8 +47,8 @@ object NotificationHandler {
                 val request =
                     ImageRequest.Builder(context)
                         .data(
-                            noti.single.firstOrNull()?.thumbnails?.lastOrNull()?.url
-                                ?: noti.album.firstOrNull()?.thumbnails?.lastOrNull()?.url,
+                            noti.single.firstOrNull()?.thumbnail
+                                ?: noti.album.firstOrNull()?.thumbnail
                         )
                         .allowHardware(false) // Disable hardware bitmaps.
                         .build()

@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.maxrave.kotlinytmusicscraper.models.AlbumItem
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
 import com.maxrave.simpmusic.data.db.entities.FollowedArtistSingleAndAlbum
 import com.maxrave.simpmusic.data.db.entities.NotificationEntity
@@ -12,10 +13,11 @@ import com.maxrave.simpmusic.data.model.browse.artist.ResultAlbum
 import com.maxrave.simpmusic.data.model.browse.artist.ResultSingle
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.extension.symmetricDifference
-import com.maxrave.simpmusic.utils.Resource
+import com.maxrave.simpmusic.viewModel.MoreAlbumsViewModel
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
@@ -42,56 +44,49 @@ class NotifyWork
                 Log.w("NotifyWork", "doWork: $artistList")
                 Log.w("NotifyWork", "doWork: $listFollowedArtistSingleAndAlbum")
                 artistList.forEach { art ->
-                    mainRepository.getArtistData(art.channelId).first().let { artistData ->
-                        if (artistData is Resource.Success) {
-                            val artist = artistData.data
-                            if (artist != null) {
-                                val single = artist.singles?.results
-                                val album = artist.albums?.results
-                                val savedSingle =
-                                    listFollowedArtistSingleAndAlbum.find { it.channelId == art.channelId }?.single
-                                val savedAlbum =
-                                    listFollowedArtistSingleAndAlbum.find { it.channelId == art.channelId }?.album
-                                if (!savedSingle.isNullOrEmpty() && single != null) {
-                                    val differentSingle =
-                                        single.map { it.browseId } symmetricDifference (savedSingle.map { it["browseId"] })
-                                    mapOfNotification.add(
-                                        NotificationModel(
-                                            name = art.name,
-                                            channelId = art.channelId,
-                                            single =
-                                                single.filter {
-                                                    differentSingle.contains(it.browseId)
-                                                },
-                                            album = listOf(),
-                                        ),
-                                    )
-                                }
-                                if (!savedAlbum.isNullOrEmpty() && album != null) {
-                                    val differentAlbum =
-                                        album.map { it.browseId } symmetricDifference (savedAlbum.map { it["browseId"] })
-                                    mapOfNotification.add(
-                                        NotificationModel(
-                                            name = art.name,
-                                            channelId = art.channelId,
-                                            single = listOf(),
-                                            album =
-                                                album.filter {
-                                                    differentAlbum.contains(it.browseId)
-                                                },
-                                        ),
-                                    )
-                                }
-                                mainRepository.insertFollowedArtistSingleAndAlbum(
-                                    FollowedArtistSingleAndAlbum(
-                                        channelId = art.channelId,
-                                        name = art.name,
-                                        single = single.toMap(),
-                                        album = album.toMap(),
-                                    ),
-                                )
-                            }
+                    combine(mainRepository.getAlbumMore("MPAD${art.channelId}", MoreAlbumsViewModel.ALBUM_PARAM), mainRepository.getAlbumMore("MPAD${art.channelId}", MoreAlbumsViewModel.SINGLE_PARAM)) {
+                        album, single -> Pair(album, single)
+                    }.first().let { pair ->
+                        val albumItem = pair.first?.items?.firstOrNull()?.items
+                        val singleItem = pair.second?.items?.firstOrNull()?.items
+                        val savedAlbum = listFollowedArtistSingleAndAlbum.find { it.channelId == art.channelId }?.album
+                        if (!savedAlbum.isNullOrEmpty() && !albumItem.isNullOrEmpty()) {
+                            val differentAlbum =
+                                albumItem.filter { ytItem ->
+                                    (albumItem.map { item -> item.id } symmetricDifference (savedAlbum.map { it["browseId"] })).contains(ytItem.id)
+                                }.filterIsInstance<AlbumItem>()
+                            mapOfNotification.add(
+                                NotificationModel(
+                                    name = art.name,
+                                    channelId = art.channelId,
+                                    single = listOf(),
+                                    album = differentAlbum,
+                                ),
+                            )
                         }
+                        val savedSingle = listFollowedArtistSingleAndAlbum.find { it.channelId == art.channelId }?.single
+                        if (!savedSingle.isNullOrEmpty() && !singleItem.isNullOrEmpty()) {
+                            val differentSingle =
+                                singleItem.filter { ytItem ->
+                                    (singleItem.map { item -> item.id } symmetricDifference (savedSingle.map { it["browseId"] })).contains(ytItem.id)
+                                }.filterIsInstance<AlbumItem>()
+                            mapOfNotification.add(
+                                NotificationModel(
+                                    name = art.name,
+                                    channelId = art.channelId,
+                                    single = differentSingle,
+                                    album = listOf(),
+                                ),
+                            )
+                        }
+                        mainRepository.insertFollowedArtistSingleAndAlbum(
+                            FollowedArtistSingleAndAlbum(
+                                channelId = art.channelId,
+                                name = art.name,
+                                single = singleItem.toMap(),
+                                album = albumItem.toMap(),
+                            ),
+                        )
                     }
                 }
                 Log.w("NotifyWork", "doWork: $mapOfNotification")
@@ -143,6 +138,16 @@ private fun List<Any>?.toMap(): List<Map<String, String>> {
             }
         }
 
+        is AlbumItem -> {
+            this.map {
+                val album = it as AlbumItem
+                mapOf(
+                    "browseId" to album.id,
+                    "title" to album.title,
+                    "thumbnails" to album.thumbnail,
+                )
+            }
+        }
         else -> listOf()
     }
 }
@@ -150,6 +155,6 @@ private fun List<Any>?.toMap(): List<Map<String, String>> {
 data class NotificationModel(
     val name: String,
     val channelId: String,
-    val single: List<ResultSingle>,
-    val album: List<ResultAlbum>,
+    val single: List<AlbumItem>,
+    val album: List<AlbumItem>,
 )

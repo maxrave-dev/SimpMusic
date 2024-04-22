@@ -11,12 +11,12 @@ import android.webkit.WebStorage
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Toast
+import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
-import com.daimajia.swipe.SwipeLayout
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
@@ -58,7 +58,7 @@ class SpotifyLogInFragment : Fragment() {
         }
         val activity = requireActivity()
         val bottom = activity.findViewById<BottomNavigationView>(R.id.bottom_navigation_view)
-        val miniplayer = activity.findViewById<SwipeLayout>(R.id.miniplayer)
+        val miniplayer = activity.findViewById<ComposeView>(R.id.miniplayer)
         bottom.visibility = View.GONE
         miniplayer.visibility = View.GONE
         binding.webView.apply {
@@ -108,7 +108,7 @@ class SpotifyLogInFragment : Fragment() {
         val bottom = activity.findViewById<BottomNavigationView>(R.id.bottom_navigation_view)
         bottom.animation = AnimationUtils.loadAnimation(requireContext(), R.anim.bottom_to_top)
         bottom.visibility = View.VISIBLE
-        val miniplayer = activity.findViewById<SwipeLayout>(R.id.miniplayer)
+        val miniplayer = activity.findViewById<ComposeView>(R.id.miniplayer)
         if (requireActivity().isMyServiceRunning(SimpleMediaService::class.java)) {
             miniplayer.animation =
                 AnimationUtils.loadAnimation(requireContext(), R.anim.bottom_to_top)
