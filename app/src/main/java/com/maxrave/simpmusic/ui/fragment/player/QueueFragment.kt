@@ -126,7 +126,15 @@ class QueueFragment: BottomSheetDialogFragment() {
                 }
             }
             val job2 = launch {
-                updateNowPlaying()
+                viewModel.nowPlayingMediaItem.collect {
+                    if (it != null){
+                        binding.ivThumbnail.load(it.mediaMetadata.artworkUri)
+                        binding.tvSongTitle.text = it.mediaMetadata.title
+                        binding.tvSongTitle.isSelected = true
+                        binding.tvSongArtist.text = it.mediaMetadata.artist
+                        binding.tvSongArtist.isSelected = true
+                    }
+                }
             }
             val job3 = launch {
                 viewModel.simpleMediaServiceHandler?.currentSongIndex?.collect{ index ->
@@ -238,16 +246,5 @@ class QueueFragment: BottomSheetDialogFragment() {
                 dialog.show()
             }
         })
-    }
-    private fun updateNowPlaying(){
-        viewModel.nowPlayingMediaItem.observe(viewLifecycleOwner) {
-            if (it != null){
-                binding.ivThumbnail.load(it.mediaMetadata.artworkUri)
-                binding.tvSongTitle.text = it.mediaMetadata.title
-                binding.tvSongTitle.isSelected = true
-                binding.tvSongArtist.text = it.mediaMetadata.artist
-                binding.tvSongArtist.isSelected = true
-            }
-        }
     }
 }

@@ -22,7 +22,9 @@ import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 @AndroidEntryPoint
 class InfoFragment: BottomSheetDialogFragment(){
@@ -74,7 +76,7 @@ class InfoFragment: BottomSheetDialogFragment(){
 
     @UnstableApi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        if (viewModel.nowPlayingMediaItem.value != null) {
+        if (runBlocking { viewModel.nowPlayingMediaItem.first() } != null) {
             if (viewModel.simpleMediaServiceHandler != null) {
                 val data = viewModel.simpleMediaServiceHandler!!.catalogMetadata[viewModel.getCurrentMediaItemIndex()]
                 with(binding){

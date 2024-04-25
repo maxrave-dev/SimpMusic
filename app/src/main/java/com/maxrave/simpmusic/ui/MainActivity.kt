@@ -424,7 +424,7 @@ class MainActivity : AppCompatActivity() {
         val navController = navHostFragment?.findNavController()
         binding.miniplayer.setContent {
             AppTheme {
-                MiniPlayer(sharedViewModel = viewModel) {
+                MiniPlayer(sharedViewModel = viewModel, onClose = { onCloseMiniplayer() }) {
                     val bundle = Bundle()
                     bundle.putString("type", Config.MINIPLAYER_CLICK)
                     navController?.navigateSafe(R.id.action_global_nowPlayingFragment, bundle)
@@ -687,6 +687,9 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 }
+            val job2 = launch {
+                viewModel
+            }
             job1.join()
         }
         lifecycleScope.launch {
@@ -921,6 +924,13 @@ class MainActivity : AppCompatActivity() {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         viewModel.activityRecreate()
+    }
+
+    fun onCloseMiniplayer() {
+        viewModel.stopPlayer()
+        viewModel.isServiceRunning.postValue(false)
+        viewModel.videoId.postValue(null)
+        binding.miniplayer.visibility = View.GONE
     }
 }
 

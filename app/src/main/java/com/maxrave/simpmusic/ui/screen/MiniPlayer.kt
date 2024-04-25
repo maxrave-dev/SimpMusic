@@ -4,12 +4,15 @@ package com.maxrave.simpmusic.ui.screen
 import android.graphics.drawable.GradientDrawable
 import android.util.Log
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +21,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -36,6 +40,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -43,10 +48,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.input.pointer.PointerInputChange
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.ColorUtils
+import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.wear.compose.material3.ripple
@@ -65,11 +74,13 @@ import com.skydoves.landscapist.palette.rememberPaletteState
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlin.math.roundToInt
 
 @Composable
 @UnstableApi
 fun MiniPlayer(
     sharedViewModel: SharedViewModel,
+    onClose: () -> Unit,
     onClick: () -> Unit,
 ) {
     val (mediaItem, setMediaItem) = remember {
@@ -85,6 +96,8 @@ fun MiniPlayer(
         mutableFloatStateOf(0f)
     }
 
+    val coroutineScope = rememberCoroutineScope()
+
     val animatedProgress by animateFloatAsState(
         targetValue = progress,
         animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec, label = "",
@@ -94,9 +107,13 @@ fun MiniPlayer(
     val (background, setBackground) = rememberSaveable {
         mutableIntStateOf(0x000000)
     }
+
+    val offsetX = remember { Animatable(initialValue = 0f) }
+    val offsetY = remember { Animatable(0f) }
+
     LaunchedEffect(key1 = true) {
         val job1 = launch {
-            sharedViewModel.simpleMediaServiceHandler?.nowPlaying?.collect { item ->
+            sharedViewModel.nowPlayingMediaItem.collect { item ->
                 if (item != null) {
                     setMediaItem(item)
                 }
@@ -149,10 +166,6 @@ fun MiniPlayer(
                         }
                     }
                 }
-                Log.d(
-                    "Check Start Color",
-                    "transform: $startColor",
-                )
             }
             val endColor = 0x1b1a1f
             val gd =
@@ -175,12 +188,42 @@ fun MiniPlayer(
         colors = CardDefaults.elevatedCardColors(
             containerColor = Color(background),
         ),
-        modifier = Modifier.fillMaxHeight()
-            .clickable (
+        modifier = Modifier
+            .fillMaxHeight()
+            .offset { IntOffset(0, offsetY.value.roundToInt()) }
+            .clickable(
                 onClick = onClick,
                 indication = ripple(),
                 interactionSource = remember { MutableInteractionSource() }
             )
+            .pointerInput(Unit) {
+                detectVerticalDragGestures(
+                    onDragStart = {
+                    },
+                    onVerticalDrag = { change: PointerInputChange, dragAmount: Float ->
+                        coroutineScope.launch {
+                            change.consume()
+                            offsetY.animateTo(offsetY.value + dragAmount)
+                            Log.w("MiniPlayer", "Dragged ${offsetY.value}")
+                        }
+                    },
+                    onDragCancel = {
+                        coroutineScope.launch {
+                            offsetY.animateTo(0f)
+                        }
+                    },
+                    onDragEnd = {
+                        Log.w("MiniPlayer", "Drag Ended")
+                        coroutineScope.launch {
+                            if (offsetY.value > 70) {
+                                onClose()
+                            }
+                            offsetY.animateTo(0f)
+                        }
+                    }
+                )
+            }
+
     ) {
         Column(modifier = Modifier.fillMaxHeight()) {
             Row(
@@ -189,68 +232,113 @@ fun MiniPlayer(
                     .weight(1F)
             ) {
                 Spacer(modifier = Modifier.size(8.dp))
-                CoilImage(
-                    imageModel = { mediaItem.mediaMetadata.artworkUri },
-                    imageOptions =
-                    ImageOptions(
-                        contentScale = ContentScale.Crop,
-                        alignment = Alignment.Center,
-                    ),
-                    previewPlaceholder = painterResource(id = R.drawable.holder),
-                    component =
-                    rememberImageComponent {
-                        add(CrossfadePlugin(
-                            duration = 550,
-                        ))
-                        add(PalettePlugin {
-                            palette = it
-                        })
-                    },
-                    modifier =
-                    Modifier
-                        .size(40.dp)
-                        .clip(
-                            RoundedCornerShape(8.dp),
-                        ),
-                )
-                Spacer(modifier = Modifier.width(10.dp))
-                Crossfade(targetState = mediaItem, modifier = Modifier.weight(1F)) {
-                    if (it != MediaItem.EMPTY) {
-                        Column {
-                            Text(
-                                text = (mediaItem.mediaMetadata.title ?: "").toString(),
-                                style = typo.labelMedium,
-                                color = Color.White,
-                                maxLines = 1,
-                                modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .wrapContentHeight(align = Alignment.CenterVertically)
-                                    .basicMarquee(animationMode = MarqueeAnimationMode.Immediately)
-                                    .focusable(),
-                            )
-                            Text(
-                                text = (mediaItem.mediaMetadata.artist ?: "").toString(),
-                                style = typo.bodySmall,
-                                color = Color.White,
-                                maxLines = 1,
-                                modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .wrapContentHeight(align = Alignment.CenterVertically)
-                                    .basicMarquee(animationMode = MarqueeAnimationMode.Immediately)
-                                    .focusable(),
-                            )
+                Box(modifier = Modifier.weight(1F)) {
+                    Row(
+                        modifier = Modifier
+                            .offset { IntOffset(offsetX.value.roundToInt(), 0) }
+                            .pointerInput(Unit) {
+                                detectHorizontalDragGestures(
+                                    onDragStart = {
+
+                                    },
+                                    onHorizontalDrag = { change: PointerInputChange, dragAmount: Float ->
+                                        coroutineScope.launch {
+                                            change.consume()
+                                            offsetX.animateTo(offsetX.value + dragAmount)
+                                            Log.w("MiniPlayer", "Dragged ${offsetX.value}")
+                                        }
+                                    },
+                                    onDragCancel = {
+                                        Log.w("MiniPlayer", "Drag Cancelled")
+                                        coroutineScope.launch {
+                                            if (offsetX.value > 250) {
+                                                sharedViewModel.onUIEvent(UIEvent.Next)
+                                            } else if (offsetX.value < -120) {
+                                                sharedViewModel.onUIEvent(UIEvent.Previous)
+                                            }
+                                            offsetX.animateTo(0f)
+                                        }
+                                    },
+                                    onDragEnd = {
+                                        Log.w("MiniPlayer", "Drag Ended")
+                                        coroutineScope.launch {
+                                            if (offsetX.value > 250) {
+                                                sharedViewModel.onUIEvent(UIEvent.Next)
+                                            } else if (offsetX.value < -120) {
+                                                sharedViewModel.onUIEvent(UIEvent.Previous)
+                                            }
+                                            offsetX.animateTo(0f)
+                                        }
+                                    }
+                                )
+                            }
+                    ) {
+                        CoilImage(
+                            imageModel = { mediaItem.mediaMetadata.artworkUri },
+                            imageOptions =
+                            ImageOptions(
+                                contentScale = ContentScale.Crop,
+                                alignment = Alignment.Center,
+                            ),
+                            previewPlaceholder = painterResource(id = R.drawable.holder),
+                            component =
+                            rememberImageComponent {
+                                add(CrossfadePlugin(
+                                    duration = 550,
+                                ))
+                                add(PalettePlugin {
+                                    palette = it
+                                })
+                            },
+                            modifier =
+                            Modifier
+                                .size(40.dp)
+                                .clip(
+                                    RoundedCornerShape(8.dp),
+                                ),
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Crossfade(targetState = mediaItem, modifier = Modifier.weight(1F)) {
+                            if (it != MediaItem.EMPTY) {
+                                Column {
+                                    Text(
+                                        text = (mediaItem.mediaMetadata.title ?: "").toString(),
+                                        style = typo.labelMedium,
+                                        color = Color.White,
+                                        maxLines = 1,
+                                        modifier =
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .wrapContentHeight(align = Alignment.CenterVertically)
+                                            .basicMarquee(animationMode = MarqueeAnimationMode.Immediately)
+                                            .focusable(),
+                                    )
+                                    Text(
+                                        text = (mediaItem.mediaMetadata.artist ?: "").toString(),
+                                        style = typo.bodySmall,
+                                        color = Color.White,
+                                        maxLines = 1,
+                                        modifier =
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .wrapContentHeight(align = Alignment.CenterVertically)
+                                            .basicMarquee(animationMode = MarqueeAnimationMode.Immediately)
+                                            .focusable(),
+                                    )
+                                }
+                            }
                         }
                     }
                 }
                 Spacer(modifier = Modifier.width(15.dp))
                 HeartCheckBox(checked = liked, size = 24) {
-                    sharedViewModel.nowPlayingMediaItem.value?.let { nowPlayingSong ->
-                        sharedViewModel.updateLikeStatus(
-                            nowPlayingSong.mediaId,
-                            !runBlocking { sharedViewModel.liked.first() },
-                        )
+                    sharedViewModel.viewModelScope.launch {
+                        sharedViewModel.nowPlayingMediaItem.first()?.let { nowPlayingSong ->
+                            sharedViewModel.updateLikeStatus(
+                                nowPlayingSong.mediaId,
+                                !runBlocking { sharedViewModel.liked.first() },
+                            )
+                        }
                     }
                 }
                 Spacer(modifier = Modifier.width(15.dp))
@@ -259,9 +347,11 @@ fun MiniPlayer(
                 }
                 Spacer(modifier = Modifier.width(15.dp))
             }
-            Box(modifier = Modifier.wrapContentSize(Alignment.Center).padding(
-                horizontal = 10.dp
-            )) {
+            Box(modifier = Modifier
+                .wrapContentSize(Alignment.Center)
+                .padding(
+                    horizontal = 10.dp
+                )) {
                 LinearProgressIndicator(
                     progress = { animatedProgress },
                     modifier = Modifier

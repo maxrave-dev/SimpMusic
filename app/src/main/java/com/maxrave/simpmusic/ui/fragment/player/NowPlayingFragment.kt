@@ -595,7 +595,7 @@ class NowPlayingFragment : Fragment() {
 //                    binding.progressSong.value = viewModel.progress.value * 100
 //                }
                 if (videoId == null) {
-                    videoId = viewModel.nowPlayingMediaItem.value?.mediaId
+                    videoId = runBlocking { viewModel.nowPlayingMediaItem.first()?.mediaId }
                     viewModel.videoId.postValue(videoId)
                 }
                 updateUIfromCurrentMediaItem(viewModel.getCurrentMediaItem())
@@ -1394,7 +1394,7 @@ class NowPlayingFragment : Fragment() {
             findNavController().navigateSafe(R.id.action_global_infoFragment)
         }
         binding.cbFavorite.setOnClickListener {
-            viewModel.nowPlayingMediaItem.value?.let { nowPlayingSong ->
+            runBlocking { viewModel.nowPlayingMediaItem.first() }?.let { nowPlayingSong ->
                 viewModel.updateLikeStatus(
                     nowPlayingSong.mediaId,
                     !runBlocking { viewModel.liked.first() },

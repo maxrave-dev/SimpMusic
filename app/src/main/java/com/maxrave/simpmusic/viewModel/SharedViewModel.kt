@@ -162,8 +162,8 @@ class SharedViewModel
         private var _translateLyrics: MutableStateFlow<Lyrics?> = MutableStateFlow(null)
         val translateLyrics: StateFlow<Lyrics?> = _translateLyrics
 
-        private var _nowPlayingMediaItem = MutableLiveData<MediaItem?>()
-        val nowPlayingMediaItem: LiveData<MediaItem?> = _nowPlayingMediaItem
+        private var _nowPlayingMediaItem = MutableStateFlow<MediaItem?>(MediaItem.EMPTY)
+        val nowPlayingMediaItem: SharedFlow<MediaItem?> = _nowPlayingMediaItem.asSharedFlow()
 
         private var _songTransitions = MutableStateFlow<Boolean>(false)
         val songTransitions: StateFlow<Boolean> = _songTransitions
@@ -364,7 +364,7 @@ class SharedViewModel
                                             }
                                     }
                                     if (nowPlaying != null) {
-                                        _nowPlayingMediaItem.postValue(nowPlaying)
+                                        _nowPlayingMediaItem.emit(nowPlaying)
                                         var downloaded = false
                                         val tempSong =
                                             simpleMediaServiceHandler!!.catalogMetadata.getOrNull(
@@ -1222,7 +1222,7 @@ class SharedViewModel
 
         fun refreshSongDB() {
             viewModelScope.launch {
-                nowPlayingMediaItem.value?.mediaId?.let {
+                nowPlayingMediaItem.first()?.mediaId?.let {
                     mainRepository.getSongById(it).collect { songEntity ->
                         _songDB.value = songEntity
                         if (songEntity != null) {
