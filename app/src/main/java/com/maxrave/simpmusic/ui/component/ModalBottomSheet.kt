@@ -433,7 +433,7 @@ fun CheckBoxActionButton(
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 20.dp)
+            modifier = Modifier.padding(horizontal = 20.dp).fillMaxWidth()
         ) {
             Box(Modifier.padding(12.dp)) {
                 HeartCheckBox(checked = stateChecked)

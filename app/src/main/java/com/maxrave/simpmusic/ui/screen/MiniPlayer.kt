@@ -3,9 +3,16 @@ package com.maxrave.simpmusic.ui.screen
 // or just
 import android.graphics.drawable.GradientDrawable
 import android.util.Log
-import androidx.compose.animation.Crossfade
+import androidx.compose.animation.Animatable
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.SizeTransform
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -13,7 +20,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -37,11 +43,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,7 +62,6 @@ import androidx.core.graphics.ColorUtils
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
-import androidx.wear.compose.material3.ripple
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.ui.component.HeartCheckBox
 import com.maxrave.simpmusic.ui.component.PlayPauseButton
@@ -104,8 +107,8 @@ fun MiniPlayer(
     )
 
     var palette by rememberPaletteState(null)
-    val (background, setBackground) = rememberSaveable {
-        mutableIntStateOf(0x000000)
+    val background = remember {
+        Animatable(Color(0x000000))
     }
 
     val offsetX = remember { Animatable(initialValue = 0f) }
@@ -179,32 +182,32 @@ fun MiniPlayer(
             gd.alpha = 150
             val bg =
                 ColorUtils.setAlphaComponent(startColor, 255)
-            setBackground(bg)
+            background.animateTo(Color(bg))
         }
     }
 
     ElevatedCard(
         elevation = CardDefaults.elevatedCardElevation(10.dp),
         colors = CardDefaults.elevatedCardColors(
-            containerColor = Color(background),
+            containerColor = background.value,
         ),
         modifier = Modifier
             .fillMaxHeight()
             .offset { IntOffset(0, offsetY.value.roundToInt()) }
             .clickable(
                 onClick = onClick,
-                indication = ripple(),
-                interactionSource = remember { MutableInteractionSource() }
             )
             .pointerInput(Unit) {
                 detectVerticalDragGestures(
                     onDragStart = {
                     },
                     onVerticalDrag = { change: PointerInputChange, dragAmount: Float ->
-                        coroutineScope.launch {
-                            change.consume()
-                            offsetY.animateTo(offsetY.value + dragAmount)
-                            Log.w("MiniPlayer", "Dragged ${offsetY.value}")
+                        if (offsetY.value + dragAmount > 0) {
+                            coroutineScope.launch {
+                                change.consume()
+                                offsetY.animateTo(offsetY.value + dragAmount)
+                                Log.w("MiniPlayer", "Dragged ${offsetY.value}")
+                            }
                         }
                     },
                     onDragCancel = {
@@ -251,10 +254,10 @@ fun MiniPlayer(
                                     onDragCancel = {
                                         Log.w("MiniPlayer", "Drag Cancelled")
                                         coroutineScope.launch {
-                                            if (offsetX.value > 250) {
-                                                sharedViewModel.onUIEvent(UIEvent.Next)
-                                            } else if (offsetX.value < -120) {
+                                            if (offsetX.value > 200) {
                                                 sharedViewModel.onUIEvent(UIEvent.Previous)
+                                            } else if (offsetX.value < -120) {
+                                                sharedViewModel.onUIEvent(UIEvent.Next)
                                             }
                                             offsetX.animateTo(0f)
                                         }
@@ -262,10 +265,10 @@ fun MiniPlayer(
                                     onDragEnd = {
                                         Log.w("MiniPlayer", "Drag Ended")
                                         coroutineScope.launch {
-                                            if (offsetX.value > 250) {
-                                                sharedViewModel.onUIEvent(UIEvent.Next)
-                                            } else if (offsetX.value < -120) {
+                                            if (offsetX.value > 200) {
                                                 sharedViewModel.onUIEvent(UIEvent.Previous)
+                                            } else if (offsetX.value < -120) {
+                                                sharedViewModel.onUIEvent(UIEvent.Next)
                                             }
                                             offsetX.animateTo(0f)
                                         }
@@ -298,8 +301,29 @@ fun MiniPlayer(
                                 ),
                         )
                         Spacer(modifier = Modifier.width(10.dp))
-                        Crossfade(targetState = mediaItem, modifier = Modifier.weight(1F)) {
-                            if (it != MediaItem.EMPTY) {
+                        AnimatedContent(
+                            targetState = mediaItem,
+                            modifier = Modifier.weight(1F),
+                            transitionSpec = {
+                                // Compare the incoming number with the previous number.
+                                if (targetState != initialState) {
+                                    // If the target number is larger, it slides up and fades in
+                                    // while the initial (smaller) number slides up and fades out.
+                                    (slideInHorizontally { width -> width } + fadeIn()).togetherWith(
+                                        slideOutHorizontally { width -> +width } + fadeOut())
+                                } else {
+                                    // If the target number is smaller, it slides down and fades in
+                                    // while the initial number slides down and fades out.
+                                    (slideInHorizontally { width -> +width } + fadeIn()).togetherWith(
+                                        slideOutHorizontally { width -> width } + fadeOut())
+                                }.using(
+                                    // Disable clipping since the faded slide-in/out should
+                                    // be displayed out of bounds.
+                                    SizeTransform(clip = false)
+                                )
+                            }
+                        ) { target ->
+                            if (target != MediaItem.EMPTY) {
                                 Column {
                                     Text(
                                         text = (mediaItem.mediaMetadata.title ?: "").toString(),

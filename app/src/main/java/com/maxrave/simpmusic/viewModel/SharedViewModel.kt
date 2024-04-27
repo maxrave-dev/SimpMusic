@@ -513,6 +513,9 @@ class SharedViewModel
         }
 
         fun loadMore() {
+            // Separate local and remote data
+            // Local Add Prefix to PlaylistID to differentiate between local and remote
+            // Local: LC-PlaylistID
             val continuation = Queue.getContinuation()
             Log.w("Check loadMore", continuation.toString())
             if (continuation != null) {
