@@ -86,57 +86,67 @@ fun MiniPlayer(
     onClose: () -> Unit,
     onClick: () -> Unit,
 ) {
-    val (mediaItem, setMediaItem) = remember {
-        mutableStateOf(MediaItem.EMPTY)
-    }
-    val (liked, setLiked) = remember {
-        mutableStateOf(false)
-    }
-    val (isPlaying, setIsPlaying) = remember {
-        mutableStateOf(false)
-    }
-    val (progress, setProgress) = remember {
-        mutableFloatStateOf(0f)
-    }
+    val (mediaItem, setMediaItem) =
+        remember {
+            mutableStateOf(MediaItem.EMPTY)
+        }
+    val (liked, setLiked) =
+        remember {
+            mutableStateOf(false)
+        }
+    val (isPlaying, setIsPlaying) =
+        remember {
+            mutableStateOf(false)
+        }
+    val (progress, setProgress) =
+        remember {
+            mutableFloatStateOf(0f)
+        }
 
     val coroutineScope = rememberCoroutineScope()
 
     val animatedProgress by animateFloatAsState(
         targetValue = progress,
-        animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec, label = "",
+        animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec,
+        label = "",
     )
 
     var palette by rememberPaletteState(null)
-    val background = remember {
-        Animatable(Color(0x000000))
-    }
+    val background =
+        remember {
+            Animatable(Color(0x000000))
+        }
 
     val offsetX = remember { Animatable(initialValue = 0f) }
     val offsetY = remember { Animatable(0f) }
 
     LaunchedEffect(key1 = true) {
-        val job1 = launch {
-            sharedViewModel.nowPlayingMediaItem.collect { item ->
-                if (item != null) {
-                    setMediaItem(item)
+        val job1 =
+            launch {
+                sharedViewModel.nowPlayingMediaItem.collect { item ->
+                    if (item != null) {
+                        setMediaItem(item)
+                    }
                 }
             }
-        }
-        val job2 = launch {
-            sharedViewModel.liked.collect { liked ->
-                setLiked(liked)
+        val job2 =
+            launch {
+                sharedViewModel.liked.collect { liked ->
+                    setLiked(liked)
+                }
             }
-        }
-        val job3 = launch {
-            sharedViewModel.isPlaying.collect { isPlaying ->
-                setIsPlaying(isPlaying)
+        val job3 =
+            launch {
+                sharedViewModel.isPlaying.collect { isPlaying ->
+                    setIsPlaying(isPlaying)
+                }
             }
-        }
-        val job4 = launch {
-            sharedViewModel.progress.collect { progress ->
-                setProgress(progress)
+        val job4 =
+            launch {
+                sharedViewModel.progress.collect { progress ->
+                    setProgress(progress)
+                }
             }
-        }
         job1.join()
         job2.join()
         job3.join()
@@ -188,117 +198,126 @@ fun MiniPlayer(
 
     ElevatedCard(
         elevation = CardDefaults.elevatedCardElevation(10.dp),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = background.value,
-        ),
-        modifier = Modifier
-            .fillMaxHeight()
-            .offset { IntOffset(0, offsetY.value.roundToInt()) }
-            .clickable(
-                onClick = onClick,
-            )
-            .pointerInput(Unit) {
-                detectVerticalDragGestures(
-                    onDragStart = {
-                    },
-                    onVerticalDrag = { change: PointerInputChange, dragAmount: Float ->
-                        if (offsetY.value + dragAmount > 0) {
-                            coroutineScope.launch {
-                                change.consume()
-                                offsetY.animateTo(offsetY.value + dragAmount)
-                                Log.w("MiniPlayer", "Dragged ${offsetY.value}")
-                            }
-                        }
-                    },
-                    onDragCancel = {
-                        coroutineScope.launch {
-                            offsetY.animateTo(0f)
-                        }
-                    },
-                    onDragEnd = {
-                        Log.w("MiniPlayer", "Drag Ended")
-                        coroutineScope.launch {
-                            if (offsetY.value > 70) {
-                                onClose()
-                            }
-                            offsetY.animateTo(0f)
-                        }
-                    }
+        colors =
+            CardDefaults.elevatedCardColors(
+                containerColor = background.value,
+            ),
+        modifier =
+            Modifier
+                .fillMaxHeight()
+                .offset { IntOffset(0, offsetY.value.roundToInt()) }
+                .clickable(
+                    onClick = onClick,
                 )
-            }
-
+                .pointerInput(Unit) {
+                    detectVerticalDragGestures(
+                        onDragStart = {
+                        },
+                        onVerticalDrag = { change: PointerInputChange, dragAmount: Float ->
+                            if (offsetY.value + dragAmount > 0) {
+                                coroutineScope.launch {
+                                    change.consume()
+                                    offsetY.animateTo(offsetY.value + dragAmount)
+                                    Log.w("MiniPlayer", "Dragged ${offsetY.value}")
+                                }
+                            }
+                        },
+                        onDragCancel = {
+                            coroutineScope.launch {
+                                offsetY.animateTo(0f)
+                            }
+                        },
+                        onDragEnd = {
+                            Log.w("MiniPlayer", "Drag Ended")
+                            coroutineScope.launch {
+                                if (offsetY.value > 70) {
+                                    onClose()
+                                }
+                                offsetY.animateTo(0f)
+                            }
+                        },
+                    )
+                },
     ) {
         Column(modifier = Modifier.fillMaxHeight()) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .weight(1F)
+                modifier =
+                    Modifier
+                        .weight(1F),
             ) {
                 Spacer(modifier = Modifier.size(8.dp))
                 Box(modifier = Modifier.weight(1F)) {
                     Row(
-                        modifier = Modifier
-                            .offset { IntOffset(offsetX.value.roundToInt(), 0) }
-                            .pointerInput(Unit) {
-                                detectHorizontalDragGestures(
-                                    onDragStart = {
-
-                                    },
-                                    onHorizontalDrag = { change: PointerInputChange, dragAmount: Float ->
-                                        coroutineScope.launch {
-                                            change.consume()
-                                            offsetX.animateTo(offsetX.value + dragAmount)
-                                            Log.w("MiniPlayer", "Dragged ${offsetX.value}")
-                                        }
-                                    },
-                                    onDragCancel = {
-                                        Log.w("MiniPlayer", "Drag Cancelled")
-                                        coroutineScope.launch {
-                                            if (offsetX.value > 200) {
-                                                sharedViewModel.onUIEvent(UIEvent.Previous)
-                                            } else if (offsetX.value < -120) {
-                                                sharedViewModel.onUIEvent(UIEvent.Next)
+                        modifier =
+                            Modifier
+                                .offset { IntOffset(offsetX.value.roundToInt(), 0) }
+                                .pointerInput(Unit) {
+                                    detectHorizontalDragGestures(
+                                        onDragStart = {
+                                        },
+                                        onHorizontalDrag = {
+                                                change: PointerInputChange,
+                                                dragAmount: Float,
+                                            ->
+                                            coroutineScope.launch {
+                                                change.consume()
+                                                offsetX.animateTo(offsetX.value + dragAmount)
+                                                Log.w("MiniPlayer", "Dragged ${offsetX.value}")
                                             }
-                                            offsetX.animateTo(0f)
-                                        }
-                                    },
-                                    onDragEnd = {
-                                        Log.w("MiniPlayer", "Drag Ended")
-                                        coroutineScope.launch {
-                                            if (offsetX.value > 200) {
-                                                sharedViewModel.onUIEvent(UIEvent.Previous)
-                                            } else if (offsetX.value < -120) {
-                                                sharedViewModel.onUIEvent(UIEvent.Next)
+                                        },
+                                        onDragCancel = {
+                                            Log.w("MiniPlayer", "Drag Cancelled")
+                                            coroutineScope.launch {
+                                                if (offsetX.value > 200) {
+                                                    sharedViewModel.onUIEvent(UIEvent.Previous)
+                                                } else if (offsetX.value < -120) {
+                                                    sharedViewModel.onUIEvent(UIEvent.Next)
+                                                }
+                                                offsetX.animateTo(0f)
                                             }
-                                            offsetX.animateTo(0f)
-                                        }
-                                    }
-                                )
-                            }
+                                        },
+                                        onDragEnd = {
+                                            Log.w("MiniPlayer", "Drag Ended")
+                                            coroutineScope.launch {
+                                                if (offsetX.value > 200) {
+                                                    sharedViewModel.onUIEvent(UIEvent.Previous)
+                                                } else if (offsetX.value < -120) {
+                                                    sharedViewModel.onUIEvent(UIEvent.Next)
+                                                }
+                                                offsetX.animateTo(0f)
+                                            }
+                                        },
+                                    )
+                                },
                     ) {
                         CoilImage(
                             imageModel = { mediaItem.mediaMetadata.artworkUri },
                             imageOptions =
-                            ImageOptions(
-                                contentScale = ContentScale.Crop,
-                                alignment = Alignment.Center,
-                            ),
+                                ImageOptions(
+                                    contentScale = ContentScale.Crop,
+                                    alignment = Alignment.Center,
+                                ),
                             previewPlaceholder = painterResource(id = R.drawable.holder),
                             component =
-                            rememberImageComponent {
-                                add(CrossfadePlugin(
-                                    duration = 550,
-                                ))
-                                add(PalettePlugin {
-                                    palette = it
-                                })
-                            },
+                                rememberImageComponent {
+                                    add(
+                                        CrossfadePlugin(
+                                            duration = 550,
+                                        ),
+                                    )
+                                    add(
+                                        PalettePlugin {
+                                            palette = it
+                                        },
+                                    )
+                                },
                             modifier =
-                            Modifier
-                                .size(40.dp)
-                                .clip(
-                                    RoundedCornerShape(8.dp),
-                                ),
+                                Modifier
+                                    .size(40.dp)
+                                    .clip(
+                                        RoundedCornerShape(8.dp),
+                                    ),
                         )
                         Spacer(modifier = Modifier.width(10.dp))
                         AnimatedContent(
@@ -309,19 +328,31 @@ fun MiniPlayer(
                                 if (targetState != initialState) {
                                     // If the target number is larger, it slides up and fades in
                                     // while the initial (smaller) number slides up and fades out.
-                                    (slideInHorizontally { width -> width } + fadeIn()).togetherWith(
-                                        slideOutHorizontally { width -> +width } + fadeOut())
+                                    (
+                                        slideInHorizontally {
+                                                width ->
+                                            width
+                                        } + fadeIn()
+                                    ).togetherWith(
+                                        slideOutHorizontally { width -> +width } + fadeOut(),
+                                    )
                                 } else {
                                     // If the target number is smaller, it slides down and fades in
                                     // while the initial number slides down and fades out.
-                                    (slideInHorizontally { width -> +width } + fadeIn()).togetherWith(
-                                        slideOutHorizontally { width -> width } + fadeOut())
+                                    (
+                                        slideInHorizontally {
+                                                width ->
+                                            +width
+                                        } + fadeIn()
+                                    ).togetherWith(
+                                        slideOutHorizontally { width -> width } + fadeOut(),
+                                    )
                                 }.using(
                                     // Disable clipping since the faded slide-in/out should
                                     // be displayed out of bounds.
-                                    SizeTransform(clip = false)
+                                    SizeTransform(clip = false),
                                 )
-                            }
+                            },
                         ) { target ->
                             if (target != MediaItem.EMPTY) {
                                 Column {
@@ -331,11 +362,15 @@ fun MiniPlayer(
                                         color = Color.White,
                                         maxLines = 1,
                                         modifier =
-                                        Modifier
-                                            .fillMaxWidth()
-                                            .wrapContentHeight(align = Alignment.CenterVertically)
-                                            .basicMarquee(animationMode = MarqueeAnimationMode.Immediately)
-                                            .focusable(),
+                                            Modifier
+                                                .fillMaxWidth()
+                                                .wrapContentHeight(
+                                                    align = Alignment.CenterVertically,
+                                                )
+                                                .basicMarquee(
+                                                    animationMode = MarqueeAnimationMode.Immediately,
+                                                )
+                                                .focusable(),
                                     )
                                     Text(
                                         text = (mediaItem.mediaMetadata.artist ?: "").toString(),
@@ -343,11 +378,15 @@ fun MiniPlayer(
                                         color = Color.White,
                                         maxLines = 1,
                                         modifier =
-                                        Modifier
-                                            .fillMaxWidth()
-                                            .wrapContentHeight(align = Alignment.CenterVertically)
-                                            .basicMarquee(animationMode = MarqueeAnimationMode.Immediately)
-                                            .focusable(),
+                                            Modifier
+                                                .fillMaxWidth()
+                                                .wrapContentHeight(
+                                                    align = Alignment.CenterVertically,
+                                                )
+                                                .basicMarquee(
+                                                    animationMode = MarqueeAnimationMode.Immediately,
+                                                )
+                                                .focusable(),
                                     )
                                 }
                             }
@@ -355,7 +394,7 @@ fun MiniPlayer(
                     }
                 }
                 Spacer(modifier = Modifier.width(15.dp))
-                HeartCheckBox(checked = liked, size = 24) {
+                HeartCheckBox(checked = liked, size = 30) {
                     sharedViewModel.viewModelScope.launch {
                         sharedViewModel.nowPlayingMediaItem.first()?.let { nowPlayingSong ->
                             sharedViewModel.updateLikeStatus(
@@ -371,20 +410,24 @@ fun MiniPlayer(
                 }
                 Spacer(modifier = Modifier.width(15.dp))
             }
-            Box(modifier = Modifier
-                .wrapContentSize(Alignment.Center)
-                .padding(
-                    horizontal = 10.dp
-                )) {
+            Box(
+                modifier =
+                    Modifier
+                        .wrapContentSize(Alignment.Center)
+                        .padding(
+                            horizontal = 10.dp,
+                        ),
+            ) {
                 LinearProgressIndicator(
                     progress = { animatedProgress },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(3.dp)
-                        .background(
-                            color = Color.Transparent,
-                            shape = RoundedCornerShape(8.dp)
-                        ),
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .height(3.dp)
+                            .background(
+                                color = Color.Transparent,
+                                shape = RoundedCornerShape(8.dp),
+                            ),
                     color = Color(0xB2FFFFFF),
                     trackColor = Color.Transparent,
                     strokeCap = StrokeCap.Round,

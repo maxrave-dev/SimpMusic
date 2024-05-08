@@ -112,7 +112,7 @@ class FavoriteFragment : Fragment() {
                 args.putString("videoId", song.videoId)
                 args.putString("from", getString(R.string.favorite))
                 args.putInt("index", position)
-                Queue.clear()
+                Queue.initPlaylist(Queue.LOCAL_PLAYLIST_ID_LIKED, getString(R.string.favorite), Queue.PlaylistType.LOCAL_PLAYLIST)
                 Queue.setNowPlaying(song.toTrack())
                 Queue.addAll(listLiked.map { (it as SongEntity).toTrack()} as ArrayList<Track>)
                 Queue.removeTrackWithIndex(position)

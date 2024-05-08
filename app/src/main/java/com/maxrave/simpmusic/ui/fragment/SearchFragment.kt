@@ -340,7 +340,9 @@ class SearchFragment : Fragment() {
                 if (type == Config.SONG_CLICK){
                     val songClicked = suggestYTItemAdapter.getCurrentList()[position] as SongItem
                     val videoId = (suggestYTItemAdapter.getCurrentList()[position] as SongItem).id
-                    Queue.clear()
+                    Queue.initPlaylist("RDAMVM$videoId", "\"${binding.svSearch.query}\" ${
+                        getString(R.string.in_search)
+                    }", Queue.PlaylistType.RADIO)
                     val firstQueue: Track = songClicked.toTrack()
                     Queue.setNowPlaying(firstQueue)
                     val args = Bundle()
@@ -352,7 +354,9 @@ class SearchFragment : Fragment() {
                 if (type == Config.VIDEO_CLICK) {
                     val videoClicked = suggestYTItemAdapter.getCurrentList()[position] as VideoItem
                     val videoId = videoClicked.id
-                    Queue.clear()
+                    Queue.initPlaylist("RDAMVM$videoId", "\"${binding.svSearch.query}\" ${
+                        getString(R.string.in_search)
+                    }", Queue.PlaylistType.RADIO)
                     val firstQueue = videoClicked.toTrack()
                     Queue.setNowPlaying(firstQueue)
                     val args = Bundle()
@@ -394,7 +398,9 @@ class SearchFragment : Fragment() {
                 if (type == Config.SONG_CLICK){
                     val songClicked = resultAdapter.getCurrentList()[position] as SongsResult
                     val videoId = (resultAdapter.getCurrentList()[position] as SongsResult).videoId
-                    Queue.clear()
+                    Queue.initPlaylist("RDAMVM$videoId", "\"${binding.svSearch.query}\" ${
+                        getString(R.string.in_search)
+                    }", Queue.PlaylistType.RADIO)
                     val firstQueue: Track = songClicked.toTrack()
                     Queue.setNowPlaying(firstQueue)
                     val args = Bundle()
@@ -406,7 +412,9 @@ class SearchFragment : Fragment() {
                 if (type == Config.VIDEO_CLICK) {
                     val videoClicked = resultAdapter.getCurrentList()[position] as VideosResult
                     val videoId = videoClicked.videoId
-                    Queue.clear()
+                    Queue.initPlaylist("RDAMVM$videoId", "\"${binding.svSearch.query}\" ${
+                        getString(R.string.in_search)
+                    }", Queue.PlaylistType.RADIO)
                     val firstQueue = videoClicked.toTrack()
                     Queue.setNowPlaying(firstQueue)
                     val args = Bundle()

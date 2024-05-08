@@ -119,7 +119,11 @@ class PodcastFragment : Fragment() {
                 )
                 args.putString("from", "Podcast \"${viewModel.podcastBrowse.value?.data?.title}\"")
                 args.putString("playlistId", id?.replaceFirst("VL", ""))
-                Queue.clear()
+                Queue.initPlaylist(
+                    id?.replaceFirst("VL", "") ?: "",
+                    "Podcast \"${viewModel.podcastBrowse.value?.data?.title}\"",
+                    Queue.PlaylistType.PLAYLIST
+                )
                 Queue.setNowPlaying(viewModel.podcastBrowse.value?.data!!.listEpisode[0].toTrack())
                 Queue.addAll(viewModel.podcastBrowse.value?.data!!.listEpisode.toListTrack())
                 if (Queue.getQueue().size >= 1) {
@@ -141,7 +145,11 @@ class PodcastFragment : Fragment() {
                 )
                 args.putString("from", "Podcast \"${viewModel.podcastBrowse.value?.data?.title}\"")
                 args.putString("playlistId", id?.replaceFirst("VL", ""))
-                Queue.clear()
+                Queue.initPlaylist(
+                    id?.replaceFirst("VL", "") ?: "",
+                    "Podcast \"${viewModel.podcastBrowse.value?.data?.title}\"",
+                    Queue.PlaylistType.PLAYLIST
+                )
                 Queue.setNowPlaying(viewModel.podcastBrowse.value?.data!!.listEpisode[index].toTrack())
                 val shuffleList: ArrayList<Track> = arrayListOf()
                 viewModel.podcastBrowse.value?.data?.listEpisode?.let {
@@ -191,7 +199,11 @@ class PodcastFragment : Fragment() {
                     )
                     args.putString("playlistId", id?.replaceFirst("VL", ""))
                     args.putInt("index", position)
-                    Queue.clear()
+                    Queue.initPlaylist(
+                        id?.replaceFirst("VL", "") ?: "",
+                        "Podcast \"${viewModel.podcastBrowse.value?.data!!.title}\"",
+                        Queue.PlaylistType.PLAYLIST
+                    )
                     Queue.setNowPlaying(viewModel.podcastBrowse.value?.data!!.listEpisode[position].toTrack())
                     Queue.addAll(viewModel.podcastBrowse.value?.data!!.listEpisode.toListTrack())
                     if (Queue.getQueue().size >= 1) {

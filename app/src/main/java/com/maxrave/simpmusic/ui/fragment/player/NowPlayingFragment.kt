@@ -283,32 +283,33 @@ class NowPlayingFragment : Fragment() {
 
         disableScrolling = DisableTouchEventRecyclerView()
 
-        val onLyricsClickObject = object : LyricsAdapter.OnItemClickListener {
-            override fun onItemClick(line: Line?) {
-                Log.w("Check line", line.toString())
-                if (line != null) {
-                    val duration = runBlocking { viewModel.duration.first() }
-                    Log.w("Check duration", duration.toString())
-                    if (duration > 0 && line.startTimeMs.toLong() < duration) {
-                        Log.w(
-                            "Check seek",
-                            (line.startTimeMs.toLong().toDouble() / duration).toFloat().toString(),
-                        )
-                        val seek =
-                            ((line.startTimeMs.toLong() * 100).toDouble() / duration).toFloat()
-                        viewModel.onUIEvent(UIEvent.UpdateProgress(seek))
+        val onLyricsClickObject =
+            object : LyricsAdapter.OnItemClickListener {
+                override fun onItemClick(line: Line?) {
+                    Log.w("Check line", line.toString())
+                    if (line != null) {
+                        val duration = runBlocking { viewModel.duration.first() }
+                        Log.w("Check duration", duration.toString())
+                        if (duration > 0 && line.startTimeMs.toLong() < duration) {
+                            Log.w(
+                                "Check seek",
+                                (line.startTimeMs.toLong().toDouble() / duration).toFloat().toString(),
+                            )
+                            val seek =
+                                ((line.startTimeMs.toLong() * 100).toDouble() / duration).toFloat()
+                            viewModel.onUIEvent(UIEvent.UpdateProgress(seek))
+                        }
                     }
                 }
             }
-        }
 
         lyricsAdapter = LyricsAdapter(null)
         lyricsAdapter.setOnItemClickListener(
-            onLyricsClickObject
+            onLyricsClickObject,
         )
         lyricsFullAdapter = LyricsAdapter(null)
         lyricsFullAdapter.setOnItemClickListener(
-            onLyricsClickObject
+            onLyricsClickObject,
         )
         binding.rvLyrics.apply {
             adapter = lyricsAdapter
@@ -382,7 +383,7 @@ class NowPlayingFragment : Fragment() {
                         Log.w("Check Song Full", it?.videoDetails?.title.toString())
                         if (it != null && it.videoDetails?.videoId == videoId && it.videoDetails?.videoId != null) {
                             val track = it.toTrack()
-                            Queue.clear()
+//                            Queue.clear()
                             Queue.setNowPlaying(track)
                             viewModel.simpleMediaServiceHandler?.reset()
                             viewModel.resetRelated()
@@ -633,14 +634,18 @@ class NowPlayingFragment : Fragment() {
                                 binding.loadingArt.visibility = View.VISIBLE
                                 Log.d("Check Lyrics", viewModel._lyrics.value?.data.toString())
                                 updateUIfromCurrentMediaItem(song)
-                                viewModel.simpleMediaServiceHandler?.setCurrentSongIndex(viewModel.getCurrentMediaItemIndex())
+                                viewModel.simpleMediaServiceHandler?.setCurrentSongIndex(
+                                    viewModel.getCurrentMediaItemIndex(),
+                                )
                                 viewModel.changeSongTransitionToFalse()
                                 if (viewModel.listYouTubeLiked.first()
                                         ?.contains(song.mediaId) == true
                                 ) {
                                     binding.btAddToYouTubeLiked.setImageResource(R.drawable.done)
                                 } else {
-                                    binding.btAddToYouTubeLiked.setImageResource(R.drawable.baseline_add_24)
+                                    binding.btAddToYouTubeLiked.setImageResource(
+                                        R.drawable.baseline_add_24,
+                                    )
                                 }
                             }
                         }
@@ -668,10 +673,14 @@ class NowPlayingFragment : Fragment() {
                         viewModel.isPlaying.collect {
                             Log.d("Check Song Transistion", "${viewModel.songTransitions.value}")
                             if (it) {
-                                binding.btPlayPause.setImageResource(R.drawable.baseline_pause_circle_24)
+                                binding.btPlayPause.setImageResource(
+                                    R.drawable.baseline_pause_circle_24,
+                                )
 //                        songChangeListener.onIsPlayingChange()
                             } else {
-                                binding.btPlayPause.setImageResource(R.drawable.baseline_play_circle_24)
+                                binding.btPlayPause.setImageResource(
+                                    R.drawable.baseline_play_circle_24,
+                                )
 //                        songChangeListener.onIsPlayingChange()
                             }
                         }
@@ -700,7 +709,10 @@ class NowPlayingFragment : Fragment() {
                                 binding.tvSyncState.text =
                                     when (viewModel.getLyricsSyncState()) {
                                         Config.SyncState.NOT_FOUND -> null
-                                        Config.SyncState.LINE_SYNCED -> getString(R.string.line_synced)
+                                        Config.SyncState.LINE_SYNCED ->
+                                            getString(
+                                                R.string.line_synced,
+                                            )
                                         Config.SyncState.UNSYNCED -> getString(R.string.unsynced)
                                     }
 //                                viewModel._lyrics.value?.data?.let {
@@ -727,7 +739,7 @@ class NowPlayingFragment : Fragment() {
                                                 lyricsFullAdapter.setActiveLyrics(index)
                                                 if (index == -1) {
                                                     binding.rvLyrics.smoothScrollToPosition(0)
-                                                } else  {
+                                                } else {
                                                     binding.rvLyrics.smoothScrollToPosition(index)
                                                 }
                                             } else if (viewModel.getLyricsSyncState() == Config.SyncState.UNSYNCED && lyricsAdapter.index != -1) {
@@ -795,11 +807,15 @@ class NowPlayingFragment : Fragment() {
                         viewModel.shuffleModeEnabled.collect { shuffle ->
                             when (shuffle) {
                                 true -> {
-                                    binding.btShuffle.setImageResource(R.drawable.baseline_shuffle_24_enable)
+                                    binding.btShuffle.setImageResource(
+                                        R.drawable.baseline_shuffle_24_enable,
+                                    )
                                 }
 
                                 false -> {
-                                    binding.btShuffle.setImageResource(R.drawable.baseline_shuffle_24)
+                                    binding.btShuffle.setImageResource(
+                                        R.drawable.baseline_shuffle_24,
+                                    )
                                 }
                             }
                         }
@@ -813,11 +829,15 @@ class NowPlayingFragment : Fragment() {
                                 }
 
                                 RepeatState.One -> {
-                                    binding.btRepeat.setImageResource(R.drawable.baseline_repeat_one_24)
+                                    binding.btRepeat.setImageResource(
+                                        R.drawable.baseline_repeat_one_24,
+                                    )
                                 }
 
                                 RepeatState.All -> {
-                                    binding.btRepeat.setImageResource(R.drawable.baseline_repeat_24_enable)
+                                    binding.btRepeat.setImageResource(
+                                        R.drawable.baseline_repeat_24_enable,
+                                    )
                                 }
                             }
                         }
@@ -831,13 +851,15 @@ class NowPlayingFragment : Fragment() {
                     }
                 val job11 =
                     launch {
-                        viewModel.simpleMediaServiceHandler?.previousTrackAvailable?.collect { available ->
+                        viewModel.simpleMediaServiceHandler?.previousTrackAvailable?.collect {
+                                available ->
                             setEnabledAll(binding.btPrevious, available)
                         }
                     }
                 val job12 =
                     launch {
-                        viewModel.simpleMediaServiceHandler?.nextTrackAvailable?.collect { available ->
+                        viewModel.simpleMediaServiceHandler?.nextTrackAvailable?.collect {
+                                available ->
                             setEnabledAll(binding.btNext, available)
                         }
                     }
@@ -873,7 +895,9 @@ class NowPlayingFragment : Fragment() {
                                     )
                                 binding.tvDescription.text =
                                     songInfo.description ?: getString(R.string.no_description)
-                                InteractiveTextMaker.of(binding.tvDescription).setOnTextClickListener {
+                                InteractiveTextMaker.of(
+                                    binding.tvDescription,
+                                ).setOnTextClickListener {
                                     Log.d("NowPlayingFragment", "Text Clicked $it")
                                     val timestamp = parseTimestampToMilliseconds(it)
                                     if (timestamp != 0.0 && timestamp < runBlocking { viewModel.duration.first() }) {
@@ -920,15 +944,18 @@ class NowPlayingFragment : Fragment() {
                                     is Resource.Success -> {
                                         val data = response.data!!
                                         data.add(Queue.getNowPlaying()!!)
-                                        val listWithoutDuplicateElements: ArrayList<Track> = ArrayList()
+                                        val listWithoutDuplicateElements: ArrayList<Track> =
+                                            ArrayList()
                                         for (element in data) {
                                             // Check if element not exist in list, perform add element to list
                                             if (!listWithoutDuplicateElements.contains(element)) {
                                                 listWithoutDuplicateElements.add(element)
                                             }
                                         }
-                                        Log.d("Queue", "getRelated: ${listWithoutDuplicateElements.size}")
-                                        Queue.clear()
+                                        Log.d(
+                                            "Queue",
+                                            "getRelated: ${listWithoutDuplicateElements.size}",
+                                        )
                                         Queue.addAll(listWithoutDuplicateElements)
                                         Log.d("Queue", "getRelated: ${Queue.getQueue().size}")
                                         viewModel.addQueueToPlayer()
@@ -957,7 +984,11 @@ class NowPlayingFragment : Fragment() {
 
                                     is Resource.Error -> {
                                         if (response.message != "null") {
-                                            Toast.makeText(requireContext(), response.message, Toast.LENGTH_SHORT).show()
+                                            Toast.makeText(
+                                                requireContext(),
+                                                response.message,
+                                                Toast.LENGTH_SHORT,
+                                            ).show()
                                             Log.d("Error", "${response.message}")
                                         }
                                     }
@@ -1025,7 +1056,10 @@ class NowPlayingFragment : Fragment() {
                                 }
 
                                 LyricsProvider.MUSIXMATCH -> {
-                                    binding.tvLyricsProvider.text = getString(R.string.lyrics_provider)
+                                    binding.tvLyricsProvider.text =
+                                        getString(
+                                            R.string.lyrics_provider,
+                                        )
                                 }
 
                                 LyricsProvider.YOUTUBE -> {
@@ -1109,7 +1143,13 @@ class NowPlayingFragment : Fragment() {
                                             }
                                         }
                                 }
-                                binding.root.setOnScrollChangeListener { v, scrollX, scrollY, oldScrollX, oldScrollY ->
+                                binding.root.setOnScrollChangeListener {
+                                        v,
+                                        scrollX,
+                                        scrollY,
+                                        oldScrollX,
+                                        oldScrollY,
+                                    ->
                                     if (scrollY > 0 && binding.overlayCanvas.visibility == View.GONE) {
                                         canvasOverlayJob?.cancel()
                                         binding.overlayCanvas.alpha = 0f
@@ -1192,7 +1232,13 @@ class NowPlayingFragment : Fragment() {
                                 player?.release()
                                 binding.helpMeBro.setOnClickListener {
                                 }
-                                binding.root.setOnScrollChangeListener { v, scrollX, scrollY, oldScrollX, oldScrollY ->
+                                binding.root.setOnScrollChangeListener {
+                                        v,
+                                        scrollX,
+                                        scrollY,
+                                        oldScrollX,
+                                        oldScrollY,
+                                    ->
                                 }
                                 binding.overlayCanvas.visibility = View.GONE
                                 binding.infoControllerLayout.visibility = View.VISIBLE
@@ -1220,7 +1266,9 @@ class NowPlayingFragment : Fragment() {
                                             .setAutoDismissDuration(5000L)
                                             .setPadding(12)
                                             .setCornerRadius(8f)
-                                            .setBackgroundColorResource(R.color.md_theme_dark_onSecondary)
+                                            .setBackgroundColorResource(
+                                                R.color.md_theme_dark_onSecondary,
+                                            )
                                             .setBalloonAnimation(BalloonAnimation.ELASTIC)
                                             .setLifecycleOwner(viewLifecycleOwner)
                                             .build()
@@ -1236,10 +1284,15 @@ class NowPlayingFragment : Fragment() {
                 val job22 =
                     launch {
                         viewModel.listYouTubeLiked.collect {
-                            if (it?.contains(viewModel.simpleMediaServiceHandler?.nowPlaying?.first()?.mediaId) == true) {
+                            if (it?.contains(
+                                    viewModel.simpleMediaServiceHandler?.nowPlaying?.first()?.mediaId,
+                                ) == true
+                            ) {
                                 binding.btAddToYouTubeLiked.setImageResource(R.drawable.done)
                             } else {
-                                binding.btAddToYouTubeLiked.setImageResource(R.drawable.baseline_add_24)
+                                binding.btAddToYouTubeLiked.setImageResource(
+                                    R.drawable.baseline_add_24,
+                                )
                             }
                         }
                     }
@@ -1462,7 +1515,9 @@ class NowPlayingFragment : Fragment() {
                                         ivSleepTimer.setImageResource(R.drawable.alarm_enable)
                                     } else {
                                         tvSleepTimer.text = getString(R.string.sleep_timer_off)
-                                        ivSleepTimer.setImageResource(R.drawable.baseline_access_alarm_24)
+                                        ivSleepTimer.setImageResource(
+                                            R.drawable.baseline_access_alarm_24,
+                                        )
                                     }
                                 }
                             }
@@ -1477,19 +1532,25 @@ class NowPlayingFragment : Fragment() {
                             when (viewModel.songDB.value?.downloadState) {
                                 DownloadState.STATE_PREPARING -> {
                                     tvDownload.text = getString(R.string.preparing)
-                                    ivDownload.setImageResource(R.drawable.outline_download_for_offline_24)
+                                    ivDownload.setImageResource(
+                                        R.drawable.outline_download_for_offline_24,
+                                    )
                                     setEnabledAll(btDownload, true)
                                 }
 
                                 DownloadState.STATE_NOT_DOWNLOADED -> {
                                     tvDownload.text = getString(R.string.download)
-                                    ivDownload.setImageResource(R.drawable.outline_download_for_offline_24)
+                                    ivDownload.setImageResource(
+                                        R.drawable.outline_download_for_offline_24,
+                                    )
                                     setEnabledAll(btDownload, true)
                                 }
 
                                 DownloadState.STATE_DOWNLOADING -> {
                                     tvDownload.text = getString(R.string.downloading)
-                                    ivDownload.setImageResource(R.drawable.baseline_downloading_white)
+                                    ivDownload.setImageResource(
+                                        R.drawable.baseline_downloading_white,
+                                    )
                                     setEnabledAll(btDownload, true)
                                 }
 
@@ -1715,21 +1776,32 @@ class NowPlayingFragment : Fragment() {
                                     val dialogChange =
                                         MaterialAlertDialogBuilder(requireContext())
                                             .setTitle(getString(R.string.main_lyrics_provider))
-                                            .setSingleChoiceItems(LYRICS_PROVIDER.items, checkedIndex) { _, which ->
+                                            .setSingleChoiceItems(
+                                                LYRICS_PROVIDER.items,
+                                                checkedIndex,
+                                            ) { _, which ->
                                                 checkedIndex = which
                                             }
-                                            .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                                            .setNegativeButton(
+                                                getString(R.string.cancel),
+                                            ) { dialog, _ ->
                                                 dialog.dismiss()
                                             }
-                                            .setPositiveButton(getString(R.string.change)) { dialog, _ ->
+                                            .setPositiveButton(
+                                                getString(R.string.change),
+                                            ) { dialog, _ ->
                                                 if (checkedIndex != -1) {
                                                     if (checkedIndex == 0) {
                                                         if (mainLyricsProvider != DataStoreManager.MUSIXMATCH) {
-                                                            viewModel.setLyricsProvider(DataStoreManager.MUSIXMATCH)
+                                                            viewModel.setLyricsProvider(
+                                                                DataStoreManager.MUSIXMATCH,
+                                                            )
                                                         }
                                                     } else if (checkedIndex == 1) {
                                                         if (mainLyricsProvider != DataStoreManager.YOUTUBE) {
-                                                            viewModel.setLyricsProvider(DataStoreManager.YOUTUBE)
+                                                            viewModel.setLyricsProvider(
+                                                                DataStoreManager.YOUTUBE,
+                                                            )
                                                         }
                                                     }
                                                 }
@@ -1786,7 +1858,9 @@ class NowPlayingFragment : Fragment() {
                                                             )
                                                             tvDownload.text =
                                                                 getString(R.string.downloading)
-                                                            ivDownload.setImageResource(R.drawable.baseline_downloading_white)
+                                                            ivDownload.setImageResource(
+                                                                R.drawable.baseline_downloading_white,
+                                                            )
                                                             setEnabledAll(btDownload, true)
                                                         }
 
@@ -1797,11 +1871,15 @@ class NowPlayingFragment : Fragment() {
                                                             )
                                                             tvDownload.text =
                                                                 getString(R.string.download)
-                                                            ivDownload.setImageResource(R.drawable.outline_download_for_offline_24)
+                                                            ivDownload.setImageResource(
+                                                                R.drawable.outline_download_for_offline_24,
+                                                            )
                                                             setEnabledAll(btDownload, true)
                                                             Toast.makeText(
                                                                 requireContext(),
-                                                                getString(androidx.media3.exoplayer.R.string.exo_download_failed),
+                                                                getString(
+                                                                    androidx.media3.exoplayer.R.string.exo_download_failed,
+                                                                ),
                                                                 Toast.LENGTH_SHORT,
                                                             ).show()
                                                         }
@@ -1813,12 +1891,16 @@ class NowPlayingFragment : Fragment() {
                                                             )
                                                             Toast.makeText(
                                                                 requireContext(),
-                                                                getString(androidx.media3.exoplayer.R.string.exo_download_completed),
+                                                                getString(
+                                                                    androidx.media3.exoplayer.R.string.exo_download_completed,
+                                                                ),
                                                                 Toast.LENGTH_SHORT,
                                                             ).show()
                                                             tvDownload.text =
                                                                 getString(R.string.downloaded)
-                                                            ivDownload.setImageResource(R.drawable.baseline_downloaded)
+                                                            ivDownload.setImageResource(
+                                                                R.drawable.baseline_downloaded,
+                                                            )
                                                             setEnabledAll(btDownload, true)
                                                         }
 
@@ -1832,7 +1914,10 @@ class NowPlayingFragment : Fragment() {
                                                 }
                                             }
                                         }
-                                    } else if (tvDownload.text == getString(R.string.downloaded) || tvDownload.text ==
+                                    } else if (tvDownload.text ==
+                                        getString(
+                                            R.string.downloaded,
+                                        ) || tvDownload.text ==
                                         getString(
                                             R.string.downloading,
                                         )
@@ -1848,7 +1933,9 @@ class NowPlayingFragment : Fragment() {
                                             DownloadState.STATE_NOT_DOWNLOADED,
                                         )
                                         tvDownload.text = getString(R.string.download)
-                                        ivDownload.setImageResource(R.drawable.outline_download_for_offline_24)
+                                        ivDownload.setImageResource(
+                                            R.drawable.outline_download_for_offline_24,
+                                        )
                                         setEnabledAll(btDownload, true)
                                         Toast.makeText(
                                             requireContext(),
@@ -2365,7 +2452,14 @@ class NowPlayingFragment : Fragment() {
         return totalSeconds * 1000
     }
 
-    private inline fun View.getDimensions(crossinline onDimensionsReady: (w: Int, h: Int, margin: List<Int>, xy: Pair<Int, Int>) -> Unit) {
+    private inline fun View.getDimensions(
+        crossinline onDimensionsReady: (
+            w: Int,
+            h: Int,
+            margin: List<Int>,
+            xy: Pair<Int, Int>,
+        ) -> Unit,
+    ) {
         lateinit var layoutListener: ViewTreeObserver.OnGlobalLayoutListener
         layoutListener =
             ViewTreeObserver.OnGlobalLayoutListener {

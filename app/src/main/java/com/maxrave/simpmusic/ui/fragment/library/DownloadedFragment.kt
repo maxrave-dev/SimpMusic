@@ -106,9 +106,10 @@ class DownloadedFragment : Fragment() {
                 args.putString("from", getString(R.string.downloaded))
                 args.putInt("index", position)
                 args.putInt("downloaded", 1)
-                Queue.clear()
+                val tracks = downloadedAdapter.getCurrentList().map { (it as SongEntity).toTrack() } as ArrayList<Track>
+                Queue.initPlaylist(Queue.LOCAL_PLAYLIST_ID_DOWNLOADED, getString(R.string.downloaded), Queue.PlaylistType.LOCAL_PLAYLIST)
                 Queue.setNowPlaying(song.toTrack())
-                Queue.addAll(downloadedAdapter.getCurrentList().map { (it as SongEntity).toTrack()} as ArrayList<Track>)
+                Queue.addAll(tracks)
                 Queue.removeTrackWithIndex(position)
                 findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
             }

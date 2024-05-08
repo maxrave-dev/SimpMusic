@@ -221,7 +221,11 @@ class ArtistFragment: Fragment(){
             override fun onItemClick(position: Int, type: String) {
                 val songClicked = popularAdapter.getCurrentList()[position]
                 val videoId = songClicked.videoId
-                Queue.clear()
+                Queue.initPlaylist(
+                    "RDAMVM$videoId",
+                    "\"${viewModel.artistBrowse.value?.data?.name}\" ${getString(R.string.popular)}",
+                    Queue.PlaylistType.RADIO,
+                )
                 val firstQueue: Track = songClicked.toTrack()
                 Queue.setNowPlaying(firstQueue)
                 val args = Bundle()
@@ -245,7 +249,11 @@ class ArtistFragment: Fragment(){
             override fun onItemClick(position: Int, type: String) {
                 val songClicked = videoAdapter.getCurrentList()[position]
                 val videoId = songClicked.videoId
-                Queue.clear()
+                Queue.initPlaylist(
+                    "RDAMVM$videoId",
+                    "\"${viewModel.artistBrowse.value?.data?.name}\" ${getString(R.string.videos)}",
+                    Queue.PlaylistType.RADIO,
+                )
                 val firstQueue: Track = songClicked.toTrack()
                 Queue.setNowPlaying(firstQueue)
                 val args = Bundle()

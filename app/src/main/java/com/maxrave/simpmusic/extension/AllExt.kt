@@ -13,8 +13,10 @@ import android.widget.ImageButton
 import android.widget.TextView
 import androidx.core.net.toUri
 import androidx.datastore.preferences.preferencesDataStore
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MediatorLiveData
+import androidx.lifecycle.Observer
 import androidx.lifecycle.asFlow
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
@@ -738,6 +740,21 @@ fun NavController.navigateSafe(
             navigate(resId)
         }
     }
+}
+
+fun <T> LiveData<T>.observeOnce(
+    lifecycleOwner: LifecycleOwner,
+    observer: Observer<T>,
+) {
+    observe(
+        lifecycleOwner,
+        object : Observer<T> {
+            override fun onChanged(value: T) {
+                observer.onChanged(value)
+                removeObserver(this)
+            }
+        },
+    )
 }
 
 fun <A, B> zip(

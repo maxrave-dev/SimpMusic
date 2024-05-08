@@ -254,7 +254,7 @@ class LibraryFragment : Fragment() {
                     if (type == Config.SONG_CLICK) {
                         val songClicked = adapterItem.getCurrentList()[position] as SongEntity
                         val videoId = songClicked.videoId
-                        Queue.clear()
+                        Queue.initPlaylist("RDAMVM$videoId", getString(R.string.recently_added), Queue.PlaylistType.RADIO)
                         val firstQueue: Track = songClicked.toTrack()
                         Queue.setNowPlaying(firstQueue)
                         val args = Bundle()

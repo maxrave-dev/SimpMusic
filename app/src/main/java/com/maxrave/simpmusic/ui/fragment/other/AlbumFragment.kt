@@ -193,7 +193,11 @@ class AlbumFragment : Fragment() {
                     "playlistId",
                     viewModel.albumBrowse.value?.data?.audioPlaylistId?.replaceFirst("VL", ""),
                 )
-                Queue.clear()
+                Queue.initPlaylist(
+                    viewModel.albumBrowse.value?.data?.audioPlaylistId?.replaceFirst("VL", "") ?: "",
+                    "Album \"${viewModel.albumBrowse.value?.data!!.title}\"",
+                    Queue.PlaylistType.PLAYLIST,
+                )
                 Queue.setNowPlaying(viewModel.albumBrowse.value?.data!!.tracks[index])
                 val shuffleList: ArrayList<Track> = arrayListOf()
                 shuffleList.addAll(viewModel.albumBrowse.value?.data!!.tracks)
@@ -214,7 +218,11 @@ class AlbumFragment : Fragment() {
                     "playlistId",
                     viewModel.albumEntity.value?.browseId?.replaceFirst("VL", ""),
                 )
-                Queue.clear()
+                Queue.initPlaylist(
+                    viewModel.albumEntity.value?.browseId?.replaceFirst("VL", "") ?: "",
+                    "Album \"${viewModel.albumEntity.value?.title}\"",
+                    Queue.PlaylistType.PLAYLIST,
+                )
                 Queue.setNowPlaying(viewModel.listTrack.value?.get(index)!!.toTrack())
                 val shuffleList: ArrayList<Track> = arrayListOf()
                 shuffleList.addAll(viewModel.listTrack.value.toArrayListTrack())
@@ -242,7 +250,11 @@ class AlbumFragment : Fragment() {
                     "playlistId",
                     viewModel.albumBrowse.value?.data?.audioPlaylistId?.replaceFirst("VL", ""),
                 )
-                Queue.clear()
+                Queue.initPlaylist(
+                    viewModel.albumBrowse.value?.data?.audioPlaylistId?.replaceFirst("VL", "") ?: "",
+                    "Album \"${viewModel.albumBrowse.value?.data!!.title}\"",
+                    Queue.PlaylistType.PLAYLIST,
+                )
                 Queue.setNowPlaying(songsAdapter.getList()[0])
                 Queue.addAll(songsAdapter.getList())
                 if (Queue.getQueue().size >= 1) {
@@ -261,7 +273,11 @@ class AlbumFragment : Fragment() {
                     "playlistId",
                     viewModel.albumEntity.value?.browseId?.replaceFirst("VL", ""),
                 )
-                Queue.clear()
+                Queue.initPlaylist(
+                    viewModel.albumEntity.value?.browseId?.replaceFirst("VL", "") ?: "",
+                    "Album \"${viewModel.albumEntity.value?.title}\"",
+                    Queue.PlaylistType.PLAYLIST,
+                )
                 Queue.setNowPlaying(songsAdapter.getList()[0])
                 Queue.addAll(songsAdapter.getList())
                 if (Queue.getQueue().size >= 1) {
@@ -294,7 +310,14 @@ class AlbumFragment : Fragment() {
                                 "",
                             ),
                         )
-                        Queue.clear()
+                        Queue.initPlaylist(
+                            viewModel.albumBrowse.value?.data?.audioPlaylistId?.replaceFirst(
+                                "VL",
+                                "",
+                            ) ?: "",
+                            "Album \"${viewModel.albumBrowse.value?.data!!.title}\"",
+                            Queue.PlaylistType.PLAYLIST,
+                        )
                         Queue.setNowPlaying(songsAdapter.getList()[position])
                         Queue.addAll(songsAdapter.getList())
                         if (Queue.getQueue().size >= 1) {
@@ -317,7 +340,11 @@ class AlbumFragment : Fragment() {
                             "playlistId",
                             viewModel.albumEntity.value?.browseId?.replaceFirst("VL", ""),
                         )
-                        Queue.clear()
+                        Queue.initPlaylist(
+                            viewModel.albumEntity.value?.browseId?.replaceFirst("VL", "") ?: "",
+                            "Album \"${viewModel.albumEntity.value?.title}\"",
+                            Queue.PlaylistType.PLAYLIST,
+                        )
                         Queue.setNowPlaying(songsAdapter.getList()[position])
                         Queue.addAll(viewModel.listTrack.value.toArrayListTrack())
                         if (Queue.getQueue().size >= 1) {

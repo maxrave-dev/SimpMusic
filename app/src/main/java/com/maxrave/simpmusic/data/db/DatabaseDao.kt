@@ -176,8 +176,14 @@ interface DatabaseDao {
     @Query("SELECT * FROM song WHERE downloadState = 1 OR downloadState = 2")
     suspend fun getDownloadingSongs(): List<SongEntity>?
 
-    @Query("SELECT * FROM song WHERE videoId IN (:primaryKeyList)")
-    fun getSongByListVideoId(primaryKeyList: List<String>): List<SongEntity>
+    @Query("SELECT * FROM song WHERE videoId IN (:primaryKeyList) LIMIT 1000")
+    suspend fun getSongByListVideoIdFull(primaryKeyList: List<String>): List<SongEntity>
+
+    @Query("SELECT * FROM song WHERE videoId IN (:primaryKeyList) LIMIT 50 OFFSET :offset")
+    suspend fun getSongByListVideoId(
+        primaryKeyList: List<String>,
+        offset: Int,
+    ): List<SongEntity>
 
     // Artist
     @Query("SELECT * FROM artist")
@@ -392,7 +398,27 @@ interface DatabaseDao {
     @Query("SELECT * FROM pair_song_local_playlist WHERE playlistId = :playlistId")
     suspend fun getPlaylistPairSong(playlistId: Long): List<PairSongLocalPlaylist>?
 
-    @Query("DELETE FROM pair_song_local_playlist WHERE songId = :videoId AND playlistId = :playlistId")
+    @Query(
+        "SELECT * FROM pair_song_local_playlist WHERE playlistId = :playlistId ORDER BY position " +
+            "ASC LIMIT 50 OFFSET :offset",
+    )
+    suspend fun getPlaylistPairSongByOffsetAsc(
+        playlistId: Long,
+        offset: Int,
+    ): List<PairSongLocalPlaylist>?
+
+    @Query(
+        "SELECT * FROM pair_song_local_playlist WHERE playlistId = :playlistId ORDER BY position " +
+            "DESC LIMIT 50 OFFSET :offset",
+    )
+    suspend fun getPlaylistPairSongByOffsetDesc(
+        playlistId: Long,
+        offset: Int,
+    ): List<PairSongLocalPlaylist>?
+
+    @Query(
+        "DELETE FROM pair_song_local_playlist WHERE songId = :videoId AND playlistId = :playlistId",
+    )
     suspend fun deletePairSongLocalPlaylist(
         playlistId: Long,
         videoId: String,
@@ -424,7 +450,9 @@ interface DatabaseDao {
     )
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertFollowedArtistSingleAndAlbum(followedArtistSingleAndAlbum: FollowedArtistSingleAndAlbum)
+    suspend fun insertFollowedArtistSingleAndAlbum(
+        followedArtistSingleAndAlbum: FollowedArtistSingleAndAlbum,
+    )
 
     @Query("SELECT * FROM followed_artist_single_and_album WHERE channelId = :channelId")
     suspend fun getFollowedArtistSingleAndAlbum(channelId: String): FollowedArtistSingleAndAlbum?

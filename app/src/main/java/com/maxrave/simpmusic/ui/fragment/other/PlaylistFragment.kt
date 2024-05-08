@@ -312,7 +312,7 @@ class PlaylistFragment : Fragment() {
 
         binding.btPlayPause.setOnClickListener {
             if (viewModel.isRadio.value == false) {
-                Queue.setContinuation(null)
+                Queue.setContinuation(Queue.getPlaylistId() ?: "", null)
             }
             if (viewModel.playlistBrowse.value is Resource.Success && viewModel.playlistBrowse.value?.data != null) {
                 val args = Bundle()
@@ -332,7 +332,11 @@ class PlaylistFragment : Fragment() {
                 if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                     args.putInt("downloaded", 1)
                 }
-                Queue.clear()
+                Queue.initPlaylist(
+                    viewModel.playlistBrowse.value?.data?.id?.replaceFirst("VL", "") ?: "",
+                    "Playlist \"${viewModel.playlistBrowse.value?.data?.title}\"",
+                    Queue.PlaylistType.PLAYLIST,
+                )
                 Queue.setNowPlaying(viewModel.playlistBrowse.value?.data!!.tracks[0])
                 Queue.addAll(viewModel.playlistBrowse.value?.data!!.tracks as ArrayList<Track>)
                 if (Queue.getQueue().size >= 1) {
@@ -352,7 +356,11 @@ class PlaylistFragment : Fragment() {
                 if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                     args.putInt("downloaded", 1)
                 }
-                Queue.clear()
+                Queue.initPlaylist(
+                    viewModel.playlistEntity.value?.id?.replaceFirst("VL", "") ?: "",
+                    "Playlist \"${viewModel.playlistEntity.value?.title}\"",
+                    Queue.PlaylistType.PLAYLIST,
+                )
                 Queue.setNowPlaying(viewModel.listTrack.value?.get(0)!!.toTrack())
                 Queue.addAll(viewModel.listTrack.value.toArrayListTrack())
                 if (Queue.getQueue().size >= 1) {
@@ -373,7 +381,7 @@ class PlaylistFragment : Fragment() {
             object : PlaylistItemAdapter.OnItemClickListener {
                 override fun onItemClick(position: Int) {
                     if (viewModel.isRadio.value == false) {
-                        Queue.setContinuation(null)
+                        Queue.setContinuation(Queue.getPlaylistId() ?: "", null)
                     }
                     if (viewModel.playlistBrowse.value is Resource.Success && viewModel.playlistBrowse.value?.data != null) {
                         val args = Bundle()
@@ -394,7 +402,11 @@ class PlaylistFragment : Fragment() {
                         if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                             args.putInt("downloaded", 1)
                         }
-                        Queue.clear()
+                        Queue.initPlaylist(
+                            viewModel.playlistBrowse.value?.data?.id?.replaceFirst("VL", "") ?: "",
+                            "Playlist \"${viewModel.playlistBrowse.value?.data?.title}\"",
+                            Queue.PlaylistType.PLAYLIST,
+                        )
                         Queue.setNowPlaying(viewModel.playlistBrowse.value?.data!!.tracks[position])
                         Queue.addAll(viewModel.playlistBrowse.value?.data!!.tracks as ArrayList<Track>)
                         if (Queue.getQueue().size >= 1) {
@@ -424,7 +436,11 @@ class PlaylistFragment : Fragment() {
                         if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                             args.putInt("downloaded", 1)
                         }
-                        Queue.clear()
+                        Queue.initPlaylist(
+                            viewModel.playlistEntity.value?.id?.replaceFirst("VL", "") ?: "",
+                            "Playlist \"${viewModel.playlistEntity.value?.title}\"",
+                            Queue.PlaylistType.PLAYLIST,
+                        )
                         Queue.setNowPlaying(viewModel.listTrack.value?.get(position)!!.toTrack())
                         Queue.addAll(viewModel.listTrack.value.toArrayListTrack())
                         if (Queue.getQueue().size >= 1) {
@@ -687,7 +703,11 @@ class PlaylistFragment : Fragment() {
                 if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                     args.putInt("downloaded", 1)
                 }
-                Queue.clear()
+                Queue.initPlaylist(
+                    viewModel.playlistBrowse.value?.data?.id?.replaceFirst("VL", "") ?: "",
+                    "Playlist \"${viewModel.playlistBrowse.value?.data?.title}\"",
+                    Queue.PlaylistType.PLAYLIST,
+                )
                 Queue.setNowPlaying(viewModel.playlistBrowse.value?.data!!.tracks[index])
                 val shuffleList: ArrayList<Track> = arrayListOf()
                 viewModel.playlistBrowse.value?.data?.tracks?.let {
@@ -715,7 +735,11 @@ class PlaylistFragment : Fragment() {
                 if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                     args.putInt("downloaded", 1)
                 }
-                Queue.clear()
+                Queue.initPlaylist(
+                    viewModel.playlistEntity.value?.id?.replaceFirst("VL", "") ?: "",
+                    "Playlist \"${viewModel.playlistEntity.value?.title}\"",
+                    Queue.PlaylistType.PLAYLIST,
+                )
                 Queue.setNowPlaying(viewModel.listTrack.value?.get(index)!!.toTrack())
                 val shuffleList: ArrayList<Track> = arrayListOf()
                 viewModel.listTrack.value?.toArrayListTrack()

@@ -79,7 +79,7 @@ import kotlinx.coroutines.launch
 @Preview(
     showSystemUi = true,
     showBackground = true,
-    uiMode = Configuration.UI_MODE_NIGHT_YES
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
 )
 @Composable
 fun NowPlayingBottomSheetPreview() {
@@ -108,9 +108,10 @@ fun NowPlayingBottomSheet(
     val downloadState = songEntity.value?.downloadState
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    val modelBottomSheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true
-    )
+    val modelBottomSheetState =
+        rememberModalBottomSheetState(
+            skipPartiallyExpanded = true,
+        )
     val hideModalBottomSheet: () -> Unit =
         { coroutineScope.launch { modelBottomSheetState.hide() } }
 
@@ -123,20 +124,21 @@ fun NowPlayingBottomSheet(
             listLocalPlaylist = listLocalPlaylist.value ?: arrayListOf(),
             onDismiss = { addToAPlaylist = false },
             onClick = { onAddToLocalPlaylist(it) },
-            videoId = songEntity.value?.videoId
+            videoId = songEntity.value?.videoId,
         )
     }
     if (artist) {
         ArtistModalBottomSheet(
             isBottomSheetVisible = artist,
-            artists = songEntity.value?.artistName?.mapIndexed { index, name ->
-                Artist(
-                    id = songEntity.value?.artistId?.get(index),
-                    name = name
-                )
-            } ?: arrayListOf(),
+            artists =
+                songEntity.value?.artistName?.mapIndexed { index, name ->
+                    Artist(
+                        id = songEntity.value?.artistId?.get(index),
+                        name = name,
+                    )
+                } ?: arrayListOf(),
             navController = navController,
-            onDismiss = { artist = false }
+            onDismiss = { artist = false },
         )
     }
 
@@ -148,87 +150,102 @@ fun NowPlayingBottomSheet(
             contentColor = Color.Transparent,
             dragHandle = null,
             scrimColor = Color.Black.copy(alpha = .5f),
-
-            ) {
+        ) {
             Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight(),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight(),
                 shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
-                colors = CardDefaults.cardColors().copy(containerColor = Color(0xFF242424))
+                colors = CardDefaults.cardColors().copy(containerColor = Color(0xFF242424)),
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Spacer(modifier = Modifier.height(5.dp))
                     Card(
-                        modifier = Modifier
-                            .width(60.dp)
-                            .height(4.dp),
-                        colors = CardDefaults.cardColors().copy(containerColor = Color(0xFF474545)),
-                        shape = RoundedCornerShape(50)
+                        modifier =
+                            Modifier
+                                .width(60.dp)
+                                .height(4.dp),
+                        colors =
+                            CardDefaults.cardColors().copy(
+                                containerColor = Color(0xFF474545),
+                            ),
+                        shape = RoundedCornerShape(50),
                     ) {}
                     Spacer(modifier = Modifier.height(5.dp))
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(65.dp)
-                            .padding(10.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .height(65.dp)
+                                .padding(10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         CoilImage(
                             imageModel = { songEntity.value?.thumbnails },
-                            imageOptions = ImageOptions(
-                                contentScale = ContentScale.Inside,
-                                alignment = Alignment.Center,
-                            ),
+                            imageOptions =
+                                ImageOptions(
+                                    contentScale = ContentScale.Inside,
+                                    alignment = Alignment.Center,
+                                ),
                             previewPlaceholder = painterResource(id = R.drawable.holder),
-                            component = rememberImageComponent {
-                                CrossfadePlugin(
-                                    duration = 550
-                                )
-                            },
-                            modifier = Modifier
-                                .align(Alignment.CenterVertically)
-                                .size(60.dp)
+                            component =
+                                rememberImageComponent {
+                                    CrossfadePlugin(
+                                        duration = 550,
+                                    )
+                                },
+                            modifier =
+                                Modifier
+                                    .align(Alignment.CenterVertically)
+                                    .size(60.dp),
                         )
                         Spacer(modifier = Modifier.width(20.dp))
                         Column(
-                            verticalArrangement = Arrangement.Center
+                            verticalArrangement = Arrangement.Center,
                         ) {
                             Text(
                                 text = songEntity.value?.title ?: "",
                                 style = typo.labelMedium,
                                 maxLines = 1,
-                                modifier = Modifier
-                                    .wrapContentHeight(Alignment.CenterVertically)
-                                    .basicMarquee(animationMode = MarqueeAnimationMode.Immediately)
-                                    .focusable()
+                                modifier =
+                                    Modifier
+                                        .wrapContentHeight(Alignment.CenterVertically)
+                                        .basicMarquee(
+                                            animationMode = MarqueeAnimationMode.Immediately,
+                                        )
+                                        .focusable(),
                             )
                             Text(
                                 text = songEntity.value?.artistName?.connectArtists() ?: "",
                                 style = typo.bodyMedium,
                                 maxLines = 1,
-                                modifier = Modifier
-                                    .wrapContentHeight(Alignment.CenterVertically)
-                                    .basicMarquee(animationMode = MarqueeAnimationMode.Immediately)
-                                    .focusable()
+                                modifier =
+                                    Modifier
+                                        .wrapContentHeight(Alignment.CenterVertically)
+                                        .basicMarquee(
+                                            animationMode = MarqueeAnimationMode.Immediately,
+                                        )
+                                        .focusable(),
                             )
                         }
                     }
                     Spacer(modifier = Modifier.height(5.dp))
                     HorizontalDivider(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 20.dp),
-                        thickness = 1.dp
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 20.dp),
+                        thickness = 1.dp,
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Crossfade(targetState = onDelete != null) {
                         if (it) {
                             ActionButton(
                                 icon = painterResource(id = R.drawable.baseline_delete_24),
-                                text = R.string.delete
+                                text = R.string.delete,
                             ) {
                                 if (onDelete != null) {
                                     onDelete()
@@ -239,25 +256,42 @@ fun NowPlayingBottomSheet(
                     }
                     CheckBoxActionButton(
                         defaultChecked = songEntity.value?.liked ?: false,
-                        onChangeListener = onToggleLike
+                        onChangeListener = onToggleLike,
                     )
                     Crossfade(targetState = onDownload != null) {
                         if (it && onDownload != null) {
                             ActionButton(
-                                icon = when (downloadState) {
-                                    DownloadState.STATE_NOT_DOWNLOADED -> painterResource(R.drawable.outline_download_for_offline_24)
-                                    DownloadState.STATE_DOWNLOADING -> painterResource(R.drawable.baseline_downloading_white)
-                                    DownloadState.STATE_DOWNLOADED -> painterResource(R.drawable.baseline_downloaded)
-                                    DownloadState.STATE_PREPARING -> painterResource(R.drawable.baseline_downloading_white)
-                                    else -> painterResource(R.drawable.outline_download_for_offline_24)
-                                },
-                                text = when (downloadState) {
-                                    DownloadState.STATE_NOT_DOWNLOADED -> R.string.download
-                                    DownloadState.STATE_DOWNLOADING -> R.string.downloading
-                                    DownloadState.STATE_DOWNLOADED -> R.string.downloaded
-                                    DownloadState.STATE_PREPARING -> R.string.downloading
-                                    else -> R.string.download
-                                }
+                                icon =
+                                    when (downloadState) {
+                                        DownloadState.STATE_NOT_DOWNLOADED ->
+                                            painterResource(
+                                                R.drawable.outline_download_for_offline_24,
+                                            )
+                                        DownloadState.STATE_DOWNLOADING ->
+                                            painterResource(
+                                                R.drawable.baseline_downloading_white,
+                                            )
+                                        DownloadState.STATE_DOWNLOADED ->
+                                            painterResource(
+                                                R.drawable.baseline_downloaded,
+                                            )
+                                        DownloadState.STATE_PREPARING ->
+                                            painterResource(
+                                                R.drawable.baseline_downloading_white,
+                                            )
+                                        else ->
+                                            painterResource(
+                                                R.drawable.outline_download_for_offline_24,
+                                            )
+                                    },
+                                text =
+                                    when (downloadState) {
+                                        DownloadState.STATE_NOT_DOWNLOADED -> R.string.download
+                                        DownloadState.STATE_DOWNLOADING -> R.string.downloading
+                                        DownloadState.STATE_DOWNLOADED -> R.string.downloaded
+                                        DownloadState.STATE_PREPARING -> R.string.downloading
+                                        else -> R.string.download
+                                    },
                             ) {
                                 onDownload()
                             }
@@ -265,27 +299,27 @@ fun NowPlayingBottomSheet(
                     }
                     ActionButton(
                         icon = painterResource(id = R.drawable.baseline_playlist_add_24),
-                        text = R.string.add_to_a_playlist
+                        text = R.string.add_to_a_playlist,
                     ) {
                         addToAPlaylist = true
                     }
                     ActionButton(
                         icon = painterResource(id = R.drawable.play_circle),
-                        text = R.string.play_next
+                        text = R.string.play_next,
                     ) {
                         sharedViewModel.playNext(songEntity.value?.toTrack() ?: return@ActionButton)
                     }
                     ActionButton(
                         icon = painterResource(id = R.drawable.baseline_queue_music_24),
-                        text = R.string.add_to_queue
+                        text = R.string.add_to_queue,
                     ) {
                         sharedViewModel.addToQueue(
-                            songEntity.value?.toTrack() ?: return@ActionButton
+                            songEntity.value?.toTrack() ?: return@ActionButton,
                         )
                     }
                     ActionButton(
                         icon = painterResource(id = R.drawable.baseline_people_alt_24),
-                        text = R.string.artists
+                        text = R.string.artists,
                     ) {
                         artist = true
                     }
@@ -293,35 +327,36 @@ fun NowPlayingBottomSheet(
                         icon = painterResource(id = R.drawable.baseline_album_24),
                         text = if (songEntity.value?.albumName.isNullOrBlank()) R.string.no_album else null,
                         textString = songEntity.value?.albumName,
-                        enable = !songEntity.value?.albumName.isNullOrBlank()
+                        enable = !songEntity.value?.albumName.isNullOrBlank(),
                     ) {
                         navController.navigateSafe(
                             R.id.action_global_albumFragment,
                             Bundle().apply {
                                 putString("browseId", songEntity.value?.albumId)
-                            })
+                            },
+                        )
                     }
                     ActionButton(
                         icon = painterResource(id = R.drawable.baseline_sensors_24),
-                        text = R.string.start_radio
+                        text = R.string.start_radio,
                     ) {
                         val args = Bundle()
                         args.putString("radioId", "RDAMVM${songEntity.value?.videoId}")
                         args.putString(
                             "videoId",
-                            songEntity.value?.videoId
+                            songEntity.value?.videoId,
                         )
                         hideModalBottomSheet()
                         navController.navigateSafe(
                             R.id.action_global_playlistFragment,
-                            args
+                            args,
                         )
                     }
                     Crossfade(targetState = onMainLyricsProvider != null) {
                         if (it && onMainLyricsProvider != null) {
                             ActionButton(
                                 icon = painterResource(id = R.drawable.baseline_lyrics_24),
-                                text = R.string.main_lyrics_provider
+                                text = R.string.main_lyrics_provider,
                             ) {
                                 onMainLyricsProvider("")
                             }
@@ -331,7 +366,7 @@ fun NowPlayingBottomSheet(
                         if (it && onSleepTimer != null) {
                             ActionButton(
                                 icon = painterResource(id = R.drawable.baseline_access_alarm_24),
-                                text = R.string.sleep_timer_off
+                                text = R.string.sleep_timer_off,
                             ) {
                                 onSleepTimer()
                             }
@@ -339,7 +374,7 @@ fun NowPlayingBottomSheet(
                     }
                     ActionButton(
                         icon = painterResource(id = R.drawable.baseline_share_24),
-                        text = R.string.share
+                        text = R.string.share,
                     ) {
                         val shareIntent = Intent(Intent.ACTION_SEND)
                         shareIntent.type = "text/plain"
@@ -350,7 +385,6 @@ fun NowPlayingBottomSheet(
                         context.startActivity(chooserIntent)
                     }
                 }
-
             }
         }
     }
@@ -365,88 +399,106 @@ fun ActionButton(
     onClick: () -> Unit,
 ) {
     Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentHeight(Alignment.CenterVertically)
-
-            .clickable(
-                interactionSource = remember {
-                    MutableInteractionSource()
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .wrapContentHeight(Alignment.CenterVertically)
+                .clickable(
+                    interactionSource =
+                        remember {
+                            MutableInteractionSource()
+                        },
+                    onClick = if (enable) onClick else ({}),
+                    indication = ripple(),
+                )
+                .apply {
+                    if (!enable) greyScale()
                 },
-                onClick = if (enable) onClick else ({}),
-                indication = ripple()
-            )
-            .apply {
-                if (!enable) greyScale()
-            }
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 20.dp)
+            modifier = Modifier.padding(horizontal = 20.dp),
         ) {
             Image(
                 painter = icon,
                 contentDescription = if (text != null) stringResource(text) else textString ?: "",
-                modifier = Modifier
-                    .wrapContentSize(
-                        Alignment.Center
-                    )
-                    .padding(12.dp),
-                colorFilter = if (enable) null else ColorFilter.colorMatrix(ColorMatrix().apply {
-                    setToSaturation(
-                        0f
-                    )
-                }),
+                modifier =
+                    Modifier
+                        .wrapContentSize(
+                            Alignment.Center,
+                        )
+                        .padding(12.dp),
+                colorFilter =
+                    if (enable) {
+                        null
+                    } else {
+                        ColorFilter.colorMatrix(
+                            ColorMatrix().apply {
+                                setToSaturation(
+                                    0f,
+                                )
+                            },
+                        )
+                    },
             )
 
             Text(
                 text = if (text != null) stringResource(text) else textString ?: "",
                 style = typo.bodyLarge,
-                modifier = Modifier
-                    .padding(start = 10.dp)
-                    .wrapContentHeight(Alignment.CenterVertically)
+                modifier =
+                    Modifier
+                        .padding(start = 10.dp)
+                        .wrapContentHeight(Alignment.CenterVertically),
             )
         }
-
     }
 }
 
 @Composable
 fun CheckBoxActionButton(
     defaultChecked: Boolean,
-    onChangeListener: (checked: Boolean) -> Unit
+    onChangeListener: (checked: Boolean) -> Unit,
 ) {
     var stateChecked by remember { mutableStateOf(defaultChecked) }
     Box(
-        modifier = Modifier
-            .wrapContentSize(align = Alignment.Center)
-            .clickable(
-                interactionSource = remember {
-                    MutableInteractionSource()
-                },
-                onClick = {
-                    stateChecked = !stateChecked
-                    onChangeListener(stateChecked)
-                },
-                indication = ripple()
-            )
+        modifier =
+            Modifier
+                .wrapContentSize(align = Alignment.Center)
+                .clickable(
+                    interactionSource =
+                        remember {
+                            MutableInteractionSource()
+                        },
+                    onClick = {
+                        stateChecked = !stateChecked
+                        onChangeListener(stateChecked)
+                    },
+                    indication = ripple(),
+                ),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 20.dp).fillMaxWidth()
+            modifier = Modifier.padding(horizontal = 20.dp).fillMaxWidth(),
         ) {
             Box(Modifier.padding(12.dp)) {
-                HeartCheckBox(checked = stateChecked)
+                HeartCheckBox(checked = stateChecked, size = 30)
             }
             Text(
-                text = if (stateChecked) stringResource(R.string.liked) else stringResource(R.string.like),
+                text =
+                    if (stateChecked) {
+                        stringResource(
+                            R.string.liked,
+                        )
+                    } else {
+                        stringResource(R.string.like)
+                    },
                 style = typo.bodyLarge,
-                modifier = Modifier
-                    .padding(start = 10.dp)
-                    .wrapContentHeight(Alignment.CenterVertically)
+                modifier =
+                    Modifier
+                        .padding(start = 10.dp)
+                        .wrapContentHeight(Alignment.CenterVertically),
             )
         }
-
     }
 }
 
@@ -454,32 +506,38 @@ fun CheckBoxActionButton(
 fun HeartCheckBox(
     size: Int = 24,
     checked: Boolean,
-    onStateChange: (() -> Unit)? = null
+    onStateChange: (() -> Unit)? = null,
 ) {
-    Box(modifier = Modifier
-        .size(size.dp)
-        .clip(
-            CircleShape
-        )
-        .clickable(
-            onClick = onStateChange ?: {},
-            indication = ripple(),
-            interactionSource = remember { MutableInteractionSource() }
-
-        )) {
+    Box(
+        modifier =
+            Modifier
+                .size(size.dp)
+                .clip(
+                    CircleShape,
+                )
+                .clickable(
+                    onClick = onStateChange ?: {},
+                    indication = ripple(),
+                    interactionSource = remember { MutableInteractionSource() },
+                ),
+    ) {
         Crossfade(targetState = checked, modifier = Modifier.fillMaxSize()) {
             if (it) {
                 Image(
                     painter = painterResource(id = R.drawable.baseline_favorite_24),
                     contentDescription = "Favorite checked",
-                    modifier = Modifier.fillMaxSize()
+                    modifier =
+                        Modifier.fillMaxSize()
+                            .padding(4.dp),
                 )
             } else {
                 Image(
                     painter = painterResource(id = R.drawable.baseline_favorite_border_24),
                     contentDescription = "Favorite unchecked",
-                    modifier = Modifier.fillMaxSize(),
-                    colorFilter = ColorFilter.tint(Color.White)
+                    modifier =
+                        Modifier.fillMaxSize()
+                            .padding(4.dp),
+                    colorFilter = ColorFilter.tint(Color.White),
                 )
             }
         }
@@ -496,9 +554,10 @@ fun AddToPlaylistModalBottomSheet(
     onDismiss: () -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val modelBottomSheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true
-    )
+    val modelBottomSheetState =
+        rememberModalBottomSheetState(
+            skipPartiallyExpanded = true,
+        )
     val hideModalBottomSheet: () -> Unit =
         { coroutineScope.launch { modelBottomSheetState.hide() } }
     if (isBottomSheetVisible) {
@@ -509,64 +568,77 @@ fun AddToPlaylistModalBottomSheet(
             contentColor = Color.Transparent,
             dragHandle = null,
             scrimColor = Color.Black.copy(alpha = .5f),
-
-            ) {
+        ) {
             Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight(),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight(),
                 shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
-                colors = CardDefaults.cardColors().copy(containerColor = Color(0xFF242424))
+                colors = CardDefaults.cardColors().copy(containerColor = Color(0xFF242424)),
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Spacer(modifier = Modifier.height(5.dp))
                     Card(
-                        modifier = Modifier
-                            .width(60.dp)
-                            .height(4.dp),
-                        colors = CardDefaults.cardColors().copy(containerColor = Color(0xFF474545)),
-                        shape = RoundedCornerShape(50)
+                        modifier =
+                            Modifier
+                                .width(60.dp)
+                                .height(4.dp),
+                        colors =
+                            CardDefaults.cardColors().copy(
+                                containerColor = Color(0xFF474545),
+                            ),
+                        shape = RoundedCornerShape(50),
                     ) {}
                     Spacer(modifier = Modifier.height(5.dp))
-                    LazyColumn() {
+                    LazyColumn {
                         items(listLocalPlaylist) { playlist ->
                             Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(20.dp)
-                                    .clickable(
-                                        onClick = {
-                                            onClick(playlist)
-                                            hideModalBottomSheet()
-                                        },
-                                        indication = ripple(),
-                                        interactionSource = remember { MutableInteractionSource() }
-                                    )
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .padding(20.dp)
+                                        .clickable(
+                                            onClick = {
+                                                onClick(playlist)
+                                                hideModalBottomSheet()
+                                            },
+                                            indication = ripple(),
+                                            interactionSource = remember { MutableInteractionSource() },
+                                        ),
                             ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier
-                                        .padding(12.dp)
-                                        .align(Alignment.CenterStart)
+                                    modifier =
+                                        Modifier
+                                            .padding(12.dp)
+                                            .align(Alignment.CenterStart),
                                 ) {
                                     Image(
-                                        painter = painterResource(id = R.drawable.baseline_playlist_add_24),
-                                        contentDescription = ""
+                                        painter =
+                                            painterResource(
+                                                id = R.drawable.baseline_playlist_add_24,
+                                            ),
+                                        contentDescription = "",
                                     )
                                     Spacer(modifier = Modifier.width(10.dp))
                                     Text(
                                         text = playlist.title,
-                                        style = typo.bodyLarge
+                                        style = typo.bodyLarge,
                                     )
                                 }
-                                Crossfade(targetState = playlist.tracks?.contains(videoId) == true) {
-                                    if (it) Image(
-                                        painter = painterResource(id = R.drawable.done),
-                                        contentDescription = "",
-                                        modifier = Modifier.align(Alignment.CenterEnd)
-                                    )
+                                Crossfade(
+                                    targetState = playlist.tracks?.contains(videoId) == true,
+                                ) {
+                                    if (it) {
+                                        Image(
+                                            painter = painterResource(id = R.drawable.done),
+                                            contentDescription = "",
+                                            modifier = Modifier.align(Alignment.CenterEnd),
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -583,12 +655,13 @@ fun ArtistModalBottomSheet(
     isBottomSheetVisible: Boolean,
     artists: List<Artist>,
     navController: NavController,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val modelBottomSheetState = rememberModalBottomSheetState(
-        skipPartiallyExpanded = true
-    )
+    val modelBottomSheetState =
+        rememberModalBottomSheetState(
+            skipPartiallyExpanded = true,
+        )
     val hideModalBottomSheet: () -> Unit =
         { coroutineScope.launch { modelBottomSheetState.hide() } }
     if (isBottomSheetVisible) {
@@ -599,61 +672,71 @@ fun ArtistModalBottomSheet(
             contentColor = Color.Transparent,
             dragHandle = null,
             scrimColor = Color.Black.copy(alpha = .5f),
-
-            ) {
+        ) {
             Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight(),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight(),
                 shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
-                colors = CardDefaults.cardColors().copy(containerColor = Color(0xFF242424))
+                colors = CardDefaults.cardColors().copy(containerColor = Color(0xFF242424)),
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Spacer(modifier = Modifier.height(5.dp))
                     Card(
-                        modifier = Modifier
-                            .width(60.dp)
-                            .height(4.dp),
-                        colors = CardDefaults.cardColors().copy(containerColor = Color(0xFF474545)),
-                        shape = RoundedCornerShape(50)
+                        modifier =
+                            Modifier
+                                .width(60.dp)
+                                .height(4.dp),
+                        colors =
+                            CardDefaults.cardColors().copy(
+                                containerColor = Color(0xFF474545),
+                            ),
+                        shape = RoundedCornerShape(50),
                     ) {}
                     Spacer(modifier = Modifier.height(5.dp))
-                    LazyColumn() {
+                    LazyColumn {
                         items(artists) { artist ->
                             Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable(
-                                        onClick = {
-                                            if (!artist.id.isNullOrBlank()) {
-                                                navController.navigateSafe(
-                                                    R.id.action_global_artistFragment,
-                                                    Bundle().apply {
-                                                        putString("channelId", artist.id)
-                                                    })
-                                            }
-                                            hideModalBottomSheet()
-                                        },
-                                        indication = ripple(),
-                                        interactionSource = remember { MutableInteractionSource() }
-                                    )
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .clickable(
+                                            onClick = {
+                                                if (!artist.id.isNullOrBlank()) {
+                                                    navController.navigateSafe(
+                                                        R.id.action_global_artistFragment,
+                                                        Bundle().apply {
+                                                            putString("channelId", artist.id)
+                                                        },
+                                                    )
+                                                }
+                                                hideModalBottomSheet()
+                                            },
+                                            indication = ripple(),
+                                            interactionSource = remember { MutableInteractionSource() },
+                                        ),
                             ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier
-                                        .padding(20.dp)
-                                        .align(Alignment.CenterStart)
+                                    modifier =
+                                        Modifier
+                                            .padding(20.dp)
+                                            .align(Alignment.CenterStart),
                                 ) {
                                     Image(
-                                        painter = painterResource(id = R.drawable.baseline_people_alt_24),
-                                        contentDescription = ""
+                                        painter =
+                                            painterResource(
+                                                id = R.drawable.baseline_people_alt_24,
+                                            ),
+                                        contentDescription = "",
                                     )
                                     Spacer(modifier = Modifier.width(10.dp))
                                     Text(
                                         text = artist.name,
-                                        style = typo.bodyLarge
+                                        style = typo.bodyLarge,
                                     )
                                 }
                             }
@@ -664,4 +747,3 @@ fun ArtistModalBottomSheet(
         }
     }
 }
-        

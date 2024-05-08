@@ -51,6 +51,7 @@ import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.databinding.ActivityMainBinding
 import com.maxrave.simpmusic.extension.isMyServiceRunning
 import com.maxrave.simpmusic.extension.navigateSafe
+import com.maxrave.simpmusic.extension.observeOnce
 import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
 import com.maxrave.simpmusic.ui.screen.MiniPlayer
@@ -192,56 +193,56 @@ class MainActivity : AppCompatActivity() {
 //                                        },
 //                                    )
 //                                }
-////                            val request = ImageRequest.Builder(this@MainActivity)
-////                                .data(it.mediaMetadata.artworkUri)
-////                                .target(
-////                                    onSuccess = { result ->
-////                                        binding.ivArt.setImageDrawable(result)
-////                                    },
-////                                )
-////                                .transformations(object : Transformation {
-////                                    override val cacheKey: String
-////                                        get() = it.mediaMetadata.artworkUri.toString()
-////
-////                                    override suspend fun transform(input: Bitmap, size: Size): Bitmap {
-////                                        val p = Palette.from(input).generate()
-////                                        val defaultColor = 0x000000
-////                                        var startColor = p.getDarkVibrantColor(defaultColor)
-////                                        Log.d("Check Start Color", "transform: $startColor")
-////                                        if (startColor == defaultColor){
-////                                            startColor = p.getDarkMutedColor(defaultColor)
-////                                            if (startColor == defaultColor){
-////                                                startColor = p.getVibrantColor(defaultColor)
-////                                                if (startColor == defaultColor){
-////                                                    startColor = p.getMutedColor(defaultColor)
-////                                                    if (startColor == defaultColor){
-////                                                        startColor = p.getLightVibrantColor(defaultColor)
-////                                                        if (startColor == defaultColor){
-////                                                            startColor = p.getLightMutedColor(defaultColor)
-////                                                        }
-////                                                    }
-////                                                }
-////                                            }
-////                                            Log.d("Check Start Color", "transform: $startColor")
-////                                        }
-////                                        val endColor = 0x1b1a1f
-////                                        val gd = GradientDrawable(
-////                                            GradientDrawable.Orientation.TOP_BOTTOM,
-////                                            intArrayOf(startColor, endColor)
-////                                        )
-////                                        gd.cornerRadius = 0f
-////                                        gd.gradientType = GradientDrawable.LINEAR_GRADIENT
-////                                        gd.gradientRadius = 0.5f
-////                                        gd.alpha = 150
-////                                        val bg = ColorUtils.setAlphaComponent(startColor, 255)
-////                                        binding.card.setCardBackgroundColor(bg)
-////                                        binding.cardBottom.setCardBackgroundColor(bg)
-////                                        return input
-////                                    }
-////
-////                                })
-////                                .build()
-////                            ImageLoader(this@MainActivity).execute(request)
+// //                            val request = ImageRequest.Builder(this@MainActivity)
+// //                                .data(it.mediaMetadata.artworkUri)
+// //                                .target(
+// //                                    onSuccess = { result ->
+// //                                        binding.ivArt.setImageDrawable(result)
+// //                                    },
+// //                                )
+// //                                .transformations(object : Transformation {
+// //                                    override val cacheKey: String
+// //                                        get() = it.mediaMetadata.artworkUri.toString()
+// //
+// //                                    override suspend fun transform(input: Bitmap, size: Size): Bitmap {
+// //                                        val p = Palette.from(input).generate()
+// //                                        val defaultColor = 0x000000
+// //                                        var startColor = p.getDarkVibrantColor(defaultColor)
+// //                                        Log.d("Check Start Color", "transform: $startColor")
+// //                                        if (startColor == defaultColor){
+// //                                            startColor = p.getDarkMutedColor(defaultColor)
+// //                                            if (startColor == defaultColor){
+// //                                                startColor = p.getVibrantColor(defaultColor)
+// //                                                if (startColor == defaultColor){
+// //                                                    startColor = p.getMutedColor(defaultColor)
+// //                                                    if (startColor == defaultColor){
+// //                                                        startColor = p.getLightVibrantColor(defaultColor)
+// //                                                        if (startColor == defaultColor){
+// //                                                            startColor = p.getLightMutedColor(defaultColor)
+// //                                                        }
+// //                                                    }
+// //                                                }
+// //                                            }
+// //                                            Log.d("Check Start Color", "transform: $startColor")
+// //                                        }
+// //                                        val endColor = 0x1b1a1f
+// //                                        val gd = GradientDrawable(
+// //                                            GradientDrawable.Orientation.TOP_BOTTOM,
+// //                                            intArrayOf(startColor, endColor)
+// //                                        )
+// //                                        gd.cornerRadius = 0f
+// //                                        gd.gradientType = GradientDrawable.LINEAR_GRADIENT
+// //                                        gd.gradientRadius = 0.5f
+// //                                        gd.alpha = 150
+// //                                        val bg = ColorUtils.setAlphaComponent(startColor, 255)
+// //                                        binding.card.setCardBackgroundColor(bg)
+// //                                        binding.cardBottom.setCardBackgroundColor(bg)
+// //                                        return input
+// //                                    }
+// //
+// //                                })
+// //                                .build()
+// //                            ImageLoader(this@MainActivity).execute(request)
 //                            }
 //                        }
 //                    }
@@ -431,7 +432,17 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        binding.root.addOnLayoutChangeListener { v, left, top, right, bottom, oldLeft, oldTop, oldRight, oldBottom ->
+        binding.root.addOnLayoutChangeListener {
+                v,
+                left,
+                top,
+                right,
+                bottom,
+                oldLeft,
+                oldTop,
+                oldRight,
+                oldBottom,
+            ->
             val rect = Rect(left, top, right, bottom)
             val oldRect = Rect(oldLeft, oldTop, oldRight, oldBottom)
             if ((rect.width() != oldRect.width() || rect.height() != oldRect.height()) && oldRect !=
@@ -482,17 +493,23 @@ class MainActivity : AppCompatActivity() {
         navController.addOnDestinationChangedListener { nav, destination, _ ->
             when (destination.id) {
                 R.id.bottom_navigation_item_home, R.id.settingsFragment, R.id.recentlySongsFragment, R.id.moodFragment -> {
-                    binding.bottomNavigationView.menu.findItem(R.id.bottom_navigation_item_home)?.isChecked =
+                    binding.bottomNavigationView.menu.findItem(
+                        R.id.bottom_navigation_item_home,
+                    )?.isChecked =
                         true
                 }
 
                 R.id.bottom_navigation_item_search -> {
-                    binding.bottomNavigationView.menu.findItem(R.id.bottom_navigation_item_search)?.isChecked =
+                    binding.bottomNavigationView.menu.findItem(
+                        R.id.bottom_navigation_item_search,
+                    )?.isChecked =
                         true
                 }
 
                 R.id.bottom_navigation_item_library, R.id.downloadedFragment, R.id.mostPlayedFragment, R.id.followedFragment, R.id.favoriteFragment, R.id.localPlaylistFragment -> {
-                    binding.bottomNavigationView.menu.findItem(R.id.bottom_navigation_item_library)?.isChecked =
+                    binding.bottomNavigationView.menu.findItem(
+                        R.id.bottom_navigation_item_library,
+                    )?.isChecked =
                         true
                 }
 
@@ -500,17 +517,23 @@ class MainActivity : AppCompatActivity() {
                     val currentBackStack = nav.previousBackStackEntry?.destination?.id
                     when (currentBackStack) {
                         R.id.bottom_navigation_item_library, R.id.downloadedFragment, R.id.mostPlayedFragment, R.id.followedFragment, R.id.favoriteFragment, R.id.localPlaylistFragment -> {
-                            binding.bottomNavigationView.menu.findItem(R.id.bottom_navigation_item_library)?.isChecked =
+                            binding.bottomNavigationView.menu.findItem(
+                                R.id.bottom_navigation_item_library,
+                            )?.isChecked =
                                 true
                         }
 
                         R.id.bottom_navigation_item_search -> {
-                            binding.bottomNavigationView.menu.findItem(R.id.bottom_navigation_item_search)?.isChecked =
+                            binding.bottomNavigationView.menu.findItem(
+                                R.id.bottom_navigation_item_search,
+                            )?.isChecked =
                                 true
                         }
 
                         R.id.bottom_navigation_item_home, R.id.settingsFragment, R.id.recentlySongsFragment, R.id.moodFragment -> {
-                            binding.bottomNavigationView.menu.findItem(R.id.bottom_navigation_item_home)?.isChecked =
+                            binding.bottomNavigationView.menu.findItem(
+                                R.id.bottom_navigation_item_home,
+                            )?.isChecked =
                                 true
                         }
                     }
@@ -586,57 +609,61 @@ class MainActivity : AppCompatActivity() {
                             if (data != null) {
                                 if (data == Uri.parse("simpmusic://notification")) {
                                     viewModel.intent.value = null
-                                    navController.navigateSafe(R.id.action_global_notificationFragment)
+                                    navController.navigateSafe(
+                                        R.id.action_global_notificationFragment,
+                                    )
                                 } else {
                                     Log.d("MainActivity", "onCreate: $data")
-                                when (val path = data!!.pathSegments.firstOrNull()) {
-                                    "playlist" ->
-                                        data!!.getQueryParameter("list")
-                                            ?.let { playlistId ->
-                                                if (playlistId.startsWith("OLAK5uy_")) {
+                                    when (val path = data!!.pathSegments.firstOrNull()) {
+                                        "playlist" ->
+                                            data!!.getQueryParameter("list")
+                                                ?.let { playlistId ->
+                                                    if (playlistId.startsWith("OLAK5uy_")) {
+                                                        viewModel.intent.value = null
+                                                        navController.navigateSafe(
+                                                            R.id.action_global_albumFragment,
+                                                            Bundle().apply {
+                                                                putString("browseId", playlistId)
+                                                            },
+                                                        )
+                                                    } else if (playlistId.startsWith("VL")) {
+                                                        viewModel.intent.value = null
+                                                        navController.navigateSafe(
+                                                            R.id.action_global_playlistFragment,
+                                                            Bundle().apply {
+                                                                putString("id", playlistId)
+                                                            },
+                                                        )
+                                                    } else {
+                                                        viewModel.intent.value = null
+                                                        navController.navigateSafe(
+                                                            R.id.action_global_playlistFragment,
+                                                            Bundle().apply {
+                                                                putString("id", "VL$playlistId")
+                                                            },
+                                                        )
+                                                    }
+                                                }
+
+                                        "channel", "c" ->
+                                            data!!.lastPathSegment?.let { artistId ->
+                                                if (artistId.startsWith("UC")) {
                                                     viewModel.intent.value = null
                                                     navController.navigateSafe(
-                                                        R.id.action_global_albumFragment,
+                                                        R.id.action_global_artistFragment,
                                                         Bundle().apply {
-                                                            putString("browseId", playlistId)
-                                                        },
-                                                    )
-                                                } else if (playlistId.startsWith("VL")) {
-                                                    viewModel.intent.value = null
-                                                    navController.navigateSafe(
-                                                        R.id.action_global_playlistFragment,
-                                                        Bundle().apply {
-                                                            putString("id", playlistId)
+                                                            putString("channelId", artistId)
                                                         },
                                                     )
                                                 } else {
-                                                    viewModel.intent.value = null
-                                                    navController.navigateSafe(
-                                                        R.id.action_global_playlistFragment,
-                                                        Bundle().apply {
-                                                            putString("id", "VL$playlistId")
-                                                        },
-                                                    )
+                                                    Toast.makeText(
+                                                        this@MainActivity,
+                                                        getString(
+                                                            R.string.this_link_is_not_supported,
+                                                        ),
+                                                        Toast.LENGTH_SHORT,
+                                                    ).show()
                                                 }
-                                            }
-
-                                    "channel", "c" ->
-                                        data!!.lastPathSegment?.let { artistId ->
-                                            if (artistId.startsWith("UC")) {
-                                                viewModel.intent.value = null
-                                                navController.navigateSafe(
-                                                    R.id.action_global_artistFragment,
-                                                    Bundle().apply {
-                                                        putString("channelId", artistId)
-                                                    },
-                                                )
-                                            } else {
-                                                Toast.makeText(
-                                                    this@MainActivity,
-                                                    getString(R.string.this_link_is_not_supported),
-                                                    Toast.LENGTH_SHORT,
-                                                ).show()
-                                            }
 //                                    else {
 //                                        viewModel.convertNameToId(artistId)
 //                                        viewModel.artistId.observe(this@MainActivity) {channelId ->
@@ -654,42 +681,45 @@ class MainActivity : AppCompatActivity() {
 //                                            }
 //                                        }
 //                                    }
-                                        }
-
-                                    else ->
-                                        when {
-                                            path == "watch" -> data!!.getQueryParameter("v")
-                                            data!!.host == "youtu.be" -> path
-                                            else -> null
-                                        }?.let { videoId ->
-                                            val args = Bundle()
-                                            args.putString("videoId", videoId)
-                                            args.putString("from", getString(R.string.shared))
-                                            args.putString("type", Config.SHARE)
-                                            viewModel.videoId.value = videoId
-                                            hideBottomNav()
-                                            if (navController.currentDestination?.id == R.id.nowPlayingFragment) {
-                                                findNavController(R.id.fragment_container_view).popBackStack()
-                                                navController.navigateSafe(
-                                                    R.id.action_global_nowPlayingFragment,
-                                                    args,
-                                                )
-                                            } else {
-                                                navController.navigateSafe(
-                                                    R.id.action_global_nowPlayingFragment,
-                                                    args,
-                                                )
                                             }
-                                        }
+
+                                        else ->
+                                            when {
+                                                path == "watch" -> data!!.getQueryParameter("v")
+                                                data!!.host == "youtu.be" -> path
+                                                else -> null
+                                            }?.let { videoId ->
+                                                val args = Bundle()
+                                                args.putString("videoId", videoId)
+                                                args.putString("from", getString(R.string.shared))
+                                                args.putString("type", Config.SHARE)
+                                                viewModel.videoId.value = videoId
+                                                hideBottomNav()
+                                                if (navController.currentDestination?.id == R.id.nowPlayingFragment) {
+                                                    findNavController(
+                                                        R.id.fragment_container_view,
+                                                    ).popBackStack()
+                                                    navController.navigateSafe(
+                                                        R.id.action_global_nowPlayingFragment,
+                                                        args,
+                                                    )
+                                                } else {
+                                                    navController.navigateSafe(
+                                                        R.id.action_global_nowPlayingFragment,
+                                                        args,
+                                                    )
+                                                }
+                                            }
                                     }
                                 }
                             }
                         }
                     }
                 }
-            val job2 = launch {
-                viewModel
-            }
+            val job2 =
+                launch {
+                    viewModel
+                }
             job1.join()
         }
         lifecycleScope.launch {
@@ -766,13 +796,17 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             binding.miniplayer.visibility = View.GONE
-            result.observe(this) { data ->
+            result.observeOnce(this) { data ->
                 val queueData = data
                 Log.w("Check queue saved", queueData.toString())
                 binding.miniplayer.visibility = View.VISIBLE
                 if (queueData.isNotEmpty()) {
                     Log.w("Check queue saved", queueData.toString())
-                    Queue.clear()
+                    Queue.initPlaylist(
+                        playlistId = Queue.LOCAL_PLAYLIST_ID_SAVED_QUEUE,
+                        playlistName = "",
+                        playlistType = Queue.PlaylistType.PLAYLIST,
+                    )
                     Queue.addAll(queueData)
                     viewModel.removeSaveQueue()
                     viewModel.resetRelated()

@@ -225,7 +225,11 @@ fun HomeItem(
                             val args = Bundle()
                             args.putString("videoId", temp.videoId)
                             args.putString("from", temp.title)
-                            Queue.clear()
+                            Queue.initPlaylist(
+                                "RDAMVM${temp.videoId}",
+                                temp.title,
+                                Queue.PlaylistType.RADIO
+                            )
                             val firstQueue: Track = temp.toTrack()
                             Queue.setNowPlaying(firstQueue)
                             args.putString("type", Config.SONG_CLICK)
@@ -244,7 +248,11 @@ fun HomeItem(
                             val args = Bundle()
                             args.putString("videoId", temp.videoId)
                             args.putString("from", temp.title)
-                            Queue.clear()
+                            Queue.initPlaylist(
+                                "RDAMVM${temp.videoId}",
+                                temp.title,
+                                Queue.PlaylistType.RADIO
+                            )
                             val firstQueue: Track = temp.toTrack()
                             Queue.setNowPlaying(firstQueue)
                             args.putString("type", Config.SONG_CLICK)

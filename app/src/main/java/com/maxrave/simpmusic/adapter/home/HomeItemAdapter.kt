@@ -85,7 +85,9 @@ class HomeItemAdapter(
                 val args = Bundle()
                 args.putString("videoId", homeItemList[holder.bindingAdapterPosition].contents[position]?.videoId)
                 args.putString("from", homeItem.title)
-                Queue.clear()
+                Queue.initPlaylist(
+                    "RDAMVM${homeItemList[holder.bindingAdapterPosition].contents[position]?.videoId}", homeItem.title, Queue.PlaylistType.RADIO
+                )
                 Log.d("HomeItemAdapter", "onSongItemClick: ${homeItemList[holder.bindingAdapterPosition].contents[position]}")
                 val firstQueue: Track = homeItemList[holder.bindingAdapterPosition].contents[position]!!.toTrack()
                 Queue.setNowPlaying(firstQueue)

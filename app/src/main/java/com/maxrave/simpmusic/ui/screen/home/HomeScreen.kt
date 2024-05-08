@@ -128,18 +128,18 @@ fun HomeScreen(
         if (homeRefresh) {
             Log.w(
                 "HomeScreen",
-                "scrollState.firstVisibleItemIndex: ${scrollState.firstVisibleItemIndex}"
+                "scrollState.firstVisibleItemIndex: ${scrollState.firstVisibleItemIndex}",
             )
             if (scrollState.firstVisibleItemIndex == 1) {
                 Log.w(
                     "HomeScreen",
-                    "scrollState.canScrollBackward: ${scrollState.canScrollBackward}"
+                    "scrollState.canScrollBackward: ${scrollState.canScrollBackward}",
                 )
                 pullToRefreshState.startRefresh()
             } else {
                 Log.w(
                     "HomeScreen",
-                    "scrollState.canScrollBackward: ${scrollState.canScrollBackward}"
+                    "scrollState.canScrollBackward: ${scrollState.canScrollBackward}",
                 )
                 launch { scrollState.scrollToItem(0, 0) }
                 sharedViewModel.homeRefreshDone()
@@ -150,17 +150,17 @@ fun HomeScreen(
         HomeTopAppBar(navController)
         Box(
             modifier =
-            Modifier
-                .nestedScroll(pullToRefreshState.nestedScrollConnection)
-                .padding(vertical = 8.dp),
+                Modifier
+                    .nestedScroll(pullToRefreshState.nestedScrollConnection)
+                    .padding(vertical = 8.dp),
             contentAlignment = Alignment.Center,
         ) {
             PullToRefreshContainer(
                 modifier =
-                Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = 15.dp)
-                    .graphicsLayer(scaleX = scaleFraction, scaleY = scaleFraction),
+                    Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 15.dp)
+                        .graphicsLayer(scaleX = scaleFraction, scaleY = scaleFraction),
                 state = pullToRefreshState,
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -171,7 +171,9 @@ fun HomeScreen(
                         state = scrollState,
                     ) {
                         item {
-                            androidx.compose.animation.AnimatedVisibility(visible = accountInfo != null && accountShow) {
+                            androidx.compose.animation.AnimatedVisibility(
+                                visible = accountInfo != null && accountShow,
+                            ) {
                                 AccountLayout(
                                     accountName = accountInfo?.first ?: "",
                                     url = accountInfo?.second ?: "",
@@ -181,21 +183,21 @@ fun HomeScreen(
                         item {
                             androidx.compose.animation.AnimatedVisibility(
                                 visible =
-                                homeData.find {
-                                    it.title ==
+                                    homeData.find {
+                                        it.title ==
                                             context.getString(
                                                 R.string.quick_picks,
                                             )
-                                } != null,
+                                    } != null,
                             ) {
                                 QuickPicks(
                                     homeItem =
-                                    homeData.find {
-                                        it.title ==
+                                        homeData.find {
+                                            it.title ==
                                                 context.getString(
                                                     R.string.quick_picks,
                                                 )
-                                    } ?: return@AnimatedVisibility,
+                                        } ?: return@AnimatedVisibility,
                                     navController = navController,
                                 )
                             }
@@ -211,7 +213,9 @@ fun HomeScreen(
                             }
                         }
                         items(newRelease) {
-                            androidx.compose.animation.AnimatedVisibility(visible = newRelease.isNotEmpty()) {
+                            androidx.compose.animation.AnimatedVisibility(
+                                visible = newRelease.isNotEmpty(),
+                            ) {
                                 HomeItem(
                                     homeViewModel = viewModel,
                                     sharedViewModel = sharedViewModel,
@@ -221,7 +225,9 @@ fun HomeScreen(
                             }
                         }
                         item {
-                            androidx.compose.animation.AnimatedVisibility(visible = moodMomentAndGenre != null) {
+                            androidx.compose.animation.AnimatedVisibility(
+                                visible = moodMomentAndGenre != null,
+                            ) {
                                 moodMomentAndGenre?.let {
                                     MoodMomentAndGenre(
                                         mood = it,
@@ -244,10 +250,10 @@ fun HomeScreen(
                                         DropdownButton(
                                             items = CHART_SUPPORTED_COUNTRY.itemsData.toList(),
                                             defaultSelected =
-                                            CHART_SUPPORTED_COUNTRY.itemsData.getOrNull(
-                                                CHART_SUPPORTED_COUNTRY.items.indexOf(it),
-                                            )
-                                                ?: CHART_SUPPORTED_COUNTRY.itemsData[1],
+                                                CHART_SUPPORTED_COUNTRY.itemsData.getOrNull(
+                                                    CHART_SUPPORTED_COUNTRY.items.indexOf(it),
+                                                )
+                                                    ?: CHART_SUPPORTED_COUNTRY.itemsData[1],
                                         ) {
                                             viewModel.exploreChart(
                                                 CHART_SUPPORTED_COUNTRY.items[
@@ -275,9 +281,9 @@ fun HomeScreen(
                                     } else {
                                         CenterLoadingBox(
                                             modifier =
-                                            Modifier
-                                                .fillMaxWidth()
-                                                .height(400.dp),
+                                                Modifier
+                                                    .fillMaxWidth()
+                                                    .height(400.dp),
                                         )
                                     }
                                 }
@@ -315,23 +321,23 @@ fun HomeTopAppBar(navController: NavController) {
                 )
                 Text(
                     text =
-                    when (hour) {
-                        in 6..12 -> {
-                            stringResource(R.string.good_morning)
-                        }
+                        when (hour) {
+                            in 6..12 -> {
+                                stringResource(R.string.good_morning)
+                            }
 
-                        in 13..17 -> {
-                            stringResource(R.string.good_afternoon)
-                        }
+                            in 13..17 -> {
+                                stringResource(R.string.good_afternoon)
+                            }
 
-                        in 18..23 -> {
-                            stringResource(R.string.good_evening)
-                        }
+                            in 18..23 -> {
+                                stringResource(R.string.good_evening)
+                            }
 
-                        else -> {
-                            stringResource(R.string.good_night)
-                        }
-                    },
+                            else -> {
+                                stringResource(R.string.good_night)
+                            }
+                        },
                     style = typo.bodySmall,
                 )
             }
@@ -341,10 +347,14 @@ fun HomeTopAppBar(navController: NavController) {
                 navController.navigateSafe(R.id.action_global_notificationFragment)
             }
             RippleIconButton(resId = R.drawable.baseline_history_24) {
-                navController.navigateSafe(R.id.action_bottom_navigation_item_home_to_recentlySongsFragment)
+                navController.navigateSafe(
+                    R.id.action_bottom_navigation_item_home_to_recentlySongsFragment,
+                )
             }
             RippleIconButton(resId = R.drawable.baseline_settings_24) {
-                navController.navigateSafe(R.id.action_bottom_navigation_item_home_to_settingsFragment)
+                navController.navigateSafe(
+                    R.id.action_bottom_navigation_item_home_to_settingsFragment,
+                )
             }
         },
     )
@@ -369,31 +379,31 @@ fun AccountLayout(
             CoilImage(
                 imageModel = { url },
                 imageOptions =
-                ImageOptions(
-                    contentScale = ContentScale.Crop,
-                    alignment = Alignment.Center,
-                ),
+                    ImageOptions(
+                        contentScale = ContentScale.Crop,
+                        alignment = Alignment.Center,
+                    ),
                 previewPlaceholder = painterResource(id = R.drawable.holder),
                 component =
-                rememberImageComponent {
-                    CrossfadePlugin(
-                        duration = 550,
-                    )
-                },
+                    rememberImageComponent {
+                        CrossfadePlugin(
+                            duration = 550,
+                        )
+                    },
                 modifier =
-                Modifier
-                    .size(40.dp)
-                    .clip(
-                        CircleShape,
-                    ),
+                    Modifier
+                        .size(40.dp)
+                        .clip(
+                            CircleShape,
+                        ),
             )
             Text(
                 text = accountName,
                 style = typo.headlineMedium,
                 color = Color.White,
                 modifier =
-                Modifier
-                    .padding(start = 8.dp),
+                    Modifier
+                        .padding(start = 8.dp),
             )
         }
     }
@@ -417,15 +427,19 @@ fun QuickPicks(
             style = typo.headlineMedium,
             maxLines = 1,
             modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(vertical = 5.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 5.dp),
         )
         LazyHorizontalGrid(rows = GridCells.Fixed(3), modifier = Modifier.height(210.dp)) {
             items(homeItem.contents) {
                 if (it != null) {
                     QuickPicksItem(onClick = {
-                        Queue.clear()
+                        Queue.initPlaylist(
+                            playlistId = "RDAMVM${it.videoId}",
+                            playlistName = "\"${it.title}\" Radio",
+                            playlistType = Queue.PlaylistType.RADIO,
+                        )
                         val firstQueue: Track = it.toTrack()
                         Queue.setNowPlaying(firstQueue)
                         val args = Bundle()
@@ -458,9 +472,9 @@ fun MoodMomentAndGenre(
             style = typo.headlineMedium,
             maxLines = 1,
             modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(vertical = 5.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 5.dp),
         )
         LazyHorizontalGrid(rows = GridCells.Fixed(3), modifier = Modifier.height(210.dp)) {
             items(mood.moodsMoments) {
@@ -479,9 +493,9 @@ fun MoodMomentAndGenre(
             style = typo.headlineMedium,
             maxLines = 1,
             modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(vertical = 5.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 5.dp),
         )
         LazyHorizontalGrid(rows = GridCells.Fixed(3), modifier = Modifier.height(210.dp)) {
             items(mood.genres) {
@@ -510,9 +524,9 @@ fun ChartTitle() {
             style = typo.headlineMedium,
             maxLines = 1,
             modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(vertical = 5.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 5.dp),
         )
     }
 }
@@ -535,9 +549,9 @@ fun ChartData(
                     style = typo.headlineMedium,
                     maxLines = 1,
                     modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 10.dp),
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 10.dp),
                 )
                 if (!chart.songs.isNullOrEmpty()) {
                     LazyHorizontalGrid(
@@ -547,7 +561,7 @@ fun ChartData(
                         items(chart.songs.size) {
                             val data = chart.songs[it]
                             ItemTrackChart(onClick = {
-                                Queue.clear()
+//                                Queue.clear()
                                 Queue.setNowPlaying(data)
                                 val args = Bundle()
                                 args.putString("videoId", data.videoId)
@@ -571,16 +585,16 @@ fun ChartData(
             style = typo.headlineMedium,
             maxLines = 1,
             modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(vertical = 10.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 10.dp),
         )
         LazyRow {
             items(chart.videos.items.size) {
                 val data = chart.videos.items[it]
                 ItemVideoChart(
                     onClick = {
-                        Queue.clear()
+//                        Queue.clear()
                         val firstQueue: Track = data.toTrack()
                         Queue.setNowPlaying(firstQueue)
                         val args = Bundle()
@@ -602,9 +616,9 @@ fun ChartData(
             style = typo.headlineMedium,
             maxLines = 1,
             modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(vertical = 10.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 10.dp),
         )
         LazyHorizontalGrid(rows = GridCells.Fixed(3), modifier = Modifier.height(240.dp)) {
             items(chart.artists.itemArtists.size) {
@@ -623,9 +637,9 @@ fun ChartData(
                     style = typo.headlineMedium,
                     maxLines = 1,
                     modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 10.dp),
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 10.dp),
                 )
                 if (!chart.trending.isNullOrEmpty()) {
                     LazyHorizontalGrid(
@@ -635,7 +649,7 @@ fun ChartData(
                         items(chart.trending.size) {
                             val data = chart.trending[it]
                             ItemTrackChart(onClick = {
-                                Queue.clear()
+//                                Queue.clear()
                                 Queue.setNowPlaying(data)
                                 val args = Bundle()
                                 args.putString("videoId", data.videoId)

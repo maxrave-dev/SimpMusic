@@ -4,6 +4,8 @@ import android.app.Application
 import android.graphics.drawable.GradientDrawable
 import android.util.Log
 import android.widget.Toast
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -12,6 +14,9 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.Download
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
+import com.maxrave.simpmusic.common.DownloadState.STATE_DOWNLOADED
+import com.maxrave.simpmusic.common.DownloadState.STATE_DOWNLOADING
+import com.maxrave.simpmusic.common.DownloadState.STATE_NOT_DOWNLOADED
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.SetVideoIdEntity
@@ -34,6 +39,7 @@ import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 import javax.inject.Inject
 
+@UnstableApi
 @HiltViewModel
 class LocalPlaylistViewModel
     @Inject
@@ -48,14 +54,23 @@ class LocalPlaylistViewModel
 
         var reverseLayout: Boolean = false
 
-        private var _listLocalPlaylist: MutableLiveData<LocalPlaylistEntity?> = MutableLiveData()
-        val localPlaylist: LiveData<LocalPlaylistEntity?> = _listLocalPlaylist
+        private var _listLocalPlaylist: MutableStateFlow<LocalPlaylistEntity?> =
+            MutableStateFlow(null)
+        val localPlaylist: StateFlow<LocalPlaylistEntity?> = _listLocalPlaylist
 
         private var _listTrack: MutableStateFlow<List<SongEntity>?> = MutableStateFlow(null)
         val listTrack: StateFlow<List<SongEntity>?> = _listTrack
 
-        private var _listPair: MutableStateFlow<List<PairSongLocalPlaylist>?> = MutableStateFlow(null)
+        private var _listPair: MutableStateFlow<List<PairSongLocalPlaylist>?> =
+            MutableStateFlow(null)
         val listPair: StateFlow<List<PairSongLocalPlaylist>?> = _listPair
+
+        private var _offset: MutableStateFlow<Int> = MutableStateFlow(0)
+        val offset: StateFlow<Int> = _offset
+
+        fun setOffset(offset: Int) {
+            _offset.value = offset
+        }
 
         var gradientDrawable: MutableLiveData<GradientDrawable> = MutableLiveData()
 
@@ -67,11 +82,133 @@ class LocalPlaylistViewModel
 
         var loading: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
-        private var _filter: MutableStateFlow<FilterState> = MutableStateFlow(FilterState.OlderFirst)
+        private val _loadingMore = MutableStateFlow<Boolean>(false)
+        val loadingMore: StateFlow<Boolean> get() = _loadingMore
+
+        private var _filter: MutableStateFlow<FilterState> =
+            MutableStateFlow(FilterState.OlderFirst)
         val filter: StateFlow<FilterState> = _filter
 
         fun setFilter(filterState: FilterState) {
             _filter.value = filterState
+        }
+
+        private var _brush: MutableStateFlow<Brush> =
+            MutableStateFlow(
+                Brush.verticalGradient(
+                    listOf(
+                        Color.Black,
+                        Color(
+                            application.resources.getColor(R.color.md_theme_dark_background, null),
+                        ),
+                    ),
+                ),
+            )
+        val brush: StateFlow<Brush> = _brush
+
+        fun setBrush(brush: Brush) {
+            Log.w("setBrush", "setBrush: $brush")
+            _brush.value = brush
+        }
+
+        fun resetBrush() {
+            Log.w("resetBrush", "resetBrush: ")
+            _brush.value =
+                Brush.verticalGradient(
+                    listOf(
+                        Color.Black,
+                        Color(
+                            application.resources.getColor(R.color.md_theme_dark_background, null),
+                        ),
+                    ),
+                )
+        }
+
+        init {
+            viewModelScope.launch {
+                val listSongJob =
+                    launch {
+                        listPair.collect {
+                            if (it != null) {
+                                setOffset(_offset.value + 1)
+                                if (listTrack.value.isNullOrEmpty()) {
+                                    mainRepository.getSongsByListVideoId(
+                                        it.map { pair -> pair.songId },
+                                    ).collect { list ->
+                                        _listTrack.value = list
+                                        _loadingMore.value = false
+                                        if (list.size < 50) {
+                                            setOffset(-1)
+                                        }
+                                    }
+                                } else {
+                                    val setPair = it.map { pair -> pair.songId }.toSet()
+                                    val setTrack =
+                                        listTrack.value?.map {
+                                                track ->
+                                            track.videoId
+                                        }?.toSet()
+                                    val listVideoId =
+                                        setPair.minus(
+                                            (setTrack ?: emptySet()).toSet(),
+                                        )
+                                    mainRepository.getSongsByListVideoId(
+                                        listVideoId.toList(),
+                                    ).collect { list ->
+                                        val temp = mutableListOf<SongEntity>()
+                                        temp.addAll(listTrack.value ?: emptyList())
+                                        temp.addAll(list)
+                                        _listTrack.value = temp
+                                        _loadingMore.value = false
+                                        if (list.size < 50) {
+                                            setOffset(-1)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                val checkDownloadedJob =
+                    launch {
+                        listTrack.collect {
+                            if (it != null) {
+                                val temp: ArrayList<SongEntity> = arrayListOf()
+                                var count = 0
+                                it.forEach { track ->
+                                    temp.add(track)
+                                    if (track.downloadState == DownloadState.STATE_DOWNLOADED) {
+                                        count++
+                                    }
+                                }
+                                localPlaylist.value?.id?.let {
+                                        id ->
+                                    getPairSongLocalPlaylist(id)
+                                    if (count == it.size &&
+                                        localPlaylist.value?.downloadState != STATE_DOWNLOADED
+                                    ) {
+                                        updatePlaylistDownloadState(
+                                            id,
+                                            DownloadState.STATE_DOWNLOADED,
+                                        )
+                                        getLocalPlaylist(id)
+                                    } else if (
+                                        count != it.size &&
+                                        localPlaylist.value?.downloadState != STATE_NOT_DOWNLOADED &&
+                                        localPlaylist.value?.downloadState != STATE_DOWNLOADING
+                                    ) {
+                                        updatePlaylistDownloadState(
+                                            id,
+                                            STATE_NOT_DOWNLOADED,
+                                        )
+                                        getLocalPlaylist(id)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                listSongJob.join()
+                checkDownloadedJob.join()
+            }
         }
 
         fun getSuggestions(ytPlaylistId: String) {
@@ -115,37 +252,81 @@ class LocalPlaylistViewModel
         fun getLocalPlaylist(id: Long) {
             viewModelScope.launch {
                 mainRepository.getLocalPlaylist(id).collect {
-                    _listLocalPlaylist.postValue(it)
+                    _listLocalPlaylist.emit(it)
                 }
             }
         }
 
-        fun getListTrack(list: List<String>) {
+        fun getListTrack(
+            playlistId: Long,
+            offset: Int,
+            filterState: FilterState,
+        ) {
             viewModelScope.launch {
-                mainRepository.getSongsByListVideoId(list).collect {
-                    val temp: ArrayList<SongEntity> = arrayListOf()
-                    var count = 0
-                    it.forEach { track ->
-                        temp.add(track)
-                        if (track.downloadState == DownloadState.STATE_DOWNLOADED) {
-                            count++
+                _loadingMore.value = true
+                val pairJob =
+                    launch {
+                        mainRepository.getPlaylistPairSongByOffset(
+                            playlistId,
+                            offset,
+                            filterState,
+                        ).collect { listPairPlaylist ->
+                            if (listPairPlaylist != null) {
+                                if (_listPair.value == null || offset == 0) {
+                                    _listPair.value = listPairPlaylist
+                                } else {
+                                    val temp: ArrayList<PairSongLocalPlaylist> = arrayListOf()
+                                    temp.addAll(_listPair.value ?: emptyList())
+                                    temp.addAll(listPairPlaylist)
+                                    _listPair.value = temp
+                                }
+                            }
                         }
                     }
-                    _listTrack.value = (temp)
-                    getPairSongLocalPlaylist(id.value!!)
-                    if (count == it.size && localPlaylist.value?.downloadState != DownloadState.STATE_DOWNLOADED) {
-                        updatePlaylistDownloadState(id.value!!, DownloadState.STATE_DOWNLOADED)
-                        getLocalPlaylist(id.value!!)
-                    } else if (count != it.size && localPlaylist.value?.downloadState != DownloadState.STATE_NOT_DOWNLOADED && localPlaylist.value?.downloadState != DownloadState.STATE_DOWNLOADING) {
-                        updatePlaylistDownloadState(id.value!!, DownloadState.STATE_NOT_DOWNLOADED)
-                        getLocalPlaylist(id.value!!)
-                    }
-                }
+                pairJob.join()
+//                mainRepository.getSongsByListVideoIdOffset(list, offset).collect {
+//                    val temp: ArrayList<SongEntity> = arrayListOf()
+//                    var count = 0
+//                    it.forEach { track ->
+//                        temp.add(track)
+//                        if (track.downloadState == DownloadState.STATE_DOWNLOADED) {
+//                            count++
+//                        }
+//                    }
+//                    if (_listTrack.value == null) {
+//                        _listTrack.value = (temp)
+//                    } else {
+//                        val temp2: ArrayList<SongEntity> = arrayListOf()
+//                        temp2.addAll(_listTrack.value!!)
+//                        temp2.addAll(temp)
+//                        _listTrack.value = temp2
+//                    }
+//                    localPlaylist.value?.id?.let {
+//                            id ->
+//                        getPairSongLocalPlaylist(id)
+//                        if (count == it.size &&
+//                            localPlaylist.value?.downloadState != DownloadState.STATE_DOWNLOADED
+//                        ) {
+//                            updatePlaylistDownloadState(id, DownloadState.STATE_DOWNLOADED)
+//                            getLocalPlaylist(id)
+//                        } else if (
+//                            count != it.size &&
+//                            localPlaylist.value?.downloadState != DownloadState.STATE_NOT_DOWNLOADED &&
+//                            localPlaylist.value?.downloadState != DownloadState.STATE_DOWNLOADING
+//                        ) {
+//                            updatePlaylistDownloadState(
+//                                id,
+//                                DownloadState.STATE_NOT_DOWNLOADED,
+//                            )
+//                            getLocalPlaylist(id)
+//                        }
+//                    }
+//                }
             }
         }
 
         val playlistDownloadState: MutableStateFlow<Int> =
-            MutableStateFlow(DownloadState.STATE_NOT_DOWNLOADED)
+            MutableStateFlow(STATE_NOT_DOWNLOADED)
 
         fun updatePlaylistDownloadState(
             id: Long,
@@ -223,10 +404,10 @@ class LocalPlaylistViewModel
 
                             Download.STATE_FAILED -> {
                                 mainRepository.getSongById(videoId).collect { song ->
-                                    if (song?.downloadState != DownloadState.STATE_NOT_DOWNLOADED) {
+                                    if (song?.downloadState != STATE_NOT_DOWNLOADED) {
                                         mainRepository.updateDownloadState(
                                             videoId,
-                                            DownloadState.STATE_NOT_DOWNLOADED,
+                                            STATE_NOT_DOWNLOADED,
                                         )
                                     }
                                 }
@@ -379,10 +560,10 @@ class LocalPlaylistViewModel
                             DownloadState.STATE_DOWNLOADING
                         } else {
                             mainRepository.updateLocalPlaylistDownloadState(
-                                DownloadState.STATE_NOT_DOWNLOADED,
+                                STATE_NOT_DOWNLOADED,
                                 id,
                             )
-                            DownloadState.STATE_NOT_DOWNLOADED
+                            STATE_NOT_DOWNLOADED
                         }
                 }
             }
@@ -449,7 +630,7 @@ class LocalPlaylistViewModel
                                     LocalPlaylistEntity.YouTubeSyncState.Synced,
                                 )
                                 mainRepository.getLocalPlaylist(playlist.id).collect { last ->
-                                    _listLocalPlaylist.postValue(last)
+                                    _listLocalPlaylist.emit(last)
                                     Toast.makeText(
                                         application,
                                         application.getString(R.string.synced),
@@ -479,7 +660,7 @@ class LocalPlaylistViewModel
                 )
                 mainRepository.getLocalPlaylist(playlist.id).collect { last ->
                     if (last.syncedWithYouTubePlaylist == 0) {
-                        _listLocalPlaylist.postValue(last)
+                        _listLocalPlaylist.emit(last)
                         Toast.makeText(
                             application,
                             application.getString(R.string.unsynced),
@@ -561,7 +742,9 @@ class LocalPlaylistViewModel
                                                 if (status == "STATUS_SUCCEEDED") {
                                                     Toast.makeText(
                                                         application,
-                                                        application.getString(R.string.added_to_youtube_playlist),
+                                                        application.getString(
+                                                            R.string.added_to_youtube_playlist,
+                                                        ),
                                                         Toast.LENGTH_SHORT,
                                                     ).show()
                                                 } else {
@@ -585,7 +768,7 @@ class LocalPlaylistViewModel
                                 LocalPlaylistEntity.YouTubeSyncState.Synced,
                             )
                             mainRepository.getLocalPlaylist(id).collect { last ->
-                                _listLocalPlaylist.postValue(last)
+                                _listLocalPlaylist.emit(last)
                             }
                         }
                     }
@@ -609,7 +792,8 @@ class LocalPlaylistViewModel
                     localPlaylistId,
                     LocalPlaylistEntity.YouTubeSyncState.Syncing,
                 )
-                mainRepository.addYouTubePlaylistItem(youtubePlaylistId, videoId).collect { response ->
+                mainRepository.addYouTubePlaylistItem(youtubePlaylistId, videoId).collect {
+                        response ->
                     if (response == "STATUS_SUCCEEDED") {
                         mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(
                             localPlaylistId,
@@ -660,7 +844,7 @@ class LocalPlaylistViewModel
                         )
                     } else {
                         mainRepository.updateLocalPlaylistDownloadState(
-                            DownloadState.STATE_NOT_DOWNLOADED,
+                            STATE_NOT_DOWNLOADED,
                             id,
                         )
                     }
@@ -722,6 +906,10 @@ class LocalPlaylistViewModel
                     _listAllLocalPlaylist.postValue(values)
                 }
             }
+        }
+
+        fun clearListPair() {
+            _listPair.value = null
         }
     }
 

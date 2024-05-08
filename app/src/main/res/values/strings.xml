@@ -333,4 +333,5 @@
     <string name="day_s_ago">%1$d day(s) ago</string>
     <string name="hour_s_ago">%1$d hour(s) ago</string>
     <string name="no_notification">No notification</string>
+    <string name="created_at">Created at %1$s</string>
 </resources>

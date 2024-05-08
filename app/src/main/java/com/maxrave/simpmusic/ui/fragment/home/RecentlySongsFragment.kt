@@ -97,7 +97,7 @@ class RecentlySongsFragment: Fragment() {
                 if (type == Config.SONG_CLICK){
                     val songClicked = mainAdapter.getItemByIndex(position) as SongEntity
                     val videoId = songClicked.videoId
-                    Queue.clear()
+                    Queue.initPlaylist("RDAMVM$videoId", getString(R.string.recently_added), Queue.PlaylistType.RADIO)
                     val firstQueue: Track = songClicked.toTrack()
                     Queue.setNowPlaying(firstQueue)
                     val args = Bundle()

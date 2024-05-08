@@ -103,7 +103,11 @@ class MostPlayedFragment: Fragment() {
                 if (type == Config.SONG_CLICK){
                     val songClicked = mostPlayedAdapter.getCurrentList()[position] as SongEntity
                     val videoId = (mostPlayedAdapter.getCurrentList()[position] as SongEntity).videoId
-                    Queue.clear()
+                    Queue.initPlaylist(
+                        "RDAMVM$videoId",
+                        getString(R.string.most_played),
+                        Queue.PlaylistType.RADIO
+                    )
                     val firstQueue: Track = songClicked.toTrack()
                     Queue.setNowPlaying(firstQueue)
                     val args = Bundle()
