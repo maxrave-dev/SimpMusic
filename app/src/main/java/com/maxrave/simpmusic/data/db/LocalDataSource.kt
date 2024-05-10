@@ -30,8 +30,7 @@ class LocalDataSource
 
         suspend fun deleteSearchHistory() = databaseDao.deleteSearchHistory()
 
-        suspend fun insertSearchHistory(searchHistory: SearchHistory) =
-            databaseDao.insertSearchHistory(searchHistory)
+        suspend fun insertSearchHistory(searchHistory: SearchHistory) = databaseDao.insertSearchHistory(searchHistory)
 
         suspend fun getAllSongs() = databaseDao.getAllSongs()
 
@@ -45,8 +44,7 @@ class LocalDataSource
             offset: Int,
         ) = databaseDao.getSongByListVideoId(primaryKeyList, offset)
 
-        suspend fun getSongByListVideoIdFull(primaryKeyList: List<String>) =
-            databaseDao.getSongByListVideoIdFull(primaryKeyList)
+        suspend fun getSongByListVideoIdFull(primaryKeyList: List<String>) = databaseDao.getSongByListVideoIdFull(primaryKeyList)
 
         suspend fun getDownloadedSongs() = databaseDao.getDownloadedSongs()
 
@@ -59,6 +57,8 @@ class LocalDataSource
         suspend fun getLibrarySongs() = databaseDao.getLibrarySongs()
 
         suspend fun getSong(videoId: String) = databaseDao.getSong(videoId)
+
+        fun getSongAsFlow(videoId: String) = databaseDao.getSongAsFlow(videoId)
 
         suspend fun insertSong(song: SongEntity) = databaseDao.insertSong(song)
 
@@ -131,8 +131,7 @@ class LocalDataSource
 
         suspend fun insertPlaylist(playlist: PlaylistEntity) = databaseDao.insertPlaylist(playlist)
 
-        suspend fun insertRadioPlaylist(playlist: PlaylistEntity) =
-            databaseDao.insertRadioPlaylist(playlist)
+        suspend fun insertRadioPlaylist(playlist: PlaylistEntity) = databaseDao.insertRadioPlaylist(playlist)
 
         suspend fun updatePlaylistLiked(
             liked: Int,
@@ -157,8 +156,7 @@ class LocalDataSource
 
         suspend fun getLocalPlaylist(id: Long) = databaseDao.getLocalPlaylist(id)
 
-        suspend fun insertLocalPlaylist(localPlaylist: LocalPlaylistEntity) =
-            databaseDao.insertLocalPlaylist(localPlaylist)
+        suspend fun insertLocalPlaylist(localPlaylist: LocalPlaylistEntity) = databaseDao.insertLocalPlaylist(localPlaylist)
 
         suspend fun deleteLocalPlaylist(id: Long) = databaseDao.deleteLocalPlaylist(id)
 
@@ -224,19 +222,16 @@ class LocalDataSource
 
         suspend fun deleteQueue() = databaseDao.deleteQueue()
 
-        suspend fun getLocalPlaylistByYoutubePlaylistId(playlistId: String) =
-            databaseDao.getLocalPlaylistByYoutubePlaylistId(playlistId)
+        suspend fun getLocalPlaylistByYoutubePlaylistId(playlistId: String) = databaseDao.getLocalPlaylistByYoutubePlaylistId(playlistId)
 
-        suspend fun insertSetVideoId(setVideoIdEntity: SetVideoIdEntity) =
-            databaseDao.insertSetVideoId(setVideoIdEntity)
+        suspend fun insertSetVideoId(setVideoIdEntity: SetVideoIdEntity) = databaseDao.insertSetVideoId(setVideoIdEntity)
 
         suspend fun getSetVideoId(videoId: String) = databaseDao.getSetVideoId(videoId)
 
         suspend fun insertPairSongLocalPlaylist(pairSongLocalPlaylist: PairSongLocalPlaylist) =
             databaseDao.insertPairSongLocalPlaylist(pairSongLocalPlaylist)
 
-        suspend fun getPlaylistPairSong(playlistId: Long) =
-            databaseDao.getPlaylistPairSong(playlistId)
+        suspend fun getPlaylistPairSong(playlistId: Long) = databaseDao.getPlaylistPairSong(playlistId)
 
         suspend fun getPlaylistPairSongByOffset(
             playlistId: Long,
@@ -245,10 +240,10 @@ class LocalDataSource
         ) = if (filterState == FilterState.OlderFirst) {
             databaseDao.getPlaylistPairSongByOffsetAsc(
                 playlistId,
-                offset,
+                offset * 50,
             )
         } else {
-            databaseDao.getPlaylistPairSongByOffsetDesc(playlistId, offset)
+            databaseDao.getPlaylistPairSongByOffsetDesc(playlistId, offset * 50)
         }
 
         suspend fun deletePairSongLocalPlaylist(
@@ -258,8 +253,7 @@ class LocalDataSource
 
         suspend fun getGoogleAccounts() = databaseDao.getAllGoogleAccount()
 
-        suspend fun insertGoogleAccount(googleAccountEntity: GoogleAccountEntity) =
-            databaseDao.insertGoogleAccount(googleAccountEntity)
+        suspend fun insertGoogleAccount(googleAccountEntity: GoogleAccountEntity) = databaseDao.insertGoogleAccount(googleAccountEntity)
 
         suspend fun getUsedGoogleAccount() = databaseDao.getUsedGoogleAccount()
 
@@ -275,21 +269,16 @@ class LocalDataSource
             inLibrary: LocalDateTime,
         ) = databaseDao.setInLibrary(videoId, inLibrary)
 
-        suspend fun insertFollowedArtistSingleAndAlbum(
-            followedArtistSingleAndAlbum: FollowedArtistSingleAndAlbum,
-        ) = databaseDao.insertFollowedArtistSingleAndAlbum(followedArtistSingleAndAlbum)
+        suspend fun insertFollowedArtistSingleAndAlbum(followedArtistSingleAndAlbum: FollowedArtistSingleAndAlbum) =
+            databaseDao.insertFollowedArtistSingleAndAlbum(followedArtistSingleAndAlbum)
 
-        suspend fun deleteFollowedArtistSingleAndAlbum(channelId: String) =
-            databaseDao.deleteFollowedArtistSingleAndAlbum(channelId)
+        suspend fun deleteFollowedArtistSingleAndAlbum(channelId: String) = databaseDao.deleteFollowedArtistSingleAndAlbum(channelId)
 
-        suspend fun getFollowedArtistSingleAndAlbum(channelId: String) =
-            databaseDao.getFollowedArtistSingleAndAlbum(channelId)
+        suspend fun getFollowedArtistSingleAndAlbum(channelId: String) = databaseDao.getFollowedArtistSingleAndAlbum(channelId)
 
-        suspend fun getAllFollowedArtistSingleAndAlbums() =
-            databaseDao.getAllFollowedArtistSingleAndAlbum()
+        suspend fun getAllFollowedArtistSingleAndAlbums() = databaseDao.getAllFollowedArtistSingleAndAlbum()
 
-        suspend fun insertNotification(notificationEntity: NotificationEntity) =
-            databaseDao.insertNotification(notificationEntity)
+        suspend fun insertNotification(notificationEntity: NotificationEntity) = databaseDao.insertNotification(notificationEntity)
 
         suspend fun getAllNotification() = databaseDao.getAllNotification()
 

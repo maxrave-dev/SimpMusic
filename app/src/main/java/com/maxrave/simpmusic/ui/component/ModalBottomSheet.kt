@@ -267,18 +267,22 @@ fun NowPlayingBottomSheet(
                                             painterResource(
                                                 R.drawable.outline_download_for_offline_24,
                                             )
+
                                         DownloadState.STATE_DOWNLOADING ->
                                             painterResource(
                                                 R.drawable.baseline_downloading_white,
                                             )
+
                                         DownloadState.STATE_DOWNLOADED ->
                                             painterResource(
                                                 R.drawable.baseline_downloaded,
                                             )
+
                                         DownloadState.STATE_PREPARING ->
                                             painterResource(
                                                 R.drawable.baseline_downloading_white,
                                             )
+
                                         else ->
                                             painterResource(
                                                 R.drawable.outline_download_for_offline_24,
@@ -480,7 +484,7 @@ fun CheckBoxActionButton(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(horizontal = 20.dp).fillMaxWidth(),
         ) {
-            Box(Modifier.padding(12.dp)) {
+            Box(Modifier.padding(10.dp)) {
                 HeartCheckBox(checked = stateChecked, size = 30)
             }
             Text(

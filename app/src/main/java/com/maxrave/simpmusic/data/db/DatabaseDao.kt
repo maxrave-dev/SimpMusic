@@ -134,6 +134,9 @@ interface DatabaseDao {
     @Query("SELECT * FROM song WHERE videoId = :videoId")
     suspend fun getSong(videoId: String): SongEntity?
 
+    @Query("SELECT * FROM song WHERE videoId = :videoId")
+    fun getSongAsFlow(videoId: String): Flow<SongEntity?>
+
     @Query("UPDATE song SET totalPlayTime = totalPlayTime + 1 WHERE videoId = :videoId")
     suspend fun updateTotalPlayTime(videoId: String)
 
@@ -450,9 +453,7 @@ interface DatabaseDao {
     )
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertFollowedArtistSingleAndAlbum(
-        followedArtistSingleAndAlbum: FollowedArtistSingleAndAlbum,
-    )
+    suspend fun insertFollowedArtistSingleAndAlbum(followedArtistSingleAndAlbum: FollowedArtistSingleAndAlbum)
 
     @Query("SELECT * FROM followed_artist_single_and_album WHERE channelId = :channelId")
     suspend fun getFollowedArtistSingleAndAlbum(channelId: String): FollowedArtistSingleAndAlbum?

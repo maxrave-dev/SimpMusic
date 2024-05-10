@@ -1,13 +1,16 @@
 package com.maxrave.simpmusic.ui.theme
 
+import android.content.res.Configuration
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Button
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.tooling.preview.Preview
 
 
@@ -59,7 +62,12 @@ fun AppTheme(
 
     MaterialTheme(
         colorScheme = DarkColors,
-        content = content,
+        content = {
+            CompositionLocalProvider(
+                LocalContentColor provides DarkColors.onSurfaceVariant, // replace this with needed color from your pallete
+                content
+                )
+        },
         typography = typo
     )
 }
@@ -71,7 +79,7 @@ fun supportsDynamic(): Boolean = if (Build.VERSION.SDK_INT >= Build.VERSION_CODE
 @Preview(
     showBackground = true,
     showSystemUi = true,
-    backgroundColor = 0xFFFFFFFF,
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
     name = "Light Mode"
 )
 fun AppThemePreview() {

@@ -74,6 +74,7 @@ import com.skydoves.landscapist.coil.CoilImage
 import com.skydoves.landscapist.components.rememberImageComponent
 import com.skydoves.landscapist.palette.PalettePlugin
 import com.skydoves.landscapist.palette.rememberPaletteState
+import com.skydoves.landscapist.placeholder.placeholder.PlaceholderPlugin
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -311,6 +312,8 @@ fun MiniPlayer(
                                             palette = it
                                         },
                                     )
+                                    +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder))
+                                    +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder))
                                 },
                             modifier =
                                 Modifier
@@ -329,8 +332,7 @@ fun MiniPlayer(
                                     // If the target number is larger, it slides up and fades in
                                     // while the initial (smaller) number slides up and fades out.
                                     (
-                                        slideInHorizontally {
-                                                width ->
+                                        slideInHorizontally { width ->
                                             width
                                         } + fadeIn()
                                     ).togetherWith(
@@ -340,8 +342,7 @@ fun MiniPlayer(
                                     // If the target number is smaller, it slides down and fades in
                                     // while the initial number slides down and fades out.
                                     (
-                                        slideInHorizontally {
-                                                width ->
+                                        slideInHorizontally { width ->
                                             +width
                                         } + fadeIn()
                                     ).togetherWith(

@@ -366,6 +366,7 @@ class NowPlayingFragment : Fragment() {
                     }
                 }
             }
+
             SHARE -> {
                 viewModel.playlistId.value = null
                 viewModel.stopPlayer()
@@ -713,6 +714,7 @@ class NowPlayingFragment : Fragment() {
                                             getString(
                                                 R.string.line_synced,
                                             )
+
                                         Config.SyncState.UNSYNCED -> getString(R.string.unsynced)
                                     }
 //                                viewModel._lyrics.value?.data?.let {
@@ -851,15 +853,13 @@ class NowPlayingFragment : Fragment() {
                     }
                 val job11 =
                     launch {
-                        viewModel.simpleMediaServiceHandler?.previousTrackAvailable?.collect {
-                                available ->
+                        viewModel.simpleMediaServiceHandler?.previousTrackAvailable?.collect { available ->
                             setEnabledAll(binding.btPrevious, available)
                         }
                     }
                 val job12 =
                     launch {
-                        viewModel.simpleMediaServiceHandler?.nextTrackAvailable?.collect {
-                                available ->
+                        viewModel.simpleMediaServiceHandler?.nextTrackAvailable?.collect { available ->
                             setEnabledAll(binding.btNext, available)
                         }
                     }
@@ -1678,11 +1678,17 @@ class NowPlayingFragment : Fragment() {
                                         adapter = addToAPlaylistAdapter
                                         layoutManager = LinearLayoutManager(requireContext())
                                     }
-                                    viewModel.localPlaylist.observe(viewLifecycleOwner) { list ->
-                                        Log.d("Check Local Playlist", list.toString())
-                                        listLocalPlaylist.clear()
-                                        listLocalPlaylist.addAll(list)
-                                        addToAPlaylistAdapter.updateList(listLocalPlaylist)
+                                    lifecycleScope.launch {
+                                        repeatOnLifecycle(Lifecycle.State.CREATED) {
+                                            launch {
+                                                viewModel.localPlaylist.collect { list ->
+                                                    Log.d("Check Local Playlist", list.toString())
+                                                    listLocalPlaylist.clear()
+                                                    listLocalPlaylist.addAll(list)
+                                                    addToAPlaylistAdapter.updateList(listLocalPlaylist)
+                                                }
+                                            }.join()
+                                        }
                                     }
                                     addToAPlaylistAdapter.setOnItemClickListener(
                                         object :

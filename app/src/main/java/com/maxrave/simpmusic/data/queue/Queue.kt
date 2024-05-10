@@ -98,4 +98,6 @@ object Queue {
     const val LOCAL_PLAYLIST_ID_DOWNLOADED = "LOCAL_PLAYLIST_ID_DOWNLOADED"
     const val LOCAL_PLAYLIST_ID_LIKED = "LOCAL_PLAYLIST_ID_LIKED"
     const val LOCAL_PLAYLIST_ID = "LOCAL_PLAYLIST_ID"
+    const val ASC = "ASC"
+    const val DESC = "DESC"
 }

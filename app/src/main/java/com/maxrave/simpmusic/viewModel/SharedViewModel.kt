@@ -56,10 +56,13 @@ import com.maxrave.simpmusic.data.model.metadata.Line
 import com.maxrave.simpmusic.data.model.metadata.Lyrics
 import com.maxrave.simpmusic.data.model.metadata.MetadataSong
 import com.maxrave.simpmusic.data.queue.Queue
+import com.maxrave.simpmusic.data.queue.Queue.ASC
+import com.maxrave.simpmusic.data.queue.Queue.DESC
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.di.DownloadCache
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.getScreenSize
+import com.maxrave.simpmusic.extension.toArrayListTrack
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toLyrics
 import com.maxrave.simpmusic.extension.toLyricsEntity
@@ -84,6 +87,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.single
+import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -517,17 +522,52 @@ class SharedViewModel
             val continuation = playlistId?.let { Queue.getContinuation(it) }
             Log.w("Check loadMore", continuation.toString())
             if (continuation != null) {
-                viewModelScope.launch {
-                    loadingMore.value = true
-                    Log.w("Check loadMore continuation", continuation.toString())
-                    mainRepository.getContinueTrack(playlistId, continuation)
-                        .collect { response ->
-                            if (response != null) {
-                                Log.w("Check loadMore response", response.toString())
-                                simpleMediaServiceHandler?.loadMoreCatalog(response)
+                if (playlistId.startsWith(Queue.LOCAL_PLAYLIST_ID)) {
+                    viewModelScope.launch {
+                        loadingMore.value = true
+                        val longId = playlistId.replace(Queue.LOCAL_PLAYLIST_ID, "").toLong()
+                        Log.w("Check loadMore", longId.toString())
+                        val filter = if (continuation.startsWith(ASC)) FilterState.OlderFirst else FilterState.NewerFirst
+                        val offset =
+                            if (filter == FilterState.OlderFirst) {
+                                continuation.removePrefix(
+                                    ASC,
+                                ).toInt()
+                            } else {
+                                continuation.removePrefix(DESC).toInt()
                             }
-                            loadingMore.value = false
+                        mainRepository.getPlaylistPairSongByOffset(
+                            longId,
+                            offset,
+                            filter,
+                        ).singleOrNull()?.let { pair ->
+                            Log.w("Check loadMore response", pair.size.toString())
+                            mainRepository.getSongsByListVideoId(pair.map { it.songId }).single().let { songs ->
+                                if (songs.isNotEmpty()) {
+                                    delay(300)
+                                    simpleMediaServiceHandler?.loadMoreCatalog(songs.toArrayListTrack())
+                                    Queue.setContinuation(
+                                        playlistId,
+                                        if (filter == FilterState.OlderFirst) ASC + (offset + 1) else DESC + (offset + 1).toString(),
+                                    )
+                                }
+                                loadingMore.value = false
+                            }
                         }
+                    }
+                } else {
+                    viewModelScope.launch {
+                        loadingMore.value = true
+                        Log.w("Check loadMore continuation", continuation.toString())
+                        mainRepository.getContinueTrack(playlistId, continuation)
+                            .collect { response ->
+                                if (response != null) {
+                                    Log.w("Check loadMore response", response.toString())
+                                    simpleMediaServiceHandler?.loadMoreCatalog(response)
+                                }
+                                loadingMore.value = false
+                            }
+                    }
                 }
             }
         }
@@ -784,8 +824,7 @@ class SharedViewModel
                         parseLyrics(lyricsData)
                     } else {
                         resetLyrics()
-                        mainRepository.getLyricsData(query, track.durationSeconds).collect {
-                                response ->
+                        mainRepository.getLyricsData(query, track.durationSeconds).collect { response ->
                             _lyrics.value = response.second
                             when (_lyrics.value) {
                                 is Resource.Success -> {
@@ -1008,16 +1047,19 @@ class SharedViewModel
                         simpleMediaServiceHandler?.onPlayerEvent(
                             PlayerEvent.Backward,
                         )
+
                     UIEvent.Forward -> simpleMediaServiceHandler?.onPlayerEvent(PlayerEvent.Forward)
                     UIEvent.PlayPause ->
                         simpleMediaServiceHandler?.onPlayerEvent(
                             PlayerEvent.PlayPause,
                         )
+
                     UIEvent.Next -> simpleMediaServiceHandler?.onPlayerEvent(PlayerEvent.Next)
                     UIEvent.Previous ->
                         simpleMediaServiceHandler?.onPlayerEvent(
                             PlayerEvent.Previous,
                         )
+
                     UIEvent.Stop -> simpleMediaServiceHandler?.onPlayerEvent(PlayerEvent.Stop)
                     is UIEvent.UpdateProgress -> {
                         _progress.value = uiEvent.newProgress
@@ -1048,14 +1090,14 @@ class SharedViewModel
             _progressString.value = formatDuration(currentProgress)
         }
 
-        private var _listLocalPlaylist: MutableLiveData<List<LocalPlaylistEntity>> =
-            MutableLiveData()
-        val localPlaylist: LiveData<List<LocalPlaylistEntity>> = _listLocalPlaylist
+        private var _listLocalPlaylist: MutableStateFlow<List<LocalPlaylistEntity>> =
+            MutableStateFlow(listOf())
+        val localPlaylist: StateFlow<List<LocalPlaylistEntity>> = _listLocalPlaylist
 
         fun getAllLocalPlaylist() {
             viewModelScope.launch {
                 mainRepository.getAllLocalPlaylists().collect { values ->
-                    _listLocalPlaylist.postValue(values)
+                    _listLocalPlaylist.emit(values)
                 }
             }
         }
@@ -1443,8 +1485,7 @@ class SharedViewModel
                     localPlaylistId,
                     LocalPlaylistEntity.YouTubeSyncState.Syncing,
                 )
-                mainRepository.addYouTubePlaylistItem(youtubePlaylistId, videoId).collect {
-                        response ->
+                mainRepository.addYouTubePlaylistItem(youtubePlaylistId, videoId).collect { response ->
                     if (response == "STATUS_SUCCEEDED") {
                         mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(
                             localPlaylistId,

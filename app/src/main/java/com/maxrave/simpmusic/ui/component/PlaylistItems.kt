@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -51,7 +52,8 @@ fun PlaylistItems(
     track: Track? = null,
     songEntity: SongEntity? = null,
     isPlaying: Boolean,
-    onClickListener: (() -> Unit)? = null,
+    onMoreClickListener: ((videoId: String) -> Unit)? = null,
+    onClickListener: ((videoId: String) -> Unit)? = null,
 ) {
     val composition by rememberLottieComposition(
         LottieCompositionSpec.RawRes(R.raw.audio_playing_animation),
@@ -59,7 +61,9 @@ fun PlaylistItems(
     Box(
         modifier =
             Modifier.clickable(
-                onClick = onClickListener ?: {},
+                onClick = {
+                    onClickListener?.invoke(track?.videoId ?: songEntity?.videoId ?: "")
+                },
                 indication = ripple(),
                 interactionSource =
                     remember {
@@ -69,7 +73,7 @@ fun PlaylistItems(
     ) {
         Row(
             Modifier
-                .padding(10.dp)
+                .padding(vertical = 10.dp, horizontal = 15.dp)
                 .fillMaxWidth(),
         ) {
             Spacer(modifier = Modifier.width(10.dp))
@@ -96,8 +100,7 @@ fun PlaylistItems(
                                 },
                             modifier =
                                 Modifier
-                                    .wrapContentHeight()
-                                    .fillMaxWidth(),
+                                    .fillMaxSize(),
                         )
                     }
                 }
@@ -129,12 +132,15 @@ fun PlaylistItems(
                                 false
                             },
                     ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.download_for_offline_white),
-                            contentDescription = "",
-                            modifier = Modifier.size(20.dp),
-                        )
-                        Spacer(modifier = Modifier.width(10.dp))
+                        Row {
+                            Icon(
+                                painter = painterResource(id = R.drawable.download_for_offline_white),
+                                tint = Color.White,
+                                contentDescription = "",
+                                modifier = Modifier.size(20.dp).padding(2.dp),
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                        }
                     }
                     Text(
                         text =
@@ -155,6 +161,8 @@ fun PlaylistItems(
                 }
             }
             RippleIconButton(resId = R.drawable.baseline_more_vert_24, fillMaxSize = false) {
+                val videoId = track?.videoId ?: songEntity?.videoId
+                videoId?.let { onMoreClickListener?.invoke(it) }
             }
         }
     }

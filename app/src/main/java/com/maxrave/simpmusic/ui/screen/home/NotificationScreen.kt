@@ -57,6 +57,7 @@ import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.animation.crossfade.CrossfadePlugin
 import com.skydoves.landscapist.coil.CoilImage
 import com.skydoves.landscapist.components.rememberImageComponent
+import com.skydoves.landscapist.placeholder.placeholder.PlaceholderPlugin
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -158,9 +159,11 @@ fun NotificationItem(
                     previewPlaceholder = painterResource(id = R.drawable.holder),
                     component =
                         rememberImageComponent {
-                            CrossfadePlugin(
+                            +CrossfadePlugin(
                                 duration = 550,
                             )
+                            +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder))
+                            +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder))
                         },
                     modifier =
                         Modifier
@@ -254,9 +257,11 @@ fun ItemAlbumNotification(
                 previewPlaceholder = painterResource(id = R.drawable.holder),
                 component =
                     rememberImageComponent {
-                        CrossfadePlugin(
+                        +CrossfadePlugin(
                             duration = 550,
                         )
+                        +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder))
+                        +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder))
                     },
                 modifier =
                     Modifier

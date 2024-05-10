@@ -149,13 +149,11 @@ class MainRepository
                 emit(localDataSource.getSongByListVideoId(listVideoId, offset))
             }.flowOn(Dispatchers.IO)
 
-        suspend fun getDownloadedSongs(): Flow<List<SongEntity>?> =
-            flow { emit(localDataSource.getDownloadedSongs()) }.flowOn(Dispatchers.IO)
+        suspend fun getDownloadedSongs(): Flow<List<SongEntity>?> = flow { emit(localDataSource.getDownloadedSongs()) }.flowOn(Dispatchers.IO)
 
         suspend fun getDownloadedSongsAsFlow() = localDataSource.getDownloadedSongsAsFlow()
 
-        suspend fun getDownloadingSongs(): Flow<List<SongEntity>?> =
-            flow { emit(localDataSource.getDownloadingSongs()) }.flowOn(Dispatchers.IO)
+        suspend fun getDownloadingSongs(): Flow<List<SongEntity>?> = flow { emit(localDataSource.getDownloadingSongs()) }.flowOn(Dispatchers.IO)
 
         suspend fun getPreparingSongs(): Flow<List<SongEntity>> =
             flow {
@@ -176,6 +174,8 @@ class MainRepository
             flow {
                 emit(localDataSource.getSong(id))
             }.flowOn(Dispatchers.IO)
+
+        fun getSongAsFlow(id: String) = localDataSource.getSongAsFlow(id)
 
         suspend fun insertSong(songEntity: SongEntity): Flow<Long> =
             flow<Long> { emit(localDataSource.insertSong(songEntity)) }.flowOn(Dispatchers.IO)
@@ -207,8 +207,7 @@ class MainRepository
             )
         }
 
-        suspend fun getMostPlayedSongs(): Flow<List<SongEntity>> =
-            flow { emit(localDataSource.getMostPlayedSongs()) }.flowOn(Dispatchers.IO)
+        suspend fun getMostPlayedSongs(): Flow<List<SongEntity>> = flow { emit(localDataSource.getMostPlayedSongs()) }.flowOn(Dispatchers.IO)
 
         suspend fun updateDownloadState(
             videoId: String,
@@ -242,8 +241,7 @@ class MainRepository
             Dispatchers.Main,
         ) { localDataSource.updateFollowed(followedStatus, channelId) }
 
-        suspend fun getFollowedArtists(): Flow<List<ArtistEntity>> =
-            flow { emit(localDataSource.getFollowedArtists()) }.flowOn(Dispatchers.IO)
+        suspend fun getFollowedArtists(): Flow<List<ArtistEntity>> = flow { emit(localDataSource.getFollowedArtists()) }.flowOn(Dispatchers.IO)
 
         suspend fun updateArtistInLibrary(
             inLibrary: LocalDateTime,
@@ -307,11 +305,9 @@ class MainRepository
                 emit(localDataSource.getPlaylist(id))
             }.flowOn(Dispatchers.IO)
 
-        suspend fun getLikedPlaylists(): Flow<List<PlaylistEntity>> =
-            flow { emit(localDataSource.getLikedPlaylists()) }.flowOn(Dispatchers.IO)
+        suspend fun getLikedPlaylists(): Flow<List<PlaylistEntity>> = flow { emit(localDataSource.getLikedPlaylists()) }.flowOn(Dispatchers.IO)
 
-        suspend fun insertPlaylist(playlistEntity: PlaylistEntity) =
-            withContext(Dispatchers.IO) { localDataSource.insertPlaylist(playlistEntity) }
+        suspend fun insertPlaylist(playlistEntity: PlaylistEntity) = withContext(Dispatchers.IO) { localDataSource.insertPlaylist(playlistEntity) }
 
         suspend fun insertRadioPlaylist(playlistEntity: PlaylistEntity) =
             withContext(Dispatchers.IO) { localDataSource.insertRadioPlaylist(playlistEntity) }
@@ -349,8 +345,7 @@ class MainRepository
         suspend fun getAllLocalPlaylists(): Flow<List<LocalPlaylistEntity>> =
             flow { emit(localDataSource.getAllLocalPlaylists()) }.flowOn(Dispatchers.IO)
 
-        suspend fun getLocalPlaylist(id: Long): Flow<LocalPlaylistEntity> =
-            flow { emit(localDataSource.getLocalPlaylist(id)) }.flowOn(Dispatchers.IO)
+        suspend fun getLocalPlaylist(id: Long): Flow<LocalPlaylistEntity> = flow { emit(localDataSource.getLocalPlaylist(id)) }.flowOn(Dispatchers.IO)
 
         suspend fun insertLocalPlaylist(localPlaylistEntity: LocalPlaylistEntity) =
             withContext(Dispatchers.IO) { localDataSource.insertLocalPlaylist(localPlaylistEntity) }
@@ -402,8 +397,7 @@ class MainRepository
                 emit(localDataSource.getAllRecentData())
             }.flowOn(Dispatchers.IO)
 
-        suspend fun getAllDownloadedPlaylist(): Flow<List<Any>> =
-            flow { emit(localDataSource.getAllDownloadedPlaylist()) }.flowOn(Dispatchers.IO)
+        suspend fun getAllDownloadedPlaylist(): Flow<List<Any>> = flow { emit(localDataSource.getAllDownloadedPlaylist()) }.flowOn(Dispatchers.IO)
 
         suspend fun getRecentSong(
             limit: Int,
@@ -448,15 +442,12 @@ class MainRepository
                 emit(localDataSource.getQueue())
             }.flowOn(Dispatchers.IO)
 
-        suspend fun getLocalPlaylistByYoutubePlaylistId(
-            playlistId: String,
-        ): Flow<LocalPlaylistEntity?> =
+        suspend fun getLocalPlaylistByYoutubePlaylistId(playlistId: String): Flow<LocalPlaylistEntity?> =
             flow { emit(localDataSource.getLocalPlaylistByYoutubePlaylistId(playlistId)) }.flowOn(
                 Dispatchers.IO,
             )
 
-        suspend fun insertSetVideoId(setVideoId: SetVideoIdEntity) =
-            withContext(Dispatchers.IO) { localDataSource.insertSetVideoId(setVideoId) }
+        suspend fun insertSetVideoId(setVideoId: SetVideoIdEntity) = withContext(Dispatchers.IO) { localDataSource.insertSetVideoId(setVideoId) }
 
         suspend fun getSetVideoId(videoId: String): Flow<SetVideoIdEntity?> =
             flow { emit(localDataSource.getSetVideoId(videoId)) }.flowOn(Dispatchers.IO)
@@ -533,11 +524,10 @@ class MainRepository
             isUsed: Boolean,
         ) = withContext(Dispatchers.IO) { localDataSource.updateGoogleAccountUsed(email, isUsed) }
 
-        suspend fun insertFollowedArtistSingleAndAlbum(
-            followedArtistSingleAndAlbum: FollowedArtistSingleAndAlbum,
-        ) = withContext(Dispatchers.IO) {
-            localDataSource.insertFollowedArtistSingleAndAlbum(followedArtistSingleAndAlbum)
-        }
+        suspend fun insertFollowedArtistSingleAndAlbum(followedArtistSingleAndAlbum: FollowedArtistSingleAndAlbum) =
+            withContext(Dispatchers.IO) {
+                localDataSource.insertFollowedArtistSingleAndAlbum(followedArtistSingleAndAlbum)
+            }
 
         suspend fun deleteFollowedArtistSingleAndAlbum(channelId: String) =
             withContext(Dispatchers.IO) {
@@ -549,9 +539,7 @@ class MainRepository
                 emit(localDataSource.getAllFollowedArtistSingleAndAlbums())
             }.flowOn(Dispatchers.IO)
 
-        suspend fun getFollowedArtistSingleAndAlbum(
-            channelId: String,
-        ): Flow<FollowedArtistSingleAndAlbum?> =
+        suspend fun getFollowedArtistSingleAndAlbum(channelId: String): Flow<FollowedArtistSingleAndAlbum?> =
             flow {
                 emit(localDataSource.getFollowedArtistSingleAndAlbum(channelId))
             }.flowOn(Dispatchers.IO)
@@ -666,8 +654,7 @@ class MainRepository
         suspend fun getChartData(countryCode: String = "KR"): Flow<Resource<Chart>> =
             flow {
                 runCatching {
-                    YouTube.customQuery("FEmusic_charts", country = countryCode).onSuccess {
-                            result ->
+                    YouTube.customQuery("FEmusic_charts", country = countryCode).onSuccess { result ->
                         val data =
                             result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(
                                 0,
@@ -858,9 +845,11 @@ class MainRepository
                                             544,
                                         ),
                                     ),
-                                title = "${originalTrack?.title ?: artist?.name} ${context.getString(
-                                    R.string.radio,
-                                )}",
+                                title = "${originalTrack?.title ?: artist?.name} ${
+                                    context.getString(
+                                        R.string.radio,
+                                    )
+                                }",
                                 trackCount = listTrackResult.size,
                                 tracks = listTrackResult,
                                 year = LocalDateTime.now().year.toString(),
@@ -875,9 +864,7 @@ class MainRepository
                 }
             }.flowOn(Dispatchers.IO)
 
-        suspend fun reloadSuggestionPlaylist(
-            reloadParams: String,
-        ): Flow<Pair<String?, ArrayList<Track>?>?> =
+        suspend fun reloadSuggestionPlaylist(reloadParams: String): Flow<Pair<String?, ArrayList<Track>?>?> =
             flow {
                 runCatching {
                     YouTube.customQuery(browseId = "", continuation = reloadParams, setLogin = true)
@@ -915,9 +902,7 @@ class MainRepository
                 }
             }
 
-        suspend fun getSuggestionPlaylist(
-            ytPlaylistId: String,
-        ): Flow<Pair<String?, ArrayList<Track>?>?> =
+        suspend fun getSuggestionPlaylist(ytPlaylistId: String): Flow<Pair<String?, ArrayList<Track>?>?> =
             flow {
                 runCatching {
                     var id = ""
@@ -1133,8 +1118,7 @@ class MainRepository
                             }
                         }
                         Log.d("Repository", "playlist final data: ${listContent.size}")
-                        parsePlaylistData(header, listContent, playlistId, context)?.let {
-                                playlist ->
+                        parsePlaylistData(header, listContent, playlistId, context)?.let { playlist ->
                             emit(Resource.Success<PlaylistBrowse>(playlist))
                         } ?: emit(Resource.Error<PlaylistBrowse>("Error"))
                     }.onFailure { e ->
@@ -1247,9 +1231,7 @@ class MainRepository
                 }
             }.flowOn(Dispatchers.IO)
 
-        suspend fun getSearchDataPodcast(
-            query: String,
-        ): Flow<Resource<ArrayList<PlaylistsResult>>> =
+        suspend fun getSearchDataPodcast(query: String): Flow<Resource<ArrayList<PlaylistsResult>>> =
             flow {
                 runCatching {
                     YouTube.search(query, YouTube.SearchFilter.FILTER_PODCAST).onSuccess { result ->
@@ -1282,9 +1264,7 @@ class MainRepository
                 }
             }.flowOn(Dispatchers.IO)
 
-        suspend fun getSearchDataFeaturedPlaylist(
-            query: String,
-        ): Flow<Resource<ArrayList<PlaylistsResult>>> =
+        suspend fun getSearchDataFeaturedPlaylist(query: String): Flow<Resource<ArrayList<PlaylistsResult>>> =
             flow {
                 runCatching {
                     YouTube.search(query, YouTube.SearchFilter.FILTER_FEATURED_PLAYLIST)
@@ -1378,9 +1358,7 @@ class MainRepository
                 }
             }.flowOn(Dispatchers.IO)
 
-        suspend fun getSearchDataPlaylist(
-            query: String,
-        ): Flow<Resource<ArrayList<PlaylistsResult>>> =
+        suspend fun getSearchDataPlaylist(query: String): Flow<Resource<ArrayList<PlaylistsResult>>> =
             flow {
                 runCatching {
                     YouTube.search(query, YouTube.SearchFilter.FILTER_COMMUNITY_PLAYLIST)
@@ -1644,8 +1622,7 @@ class MainRepository
                                 clientToken = it.accessToken
                                 Log.w("Lyrics", "clientToken: $clientToken")
                                 dataStoreManager.setSpotifyClientToken(clientToken)
-                                YouTube.searchSpotifyTrack(q, clientToken).onSuccess {
-                                        searchResponse ->
+                                YouTube.searchSpotifyTrack(q, clientToken).onSuccess { searchResponse ->
                                     val track =
                                         if (duration != null && duration != 0) {
                                             searchResponse.tracks.items.find {
@@ -2275,8 +2252,7 @@ class MainRepository
             playlistId: String?,
         ): Flow<Pair<Int, Float>> =
             flow {
-                YouTube.initPlayback(playback, atr, watchTime, cpn, playlistId).onSuccess {
-                        response ->
+                YouTube.initPlayback(playback, atr, watchTime, cpn, playlistId).onSuccess { response ->
                     emit(response)
                 }.onFailure {
                     Log.e("InitPlayback", "Error: ${it.message}")
@@ -2314,9 +2290,7 @@ class MainRepository
                     }
             }
 
-        suspend fun getYouTubeSetVideoId(
-            youtubePlaylistId: String,
-        ): Flow<ArrayList<SetVideoIdEntity>?> =
+        suspend fun getYouTubeSetVideoId(youtubePlaylistId: String): Flow<ArrayList<SetVideoIdEntity>?> =
             flow {
                 runCatching {
                     var id = ""
