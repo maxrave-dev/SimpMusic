@@ -4,20 +4,27 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class SearchMusixmatchResponse(
-    val message: Message
+    val message: Message,
 ) {
     @Serializable
     data class Message(
         val body: Body,
-        val header: Header
+        val header: Header,
     ) {
         @Serializable
         data class Body(
-            val track_list: List<Track>
+            val track: Track.TrackX? = null,
+            val track_list: List<Track>? = null,
+            val macro_result_list: TrackList? = null,
         ) {
             @Serializable
+            data class TrackList(
+                val track_list: List<Track>?,
+            )
+
+            @Serializable
             data class Track(
-                val track: TrackX
+                val track: TrackX,
             ) {
                 @Serializable
                 data class TrackX(
@@ -28,9 +35,10 @@ data class SearchMusixmatchResponse(
                 )
             }
         }
+
         @Serializable
         data class Header(
-            val status_code: Int
+            val status_code: Int,
         )
     }
 }

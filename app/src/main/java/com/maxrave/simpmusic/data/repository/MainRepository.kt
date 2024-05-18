@@ -1657,13 +1657,15 @@ class MainRepository
             }
 
         suspend fun getLyricsData(
-            query: String,
+            qartist: String,
+            qtrack: String,
             durationInt: Int? = null,
         ): Flow<Pair<String, Resource<Lyrics>>> =
             flow {
                 runCatching {
 //            val q = query.replace(Regex("\\([^)]*?(feat.|ft.|cùng với|con)[^)]*?\\)"), "")
 //                .replace("  ", " ")
+                    val query = "$qtrack $qartist"
                     val q =
                         query.replace(
                             Regex("\\((feat\\.|ft.|cùng với|con|mukana|com|avec|合作音乐人: ) "),
@@ -1687,9 +1689,16 @@ class MainRepository
                     YouTube.searchMusixmatchTrackId(q, musixMatchUserToken!!)
                         .onSuccess { searchResult ->
                             Log.d("Lyrics", "searchResult: $searchResult")
-                            if (searchResult.message.body.track_list.isNotEmpty()) {
+                            val trackList =
+                                if (!searchResult.message.body.track_list.isNullOrEmpty()) {
+                                    searchResult.message.body.track_list
+                                } else {
+                                    searchResult.message.body.macro_result_list?.track_list
+                                }
+                            if (!trackList.isNullOrEmpty()) {
+                                Log.d("Lyrics", "trackList: $trackList")
                                 val list = arrayListOf<String>()
-                                for (i in searchResult.message.body.track_list) {
+                                for (i in trackList) {
                                     list.add(i.track.track_name + " " + i.track.artist_name)
                                 }
                                 var id = ""
@@ -1698,7 +1707,7 @@ class MainRepository
                                 val bestMatchingIndex = bestMatchingIndex(q, list)
                                 if (durationInt != null && durationInt != 0) {
                                     val trackLengthList = arrayListOf<Int>()
-                                    for (i in searchResult.message.body.track_list) {
+                                    for (i in trackList) {
                                         trackLengthList.add(i.track.track_length)
                                     }
                                     val closestIndex =
@@ -1712,51 +1721,20 @@ class MainRepository
                                         ) < 2
                                     ) {
                                         id +=
-                                            searchResult.message.body.track_list.find {
+                                            trackList.find {
                                                 it.track.track_length == closestIndex
                                             }?.track?.track_id.toString()
                                         track =
-                                            searchResult.message.body.track_list.find { it.track.track_length == closestIndex }?.track
+                                            trackList.find { it.track.track_length == closestIndex }?.track
                                     }
-                                    if (id == "") {
-                                        if (list.get(bestMatchingIndex).contains(
-                                                searchResult.message.body.track_list.get(
-                                                    bestMatchingIndex,
-                                                ).track.track_name,
-                                            ) &&
-                                            query.contains(
-                                                searchResult.message.body.track_list.get(
-                                                    bestMatchingIndex,
-                                                ).track.track_name,
-                                            )
-                                        ) {
-                                            Log.w(
-                                                "Lyrics",
-                                                "item: ${
-                                                    searchResult.message.body.track_list.get(
-                                                        bestMatchingIndex,
-                                                    ).track.track_name
-                                                }",
-                                            )
-                                            id +=
-                                                searchResult.message.body.track_list.get(
-                                                    bestMatchingIndex,
-                                                ).track.track_id.toString()
-                                            track =
-                                                searchResult.message.body.track_list.get(
-                                                    bestMatchingIndex,
-                                                ).track
-                                        }
-                                    }
-                                } else {
-                                    if (list.get(bestMatchingIndex)
-                                            .contains(
-                                                searchResult.message.body.track_list.get(
-                                                    bestMatchingIndex,
-                                                ).track.track_name,
-                                            ) &&
+                                    if (id == "" &&
+                                        list.get(bestMatchingIndex).contains(
+                                            trackList.get(
+                                                bestMatchingIndex,
+                                            ).track.track_name,
+                                        ) &&
                                         query.contains(
-                                            searchResult.message.body.track_list.get(
+                                            trackList.get(
                                                 bestMatchingIndex,
                                             ).track.track_name,
                                         )
@@ -1764,44 +1742,55 @@ class MainRepository
                                         Log.w(
                                             "Lyrics",
                                             "item: ${
-                                                searchResult.message.body.track_list.get(
+                                                trackList.get(
                                                     bestMatchingIndex,
                                                 ).track.track_name
                                             }",
                                         )
                                         id +=
-                                            searchResult.message.body.track_list.get(
+                                            trackList.get(
                                                 bestMatchingIndex,
                                             ).track.track_id.toString()
                                         track =
-                                            searchResult.message.body.track_list.get(
+                                            trackList.get(
                                                 bestMatchingIndex,
                                             ).track
                                     }
+                                } else if (list.get(bestMatchingIndex)
+                                        .contains(
+                                            trackList.get(
+                                                bestMatchingIndex,
+                                            ).track.track_name,
+                                        ) &&
+                                    query.contains(
+                                        trackList.get(
+                                            bestMatchingIndex,
+                                        ).track.track_name,
+                                    )
+                                ) {
+                                    Log.w(
+                                        "Lyrics",
+                                        "item: ${
+                                            trackList.get(
+                                                bestMatchingIndex,
+                                            ).track.track_name
+                                        }",
+                                    )
+                                    id +=
+                                        trackList.get(
+                                            bestMatchingIndex,
+                                        ).track.track_id.toString()
+                                    track =
+                                        trackList.get(
+                                            bestMatchingIndex,
+                                        ).track
                                 }
                                 Log.d("DURATION", "id: $id")
                                 Log.w(
                                     "item lyrics",
-                                    searchResult.message.body.track_list.find {
-                                        it.track.track_id == id.toInt()
-                                    }?.track?.track_name + " " +
-                                        searchResult.message.body.track_list.find {
-                                            it.track.track_id == id.toInt()
-                                        }?.track?.artist_name,
+                                    track.toString(),
                                 )
                                 if (id != "" && track != null) {
-//                    YouTube.getMusixmatchLyrics(id, musixMatchUserToken!!).onSuccess {
-//                        if (it != null) {
-//                            emit(Pair(id, Resource.Success<Lyrics>(it.toLyrics())))
-//                        }
-//                        else {
-//                            Log.w("Lyrics", "Error: Lỗi getLyrics ${it.toString()}")
-//                            emit(Pair(id, Resource.Error<Lyrics>("Not found")))
-//                        }
-//                    }.onFailure {
-//                        it.printStackTrace()
-//                        emit(Pair(id, Resource.Error<Lyrics>("Not found")))
-//                    }
                                     YouTube.getMusixmatchLyricsByQ(track, musixMatchUserToken!!)
                                         .onSuccess {
                                             if (it != null) {
@@ -1819,15 +1808,37 @@ class MainRepository
                                             throwable.printStackTrace()
                                             emit(Pair(id, Resource.Error<Lyrics>("Not found")))
                                         }
-                                }
-//                bestMatchingIndex(q, list).let { index ->
-//                    Log.w("Lyrics", "item: ${searchResult.message.body.track_list.get(index).track.track_name}")
-//                    searchResult.message.body.track_list.get(index).track.track_id.let { trackId ->
-//
-//                    }
-//                }
-                                else {
-                                    emit(Pair("", Resource.Error<Lyrics>("Not found")))
+                                } else {
+                                    YouTube.fixSearchMusixmatch(
+                                        q_artist = qartist,
+                                        q_track = qtrack,
+                                        q_duration = (durationInt ?: 0).toString(),
+                                        userToken = musixMatchUserToken!!,
+                                    )
+                                        .onSuccess {
+                                            val trackX = it.message.body.track
+                                            if (trackX != null) {
+                                                YouTube.getMusixmatchLyricsByQ(trackX, musixMatchUserToken!!).onSuccess {
+                                                    if (it != null) {
+                                                        emit(
+                                                            Pair(
+                                                                id,
+                                                                Resource.Success<Lyrics>(it.toLyrics()),
+                                                            ),
+                                                        )
+                                                    } else {
+                                                        Log.w("Lyrics", "Error: Lỗi getLyrics $it")
+                                                        emit(Pair(id, Resource.Error<Lyrics>("Not found")))
+                                                    }
+                                                }.onFailure {
+                                                    it.printStackTrace()
+                                                    emit(Pair(id, Resource.Error<Lyrics>("Not found")))
+                                                }
+                                            }
+                                        }
+                                        .onFailure {
+                                            emit(Pair("", Resource.Error<Lyrics>("Not found")))
+                                        }
                                 }
                             } else {
                                 emit(Pair("", Resource.Error<Lyrics>("Not found")))

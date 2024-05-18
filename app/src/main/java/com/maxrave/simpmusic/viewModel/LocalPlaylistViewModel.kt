@@ -450,6 +450,8 @@ class LocalPlaylistViewModel
         ) {
             viewModelScope.launch {
                 mainRepository.updateLocalPlaylistTitle(title, id)
+                delay(100)
+                getLocalPlaylist(id)
             }
         }
 
@@ -465,6 +467,8 @@ class LocalPlaylistViewModel
         ) {
             viewModelScope.launch {
                 mainRepository.updateLocalPlaylistThumbnail(uri, id)
+                delay(100)
+                getLocalPlaylist(id)
             }
         }
 
@@ -889,6 +893,37 @@ class LocalPlaylistViewModel
                 _listTrack.value = temp.toList()
                 _listSuggestions.value?.remove(track)
             }
+        }
+
+        private val _fullListTracks = MutableStateFlow<MutableList<SongEntity>?>(null)
+        val fullListTracks: StateFlow<MutableList<SongEntity>?> get() = _fullListTracks
+
+        fun getAllTracksOfPlaylist(id: Long) {
+            viewModelScope.launch {
+                val list: MutableList<SongEntity> = mutableListOf()
+                var os = 0
+                while (os >= 0) {
+                    mainRepository.getPlaylistPairSongByOffset(id, os, FilterState.OlderFirst).firstOrNull().let { pairSongLocalPlaylists ->
+                        if (pairSongLocalPlaylists != null) {
+                            mainRepository.getSongsByListVideoId(pairSongLocalPlaylists.map { it.songId }).firstOrNull().let {
+                                if (it != null) {
+                                    list.addAll(it)
+                                    os++
+                                } else {
+                                    os = -1
+                                }
+                            }
+                        } else {
+                            os = -1
+                        }
+                    }
+                }
+                _fullListTracks.value = list
+            }
+        }
+
+        fun removeFullListTracks() {
+            _fullListTracks.value = null
         }
     }
 

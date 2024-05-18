@@ -809,10 +809,7 @@ class SharedViewModel
             _skipSegments.value = null
         }
 
-        fun getSavedLyrics(
-            track: Track,
-            query: String,
-        ) {
+        private fun getSavedLyrics(track: Track) {
             viewModelScope.launch {
                 resetLyrics()
                 mainRepository.getSavedLyrics(track.videoId).collect { lyrics ->
@@ -824,35 +821,36 @@ class SharedViewModel
                         parseLyrics(lyricsData)
                     } else {
                         resetLyrics()
-                        mainRepository.getLyricsData(query, track.durationSeconds).collect { response ->
-                            _lyrics.value = response.second
-                            when (_lyrics.value) {
-                                is Resource.Success -> {
-                                    if (_lyrics.value?.data != null) {
-                                        _lyricsProvider.value = LyricsProvider.MUSIXMATCH
-                                        insertLyrics(
-                                            _lyrics.value?.data!!.toLyricsEntity(track.videoId),
-                                        )
-                                        parseLyrics(_lyrics.value?.data)
-                                        if (dataStoreManager.enableTranslateLyric.first() == TRUE) {
-                                            mainRepository.getTranslateLyrics(response.first)
-                                                .collect { translate ->
-                                                    if (translate != null) {
-                                                        _translateLyrics.value =
-                                                            translate.toLyrics(
-                                                                _lyrics.value?.data!!,
-                                                            )
+                        mainRepository.getLyricsData(track.artists.toListName().firstOrNull() ?: "", track.title, track.durationSeconds)
+                            .collect { response ->
+                                _lyrics.value = response.second
+                                when (_lyrics.value) {
+                                    is Resource.Success -> {
+                                        if (_lyrics.value?.data != null) {
+                                            _lyricsProvider.value = LyricsProvider.MUSIXMATCH
+                                            insertLyrics(
+                                                _lyrics.value?.data!!.toLyricsEntity(track.videoId),
+                                            )
+                                            parseLyrics(_lyrics.value?.data)
+                                            if (dataStoreManager.enableTranslateLyric.first() == TRUE) {
+                                                mainRepository.getTranslateLyrics(response.first)
+                                                    .collect { translate ->
+                                                        if (translate != null) {
+                                                            _translateLyrics.value =
+                                                                translate.toLyrics(
+                                                                    _lyrics.value?.data!!,
+                                                                )
+                                                        }
                                                     }
-                                                }
+                                            }
                                         }
                                     }
-                                }
 
-                                else -> {
-                                    Log.d("Check lyrics", "Loading")
+                                    else -> {
+                                        Log.d("Check lyrics", "Loading")
+                                    }
                                 }
                             }
-                        }
                     }
                 }
             }
@@ -938,7 +936,7 @@ class SharedViewModel
                         getCurrentMediaItem()?.mediaMetadata?.artworkUri.toString(),
                     )
                     simpleMediaServiceHandler?.addFirstMetadata(track)
-                    getSavedLyrics(track, "${track.title} ${track.artists?.firstOrNull()?.name}")
+                    getSavedLyrics(track)
                 } else {
                     Log.d("Check URI", uri)
                     val artistName: String = track.artists.toListName().connectArtists()
@@ -1546,11 +1544,11 @@ class SharedViewModel
                                     song.toTrack().copy(
                                         durationSeconds = duration,
                                     ),
-                                    "${song.title} $artist",
                                 )
                             } else {
                                 mainRepository.getLyricsData(
-                                    "${song.title} $artist",
+                                    (artist ?: "").toString(),
+                                    song.title,
                                     duration,
                                 ).collect { response ->
                                     _lyrics.value = response.second
@@ -1604,7 +1602,6 @@ class SharedViewModel
                                                         song.toTrack().copy(
                                                             durationSeconds = duration,
                                                         ),
-                                                        "${song.title} $artist",
                                                     )
                                                 }
                                             }
@@ -1654,7 +1651,6 @@ class SharedViewModel
                                                 song.toTrack().copy(
                                                     durationSeconds = duration,
                                                 ),
-                                                "${song.title} ${song.artistName?.firstOrNull() ?: simpleMediaServiceHandler?.nowPlaying?.first()?.mediaMetadata?.artist ?: ""}",
                                             )
                                         }
                                     }
@@ -1689,7 +1685,6 @@ class SharedViewModel
                             if (_lyrics.value?.message != "reset") {
                                 getSavedLyrics(
                                     track,
-                                    query,
                                 )
                             }
                         }

@@ -1,8 +1,14 @@
 package com.maxrave.simpmusic.ui.component
 
+import android.app.Activity
 import android.content.Intent
 import android.content.res.Configuration
+import android.os.Build
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.Image
@@ -33,6 +39,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
@@ -57,6 +64,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
+import androidx.wear.compose.material3.TextButton
 import androidx.wear.compose.material3.ripple
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
@@ -67,7 +75,6 @@ import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.greyScale
 import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.toTrack
-import com.maxrave.simpmusic.ui.theme.AppTheme
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.skydoves.landscapist.ImageOptions
@@ -75,17 +82,6 @@ import com.skydoves.landscapist.animation.crossfade.CrossfadePlugin
 import com.skydoves.landscapist.coil.CoilImage
 import com.skydoves.landscapist.components.rememberImageComponent
 import kotlinx.coroutines.launch
-
-@Preview(
-    showSystemUi = true,
-    showBackground = true,
-    uiMode = Configuration.UI_MODE_NIGHT_YES,
-)
-@Composable
-fun NowPlayingBottomSheetPreview() {
-    AppTheme {
-    }
-}
 
 @UnstableApi
 @OptIn(ExperimentalMaterial3Api::class)
@@ -245,7 +241,7 @@ fun NowPlayingBottomSheet(
                         if (it) {
                             ActionButton(
                                 icon = painterResource(id = R.drawable.baseline_delete_24),
-                                text = R.string.delete,
+                                text = R.string.delete_song_from_playlist,
                             ) {
                                 if (onDelete != null) {
                                     onDelete()
@@ -482,7 +478,10 @@ fun CheckBoxActionButton(
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(horizontal = 20.dp).fillMaxWidth(),
+            modifier =
+                Modifier
+                    .padding(horizontal = 20.dp)
+                    .fillMaxWidth(),
         ) {
             Box(Modifier.padding(10.dp)) {
                 HeartCheckBox(checked = stateChecked, size = 30)
@@ -531,7 +530,8 @@ fun HeartCheckBox(
                     painter = painterResource(id = R.drawable.baseline_favorite_24),
                     contentDescription = "Favorite checked",
                     modifier =
-                        Modifier.fillMaxSize()
+                        Modifier
+                            .fillMaxSize()
                             .padding(4.dp),
                 )
             } else {
@@ -539,7 +539,8 @@ fun HeartCheckBox(
                     painter = painterResource(id = R.drawable.baseline_favorite_border_24),
                     contentDescription = "Favorite unchecked",
                     modifier =
-                        Modifier.fillMaxSize()
+                        Modifier
+                            .fillMaxSize()
                             .padding(4.dp),
                     colorFilter = ColorFilter.tint(Color.White),
                 )
@@ -750,4 +751,211 @@ fun ArtistModalBottomSheet(
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun LocalPlaylistBottomSheet(
+    isBottomSheetVisible: Boolean,
+    onDismiss: () -> Unit,
+    localPlaylist: LocalPlaylistEntity,
+    onEditTitle: (newTitle: String) -> Unit,
+    onEditThumbnail: (newThumbnailUri: String) -> Unit,
+    onAddToQueue: () -> Unit,
+    onSync: () -> Unit,
+    onUpdatePlaylist: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    val coroutineScope = rememberCoroutineScope()
+    var showEditTitle by remember { mutableStateOf(false) }
+    val modelBottomSheetState =
+        rememberModalBottomSheetState(
+            skipPartiallyExpanded = true,
+        )
+    val hideModalBottomSheet: () -> Unit =
+        { coroutineScope.launch { modelBottomSheetState.hide() } }
+    val context = LocalContext.current
+    val resultLauncher =
+        rememberLauncherForActivityResult(
+            ActivityResultContracts.StartActivityForResult(),
+        ) { activityResult ->
+            if (activityResult.resultCode == Activity.RESULT_OK) {
+                Log.d("ID", Build.ID.toString())
+                val intentRef = activityResult.data
+                val data = intentRef?.data
+                if (data != null) {
+                    val contentResolver = context.contentResolver
+
+                    val takeFlags: Int =
+                        Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                    // Check for the freshest data.
+                    context.grantUriPermission(
+                        context.packageName,
+                        data,
+                        takeFlags,
+                    )
+                    contentResolver?.takePersistableUriPermission(data, takeFlags)
+                    val uri = data.toString()
+                    onEditThumbnail(uri)
+                }
+            }
+        }
+    if (showEditTitle) {
+        var newTitle by remember { mutableStateOf(localPlaylist.title) }
+        val showEditTitleSheetState =
+            rememberModalBottomSheetState(
+                skipPartiallyExpanded = true,
+            )
+        val hideEditTitleBottomSheet: () -> Unit =
+            { coroutineScope.launch { showEditTitleSheetState.hide() } }
+        ModalBottomSheet(
+            onDismissRequest = { showEditTitle = false },
+            sheetState = showEditTitleSheetState,
+            containerColor = Color.Transparent,
+            contentColor = Color.Transparent,
+            dragHandle = null,
+            scrimColor = Color.Black.copy(alpha = .5f),
+        ) {
+            Card(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight(),
+                shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
+                colors = CardDefaults.cardColors().copy(containerColor = Color(0xFF242424)),
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Spacer(modifier = Modifier.height(5.dp))
+                    Card(
+                        modifier =
+                            Modifier
+                                .width(60.dp)
+                                .height(4.dp),
+                        colors =
+                            CardDefaults.cardColors().copy(
+                                containerColor = Color(0xFF474545),
+                            ),
+                        shape = RoundedCornerShape(50),
+                    ) {}
+                    Spacer(modifier = Modifier.height(5.dp))
+                    OutlinedTextField(
+                        value = newTitle,
+                        onValueChange = { s -> newTitle = s },
+                        label = {
+                            Text(text = stringResource(id = R.string.title))
+                        },
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                    )
+                    Spacer(modifier = Modifier.height(5.dp))
+                    TextButton(
+                        onClick = {
+                            if (newTitle.isBlank()) {
+                                Toast.makeText(context, context.getString(R.string.playlist_name_cannot_be_empty), Toast.LENGTH_SHORT).show()
+                            } else {
+                                onEditTitle(newTitle)
+                                hideEditTitleBottomSheet()
+                                hideModalBottomSheet()
+                            }
+                        },
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.CenterHorizontally),
+                    ) {
+                        Text(text = stringResource(id = R.string.save))
+                    }
+                }
+            }
+        }
+    }
+    if (isBottomSheetVisible) {
+        ModalBottomSheet(
+            onDismissRequest = onDismiss,
+            sheetState = modelBottomSheetState,
+            containerColor = Color.Transparent,
+            contentColor = Color.Transparent,
+            dragHandle = null,
+            scrimColor = Color.Black.copy(alpha = .5f),
+        ) {
+            Card(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight(),
+                shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
+                colors = CardDefaults.cardColors().copy(containerColor = Color(0xFF242424)),
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Spacer(modifier = Modifier.height(5.dp))
+                    Card(
+                        modifier =
+                            Modifier
+                                .width(60.dp)
+                                .height(4.dp),
+                        colors =
+                            CardDefaults.cardColors().copy(
+                                containerColor = Color(0xFF474545),
+                            ),
+                        shape = RoundedCornerShape(50),
+                    ) {}
+                    Spacer(modifier = Modifier.height(5.dp))
+                    ActionButton(icon = painterResource(id = R.drawable.baseline_edit_24), text = R.string.edit_title) {
+                        showEditTitle = true
+                    }
+                    ActionButton(icon = painterResource(id = R.drawable.baseline_add_photo_alternate_24), text = R.string.edit_thumbnail) {
+                        val intent = Intent()
+                        intent.type = "image/*"
+                        intent.action = Intent.ACTION_OPEN_DOCUMENT
+                        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        resultLauncher.launch(intent)
+                    }
+                    ActionButton(icon = painterResource(id = R.drawable.baseline_queue_music_24), text = R.string.add_to_queue) {
+                        onAddToQueue()
+                    }
+                    ActionButton(
+                        icon =
+                            if (localPlaylist.youtubePlaylistId == null) {
+                                painterResource(id = R.drawable.baseline_sync_24)
+                            } else {
+                                painterResource(id = R.drawable.baseline_sync_disabled_24)
+                            },
+                        text =
+                            if (localPlaylist.youtubePlaylistId == null) {
+                                R.string.sync
+                            } else {
+                                R.string.synced
+                            },
+                    ) {
+                        onSync()
+                    }
+                    ActionButton(
+                        icon = painterResource(id = R.drawable.baseline_update_24),
+                        text = R.string.update_playlist,
+                        enable = (localPlaylist.youtubePlaylistId != null),
+                    ) {
+                        onUpdatePlaylist()
+                    }
+                    ActionButton(icon = painterResource(id = R.drawable.baseline_delete_24), text = R.string.delete_playlist) {
+                        onDelete()
+                        hideModalBottomSheet()
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Preview(
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
+    showBackground = true,
+    name = "Dark Mode",
+    group = "Local Playlist",
+)
+@Composable
+fun LocalPlaylistBottomSheetPreview() {
 }

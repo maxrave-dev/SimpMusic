@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -38,6 +39,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -96,10 +98,12 @@ import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.data.queue.Queue.ASC
 import com.maxrave.simpmusic.data.queue.Queue.DESC
 import com.maxrave.simpmusic.extension.navigateSafe
+import com.maxrave.simpmusic.extension.toArrayListTrack
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
+import com.maxrave.simpmusic.ui.component.LocalPlaylistBottomSheet
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.PlaylistItems
 import com.maxrave.simpmusic.ui.component.RippleIconButton
@@ -200,6 +204,8 @@ fun PlaylistScreen(
     val isPlaying by sharedViewModel.isPlaying.collectAsState()
     val suggestedTracks by viewModel.listSuggestions.collectAsState()
     val suggestionsLoading by viewModel.loading.collectAsState()
+    val fullListTracks by viewModel.fullListTracks.collectAsState()
+    var showSyncAlertDialog by rememberSaveable { mutableStateOf(false) }
 
     var currentItem by remember {
         mutableStateOf<SongEntity?>(null)
@@ -223,6 +229,12 @@ fun PlaylistScreen(
             args.putInt("index", list.indexOf(track))
             if (localPlaylist?.downloadState == DownloadState.STATE_DOWNLOADED) {
                 args.putInt("downloaded", 1)
+            }
+            if (localPlaylist?.syncedWithYouTubePlaylist == 1) {
+                args.putString(
+                    "playlistId",
+                    localPlaylist?.youtubePlaylistId?.replaceFirst("VL", ""),
+                )
             }
             Queue.initPlaylist(
                 Queue.LOCAL_PLAYLIST_ID + localPlaylist?.id,
@@ -257,6 +269,9 @@ fun PlaylistScreen(
             itemBottomSheetShow = true
         }
     }
+    val onPlaylistMoreClick: () -> Unit = {
+        playlistBottomSheetShow = true
+    }
 
     LaunchedEffect(key1 = shouldShowSuggestions) {
         localPlaylist?.youtubePlaylistId?.let { viewModel.getSuggestions(it) }
@@ -266,8 +281,16 @@ fun PlaylistScreen(
         viewModel.setOffset(0)
         viewModel.clearLocalPlaylist()
         viewModel.clearListPair()
+        viewModel.removeFullListTracks()
         viewModel.id.postValue(id)
         viewModel.getLocalPlaylist(id)
+    }
+    LaunchedEffect(key1 = fullListTracks) {
+        val flt = fullListTracks.toArrayListTrack()
+        if (flt.isNotEmpty()) {
+            sharedViewModel.addListToQueue(flt)
+            Toast.makeText(context, context.getString(R.string.added_to_queue), Toast.LENGTH_SHORT).show()
+        }
     }
     LaunchedEffect(key1 = localPlaylist) {
         if (localPlaylist != null) {
@@ -371,15 +394,15 @@ fun PlaylistScreen(
                                         ),
                                     )
                                     add(
-                                        BlurTransformationPlugin(radius = 40),
+                                        BlurTransformationPlugin(radius = 100),
                                     )
                                     +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder))
                                     +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder))
                                 },
                             modifier =
                                 Modifier
-                                    .wrapContentHeight()
                                     .fillMaxWidth()
+                                    .aspectRatio(1f)
                                     .clip(
                                         RoundedCornerShape(8.dp),
                                     ),
@@ -781,7 +804,7 @@ fun PlaylistScreen(
                                             resId = R.drawable.baseline_more_vert_24,
                                             fillMaxSize = true,
                                         ) {
-                                            TODO("MORE")
+                                            onPlaylistMoreClick()
                                         }
                                     }
                                     // Hide in local playlist
@@ -1003,6 +1026,13 @@ fun PlaylistScreen(
                         localPlaylist?.let {
                             Log.w("PlaylistScreen", "Delete: $track")
                             viewModel.deleteItem(track, it.id)
+                            if (it.syncedWithYouTubePlaylist == 1 && it.youtubePlaylistId != null) {
+                                val videoId = track.videoId
+                                viewModel.removeYouTubePlaylistItem(
+                                    it.youtubePlaylistId,
+                                    videoId,
+                                )
+                            }
                             itemBottomSheetShow = false
                         }
                     },
@@ -1027,6 +1057,60 @@ fun PlaylistScreen(
                     listLocalPlaylist = sharedViewModel.localPlaylist.collectAsState(),
                 )
             }
+        }
+        if (playlistBottomSheetShow) {
+            Log.w("PlaylistScreen", "PlaylistBottomSheet")
+            localPlaylist?.let {
+                LocalPlaylistBottomSheet(
+                    isBottomSheetVisible = playlistBottomSheetShow,
+                    onDismiss = { playlistBottomSheetShow = false },
+                    localPlaylist = it,
+                    onEditTitle =
+                        { newTitle ->
+                            viewModel.updatePlaylistTitle(newTitle, it.id)
+                        },
+                    onEditThumbnail =
+                        { thumbUri ->
+                            viewModel.updatePlaylistThumbnail(thumbUri, it.id)
+                        },
+                    onAddToQueue = {
+                        viewModel.getAllTracksOfPlaylist(it.id)
+                    },
+                    onSync = {
+                        if (it.youtubePlaylistId != null) {
+                            showSyncAlertDialog = true
+                        } else {
+                            viewModel.syncPlaylistWithYouTubePlaylist(it)
+                        }
+                    },
+                    onUpdatePlaylist = {
+                        it.tracks?.let { tracks ->
+                            it.youtubePlaylistId?.let { it1 ->
+                                viewModel.updateListTrackSynced(
+                                    it.id,
+                                    tracks,
+                                    it1,
+                                )
+                                viewModel.getSetVideoId(it1)
+                            }
+                        }
+                    },
+                    onDelete = {
+                        viewModel.deletePlaylist(it.id)
+                        navController.popBackStack()
+                    },
+                )
+            }
+        }
+        if (showSyncAlertDialog) {
+            AlertDialog(
+                title = { Text(text = stringResource(id = R.string.warning)) },
+                text = { Text(text = stringResource(id = R.string.unsync_playlist_warning)) },
+                onDismissRequest = { showSyncAlertDialog = false },
+                confirmButton = {
+                    localPlaylist?.let { viewModel.unsyncPlaylistWithYouTubePlaylist(it) }
+                },
+            )
         }
         AnimatedVisibility(
             visible = shouldHideTopBar,
