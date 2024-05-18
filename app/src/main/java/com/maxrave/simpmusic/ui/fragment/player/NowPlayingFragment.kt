@@ -924,8 +924,13 @@ class NowPlayingFragment : Fragment() {
                             if (f != null) {
                                 if (f.itag == 22 || f.itag == 18) {
                                     binding.playerLayout.visibility = View.VISIBLE
+                                    binding.playerView.visibility = View.VISIBLE
                                     binding.ivArt.visibility = View.INVISIBLE
                                     binding.loadingArt.visibility = View.GONE
+                                    Log.w("Format: ", binding.playerView.player?.currentMediaItem?.mediaMetadata?.title.toString())
+                                    if (binding.playerView.player == null) {
+                                        binding.playerView.player = viewModel.simpleMediaServiceHandler?.player
+                                    }
                                 } else {
                                     binding.playerLayout.visibility = View.GONE
                                     binding.ivArt.visibility = View.VISIBLE
@@ -1117,7 +1122,7 @@ class NowPlayingFragment : Fragment() {
 
                                 binding.middleLayout.visibility = View.INVISIBLE
                                 binding.canvasLayout.visibility = View.VISIBLE
-                                binding.playerView.visibility = View.GONE
+                                binding.playerView.visibility = View.INVISIBLE
                                 binding.rootLayout.background =
                                     ColorDrawable(
                                         resources.getColor(

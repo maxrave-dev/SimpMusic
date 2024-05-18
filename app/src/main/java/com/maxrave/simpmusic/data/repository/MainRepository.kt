@@ -1657,14 +1657,30 @@ class MainRepository
             }
 
         suspend fun getLyricsData(
-            qartist: String,
-            qtrack: String,
+            sartist: String,
+            strack: String,
             durationInt: Int? = null,
         ): Flow<Pair<String, Resource<Lyrics>>> =
             flow {
                 runCatching {
 //            val q = query.replace(Regex("\\([^)]*?(feat.|ft.|cùng với|con)[^)]*?\\)"), "")
 //                .replace("  ", " ")
+                    val qartist =
+                        sartist.replace(
+                            Regex("\\((feat\\.|ft.|cùng với|con|mukana|com|avec|合作音乐人: ) "),
+                            " ",
+                        ).replace(
+                            Regex("( và | & | и | e | und |, |和| dan)"),
+                            " ",
+                        ).replace("  ", " ").replace(Regex("([()])"), "").replace(".", " ")
+                    val qtrack =
+                        strack.replace(
+                            Regex("\\((feat\\.|ft.|cùng với|con|mukana|com|avec|合作音乐人: ) "),
+                            " ",
+                        ).replace(
+                            Regex("( và | & | и | e | und |, |和| dan)"),
+                            " ",
+                        ).replace("  ", " ").replace(Regex("([()])"), "").replace(".", " ")
                     val query = "$qtrack $qartist"
                     val q =
                         query.replace(
@@ -1817,12 +1833,12 @@ class MainRepository
                                     )
                                         .onSuccess {
                                             val trackX = it.message.body.track
-                                            if (trackX != null) {
+                                            if (trackX != null && abs(trackX.track_length - (durationInt ?: 0)) <= 10) {
                                                 YouTube.getMusixmatchLyricsByQ(trackX, musixMatchUserToken!!).onSuccess {
                                                     if (it != null) {
                                                         emit(
                                                             Pair(
-                                                                id,
+                                                                trackX.track_id.toString(),
                                                                 Resource.Success<Lyrics>(it.toLyrics()),
                                                             ),
                                                         )
@@ -2078,6 +2094,7 @@ class MainRepository
                             dataStoreManager.translationLanguage.first(),
                         )
                             .onSuccess { lyrics ->
+                                Log.w("Translate Lyrics", "lyrics: $lyrics")
                                 emit(lyrics)
                             }
                             .onFailure {

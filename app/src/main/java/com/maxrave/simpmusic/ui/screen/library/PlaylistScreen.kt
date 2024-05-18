@@ -206,6 +206,7 @@ fun PlaylistScreen(
     val suggestionsLoading by viewModel.loading.collectAsState()
     val fullListTracks by viewModel.fullListTracks.collectAsState()
     var showSyncAlertDialog by rememberSaveable { mutableStateOf(false) }
+    var showUnsyncAlertDialog by rememberSaveable { mutableStateOf(false) }
 
     var currentItem by remember {
         mutableStateOf<SongEntity?>(null)
@@ -1068,6 +1069,12 @@ fun PlaylistScreen(
                     onEditTitle =
                         { newTitle ->
                             viewModel.updatePlaylistTitle(newTitle, it.id)
+                            if (it.syncedWithYouTubePlaylist == 1) {
+                                viewModel.updateYouTubePlaylistTitle(
+                                    newTitle,
+                                    it.youtubePlaylistId!!,
+                                )
+                            }
                         },
                     onEditThumbnail =
                         { thumbUri ->
@@ -1075,12 +1082,15 @@ fun PlaylistScreen(
                         },
                     onAddToQueue = {
                         viewModel.getAllTracksOfPlaylist(it.id)
+                        /*
+                        Add to queue in LaunchedEffect
+                         */
                     },
                     onSync = {
-                        if (it.youtubePlaylistId != null) {
-                            showSyncAlertDialog = true
+                        if (it.syncedWithYouTubePlaylist == 1) {
+                            showUnsyncAlertDialog = true
                         } else {
-                            viewModel.syncPlaylistWithYouTubePlaylist(it)
+                            showSyncAlertDialog = true
                         }
                     },
                     onUpdatePlaylist = {
@@ -1105,10 +1115,34 @@ fun PlaylistScreen(
         if (showSyncAlertDialog) {
             AlertDialog(
                 title = { Text(text = stringResource(id = R.string.warning)) },
-                text = { Text(text = stringResource(id = R.string.unsync_playlist_warning)) },
+                text = { Text(text = stringResource(id = R.string.sync_playlist_warning)) },
                 onDismissRequest = { showSyncAlertDialog = false },
                 confirmButton = {
-                    localPlaylist?.let { viewModel.unsyncPlaylistWithYouTubePlaylist(it) }
+                    localPlaylist?.let {
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.syncing),
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                        viewModel.syncPlaylistWithYouTubePlaylist(it)
+                    }
+                },
+            )
+        }
+        if (showUnsyncAlertDialog) {
+            AlertDialog(
+                title = { Text(text = stringResource(id = R.string.warning)) },
+                text = { Text(text = stringResource(id = R.string.unsync_playlist_warning)) },
+                onDismissRequest = { showUnsyncAlertDialog = false },
+                confirmButton = {
+                    localPlaylist?.let {
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.unsyncing),
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                        viewModel.unsyncPlaylistWithYouTubePlaylist(it)
+                    }
                 },
             )
         }
