@@ -35,6 +35,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 import javax.inject.Inject
@@ -51,8 +52,6 @@ class LocalPlaylistViewModel
         lateinit var downloadUtils: DownloadUtils
 
         val id: MutableLiveData<Long> = MutableLiveData()
-
-        var reverseLayout: Boolean = false
 
         private var _localPlaylist: MutableStateFlow<LocalPlaylistEntity?> =
             MutableStateFlow(null)
@@ -261,10 +260,14 @@ class LocalPlaylistViewModel
                                 ).collect { list ->
                                     val temp = mutableListOf<SongEntity>()
                                     temp.addAll(listTrack.value ?: emptyList())
-                                    temp.addAll(list)
+                                    val newList =
+                                        listPairPlaylist.mapNotNull { pair ->
+                                            list.find { it.videoId == pair.songId }
+                                        }
+                                    temp.addAll(newList)
                                     _listTrack.value = temp
                                     _loadingMore.value = false
-                                    Log.w("Pair", "getListTrack: ${_listTrack.value?.size}")
+                                    Log.w("Pair", "getListTrack: ${_listTrack.value}")
                                     if (listTrack.value?.size == localPlaylist.value?.tracks?.size && localPlaylist.value?.tracks != null) {
                                         setOffset(-1)
                                     }
@@ -886,12 +889,33 @@ class LocalPlaylistViewModel
 
         fun addSuggestTrackToListTrack(track: Track) {
             viewModelScope.launch {
-                insertSong(track)
-                val temp: ArrayList<SongEntity> = arrayListOf()
-                temp.addAll(_listTrack.value ?: emptyList())
-                temp.add(track.toSongEntity())
-                _listTrack.value = temp.toList()
                 _listSuggestions.value?.remove(track)
+                localPlaylist.value?.let {
+                    runBlocking {
+                        mainRepository.insertSong(track.toSongEntity()).firstOrNull()?.let {
+                            println("Insert Song $it")
+                        }
+                        insertPairSongLocalPlaylist(
+                            PairSongLocalPlaylist(
+                                playlistId = it.id,
+                                songId = track.videoId,
+                                position = it.tracks?.size ?: 0,
+                            ),
+                        )
+                    }
+                    val temp = it.tracks?.toMutableList() ?: mutableListOf<String>()
+                    temp.add(track.videoId)
+                    if (it.youtubePlaylistId != null) {
+                        addToYouTubePlaylist(it.id, it.youtubePlaylistId, track.videoId)
+                    }
+                    runBlocking {
+                        updateLocalPlaylistTracks(temp, it.id)
+                    }
+                    if (offset.value > 0) {
+                        setOffset(offset.value - 1)
+                    }
+                    getListTrack(it.id, offset.value, filter.value)
+                }
             }
         }
 
@@ -924,6 +948,10 @@ class LocalPlaylistViewModel
 
         fun removeFullListTracks() {
             _fullListTracks.value = null
+        }
+
+        fun clearListTracks() {
+            _listTrack.value = null
         }
     }
 

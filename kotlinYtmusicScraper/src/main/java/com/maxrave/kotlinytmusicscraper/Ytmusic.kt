@@ -557,6 +557,21 @@ class Ytmusic {
         parameter("track_id", trackId)
     }
 
+    suspend fun searchLrclibLyrics(
+        q_track: String,
+        q_artist: String,
+    ) = httpClient.get("https://lrclib.net/api/search") {
+        contentType(ContentType.Application.Json)
+        headers {
+            header(HttpHeaders.UserAgent, "PostmanRuntime/7.33.0")
+            header(HttpHeaders.Accept, "*/*")
+            header(HttpHeaders.AcceptEncoding, "gzip, deflate, br")
+            header(HttpHeaders.Connection, "keep-alive")
+        }
+        parameter("track_name", q_track)
+        parameter("artist_name", q_artist)
+    }
+
     suspend fun getMusixmatchTranslateLyrics(
         trackId: String,
         userToken: String,

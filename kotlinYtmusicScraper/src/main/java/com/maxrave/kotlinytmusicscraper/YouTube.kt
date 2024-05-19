@@ -8,6 +8,7 @@ import com.maxrave.kotlinytmusicscraper.models.Artist
 import com.maxrave.kotlinytmusicscraper.models.ArtistItem
 import com.maxrave.kotlinytmusicscraper.models.BrowseEndpoint
 import com.maxrave.kotlinytmusicscraper.models.GridRenderer
+import com.maxrave.kotlinytmusicscraper.models.LrclibObject
 import com.maxrave.kotlinytmusicscraper.models.MediaType
 import com.maxrave.kotlinytmusicscraper.models.MusicCarouselShelfRenderer
 import com.maxrave.kotlinytmusicscraper.models.PlaylistItem
@@ -76,6 +77,7 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
 import org.json.JSONArray
 import java.net.Proxy
+import kotlin.math.abs
 import kotlin.random.Random
 
 private fun List<PipedResponse.AudioStream>.toListFormat(): List<PlayerResponse.StreamingData.Format> {
@@ -539,6 +541,37 @@ object YouTube {
                 ) ?: "",
             ).body<Transcript>()
         }
+
+    suspend fun getLrclibLyrics(
+        q_track: String,
+        q_artist: String,
+        duration: Int?,
+    ) = runCatching {
+        val rs =
+            ytMusic.searchLrclibLyrics(
+                q_track = q_track,
+                q_artist = q_artist,
+            ).body<List<LrclibObject>>()
+        val lrclibObject: LrclibObject? =
+            if (duration != null) {
+                rs.find { abs(it.duration.toInt() - duration) <= 10 }
+            } else {
+                rs.firstOrNull()
+            }
+        if (lrclibObject != null) {
+            val syncedLyrics = lrclibObject.syncedLyrics
+            val plainLyrics = lrclibObject.plainLyrics
+            if (syncedLyrics != null) {
+                parseMusixmatchLyrics(syncedLyrics)
+            } else if (plainLyrics != null) {
+                parseUnsyncedLyrics(plainLyrics)
+            } else {
+                null
+            }
+        } else {
+            null
+        }
+    }
 
     /**
      * Get the suggest query from Google

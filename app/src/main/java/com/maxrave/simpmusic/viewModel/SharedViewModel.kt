@@ -826,10 +826,10 @@ class SharedViewModel
                                 _lyrics.value = response.second
                                 when (_lyrics.value) {
                                     is Resource.Success -> {
-                                        if (_lyrics.value?.data != null) {
+                                        _lyrics.value?.data?.let {
                                             _lyricsProvider.value = LyricsProvider.MUSIXMATCH
                                             insertLyrics(
-                                                _lyrics.value?.data!!.toLyricsEntity(track.videoId),
+                                                it.toLyricsEntity(track.videoId),
                                             )
                                             parseLyrics(_lyrics.value?.data)
                                             if (dataStoreManager.enableTranslateLyric.first() == TRUE) {
@@ -838,7 +838,7 @@ class SharedViewModel
                                                         if (translate != null) {
                                                             _translateLyrics.value =
                                                                 translate.toLyrics(
-                                                                    _lyrics.value?.data!!,
+                                                                    it,
                                                                 )
                                                         }
                                                     }

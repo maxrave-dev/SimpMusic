@@ -16,15 +16,18 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -40,6 +43,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -84,6 +88,7 @@ import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import androidx.wear.compose.material3.OutlinedButton
+import androidx.wear.compose.material3.TextButton
 import androidx.wear.compose.material3.ripple
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
@@ -132,14 +137,15 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.time.format.DateTimeFormatter
 
-@androidx.annotation.OptIn(UnstableApi::class)
+@UnstableApi
+@ExperimentalFoundationApi
 @OptIn(
     ExperimentalMaterial3Api::class,
     ExperimentalHazeMaterialsApi::class,
 )
 @Composable
 fun PlaylistScreen(
-    id: Long,
+    id: Long?,
     sharedViewModel: SharedViewModel,
     viewModel: LocalPlaylistViewModel,
     navController: NavController,
@@ -207,6 +213,15 @@ fun PlaylistScreen(
     val fullListTracks by viewModel.fullListTracks.collectAsState()
     var showSyncAlertDialog by rememberSaveable { mutableStateOf(false) }
     var showUnsyncAlertDialog by rememberSaveable { mutableStateOf(false) }
+    var shouldDownload by remember {
+        mutableStateOf(false)
+    }
+    var shouldAddAllToQueue by remember {
+        mutableStateOf(false)
+    }
+    var firstTimeGetLocalPlaylist by rememberSaveable {
+        mutableStateOf(false)
+    }
 
     var currentItem by remember {
         mutableStateOf<SongEntity?>(null)
@@ -275,39 +290,80 @@ fun PlaylistScreen(
     }
 
     LaunchedEffect(key1 = shouldShowSuggestions) {
-        localPlaylist?.youtubePlaylistId?.let { viewModel.getSuggestions(it) }
+        if (suggestedTracks.isNullOrEmpty()) {
+            localPlaylist?.youtubePlaylistId?.let { viewModel.getSuggestions(it) }
+        }
     }
     LaunchedEffect(key1 = id) {
-        viewModel.id.postValue(id)
-        viewModel.setOffset(0)
-        viewModel.clearLocalPlaylist()
-        viewModel.clearListPair()
-        viewModel.removeFullListTracks()
-        viewModel.id.postValue(id)
-        viewModel.getLocalPlaylist(id)
+        if (id != viewModel.id.value && id != null) {
+            Log.w("PlaylistScreen", "new id: $id")
+            viewModel.id.postValue(id)
+            firstTimeGetLocalPlaylist = true
+            viewModel.setOffset(0)
+            viewModel.removeListSuggestion()
+            viewModel.removeData()
+            viewModel.removeFullListTracks()
+            viewModel.getLocalPlaylist(id)
+        }
     }
-    LaunchedEffect(key1 = fullListTracks) {
+    LaunchedEffect(key1 = fullListTracks, key2 = shouldDownload) {
         val flt = fullListTracks.toArrayListTrack()
-        if (flt.isNotEmpty()) {
+        if (flt.isNotEmpty() && shouldDownload) {
+            shouldDownload = false
+            val listJob: ArrayList<SongEntity> = arrayListOf()
+            for (song in viewModel.listTrack.value!!) {
+                if (song.downloadState == DownloadState.STATE_NOT_DOWNLOADED) {
+                    listJob.add(song)
+                }
+            }
+            viewModel.listJob.value = listJob
+            Log.d("PlaylistFragment", "ListJob: ${viewModel.listJob.value}")
+            listJob.forEach { job ->
+                val downloadRequest =
+                    DownloadRequest.Builder(job.videoId, job.videoId.toUri())
+                        .setData(job.title.toByteArray())
+                        .setCustomCacheKey(job.videoId)
+                        .build()
+                viewModel.updateDownloadState(
+                    job.videoId,
+                    DownloadState.STATE_DOWNLOADING,
+                )
+                DownloadService.sendAddDownload(
+                    context,
+                    MusicDownloadService::class.java,
+                    downloadRequest,
+                    false,
+                )
+                viewModel.getDownloadStateFromService(job.videoId)
+            }
+            localPlaylist?.let { viewModel.downloadFullPlaylistState(it.id) }
+        }
+    }
+    LaunchedEffect(key1 = fullListTracks, key2 = shouldAddAllToQueue) {
+        val flt = fullListTracks.toArrayListTrack()
+        if (flt.isNotEmpty() && shouldAddAllToQueue) {
+            shouldAddAllToQueue = false
             sharedViewModel.addListToQueue(flt)
             Toast.makeText(context, context.getString(R.string.added_to_queue), Toast.LENGTH_SHORT).show()
         }
     }
-    LaunchedEffect(key1 = localPlaylist) {
-        if (localPlaylist != null) {
+    LaunchedEffect(key1 = localPlaylist, key2 = firstTimeGetLocalPlaylist) {
+        if (localPlaylist != null && firstTimeGetLocalPlaylist) {
+            Log.w("PlaylistScreen", "new localPlaylist: $localPlaylist")
             localPlaylist?.id?.let { viewModel.getListTrack(it, offset, filterState) }
             localPlaylist?.downloadState?.let { viewModel.playlistDownloadState.emit(it) }
             shouldShowSuggestButton =
                 localPlaylist?.youtubePlaylistId != null &&
                 localPlaylist?.youtubePlaylistId != ""
+            firstTimeGetLocalPlaylist = false
         }
     }
     LaunchedEffect(key1 = firstItemVisible) {
         shouldHideTopBar = !firstItemVisible
     }
     LaunchedEffect(key1 = lastItemVisible) {
-        Log.w("PlaylistScreen", "lastItemVisible: $lastItemVisible")
         if (lastItemVisible && offset > 0 && !isLoadingMore) {
+            Log.w("PlaylistScreen", "lastItemVisible: $lastItemVisible")
             localPlaylist?.id?.let { viewModel.getListTrack(it, offset, filterState) }
         }
     }
@@ -469,6 +525,7 @@ fun PlaylistScreen(
                                                 paletteLoadedListener = {
                                                     palette = it
                                                 },
+                                                useCache = true,
                                             ),
                                         )
                                         +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder))
@@ -652,35 +709,8 @@ fun PlaylistScreen(
                                                         resId = R.drawable.download_button,
                                                         modifier = Modifier.size(36.dp),
                                                     ) {
-                                                        if (!viewModel.listTrack.value.isNullOrEmpty()) {
-                                                            val listJob: ArrayList<SongEntity> = arrayListOf()
-                                                            for (song in viewModel.listTrack.value!!) {
-                                                                if (song.downloadState == DownloadState.STATE_NOT_DOWNLOADED) {
-                                                                    listJob.add(song)
-                                                                }
-                                                            }
-                                                            viewModel.listJob.value = listJob
-                                                            Log.d("PlaylistFragment", "ListJob: ${viewModel.listJob.value}")
-                                                            listJob.forEach { job ->
-                                                                val downloadRequest =
-                                                                    DownloadRequest.Builder(job.videoId, job.videoId.toUri())
-                                                                        .setData(job.title.toByteArray())
-                                                                        .setCustomCacheKey(job.videoId)
-                                                                        .build()
-                                                                viewModel.updateDownloadState(
-                                                                    job.videoId,
-                                                                    DownloadState.STATE_DOWNLOADING,
-                                                                )
-                                                                DownloadService.sendAddDownload(
-                                                                    context,
-                                                                    MusicDownloadService::class.java,
-                                                                    downloadRequest,
-                                                                    false,
-                                                                )
-                                                                viewModel.getDownloadStateFromService(job.videoId)
-                                                            }
-                                                            viewModel.downloadFullPlaylistState(id)
-                                                        }
+                                                        localPlaylist?.let { it1 -> viewModel.getAllTracksOfPlaylist(it1.id) }
+                                                        shouldDownload = true
                                                     }
                                                 }
                                             }
@@ -976,7 +1006,44 @@ fun PlaylistScreen(
                                             Spacer(modifier = Modifier.size(8.dp))
                                         }
                                     }
-                                    //
+                                    ElevatedButton(
+                                        contentPadding = PaddingValues(0.dp),
+                                        modifier =
+                                            Modifier
+                                                .defaultMinSize(minWidth = 1.dp, minHeight = 1.dp),
+                                        onClick = {
+                                            if (filterState == FilterState.OlderFirst) {
+                                                viewModel.setFilter(FilterState.NewerFirst)
+                                            } else {
+                                                viewModel.setFilter(FilterState.OlderFirst)
+                                            }
+                                            Log.w("PlaylistScreen", "new filterState: $filterState")
+                                            viewModel.setOffset(0)
+                                            viewModel.clearListPair()
+                                            viewModel.clearListTracks()
+                                            if (localPlaylist != null) {
+                                                localPlaylist?.id?.let { viewModel.getListTrack(it, offset, filterState) }
+                                            }
+                                        },
+                                    ) {
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            if (filterState == FilterState.OlderFirst) {
+                                                Icon(
+                                                    painter = painterResource(id = R.drawable.baseline_arrow_drop_down_24),
+                                                    contentDescription = "Older First",
+                                                    tint = Color.White,
+                                                )
+                                            } else {
+                                                Icon(
+                                                    painter = painterResource(R.drawable.baseline_arrow_drop_up_24),
+                                                    contentDescription = "Newer First",
+                                                    tint = Color.White,
+                                                )
+                                            }
+                                            Spacer(modifier = Modifier.size(3.dp))
+                                            Text(text = stringResource(id = R.string.added_date), style = typo.bodySmall, color = Color.White)
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -1085,6 +1152,7 @@ fun PlaylistScreen(
                         /*
                         Add to queue in LaunchedEffect
                          */
+                        shouldAddAllToQueue = true
                     },
                     onSync = {
                         if (it.syncedWithYouTubePlaylist == 1) {
@@ -1118,13 +1186,25 @@ fun PlaylistScreen(
                 text = { Text(text = stringResource(id = R.string.sync_playlist_warning)) },
                 onDismissRequest = { showSyncAlertDialog = false },
                 confirmButton = {
-                    localPlaylist?.let {
-                        Toast.makeText(
-                            context,
-                            context.getString(R.string.syncing),
-                            Toast.LENGTH_SHORT,
-                        ).show()
-                        viewModel.syncPlaylistWithYouTubePlaylist(it)
+                    TextButton(onClick = {
+                        localPlaylist?.let {
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.syncing),
+                                Toast.LENGTH_SHORT,
+                            ).show()
+                            viewModel.syncPlaylistWithYouTubePlaylist(it)
+                            showSyncAlertDialog = false
+                        }
+                    }) {
+                        Text(text = stringResource(id = R.string.yes))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = {
+                        showSyncAlertDialog = false
+                    }) {
+                        Text(text = stringResource(id = R.string.cancel))
                     }
                 },
             )
@@ -1135,13 +1215,25 @@ fun PlaylistScreen(
                 text = { Text(text = stringResource(id = R.string.unsync_playlist_warning)) },
                 onDismissRequest = { showUnsyncAlertDialog = false },
                 confirmButton = {
-                    localPlaylist?.let {
-                        Toast.makeText(
-                            context,
-                            context.getString(R.string.unsyncing),
-                            Toast.LENGTH_SHORT,
-                        ).show()
-                        viewModel.unsyncPlaylistWithYouTubePlaylist(it)
+                    TextButton(onClick = {
+                        localPlaylist?.let {
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.unsyncing),
+                                Toast.LENGTH_SHORT,
+                            ).show()
+                            viewModel.unsyncPlaylistWithYouTubePlaylist(it)
+                        }
+                        showUnsyncAlertDialog = false
+                    }) {
+                        Text(text = stringResource(id = R.string.yes))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = {
+                        showUnsyncAlertDialog = false
+                    }) {
+                        Text(text = stringResource(id = R.string.cancel))
                     }
                 },
             )

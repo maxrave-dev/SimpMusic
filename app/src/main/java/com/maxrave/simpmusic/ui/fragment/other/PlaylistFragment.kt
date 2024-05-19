@@ -311,7 +311,7 @@ class PlaylistFragment : Fragment() {
         }
 
         binding.btPlayPause.setOnClickListener {
-            if (viewModel.isRadio.value == false) {
+            if (viewModel.isRadio.value != true) {
                 Queue.setContinuation(Queue.getPlaylistId() ?: "", null)
                 if (viewModel.playlistBrowse.value is Resource.Success && viewModel.playlistBrowse.value?.data != null) {
                     val args = Bundle()
@@ -448,7 +448,7 @@ class PlaylistFragment : Fragment() {
         playlistItemAdapter.setOnClickListener(
             object : PlaylistItemAdapter.OnItemClickListener {
                 override fun onItemClick(position: Int) {
-                    if (viewModel.isRadio.value == false) {
+                    if (viewModel.isRadio.value != true) {
                         Queue.setContinuation(Queue.getPlaylistId() ?: "", null)
                         if (viewModel.playlistBrowse.value is Resource.Success && viewModel.playlistBrowse.value?.data != null) {
                             val args = Bundle()

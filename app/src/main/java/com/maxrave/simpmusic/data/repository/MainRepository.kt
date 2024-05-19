@@ -596,9 +596,10 @@ class MainRepository
                                     0,
                                 )?.tabRenderer?.content?.sectionListRenderer?.contents?.get(
                                     0,
-                                )?.musicCarouselShelfRenderer?.header?.musicCarouselShelfBasicHeaderRenderer?.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.get(
-                                    0,
-                                )?.url?.replace("s88", "s352") ?: ""
+                                )?.musicCarouselShelfRenderer?.header?.musicCarouselShelfBasicHeaderRenderer
+                                    ?.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.get(
+                                        0,
+                                    )?.url?.replace("s88", "s352") ?: ""
                             if (accountName != "" && accountThumbUrl != "") {
                                 dataStoreManager.putString("AccountName", accountName)
                                 dataStoreManager.putString("AccountThumbUrl", accountThumbUrl)
@@ -993,29 +994,40 @@ class MainRepository
                         val thumbnail =
                             result.background?.musicThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail()
                         val title =
-                            result.contents?.twoColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()?.musicResponsiveHeaderRenderer?.title?.runs?.firstOrNull()?.text
+                            result.contents?.twoColumnBrowseResultsRenderer?.tabs?.firstOrNull()
+                                ?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()
+                                ?.musicResponsiveHeaderRenderer?.title?.runs?.firstOrNull()?.text
                         val author =
-                            result.contents?.twoColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()?.musicResponsiveHeaderRenderer?.let {
-                                Artist(
-                                    id = it.straplineTextOne?.runs?.firstOrNull()?.navigationEndpoint?.browseEndpoint?.browseId,
-                                    name = it.straplineTextOne?.runs?.firstOrNull()?.text ?: "",
-                                )
-                            }
+                            result.contents?.twoColumnBrowseResultsRenderer?.tabs?.firstOrNull()
+                                ?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()
+                                ?.musicResponsiveHeaderRenderer?.let {
+                                    Artist(
+                                        id = it.straplineTextOne?.runs?.firstOrNull()?.navigationEndpoint?.browseEndpoint?.browseId,
+                                        name = it.straplineTextOne?.runs?.firstOrNull()?.text ?: "",
+                                    )
+                                }
                         val authorThumbnail =
-                            result.contents?.twoColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()?.musicResponsiveHeaderRenderer?.let {
-                                it.straplineThumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.lastOrNull()?.url
-                            }
+                            result.contents?.twoColumnBrowseResultsRenderer?.tabs?.firstOrNull()
+                                ?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()
+                                ?.musicResponsiveHeaderRenderer?.let {
+                                    it.straplineThumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.lastOrNull()?.url
+                                }
                         val description =
-                            result.contents?.twoColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()?.musicResponsiveHeaderRenderer?.description?.musicDescriptionShelfRenderer?.description?.runs?.mapNotNull {
-                                it.text
-                            }?.joinToString("")
+                            result.contents?.twoColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer
+                                ?.contents?.firstOrNull()?.musicResponsiveHeaderRenderer
+                                ?.description?.musicDescriptionShelfRenderer?.description?.runs?.map {
+                                    it.text
+                                }?.joinToString("")
                         val data =
-                            result.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer?.contents?.firstOrNull()?.musicShelfRenderer?.contents
+                            result.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer?.contents?.firstOrNull()
+                                ?.musicShelfRenderer?.contents
                         parsePodcastData(data, author).let {
                             listEpisode.addAll(it)
                         }
                         var continueParam =
-                            result.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer?.contents?.firstOrNull()?.musicShelfRenderer?.continuations?.firstOrNull()?.nextContinuationData?.continuation
+                            result.contents?.twoColumnBrowseResultsRenderer?.secondaryContents
+                                ?.sectionListRenderer?.contents?.firstOrNull()
+                                ?.musicShelfRenderer?.continuations?.firstOrNull()?.nextContinuationData?.continuation
                         while (continueParam != null) {
                             YouTube.customQuery(continuation = continueParam, browseId = "")
                                 .onSuccess { continueData ->
@@ -1026,7 +1038,8 @@ class MainRepository
                                         listEpisode.addAll(it)
                                     }
                                     continueParam =
-                                        continueData.continuationContents?.musicShelfContinuation?.continuations?.firstOrNull()?.nextContinuationData?.continuation
+                                        continueData.continuationContents?.musicShelfContinuation?.continuations?.firstOrNull()
+                                            ?.nextContinuationData?.continuation
                                 }
                                 .onFailure {
                                     it.printStackTrace()
@@ -1462,7 +1475,9 @@ class MainRepository
                                 .replace("  ", " ")
                         var spotifyPersonalToken = ""
                         if (dataStoreManager.spotifyPersonalToken.first()
-                                .isNotEmpty() && dataStoreManager.spotifyPersonalTokenExpires.first() > System.currentTimeMillis() && dataStoreManager.spotifyPersonalTokenExpires.first() != 0L
+                                .isNotEmpty() &&
+                            dataStoreManager.spotifyPersonalTokenExpires.first() > System.currentTimeMillis() &&
+                            dataStoreManager.spotifyPersonalTokenExpires.first() != 0L
                         ) {
                             spotifyPersonalToken = dataStoreManager.spotifyPersonalToken.first()
                             Log.d("Lyrics", "spotifyPersonalToken: $spotifyPersonalToken")
@@ -1681,15 +1696,7 @@ class MainRepository
                             Regex("( và | & | и | e | und |, |和| dan)"),
                             " ",
                         ).replace("  ", " ").replace(Regex("([()])"), "").replace(".", " ")
-                    val query = "$qtrack $qartist"
-                    val q =
-                        query.replace(
-                            Regex("\\((feat\\.|ft.|cùng với|con|mukana|com|avec|合作音乐人: ) "),
-                            " ",
-                        ).replace(
-                            Regex("( và | & | и | e | und |, |和| dan)"),
-                            " ",
-                        ).replace("  ", " ").replace(Regex("([()])"), "").replace(".", " ")
+                    val q = "$qtrack $qartist"
                     Log.d("Lyrics", "query: $q")
                     var musixMatchUserToken = YouTube.musixmatchUserToken
                     if (musixMatchUserToken == null) {
@@ -1749,7 +1756,7 @@ class MainRepository
                                                 bestMatchingIndex,
                                             ).track.track_name,
                                         ) &&
-                                        query.contains(
+                                        q.contains(
                                             trackList.get(
                                                 bestMatchingIndex,
                                             ).track.track_name,
@@ -1778,7 +1785,7 @@ class MainRepository
                                                 bestMatchingIndex,
                                             ).track.track_name,
                                         ) &&
-                                    query.contains(
+                                    q.contains(
                                         trackList.get(
                                             bestMatchingIndex,
                                         ).track.track_name,
@@ -1822,7 +1829,12 @@ class MainRepository
                                             }
                                         }.onFailure { throwable ->
                                             throwable.printStackTrace()
-                                            emit(Pair(id, Resource.Error<Lyrics>("Not found")))
+                                            YouTube.getLrclibLyrics(qtrack, qartist, durationInt).onSuccess {
+                                                it?.let { emit(Pair(id, Resource.Success<Lyrics>(it.toLyrics()))) }
+                                            }.onFailure {
+                                                it.printStackTrace()
+                                                emit(Pair(id, Resource.Error<Lyrics>("Not found")))
+                                            }
                                         }
                                 } else {
                                     YouTube.fixSearchMusixmatch(
@@ -1844,8 +1856,16 @@ class MainRepository
                                                         )
                                                     } else {
                                                         Log.w("Lyrics", "Error: Lỗi getLyrics $it")
+                                                        YouTube.getLrclibLyrics(qtrack, qartist, durationInt)
                                                         emit(Pair(id, Resource.Error<Lyrics>("Not found")))
                                                     }
+                                                }.onFailure {
+                                                    it.printStackTrace()
+                                                    emit(Pair(id, Resource.Error<Lyrics>("Not found")))
+                                                }
+                                            } else {
+                                                YouTube.getLrclibLyrics(qtrack, qartist, durationInt).onSuccess {
+                                                    it?.let { emit(Pair(trackX?.track_id.toString(), Resource.Success<Lyrics>(it.toLyrics()))) }
                                                 }.onFailure {
                                                     it.printStackTrace()
                                                     emit(Pair(id, Resource.Error<Lyrics>("Not found")))
@@ -1853,7 +1873,12 @@ class MainRepository
                                             }
                                         }
                                         .onFailure {
-                                            emit(Pair("", Resource.Error<Lyrics>("Not found")))
+                                            YouTube.getLrclibLyrics(qtrack, qartist, durationInt).onSuccess {
+                                                it?.let { emit(Pair(id, Resource.Success<Lyrics>(it.toLyrics()))) }
+                                            }.onFailure {
+                                                it.printStackTrace()
+                                                emit(Pair(id, Resource.Error<Lyrics>("Not found")))
+                                            }
                                         }
                                 }
                             } else {

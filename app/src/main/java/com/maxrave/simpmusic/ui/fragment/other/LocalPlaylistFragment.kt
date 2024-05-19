@@ -1,19 +1,16 @@
 package com.maxrave.simpmusic.ui.fragment.other
 
-import android.app.Activity
-import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
 import android.graphics.drawable.TransitionDrawable
-import android.os.Build.ID
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.content.ContextCompat
@@ -42,6 +39,8 @@ import dagger.hilt.android.AndroidEntryPoint
 import java.time.format.DateTimeFormatter
 
 @AndroidEntryPoint
+@UnstableApi
+@ExperimentalFoundationApi
 class LocalPlaylistFragment : Fragment() {
     private var _binding: FragmentLocalPlaylistBinding? = null
     private val binding get() = _binding!!
@@ -55,7 +54,7 @@ class LocalPlaylistFragment : Fragment() {
     lateinit var listSuggestTrack: ArrayList<Track>
     private lateinit var suggestAdapter: SuggestItemAdapter
 
-    private var id: Long? = null
+    private var playlistId: Long? = null
     private lateinit var composeView: ComposeView
 
     @UnstableApi
@@ -71,34 +70,6 @@ class LocalPlaylistFragment : Fragment() {
         }
     }
 
-    private var resultLauncher =
-        registerForActivityResult(
-            ActivityResultContracts.StartActivityForResult(),
-        ) { activityResult ->
-            if (activityResult.resultCode == Activity.RESULT_OK) {
-                Log.d("ID", ID.toString())
-                val intentRef = activityResult.data
-                val data = intentRef?.data
-                if (data != null) {
-                    val contentResolver = context?.contentResolver
-
-                    val takeFlags: Int =
-                        Intent.FLAG_GRANT_READ_URI_PERMISSION or
-                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION
-                    // Check for the freshest data.
-                    requireActivity().grantUriPermission(
-                        requireActivity().packageName,
-                        data,
-                        takeFlags,
-                    )
-                    contentResolver?.takePersistableUriPermission(data, takeFlags)
-                    val uri = data.toString()
-                    viewModel.updatePlaylistThumbnail(uri, id!!)
-                    loadImage(uri)
-                }
-            }
-        }
-
     @UnstableApi
     override fun onViewCreated(
         view: View,
@@ -106,13 +77,13 @@ class LocalPlaylistFragment : Fragment() {
     ) {
         super.onViewCreated(view, savedInstanceState)
 
-        id = arguments?.getLong("id")
+        playlistId = arguments?.getLong("id")
         composeView.apply {
             setContent {
                 AppTheme {
                     Scaffold {
                         PlaylistScreen(
-                            id = requireArguments().getLong("id"),
+                            id = playlistId,
                             sharedViewModel = sharedViewModel,
                             viewModel = viewModel,
                             findNavController(),
@@ -1258,7 +1229,5 @@ class LocalPlaylistFragment : Fragment() {
 
     override fun onDestroy() {
         super.onDestroy()
-        viewModel.removeListSuggestion()
-        viewModel.removeData()
     }
 }
