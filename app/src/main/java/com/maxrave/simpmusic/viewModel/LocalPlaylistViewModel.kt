@@ -4,7 +4,6 @@ import android.app.Application
 import android.graphics.drawable.GradientDrawable
 import android.util.Log
 import android.widget.Toast
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
@@ -33,6 +32,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -92,32 +92,28 @@ class LocalPlaylistViewModel
             _filter.value = filterState
         }
 
-        private var _brush: MutableStateFlow<Brush> =
+        private var _brush: MutableStateFlow<List<Color>> =
             MutableStateFlow(
-                Brush.verticalGradient(
-                    listOf(
-                        Color.Black,
-                        Color(
-                            application.resources.getColor(R.color.md_theme_dark_background, null),
-                        ),
+                listOf(
+                    Color.Black,
+                    Color(
+                        application.resources.getColor(R.color.md_theme_dark_background, null),
                     ),
                 ),
             )
-        val brush: StateFlow<Brush> = _brush
+        val brush: StateFlow<List<Color>> = _brush
 
-        fun setBrush(brush: Brush) {
+        fun setBrush(brush: List<Color>) {
             _brush.value = brush
         }
 
         fun resetBrush() {
             Log.w("resetBrush", "resetBrush: ")
             _brush.value =
-                Brush.verticalGradient(
-                    listOf(
-                        Color.Black,
-                        Color(
-                            application.resources.getColor(R.color.md_theme_dark_background, null),
-                        ),
+                listOf(
+                    Color.Black,
+                    Color(
+                        application.resources.getColor(R.color.md_theme_dark_background, null),
                     ),
                 )
         }
@@ -241,7 +237,7 @@ class LocalPlaylistViewModel
                             playlistId,
                             offset,
                             filterState,
-                        ).firstOrNull().let { listPairPlaylist ->
+                        ).singleOrNull().let { listPairPlaylist ->
                             Log.w("Pair", "getListTrack: $listPairPlaylist")
                             if (listPairPlaylist != null) {
                                 if (_listPair.value == null || offset == 0) {
@@ -924,13 +920,16 @@ class LocalPlaylistViewModel
 
         fun getAllTracksOfPlaylist(id: Long) {
             viewModelScope.launch {
+                Log.w("Pair", "getAllTracksOfPlaylist: $id")
                 val list: MutableList<SongEntity> = mutableListOf()
                 var os = 0
                 while (os >= 0) {
-                    mainRepository.getPlaylistPairSongByOffset(id, os, FilterState.OlderFirst).firstOrNull().let { pairSongLocalPlaylists ->
-                        if (pairSongLocalPlaylists != null) {
+                    mainRepository.getPlaylistPairSongByOffset(id, os, FilterState.OlderFirst).singleOrNull().let { pairSongLocalPlaylists ->
+                        if (!pairSongLocalPlaylists.isNullOrEmpty()) {
+                            Log.w("Pair", "getAllTracksOfPlaylist: ${pairSongLocalPlaylists.size}")
                             mainRepository.getSongsByListVideoId(pairSongLocalPlaylists.map { it.songId }).firstOrNull().let {
-                                if (it != null) {
+                                if (!it.isNullOrEmpty()) {
+                                    Log.w("Pair", "getAllTracksOfPlaylist: $it")
                                     list.addAll(it)
                                     os++
                                 } else {
@@ -943,6 +942,7 @@ class LocalPlaylistViewModel
                     }
                 }
                 _fullListTracks.value = list
+                Log.w("Pair", "getAllTracksOfPlaylist: ${_fullListTracks.value}")
             }
         }
 

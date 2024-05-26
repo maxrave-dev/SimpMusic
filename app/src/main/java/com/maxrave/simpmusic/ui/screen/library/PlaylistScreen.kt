@@ -102,6 +102,7 @@ import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.data.queue.Queue.ASC
 import com.maxrave.simpmusic.data.queue.Queue.DESC
+import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.toArrayListTrack
 import com.maxrave.simpmusic.extension.toTrack
@@ -125,12 +126,6 @@ import com.skydoves.landscapist.components.rememberImageComponent
 import com.skydoves.landscapist.palette.PalettePlugin
 import com.skydoves.landscapist.palette.rememberPaletteState
 import com.skydoves.landscapist.placeholder.placeholder.PlaceholderPlugin
-import com.skydoves.landscapist.transformation.blur.BlurTransformationPlugin
-import dev.chrisbanes.haze.HazeState
-import dev.chrisbanes.haze.haze
-import dev.chrisbanes.haze.hazeChild
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -141,7 +136,6 @@ import java.time.format.DateTimeFormatter
 @ExperimentalFoundationApi
 @OptIn(
     ExperimentalMaterial3Api::class,
-    ExperimentalHazeMaterialsApi::class,
 )
 @Composable
 fun PlaylistScreen(
@@ -169,7 +163,7 @@ fun PlaylistScreen(
         targetValue = limit,
         animationSpec =
             infiniteRepeatable(
-                animation = tween(2500, easing = LinearEasing),
+                animation = tween(5000, easing = LinearEasing),
                 repeatMode = RepeatMode.Reverse,
             ),
         label = "shimmer",
@@ -180,7 +174,7 @@ fun PlaylistScreen(
         targetValue = 360f,
         animationSpec =
             infiniteRepeatable(
-                animation = tween(2000, easing = LinearEasing),
+                animation = tween(5000, easing = LinearEasing),
                 repeatMode = RepeatMode.Restart,
             ),
         label = "rotation",
@@ -201,7 +195,6 @@ fun PlaylistScreen(
     var shouldHideTopBar by rememberSaveable { mutableStateOf(false) }
     var shouldShowSuggestions by rememberSaveable { mutableStateOf(false) }
     var shouldShowSuggestButton by rememberSaveable { mutableStateOf(false) }
-    val hazeState = remember { HazeState() }
     var palette by rememberPaletteState(null)
     val bg by viewModel.brush.collectAsState()
     val localPlaylist by viewModel.localPlaylist.collectAsState()
@@ -298,17 +291,19 @@ fun PlaylistScreen(
         if (id != viewModel.id.value && id != null) {
             Log.w("PlaylistScreen", "new id: $id")
             viewModel.id.postValue(id)
-            firstTimeGetLocalPlaylist = true
             viewModel.setOffset(0)
             viewModel.removeListSuggestion()
             viewModel.removeData()
             viewModel.removeFullListTracks()
             viewModel.getLocalPlaylist(id)
+            delay(100)
+            firstTimeGetLocalPlaylist = true
         }
     }
     LaunchedEffect(key1 = fullListTracks, key2 = shouldDownload) {
         val flt = fullListTracks.toArrayListTrack()
         if (flt.isNotEmpty() && shouldDownload) {
+            Log.w("PlaylistScreen", "fullListTracks: $flt")
             shouldDownload = false
             val listJob: ArrayList<SongEntity> = arrayListOf()
             for (song in viewModel.listTrack.value!!) {
@@ -348,7 +343,7 @@ fun PlaylistScreen(
         }
     }
     LaunchedEffect(key1 = localPlaylist, key2 = firstTimeGetLocalPlaylist) {
-        if (localPlaylist != null && firstTimeGetLocalPlaylist) {
+        if (localPlaylist != null && firstTimeGetLocalPlaylist && localPlaylist?.id == viewModel.id.value) {
             Log.w("PlaylistScreen", "new localPlaylist: $localPlaylist")
             localPlaylist?.id?.let { viewModel.getListTrack(it, offset, filterState) }
             localPlaylist?.downloadState?.let { viewModel.playlistDownloadState.emit(it) }
@@ -363,7 +358,6 @@ fun PlaylistScreen(
     }
     LaunchedEffect(key1 = lastItemVisible) {
         if (lastItemVisible && offset > 0 && !isLoadingMore) {
-            Log.w("PlaylistScreen", "lastItemVisible: $lastItemVisible")
             localPlaylist?.id?.let { viewModel.getListTrack(it, offset, filterState) }
         }
     }
@@ -397,41 +391,86 @@ fun PlaylistScreen(
             val endColor =
                 context.resources.getColor(R.color.md_theme_dark_background, null)
             val colorAndroid = ColorUtils.setAlphaComponent(startColor, 255)
-
             val brush =
-                Brush.verticalGradient(
-                    listOf(
-                        Color(colorAndroid),
-                        Color(endColor),
-                    ),
+                listOf(
+                    Color(colorAndroid),
+                    Color(endColor),
                 )
             viewModel.setBrush(brush)
         }
     }
-    Box {
-        LazyColumn(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .background(Color.Black),
-            state = lazyState,
-        ) {
-            item {
+//    Box {
+    LazyColumn(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .background(Color.Black),
+        state = lazyState,
+    ) {
+        item(contentType = "header") {
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                        .background(Color.Transparent),
+            ) {
                 Box(
                     modifier =
                         Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight()
-                            .background(Color.Transparent),
+                            .fillMaxWidth(),
+//                                .haze(
+//                                    hazeState,
+//                                    style = HazeMaterials.regular(),
+//                                ),
                 ) {
                     Box(
                         modifier =
                             Modifier
                                 .fillMaxWidth()
-                                .haze(
-                                    hazeState,
-                                    style = HazeMaterials.regular(),
+                                .aspectRatio(1f)
+                                .clip(
+                                    RoundedCornerShape(8.dp),
+                                ).angledGradientBackground(bg, 25f),
+                    )
+                    Box(
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .height(180.dp)
+                                .align(Alignment.BottomCenter)
+                                .background(
+                                    brush =
+                                        Brush.verticalGradient(
+                                            listOf(
+                                                Color.Transparent,
+                                                Color(0x75000000),
+                                                Color.Black,
+                                            ),
+                                        ),
                                 ),
+                    )
+                }
+                Column(
+                    Modifier
+                        .background(Color.Transparent),
+//                            .hazeChild(hazeState, style = HazeMaterials.regular()),
+                ) {
+                    Row(
+                        modifier =
+                            Modifier
+                                .wrapContentWidth()
+                                .padding(16.dp)
+                                .windowInsetsPadding(WindowInsets.statusBars),
+                    ) {
+                        RippleIconButton(
+                            resId = R.drawable.baseline_arrow_back_ios_new_24,
+                        ) {
+                            navController.popBackStack()
+                        }
+                    }
+                    Column(
+                        horizontalAlignment = Alignment.Start,
                     ) {
                         CoilImage(
                             imageModel = {
@@ -439,7 +478,7 @@ fun PlaylistScreen(
                             },
                             imageOptions =
                                 ImageOptions(
-                                    contentScale = ContentScale.FillWidth,
+                                    contentScale = ContentScale.FillHeight,
                                     alignment = Alignment.Center,
                                 ),
                             previewPlaceholder = painterResource(id = R.drawable.holder),
@@ -451,15 +490,21 @@ fun PlaylistScreen(
                                         ),
                                     )
                                     add(
-                                        BlurTransformationPlugin(radius = 100),
+                                        PalettePlugin(
+                                            paletteLoadedListener = {
+                                                palette = it
+                                            },
+                                            useCache = true,
+                                        ),
                                     )
                                     +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder))
                                     +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder))
                                 },
                             modifier =
                                 Modifier
-                                    .fillMaxWidth()
-                                    .aspectRatio(1f)
+                                    .height(250.dp)
+                                    .wrapContentWidth()
+                                    .align(Alignment.CenterHorizontally)
                                     .clip(
                                         RoundedCornerShape(8.dp),
                                     ),
@@ -468,581 +513,505 @@ fun PlaylistScreen(
                             modifier =
                                 Modifier
                                     .fillMaxWidth()
-                                    .height(180.dp)
-                                    .align(Alignment.BottomCenter)
-                                    .background(
-                                        brush =
-                                            Brush.verticalGradient(
-                                                listOf(
-                                                    Color.Transparent,
-                                                    Color(0x75000000),
-                                                    Color.Black,
-                                                ),
-                                            ),
-                                    ),
-                        )
-                    }
-                    Column(
-                        Modifier
-                            .background(Color.Transparent)
-                            .hazeChild(hazeState, style = HazeMaterials.regular()),
-                    ) {
-                        Row(
-                            modifier =
-                                Modifier
-                                    .wrapContentWidth()
-                                    .padding(16.dp)
-                                    .windowInsetsPadding(WindowInsets.statusBars),
+                                    .wrapContentHeight(),
                         ) {
-                            RippleIconButton(
-                                resId = R.drawable.baseline_arrow_back_ios_new_24,
-                            ) {
-                                navController.popBackStack()
-                            }
-                        }
-                        Column(
-                            horizontalAlignment = Alignment.Start,
-                        ) {
-                            CoilImage(
-                                imageModel = {
-                                    localPlaylist?.thumbnail
-                                },
-                                imageOptions =
-                                    ImageOptions(
-                                        contentScale = ContentScale.FillHeight,
-                                        alignment = Alignment.Center,
-                                    ),
-                                previewPlaceholder = painterResource(id = R.drawable.holder),
-                                component =
-                                    rememberImageComponent {
-                                        add(
-                                            CrossfadePlugin(
-                                                duration = 550,
-                                            ),
-                                        )
-                                        add(
-                                            PalettePlugin(
-                                                paletteLoadedListener = {
-                                                    palette = it
-                                                },
-                                                useCache = true,
-                                            ),
-                                        )
-                                        +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder))
-                                        +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder))
-                                    },
-                                modifier =
-                                    Modifier
-                                        .height(250.dp)
-                                        .wrapContentWidth()
-                                        .align(Alignment.CenterHorizontally)
-                                        .clip(
-                                            RoundedCornerShape(8.dp),
-                                        ),
-                            )
-                            Box(
-                                modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .wrapContentHeight(),
-                            ) {
-                                Column(Modifier.padding(horizontal = 32.dp)) {
-                                    Spacer(modifier = Modifier.size(25.dp))
+                            Column(Modifier.padding(horizontal = 32.dp)) {
+                                Spacer(modifier = Modifier.size(25.dp))
+                                Text(
+                                    text = localPlaylist?.title ?: "",
+                                    style = typo.titleLarge,
+                                    color = Color.White,
+                                )
+                                Column(
+                                    modifier = Modifier.padding(vertical = 8.dp),
+                                ) {
                                     Text(
-                                        text = localPlaylist?.title ?: "",
-                                        style = typo.titleLarge,
+                                        text = stringResource(id = R.string.your_playlist),
+                                        style = typo.bodyLarge,
                                         color = Color.White,
                                     )
-                                    Column(
-                                        modifier = Modifier.padding(vertical = 8.dp),
-                                    ) {
-                                        Text(
-                                            text = stringResource(id = R.string.your_playlist),
-                                            style = typo.bodyLarge,
-                                            color = Color.White,
-                                        )
-                                        Spacer(modifier = Modifier.height(8.dp))
-                                        Text(
-                                            text =
-                                                stringResource(
-                                                    id = R.string.created_at,
-                                                    localPlaylist?.inLibrary?.format(
-                                                        DateTimeFormatter.ofPattern(
-                                                            "kk:mm - dd MMM uuuu",
-                                                        ),
-                                                    ) ?: "",
-                                                ),
-                                            style = typo.bodyLarge,
-                                            color = Color(0xC4FFFFFF),
-                                        )
-                                    }
-                                    Row(
-                                        modifier =
-                                            Modifier.fillMaxWidth(),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                    ) {
-                                        RippleIconButton(
-                                            resId = R.drawable.baseline_play_circle_24,
-                                            fillMaxSize = true,
-                                            modifier = Modifier.size(36.dp),
-                                        ) {
-                                            val temp = listTrack
-                                            if (!temp.isNullOrEmpty()) {
-                                                val args = Bundle()
-                                                args.putString("type", Config.ALBUM_CLICK)
-                                                args.putString("videoId", temp.first().videoId)
-                                                args.putString("from", "Playlist \"${(localPlaylist)?.title}\"")
-                                                if (downloadState == DownloadState.STATE_DOWNLOADED) {
-                                                    args.putInt("downloaded", 1)
-                                                }
-                                                if (viewModel.localPlaylist.value?.syncedWithYouTubePlaylist == 1) {
-                                                    args.putString(
-                                                        "playlistId",
-                                                        viewModel.localPlaylist.value?.youtubePlaylistId?.replaceFirst("VL", ""),
-                                                    )
-                                                }
-                                                Queue.initPlaylist(
-                                                    Queue.LOCAL_PLAYLIST_ID + localPlaylist?.id,
-                                                    "Playlist \"${(viewModel.localPlaylist.value)?.title}\"",
-                                                    Queue.PlaylistType.PLAYLIST,
-                                                )
-                                                Queue.setNowPlaying(temp.first().toTrack())
-                                                val tempList: ArrayList<Track> = arrayListOf()
-                                                for (i in temp) {
-                                                    tempList.add(i.toTrack())
-                                                }
-                                                Queue.addAll(tempList)
-                                                if (Queue.getQueue().size >= 1) {
-                                                    Queue.removeFirstTrackForPlaylistAndAlbum()
-                                                }
-                                                if (offset > 0) {
-                                                    Queue.setContinuation(
-                                                        Queue.LOCAL_PLAYLIST_ID + localPlaylist?.id,
-                                                        if (filterState == FilterState.OlderFirst) {
-                                                            (ASC + offset.toString())
-                                                        } else {
-                                                            (DESC + offset)
-                                                        },
-                                                    )
-                                                }
-                                                navController.navigateSafe(R.id.action_global_nowPlayingFragment, args)
-                                            } else {
-                                                Toast.makeText(context, context.getString(R.string.playlist_is_empty), Toast.LENGTH_SHORT).show()
-                                            }
-                                        }
-                                        Spacer(modifier = Modifier.size(5.dp))
-                                        Crossfade(targetState = downloadState) {
-                                            when (it) {
-                                                DownloadState.STATE_DOWNLOADED -> {
-                                                    Box(
-                                                        modifier =
-                                                            Modifier
-                                                                .size(36.dp)
-                                                                .clip(
-                                                                    CircleShape,
-                                                                )
-                                                                .clickable(
-                                                                    onClick = {
-                                                                        Toast
-                                                                            .makeText(
-                                                                                context,
-                                                                                context.getString(R.string.downloaded),
-                                                                                Toast.LENGTH_SHORT,
-                                                                            )
-                                                                            .show()
-                                                                    },
-                                                                    interactionSource =
-                                                                        remember {
-                                                                            MutableInteractionSource()
-                                                                        },
-                                                                    indication = ripple(),
-                                                                ),
-                                                    ) {
-                                                        Icon(
-                                                            painter = painterResource(id = R.drawable.baseline_downloaded),
-                                                            tint = Color(0xFF00A0CB),
-                                                            contentDescription = "",
-                                                            modifier =
-                                                                Modifier
-                                                                    .size(36.dp)
-                                                                    .padding(2.dp),
-                                                        )
-                                                    }
-                                                }
-
-                                                DownloadState.STATE_DOWNLOADING -> {
-                                                    Box(
-                                                        modifier =
-                                                            Modifier
-                                                                .size(36.dp)
-                                                                .clip(
-                                                                    CircleShape,
-                                                                )
-                                                                .clickable(
-                                                                    onClick = {
-                                                                        Toast
-                                                                            .makeText(
-                                                                                context,
-                                                                                context.getString(R.string.downloading),
-                                                                                Toast.LENGTH_SHORT,
-                                                                            )
-                                                                            .show()
-                                                                    },
-                                                                    interactionSource =
-                                                                        remember {
-                                                                            MutableInteractionSource()
-                                                                        },
-                                                                    indication = ripple(),
-                                                                ),
-                                                    ) {
-                                                        LottieAnimation(
-                                                            composition,
-                                                            iterations = IterateForever,
-                                                            modifier = Modifier.fillMaxSize(),
-                                                        )
-                                                    }
-                                                }
-
-                                                else -> {
-                                                    RippleIconButton(
-                                                        fillMaxSize = true,
-                                                        resId = R.drawable.download_button,
-                                                        modifier = Modifier.size(36.dp),
-                                                    ) {
-                                                        localPlaylist?.let { it1 -> viewModel.getAllTracksOfPlaylist(it1.id) }
-                                                        shouldDownload = true
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        Spacer(Modifier.weight(1f))
-                                        Spacer(Modifier.size(5.dp))
-                                        AnimatedVisibility(visible = shouldShowSuggestButton) {
-                                            Box(
-                                                modifier =
-                                                    Modifier
-                                                        .size(36.dp)
-                                                        .clip(CircleShape)
-                                                        .graphicsLayer {
-                                                            compositingStrategy =
-                                                                CompositingStrategy.Offscreen
-                                                        }
-                                                        .clickable(
-                                                            onClick = {
-                                                                shouldShowSuggestions = !shouldShowSuggestions
-                                                            },
-                                                            interactionSource =
-                                                                remember {
-                                                                    MutableInteractionSource()
-                                                                },
-                                                            indication = ripple(),
-                                                        )
-                                                        .drawWithCache {
-                                                            val width = size.width - 10
-                                                            val height = size.height - 10
-
-                                                            val offsetDraw = width * progressAnimated
-                                                            val gradientColors =
-                                                                listOf(
-                                                                    Color(0xFF4C82EF),
-                                                                    Color(0xFFD96570),
-                                                                )
-                                                            val brush =
-                                                                Brush.linearGradient(
-                                                                    colors = gradientColors,
-                                                                    start = Offset(offsetDraw, 0f),
-                                                                    end =
-                                                                        Offset(
-                                                                            offsetDraw + width,
-                                                                            height,
-                                                                        ),
-                                                                )
-
-                                                            onDrawBehind {
-                                                                // Destination
-                                                                with(aiPainter) {
-                                                                    draw(
-                                                                        size = Size(width, width),
-                                                                    )
-                                                                }
-
-                                                                // Source
-                                                                drawRect(
-                                                                    brush = brush,
-                                                                    blendMode = BlendMode.SrcIn,
-                                                                )
-                                                            }
-                                                        },
-                                            )
-                                        }
-                                        RippleIconButton(
-                                            modifier =
-                                                Modifier.size(36.dp),
-                                            resId = R.drawable.baseline_shuffle_24,
-                                            fillMaxSize = true,
-                                        ) {
-                                            val temp = listTrack
-                                            if (!temp.isNullOrEmpty()) {
-                                                val random = temp.random()
-                                                val args = Bundle()
-                                                args.putString("type", Config.ALBUM_CLICK)
-                                                args.putString("videoId", random.videoId)
-                                                args.putString("from", "Playlist \"${(localPlaylist)?.title}\"")
-                                                args.putInt("index", temp.indexOf(random))
-                                                if (downloadState == DownloadState.STATE_DOWNLOADED) {
-                                                    args.putInt("downloaded", 1)
-                                                }
-                                                if (viewModel.localPlaylist.value?.syncedWithYouTubePlaylist == 1) {
-                                                    args.putString(
-                                                        "playlistId",
-                                                        viewModel.localPlaylist.value?.youtubePlaylistId?.replaceFirst("VL", ""),
-                                                    )
-                                                }
-                                                Queue.initPlaylist(
-                                                    Queue.LOCAL_PLAYLIST_ID + localPlaylist?.id,
-                                                    "Playlist \"${(viewModel.localPlaylist.value)?.title}\"",
-                                                    Queue.PlaylistType.PLAYLIST,
-                                                )
-                                                Queue.setNowPlaying(random.toTrack())
-                                                val tempList: ArrayList<Track> = arrayListOf()
-                                                for (i in temp) {
-                                                    tempList.add(i.toTrack())
-                                                }
-                                                tempList.remove(random.toTrack())
-                                                Queue.addAll(tempList)
-                                                if (offset > 0) {
-                                                    Queue.setContinuation(
-                                                        Queue.LOCAL_PLAYLIST_ID + localPlaylist?.id,
-                                                        if (filterState == FilterState.OlderFirst) {
-                                                            (ASC + offset.toString())
-                                                        } else {
-                                                            (DESC + offset)
-                                                        },
-                                                    )
-                                                }
-                                                if (runBlocking { sharedViewModel.simpleMediaServiceHandler?.shuffle?.first() } != true) {
-                                                    sharedViewModel.onUIEvent(UIEvent.Shuffle)
-                                                }
-                                                navController.navigateSafe(R.id.action_global_nowPlayingFragment, args)
-                                            } else {
-                                                Toast.makeText(context, context.getString(R.string.playlist_is_empty), Toast.LENGTH_SHORT).show()
-                                            }
-                                        }
-                                        Spacer(Modifier.size(5.dp))
-                                        RippleIconButton(
-                                            modifier =
-                                                Modifier.size(36.dp),
-                                            resId = R.drawable.baseline_more_vert_24,
-                                            fillMaxSize = true,
-                                        ) {
-                                            onPlaylistMoreClick()
-                                        }
-                                    }
-                                    // Hide in local playlist
-                                    //                                ExpandableText(
-                                    //                                    modifier = Modifier.padding(vertical = 8.dp),
-                                    //                                    text = stringResource(id = R.string.demo_description),
-                                    //                                    fontSize = typo.bodyLarge.fontSize,
-                                    //                                    showMoreStyle = SpanStyle(Color.Gray),
-                                    //                                    showLessStyle = SpanStyle(Color.Gray),
-                                    //                                    style = TextStyle(
-                                    //                                        color = Color(0xC4FFFFFF)
-                                    //                                    )
-                                    //                                )
+                                    Spacer(modifier = Modifier.height(8.dp))
                                     Text(
                                         text =
                                             stringResource(
-                                                id = R.string.album_length,
-                                                (localPlaylist?.tracks?.size ?: 0).toString(),
-                                                "",
-                                            ),
-                                        color = Color.White,
-                                        modifier = Modifier.padding(vertical = 8.dp),
-                                    )
-                                    AnimatedVisibility(visible = shouldShowSuggestions) {
-                                        Column(
-                                            modifier = Modifier.animateContentSize(),
-                                        ) {
-                                            Spacer(modifier = Modifier.size(8.dp))
-                                            Text(
-                                                text =
-                                                    stringResource(
-                                                        id = R.string.suggest,
+                                                id = R.string.created_at,
+                                                localPlaylist?.inLibrary?.format(
+                                                    DateTimeFormatter.ofPattern(
+                                                        "kk:mm - dd MMM uuuu",
                                                     ),
-                                                color = Color.White,
-                                                modifier = Modifier.padding(vertical = 8.dp),
+                                                ) ?: "",
+                                            ),
+                                        style = typo.bodyLarge,
+                                        color = Color(0xC4FFFFFF),
+                                    )
+                                }
+                                Row(
+                                    modifier =
+                                        Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    RippleIconButton(
+                                        resId = R.drawable.baseline_play_circle_24,
+                                        fillMaxSize = true,
+                                        modifier = Modifier.size(36.dp),
+                                    ) {
+                                        val temp = listTrack
+                                        if (!temp.isNullOrEmpty()) {
+                                            val args = Bundle()
+                                            args.putString("type", Config.ALBUM_CLICK)
+                                            args.putString("videoId", temp.first().videoId)
+                                            args.putString("from", "Playlist \"${(localPlaylist)?.title}\"")
+                                            if (downloadState == DownloadState.STATE_DOWNLOADED) {
+                                                args.putInt("downloaded", 1)
+                                            }
+                                            if (viewModel.localPlaylist.value?.syncedWithYouTubePlaylist == 1) {
+                                                args.putString(
+                                                    "playlistId",
+                                                    viewModel.localPlaylist.value?.youtubePlaylistId?.replaceFirst("VL", ""),
+                                                )
+                                            }
+                                            Queue.initPlaylist(
+                                                Queue.LOCAL_PLAYLIST_ID + localPlaylist?.id,
+                                                "Playlist \"${(viewModel.localPlaylist.value)?.title}\"",
+                                                Queue.PlaylistType.PLAYLIST,
                                             )
-                                            Spacer(modifier = Modifier.size(8.dp))
-                                            Crossfade(targetState = suggestionsLoading) {
-                                                if (it) {
-                                                    CenterLoadingBox(
+                                            Queue.setNowPlaying(temp.first().toTrack())
+                                            val tempList: ArrayList<Track> = arrayListOf()
+                                            for (i in temp) {
+                                                tempList.add(i.toTrack())
+                                            }
+                                            Queue.addAll(tempList)
+                                            if (Queue.getQueue().size >= 1) {
+                                                Queue.removeFirstTrackForPlaylistAndAlbum()
+                                            }
+                                            if (offset > 0) {
+                                                Queue.setContinuation(
+                                                    Queue.LOCAL_PLAYLIST_ID + localPlaylist?.id,
+                                                    if (filterState == FilterState.OlderFirst) {
+                                                        (ASC + offset.toString())
+                                                    } else {
+                                                        (DESC + offset)
+                                                    },
+                                                )
+                                            }
+                                            navController.navigateSafe(R.id.action_global_nowPlayingFragment, args)
+                                        } else {
+                                            Toast.makeText(context, context.getString(R.string.playlist_is_empty), Toast.LENGTH_SHORT).show()
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.size(5.dp))
+                                    Crossfade(targetState = downloadState) {
+                                        when (it) {
+                                            DownloadState.STATE_DOWNLOADED -> {
+                                                Box(
+                                                    modifier =
+                                                        Modifier
+                                                            .size(36.dp)
+                                                            .clip(
+                                                                CircleShape,
+                                                            )
+                                                            .clickable(
+                                                                onClick = {
+                                                                    Toast
+                                                                        .makeText(
+                                                                            context,
+                                                                            context.getString(R.string.downloaded),
+                                                                            Toast.LENGTH_SHORT,
+                                                                        )
+                                                                        .show()
+                                                                },
+                                                                interactionSource =
+                                                                    remember {
+                                                                        MutableInteractionSource()
+                                                                    },
+                                                                indication = ripple(),
+                                                            ),
+                                                ) {
+                                                    Icon(
+                                                        painter = painterResource(id = R.drawable.baseline_downloaded),
+                                                        tint = Color(0xFF00A0CB),
+                                                        contentDescription = "",
                                                         modifier =
                                                             Modifier
-                                                                .fillMaxWidth()
-                                                                .height(200.dp)
-                                                                .align(Alignment.CenterHorizontally),
+                                                                .size(36.dp)
+                                                                .padding(2.dp),
                                                     )
-                                                } else {
-                                                    Column {
-                                                        suggestedTracks?.forEachIndexed { index, track ->
-                                                            SuggestItems(
-                                                                track = track,
-                                                                isPlaying = playingTrack?.mediaId == track.videoId,
-                                                                onAddClickListener = {
-                                                                    viewModel.addSuggestTrackToListTrack(
-                                                                        track,
-                                                                    )
-                                                                },
-                                                                onClickListener = {
-                                                                    val args = Bundle()
-                                                                    args.putString("type", Config.PLAYLIST_CLICK)
-                                                                    args.putString("videoId", track.videoId)
-                                                                    args.putString(
-                                                                        "from",
-                                                                        "${
-                                                                            context.getString(
-                                                                                R.string.playlist,
-                                                                            )
-                                                                        } \"${localPlaylist?.title}\" ${
-                                                                            context.getString(R.string.suggest)
-                                                                        }",
-                                                                    )
-                                                                    args.putInt("index", index)
-                                                                    Queue.initPlaylist(
-                                                                        "RDAMVM${track.videoId}",
-                                                                        "${
-                                                                            context.getString(
-                                                                                R.string.playlist,
-                                                                            )
-                                                                        } \"${localPlaylist?.title}\" ${
-                                                                            context.getString(R.string.suggest)
-                                                                        }",
-                                                                        Queue.PlaylistType.RADIO,
-                                                                    )
-                                                                    Queue.setNowPlaying(track)
-                                                                    val tempList: ArrayList<Track> = arrayListOf()
-                                                                    for (i in suggestedTracks!!) {
-                                                                        tempList.add(i)
-                                                                    }
-                                                                    Queue.addAll(tempList)
-                                                                    if (Queue.getQueue().size >= 1) {
-                                                                        Queue.removeTrackWithIndex(index)
-                                                                    }
-                                                                    navController.navigateSafe(
-                                                                        R.id.action_global_nowPlayingFragment,
-                                                                        args,
-                                                                    )
-                                                                },
-                                                            )
-                                                        }
-                                                    }
                                                 }
                                             }
-                                            Spacer(modifier = Modifier.size(8.dp))
-                                            OutlinedButton(
-                                                onClick = { viewModel.reloadSuggestion() },
-                                                modifier =
-                                                    Modifier.drawWithContent {
-                                                        val strokeWidthPx = 2.dp.toPx()
-                                                        val width = size.width
-                                                        val height = size.height
 
-                                                        drawContent()
-
-                                                        with(drawContext.canvas.nativeCanvas) {
-                                                            val checkPoint = saveLayer(null, null)
-
-                                                            // Destination
-                                                            drawRoundRect(
-                                                                cornerRadius = CornerRadius(x = 50f, y = 50f),
-                                                                color = Color.Gray,
-                                                                topLeft = Offset(strokeWidthPx / 2, strokeWidthPx / 2),
-                                                                size = Size(width - strokeWidthPx, height - strokeWidthPx),
-                                                                style = Stroke(strokeWidthPx),
+                                            DownloadState.STATE_DOWNLOADING -> {
+                                                Box(
+                                                    modifier =
+                                                        Modifier
+                                                            .size(36.dp)
+                                                            .clip(
+                                                                CircleShape,
                                                             )
-                                                            val gradientColors =
-                                                                listOf(
-                                                                    Color(0xFF4C82EF),
-                                                                    Color(0xFFD96570),
-                                                                )
-                                                            val brush =
-                                                                Brush.linearGradient(
-                                                                    colors = gradientColors,
-                                                                    start = Offset(2f, 0f),
-                                                                    end =
-                                                                        Offset(
-                                                                            2 + width,
-                                                                            height,
-                                                                        ),
-                                                                )
+                                                            .clickable(
+                                                                onClick = {
+                                                                    Toast
+                                                                        .makeText(
+                                                                            context,
+                                                                            context.getString(R.string.downloading),
+                                                                            Toast.LENGTH_SHORT,
+                                                                        )
+                                                                        .show()
+                                                                },
+                                                                interactionSource =
+                                                                    remember {
+                                                                        MutableInteractionSource()
+                                                                    },
+                                                                indication = ripple(),
+                                                            ),
+                                                ) {
+                                                    LottieAnimation(
+                                                        composition,
+                                                        iterations = IterateForever,
+                                                        modifier = Modifier.fillMaxSize(),
+                                                    )
+                                                }
+                                            }
 
-                                                            // Source
-                                                            rotate(degrees = angle) {
-                                                                drawCircle(
-                                                                    brush = brush,
-                                                                    radius = size.width,
-                                                                    blendMode = BlendMode.SrcIn,
+                                            else -> {
+                                                RippleIconButton(
+                                                    fillMaxSize = true,
+                                                    resId = R.drawable.download_button,
+                                                    modifier = Modifier.size(36.dp),
+                                                ) {
+                                                    Log.w("PlaylistScreen", "downloadState: $downloadState")
+                                                    localPlaylist?.let { it1 -> viewModel.getAllTracksOfPlaylist(it1.id) }
+                                                    shouldDownload = true
+                                                }
+                                            }
+                                        }
+                                    }
+                                    Spacer(Modifier.weight(1f))
+                                    Spacer(Modifier.size(5.dp))
+                                    AnimatedVisibility(visible = shouldShowSuggestButton) {
+                                        Box(
+                                            modifier =
+                                                Modifier
+                                                    .size(36.dp)
+                                                    .clip(CircleShape)
+                                                    .graphicsLayer {
+                                                        compositingStrategy =
+                                                            CompositingStrategy.Offscreen
+                                                    }
+                                                    .clickable(
+                                                        onClick = {
+                                                            shouldShowSuggestions = !shouldShowSuggestions
+                                                        },
+                                                        interactionSource =
+                                                            remember {
+                                                                MutableInteractionSource()
+                                                            },
+                                                        indication = ripple(),
+                                                    )
+                                                    .drawWithCache {
+                                                        val width = size.width - 10
+                                                        val height = size.height - 10
+
+                                                        val offsetDraw = width * progressAnimated
+                                                        val gradientColors =
+                                                            listOf(
+                                                                Color(0xFF4C82EF),
+                                                                Color(0xFFD96570),
+                                                            )
+                                                        val brush =
+                                                            Brush.linearGradient(
+                                                                colors = gradientColors,
+                                                                start = Offset(offsetDraw, 0f),
+                                                                end =
+                                                                    Offset(
+                                                                        offsetDraw + width,
+                                                                        height,
+                                                                    ),
+                                                            )
+
+                                                        onDrawBehind {
+                                                            // Destination
+                                                            with(aiPainter) {
+                                                                draw(
+                                                                    size = Size(width, width),
                                                                 )
                                                             }
 
-                                                            restoreToCount(checkPoint)
+                                                            // Source
+                                                            drawRect(
+                                                                brush = brush,
+                                                                blendMode = BlendMode.SrcIn,
+                                                            )
                                                         }
                                                     },
-                                            ) {
-                                                Text(
-                                                    text = stringResource(id = R.string.reload),
-                                                    color = Color.White,
-                                                    modifier =
-                                                        Modifier.align(
-                                                            Alignment.CenterVertically,
-                                                        ),
+                                        )
+                                    }
+                                    RippleIconButton(
+                                        modifier =
+                                            Modifier.size(36.dp),
+                                        resId = R.drawable.baseline_shuffle_24,
+                                        fillMaxSize = true,
+                                    ) {
+                                        val temp = listTrack
+                                        if (!temp.isNullOrEmpty()) {
+                                            val random = temp.random()
+                                            val args = Bundle()
+                                            args.putString("type", Config.ALBUM_CLICK)
+                                            args.putString("videoId", random.videoId)
+                                            args.putString("from", "Playlist \"${(localPlaylist)?.title}\"")
+                                            args.putInt("index", temp.indexOf(random))
+                                            if (downloadState == DownloadState.STATE_DOWNLOADED) {
+                                                args.putInt("downloaded", 1)
+                                            }
+                                            if (viewModel.localPlaylist.value?.syncedWithYouTubePlaylist == 1) {
+                                                args.putString(
+                                                    "playlistId",
+                                                    viewModel.localPlaylist.value?.youtubePlaylistId?.replaceFirst("VL", ""),
                                                 )
                                             }
-                                            Spacer(modifier = Modifier.size(12.dp))
-                                            HorizontalDivider(
-                                                color = Color.Gray,
-                                                thickness = 0.5.dp,
+                                            Queue.initPlaylist(
+                                                Queue.LOCAL_PLAYLIST_ID + localPlaylist?.id,
+                                                "Playlist \"${(viewModel.localPlaylist.value)?.title}\"",
+                                                Queue.PlaylistType.PLAYLIST,
                                             )
-                                            Spacer(modifier = Modifier.size(8.dp))
+                                            Queue.setNowPlaying(random.toTrack())
+                                            val tempList: ArrayList<Track> = arrayListOf()
+                                            for (i in temp) {
+                                                tempList.add(i.toTrack())
+                                            }
+                                            tempList.remove(random.toTrack())
+                                            Queue.addAll(tempList)
+                                            if (offset > 0) {
+                                                Queue.setContinuation(
+                                                    Queue.LOCAL_PLAYLIST_ID + localPlaylist?.id,
+                                                    if (filterState == FilterState.OlderFirst) {
+                                                        (ASC + offset.toString())
+                                                    } else {
+                                                        (DESC + offset)
+                                                    },
+                                                )
+                                            }
+                                            if (runBlocking { sharedViewModel.simpleMediaServiceHandler?.shuffle?.first() } != true) {
+                                                sharedViewModel.onUIEvent(UIEvent.Shuffle)
+                                            }
+                                            navController.navigateSafe(R.id.action_global_nowPlayingFragment, args)
+                                        } else {
+                                            Toast.makeText(context, context.getString(R.string.playlist_is_empty), Toast.LENGTH_SHORT).show()
                                         }
                                     }
-                                    ElevatedButton(
-                                        contentPadding = PaddingValues(0.dp),
+                                    Spacer(Modifier.size(5.dp))
+                                    RippleIconButton(
                                         modifier =
-                                            Modifier
-                                                .defaultMinSize(minWidth = 1.dp, minHeight = 1.dp),
-                                        onClick = {
-                                            if (filterState == FilterState.OlderFirst) {
-                                                viewModel.setFilter(FilterState.NewerFirst)
-                                            } else {
-                                                viewModel.setFilter(FilterState.OlderFirst)
-                                            }
-                                            Log.w("PlaylistScreen", "new filterState: $filterState")
-                                            viewModel.setOffset(0)
-                                            viewModel.clearListPair()
-                                            viewModel.clearListTracks()
-                                            if (localPlaylist != null) {
-                                                localPlaylist?.id?.let { viewModel.getListTrack(it, offset, filterState) }
-                                            }
-                                        },
+                                            Modifier.size(36.dp),
+                                        resId = R.drawable.baseline_more_vert_24,
+                                        fillMaxSize = true,
                                     ) {
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            if (filterState == FilterState.OlderFirst) {
-                                                Icon(
-                                                    painter = painterResource(id = R.drawable.baseline_arrow_drop_down_24),
-                                                    contentDescription = "Older First",
-                                                    tint = Color.White,
+                                        onPlaylistMoreClick()
+                                    }
+                                }
+                                // Hide in local playlist
+                                //                                ExpandableText(
+                                //                                    modifier = Modifier.padding(vertical = 8.dp),
+                                //                                    text = stringResource(id = R.string.demo_description),
+                                //                                    fontSize = typo.bodyLarge.fontSize,
+                                //                                    showMoreStyle = SpanStyle(Color.Gray),
+                                //                                    showLessStyle = SpanStyle(Color.Gray),
+                                //                                    style = TextStyle(
+                                //                                        color = Color(0xC4FFFFFF)
+                                //                                    )
+                                //                                )
+                                Text(
+                                    text =
+                                        stringResource(
+                                            id = R.string.album_length,
+                                            (localPlaylist?.tracks?.size ?: 0).toString(),
+                                            "",
+                                        ),
+                                    color = Color.White,
+                                    modifier = Modifier.padding(vertical = 8.dp),
+                                )
+                                AnimatedVisibility(visible = shouldShowSuggestions) {
+                                    Column(
+                                        modifier = Modifier.animateContentSize(),
+                                    ) {
+                                        Spacer(modifier = Modifier.size(8.dp))
+                                        Text(
+                                            text =
+                                                stringResource(
+                                                    id = R.string.suggest,
+                                                ),
+                                            color = Color.White,
+                                            modifier = Modifier.padding(vertical = 8.dp),
+                                        )
+                                        Spacer(modifier = Modifier.size(8.dp))
+                                        Crossfade(targetState = suggestionsLoading) {
+                                            if (it) {
+                                                CenterLoadingBox(
+                                                    modifier =
+                                                        Modifier
+                                                            .fillMaxWidth()
+                                                            .height(200.dp)
+                                                            .align(Alignment.CenterHorizontally),
                                                 )
                                             } else {
-                                                Icon(
-                                                    painter = painterResource(R.drawable.baseline_arrow_drop_up_24),
-                                                    contentDescription = "Newer First",
-                                                    tint = Color.White,
-                                                )
+                                                Column {
+                                                    suggestedTracks?.forEachIndexed { index, track ->
+                                                        SuggestItems(
+                                                            track = track,
+                                                            isPlaying = playingTrack?.mediaId == track.videoId,
+                                                            onAddClickListener = {
+                                                                viewModel.addSuggestTrackToListTrack(
+                                                                    track,
+                                                                )
+                                                            },
+                                                            onClickListener = {
+                                                                val args = Bundle()
+                                                                args.putString("type", Config.PLAYLIST_CLICK)
+                                                                args.putString("videoId", track.videoId)
+                                                                args.putString(
+                                                                    "from",
+                                                                    "${
+                                                                        context.getString(
+                                                                            R.string.playlist,
+                                                                        )
+                                                                    } \"${localPlaylist?.title}\" ${
+                                                                        context.getString(R.string.suggest)
+                                                                    }",
+                                                                )
+                                                                args.putInt("index", index)
+                                                                Queue.initPlaylist(
+                                                                    "RDAMVM${track.videoId}",
+                                                                    "${
+                                                                        context.getString(
+                                                                            R.string.playlist,
+                                                                        )
+                                                                    } \"${localPlaylist?.title}\" ${
+                                                                        context.getString(R.string.suggest)
+                                                                    }",
+                                                                    Queue.PlaylistType.RADIO,
+                                                                )
+                                                                Queue.setNowPlaying(track)
+                                                                val tempList: ArrayList<Track> = arrayListOf()
+                                                                for (i in suggestedTracks!!) {
+                                                                    tempList.add(i)
+                                                                }
+                                                                Queue.addAll(tempList)
+                                                                if (Queue.getQueue().size >= 1) {
+                                                                    Queue.removeTrackWithIndex(index)
+                                                                }
+                                                                navController.navigateSafe(
+                                                                    R.id.action_global_nowPlayingFragment,
+                                                                    args,
+                                                                )
+                                                            },
+                                                        )
+                                                    }
+                                                }
                                             }
-                                            Spacer(modifier = Modifier.size(3.dp))
-                                            Text(text = stringResource(id = R.string.added_date), style = typo.bodySmall, color = Color.White)
                                         }
+                                        Spacer(modifier = Modifier.size(8.dp))
+                                        OutlinedButton(
+                                            onClick = { viewModel.reloadSuggestion() },
+                                            modifier =
+                                                Modifier.drawWithContent {
+                                                    val strokeWidthPx = 2.dp.toPx()
+                                                    val width = size.width
+                                                    val height = size.height
+
+                                                    drawContent()
+
+                                                    with(drawContext.canvas.nativeCanvas) {
+                                                        val checkPoint = saveLayer(null, null)
+
+                                                        // Destination
+                                                        drawRoundRect(
+                                                            cornerRadius = CornerRadius(x = 60f, y = 60f),
+                                                            color = Color.Gray,
+                                                            topLeft = Offset(strokeWidthPx / 2, strokeWidthPx / 2),
+                                                            size = Size(width - strokeWidthPx, height - strokeWidthPx),
+                                                            style = Stroke(strokeWidthPx),
+                                                        )
+                                                        val gradientColors =
+                                                            listOf(
+                                                                Color(0xFF4C82EF),
+                                                                Color(0xFFD96570),
+                                                            )
+                                                        val brush =
+                                                            Brush.linearGradient(
+                                                                colors = gradientColors,
+                                                                start = Offset(2f, 0f),
+                                                                end =
+                                                                    Offset(
+                                                                        2 + width,
+                                                                        height,
+                                                                    ),
+                                                            )
+
+                                                        // Source
+                                                        rotate(degrees = angle) {
+                                                            drawCircle(
+                                                                brush = brush,
+                                                                radius = size.width,
+                                                                blendMode = BlendMode.SrcIn,
+                                                            )
+                                                        }
+
+                                                        restoreToCount(checkPoint)
+                                                    }
+                                                },
+                                        ) {
+                                            Text(
+                                                text = stringResource(id = R.string.reload),
+                                                color = Color.White,
+                                                modifier =
+                                                    Modifier.align(
+                                                        Alignment.CenterVertically,
+                                                    ),
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.size(12.dp))
+                                        HorizontalDivider(
+                                            color = Color.Gray,
+                                            thickness = 0.5.dp,
+                                        )
+                                        Spacer(modifier = Modifier.size(8.dp))
+                                    }
+                                }
+                                ElevatedButton(
+                                    contentPadding = PaddingValues(0.dp),
+                                    modifier =
+                                        Modifier
+                                            .defaultMinSize(minWidth = 1.dp, minHeight = 1.dp),
+                                    onClick = {
+                                        if (filterState == FilterState.OlderFirst) {
+                                            viewModel.setFilter(FilterState.NewerFirst)
+                                        } else {
+                                            viewModel.setFilter(FilterState.OlderFirst)
+                                        }
+                                        Log.w("PlaylistScreen", "new filterState: $filterState")
+                                        viewModel.setOffset(0)
+                                        viewModel.clearListPair()
+                                        viewModel.clearListTracks()
+                                        if (localPlaylist != null) {
+                                            localPlaylist?.id?.let { viewModel.getListTrack(it, offset, filterState) }
+                                        }
+                                    },
+                                ) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        if (filterState == FilterState.OlderFirst) {
+                                            Icon(
+                                                painter = painterResource(id = R.drawable.baseline_arrow_drop_down_24),
+                                                contentDescription = "Older First",
+                                                tint = Color.White,
+                                            )
+                                        } else {
+                                            Icon(
+                                                painter = painterResource(R.drawable.baseline_arrow_drop_up_24),
+                                                contentDescription = "Newer First",
+                                                tint = Color.White,
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.size(3.dp))
+                                        Text(text = stringResource(id = R.string.added_date), style = typo.bodySmall, color = Color.White)
                                     }
                                 }
                             }
@@ -1050,224 +1019,225 @@ fun PlaylistScreen(
                     }
                 }
             }
-            items(listTrack ?: listOf()) { item ->
-                Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-                }
-                if (playingTrack?.mediaId == item.videoId && isPlaying) {
-                    PlaylistItems(
-                        isPlaying = true,
-                        songEntity = item,
-                        onMoreClickListener = { onItemMoreClick(it) },
-                    ) {
-                        onPlaylistItemClick(it)
-                    }
-                } else {
-                    PlaylistItems(
-                        isPlaying = false,
-                        songEntity = item,
-                        onMoreClickListener = { onItemMoreClick(it) },
-                    ) {
-                        onPlaylistItemClick(it)
-                    }
-                }
+        }
+        items(listTrack ?: listOf(), contentType = { it.videoId }) { item ->
+            Box(modifier = Modifier.padding(horizontal = 16.dp)) {
             }
-            item {
-                AnimatedVisibility(visible = isLoadingMore) {
-                    Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                        Spacer(modifier = Modifier.height(15.dp))
-                        CenterLoadingBox(modifier = Modifier.size(32.dp))
-                        Spacer(modifier = Modifier.height(15.dp))
-                    }
+            if (playingTrack?.mediaId == item.videoId && isPlaying) {
+                PlaylistItems(
+                    isPlaying = true,
+                    songEntity = item,
+                    onMoreClickListener = { onItemMoreClick(it) },
+                ) {
+                    onPlaylistItemClick(it)
+                }
+            } else {
+                PlaylistItems(
+                    isPlaying = false,
+                    songEntity = item,
+                    onMoreClickListener = { onItemMoreClick(it) },
+                ) {
+                    onPlaylistItemClick(it)
                 }
             }
-            item {
-                EndOfPage()
+        }
+        item {
+            AnimatedVisibility(visible = isLoadingMore) {
+                Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                    Spacer(modifier = Modifier.height(15.dp))
+                    CenterLoadingBox(modifier = Modifier.size(32.dp))
+                    Spacer(modifier = Modifier.height(15.dp))
+                }
             }
         }
-        if (itemBottomSheetShow) {
-            val track = currentItem
-            if (track != null) {
-                viewModel.getSongEntity(track)
-                NowPlayingBottomSheet(
-                    isBottomSheetVisible = itemBottomSheetShow,
-                    onDelete = {
-                        localPlaylist?.let {
-                            Log.w("PlaylistScreen", "Delete: $track")
-                            viewModel.deleteItem(track, it.id)
-                            if (it.syncedWithYouTubePlaylist == 1 && it.youtubePlaylistId != null) {
-                                val videoId = track.videoId
-                                viewModel.removeYouTubePlaylistItem(
-                                    it.youtubePlaylistId,
-                                    videoId,
-                                )
-                            }
-                            itemBottomSheetShow = false
-                        }
-                    },
-                    onDismiss = { itemBottomSheetShow = false },
-                    navController = navController,
-                    sharedViewModel = sharedViewModel,
-                    songEntity = viewModel.songEntity.collectAsState(),
-                    onToggleLike = { checked ->
-                        if (checked) {
-                            viewModel.updateLikeStatus(track.videoId, 1)
-                        } else {
-                            viewModel.updateLikeStatus(track.videoId, 0)
-                        }
-                        coroutineScope.launch {
-                            if (playingTrack?.mediaId == track.videoId) {
-                                delay(500)
-                                sharedViewModel.refreshSongDB()
-                            }
-                        }
-                    },
-                    getLocalPlaylist = { sharedViewModel.getAllLocalPlaylist() },
-                    listLocalPlaylist = sharedViewModel.localPlaylist.collectAsState(),
-                )
-            }
+        item {
+            EndOfPage()
         }
-        if (playlistBottomSheetShow) {
-            Log.w("PlaylistScreen", "PlaylistBottomSheet")
-            localPlaylist?.let {
-                LocalPlaylistBottomSheet(
-                    isBottomSheetVisible = playlistBottomSheetShow,
-                    onDismiss = { playlistBottomSheetShow = false },
-                    localPlaylist = it,
-                    onEditTitle =
-                        { newTitle ->
-                            viewModel.updatePlaylistTitle(newTitle, it.id)
-                            if (it.syncedWithYouTubePlaylist == 1) {
-                                viewModel.updateYouTubePlaylistTitle(
-                                    newTitle,
-                                    it.youtubePlaylistId!!,
-                                )
-                            }
-                        },
-                    onEditThumbnail =
-                        { thumbUri ->
-                            viewModel.updatePlaylistThumbnail(thumbUri, it.id)
-                        },
-                    onAddToQueue = {
-                        viewModel.getAllTracksOfPlaylist(it.id)
-                        /*
-                        Add to queue in LaunchedEffect
-                         */
-                        shouldAddAllToQueue = true
-                    },
-                    onSync = {
-                        if (it.syncedWithYouTubePlaylist == 1) {
-                            showUnsyncAlertDialog = true
-                        } else {
-                            showSyncAlertDialog = true
+    }
+    if (itemBottomSheetShow) {
+        val track = currentItem
+        if (track != null) {
+            viewModel.getSongEntity(track)
+            NowPlayingBottomSheet(
+                isBottomSheetVisible = itemBottomSheetShow,
+                onDelete = {
+                    localPlaylist?.let {
+                        Log.w("PlaylistScreen", "Delete: $track")
+                        viewModel.deleteItem(track, it.id)
+                        if (it.syncedWithYouTubePlaylist == 1 && it.youtubePlaylistId != null) {
+                            val videoId = track.videoId
+                            viewModel.removeYouTubePlaylistItem(
+                                it.youtubePlaylistId,
+                                videoId,
+                            )
                         }
-                    },
-                    onUpdatePlaylist = {
-                        it.tracks?.let { tracks ->
-                            it.youtubePlaylistId?.let { it1 ->
-                                viewModel.updateListTrackSynced(
-                                    it.id,
-                                    tracks,
-                                    it1,
-                                )
-                                viewModel.getSetVideoId(it1)
-                            }
-                        }
-                    },
-                    onDelete = {
-                        viewModel.deletePlaylist(it.id)
-                        navController.popBackStack()
-                    },
-                )
-            }
-        }
-        if (showSyncAlertDialog) {
-            AlertDialog(
-                title = { Text(text = stringResource(id = R.string.warning)) },
-                text = { Text(text = stringResource(id = R.string.sync_playlist_warning)) },
-                onDismissRequest = { showSyncAlertDialog = false },
-                confirmButton = {
-                    TextButton(onClick = {
-                        localPlaylist?.let {
-                            Toast.makeText(
-                                context,
-                                context.getString(R.string.syncing),
-                                Toast.LENGTH_SHORT,
-                            ).show()
-                            viewModel.syncPlaylistWithYouTubePlaylist(it)
-                            showSyncAlertDialog = false
-                        }
-                    }) {
-                        Text(text = stringResource(id = R.string.yes))
+                        itemBottomSheetShow = false
                     }
                 },
-                dismissButton = {
-                    TextButton(onClick = {
-                        showSyncAlertDialog = false
-                    }) {
-                        Text(text = stringResource(id = R.string.cancel))
+                onDismiss = { itemBottomSheetShow = false },
+                navController = navController,
+                sharedViewModel = sharedViewModel,
+                songEntity = viewModel.songEntity.collectAsState(),
+                onToggleLike = { checked ->
+                    if (checked) {
+                        viewModel.updateLikeStatus(track.videoId, 1)
+                    } else {
+                        viewModel.updateLikeStatus(track.videoId, 0)
                     }
-                },
-            )
-        }
-        if (showUnsyncAlertDialog) {
-            AlertDialog(
-                title = { Text(text = stringResource(id = R.string.warning)) },
-                text = { Text(text = stringResource(id = R.string.unsync_playlist_warning)) },
-                onDismissRequest = { showUnsyncAlertDialog = false },
-                confirmButton = {
-                    TextButton(onClick = {
-                        localPlaylist?.let {
-                            Toast.makeText(
-                                context,
-                                context.getString(R.string.unsyncing),
-                                Toast.LENGTH_SHORT,
-                            ).show()
-                            viewModel.unsyncPlaylistWithYouTubePlaylist(it)
-                        }
-                        showUnsyncAlertDialog = false
-                    }) {
-                        Text(text = stringResource(id = R.string.yes))
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = {
-                        showUnsyncAlertDialog = false
-                    }) {
-                        Text(text = stringResource(id = R.string.cancel))
-                    }
-                },
-            )
-        }
-        AnimatedVisibility(
-            visible = shouldHideTopBar,
-            enter = fadeIn() + slideInVertically(),
-            exit = fadeOut() + slideOutVertically(),
-        ) {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = localPlaylist?.title ?: stringResource(id = R.string.playlist),
-                        style = typo.titleMedium,
-                    )
-                },
-                navigationIcon = {
-                    Box(Modifier.padding(horizontal = 5.dp)) {
-                        RippleIconButton(
-                            R.drawable.baseline_arrow_back_ios_new_24,
-                            Modifier
-                                .size(32.dp),
-                            true,
-                        ) {
-                            navController.popBackStack()
+                    coroutineScope.launch {
+                        if (playingTrack?.mediaId == track.videoId) {
+                            delay(500)
+                            sharedViewModel.refreshSongDB()
                         }
                     }
                 },
-                colors =
-                    TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Transparent,
-                    ),
-                modifier = Modifier.background(bg),
+                getLocalPlaylist = { sharedViewModel.getAllLocalPlaylist() },
+                listLocalPlaylist = sharedViewModel.localPlaylist.collectAsState(),
             )
         }
     }
+    if (playlistBottomSheetShow) {
+        Log.w("PlaylistScreen", "PlaylistBottomSheet")
+        localPlaylist?.let {
+            LocalPlaylistBottomSheet(
+                isBottomSheetVisible = playlistBottomSheetShow,
+                onDismiss = { playlistBottomSheetShow = false },
+                localPlaylist = it,
+                onEditTitle =
+                    { newTitle ->
+                        viewModel.updatePlaylistTitle(newTitle, it.id)
+                        if (it.syncedWithYouTubePlaylist == 1) {
+                            viewModel.updateYouTubePlaylistTitle(
+                                newTitle,
+                                it.youtubePlaylistId!!,
+                            )
+                        }
+                    },
+                onEditThumbnail =
+                    { thumbUri ->
+                        viewModel.updatePlaylistThumbnail(thumbUri, it.id)
+                    },
+                onAddToQueue = {
+                    viewModel.getAllTracksOfPlaylist(it.id)
+                    /*
+                    Add to queue in LaunchedEffect
+                     */
+                    shouldAddAllToQueue = true
+                },
+                onSync = {
+                    if (it.syncedWithYouTubePlaylist == 1) {
+                        showUnsyncAlertDialog = true
+                    } else {
+                        showSyncAlertDialog = true
+                    }
+                },
+                onUpdatePlaylist = {
+                    it.tracks?.let { tracks ->
+                        it.youtubePlaylistId?.let { it1 ->
+                            viewModel.updateListTrackSynced(
+                                it.id,
+                                tracks,
+                                it1,
+                            )
+                            viewModel.getSetVideoId(it1)
+                        }
+                    }
+                },
+                onDelete = {
+                    viewModel.deletePlaylist(it.id)
+                    navController.popBackStack()
+                },
+            )
+        }
+    }
+    if (showSyncAlertDialog) {
+        AlertDialog(
+            title = { Text(text = stringResource(id = R.string.warning)) },
+            text = { Text(text = stringResource(id = R.string.sync_playlist_warning)) },
+            onDismissRequest = { showSyncAlertDialog = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    localPlaylist?.let {
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.syncing),
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                        viewModel.syncPlaylistWithYouTubePlaylist(it)
+                        showSyncAlertDialog = false
+                    }
+                }) {
+                    Text(text = stringResource(id = R.string.yes))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showSyncAlertDialog = false
+                }) {
+                    Text(text = stringResource(id = R.string.cancel))
+                }
+            },
+        )
+    }
+    if (showUnsyncAlertDialog) {
+        AlertDialog(
+            title = { Text(text = stringResource(id = R.string.warning)) },
+            text = { Text(text = stringResource(id = R.string.unsync_playlist_warning)) },
+            onDismissRequest = { showUnsyncAlertDialog = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    localPlaylist?.let {
+                        Toast.makeText(
+                            context,
+                            context.getString(R.string.unsyncing),
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                        viewModel.unsyncPlaylistWithYouTubePlaylist(it)
+                    }
+                    showUnsyncAlertDialog = false
+                }) {
+                    Text(text = stringResource(id = R.string.yes))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showUnsyncAlertDialog = false
+                }) {
+                    Text(text = stringResource(id = R.string.cancel))
+                }
+            },
+        )
+    }
+    AnimatedVisibility(
+        visible = shouldHideTopBar,
+        enter = fadeIn() + slideInVertically(),
+        exit = fadeOut() + slideOutVertically(),
+    ) {
+        TopAppBar(
+            title = {
+                Text(
+                    text = localPlaylist?.title ?: stringResource(id = R.string.playlist),
+                    style = typo.titleMedium,
+                )
+            },
+            navigationIcon = {
+                Box(Modifier.padding(horizontal = 5.dp)) {
+                    RippleIconButton(
+                        R.drawable.baseline_arrow_back_ios_new_24,
+                        Modifier
+                            .size(32.dp),
+                        true,
+                    ) {
+                        navController.popBackStack()
+                    }
+                }
+            },
+            colors =
+                TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                ),
+            modifier = Modifier.angledGradientBackground(bg, 90f),
+        )
+    }
+//    }
 }

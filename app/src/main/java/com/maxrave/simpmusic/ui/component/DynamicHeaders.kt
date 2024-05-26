@@ -46,13 +46,11 @@ import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.animation.crossfade.CrossfadePlugin
 import com.skydoves.landscapist.coil.CoilImage
 import com.skydoves.landscapist.components.rememberImageComponent
-import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
 import java.time.format.DateTimeFormatter
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @OptIn(
     ExperimentalMaterial3Api::class,
-    ExperimentalHazeMaterialsApi::class,
 )
 @Composable
 fun LocalPlaylistHeader(

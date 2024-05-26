@@ -251,7 +251,7 @@ dependencies {
     implementation("androidx.preference:preference-ktx:1.2.1")
 
     // fragment ktx
-    implementation("androidx.fragment:fragment-ktx:1.6.2")
+    implementation("androidx.fragment:fragment-ktx:1.7.1")
     // Hilt
     implementation("com.google.dagger:hilt-android:2.50")
     implementation("androidx.hilt:hilt-work:1.2.0")
@@ -266,9 +266,6 @@ dependencies {
     implementation("dev.chrisbanes.insetter:insetter:0.6.1")
     implementation("dev.chrisbanes.insetter:insetter-dbx:0.6.1")
 
-    implementation("dev.chrisbanes.haze:haze:0.7.1")
-    implementation("dev.chrisbanes.haze:haze-materials:0.7.1")
-
     // Shimmer
     implementation("com.facebook.shimmer:shimmer:0.5.0")
 
@@ -278,7 +275,7 @@ dependencies {
     implementation("com.airbnb.android:lottie-compose:$lottieVersion")
 
     // Paging 3
-    val paging_version = "3.2.1"
+    val paging_version = "3.3.0"
     implementation("androidx.paging:paging-runtime-ktx:$paging_version")
 
     // Custom Activity On Crash
