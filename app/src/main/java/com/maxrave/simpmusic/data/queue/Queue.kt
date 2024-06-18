@@ -41,6 +41,7 @@ object Queue {
         continuation: String?,
     ) {
         if (this.playlistId == playlistId) {
+            Log.d("Queue", "setContinuation: $playlistId, $continuation")
             this.continuation = continuation
         }
     }

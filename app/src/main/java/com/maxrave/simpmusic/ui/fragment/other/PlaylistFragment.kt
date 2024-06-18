@@ -220,9 +220,22 @@ class PlaylistFragment : Fragment() {
                     startActivity(chooserIntent)
                 }
             } else {
-                moreView.ivThumbnail.load(viewModel.playlistBrowse.value?.data?.thumbnails?.lastOrNull()?.url)
-                moreView.tvSongTitle.text = viewModel.playlistBrowse.value?.data?.title
-                moreView.tvSongArtist.text = viewModel.playlistBrowse.value?.data?.author?.name
+                moreView.ivThumbnail.load(
+                    viewModel.playlistBrowse.value
+                        ?.data
+                        ?.thumbnails
+                        ?.lastOrNull()
+                        ?.url,
+                )
+                moreView.tvSongTitle.text =
+                    viewModel.playlistBrowse.value
+                        ?.data
+                        ?.title
+                moreView.tvSongArtist.text =
+                    viewModel.playlistBrowse.value
+                        ?.data
+                        ?.author
+                        ?.name
                 moreView.btShare.setOnClickListener {
                     val shareIntent = Intent(Intent.ACTION_SEND)
                     shareIntent.type = "text/plain"
@@ -278,11 +291,12 @@ class PlaylistFragment : Fragment() {
                                 context?.getString(R.string.saved_to_local_playlist)
                         }
                     } else {
-                        Snackbar.make(
-                            requireView(),
-                            getString(R.string.if_you_want_to_unsync_this_playlist_please_go_to_local_playlist),
-                            Snackbar.LENGTH_SHORT,
-                        ).show()
+                        Snackbar
+                            .make(
+                                requireView(),
+                                getString(R.string.if_you_want_to_unsync_this_playlist_please_go_to_local_playlist),
+                                Snackbar.LENGTH_SHORT,
+                            ).show()
                     }
                 }
             } else {
@@ -291,17 +305,23 @@ class PlaylistFragment : Fragment() {
 
             moreView.btAddToQueue.setOnClickListener {
                 if (viewModel.playlistBrowse.value is Resource.Success && viewModel.playlistBrowse.value?.data != null) {
-                    val list = viewModel.playlistBrowse.value?.data!!.tracks as ArrayList<Track>
+                    val list =
+                        viewModel.playlistBrowse.value
+                            ?.data!!
+                            .tracks as ArrayList<Track>
                     sharedViewModel.addListToQueue(list)
-                } else if (viewModel.playlistEntity.value != null && viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
+                } else if (viewModel.playlistEntity.value != null &&
+                    viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED
+                ) {
                     val list = viewModel.listTrack.value.toArrayListTrack()
                     sharedViewModel.addListToQueue(list)
                 } else {
-                    Snackbar.make(
-                        requireView(),
-                        getString(R.string.playlist_is_empty),
-                        Snackbar.LENGTH_SHORT,
-                    ).show()
+                    Snackbar
+                        .make(
+                            requireView(),
+                            getString(R.string.playlist_is_empty),
+                            Snackbar.LENGTH_SHORT,
+                        ).show()
                 }
             }
 
@@ -318,7 +338,11 @@ class PlaylistFragment : Fragment() {
                     args.putString("type", Config.PLAYLIST_CLICK)
                     args.putString(
                         "videoId",
-                        viewModel.playlistBrowse.value?.data?.tracks?.get(0)?.videoId,
+                        viewModel.playlistBrowse.value
+                            ?.data
+                            ?.tracks
+                            ?.get(0)
+                            ?.videoId,
                     )
                     args.putString(
                         "from",
@@ -326,41 +350,70 @@ class PlaylistFragment : Fragment() {
                     )
                     args.putString(
                         "playlistId",
-                        viewModel.playlistBrowse.value?.data?.id?.replaceFirst("VL", ""),
+                        viewModel.playlistBrowse.value
+                            ?.data
+                            ?.id
+                            ?.replaceFirst("VL", ""),
                     )
                     if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                         args.putInt("downloaded", 1)
                     }
                     Queue.initPlaylist(
-                        viewModel.playlistBrowse.value?.data?.id?.replaceFirst("VL", "") ?: "",
+                        viewModel.playlistBrowse.value
+                            ?.data
+                            ?.id
+                            ?.replaceFirst("VL", "") ?: "",
                         "Playlist \"${viewModel.playlistBrowse.value?.data?.title}\"",
                         Queue.PlaylistType.PLAYLIST,
                     )
-                    Queue.setNowPlaying(viewModel.playlistBrowse.value?.data!!.tracks[0])
-                    Queue.addAll(viewModel.playlistBrowse.value?.data!!.tracks as ArrayList<Track>)
+                    Queue.setNowPlaying(
+                        viewModel.playlistBrowse.value
+                            ?.data!!
+                            .tracks[0],
+                    )
+                    Queue.addAll(
+                        viewModel.playlistBrowse.value
+                            ?.data!!
+                            .tracks as ArrayList<Track>,
+                    )
                     if (Queue.getQueue().size >= 1) {
                         Queue.removeFirstTrackForPlaylistAndAlbum()
                     }
                     Log.d("PlaylistFragment", "Queue: ${Queue.getQueue().size}")
                     findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
-                } else if (viewModel.playlistEntity.value != null && viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
+                } else if (viewModel.playlistEntity.value != null &&
+                    viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED
+                ) {
                     val args = Bundle()
                     args.putString("type", Config.PLAYLIST_CLICK)
-                    args.putString("videoId", viewModel.playlistEntity.value?.tracks?.get(0))
+                    args.putString(
+                        "videoId",
+                        viewModel.playlistEntity.value
+                            ?.tracks
+                            ?.get(0),
+                    )
                     args.putString("from", "Playlist \"${viewModel.playlistEntity.value?.title}\"")
                     args.putString(
                         "playlistId",
-                        viewModel.playlistEntity.value?.id?.replaceFirst("VL", ""),
+                        viewModel.playlistEntity.value
+                            ?.id
+                            ?.replaceFirst("VL", ""),
                     )
                     if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                         args.putInt("downloaded", 1)
                     }
                     Queue.initPlaylist(
-                        viewModel.playlistEntity.value?.id?.replaceFirst("VL", "") ?: "",
+                        viewModel.playlistEntity.value
+                            ?.id
+                            ?.replaceFirst("VL", "") ?: "",
                         "Playlist \"${viewModel.playlistEntity.value?.title}\"",
                         Queue.PlaylistType.PLAYLIST,
                     )
-                    Queue.setNowPlaying(viewModel.listTrack.value?.get(0)!!.toTrack())
+                    Queue.setNowPlaying(
+                        viewModel.listTrack.value
+                            ?.get(0)!!
+                            .toTrack(),
+                    )
                     Queue.addAll(viewModel.listTrack.value.toArrayListTrack())
                     if (Queue.getQueue().size >= 1) {
                         Queue.removeFirstTrackForPlaylistAndAlbum()
@@ -368,11 +421,12 @@ class PlaylistFragment : Fragment() {
                     Log.d("PlaylistFragment", "Queue: ${Queue.getQueue().size}")
                     findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
                 } else {
-                    Snackbar.make(
-                        requireView(),
-                        getString(R.string.playlist_is_empty),
-                        Snackbar.LENGTH_SHORT,
-                    ).show()
+                    Snackbar
+                        .make(
+                            requireView(),
+                            getString(R.string.playlist_is_empty),
+                            Snackbar.LENGTH_SHORT,
+                        ).show()
                 }
             } else {
                 if (viewModel.playlistBrowse.value is Resource.Success && viewModel.playlistBrowse.value?.data != null) {
@@ -380,7 +434,11 @@ class PlaylistFragment : Fragment() {
                     args.putString("type", Config.PLAYLIST_CLICK)
                     args.putString(
                         "videoId",
-                        viewModel.playlistBrowse.value?.data?.tracks?.get(0)?.videoId,
+                        viewModel.playlistBrowse.value
+                            ?.data
+                            ?.tracks
+                            ?.get(0)
+                            ?.videoId,
                     )
                     args.putString(
                         "from",
@@ -388,29 +446,49 @@ class PlaylistFragment : Fragment() {
                     )
                     args.putString(
                         "playlistId",
-                        viewModel.playlistBrowse.value?.data?.id?.replaceFirst("VL", ""),
+                        viewModel.playlistBrowse.value
+                            ?.data
+                            ?.id
+                            ?.replaceFirst("VL", ""),
                     )
                     if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                         args.putInt("downloaded", 1)
                     }
                     Queue.initPlaylist(
-                        viewModel.playlistBrowse.value?.data?.id?.replaceFirst("VL", "") ?: "",
+                        viewModel.playlistBrowse.value
+                            ?.data
+                            ?.id
+                            ?.replaceFirst("VL", "") ?: "",
                         "${viewModel.playlistBrowse.value?.data?.title}",
                         Queue.PlaylistType.RADIO,
                     )
-                    Queue.setNowPlaying(viewModel.playlistBrowse.value?.data!!.tracks[0])
-                    Queue.addAll(viewModel.playlistBrowse.value?.data!!.tracks as ArrayList<Track>)
+                    Queue.setNowPlaying(
+                        viewModel.playlistBrowse.value
+                            ?.data!!
+                            .tracks[0],
+                    )
+                    Queue.addAll(
+                        viewModel.playlistBrowse.value
+                            ?.data!!
+                            .tracks as ArrayList<Track>,
+                    )
                     if (Queue.getQueue().size >= 1) {
                         Queue.removeFirstTrackForPlaylistAndAlbum()
                     }
                     Log.d("PlaylistFragment", "Queue: ${Queue.getQueue().size}")
                     findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
-                } else if (viewModel.playlistEntity.value != null && viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
+                } else if (viewModel.playlistEntity.value != null &&
+                    viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED
+                ) {
                     val args = Bundle()
                     args.putString("type", Config.PLAYLIST_CLICK)
                     args.putString(
                         "videoId",
-                        viewModel.playlistBrowse.value?.data?.tracks?.get(0)?.videoId,
+                        viewModel.playlistBrowse.value
+                            ?.data
+                            ?.tracks
+                            ?.get(0)
+                            ?.videoId,
                     )
                     args.putString(
                         "from",
@@ -418,17 +496,27 @@ class PlaylistFragment : Fragment() {
                     )
                     args.putString(
                         "playlistId",
-                        viewModel.playlistBrowse.value?.data?.id?.replaceFirst("VL", ""),
+                        viewModel.playlistBrowse.value
+                            ?.data
+                            ?.id
+                            ?.replaceFirst("VL", ""),
                     )
                     if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                         args.putInt("downloaded", 1)
                     }
                     Queue.initPlaylist(
-                        viewModel.playlistBrowse.value?.data?.id?.replaceFirst("VL", "") ?: "",
+                        viewModel.playlistBrowse.value
+                            ?.data
+                            ?.id
+                            ?.replaceFirst("VL", "") ?: "",
                         "${viewModel.playlistBrowse.value?.data?.title}",
                         Queue.PlaylistType.RADIO,
                     )
-                    Queue.setNowPlaying(viewModel.listTrack.value?.get(0)!!.toTrack())
+                    Queue.setNowPlaying(
+                        viewModel.listTrack.value
+                            ?.get(0)!!
+                            .toTrack(),
+                    )
                     Queue.addAll(viewModel.listTrack.value.toArrayListTrack())
                     if (Queue.getQueue().size >= 1) {
                         Queue.removeFirstTrackForPlaylistAndAlbum()
@@ -436,11 +524,12 @@ class PlaylistFragment : Fragment() {
                     Log.d("PlaylistFragment", "Queue: ${Queue.getQueue().size}")
                     findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
                 } else {
-                    Snackbar.make(
-                        requireView(),
-                        getString(R.string.playlist_is_empty),
-                        Snackbar.LENGTH_SHORT,
-                    ).show()
+                    Snackbar
+                        .make(
+                            requireView(),
+                            getString(R.string.playlist_is_empty),
+                            Snackbar.LENGTH_SHORT,
+                        ).show()
                 }
             }
         }
@@ -455,7 +544,10 @@ class PlaylistFragment : Fragment() {
                             args.putString("type", Config.PLAYLIST_CLICK)
                             args.putString(
                                 "videoId",
-                                viewModel.playlistBrowse.value?.data!!.tracks[position].videoId,
+                                viewModel.playlistBrowse.value
+                                    ?.data!!
+                                    .tracks[position]
+                                    .videoId,
                             )
                             args.putString(
                                 "from",
@@ -463,19 +555,33 @@ class PlaylistFragment : Fragment() {
                             )
                             args.putString(
                                 "playlistId",
-                                viewModel.playlistBrowse.value?.data?.id?.replaceFirst("VL", ""),
+                                viewModel.playlistBrowse.value
+                                    ?.data
+                                    ?.id
+                                    ?.replaceFirst("VL", ""),
                             )
                             args.putInt("index", position)
                             if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                                 args.putInt("downloaded", 1)
                             }
                             Queue.initPlaylist(
-                                viewModel.playlistBrowse.value?.data?.id?.replaceFirst("VL", "") ?: "",
+                                viewModel.playlistBrowse.value
+                                    ?.data
+                                    ?.id
+                                    ?.replaceFirst("VL", "") ?: "",
                                 "Playlist \"${viewModel.playlistBrowse.value?.data?.title}\"",
                                 Queue.PlaylistType.PLAYLIST,
                             )
-                            Queue.setNowPlaying(viewModel.playlistBrowse.value?.data!!.tracks[position])
-                            Queue.addAll(viewModel.playlistBrowse.value?.data!!.tracks as ArrayList<Track>)
+                            Queue.setNowPlaying(
+                                viewModel.playlistBrowse.value
+                                    ?.data!!
+                                    .tracks[position],
+                            )
+                            Queue.addAll(
+                                viewModel.playlistBrowse.value
+                                    ?.data!!
+                                    .tracks as ArrayList<Track>,
+                            )
                             if (Queue.getQueue().size >= 1) {
                                 Queue.removeTrackWithIndex(position)
                             }
@@ -484,12 +590,16 @@ class PlaylistFragment : Fragment() {
                                 R.id.action_global_nowPlayingFragment,
                                 args,
                             )
-                        } else if (viewModel.playlistEntity.value != null && viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
+                        } else if (viewModel.playlistEntity.value != null &&
+                            viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED
+                        ) {
                             val args = Bundle()
                             args.putString("type", Config.PLAYLIST_CLICK)
                             args.putString(
                                 "videoId",
-                                viewModel.playlistEntity.value?.tracks?.get(position),
+                                viewModel.playlistEntity.value
+                                    ?.tracks
+                                    ?.get(position),
                             )
                             args.putString(
                                 "from",
@@ -497,18 +607,26 @@ class PlaylistFragment : Fragment() {
                             )
                             args.putString(
                                 "playlistId",
-                                viewModel.playlistEntity.value?.id?.replaceFirst("VL", ""),
+                                viewModel.playlistEntity.value
+                                    ?.id
+                                    ?.replaceFirst("VL", ""),
                             )
                             args.putInt("index", position)
                             if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                                 args.putInt("downloaded", 1)
                             }
                             Queue.initPlaylist(
-                                viewModel.playlistEntity.value?.id?.replaceFirst("VL", "") ?: "",
+                                viewModel.playlistEntity.value
+                                    ?.id
+                                    ?.replaceFirst("VL", "") ?: "",
                                 "Playlist \"${viewModel.playlistEntity.value?.title}\"",
                                 Queue.PlaylistType.PLAYLIST,
                             )
-                            Queue.setNowPlaying(viewModel.listTrack.value?.get(position)!!.toTrack())
+                            Queue.setNowPlaying(
+                                viewModel.listTrack.value
+                                    ?.get(position)!!
+                                    .toTrack(),
+                            )
                             Queue.addAll(viewModel.listTrack.value.toArrayListTrack())
                             if (Queue.getQueue().size >= 1) {
                                 Queue.removeTrackWithIndex(position)
@@ -519,12 +637,12 @@ class PlaylistFragment : Fragment() {
                                 args,
                             )
                         } else {
-                            Snackbar.make(
-                                requireView(),
-                                getString(R.string.error),
-                                Snackbar.LENGTH_SHORT,
-                            )
-                                .show()
+                            Snackbar
+                                .make(
+                                    requireView(),
+                                    getString(R.string.error),
+                                    Snackbar.LENGTH_SHORT,
+                                ).show()
                         }
                     } else {
                         if (viewModel.playlistBrowse.value is Resource.Success && viewModel.playlistBrowse.value?.data != null) {
@@ -532,7 +650,11 @@ class PlaylistFragment : Fragment() {
                             args.putString("type", Config.PLAYLIST_CLICK)
                             args.putString(
                                 "videoId",
-                                viewModel.playlistBrowse.value?.data?.tracks?.get(0)?.videoId,
+                                viewModel.playlistBrowse.value
+                                    ?.data
+                                    ?.tracks
+                                    ?.get(0)
+                                    ?.videoId,
                             )
                             args.putString(
                                 "from",
@@ -540,18 +662,32 @@ class PlaylistFragment : Fragment() {
                             )
                             args.putString(
                                 "playlistId",
-                                viewModel.playlistBrowse.value?.data?.id?.replaceFirst("VL", ""),
+                                viewModel.playlistBrowse.value
+                                    ?.data
+                                    ?.id
+                                    ?.replaceFirst("VL", ""),
                             )
                             if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                                 args.putInt("downloaded", 1)
                             }
                             Queue.initPlaylist(
-                                viewModel.playlistBrowse.value?.data?.id?.replaceFirst("VL", "") ?: "",
+                                viewModel.playlistBrowse.value
+                                    ?.data
+                                    ?.id
+                                    ?.replaceFirst("VL", "") ?: "",
                                 "${viewModel.playlistBrowse.value?.data?.title}",
                                 Queue.PlaylistType.RADIO,
                             )
-                            Queue.setNowPlaying(viewModel.playlistBrowse.value?.data!!.tracks[position])
-                            Queue.addAll(viewModel.playlistBrowse.value?.data!!.tracks as ArrayList<Track>)
+                            Queue.setNowPlaying(
+                                viewModel.playlistBrowse.value
+                                    ?.data!!
+                                    .tracks[position],
+                            )
+                            Queue.addAll(
+                                viewModel.playlistBrowse.value
+                                    ?.data!!
+                                    .tracks as ArrayList<Track>,
+                            )
                             if (Queue.getQueue().size >= 1) {
                                 Queue.removeTrackWithIndex(position)
                             }
@@ -560,12 +696,18 @@ class PlaylistFragment : Fragment() {
                                 R.id.action_global_nowPlayingFragment,
                                 args,
                             )
-                        } else if (viewModel.playlistEntity.value != null && viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
+                        } else if (viewModel.playlistEntity.value != null &&
+                            viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED
+                        ) {
                             val args = Bundle()
                             args.putString("type", Config.PLAYLIST_CLICK)
                             args.putString(
                                 "videoId",
-                                viewModel.playlistBrowse.value?.data?.tracks?.get(0)?.videoId,
+                                viewModel.playlistBrowse.value
+                                    ?.data
+                                    ?.tracks
+                                    ?.get(0)
+                                    ?.videoId,
                             )
                             args.putString(
                                 "from",
@@ -573,17 +715,27 @@ class PlaylistFragment : Fragment() {
                             )
                             args.putString(
                                 "playlistId",
-                                viewModel.playlistBrowse.value?.data?.id?.replaceFirst("VL", ""),
+                                viewModel.playlistBrowse.value
+                                    ?.data
+                                    ?.id
+                                    ?.replaceFirst("VL", ""),
                             )
                             if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                                 args.putInt("downloaded", 1)
                             }
                             Queue.initPlaylist(
-                                viewModel.playlistBrowse.value?.data?.id?.replaceFirst("VL", "") ?: "",
+                                viewModel.playlistBrowse.value
+                                    ?.data
+                                    ?.id
+                                    ?.replaceFirst("VL", "") ?: "",
                                 "${viewModel.playlistBrowse.value?.data?.title}",
                                 Queue.PlaylistType.RADIO,
                             )
-                            Queue.setNowPlaying(viewModel.listTrack.value?.get(position)!!.toTrack())
+                            Queue.setNowPlaying(
+                                viewModel.listTrack.value
+                                    ?.get(position)!!
+                                    .toTrack(),
+                            )
                             Queue.addAll(viewModel.listTrack.value.toArrayListTrack())
                             if (Queue.getQueue().size >= 1) {
                                 Queue.removeTrackWithIndex(position)
@@ -594,12 +746,12 @@ class PlaylistFragment : Fragment() {
                                 args,
                             )
                         } else {
-                            Snackbar.make(
-                                requireView(),
-                                getString(R.string.error),
-                                Snackbar.LENGTH_SHORT,
-                            )
-                                .show()
+                            Snackbar
+                                .make(
+                                    requireView(),
+                                    getString(R.string.error),
+                                    Snackbar.LENGTH_SHORT,
+                                ).show()
                         }
                     }
                 }
@@ -609,7 +761,10 @@ class PlaylistFragment : Fragment() {
             object :
                 PlaylistItemAdapter.OnOptionClickListener {
                 override fun onOptionClick(position: Int) {
-                    val song = viewModel.playlistBrowse.value?.data!!.tracks[position]
+                    val song =
+                        viewModel.playlistBrowse.value
+                            ?.data!!
+                            .tracks[position]
                     viewModel.getSongEntity(song.toSongEntity())
                     val dialog = BottomSheetDialog(requireContext())
                     val bottomSheetView = BottomSheetNowPlayingBinding.inflate(layoutInflater)
@@ -649,11 +804,12 @@ class PlaylistFragment : Fragment() {
                                 )
                                 dialog.dismiss()
                             } else {
-                                Toast.makeText(
-                                    requireContext(),
-                                    getString(R.string.no_album),
-                                    Toast.LENGTH_SHORT,
-                                ).show()
+                                Toast
+                                    .makeText(
+                                        requireContext(),
+                                        getString(R.string.no_album),
+                                        Toast.LENGTH_SHORT,
+                                    ).show()
                             }
                         }
                         btAddQueue.setOnClickListener {
@@ -687,7 +843,11 @@ class PlaylistFragment : Fragment() {
                                 viewModel.updateLikeStatus(song.videoId, 1)
                             }
                             lifecycleScope.launch {
-                                if (sharedViewModel.simpleMediaServiceHandler?.nowPlaying?.first()?.mediaId == song.videoId) {
+                                if (sharedViewModel.simpleMediaServiceHandler
+                                        ?.nowPlaying
+                                        ?.first()
+                                        ?.mediaId == song.videoId
+                                ) {
                                     delay(500)
                                     sharedViewModel.refreshSongDB()
                                 }
@@ -758,7 +918,9 @@ class PlaylistFragment : Fragment() {
                                         }
                                         if (!tempTrack.contains(
                                                 song.videoId,
-                                            ) && playlist.syncedWithYouTubePlaylist == 1 && playlist.youtubePlaylistId != null
+                                            ) &&
+                                            playlist.syncedWithYouTubePlaylist == 1 &&
+                                            playlist.youtubePlaylistId != null
                                         ) {
                                             viewModel.addToYouTubePlaylist(
                                                 playlist.id,
@@ -814,7 +976,9 @@ class PlaylistFragment : Fragment() {
                 if (viewModel.gradientDrawable.value != null) {
                     if (viewModel.gradientDrawable.value?.colors != null) {
                         requireActivity().window.statusBarColor =
-                            viewModel.gradientDrawable.value?.colors!!.first()
+                            viewModel.gradientDrawable.value
+                                ?.colors!!
+                                .first()
                     }
                 }
             } else {
@@ -830,10 +994,19 @@ class PlaylistFragment : Fragment() {
                 val args = Bundle()
                 args.putString("type", Config.PLAYLIST_CLICK)
                 val index =
-                    Random.nextInt(0, viewModel.playlistBrowse.value?.data!!.tracks.size - 1)
+                    Random.nextInt(
+                        0,
+                        viewModel.playlistBrowse.value
+                            ?.data!!
+                            .tracks.size - 1,
+                    )
                 args.putString(
                     "videoId",
-                    viewModel.playlistBrowse.value?.data?.tracks?.get(index)?.videoId,
+                    viewModel.playlistBrowse.value
+                        ?.data
+                        ?.tracks
+                        ?.get(index)
+                        ?.videoId,
                 )
                 args.putString(
                     "from",
@@ -841,22 +1014,37 @@ class PlaylistFragment : Fragment() {
                 )
                 args.putString(
                     "playlistId",
-                    viewModel.playlistBrowse.value?.data?.id?.replaceFirst("VL", ""),
+                    viewModel.playlistBrowse.value
+                        ?.data
+                        ?.id
+                        ?.replaceFirst("VL", ""),
                 )
                 if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                     args.putInt("downloaded", 1)
                 }
                 Queue.initPlaylist(
-                    viewModel.playlistBrowse.value?.data?.id?.replaceFirst("VL", "") ?: "",
+                    viewModel.playlistBrowse.value
+                        ?.data
+                        ?.id
+                        ?.replaceFirst("VL", "") ?: "",
                     "Playlist \"${viewModel.playlistBrowse.value?.data?.title}\"",
                     Queue.PlaylistType.PLAYLIST,
                 )
-                Queue.setNowPlaying(viewModel.playlistBrowse.value?.data!!.tracks[index])
+                Queue.setNowPlaying(
+                    viewModel.playlistBrowse.value
+                        ?.data!!
+                        .tracks[index],
+                )
                 val shuffleList: ArrayList<Track> = arrayListOf()
                 viewModel.playlistBrowse.value?.data?.tracks?.let {
                     shuffleList.addAll(it)
                 }
-                shuffleList.remove(viewModel.playlistBrowse.value?.data?.tracks?.get(index))
+                shuffleList.remove(
+                    viewModel.playlistBrowse.value
+                        ?.data
+                        ?.tracks
+                        ?.get(index),
+                )
                 shuffleList.shuffle()
                 Queue.addAll(shuffleList)
                 Log.d("PlaylistFragment", "Queue: ${Queue.getQueue().size}")
@@ -867,51 +1055,78 @@ class PlaylistFragment : Fragment() {
                 val index =
                     Random.nextInt(
                         0,
-                        viewModel.playlistEntity.value?.tracks?.size?.minus(1) ?: 0,
+                        viewModel.playlistEntity.value
+                            ?.tracks
+                            ?.size
+                            ?.minus(1) ?: 0,
                     )
-                args.putString("videoId", viewModel.playlistEntity.value?.tracks?.get(index))
+                args.putString(
+                    "videoId",
+                    viewModel.playlistEntity.value
+                        ?.tracks
+                        ?.get(index),
+                )
                 args.putString("from", "Playlist \"${viewModel.playlistEntity.value?.title}\"")
                 args.putString(
                     "playlistId",
-                    viewModel.playlistEntity.value?.id?.replaceFirst("VL", ""),
+                    viewModel.playlistEntity.value
+                        ?.id
+                        ?.replaceFirst("VL", ""),
                 )
                 if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                     args.putInt("downloaded", 1)
                 }
                 Queue.initPlaylist(
-                    viewModel.playlistEntity.value?.id?.replaceFirst("VL", "") ?: "",
+                    viewModel.playlistEntity.value
+                        ?.id
+                        ?.replaceFirst("VL", "") ?: "",
                     "Playlist \"${viewModel.playlistEntity.value?.title}\"",
                     Queue.PlaylistType.PLAYLIST,
                 )
-                Queue.setNowPlaying(viewModel.listTrack.value?.get(index)!!.toTrack())
+                Queue.setNowPlaying(
+                    viewModel.listTrack.value
+                        ?.get(index)!!
+                        .toTrack(),
+                )
                 val shuffleList: ArrayList<Track> = arrayListOf()
-                viewModel.listTrack.value?.toArrayListTrack()
+                viewModel.listTrack.value
+                    ?.toArrayListTrack()
                     ?.let { it1 -> shuffleList.addAll(it1) }
-                viewModel.listTrack.value?.get(index)?.let { shuffleList.remove(it.toTrack()) }
+                viewModel.listTrack.value
+                    ?.get(index)
+                    ?.let { shuffleList.remove(it.toTrack()) }
                 shuffleList.shuffle()
                 Queue.addAll(shuffleList)
                 Log.d("PlaylistFragment", "Queue: ${Queue.getQueue().size}")
                 findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
             } else {
-                Snackbar.make(
-                    requireView(),
-                    getString(R.string.playlist_is_empty),
-                    Snackbar.LENGTH_SHORT,
-                ).show()
+                Snackbar
+                    .make(
+                        requireView(),
+                        getString(R.string.playlist_is_empty),
+                        Snackbar.LENGTH_SHORT,
+                    ).show()
             }
         }
         binding.btDownload.setOnClickListener {
             if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_NOT_DOWNLOADED) {
 //                if (!viewModel.prevPlaylistDownloading.value){
 //                    viewModel.downloading()
-                for (i in viewModel.playlistBrowse.value?.data?.tracks!!) {
+                for (i in viewModel.playlistBrowse.value
+                    ?.data
+                    ?.tracks!!) {
                     viewModel.insertSong(i.toSongEntity())
                 }
                 runBlocking {
                     delay(1000)
                     viewModel.listJob.emit(arrayListOf())
                 }
-                viewModel.getListTrack(viewModel.playlistBrowse.value?.data?.tracks?.toListVideoId())
+                viewModel.getListTrack(
+                    viewModel.playlistBrowse.value
+                        ?.data
+                        ?.tracks
+                        ?.toListVideoId(),
+                )
                 viewModel.listTrack.observe(viewLifecycleOwner) { listTrack ->
                     if (!listTrack.isNullOrEmpty()) {
                         val listJob: ArrayList<SongEntity> = arrayListOf()
@@ -928,7 +1143,8 @@ class PlaylistFragment : Fragment() {
                         )
                         listJob.forEach { job ->
                             val downloadRequest =
-                                DownloadRequest.Builder(job.videoId, job.videoId.toUri())
+                                DownloadRequest
+                                    .Builder(job.videoId, job.videoId.toUri())
                                     .setData(job.title.toByteArray())
                                     .setCustomCacheKey(job.videoId)
                                     .build()
@@ -952,14 +1168,16 @@ class PlaylistFragment : Fragment() {
 //                    Toast.makeText(requireContext(), getString(R.string.please_wait_before_playlist_downloaded), Toast.LENGTH_SHORT).show()
 //                }
             } else if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
-                Toast.makeText(requireContext(), getString(R.string.downloaded), Toast.LENGTH_SHORT)
+                Toast
+                    .makeText(requireContext(), getString(R.string.downloaded), Toast.LENGTH_SHORT)
                     .show()
             } else if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADING) {
-                Toast.makeText(
-                    requireContext(),
-                    getString(R.string.downloading),
-                    Toast.LENGTH_SHORT,
-                ).show()
+                Toast
+                    .makeText(
+                        requireContext(),
+                        getString(R.string.downloading),
+                        Toast.LENGTH_SHORT,
+                    ).show()
             }
         }
         lifecycleScope.launch {
@@ -1124,7 +1342,8 @@ class PlaylistFragment : Fragment() {
             }
 
             is Resource.Error -> {
-                Snackbar.make(binding.root, response.message.toString(), Snackbar.LENGTH_LONG)
+                Snackbar
+                    .make(binding.root, response.message.toString(), Snackbar.LENGTH_LONG)
                     .show()
                 findNavController().popBackStack()
             }
@@ -1190,6 +1409,7 @@ class PlaylistFragment : Fragment() {
                                             )
                                         val transition =
                                             TransitionDrawable(arrayOf(start, gradient))
+                                        transition.setDither(true)
                                         topAppBarLayout.background = transition
                                         transition.isCrossFadeEnabled = true
                                         transition.startTransition(500)
@@ -1198,7 +1418,10 @@ class PlaylistFragment : Fragment() {
                             } else {
 //                                fullRootLayout.background = gradientDrawable
 //                                topAppBarLayout.background = ColorDrawable(toolbarBackground!!)
-                                topAppBarLayout.background = gradientDrawable
+                                topAppBarLayout.background =
+                                    gradientDrawable?.apply {
+                                        setDither(true)
+                                    }
                             }
                             binding.rootLayout.visibility = View.VISIBLE
                             binding.loadingLayout.visibility = View.GONE
@@ -1209,7 +1432,8 @@ class PlaylistFragment : Fragment() {
                 }
 
                 is Resource.Error -> {
-                    Snackbar.make(binding.root, response.message.toString(), Snackbar.LENGTH_LONG)
+                    Snackbar
+                        .make(binding.root, response.message.toString(), Snackbar.LENGTH_LONG)
                         .show()
                     findNavController().popBackStack()
                 }
@@ -1276,6 +1500,7 @@ class PlaylistFragment : Fragment() {
                                                 )
                                             val transition =
                                                 TransitionDrawable(arrayOf(start, gradient))
+                                            transition.setDither(true)
                                             topAppBarLayout.background = transition
                                             transition.isCrossFadeEnabled = true
                                             transition.startTransition(500)
@@ -1284,7 +1509,10 @@ class PlaylistFragment : Fragment() {
                                 } else {
 //                                    fullRootLayout.background = gradientDrawable
 //                                    topAppBarLayout.background = ColorDrawable(toolbarBackground!!)
-                                    topAppBarLayout.background = gradientDrawable
+                                    topAppBarLayout.background =
+                                        gradientDrawable?.apply {
+                                            setDither(true)
+                                        }
                                 }
                                 binding.rootLayout.visibility = View.VISIBLE
                                 binding.loadingLayout.visibility = View.GONE
@@ -1315,11 +1543,12 @@ class PlaylistFragment : Fragment() {
                     }
 
                     is Resource.Error -> {
-                        Snackbar.make(
-                            binding.root,
-                            response.message.toString(),
-                            Snackbar.LENGTH_LONG,
-                        ).show()
+                        Snackbar
+                            .make(
+                                binding.root,
+                                response.message.toString(),
+                                Snackbar.LENGTH_LONG,
+                            ).show()
                         findNavController().popBackStack()
                     }
 
@@ -1381,6 +1610,7 @@ class PlaylistFragment : Fragment() {
                                         topAppBarLayout.background
                                             ?: ColorDrawable(Color.TRANSPARENT)
                                     val transition = TransitionDrawable(arrayOf(start, gradient))
+                                    transition.setDither(true)
                                     topAppBarLayout.background = transition
                                     transition.isCrossFadeEnabled = true
                                     transition.startTransition(500)
@@ -1389,7 +1619,10 @@ class PlaylistFragment : Fragment() {
                         } else {
 //                            fullRootLayout.background = gradientDrawable
 //                            topAppBarLayout.background = ColorDrawable(toolbarBackground!!)
-                            topAppBarLayout.background = gradientDrawable
+                            topAppBarLayout.background =
+                                gradientDrawable?.apply {
+                                    setDither(true)
+                                }
                         }
                         viewModel.getListTrack(playlistEntity.tracks)
                         viewModel.listTrack.observe(viewLifecycleOwner) { listTrack ->

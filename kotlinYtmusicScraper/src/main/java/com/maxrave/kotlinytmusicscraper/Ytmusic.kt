@@ -57,6 +57,8 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.protobuf.ProtoBuf
 import nl.adaptivity.xmlutil.XmlDeclMode
 import nl.adaptivity.xmlutil.serialization.XML
+import okhttp3.Interceptor
+import java.io.File
 import java.lang.reflect.Type
 import java.net.Proxy
 import java.util.Locale
@@ -65,6 +67,34 @@ class Ytmusic {
     private var httpClient = createClient()
     private var musixmatchClient = createMusixmatchClient()
     private var spotifyClient = createSpotifyClient()
+
+    var cacheControlInterceptor: Interceptor? = null
+        set(value) {
+            field = value
+            httpClient.close()
+            httpClient = createClient()
+            musixmatchClient.close()
+            musixmatchClient = createMusixmatchClient()
+            spotifyClient.close()
+            spotifyClient = createSpotifyClient()
+        }
+    var forceCacheInterceptor: Interceptor? = null
+        set(value) {
+            field = value
+            httpClient.close()
+            httpClient = createClient()
+            musixmatchClient.close()
+            musixmatchClient = createMusixmatchClient()
+            spotifyClient.close()
+            spotifyClient = createSpotifyClient()
+        }
+    var cachePath: File? = null
+        set(value) {
+            field = value
+            httpClient = createClient()
+            musixmatchClient = createMusixmatchClient()
+            spotifyClient = createSpotifyClient()
+        }
 
     var locale =
         YouTubeLocale(
@@ -98,6 +128,21 @@ class Ytmusic {
         HttpClient(OkHttp) {
             expectSuccess = true
             followRedirects = false
+            if (cachePath != null) {
+                engine {
+                    config {
+                        cache(
+                            okhttp3.Cache(cachePath!!, 50L * 1024 * 1024),
+                        )
+                    }
+                    if (cacheControlInterceptor != null) {
+                        addNetworkInterceptor(cacheControlInterceptor!!)
+                    }
+                    if (forceCacheInterceptor != null) {
+                        addInterceptor(forceCacheInterceptor!!)
+                    }
+                }
+            }
             install(HttpCache)
             install(HttpSend) {
                 maxSendCount = 100
@@ -152,6 +197,21 @@ class Ytmusic {
         HttpClient(OkHttp) {
             expectSuccess = true
             followRedirects = false
+            if (cachePath != null) {
+                engine {
+                    config {
+                        cache(
+                            okhttp3.Cache(cachePath!!, 50L * 1024 * 1024),
+                        )
+                    }
+                    if (cacheControlInterceptor != null) {
+                        addNetworkInterceptor(cacheControlInterceptor!!)
+                    }
+                    if (forceCacheInterceptor != null) {
+                        addInterceptor(forceCacheInterceptor!!)
+                    }
+                }
+            }
             install(HttpCache)
             install(HttpSend) {
                 maxSendCount = 100
@@ -201,6 +261,21 @@ class Ytmusic {
     private fun createClient() =
         HttpClient(OkHttp) {
             expectSuccess = true
+            if (cachePath != null) {
+                engine {
+                    config {
+                        cache(
+                            okhttp3.Cache(cachePath!!, 50L * 1024 * 1024),
+                        )
+                    }
+                    if (cacheControlInterceptor != null) {
+                        addNetworkInterceptor(cacheControlInterceptor!!)
+                    }
+                    if (forceCacheInterceptor != null) {
+                        addInterceptor(forceCacheInterceptor!!)
+                    }
+                }
+            }
             install(HttpCache)
             install(ContentNegotiation) {
                 json(

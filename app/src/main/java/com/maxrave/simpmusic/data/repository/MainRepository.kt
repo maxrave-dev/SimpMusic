@@ -755,7 +755,11 @@ class MainRepository
                 runCatching {
                     Queue.setContinuation(playlistId, null)
                     YouTube.next(
-                        WatchEndpoint(playlistId = playlistId),
+                        if (playlistId.startsWith("RRDAMVM")) {
+                            WatchEndpoint(videoId = playlistId.removePrefix("RRDAMVM"))
+                        } else {
+                            WatchEndpoint(playlistId = playlistId)
+                        },
                         continuation = continuation,
                     )
                         .onSuccess { next ->
@@ -1424,15 +1428,16 @@ class MainRepository
         suspend fun getRelatedData(videoId: String): Flow<Resource<ArrayList<Track>>> =
             flow {
                 runCatching {
-                    Queue.setContinuation("RDAMVM$videoId", null)
-                    YouTube.next(WatchEndpoint(playlistId = "RDAMVM$videoId"))
+                    YouTube.next(WatchEndpoint(videoId = videoId))
                         .onSuccess { next ->
                             val data: ArrayList<SongItem> = arrayListOf()
-                            data.addAll(next.items)
+                            data.addAll(next.items.filter { it.id != videoId }.toSet())
                             val nextContinuation = next.continuation
                             if (nextContinuation != null) {
+                                Log.w("Queue", "nextContinuation: $nextContinuation")
                                 Queue.setContinuation("RDAMVM$videoId", nextContinuation)
                             } else {
+                                Log.w("Related", "nextContinuation: null")
                                 Queue.setContinuation("RDAMVM$videoId", null)
                             }
                             emit(Resource.Success<ArrayList<Track>>(data.toListTrack()))

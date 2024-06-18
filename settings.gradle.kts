@@ -20,5 +20,6 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "SimpMusic"
-include ("app")
+include("app")
 include(":kotlinYtmusicScraper")
+include(":okhttp")

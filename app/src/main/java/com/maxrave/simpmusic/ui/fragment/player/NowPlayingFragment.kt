@@ -151,7 +151,10 @@ class NowPlayingFragment : Fragment() {
     override fun onResume() {
         Log.d("NowPlayingFragment", "onResume")
         super.onResume()
-        val track = viewModel.canvas.value?.canvases?.firstOrNull()
+        val track =
+            viewModel.canvas.value
+                ?.canvases
+                ?.firstOrNull()
         if (track != null && track.canvas_url.contains(".mp4")) {
             player?.stop()
             player?.release()
@@ -167,8 +170,8 @@ class NowPlayingFragment : Fragment() {
         }
     }
 
-    fun getScreenHeight(activity: Activity): Int {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+    fun getScreenHeight(activity: Activity): Int =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             val windowMetrics = activity.windowManager.currentWindowMetrics
             (windowMetrics.bounds.height())
         } else {
@@ -176,7 +179,6 @@ class NowPlayingFragment : Fragment() {
             activity.windowManager.defaultDisplay.getMetrics(displayMetrics)
             (displayMetrics.heightPixels)
         }
-    }
 
     override fun onStop() {
         super.onStop()
@@ -633,13 +635,19 @@ class NowPlayingFragment : Fragment() {
                                 videoId = viewModel.videoId.value
                                 binding.ivArt.setImageResource(0)
                                 binding.loadingArt.visibility = View.VISIBLE
-                                Log.d("Check Lyrics", viewModel._lyrics.value?.data.toString())
+                                Log.d(
+                                    "Check Lyrics",
+                                    viewModel._lyrics.value
+                                        ?.data
+                                        .toString(),
+                                )
                                 updateUIfromCurrentMediaItem(song)
                                 viewModel.simpleMediaServiceHandler?.setCurrentSongIndex(
                                     viewModel.getCurrentMediaItemIndex(),
                                 )
                                 viewModel.changeSongTransitionToFalse()
-                                if (viewModel.listYouTubeLiked.first()
+                                if (viewModel.listYouTubeLiked
+                                        .first()
                                         ?.contains(song.mediaId) == true
                                 ) {
                                     binding.btAddToYouTubeLiked.setImageResource(R.drawable.done)
@@ -895,20 +903,20 @@ class NowPlayingFragment : Fragment() {
                                     )
                                 binding.tvDescription.text =
                                     songInfo.description ?: getString(R.string.no_description)
-                                InteractiveTextMaker.of(
-                                    binding.tvDescription,
-                                ).setOnTextClickListener {
-                                    Log.d("NowPlayingFragment", "Text Clicked $it")
-                                    val timestamp = parseTimestampToMilliseconds(it)
-                                    if (timestamp != 0.0 && timestamp < runBlocking { viewModel.duration.first() }) {
-                                        viewModel.onUIEvent(
-                                            UIEvent.UpdateProgress(
-                                                ((timestamp * 100) / runBlocking { viewModel.duration.first() }).toFloat(),
-                                            ),
-                                        )
-                                    }
-                                }
-                                    .setSpecialTextColorRes(R.color.light_blue_A400)
+                                InteractiveTextMaker
+                                    .of(
+                                        binding.tvDescription,
+                                    ).setOnTextClickListener {
+                                        Log.d("NowPlayingFragment", "Text Clicked $it")
+                                        val timestamp = parseTimestampToMilliseconds(it)
+                                        if (timestamp != 0.0 && timestamp < runBlocking { viewModel.duration.first() }) {
+                                            viewModel.onUIEvent(
+                                                UIEvent.UpdateProgress(
+                                                    ((timestamp * 100) / runBlocking { viewModel.duration.first() }).toFloat(),
+                                                ),
+                                            )
+                                        }
+                                    }.setSpecialTextColorRes(R.color.light_blue_A400)
                                     .initialize()
                             } else {
                                 binding.uploaderLayout.visibility = View.GONE
@@ -927,7 +935,14 @@ class NowPlayingFragment : Fragment() {
                                     binding.playerView.visibility = View.VISIBLE
                                     binding.ivArt.visibility = View.INVISIBLE
                                     binding.loadingArt.visibility = View.GONE
-                                    Log.w("Format: ", binding.playerView.player?.currentMediaItem?.mediaMetadata?.title.toString())
+                                    Log.w(
+                                        "Format: ",
+                                        binding.playerView.player
+                                            ?.currentMediaItem
+                                            ?.mediaMetadata
+                                            ?.title
+                                            .toString(),
+                                    )
                                     if (binding.playerView.player == null) {
                                         binding.playerView.player = viewModel.simpleMediaServiceHandler?.player
                                     }
@@ -948,7 +963,6 @@ class NowPlayingFragment : Fragment() {
                                 when (response) {
                                     is Resource.Success -> {
                                         val data = response.data!!
-                                        data.add(Queue.getNowPlaying()!!)
                                         val listWithoutDuplicateElements: ArrayList<Track> =
                                             ArrayList()
                                         for (element in data) {
@@ -989,11 +1003,12 @@ class NowPlayingFragment : Fragment() {
 
                                     is Resource.Error -> {
                                         if (response.message != "null") {
-                                            Toast.makeText(
-                                                requireContext(),
-                                                response.message,
-                                                Toast.LENGTH_SHORT,
-                                            ).show()
+                                            Toast
+                                                .makeText(
+                                                    requireContext(),
+                                                    response.message,
+                                                    Toast.LENGTH_SHORT,
+                                                ).show()
                                             Log.d("Error", "${response.message}")
                                         }
                                     }
@@ -1100,11 +1115,11 @@ class NowPlayingFragment : Fragment() {
                                     binding.playerCanvas.visibility = View.VISIBLE
                                     binding.ivCanvas.visibility = View.GONE
                                     player?.setMediaItem(
-                                        MediaItem.Builder()
+                                        MediaItem
+                                            .Builder()
                                             .setUri(
                                                 canva.canvas_url.toUri(),
-                                            )
-                                            .build(),
+                                            ).build(),
                                     )
                                     binding.playerCanvas.player = player
                                     binding.playerCanvas.resizeMode =
@@ -1259,7 +1274,8 @@ class NowPlayingFragment : Fragment() {
                                 setEnabledAll(binding.btAddToYouTubeLiked, true)
                                 if (viewModel.isFirstLiked) {
                                     val balloon =
-                                        Balloon.Builder(requireContext())
+                                        Balloon
+                                            .Builder(requireContext())
                                             .setWidthRatio(0.5f)
                                             .setHeight(BalloonSizeSpec.WRAP)
                                             .setText(getString(R.string.guide_liked_title))
@@ -1273,8 +1289,7 @@ class NowPlayingFragment : Fragment() {
                                             .setCornerRadius(8f)
                                             .setBackgroundColorResource(
                                                 R.color.md_theme_dark_onSecondary,
-                                            )
-                                            .setBalloonAnimation(BalloonAnimation.ELASTIC)
+                                            ).setBalloonAnimation(BalloonAnimation.ELASTIC)
                                             .setLifecycleOwner(viewLifecycleOwner)
                                             .build()
                                     balloon.showAlignTop(binding.btAddToYouTubeLiked)
@@ -1290,7 +1305,10 @@ class NowPlayingFragment : Fragment() {
                     launch {
                         viewModel.listYouTubeLiked.collect {
                             if (it?.contains(
-                                    viewModel.simpleMediaServiceHandler?.nowPlaying?.first()?.mediaId,
+                                    viewModel.simpleMediaServiceHandler
+                                        ?.nowPlaying
+                                        ?.first()
+                                        ?.mediaId,
                                 ) == true
                             ) {
                                 binding.btAddToYouTubeLiked.setImageResource(R.drawable.done)
@@ -1461,8 +1479,13 @@ class NowPlayingFragment : Fragment() {
         }
         binding.uploaderLayout.setOnClickListener {
             val browseId =
-                if (!viewModel.songDB.value?.artistId.isNullOrEmpty()) {
-                    viewModel.songDB.value?.artistId?.firstOrNull()
+                if (!viewModel.songDB.value
+                        ?.artistId
+                        .isNullOrEmpty()
+                ) {
+                    viewModel.songDB.value
+                        ?.artistId
+                        ?.firstOrNull()
                 } else {
                     runBlocking { viewModel.songInfo.first()?.authorId }
                 }
@@ -1475,8 +1498,13 @@ class NowPlayingFragment : Fragment() {
         }
         binding.smallArtistLayout.setOnClickListener {
             val browseId =
-                if (!viewModel.songDB.value?.artistId.isNullOrEmpty()) {
-                    viewModel.songDB.value?.artistId?.firstOrNull()
+                if (!viewModel.songDB.value
+                        ?.artistId
+                        .isNullOrEmpty()
+                ) {
+                    viewModel.songDB.value
+                        ?.artistId
+                        ?.firstOrNull()
                 } else {
                     runBlocking { viewModel.songInfo.first()?.authorId }
                 }
@@ -1591,11 +1619,12 @@ class NowPlayingFragment : Fragment() {
                                         )
                                         dialog.dismiss()
                                     } else {
-                                        Toast.makeText(
-                                            requireContext(),
-                                            getString(R.string.no_album),
-                                            Toast.LENGTH_SHORT,
-                                        ).show()
+                                        Toast
+                                            .makeText(
+                                                requireContext(),
+                                                getString(R.string.no_album),
+                                                Toast.LENGTH_SHORT,
+                                            ).show()
                                     }
                                 }
 
@@ -1632,17 +1661,16 @@ class NowPlayingFragment : Fragment() {
                                             .setMessage(getString(R.string.sleep_timer_warning))
                                             .setPositiveButton(getString(R.string.yes)) { d, _ ->
                                                 viewModel.stopSleepTimer()
-                                                Toast.makeText(
-                                                    requireContext(),
-                                                    getString(R.string.sleep_timer_off_done),
-                                                    Toast.LENGTH_SHORT,
-                                                ).show()
+                                                Toast
+                                                    .makeText(
+                                                        requireContext(),
+                                                        getString(R.string.sleep_timer_off_done),
+                                                        Toast.LENGTH_SHORT,
+                                                    ).show()
                                                 d.dismiss()
-                                            }
-                                            .setNegativeButton(getString(R.string.cancel)) { d, _ ->
+                                            }.setNegativeButton(getString(R.string.cancel)) { d, _ ->
                                                 d.dismiss()
-                                            }
-                                            .show()
+                                            }.show()
                                     } else {
                                         val d = BottomSheetDialog(requireContext())
                                         d.apply {
@@ -1650,16 +1678,20 @@ class NowPlayingFragment : Fragment() {
                                         }
                                         val v = BottomSheetSleepTimerBinding.inflate(layoutInflater)
                                         v.btSet.setOnClickListener {
-                                            val min = v.etTime.editText?.text.toString()
+                                            val min =
+                                                v.etTime.editText
+                                                    ?.text
+                                                    .toString()
                                             if (min.isNotBlank() && min.toInt() > 0) {
                                                 viewModel.setSleepTimer(min.toInt())
                                                 d.dismiss()
                                             } else {
-                                                Toast.makeText(
-                                                    requireContext(),
-                                                    getString(R.string.sleep_timer_set_error),
-                                                    Toast.LENGTH_SHORT,
-                                                ).show()
+                                                Toast
+                                                    .makeText(
+                                                        requireContext(),
+                                                        getString(R.string.sleep_timer_set_error),
+                                                        Toast.LENGTH_SHORT,
+                                                    ).show()
                                             }
                                         }
                                         d.setContentView(v.root)
@@ -1707,7 +1739,9 @@ class NowPlayingFragment : Fragment() {
                                                 }
                                                 if (!tempTrack.contains(
                                                         song.videoId,
-                                                    ) && playlist.syncedWithYouTubePlaylist == 1 && playlist.youtubePlaylistId != null
+                                                    ) &&
+                                                    playlist.syncedWithYouTubePlaylist == 1 &&
+                                                    playlist.youtubePlaylistId != null
                                                 ) {
                                                     viewModel.addToYouTubePlaylist(
                                                         playlist.id,
@@ -1792,13 +1826,11 @@ class NowPlayingFragment : Fragment() {
                                                 checkedIndex,
                                             ) { _, which ->
                                                 checkedIndex = which
-                                            }
-                                            .setNegativeButton(
+                                            }.setNegativeButton(
                                                 getString(R.string.cancel),
                                             ) { dialog, _ ->
                                                 dialog.dismiss()
-                                            }
-                                            .setPositiveButton(
+                                            }.setPositiveButton(
                                                 getString(R.string.change),
                                             ) { dialog, _ ->
                                                 if (checkedIndex != -1) {
@@ -1840,11 +1872,11 @@ class NowPlayingFragment : Fragment() {
                                             DownloadState.STATE_PREPARING,
                                         )
                                         val downloadRequest =
-                                            DownloadRequest.Builder(
-                                                song.videoId,
-                                                song.videoId.toUri(),
-                                            )
-                                                .setData(song.title.toByteArray())
+                                            DownloadRequest
+                                                .Builder(
+                                                    song.videoId,
+                                                    song.videoId.toUri(),
+                                                ).setData(song.title.toByteArray())
                                                 .setCustomCacheKey(song.videoId)
                                                 .build()
                                         viewModel.updateDownloadState(
@@ -1886,13 +1918,14 @@ class NowPlayingFragment : Fragment() {
                                                                 R.drawable.outline_download_for_offline_24,
                                                             )
                                                             setEnabledAll(btDownload, true)
-                                                            Toast.makeText(
-                                                                requireContext(),
-                                                                getString(
-                                                                    androidx.media3.exoplayer.R.string.exo_download_failed,
-                                                                ),
-                                                                Toast.LENGTH_SHORT,
-                                                            ).show()
+                                                            Toast
+                                                                .makeText(
+                                                                    requireContext(),
+                                                                    getString(
+                                                                        androidx.media3.exoplayer.R.string.exo_download_failed,
+                                                                    ),
+                                                                    Toast.LENGTH_SHORT,
+                                                                ).show()
                                                         }
 
                                                         Download.STATE_COMPLETED -> {
@@ -1900,13 +1933,14 @@ class NowPlayingFragment : Fragment() {
                                                                 song.videoId,
                                                                 DownloadState.STATE_DOWNLOADED,
                                                             )
-                                                            Toast.makeText(
-                                                                requireContext(),
-                                                                getString(
-                                                                    androidx.media3.exoplayer.R.string.exo_download_completed,
-                                                                ),
-                                                                Toast.LENGTH_SHORT,
-                                                            ).show()
+                                                            Toast
+                                                                .makeText(
+                                                                    requireContext(),
+                                                                    getString(
+                                                                        androidx.media3.exoplayer.R.string.exo_download_completed,
+                                                                    ),
+                                                                    Toast.LENGTH_SHORT,
+                                                                ).show()
                                                             tvDownload.text =
                                                                 getString(R.string.downloaded)
                                                             ivDownload.setImageResource(
@@ -1928,7 +1962,8 @@ class NowPlayingFragment : Fragment() {
                                     } else if (tvDownload.text ==
                                         getString(
                                             R.string.downloaded,
-                                        ) || tvDownload.text ==
+                                        ) ||
+                                        tvDownload.text ==
                                         getString(
                                             R.string.downloading,
                                         )
@@ -1948,11 +1983,12 @@ class NowPlayingFragment : Fragment() {
                                             R.drawable.outline_download_for_offline_24,
                                         )
                                         setEnabledAll(btDownload, true)
-                                        Toast.makeText(
-                                            requireContext(),
-                                            getString(R.string.removed_download),
-                                            Toast.LENGTH_SHORT,
-                                        ).show()
+                                        Toast
+                                            .makeText(
+                                                requireContext(),
+                                                getString(R.string.removed_download),
+                                                Toast.LENGTH_SHORT,
+                                            ).show()
                                     }
                                 }
                             }
@@ -1997,12 +2033,17 @@ class NowPlayingFragment : Fragment() {
                         Log.d("Update UI", "onSuccess: ")
                         if (viewModel.gradientDrawable.value != null) {
                             viewModel.gradientDrawable.observe(viewLifecycleOwner) {
-                                if (it != null && viewModel.canvas.value?.canvases.isNullOrEmpty()) {
+                                if (it != null &&
+                                    viewModel.canvas.value
+                                        ?.canvases
+                                        .isNullOrEmpty()
+                                ) {
                                     var start = binding.rootLayout.background
                                     if (start == null) {
                                         start = ColorDrawable(Color.BLACK)
                                     }
                                     val transition = TransitionDrawable(arrayOf(start, it))
+                                    transition.setDither(true)
                                     binding.rootLayout.background = transition
                                     transition.isCrossFadeEnabled = true
                                     transition.startTransition(500)
@@ -2057,7 +2098,7 @@ class NowPlayingFragment : Fragment() {
                             val endColor = 0x1b1a1f
                             val gd =
                                 GradientDrawable(
-                                    GradientDrawable.Orientation.TOP_BOTTOM,
+                                    GradientDrawable.Orientation.TL_BR,
                                     intArrayOf(startColor, endColor),
                                 )
                             gd.cornerRadius = 0f
@@ -2200,12 +2241,17 @@ class NowPlayingFragment : Fragment() {
                         Log.d("Update UI", "onSuccess: ")
                         if (viewModel.gradientDrawable.value != null) {
                             viewModel.gradientDrawable.observe(viewLifecycleOwner) {
-                                if (it != null && viewModel.canvas.value?.canvases.isNullOrEmpty()) {
+                                if (it != null &&
+                                    viewModel.canvas.value
+                                        ?.canvases
+                                        .isNullOrEmpty()
+                                ) {
                                     var start = binding.rootLayout.background
                                     if (start == null) {
                                         start = ColorDrawable(Color.BLACK)
                                     }
                                     val transition = TransitionDrawable(arrayOf(start, it))
+                                    transition.setDither(true)
                                     binding.rootLayout.background = transition
                                     transition.isCrossFadeEnabled = true
                                     transition.startTransition(500)
@@ -2260,7 +2306,7 @@ class NowPlayingFragment : Fragment() {
                             val endColor = 0x1b1a1f
                             val gd =
                                 GradientDrawable(
-                                    GradientDrawable.Orientation.TOP_BOTTOM,
+                                    GradientDrawable.Orientation.TL_BR,
                                     intArrayOf(startColor, endColor),
                                 )
                             gd.cornerRadius = 0f
@@ -2400,7 +2446,8 @@ class NowPlayingFragment : Fragment() {
             miniplayer.visibility = View.VISIBLE
             if (viewModel.isFirstMiniplayer) {
                 val balloon =
-                    Balloon.Builder(requireContext())
+                    Balloon
+                        .Builder(requireContext())
                         .setWidthRatio(0.5f)
                         .setHeight(BalloonSizeSpec.WRAP)
                         .setText(getString(R.string.guide_miniplayer_content))

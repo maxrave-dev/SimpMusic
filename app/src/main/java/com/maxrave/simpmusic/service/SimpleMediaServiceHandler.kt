@@ -826,6 +826,7 @@ class SimpleMediaServiceHandler(
     }
 
     suspend fun loadMoreCatalog(listTrack: ArrayList<Track>) {
+        Log.d("Queue", listTrack.map { it.title }.toString())
         _stateFlow.value = StateSource.STATE_INITIALIZING
         for (i in 0 until listTrack.size) {
             val track = listTrack[i]

@@ -75,7 +75,9 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
+import okhttp3.Interceptor
 import org.json.JSONArray
+import java.io.File
 import java.net.Proxy
 import kotlin.math.abs
 import kotlin.random.Random
@@ -119,6 +121,24 @@ private fun List<PipedResponse.AudioStream>.toListFormat(): List<PlayerResponse.
  */
 object YouTube {
     private val ytMusic = Ytmusic()
+
+    var cachePath: File?
+        get() = ytMusic.cachePath
+        set(value) {
+            ytMusic.cachePath = value
+        }
+
+    var cacheControlInterceptor: Interceptor?
+        get() = ytMusic.cacheControlInterceptor
+        set(value) {
+            ytMusic.cacheControlInterceptor = value
+        }
+
+    var forceCacheInterceptor: Interceptor?
+        get() = ytMusic.forceCacheInterceptor
+        set(value) {
+            ytMusic.forceCacheInterceptor = value
+        }
 
     /**
      * Set the locale and language for YouTube Music

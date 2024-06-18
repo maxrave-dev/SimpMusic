@@ -2,11 +2,14 @@ package com.maxrave.simpmusic.ui
 
 import android.Manifest
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.Rect
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -64,7 +67,12 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import okhttp3.CacheControl
+import okhttp3.Interceptor
+import okhttp3.Request
+import okhttp3.Response
 import pub.devrel.easypermissions.EasyPermissions
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
 import javax.inject.Inject
@@ -412,7 +420,32 @@ class MainActivity : AppCompatActivity() {
                 )
             }
         }
-
+        YouTube.cacheControlInterceptor =
+            object : Interceptor {
+                override fun intercept(chain: Interceptor.Chain): Response {
+                    val originalResponse = chain.proceed(chain.request())
+                    if (isNetworkAvailable(applicationContext)) {
+                        val maxAge = 60 // read from cache for 1 minute
+                        return originalResponse.newBuilder()
+                            .header("Cache-Control", "public, max-age=$maxAge")
+                            .build()
+                    } else {
+                        val maxStale = 60 * 60 * 24 * 28 // tolerate 4-weeks stale
+                        return originalResponse.newBuilder()
+                            .header("Cache-Control", "public, only-if-cached, max-stale=$maxStale")
+                            .build()
+                    }
+                }
+            }
+        YouTube.forceCacheInterceptor =
+            Interceptor { chain ->
+                val builder: Request.Builder = chain.request().newBuilder()
+                if (!isNetworkAvailable(applicationContext)) {
+                    builder.cacheControl(CacheControl.FORCE_CACHE)
+                }
+                chain.proceed(builder.build())
+            }
+        YouTube.cachePath = File(application.cacheDir, "http-cache")
         viewModel.getLocation()
         viewModel.checkAuth()
         viewModel.checkAllDownloadingSongs()
@@ -772,6 +805,29 @@ class MainActivity : AppCompatActivity() {
 //                )
 //            }
 //        }
+    }
+
+    private fun isNetworkAvailable(context: Context?): Boolean {
+        val connectivityManager = context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        // Returns a Network object corresponding to
+        // the currently active default data network.
+        val network = connectivityManager.activeNetwork ?: return false
+
+        // Representation of the capabilities of an active network.
+        val activeNetwork = connectivityManager.getNetworkCapabilities(network) ?: return false
+
+        return when {
+            // Indicates this network uses a Wi-Fi transport,
+            // or WiFi has network connectivity
+            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
+
+            // Indicates this network uses a Cellular transport. or
+            // Cellular has network connectivity
+            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
+
+            // else return false
+            else -> false
+        }
     }
 
     private fun mayBeRestoreLastPlayedTrackAndQueue() {

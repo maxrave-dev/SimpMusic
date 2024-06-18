@@ -1,10 +1,10 @@
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
-    id("androidx.navigation.safeargs")
-    id("com.google.dagger.hilt.android")
-    id("com.google.devtools.ksp")
-    id("com.mikepenz.aboutlibraries.plugin")
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.navigation.safeargs)
+    alias(libs.plugins.hilt.android)
+    alias(libs.plugins.ksp)
+    alias(libs.plugins.aboutlibraries)
 }
 
 android {
@@ -164,145 +164,135 @@ android {
 
 dependencies {
 
-    implementation("androidx.wear.compose:compose-material3:1.0.0-alpha21")
+    implementation(libs.compose.material3)
     // Compose
-    val composeBom = platform("androidx.compose:compose-bom:2024.04.01")
+    val composeBom = platform(libs.compose.bom)
     implementation(composeBom)
     androidTestImplementation(composeBom)
-    implementation("androidx.compose.material3:material3")
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.material:material-ripple")
-    implementation("androidx.compose.material:material-icons-core")
-    implementation("androidx.compose.material:material-icons-extended")
-    implementation("androidx.constraintlayout:constraintlayout-compose:1.0.1")
+    implementation(libs.compose.material3.lib)
+    implementation(libs.compose.ui)
+    implementation(libs.compose.material.ripple)
+    implementation(libs.compose.material.icons.core)
+    implementation(libs.compose.material.icons.extended)
+    implementation(libs.constraintlayout.compose)
 
     // Android Studio Preview support
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.activity:activity-compose:1.9.0")
+    implementation(libs.ui.tooling.preview)
+    implementation(libs.activity.compose)
     // Optional - Integration with ViewModels
-    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
+    implementation(libs.lifecycle.viewmodel.compose)
 
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-    implementation("androidx.core:core-ktx:1.13.0")
-    implementation("androidx.appcompat:appcompat:1.6.1")
+    implementation(libs.lifecycle.runtime.ktx)
+    implementation(libs.core.ktx)
+    implementation(libs.appcompat)
 
-    val work_version = "2.9.0"
-    implementation("androidx.work:work-runtime-ktx:$work_version")
-    androidTestImplementation("androidx.work:work-testing:$work_version")
+    implementation(libs.work.runtime.ktx)
+    androidTestImplementation(libs.work.testing)
 
-    // material design3
-    implementation("com.google.android.material:material:1.11.0")
-    // runtime
-    implementation("androidx.startup:startup-runtime:1.1.1")
+    // Material Design 3
+    implementation(libs.material)
+    // Runtime
+    implementation(libs.startup.runtime)
     implementation(project(mapOf("path" to ":kotlinYtmusicScraper")))
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
-    debugImplementation("androidx.compose.ui:ui-tooling:1.6.6")
-    debugImplementation("androidx.compose.ui:ui-tooling-preview:1.6.6")
+    implementation(libs.lifecycle.livedata.ktx)
+    implementation(libs.lifecycle.viewmodel.ktx)
+    debugImplementation(libs.ui.tooling)
 
     // ExoPlayer
-    val media3_version = "1.3.1"
+    implementation(libs.media3.exoplayer)
+    implementation(libs.media3.ui)
+    implementation(libs.media3.session)
+    implementation(libs.media3.exoplayer.dash)
+    implementation(libs.media3.exoplayer.hls)
+    implementation(libs.media3.exoplayer.rtsp)
+    implementation(libs.media3.exoplayer.smoothstreaming)
+    implementation(libs.media3.exoplayer.workmanager)
+    implementation(libs.media3.datasource.okhttp)
 
-    implementation("androidx.media3:media3-exoplayer:$media3_version")
-    implementation("androidx.media3:media3-ui:$media3_version")
-    implementation("androidx.media3:media3-session:$media3_version")
-    implementation("androidx.media3:media3-exoplayer-dash:$media3_version")
-    implementation("androidx.media3:media3-exoplayer-hls:$media3_version")
-    implementation("androidx.media3:media3-exoplayer-rtsp:$media3_version")
-    implementation("androidx.media3:media3-exoplayer-smoothstreaming:$media3_version")
-    implementation("androidx.media3:media3-exoplayer-workmanager:$media3_version")
-    implementation("androidx.media3:media3-datasource-okhttp:$media3_version")
+    // Palette Color
+    implementation(libs.palette.ktx)
+    // Expandable Text View
+    implementation(libs.expandable.text)
 
-    // palette color
-    implementation("androidx.palette:palette-ktx:1.0.0")
-    // expandable text view
-    implementation("com.github.giangpham96:expandable-text:2.0.0")
+    implementation(libs.constraintlayout)
+    testImplementation(libs.junit)
+    androidTestImplementation(libs.androidx.junit)
+    androidTestImplementation(libs.espresso.core)
 
-    implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-    testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.1.5")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-
-    implementation("androidx.room:room-runtime:2.6.1")
-    implementation("androidx.room:room-ktx:2.6.1")
-    ksp("androidx.room:room-compiler:2.6.1")
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
     // Legacy Support
-    implementation("androidx.legacy:legacy-support-v4:1.0.0")
+    implementation(libs.legacy.support.v4)
     // Coroutines
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-guava:1.8.0")
+    implementation(libs.coroutines.android)
+    implementation(libs.coroutines.guava)
     // Navigation
-    implementation("androidx.navigation:navigation-fragment-ktx:2.7.7")
-    implementation("androidx.navigation:navigation-ui-ktx:2.7.7")
+    implementation(libs.navigation.fragment.ktx)
+    implementation(libs.navigation.ui.ktx)
 
-    implementation("com.google.code.gson:gson:2.10.1")
+    implementation(libs.gson)
 
     // Coil
-    implementation("io.coil-kt:coil:2.6.0")
-    implementation("io.coil-kt:coil-compose:2.6.0")
+    implementation(libs.coil)
+    implementation(libs.coil.compose)
     // Glide
-    implementation("com.github.bumptech.glide:glide:4.16.0")
+    implementation(libs.glide)
     // Easy Permissions
-    implementation("pub.devrel:easypermissions:3.0.0")
+    implementation(libs.easypermissions)
     // Palette Color
-    implementation("androidx.palette:palette-ktx:1.0.0")
+    implementation(libs.palette.ktx)
 
     // Preference
-    implementation("androidx.preference:preference-ktx:1.2.1")
+    implementation(libs.preference.ktx)
 
-    // fragment ktx
-    implementation("androidx.fragment:fragment-ktx:1.7.1")
+    // Fragment KTX
+    implementation(libs.fragment.ktx)
     // Hilt
-    implementation("com.google.dagger:hilt-android:2.50")
-    implementation("androidx.hilt:hilt-work:1.2.0")
-    ksp("androidx.hilt:hilt-compiler:1.2.0")
-    ksp("com.google.dagger:hilt-compiler:2.50")
-    ksp("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.8.0")
+    implementation(libs.hilt.android)
+    implementation(libs.hilt.work)
+    ksp(libs.hilt.compiler)
+    ksp(libs.dagger.hilt.compiler)
+    ksp(libs.kotlinx.metadata.jvm)
     // DataStore
-    implementation("androidx.datastore:datastore-preferences:1.1.1")
+    implementation(libs.datastore.preferences)
     // Swipe To Refresh
-    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.2.0-alpha01")
+    implementation(libs.swiperefreshlayout)
     // Insetter
-    implementation("dev.chrisbanes.insetter:insetter:0.6.1")
-    implementation("dev.chrisbanes.insetter:insetter-dbx:0.6.1")
+    implementation(libs.insetter)
+    implementation(libs.insetter.dbx)
 
     // Shimmer
-    implementation("com.facebook.shimmer:shimmer:0.5.0")
+    implementation(libs.shimmer)
 
     // Lottie
-    val lottieVersion = "6.4.0"
-    implementation("com.airbnb.android:lottie:$lottieVersion")
-    implementation("com.airbnb.android:lottie-compose:$lottieVersion")
+    val lottieVersion = libs.versions.lottie.get()
+    implementation(libs.lottie)
+    implementation(libs.lottie.compose)
 
     // Paging 3
-    val paging_version = "3.3.0"
-    implementation("androidx.paging:paging-runtime-ktx:$paging_version")
+    implementation(libs.paging.runtime.ktx)
 
     // Custom Activity On Crash
-    implementation("cat.ereza:customactivityoncrash:2.4.0")
+    implementation(libs.customactivityoncrash)
 
-    implementation("com.intuit.sdp:sdp-android:1.1.0")
-    implementation("com.intuit.ssp:ssp-android:1.1.0")
+    implementation(libs.sdp.android)
+    implementation(libs.ssp.android)
 
-    val latestAboutLibsRelease = "10.10.0"
-    implementation("com.mikepenz:aboutlibraries:$latestAboutLibsRelease")
+    implementation(libs.aboutlibraries)
 
-    implementation("com.google.android.flexbox:flexbox:3.0.0")
-    implementation("com.github.skydoves:balloon:1.6.4")
+    implementation(libs.flexbox)
+    implementation(libs.balloon)
 
-    // Jetpack Compose
     // Landscapist
-    val landscapistVersion = "2.3.2"
-    implementation("com.github.skydoves:landscapist-bom:$landscapistVersion")
-
-    // Import landscapist libraries
-    implementation("com.github.skydoves:landscapist-coil") // fresco or coil
-    implementation("com.github.skydoves:landscapist-placeholder")
-    implementation("com.github.skydoves:landscapist-animation")
-    implementation("com.github.skydoves:landscapist-palette")
-    implementation("com.github.skydoves:landscapist-transformation")
-    // InsetX
-    implementation("com.moriatsushi.insetsx:insetsx:0.1.0-alpha10")
+    implementation(libs.landscapist.bom)
+    implementation(libs.landscapist.coil)
+    implementation(libs.landscapist.placeholder)
+    implementation(libs.landscapist.animation)
+    implementation(libs.landscapist.palette)
+    implementation(libs.landscapist.transformation)
+    // InsetsX
+    implementation(libs.insetsx)
 }
 hilt {
     enableAggregatingTask = true

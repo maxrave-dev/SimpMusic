@@ -9,6 +9,7 @@ import com.maxrave.kotlinytmusicscraper.models.MusicTwoRowItemRenderer
 import com.maxrave.kotlinytmusicscraper.models.Run
 import com.maxrave.kotlinytmusicscraper.models.SectionListRenderer
 import com.maxrave.kotlinytmusicscraper.models.Thumbnail
+import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
 import com.maxrave.kotlinytmusicscraper.models.response.spotify.TokenResponse
@@ -21,8 +22,18 @@ import kotlinx.coroutines.runBlocking
 import kotlin.random.Random
 
 fun main() {
+    // [Đừng Làm Trái Tim Anh Đau, Âm Thầm Bên Em, Thủy Triều, She Neva Knows (CM1X REMIX) - JustaTee, Lệ Lưu Ly, Finding You, Nơi Ta Chờ Em (Em Chưa 18 Original Soundtrack), Nâng Chén Tiêu Sầu, Nắng có mang em về, Thu Cuoi, Không Thể Say (Live Band Version), Chúng Ta Của Tương Lai, Rồi Em Sẽ Gặp Một Chàng Trai Khác (cùng với Hippohappy), Ngày Mai Em Đi, Những Lời Hứa Bỏ Quên, Em Của Ngày Hôm Qua, WAITING FOR YOU, Buồn Hay Vui (cùng với RPT MCK, Obito, Boyzed và Ronboogz), Ex's Hate Me (cùng với Amee), Nắng Ấm Xa Dần, TỪNG QUEN, Yêu Một Người Có Lẽ (cùng với Miu Lê), NGAY MAI NGUOI TA LAY CHONG, Chúng Ta Của Hiện Tại, Anh Là Ngoại Lệ Của Em, Chịu Cách Mình Nói Thua, Mưa Tháng Sáu, Từng Là, Em Xinh, Từ Ngày Em Đến, Sau Lời Từ Khước (Theme Song From "MAI"), Biển Tình, Thiên Lý Ơi, Như Anh Đã Thấy Em, Em Đồng Ý (I Do), id 072019, Cứ Chill Thôi, Cô Phòng, Im Lặng (cùng với P.A), Nấu ăn cho em (cùng với PiaLinh), Bạn Đời, Cause I Love You, Bởi Vì Đam Mê (Ballad), Ôm Trọn Nỗi Nhớ (Remake), Da Lo Yeu Em Nhieu, Cẩm Tú Cầu, Lại gần hôn anh đi ❤️ Một Đêm Say Remix 💯 có chạy lời bài hát | một đêm say | trong video & ở mô tả, Hẹn Một Mai (From" 4 Năm 2 Chàng 1 Tình Yêu"), Thằng Điên, Ánh Sao Và Bầu Trời, Anh Thôi Nhân Nhượng Cover]
     runBlocking {
-        testLrc()
+        YouTube.next(
+            WatchEndpoint("7u4g483WTzw"),
+            "CDISWxILbmhmbDFsQ1Q1RjgiEVJEQU1WTTd1NGc0ODNXVHp3MiR3QUVCOGdFQ2VBSHFCQXMzZFRSbk5EZ3pWMVI2ZHclM0QlM0Q4MfoBEEQ2MjVBQjQwMjk0RDM4MUQYCoIBFVBUOkVndHVhR1pzTVd4RFZEVkdPQQ%3D%3D",
+        ).onSuccess {
+            println(it.items.map { it.title })
+            println(it.continuation)
+        }
+            .onFailure {
+                it.printStackTrace()
+            }
     }
 }
 

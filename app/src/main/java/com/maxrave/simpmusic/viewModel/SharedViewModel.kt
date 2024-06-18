@@ -25,6 +25,7 @@ import androidx.work.WorkManager
 import coil.ImageLoader
 import coil.request.ImageRequest
 import com.maxrave.kotlinytmusicscraper.YouTube
+import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
 import com.maxrave.kotlinytmusicscraper.models.response.spotify.CanvasResponse
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
@@ -560,7 +561,7 @@ class SharedViewModel
                         loadingMore.value = true
                         Log.w("Check loadMore continuation", continuation.toString())
                         mainRepository.getContinueTrack(playlistId, continuation)
-                            .collect { response ->
+                            .singleOrNull().let { response ->
                                 if (response != null) {
                                     Log.w("Check loadMore response", response.toString())
                                     simpleMediaServiceHandler?.loadMoreCatalog(response)
@@ -856,7 +857,7 @@ class SharedViewModel
             }
         }
 
-        fun getRelated(videoId: String) {
+        private fun getRelated(videoId: String) {
 //            Queue.clear()
             viewModelScope.launch {
                 mainRepository.getRelatedData(videoId).collect { response ->
@@ -1330,6 +1331,7 @@ class SharedViewModel
             regionCode = runBlocking { dataStoreManager.location.first() }
             quality = runBlocking { dataStoreManager.quality.first() }
             language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
+            YouTube.locale = YouTubeLocale(gl = regionCode ?: "US", hl = language?.substring(0..1) ?: "en")
             from_backup = runBlocking { dataStoreManager.playlistFromSaved.first() }
             recentPosition = runBlocking { (dataStoreManager.recentPosition.first()) }
         }
