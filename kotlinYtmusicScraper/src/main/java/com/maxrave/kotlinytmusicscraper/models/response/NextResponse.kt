@@ -35,6 +35,8 @@ data class NextResponse(
 
     @Serializable
     data class ContinuationContents(
-        val playlistPanelContinuation: PlaylistPanelRenderer,
+        val playlistPanelContinuation: PlaylistPanelRenderer?,
+        val sectionListContinuation: BrowseResponse.ContinuationContents.SectionListContinuation?,
+        val musicPlaylistShelfContinuation: BrowseResponse.ContinuationContents.MusicPlaylistShelfContinuation?
     )
 }

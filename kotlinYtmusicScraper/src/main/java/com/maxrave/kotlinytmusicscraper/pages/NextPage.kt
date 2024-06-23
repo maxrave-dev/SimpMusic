@@ -3,6 +3,7 @@ package com.maxrave.kotlinytmusicscraper.pages
 import com.maxrave.kotlinytmusicscraper.models.Album
 import com.maxrave.kotlinytmusicscraper.models.Artist
 import com.maxrave.kotlinytmusicscraper.models.BrowseEndpoint
+import com.maxrave.kotlinytmusicscraper.models.MusicResponsiveListItemRenderer
 import com.maxrave.kotlinytmusicscraper.models.PlaylistPanelVideoRenderer
 import com.maxrave.kotlinytmusicscraper.models.SongItem
 import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
@@ -21,6 +22,37 @@ data class NextResult(
 )
 
 object NextPage {
+    fun fromMusicResponsiveListItemRenderer(renderer: MusicResponsiveListItemRenderer): SongItem? {
+        val videoId = renderer.playlistItemData?.videoId ?: return null
+        val artistRuns = renderer.flexColumns.getOrNull(1)?.musicResponsiveListItemFlexColumnRenderer?.
+            text?.runs?.oddElements() ?: return null
+        val albumRuns = renderer.flexColumns.getOrNull(2)?.musicResponsiveListItemFlexColumnRenderer?.text
+            ?.runs?.firstOrNull()
+        return SongItem(
+            id = videoId,
+            title = renderer.flexColumns.firstOrNull()?.musicResponsiveListItemFlexColumnRenderer
+                ?.text?.runs?.firstOrNull()?.text ?: return null,
+            artists = artistRuns.map {
+                Artist(
+                    name = it.text,
+                    id = it.navigationEndpoint?.browseEndpoint?.browseId
+                )
+            },
+            album = albumRuns?.let {
+                Album(
+                    name = it.text,
+                    id = it.navigationEndpoint?.browseEndpoint?.browseId ?: ""
+                )
+            },
+            duration = renderer.fixedColumns?.firstOrNull()?.musicResponsiveListItemFlexColumnRenderer
+                ?.text?.runs?.firstOrNull()?.text?.parseTime(),
+            thumbnail = renderer.thumbnail?.musicThumbnailRenderer?.getThumbnailUrl() ?: "",
+            explicit = false,
+            endpoint = renderer.flexColumns.firstOrNull()?.musicResponsiveListItemFlexColumnRenderer
+                ?.text?.runs?.firstOrNull()?.navigationEndpoint?.watchEndpoint,
+            thumbnails = renderer.thumbnail?.musicThumbnailRenderer?.thumbnail
+        )
+    }
     fun fromPlaylistPanelVideoRenderer(renderer: PlaylistPanelVideoRenderer): SongItem? {
         val longByLineRuns = renderer.longBylineText?.runs?.splitBySeparator() ?: return null
         return SongItem(

@@ -917,57 +917,82 @@ object YouTube {
                     endpoint.params,
                     continuation,
                 ).body<NextResponse>()
+            Log.w("YouTube", response.toString())
             val playlistPanelRenderer =
                 response.continuationContents?.playlistPanelContinuation
-                    ?: response.contents.singleColumnMusicWatchNextResultsRenderer?.tabbedRenderer?.watchNextTabbedResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.musicQueueRenderer?.content?.playlistPanelRenderer!!
-            // load automix items
-            if (playlistPanelRenderer.contents.lastOrNull()?.automixPreviewVideoRenderer?.content?.automixPlaylistVideoRenderer?.navigationEndpoint?.watchPlaylistEndpoint != null) {
-                return@runCatching next(
-                    playlistPanelRenderer.contents.lastOrNull()?.automixPreviewVideoRenderer?.content?.automixPlaylistVideoRenderer?.navigationEndpoint?.watchPlaylistEndpoint!!,
-                ).getOrThrow()
-                    .let { result ->
-                        result.copy(
-                            title = playlistPanelRenderer.title,
-                            items =
+                    ?: response.contents.singleColumnMusicWatchNextResultsRenderer?.tabbedRenderer?.watchNextTabbedResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.musicQueueRenderer?.content?.playlistPanelRenderer
+            if (playlistPanelRenderer != null) {
+                // load automix items
+                if (playlistPanelRenderer.contents.lastOrNull()?.automixPreviewVideoRenderer?.content?.automixPlaylistVideoRenderer?.navigationEndpoint?.watchPlaylistEndpoint != null) {
+                    return@runCatching next(
+                        playlistPanelRenderer.contents.lastOrNull()?.automixPreviewVideoRenderer?.content?.automixPlaylistVideoRenderer?.navigationEndpoint?.watchPlaylistEndpoint!!,
+                    ).getOrThrow()
+                        .let { result ->
+                            result.copy(
+                                title = playlistPanelRenderer.title,
+                                items =
                                 playlistPanelRenderer.contents.mapNotNull {
                                     it.playlistPanelVideoRenderer?.let { renderer ->
                                         NextPage.fromPlaylistPanelVideoRenderer(renderer)
                                     }
                                 } + result.items,
-                            lyricsEndpoint =
+                                lyricsEndpoint =
                                 response.contents.singleColumnMusicWatchNextResultsRenderer?.tabbedRenderer?.watchNextTabbedResultsRenderer?.tabs?.getOrNull(
                                     1,
                                 )?.tabRenderer?.endpoint?.browseEndpoint,
-                            relatedEndpoint =
+                                relatedEndpoint =
                                 response.contents.singleColumnMusicWatchNextResultsRenderer?.tabbedRenderer?.watchNextTabbedResultsRenderer?.tabs?.getOrNull(
                                     2,
                                 )?.tabRenderer?.endpoint?.browseEndpoint,
-                            currentIndex = playlistPanelRenderer.currentIndex,
-                            endpoint = playlistPanelRenderer.contents.lastOrNull()?.automixPreviewVideoRenderer?.content?.automixPlaylistVideoRenderer?.navigationEndpoint?.watchPlaylistEndpoint!!,
-                        )
-                    }
-            }
+                                currentIndex = playlistPanelRenderer.currentIndex,
+                                endpoint = playlistPanelRenderer.contents.lastOrNull()?.automixPreviewVideoRenderer?.content?.automixPlaylistVideoRenderer?.navigationEndpoint?.watchPlaylistEndpoint!!,
+                            )
+                        }
+                }
 //        else if (playlistPanelRenderer.contents.firstOrNull()?.playlistPanelVideoRenderer?.navigationEndpoint?.watchPlaylistEndpoint != null) {
 //
 //        }
-            NextResult(
-                title = playlistPanelRenderer.title,
-                items =
+                return@runCatching NextResult(
+                    title = playlistPanelRenderer.title,
+                    items =
                     playlistPanelRenderer.contents.mapNotNull {
                         it.playlistPanelVideoRenderer?.let(NextPage::fromPlaylistPanelVideoRenderer)
                     },
-                currentIndex = playlistPanelRenderer.currentIndex,
-                lyricsEndpoint =
+                    currentIndex = playlistPanelRenderer.currentIndex,
+                    lyricsEndpoint =
                     response.contents.singleColumnMusicWatchNextResultsRenderer?.tabbedRenderer?.watchNextTabbedResultsRenderer?.tabs?.getOrNull(
                         1,
                     )?.tabRenderer?.endpoint?.browseEndpoint,
-                relatedEndpoint =
+                    relatedEndpoint =
                     response.contents.singleColumnMusicWatchNextResultsRenderer?.tabbedRenderer?.watchNextTabbedResultsRenderer?.tabs?.getOrNull(
                         2,
                     )?.tabRenderer?.endpoint?.browseEndpoint,
-                continuation = playlistPanelRenderer.continuations?.getContinuation(),
-                endpoint = endpoint,
-            )
+                    continuation = playlistPanelRenderer.continuations?.getContinuation(),
+                    endpoint = endpoint,
+                )
+            }
+            else {
+                Log.e("YouTube", response.toString())
+                val musicPlaylistShelfContinuation = response.continuationContents?.musicPlaylistShelfContinuation!!
+                return@runCatching NextResult(
+                    items = musicPlaylistShelfContinuation.contents.mapNotNull {
+                        it.musicResponsiveListItemRenderer?.let { renderer ->
+                            NextPage.fromMusicResponsiveListItemRenderer(renderer)
+                        }
+                    },
+                    continuation = musicPlaylistShelfContinuation.continuations?.firstOrNull()?.nextContinuationData?.continuation,
+                    endpoint = WatchEndpoint(
+                        videoId = null,
+                        playlistId = null,
+                        playlistSetVideoId = null,
+                        params = null,
+                        index = null,
+                        watchEndpointMusicSupportedConfigs = null
+                    )
+
+                )
+            }
+
         }
 
     suspend fun lyrics(endpoint: BrowseEndpoint): Result<String?> =

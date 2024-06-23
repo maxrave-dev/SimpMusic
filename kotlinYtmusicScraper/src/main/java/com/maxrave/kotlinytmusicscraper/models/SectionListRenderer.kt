@@ -53,6 +53,7 @@ data class SectionListRenderer(
             val straplineThumbnail: StraplineThumbnail?,
             val thumbnail: ThumbnailRenderer?,
             val title: Title?,
+            val secondSubtitle: MusicShelfRenderer.Content.MusicMultiRowListItemRenderer.Subtitle?
         ) {
             @Serializable
             data class Description(

@@ -3,6 +3,7 @@ package com.maxrave.simpmusic.data.parser
 import android.content.Context
 import android.util.Log
 import com.maxrave.kotlinytmusicscraper.models.MusicShelfRenderer
+import com.maxrave.kotlinytmusicscraper.models.SectionListRenderer
 import com.maxrave.kotlinytmusicscraper.models.response.BrowseResponse
 import com.maxrave.kotlinytmusicscraper.models.response.SearchResponse
 import com.maxrave.kotlinytmusicscraper.pages.PodcastItem
@@ -70,6 +71,27 @@ fun parsePlaylistData(
                 }
             }
             header.header.musicDetailHeaderRenderer.thumbnail.croppedSquareThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail()
+                ?.let { listThumbnails.addAll(it) }
+        }
+        else if (header is SectionListRenderer.Content.MusicResponsiveHeaderRenderer?) {
+            title += header.title?.runs?.firstOrNull()?.text
+            Log.d("PlaylistParser", "title: $title")
+            val author = Author(id = header.straplineTextOne?.runs?.get(0)?.navigationEndpoint?.browseEndpoint?.browseId ?: "", name = header.straplineTextOne?.runs?.get(0)?.text ?: "")
+            listAuthor.add(author)
+            Log.d("PlaylistParser", "author: $author")
+            if (header.secondSubtitle?.runs?.size!! > 4) {
+                duration += header.secondSubtitle?.runs?.get(4)?.text
+            }
+            else if (header.secondSubtitle?.runs?.size!! == 3) {
+                duration += header.secondSubtitle?.runs?.get(2)?.text
+            }
+            Log.d("PlaylistParser", "duration: $duration")
+            if (!header.description?.musicDescriptionShelfRenderer?.description?.runs.isNullOrEmpty()) {
+                for (run in header.description?.musicDescriptionShelfRenderer?.description?.runs!!) {
+                    description += (run.text)
+                }
+            }
+            header.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail()
                 ?.let { listThumbnails.addAll(it) }
         }
         Log.d("PlaylistParser", "description: $description")

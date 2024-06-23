@@ -1091,6 +1091,9 @@ class MainRepository
                             )?.tabRenderer?.content?.sectionListRenderer?.contents?.get(
                                 0,
                             )?.musicPlaylistShelfRenderer?.contents
+                                ?: result.contents?.twoColumnBrowseResultsRenderer
+                                    ?.secondaryContents?.sectionListRenderer?.contents?.get(0)
+                                    ?.musicPlaylistShelfRenderer?.contents
                         if (data != null) {
                             Log.d("Data", "data: $data")
                             Log.d("Data", "data size: ${data.size}")
@@ -1099,6 +1102,9 @@ class MainRepository
                         val header =
                             result.header?.musicDetailHeaderRenderer
                                 ?: result.header?.musicEditablePlaylistDetailHeaderRenderer
+                                ?: result.contents?.twoColumnBrowseResultsRenderer?.tabs?.get(0)
+                                    ?.tabRenderer?.content?.sectionListRenderer?.contents?.get(0)
+                                    ?.musicResponsiveHeaderRenderer
                         Log.d("Header", "header: $header")
                         var continueParam =
                             result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(
@@ -1107,11 +1113,15 @@ class MainRepository
                                 0,
                             )?.musicPlaylistShelfRenderer?.continuations?.get(
                                 0,
-                            )?.nextContinuationData?.continuation
+                            )?.nextContinuationData?.continuation ?:
+                            result.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer?.contents?.firstOrNull()
+                                ?.musicPlaylistShelfRenderer?.continuations?.firstOrNull()?.nextContinuationData?.continuation
                         var count = 0
                         Log.d("Repository", "playlist data: ${listContent.size}")
                         Log.d("Repository", "continueParam: $continueParam")
-                        while (continueParam != null) {
+//                        else {
+//                            var listTrack = playlistBrowse.tracks.toMutableList()
+                            while (continueParam != null) {
                             YouTube.customQuery(
                                 browseId = "",
                                 continuation = continueParam,
@@ -1139,6 +1149,7 @@ class MainRepository
                             emit(Resource.Success<PlaylistBrowse>(playlist))
                         } ?: emit(Resource.Error<PlaylistBrowse>("Error"))
                     }.onFailure { e ->
+                        Log.e("Playlist Data", e.message ?: "Error")
                         emit(Resource.Error<PlaylistBrowse>(e.message.toString()))
                     }
                 }
