@@ -51,6 +51,7 @@ data class SectionListRenderer(
             val description: Description?,
             val straplineTextOne: StraplineTextOne?,
             val straplineThumbnail: StraplineThumbnail?,
+            val subtitle: MusicShelfRenderer.Content.MusicMultiRowListItemRenderer.Subtitle?,
             val thumbnail: ThumbnailRenderer?,
             val title: Title?,
             val secondSubtitle: MusicShelfRenderer.Content.MusicMultiRowListItemRenderer.Subtitle?

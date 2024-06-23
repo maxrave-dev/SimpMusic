@@ -5,6 +5,7 @@ import com.maxrave.kotlinytmusicscraper.models.AlbumItem
 import com.maxrave.kotlinytmusicscraper.models.Artist
 import com.maxrave.kotlinytmusicscraper.models.MusicResponsiveListItemRenderer
 import com.maxrave.kotlinytmusicscraper.models.SongItem
+import com.maxrave.kotlinytmusicscraper.models.Thumbnail
 import com.maxrave.kotlinytmusicscraper.models.Thumbnails
 import com.maxrave.kotlinytmusicscraper.models.oddElements
 import com.maxrave.kotlinytmusicscraper.utils.parseTime
@@ -17,7 +18,7 @@ data class AlbumPage(
     val duration: String?,
 ) {
     companion object {
-        fun fromMusicResponsiveListItemRenderer(renderer: MusicResponsiveListItemRenderer?): SongItem? {
+        fun fromMusicResponsiveListItemRenderer(renderer: MusicResponsiveListItemRenderer?, album: AlbumItem): SongItem? {
             if (renderer == null) return null
             else {
                 return SongItem(
@@ -31,20 +32,22 @@ data class AlbumPage(
                                 name = it.text,
                                 id = it.navigationEndpoint?.browseEndpoint?.browseId
                             )
-                        } ?: return null,
-                    album = renderer.flexColumns.getOrNull(2)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()
-                        ?.let {
-                            Album(
-                                name = it.text,
-                                id = it.navigationEndpoint?.browseEndpoint?.browseId!!
-                            )
-                        } ?: return null,
+                        } ?: album.artists ?: emptyList(),
+                    album = Album(
+                        name = album.title,
+                        id = album.id
+                    ),
                     duration = renderer.fixedColumns?.firstOrNull()
                         ?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()
                         ?.text?.parseTime() ?: return null,
-                    thumbnail = renderer.thumbnail?.musicThumbnailRenderer?.getThumbnailUrl()
-                        ?: return null,
-                    thumbnails = renderer.thumbnail.musicThumbnailRenderer.thumbnail,
+                    thumbnail = album.thumbnail,
+                    thumbnails = Thumbnails(
+                        thumbnails = listOf(Thumbnail(
+                            url = album.thumbnail,
+                            width = 544,
+                            height = 544
+                        ))
+                    ),
                     explicit = renderer.badges?.find {
                         it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                     } != null
