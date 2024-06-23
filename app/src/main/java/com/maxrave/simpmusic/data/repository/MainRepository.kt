@@ -2,6 +2,7 @@ package com.maxrave.simpmusic.data.repository
 
 import android.content.Context
 import android.util.Log
+import androidx.media3.common.util.UnstableApi
 import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.models.AccountInfo
 import com.maxrave.kotlinytmusicscraper.models.MediaType
@@ -21,6 +22,7 @@ import com.maxrave.kotlinytmusicscraper.pages.BrowseResult
 import com.maxrave.kotlinytmusicscraper.pages.PlaylistPage
 import com.maxrave.kotlinytmusicscraper.pages.SearchPage
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.common.QUALITY
 import com.maxrave.simpmusic.common.VIDEO_QUALITY
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.LocalDataSource
@@ -84,6 +86,7 @@ import com.maxrave.simpmusic.extension.bestMatchingIndex
 import com.maxrave.simpmusic.extension.toListTrack
 import com.maxrave.simpmusic.extension.toLyrics
 import com.maxrave.simpmusic.extension.toTrack
+import com.maxrave.simpmusic.service.test.source.MergingMediaSourceFactory
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.FilterState
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -419,6 +422,8 @@ class MainRepository
 
         suspend fun getNewFormat(videoId: String): Flow<NewFormatEntity?> =
             flow { emit(localDataSource.getNewFormat(videoId)) }.flowOn(Dispatchers.Main)
+
+        suspend fun getFormatFlow(videoId: String) = localDataSource.getNewFormatAsFlow(videoId)
 
         suspend fun insertSongInfo(songInfo: SongInfoEntity) =
             withContext(Dispatchers.IO) {
@@ -2146,10 +2151,14 @@ class MainRepository
                 }
             }.flowOn(Dispatchers.IO)
 
+        @UnstableApi
         suspend fun getSongInfo(videoId: String): Flow<SongInfoEntity?> =
             flow {
                 runCatching {
-                    YouTube.getSongInfo(videoId).onSuccess { songInfo ->
+                    val id = if (videoId.contains(MergingMediaSourceFactory.isVideo))
+                        videoId.removePrefix(MergingMediaSourceFactory.isVideo)
+                    else videoId
+                    YouTube.getSongInfo(id).onSuccess { songInfo ->
                         val song =
                             SongInfoEntity(
                                 videoId = songInfo.videoId,
@@ -2174,19 +2183,20 @@ class MainRepository
                 }
             }.flowOn(Dispatchers.IO)
 
+        @UnstableApi
         suspend fun getStream(
             videoId: String,
-            itag: Int,
+            isVideo: Boolean,
         ): Flow<String?> =
             flow {
+                //134, 136, 137
                 YouTube.player(videoId).onSuccess { data ->
-                    val acceptToPlayVideo =
-                        runBlocking { dataStoreManager.watchVideoInsteadOfPlayingAudio.first() == DataStoreManager.TRUE }
+                    val itag = QUALITY.itags.getOrNull(QUALITY.items.indexOf(dataStoreManager.quality.first()))
                     val videoItag =
                         VIDEO_QUALITY.itags.getOrNull(
                             VIDEO_QUALITY.items.indexOf(dataStoreManager.videoQuality.first()),
                         )
-                            ?: 22
+                            ?: 134
                     val response = data.second
                     if (data.third == MediaType.Song) {
                         Log.w(
@@ -2196,18 +2206,14 @@ class MainRepository
                     } else {
                         Log.w("Stream", "response: is VIDEO")
                     }
-                    Log.w("Stream: ", data.toString())
+                    Log.w("Stream", response.streamingData?.formats?.map { it.itag }.toString() + " " +
+                        response.streamingData?.adaptiveFormats?.map { it.itag }.toString())
+
+                    Log.w("Stream", "Get stream for video $isVideo")
                     var format =
-                        if (acceptToPlayVideo) {
-                            if (data.third == MediaType.Song) {
-                                if (response.streamingData?.adaptiveFormats?.find { it.itag == 141 } != null) {
-                                    response.streamingData?.adaptiveFormats?.find { it.itag == 141 }
-                                } else {
-                                    response.streamingData?.adaptiveFormats?.find { it.itag == itag }
-                                }
-                            } else {
-                                response.streamingData?.formats?.find { it.itag == videoItag }
-                            }
+                        if (isVideo) {
+                            response.streamingData?.formats?.find { it.itag == videoItag }
+                                ?: response.streamingData?.adaptiveFormats?.find { it.itag == videoItag }
                         } else {
                             if (response.streamingData?.adaptiveFormats?.find { it.itag == 141 } != null) {
                                 response.streamingData?.adaptiveFormats?.find { it.itag == 141 }
@@ -2222,8 +2228,8 @@ class MainRepository
                     runBlocking {
                         insertNewFormat(
                             NewFormatEntity(
-                                videoId = videoId,
-                                itag = format?.itag ?: itag,
+                                videoId = if(VIDEO_QUALITY.itags.contains(format?.itag)) "${MergingMediaSourceFactory.isVideo}$videoId" else videoId,
+                                itag = format?.itag ?: itag ?: 141,
                                 mimeType =
                                     Regex("""([^;]+);\s*codecs=["']([^"']+)["']""").find(
                                         format?.mimeType ?: "",

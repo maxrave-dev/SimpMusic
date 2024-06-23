@@ -37,18 +37,17 @@ import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.MoreExecutors
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.MEDIA_NOTIFICATION
-import com.maxrave.simpmusic.common.QUALITY
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.di.DownloadCache
 import com.maxrave.simpmusic.di.PlayerCache
 import com.maxrave.simpmusic.service.test.CoilBitmapLoader
+import com.maxrave.simpmusic.service.test.source.MergingMediaSourceFactory
 import com.maxrave.simpmusic.ui.MainActivity
 import com.maxrave.simpmusic.ui.widget.BasicWidget
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.cancellable
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
@@ -100,7 +99,7 @@ class SimpleMediaService : MediaLibraryService() {
             .setHandleAudioBecomingNoisy(true)
             .setSeekForwardIncrementMs(5000)
             .setSeekBackIncrementMs(5000)
-            .setMediaSourceFactory(provideMediaSourceFactory())
+            .setMediaSourceFactory(provideMergingMediaSource())
             .setRenderersFactory(provideRendererFactory(this))
             .build()
 
@@ -230,11 +229,12 @@ class SimpleMediaService : MediaLibraryService() {
         cacheDataSourceFactory: CacheDataSource.Factory,
         @DownloadCache downloadCache: SimpleCache,
         @PlayerCache playerCache: SimpleCache,
-        mainRepository: MainRepository,
-        dataStoreManager: DataStoreManager
+        mainRepository: MainRepository
     ): DataSource.Factory {
         return ResolvingDataSource.Factory(cacheDataSourceFactory) { dataSpec ->
-            val mediaId = dataSpec.key ?: error("No media id")
+            var mediaId = dataSpec.key ?: error("No media id")
+            Log.w("Stream", mediaId)
+            Log.w("Stream", mediaId.startsWith(MergingMediaSourceFactory.isVideo).toString())
             val CHUNK_LENGTH = 512 * 1024L
             if (downloadCache.isCached(
                     mediaId,
@@ -246,14 +246,23 @@ class SimpleMediaService : MediaLibraryService() {
             }
             var dataSpecReturn: DataSpec = dataSpec
             runBlocking(Dispatchers.IO) {
-                val itag = dataStoreManager.quality.first()
-
-                mainRepository.getStream(
-                    mediaId,
-                    if (itag == QUALITY.items[0].toString()) QUALITY.itags[0] else QUALITY.itags[1]
-                ).cancellable().collect {
-                    if (it != null) {
-                        dataSpecReturn = dataSpec.withUri(it.toUri())
+                if (mediaId.contains(MergingMediaSourceFactory.isVideo)) {
+                    val id = mediaId.removePrefix(MergingMediaSourceFactory.isVideo)
+                    mainRepository.getStream(
+                        id, true
+                    ).cancellable().collect {
+                        if (it != null) {
+                            dataSpecReturn = dataSpec.withUri(it.toUri())
+                        }
+                    }
+                }
+                else {
+                    mainRepository.getStream(
+                        mediaId, isVideo = false
+                    ).cancellable().collect {
+                        if (it != null) {
+                            dataSpecReturn = dataSpec.withUri(it.toUri())
+                        }
                     }
                 }
             }
@@ -277,11 +286,15 @@ class SimpleMediaService : MediaLibraryService() {
                 provideCacheDataSource(downloadCache, playerCache),
                 downloadCache,
                 playerCache,
-                mainRepository,
-                dataStoreManager
+                mainRepository
             ),
             provideExtractorFactory()
         )
+
+    private fun provideMergingMediaSource(): MergingMediaSourceFactory = MergingMediaSourceFactory(
+        provideMediaSourceFactory(),
+        dataStoreManager
+    )
 
     @UnstableApi
     fun provideRendererFactory(context: Context): DefaultRenderersFactory =

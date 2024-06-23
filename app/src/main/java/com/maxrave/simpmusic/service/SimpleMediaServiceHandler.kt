@@ -837,6 +837,8 @@ class SimpleMediaServiceHandler(
                 thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
             }
             val artistName: String = track.artists.toListName().connectArtists()
+            val isSong = (track.thumbnails?.last()?.height != 0 && track.thumbnails?.last()?.height == track.thumbnails?.last()?.width
+                && track.thumbnails?.last()?.height != null)
             if (track.artists.isNullOrEmpty()) {
                 mainRepository.getSongInfo(track.videoId).singleOrNull()
                     .let { songInfo ->
@@ -862,6 +864,7 @@ class SimpleMediaServiceHandler(
                                             .setArtist(songInfo.author)
                                             .setArtworkUri(thumbUrl.toUri())
                                             .setAlbumTitle(track.album?.name)
+                                            .setDescription(if (isSong) "Song" else "Video")
                                             .build(),
                                     )
                                     .build(),
@@ -878,6 +881,7 @@ class SimpleMediaServiceHandler(
                                             .setAlbumTitle(track.album?.name)
                                             .setTitle(track.title)
                                             .setArtist("Various Artists")
+                                            .setDescription(if (isSong) "Song" else "Video")
                                             .build(),
                                     )
                                     .build()
@@ -900,6 +904,7 @@ class SimpleMediaServiceHandler(
                                 .setArtist(artistName)
                                 .setArtworkUri(thumbUrl.toUri())
                                 .setAlbumTitle(track.album?.name)
+                                .setDescription(if (isSong) "Song" else "Video")
                                 .build(),
                         )
                         .build(),
@@ -929,6 +934,8 @@ class SimpleMediaServiceHandler(
             if (thumbUrl.contains("w120")) {
                 thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
             }
+            val isSong = (track.thumbnails?.last()?.height != 0 && track.thumbnails?.last()?.height == track.thumbnails?.last()?.width &&
+                track.thumbnails?.last()?.height != null)
             if (downloaded == 1) {
                 if (track.artists.isNullOrEmpty()) {
                     mainRepository.getSongInfo(track.videoId).singleOrNull()
@@ -945,6 +952,7 @@ class SimpleMediaServiceHandler(
                                                 .setAlbumTitle(track.album?.name)
                                                 .setTitle(track.title)
                                                 .setArtist(songInfo.author)
+                                                .setDescription(if (isSong) "Song" else "Video")
                                                 .build(),
                                         )
                                         .build()
@@ -972,6 +980,7 @@ class SimpleMediaServiceHandler(
                                                 .setAlbumTitle(track.album?.name)
                                                 .setTitle(track.title)
                                                 .setArtist("Various Artists")
+                                                .setDescription(if (isSong) "Song" else "Video")
                                                 .build(),
                                         )
                                         .build()
@@ -995,6 +1004,7 @@ class SimpleMediaServiceHandler(
                                     .setAlbumTitle(track.album?.name)
                                     .setTitle(track.title)
                                     .setArtist(track.artists.toListName().connectArtists())
+                                    .setDescription(if (isSong) "Song" else "Video")
                                     .build(),
                             )
                             .build()
@@ -1029,6 +1039,7 @@ class SimpleMediaServiceHandler(
                                                 .setTitle(track.title)
                                                 .setArtist(songInfo.author)
                                                 .setArtworkUri(thumbUrl.toUri())
+                                                .setDescription(if (isSong) "Song" else "Video")
                                                 .setAlbumTitle(track.album?.name)
                                                 .build(),
                                         )
@@ -1045,6 +1056,7 @@ class SimpleMediaServiceHandler(
                                                 .setArtworkUri(thumbUrl.toUri())
                                                 .setAlbumTitle(track.album?.name)
                                                 .setTitle(track.title)
+                                                .setDescription(if (isSong) "Song" else "Video")
                                                 .setArtist("Various Artists")
                                                 .build(),
                                         )
@@ -1068,6 +1080,7 @@ class SimpleMediaServiceHandler(
                                     .setArtist(artistName)
                                     .setArtworkUri(thumbUrl.toUri())
                                     .setAlbumTitle(track.album?.name)
+                                    .setDescription(if (isSong) "Song" else "Video")
                                     .build(),
                             )
                             .build(),
@@ -1136,6 +1149,8 @@ class SimpleMediaServiceHandler(
             thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
         }
         val artistName: String = track.artists.toListName().connectArtists()
+        val isSong = (track.thumbnails?.last()?.height != 0 && track.thumbnails?.last()?.height == track.thumbnails?.last()?.width &&
+            track.thumbnails?.last()?.height != null)
         if ((currentIndex() + 1 in 0..catalogMetadata.size)) {
             if (track.artists.isNullOrEmpty()) {
                 mainRepository.getSongInfo(track.videoId).cancellable().first().let { songInfo ->
@@ -1162,6 +1177,7 @@ class SimpleMediaServiceHandler(
                                         .setArtist(songInfo.author)
                                         .setArtworkUri(thumbUrl.toUri())
                                         .setAlbumTitle(track.album?.name)
+                                        .setDescription(if (isSong) "Song" else "Video")
                                         .build(),
                                 )
                                 .build(),
@@ -1179,6 +1195,7 @@ class SimpleMediaServiceHandler(
                                         .setAlbumTitle(track.album?.name)
                                         .setTitle(track.title)
                                         .setArtist("Various Artists")
+                                        .setDescription(if (isSong) "Song" else "Video")
                                         .build(),
                                 )
                                 .build()
@@ -1202,6 +1219,7 @@ class SimpleMediaServiceHandler(
                                 .setArtist(artistName)
                                 .setArtworkUri(thumbUrl.toUri())
                                 .setAlbumTitle(track.album?.name)
+                                .setDescription(if (isSong) "Song" else "Video")
                                 .build(),
                         )
                         .build(),

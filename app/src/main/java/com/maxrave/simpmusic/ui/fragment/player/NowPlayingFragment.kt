@@ -66,6 +66,7 @@ import com.maxrave.simpmusic.common.Config.VIDEO_CLICK
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.LYRICS_PROVIDER
 import com.maxrave.simpmusic.common.STATUS_DONE
+import com.maxrave.simpmusic.common.VIDEO_QUALITY
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
@@ -930,7 +931,7 @@ class NowPlayingFragment : Fragment() {
                     launch {
                         viewModel.format.collect { f ->
                             if (f != null) {
-                                if (f.itag == 22 || f.itag == 18) {
+                                if (VIDEO_QUALITY.itags.contains(f.itag)) {
                                     binding.playerLayout.visibility = View.VISIBLE
                                     binding.playerView.visibility = View.VISIBLE
                                     binding.ivArt.visibility = View.INVISIBLE

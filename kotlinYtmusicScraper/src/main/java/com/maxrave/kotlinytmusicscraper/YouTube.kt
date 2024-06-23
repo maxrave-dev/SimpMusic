@@ -779,7 +779,8 @@ object YouTube {
             val firstThumb = playerResponse.videoDetails?.thumbnail?.thumbnails?.firstOrNull()
             val thumbnails =
                 if (firstThumb?.height == firstThumb?.width && firstThumb != null) MediaType.Song else MediaType.Video
-            println("Player Response " + playerResponse.streamingData)
+            println("Player Response " + playerResponse.streamingData?.formats?.map { Pair(it.itag, it.isAudio) })
+            println("Player Response " + playerResponse.streamingData?.adaptiveFormats?.map { Pair(it.itag, it.isAudio) })
 
 //        println( playerResponse.streamingData?.adaptiveFormats?.findLast { it.itag == 251 }?.mimeType.toString())
             if (playerResponse.playabilityStatus.status == "OK") {

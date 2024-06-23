@@ -212,6 +212,8 @@ class LocalDataSource
 
         suspend fun getNewFormat(videoId: String) = databaseDao.getNewFormat(videoId)
 
+        suspend fun getNewFormatAsFlow(videoId: String) = databaseDao.getNewFormatAsFlow(videoId)
+
         suspend fun insertSongInfo(songInfo: SongInfoEntity) = databaseDao.insertSongInfo(songInfo)
 
         suspend fun getSongInfo(videoId: String) = databaseDao.getSongInfo(videoId)

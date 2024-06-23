@@ -17,6 +17,7 @@ import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.di.DownloadCache
 import com.maxrave.simpmusic.di.PlayerCache
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService.Companion.CHANNEL_ID
+import com.maxrave.simpmusic.service.test.source.MergingMediaSourceFactory
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -62,13 +63,25 @@ class DownloadUtils @Inject constructor(
             runBlocking(Dispatchers.IO) {
                 Log.w("DownloadUtils", "Not cached: $mediaId")
                 var extract: DataSpec? = null
-                mainRepository.getStream(mediaId, 251).cancellable().collect { values ->
-                    if (values != null) {
-                        extract = dataSpec.withUri((values).toUri())
+                if (mediaId.startsWith(MergingMediaSourceFactory.isVideo)) {
+                    mainRepository.getStream(mediaId.removePrefix(MergingMediaSourceFactory.isVideo), true).cancellable().collect { values ->
+                        if (values != null) {
+                            extract = dataSpec.withUri((values).toUri())
+                        }
                     }
+                    Log.d("DownloadUtils", "extract: ${extract.toString()}")
+                    return@runBlocking extract!!
                 }
-                Log.d("DownloadUtils", "extract: ${extract.toString()}")
-                return@runBlocking extract!!
+                else {
+                    mainRepository.getStream(mediaId, false).cancellable().collect { values ->
+                        if (values != null) {
+                            extract = dataSpec.withUri((values).toUri())
+                        }
+                    }
+                    Log.d("DownloadUtils", "extract: ${extract.toString()}")
+                    return@runBlocking dataSpec
+                }
+
             }
         }
     }

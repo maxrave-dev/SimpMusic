@@ -370,6 +370,9 @@ interface DatabaseDao {
     @Query("SELECT * FROM new_format WHERE videoId = :videoId")
     suspend fun getNewFormat(videoId: String): NewFormatEntity?
 
+    @Query("SELECT * FROM new_format WHERE videoId = :videoId")
+    fun getNewFormatAsFlow(videoId: String): Flow<NewFormatEntity?>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertSongInfo(songInfo: SongInfoEntity)
 

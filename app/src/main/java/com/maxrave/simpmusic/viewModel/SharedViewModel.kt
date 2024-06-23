@@ -85,6 +85,7 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -217,6 +218,8 @@ class SharedViewModel
         val intent: MutableStateFlow<Intent?> = MutableStateFlow(null)
 
         private var jobWatchtime: Job? = null
+
+        private var getFormatFlowJob: Job? = null
 
         var playlistId: MutableStateFlow<String?> = MutableStateFlow(null)
         private var initJob: Job? = null
@@ -435,9 +438,12 @@ class SharedViewModel
                             launch {
                                 duration.collect {
                                     if (it > 0) {
-                                        getFormat(
-                                            simpleMediaServiceHandler!!.nowPlaying.first()?.mediaId,
-                                        )
+                                        simpleMediaServiceHandler!!.nowPlaying.first()?.mediaId?.let { mediaId ->
+                                            getFormat(
+                                                mediaId,
+                                            )
+                                        }
+
                                     }
                                 }
                             }
@@ -915,6 +921,8 @@ class SharedViewModel
                     if (thumbUrl.contains("w120")) {
                         thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
                     }
+                    val isSong = (track.thumbnails.last().height != 0 &&track.thumbnails.last().height == track.thumbnails.last().width
+                        && track.thumbnails.lastOrNull()?.height != null)
                     simpleMediaServiceHandler?.addMediaItem(
                         MediaItem.Builder()
                             .setUri(track.videoId)
@@ -925,6 +933,7 @@ class SharedViewModel
                                     .setTitle(track.title)
                                     .setArtist(track.artists.toListName().connectArtists())
                                     .setArtworkUri(thumbUrl.toUri())
+                                    .setDescription(if (isSong) "Song" else "Video")
                                     .setAlbumTitle(track.album?.name)
                                     .build(),
                             )
@@ -946,6 +955,8 @@ class SharedViewModel
                         thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
                     }
                     Log.d("Check URI", uri)
+                    val isSong = (track.thumbnails.last().height != 0 &&track.thumbnails.last().height == track.thumbnails.last().width
+                        && track.thumbnails.lastOrNull()?.height != null)
                     simpleMediaServiceHandler?.addMediaItem(
                         MediaItem.Builder()
                             .setUri(track.videoId)
@@ -957,6 +968,7 @@ class SharedViewModel
                                     .setArtist(artistName)
                                     .setArtworkUri(thumbUrl.toUri())
                                     .setAlbumTitle(track.album?.name)
+                                    .setDescription(if (isSong) "Song" else "Video")
                                     .build(),
                             )
                             .build(),
@@ -1415,9 +1427,11 @@ class SharedViewModel
         }
 
         fun getFormat(mediaId: String?) {
-            viewModelScope.launch {
+            getFormatFlowJob?.cancel()
+            getFormatFlowJob = viewModelScope.launch {
                 if (mediaId != null) {
-                    mainRepository.getNewFormat(mediaId).collect { f ->
+                    mainRepository.getFormatFlow(mediaId).cancellable().collectLatest { f ->
+                        Log.w("Format", mediaId.toString() + " " +f.toString())
                         if (f != null) {
                             _format.emit(f)
                         } else {
