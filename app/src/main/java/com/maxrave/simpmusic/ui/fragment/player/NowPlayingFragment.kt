@@ -4,7 +4,6 @@ import android.animation.ObjectAnimator
 import android.app.Activity
 import android.content.Intent
 import android.content.res.Configuration
-import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.GradientDrawable
@@ -22,6 +21,7 @@ import android.view.animation.AnimationUtils
 import android.widget.Toast
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.graphics.ColorUtils
+import androidx.core.graphics.drawable.toBitmap
 import androidx.core.net.toUri
 import androidx.core.view.marginBottom
 import androidx.core.view.marginEnd
@@ -45,9 +45,7 @@ import androidx.palette.graphics.Palette
 import androidx.recyclerview.widget.LinearLayoutManager
 import coil.load
 import coil.request.CachePolicy
-import coil.size.Size
 import coil.transform.RoundedCornersTransformation
-import coil.transform.Transformation
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -677,7 +675,7 @@ class NowPlayingFragment : Fragment() {
             repeatOnLifecycle(Lifecycle.State.CREATED) {
                 val job7 =
                     launch {
-                        viewModel.simpleMediaServiceHandler?.nowPlaying?.collectLatest { song ->
+                        viewModel.nowPlayingMediaItem.collectLatest { song ->
                             if (song != null) {
 //                                viewModel.getFormat(song.mediaId)
                                 Log.i("Now Playing Fragment", "song ${song.mediaMetadata.title}")
@@ -2072,90 +2070,68 @@ class NowPlayingFragment : Fragment() {
                         binding.loadingArt.visibility = View.VISIBLE
                         Log.d("Update UI", "onStart: ")
                     },
-                    onSuccess = { _, _ ->
+                    onSuccess = { _, result ->
                         binding.ivArt.visibility = View.VISIBLE
                         binding.loadingArt.visibility = View.GONE
                         Log.d("Update UI", "onSuccess: ")
-                        if (viewModel.gradientDrawable.value != null) {
-                            viewModel.gradientDrawable.observe(viewLifecycleOwner) {
-                                if (it != null &&
-                                    viewModel.canvas.value
-                                        ?.canvases
-                                        .isNullOrEmpty()
-                                ) {
-                                    var start = binding.rootLayout.background
-                                    if (start == null) {
-                                        start = ColorDrawable(Color.BLACK)
+                        val p = Palette.from(result.drawable.toBitmap()).generate()
+                        val defaultColor = 0x000000
+                        var startColor = p.getDarkVibrantColor(defaultColor)
+                        Log.d("Check Start Color", "transform: $startColor")
+                        if (startColor == defaultColor) {
+                            startColor = p.getDarkMutedColor(defaultColor)
+                            if (startColor == defaultColor) {
+                                startColor = p.getVibrantColor(defaultColor)
+                                if (startColor == defaultColor) {
+                                    startColor = p.getMutedColor(defaultColor)
+                                    if (startColor == defaultColor) {
+                                        startColor = p.getLightVibrantColor(defaultColor)
+                                        if (startColor == defaultColor) {
+                                            startColor = p.getLightMutedColor(defaultColor)
+                                        }
                                     }
-                                    val transition = TransitionDrawable(arrayOf(start, it))
-                                    transition.setDither(true)
-                                    binding.rootLayout.background = transition
-                                    transition.isCrossFadeEnabled = true
-                                    transition.startTransition(500)
                                 }
+                            }
+                            Log.d("Check Start Color", "transform: $startColor")
+                        }
+//                    val centerColor = 0x6C6C6C
+                        val endColor = 0x1b1a1f
+                        val gd =
+                            GradientDrawable(
+                                GradientDrawable.Orientation.TL_BR,
+                                intArrayOf(startColor, endColor),
+                            )
+                        gd.cornerRadius = 0f
+                        gd.gradientType = GradientDrawable.LINEAR_GRADIENT
+                        gd.gradientRadius = 0.5f
+                        gd.alpha = 150
+                        val bg = ColorUtils.setAlphaComponent(startColor, 230)
+                        viewModel.gradientDrawable.postValue(gd)
+                        viewModel.lyricsBackground.postValue(bg)
+
+                        var start = binding.rootLayout.background
+                        if (start == null) {
+                            start = ColorDrawable(Color.BLACK)
+                        }
+                        val transition = TransitionDrawable(arrayOf(start, gd))
+                        transition.setDither(true)
+                        binding.rootLayout.background = transition
+                        transition.isCrossFadeEnabled = true
+                        transition.startTransition(500)
+
 //                            viewModel.lyricsBackground.observe(viewLifecycleOwner, Observer { color ->
 //                                binding.lyricsLayout.setCardBackgroundColor(color)
 //                                Log.d("Update UI", "Lyrics: $color")
 //                                updateStatusBarColor(color)
 //                            })
-                                viewModel.lyricsBackground.value?.let { it1 ->
-                                    binding.lyricsLayout.setCardBackgroundColor(
-                                        it1,
-                                    )
-                                    binding.infoLayout.setCardBackgroundColor(it1)
-                                }
-                            }
-                            Log.d("Update UI", "updateUI: NULL")
-                        }
+                        binding.lyricsLayout.setCardBackgroundColor(
+                            bg,
+                        )
+                        binding.infoLayout.setCardBackgroundColor(bg)
 //                        songChangeListener.onNowPlayingSongChange()
                     },
                 )
                 transformations(
-                    object : Transformation {
-                        override val cacheKey: String
-                            get() = nowPlaying.videoId
-
-                        override suspend fun transform(
-                            input: Bitmap,
-                            size: Size,
-                        ): Bitmap {
-                            val p = Palette.from(input).generate()
-                            val defaultColor = 0x000000
-                            var startColor = p.getDarkVibrantColor(defaultColor)
-                            Log.d("Check Start Color", "transform: $startColor")
-                            if (startColor == defaultColor) {
-                                startColor = p.getDarkMutedColor(defaultColor)
-                                if (startColor == defaultColor) {
-                                    startColor = p.getVibrantColor(defaultColor)
-                                    if (startColor == defaultColor) {
-                                        startColor = p.getMutedColor(defaultColor)
-                                        if (startColor == defaultColor) {
-                                            startColor = p.getLightVibrantColor(defaultColor)
-                                            if (startColor == defaultColor) {
-                                                startColor = p.getLightMutedColor(defaultColor)
-                                            }
-                                        }
-                                    }
-                                }
-                                Log.d("Check Start Color", "transform: $startColor")
-                            }
-//                    val centerColor = 0x6C6C6C
-                            val endColor = 0x1b1a1f
-                            val gd =
-                                GradientDrawable(
-                                    GradientDrawable.Orientation.TL_BR,
-                                    intArrayOf(startColor, endColor),
-                                )
-                            gd.cornerRadius = 0f
-                            gd.gradientType = GradientDrawable.LINEAR_GRADIENT
-                            gd.gradientRadius = 0.5f
-                            gd.alpha = 150
-                            val bg = ColorUtils.setAlphaComponent(startColor, 230)
-                            viewModel.gradientDrawable.postValue(gd)
-                            viewModel.lyricsBackground.postValue(bg)
-                            return input
-                        }
-                    },
                     RoundedCornersTransformation(8f),
                 )
             }
@@ -2280,90 +2256,67 @@ class NowPlayingFragment : Fragment() {
                         binding.loadingArt.visibility = View.VISIBLE
                         Log.d("Update UI", "onStart: ")
                     },
-                    onSuccess = { _, _ ->
+                    onSuccess = { _, result ->
                         binding.ivArt.visibility = View.VISIBLE
                         binding.loadingArt.visibility = View.GONE
-                        Log.d("Update UI", "onSuccess: ")
-                        if (viewModel.gradientDrawable.value != null) {
-                            viewModel.gradientDrawable.observe(viewLifecycleOwner) {
-                                if (it != null &&
-                                    viewModel.canvas.value
-                                        ?.canvases
-                                        .isNullOrEmpty()
-                                ) {
-                                    var start = binding.rootLayout.background
-                                    if (start == null) {
-                                        start = ColorDrawable(Color.BLACK)
+                        val p = Palette.from(result.drawable.toBitmap()).generate()
+                        val defaultColor = 0x000000
+                        var startColor = p.getDarkVibrantColor(defaultColor)
+                        Log.d("Check Start Color", "transform: $startColor")
+                        if (startColor == defaultColor) {
+                            startColor = p.getDarkMutedColor(defaultColor)
+                            if (startColor == defaultColor) {
+                                startColor = p.getVibrantColor(defaultColor)
+                                if (startColor == defaultColor) {
+                                    startColor = p.getMutedColor(defaultColor)
+                                    if (startColor == defaultColor) {
+                                        startColor = p.getLightVibrantColor(defaultColor)
+                                        if (startColor == defaultColor) {
+                                            startColor = p.getLightMutedColor(defaultColor)
+                                        }
                                     }
-                                    val transition = TransitionDrawable(arrayOf(start, it))
-                                    transition.setDither(true)
-                                    binding.rootLayout.background = transition
-                                    transition.isCrossFadeEnabled = true
-                                    transition.startTransition(500)
                                 }
+                            }
+                            Log.d("Check Start Color", "transform: $startColor")
+                        }
+//                    val centerColor = 0x6C6C6C
+                        val endColor = 0x1b1a1f
+                        val gd =
+                            GradientDrawable(
+                                GradientDrawable.Orientation.TL_BR,
+                                intArrayOf(startColor, endColor),
+                            )
+                        gd.cornerRadius = 0f
+                        gd.gradientType = GradientDrawable.LINEAR_GRADIENT
+                        gd.gradientRadius = 0.5f
+                        gd.alpha = 150
+                        val bg = ColorUtils.setAlphaComponent(startColor, 230)
+                        viewModel.gradientDrawable.postValue(gd)
+                        viewModel.lyricsBackground.postValue(bg)
+                        Log.d("Update UI", "onSuccess: ")
+                        var start = binding.rootLayout.background
+                        if (start == null) {
+                            start = ColorDrawable(Color.BLACK)
+                        }
+                        val transition = TransitionDrawable(arrayOf(start, gd))
+                        transition.setDither(true)
+                        binding.rootLayout.background = transition
+                        transition.isCrossFadeEnabled = true
+                        transition.startTransition(500)
 //                            viewModel.lyricsBackground.observe(viewLifecycleOwner, Observer { color ->
 //                                binding.lyricsLayout.setCardBackgroundColor(color)
 //                                Log.d("Update UI", "Lyrics: $color")
 //                                updateStatusBarColor(color)
 //                            })
-                                viewModel.lyricsBackground.value?.let { it1 ->
-                                    binding.lyricsLayout.setCardBackgroundColor(
-                                        it1,
-                                    )
-                                    binding.infoLayout.setCardBackgroundColor(it1)
-                                }
-                            }
-                            Log.d("Update UI", "updateUI: NULL")
-                        }
+                        binding.lyricsLayout.setCardBackgroundColor(
+                            bg
+                        )
+                        binding.infoLayout.setCardBackgroundColor(bg)
 //                        songChangeListener.onNowPlayingSongChange()
                     },
                 )
                 transformations(
-                    object : Transformation {
-                        override val cacheKey: String
-                            get() = "paletteArtTransformer"
-
-                        override suspend fun transform(
-                            input: Bitmap,
-                            size: Size,
-                        ): Bitmap {
-                            val p = Palette.from(input).generate()
-                            val defaultColor = 0x000000
-                            var startColor = p.getDarkVibrantColor(defaultColor)
-                            Log.d("Check Start Color", "transform: $startColor")
-                            if (startColor == defaultColor) {
-                                startColor = p.getDarkMutedColor(defaultColor)
-                                if (startColor == defaultColor) {
-                                    startColor = p.getVibrantColor(defaultColor)
-                                    if (startColor == defaultColor) {
-                                        startColor = p.getMutedColor(defaultColor)
-                                        if (startColor == defaultColor) {
-                                            startColor = p.getLightVibrantColor(defaultColor)
-                                            if (startColor == defaultColor) {
-                                                startColor = p.getLightMutedColor(defaultColor)
-                                            }
-                                        }
-                                    }
-                                }
-                                Log.d("Check Start Color", "transform: $startColor")
-                            }
-//                    val centerColor = 0x6C6C6C
-                            val endColor = 0x1b1a1f
-                            val gd =
-                                GradientDrawable(
-                                    GradientDrawable.Orientation.TL_BR,
-                                    intArrayOf(startColor, endColor),
-                                )
-                            gd.cornerRadius = 0f
-                            gd.gradientType = GradientDrawable.LINEAR_GRADIENT
-                            gd.gradientRadius = 0.5f
-                            gd.alpha = 150
-                            val bg = ColorUtils.setAlphaComponent(startColor, 230)
-                            viewModel.gradientDrawable.postValue(gd)
-                            viewModel.lyricsBackground.postValue(bg)
-                            return input
-                        }
-                    },
+                    RoundedCornersTransformation(8f)
                 )
             }
 //            val request = ImageRequest.Builder(requireContext())
