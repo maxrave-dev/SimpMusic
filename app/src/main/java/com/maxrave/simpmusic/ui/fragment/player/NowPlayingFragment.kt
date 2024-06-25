@@ -3,6 +3,7 @@ package com.maxrave.simpmusic.ui.fragment.player
 import android.animation.ObjectAnimator
 import android.app.Activity
 import android.content.Intent
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
@@ -150,8 +151,48 @@ class NowPlayingFragment : Fragment() {
 //    }
 
     override fun onResume() {
-        Log.d("NowPlayingFragment", "onResume")
         super.onResume()
+        Log.d("NowPlayingFragment", "onResume")
+        val scs = getScreenHeight(requireActivity())
+        binding.topAppBarLayout.getDimensions { _, hAppBar, _, _ ->
+            Log.w("Screen size", scs.toString())
+            val topAppBarHeight = hAppBar
+            binding.middleLayout.getDimensions { w, h, margin, xy ->
+                Log.w("Check Margin", "w: $w, h: $h, margin: $margin, xy: $xy")
+                val layoutParamsCopy = binding.middleLayout.layoutParams as ViewGroup.MarginLayoutParams
+                var x = margin[2]
+                //                val y = binding.topAppBarLayout.layoutParams.height + 2 * x + h + binding.middleLayout.layoutParams.height
+                binding.infoControllerLayout.getDimensions { w1, h1, margin1, xy1 ->
+                    Log.w("Check Margin", "w1: $w1, h1: $h1, margin1: $margin1, xy1: $xy1")
+                    val y = topAppBarHeight + 2 * x + h + h1
+                    Log.w("Check Margin", "y: $y")
+
+                    binding.belowControllerButtonLayout.getDimensions { _, h3, _, _ ->
+                        if (y + h3 > scs) {
+                            x = (x - ((y + h3 - scs) / 2))
+                            if (x < 0) x = h3
+                            layoutParamsCopy.bottomMargin = x
+                            layoutParamsCopy.topMargin = x
+                            binding.middleLayout.layoutParams = layoutParamsCopy
+                            Log.w("Check Margin", "y: $y, scs: $scs, x: $x")
+                        } else {
+                            x = (x + ((scs - y - h3) / 2))
+                            if (x < 0) x = h3
+                            layoutParamsCopy.bottomMargin = x
+                            layoutParamsCopy.topMargin = x
+                            binding.middleLayout.layoutParams = layoutParamsCopy
+                            Log.w("Check Margin", "y: $y, scs: $scs, x: $x")
+                        }
+                        Log.w("Check Margin", "y: $y, scs: $scs")
+                        binding.smallArtistLayout.getDimensions { _, _, _, _ ->
+                            val lop = binding.smallArtistLayout.layoutParams as ViewGroup.MarginLayoutParams
+                            lop.bottomMargin = h3 + 20
+                            binding.smallArtistLayout.layoutParams = lop
+                        }
+                    }
+                }
+            }
+        }
         val track =
             viewModel.canvas.value
                 ?.canvases
@@ -171,7 +212,7 @@ class NowPlayingFragment : Fragment() {
         }
     }
 
-    fun getScreenHeight(activity: Activity): Int =
+    private fun getScreenHeight(activity: Activity): Int =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             val windowMetrics = activity.windowManager.currentWindowMetrics
             (windowMetrics.bounds.height())
@@ -210,24 +251,13 @@ class NowPlayingFragment : Fragment() {
         return binding.root
     }
 
-    override fun onViewCreated(
-        view: View,
-        savedInstanceState: Bundle?,
-    ) {
-        super.onViewCreated(view, savedInstanceState)
-        binding.canvasLayout.apply {
-            val layoutParamsCopy = layoutParams
-            layoutParamsCopy.height = getScreenHeight(requireActivity())
-            layoutParams = layoutParamsCopy
-            Log.w("Check Height", layoutParams.height.toString())
-        }
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        Log.w("IvArt", (binding.ivArt.visibility == View.GONE).toString())
+        Log.w("MiddleLayout", (binding.middleLayout.visibility == View.GONE).toString())
         val scs = getScreenHeight(requireActivity())
-
-//            val location = IntArray(2)
-//            binding.belowControllerButtonLayout.getLocationInWindow(location)
-//            val y = binding.belowControllerButtonLayout.top
-
         binding.topAppBarLayout.getDimensions { _, hAppBar, _, _ ->
+            Log.w("Screen size", scs.toString())
             val topAppBarHeight = hAppBar
             binding.middleLayout.getDimensions { w, h, margin, xy ->
                 Log.w("Check Margin", "w: $w, h: $h, margin: $margin, xy: $xy")
@@ -265,6 +295,24 @@ class NowPlayingFragment : Fragment() {
                 }
             }
         }
+    }
+
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
+        super.onViewCreated(view, savedInstanceState)
+        binding.canvasLayout.apply {
+            val layoutParamsCopy = layoutParams
+            layoutParamsCopy.height = getScreenHeight(requireActivity())
+            layoutParams = layoutParamsCopy
+            Log.w("Check Height", layoutParams.height.toString())
+        }
+//            val location = IntArray(2)
+//            binding.belowControllerButtonLayout.getLocationInWindow(location)
+//            val y = binding.belowControllerButtonLayout.top
+
+
         val activity = requireActivity()
         val bottom = activity.findViewById<BottomNavigationView>(R.id.bottom_navigation_view)
         val miniplayer = activity.findViewById<ComposeView>(R.id.miniplayer)
@@ -929,30 +977,26 @@ class NowPlayingFragment : Fragment() {
                     }
                 val job19 =
                     launch {
-                        viewModel.format.collect { f ->
-                            if (f != null) {
-                                if (VIDEO_QUALITY.itags.contains(f.itag)) {
-                                    binding.playerLayout.visibility = View.VISIBLE
-                                    binding.playerView.visibility = View.VISIBLE
-                                    binding.ivArt.visibility = View.INVISIBLE
-                                    binding.loadingArt.visibility = View.GONE
-                                    Log.w(
-                                        "Format: ",
-                                        binding.playerView.player
-                                            ?.currentMediaItem
-                                            ?.mediaMetadata
-                                            ?.title
-                                            .toString(),
-                                    )
-                                    if (binding.playerView.player == null) {
-                                        binding.playerView.player = viewModel.simpleMediaServiceHandler?.player
-                                    }
-                                } else {
-                                    binding.playerLayout.visibility = View.GONE
-                                    binding.ivArt.visibility = View.VISIBLE
+                        viewModel.format.collectLatest { f ->
+                            if (f != null && VIDEO_QUALITY.itags.contains(f.itag)) {
+                                binding.playerLayout.visibility = View.VISIBLE
+                                binding.playerView.visibility = View.VISIBLE
+                                binding.ivArt.visibility = View.INVISIBLE
+                                binding.loadingArt.visibility = View.GONE
+                                Log.w(
+                                    "Format: ",
+                                    binding.playerView.player
+                                        ?.currentMediaItem
+                                        ?.mediaMetadata
+                                        ?.title
+                                        .toString(),
+                                )
+                                if (binding.playerView.player == null) {
+                                    binding.playerView.player = viewModel.simpleMediaServiceHandler?.player
                                 }
                             } else {
                                 binding.playerLayout.visibility = View.GONE
+                                binding.playerView.visibility = View.GONE
                                 binding.ivArt.visibility = View.VISIBLE
                             }
                         }
