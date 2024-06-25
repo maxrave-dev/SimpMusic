@@ -53,24 +53,27 @@ fun parsePlaylistData(
                 ?.let { listThumbnails.addAll(it) }
         }
         else if (header is BrowseResponse.Header.MusicEditablePlaylistDetailHeaderRenderer?) {
-            title += header.header.musicDetailHeaderRenderer.title.runs?.get(0)?.text
+            title += header.header.musicDetailHeaderRenderer?.title?.runs?.get(0)?.text
             Log.d("PlaylistParser", "title: $title")
-            val author = Author(id = header.header.musicDetailHeaderRenderer.subtitle.runs?.get(2)?.navigationEndpoint?.browseEndpoint?.browseId ?: "", name = header.header.musicDetailHeaderRenderer.subtitle.runs?.get(2)?.text ?: "")
+            val author = Author(
+                id = header.header.musicDetailHeaderRenderer?.subtitle?.runs?.get(2)?.navigationEndpoint?.browseEndpoint?.browseId
+                ?: "",
+                name = header.header.musicDetailHeaderRenderer?.subtitle?.runs?.get(2)?.text ?: "")
             listAuthor.add(author)
             Log.d("PlaylistParser", "author: $author")
-            if (header.header.musicDetailHeaderRenderer.secondSubtitle.runs?.size!! > 4) {
-                duration += header.header.musicDetailHeaderRenderer.secondSubtitle.runs?.get(4)?.text
+            if (header.header.musicDetailHeaderRenderer?.secondSubtitle?.runs?.size!! > 4) {
+                duration += header.header.musicDetailHeaderRenderer?.secondSubtitle?.runs?.get(4)?.text
             }
-            else if (header.header.musicDetailHeaderRenderer.secondSubtitle.runs?.size!! == 3) {
-                duration += header.header.musicDetailHeaderRenderer.secondSubtitle.runs?.get(2)?.text
+            else if (header.header.musicDetailHeaderRenderer?.secondSubtitle?.runs?.size!! == 3) {
+                duration += header.header.musicDetailHeaderRenderer?.secondSubtitle?.runs?.get(2)?.text
             }
             Log.d("PlaylistParser", "duration: $duration")
-            if (!header.header.musicDetailHeaderRenderer.description?.runs.isNullOrEmpty()) {
-                for (run in header.header.musicDetailHeaderRenderer.description?.runs!!) {
+            if (!header.header.musicDetailHeaderRenderer?.description?.runs.isNullOrEmpty()) {
+                for (run in header.header.musicDetailHeaderRenderer?.description?.runs!!) {
                     description += (run.text)
                 }
             }
-            header.header.musicDetailHeaderRenderer.thumbnail.croppedSquareThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail()
+            header.header.musicDetailHeaderRenderer?.thumbnail?.croppedSquareThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail()
                 ?.let { listThumbnails.addAll(it) }
         }
         else if (header is SectionListRenderer.Content.MusicResponsiveHeaderRenderer?) {

@@ -838,7 +838,8 @@ class SimpleMediaServiceHandler(
             }
             val artistName: String = track.artists.toListName().connectArtists()
             val isSong = (track.thumbnails?.last()?.height != 0 && track.thumbnails?.last()?.height == track.thumbnails?.last()?.width
-                && track.thumbnails?.last()?.height != null)
+                && track.thumbnails?.last()?.height != null) && (track.thumbnails.lastOrNull()?.url?.contains("hq720") == false
+                && track.thumbnails.lastOrNull()?.url?.contains("maxresdefault") == false)
             if (track.artists.isNullOrEmpty()) {
                 mainRepository.getSongInfo(track.videoId).singleOrNull()
                     .let { songInfo ->
@@ -934,8 +935,9 @@ class SimpleMediaServiceHandler(
             if (thumbUrl.contains("w120")) {
                 thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
             }
-            val isSong = (track.thumbnails?.last()?.height != 0 && track.thumbnails?.last()?.height == track.thumbnails?.last()?.width &&
-                track.thumbnails?.last()?.height != null)
+            val isSong = (track.thumbnails?.last()?.height != 0 && track.thumbnails?.last()?.height == track.thumbnails?.last()?.width
+                && track.thumbnails?.last()?.height != null) && (track.thumbnails.lastOrNull()?.url?.contains("hq720") == false
+                && track.thumbnails.lastOrNull()?.url?.contains("maxresdefault") == false)
             if (downloaded == 1) {
                 if (track.artists.isNullOrEmpty()) {
                     mainRepository.getSongInfo(track.videoId).singleOrNull()
@@ -1149,8 +1151,9 @@ class SimpleMediaServiceHandler(
             thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
         }
         val artistName: String = track.artists.toListName().connectArtists()
-        val isSong = (track.thumbnails?.last()?.height != 0 && track.thumbnails?.last()?.height == track.thumbnails?.last()?.width &&
-            track.thumbnails?.last()?.height != null)
+        val isSong = (track.thumbnails?.last()?.height != 0 && track.thumbnails?.last()?.height == track.thumbnails?.last()?.width
+            && track.thumbnails?.last()?.height != null) && (track.thumbnails.lastOrNull()?.url?.contains("hq720") == false
+            && track.thumbnails.lastOrNull()?.url?.contains("maxresdefault") == false)
         if ((currentIndex() + 1 in 0..catalogMetadata.size)) {
             if (track.artists.isNullOrEmpty()) {
                 mainRepository.getSongInfo(track.videoId).cancellable().first().let { songInfo ->

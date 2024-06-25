@@ -921,8 +921,11 @@ class SharedViewModel
                     if (thumbUrl.contains("w120")) {
                         thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
                     }
-                    val isSong = (track.thumbnails.last().height != 0 &&track.thumbnails.last().height == track.thumbnails.last().width
-                        && track.thumbnails.lastOrNull()?.height != null)
+                    Log.w("Check URI", thumbUrl)
+                    val isSong = (track.thumbnails.last().height != 0 && track.thumbnails.last().height == track.thumbnails.last()?.width
+                        && track.thumbnails?.last()?.height != null) && (track.thumbnails.lastOrNull()?.url?.contains("hq720") == false
+                        && track.thumbnails.lastOrNull()?.url?.contains("maxresdefault") == false)
+                    Log.d("Check isSong", isSong.toString())
                     simpleMediaServiceHandler?.addMediaItem(
                         MediaItem.Builder()
                             .setUri(track.videoId)
@@ -954,9 +957,11 @@ class SharedViewModel
                     if (thumbUrl.contains("w120")) {
                         thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
                     }
-                    Log.d("Check URI", uri)
-                    val isSong = (track.thumbnails.last().height != 0 &&track.thumbnails.last().height == track.thumbnails.last().width
-                        && track.thumbnails.lastOrNull()?.height != null)
+                    Log.d("Check URI", thumbUrl)
+                    val isSong = (track.thumbnails.last()?.height != 0 && track.thumbnails?.last()?.height == track.thumbnails?.last()?.width
+                        && track.thumbnails?.last()?.height != null) && (track.thumbnails.lastOrNull()?.url?.contains("hq720") == false
+                        && track.thumbnails.lastOrNull()?.url?.contains("maxresdefault") == false)
+                    Log.d("Check isSong", isSong.toString())
                     simpleMediaServiceHandler?.addMediaItem(
                         MediaItem.Builder()
                             .setUri(track.videoId)

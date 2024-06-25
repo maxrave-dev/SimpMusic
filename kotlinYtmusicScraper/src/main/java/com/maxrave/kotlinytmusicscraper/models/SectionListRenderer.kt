@@ -1,5 +1,6 @@
 package com.maxrave.kotlinytmusicscraper.models
 
+import com.maxrave.kotlinytmusicscraper.models.response.BrowseResponse
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.JsonNames
@@ -44,6 +45,7 @@ data class SectionListRenderer(
         val musicPlaylistShelfRenderer: MusicPlaylistShelfRenderer?,
         val musicDescriptionShelfRenderer: MusicDescriptionShelfRenderer?,
         val musicResponsiveHeaderRenderer: MusicResponsiveHeaderRenderer?,
+        val musicEditablePlaylistDetailHeaderRenderer: BrowseResponse.Header.MusicEditablePlaylistDetailHeaderRenderer?,
         val gridRenderer: GridRenderer?,
     ) {
         @Serializable

@@ -1110,6 +1110,9 @@ class MainRepository
                                 ?: result.contents?.twoColumnBrowseResultsRenderer?.tabs?.get(0)
                                     ?.tabRenderer?.content?.sectionListRenderer?.contents?.get(0)
                                     ?.musicResponsiveHeaderRenderer
+                                ?: result.contents?.twoColumnBrowseResultsRenderer?.tabs?.get(0)
+                                    ?.tabRenderer?.content?.sectionListRenderer?.contents?.get(0)
+                                    ?.musicEditablePlaylistDetailHeaderRenderer?.header?.musicResponsiveHeaderRenderer
                         Log.d("Header", "header: $header")
                         var continueParam =
                             result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(

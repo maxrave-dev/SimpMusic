@@ -52,6 +52,7 @@ import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
 import com.maxrave.simpmusic.data.parser.toListThumbnail
+import com.maxrave.simpmusic.service.test.source.MergingMediaSourceFactory
 import kotlinx.coroutines.flow.Flow
 import java.io.File
 import java.io.InputStream
@@ -277,6 +278,7 @@ fun SongEntity.toTrack(): Track {
             listArtist.add(Artist(this.artistId?.get(i) ?: "", this.artistName[i]))
         }
     }
+    val isSong = (this.thumbnails?.contains("w544") == true && this.thumbnails.contains("h544"))
     return Track(
         album = this.albumId?.let { this.albumName?.let { it1 -> Album(it, it1) } },
         artists = listArtist,
@@ -285,7 +287,7 @@ fun SongEntity.toTrack(): Track {
         isAvailable = this.isAvailable,
         isExplicit = this.isExplicit,
         likeStatus = this.likeStatus,
-        thumbnails = listOf(Thumbnail(720, this.thumbnails ?: "", 1080)),
+        thumbnails = if (isSong) listOf(Thumbnail(544, this.thumbnails ?: "", 544)) else listOf(Thumbnail(720, this.thumbnails ?: "", 1080)),
         title = this.title,
         videoId = this.videoId,
         videoType = this.videoType,
@@ -336,6 +338,7 @@ fun MediaItem?.toSongEntity(): SongEntity? {
 @JvmName("MediaItemtoSongEntity")
 @UnstableApi
 fun SongEntity.toMediaItem(): MediaItem {
+    val isSong = (this.thumbnails?.contains("w544") == true && this.thumbnails.contains("h544"))
     return MediaItem.Builder()
         .setMediaId(this.videoId)
         .setUri(this.videoId)
@@ -346,6 +349,9 @@ fun SongEntity.toMediaItem(): MediaItem {
                 .setArtist(this.artistName?.connectArtists())
                 .setArtworkUri(this.thumbnails?.toUri())
                 .setAlbumTitle(this.albumName)
+                .setDescription(
+                    if (isSong) MergingMediaSourceFactory.isSong else MergingMediaSourceFactory.isVideo,
+                )
                 .build(),
         )
         .build()
@@ -354,6 +360,9 @@ fun SongEntity.toMediaItem(): MediaItem {
 @JvmName("TracktoMediaItem")
 @UnstableApi
 fun Track.toMediaItem(): MediaItem {
+    val isSong = (this.thumbnails?.last()?.height != 0 && this.thumbnails?.last()?.height == this.thumbnails?.last()?.width
+        && this.thumbnails?.last()?.height != null) && (this.thumbnails.lastOrNull()?.url?.contains("hq720") == false
+        && this.thumbnails.lastOrNull()?.url?.contains("maxresdefault") == false)
     return MediaItem.Builder()
         .setMediaId(this.videoId)
         .setUri(this.videoId)
@@ -364,6 +373,9 @@ fun Track.toMediaItem(): MediaItem {
                 .setArtist(this.artists.toListName().connectArtists())
                 .setArtworkUri(this.thumbnails?.lastOrNull()?.url?.toUri())
                 .setAlbumTitle(this.album?.name)
+                .setDescription(
+                    if (isSong) MergingMediaSourceFactory.isSong else MergingMediaSourceFactory.isVideo,
+                )
                 .build(),
         )
         .build()
