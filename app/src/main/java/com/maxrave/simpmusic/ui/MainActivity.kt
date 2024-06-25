@@ -1016,7 +1016,7 @@ class MainActivity : AppCompatActivity() {
         viewModel.activityRecreate()
     }
 
-    fun onCloseMiniplayer() {
+    private fun onCloseMiniplayer() {
         viewModel.stopPlayer()
         viewModel.isServiceRunning.postValue(false)
         viewModel.videoId.postValue(null)

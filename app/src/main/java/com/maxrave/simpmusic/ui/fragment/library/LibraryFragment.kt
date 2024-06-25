@@ -13,7 +13,6 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -52,7 +51,6 @@ import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 
@@ -367,7 +365,7 @@ class LibraryFragment : Fragment() {
                                 }
                             }
                             lifecycleScope.launch {
-                                if (sharedViewModel.simpleMediaServiceHandler?.nowPlaying?.first()?.mediaId == song.videoId) {
+                                if (sharedViewModel.nowPlayingMediaItem.first()?.mediaId == song.videoId) {
                                     delay(500)
                                     sharedViewModel.refreshSongDB()
                                 }
@@ -616,7 +614,7 @@ class LibraryFragment : Fragment() {
                 val job2 =
                     launch {
                         combine(
-                            sharedViewModel.simpleMediaServiceHandler?.nowPlaying ?: flowOf<MediaItem?>(null),
+                            sharedViewModel.nowPlayingMediaItem,
                             sharedViewModel.isPlaying,
                         ) { nowPlaying, isPlaying ->
                             Pair(nowPlaying, isPlaying)
