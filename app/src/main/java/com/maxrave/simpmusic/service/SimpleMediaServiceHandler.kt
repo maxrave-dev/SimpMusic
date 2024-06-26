@@ -689,8 +689,12 @@ class SimpleMediaServiceHandler(
         updateNotificationJob?.cancel()
         updateNotificationJob =
             coroutineScope.launch {
+                var id = (player.currentMediaItem?.mediaId ?: "" )
+                if (id.contains("Video")) {
+                    id = id.removePrefix("Video")
+                }
                 val liked =
-                    mainRepository.getSongById(player.currentMediaItem?.mediaId ?: "")
+                    mainRepository.getSongById(id)
                         .first()?.liked
                 if (liked != null) {
                     _liked.value = liked

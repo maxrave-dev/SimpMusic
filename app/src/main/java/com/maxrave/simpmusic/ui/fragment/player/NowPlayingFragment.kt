@@ -1148,8 +1148,8 @@ class NowPlayingFragment : Fragment() {
                     }
                 val job20 =
                     launch {
-                        viewModel.canvas.collect {
-                            val canva = it?.canvases?.firstOrNull()
+                        viewModel.canvas.collect { canvas ->
+                            val canva = canvas?.canvases?.firstOrNull()
                             if (canva != null) {
                                 if (canva.canvas_url.contains(".mp4")) {
                                     player?.stop()
@@ -1307,6 +1307,9 @@ class NowPlayingFragment : Fragment() {
                                 binding.infoControllerLayout.visibility = View.VISIBLE
                                 binding.canvasLayout.visibility = View.INVISIBLE
                                 binding.middleLayout.visibility = View.VISIBLE
+                                viewModel.gradientDrawable.value?.let {
+                                    binding.rootLayout.background = it
+                                }
                             }
                         }
                     }

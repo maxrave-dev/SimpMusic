@@ -779,7 +779,7 @@ class SearchFragment : Fragment() {
                 viewModel.searchType.postValue("songs")
                 resultList.clear()
                 val temp = viewModel.songsSearchResult.value?.data
-                for (i in temp!!){
+                for (i in temp ?: emptyList<SongsResult>()){
                     resultList.add(i)
                 }
                 resultAdapter.updateList(resultList)
@@ -788,7 +788,7 @@ class SearchFragment : Fragment() {
                 viewModel.searchType.postValue("videos")
                 resultList.clear()
                 val temp = viewModel.videoSearchResult.value?.data
-                for (i in temp!!){
+                for (i in temp ?: emptyList<VideosResult>()){
                     resultList.add(i)
                 }
                 resultAdapter.updateList(resultList)
@@ -805,7 +805,7 @@ class SearchFragment : Fragment() {
                 viewModel.searchType.postValue("albums")
                 resultList.clear()
                 val temp = viewModel.albumsSearchResult.value?.data
-                for (i in temp!!){
+                for (i in temp ?: emptyList<AlbumsResult>()){
                     resultList.add(i)
                 }
                 resultAdapter.updateList(resultList)
@@ -815,7 +815,7 @@ class SearchFragment : Fragment() {
                 viewModel.searchType.postValue("artists")
                 resultList.clear()
                 val temp = viewModel.artistsSearchResult.value?.data
-                for (i in temp!!){
+                for (i in temp ?: emptyList<ArtistsResult>()){
                     resultList.add(i)
                 }
                 resultAdapter.updateList(resultList)
@@ -824,7 +824,7 @@ class SearchFragment : Fragment() {
                 viewModel.searchType.postValue("playlists")
                 resultList.clear()
                 val temp = viewModel.playlistSearchResult.value?.data
-                for (i in temp!!) {
+                for (i in temp ?: emptyList<PlaylistsResult>()) {
                     resultList.add(i)
                 }
                 resultAdapter.updateList(resultList)
@@ -832,7 +832,7 @@ class SearchFragment : Fragment() {
                 viewModel.searchType.postValue("featured_playlists")
                 resultList.clear()
                 val temp = viewModel.featuredPlaylistSearchResult.value?.data
-                for (i in temp!!) {
+                for (i in temp ?: emptyList<PlaylistsResult>()) {
                     resultList.add(i)
                 }
                 resultAdapter.updateList(resultList)
@@ -840,7 +840,7 @@ class SearchFragment : Fragment() {
                 viewModel.searchType.postValue("podcasts")
                 resultList.clear()
                 val temp = viewModel.podcastSearchResult.value?.data
-                for (i in temp!!) {
+                for (i in temp ?: emptyList<PlaylistsResult>()) {
                     resultList.add(i)
                 }
                 resultAdapter.updateList(resultList)

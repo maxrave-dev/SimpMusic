@@ -1277,7 +1277,7 @@ constructor(
     ) {
         println("Update Like Status $videoId $likeStatus")
         viewModelScope.launch {
-            if (simpleMediaServiceHandler?.nowPlaying?.first()?.mediaId == videoId) {
+            if (nowPlayingMediaItem.first()?.mediaId == videoId) {
                 if (likeStatus) {
                     mainRepository.updateLikeStatus(videoId, 1)
                 } else {
@@ -1448,6 +1448,7 @@ constructor(
         getFormatFlowJob?.cancel()
         getFormatFlowJob = viewModelScope.launch {
             if (mediaId != null) {
+                _canvas.emit(null)
                 mainRepository.getFormatFlow(mediaId).cancellable().collectLatest { f ->
                     Log.w("Format", mediaId.toString() + " " +f.toString())
                     if (f != null) {
