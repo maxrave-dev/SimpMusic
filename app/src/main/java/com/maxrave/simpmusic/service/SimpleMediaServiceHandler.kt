@@ -159,8 +159,12 @@ class SimpleMediaServiceHandler(
         toggleLikeJob?.cancel()
         toggleLikeJob =
             coroutineScope.launch {
+                var id = (player.currentMediaItem?.mediaId ?: "" )
+                if (id.contains("Video")) {
+                    id = id.removePrefix("Video")
+                }
                 mainRepository.updateLikeStatus(
-                    player.currentMediaItem?.mediaId ?: "",
+                    id,
                     if (!(_liked.value)) 1 else 0,
                 )
                 delay(500)
