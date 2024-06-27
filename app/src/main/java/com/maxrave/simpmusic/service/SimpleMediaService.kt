@@ -232,7 +232,7 @@ class SimpleMediaService : MediaLibraryService() {
         mainRepository: MainRepository
     ): DataSource.Factory {
         return ResolvingDataSource.Factory(cacheDataSourceFactory) { dataSpec ->
-            var mediaId = dataSpec.key ?: error("No media id")
+            val mediaId = dataSpec.key ?: error("No media id")
             Log.w("Stream", mediaId)
             Log.w("Stream", mediaId.startsWith(MergingMediaSourceFactory.isVideo).toString())
             val CHUNK_LENGTH = 512 * 1024L

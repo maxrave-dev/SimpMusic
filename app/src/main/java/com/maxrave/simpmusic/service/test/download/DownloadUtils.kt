@@ -52,38 +52,41 @@ class DownloadUtils @Inject constructor(
                     .setConnectTimeoutMs(5000)
             )
     ) { dataSpec ->
-
         val mediaId = dataSpec.key ?: error("No media id")
-        val length = if (dataSpec.length >= 0) dataSpec.length else 1
-
-        if (playerCache.isCached(mediaId, dataSpec.position, length)) {
-            Log.w("DownloadUtils", "Cached: $mediaId")
+        Log.w("Stream", mediaId)
+        Log.w("Stream", mediaId.startsWith(MergingMediaSourceFactory.isVideo).toString())
+        val CHUNK_LENGTH = 512 * 1024L
+        if (downloadCache.isCached(
+                mediaId,
+                dataSpec.position,
+                if (dataSpec.length >= 0) dataSpec.length else 1
+            ) || playerCache.isCached(mediaId, dataSpec.position, CHUNK_LENGTH)
+        ) {
             return@Factory dataSpec
-        } else {
-            runBlocking(Dispatchers.IO) {
-                Log.w("DownloadUtils", "Not cached: $mediaId")
-                var extract: DataSpec? = null
-                if (mediaId.startsWith(MergingMediaSourceFactory.isVideo)) {
-                    mainRepository.getStream(mediaId.removePrefix(MergingMediaSourceFactory.isVideo), true).cancellable().collect { values ->
-                        if (values != null) {
-                            extract = dataSpec.withUri((values).toUri())
-                        }
+        }
+        var dataSpecReturn: DataSpec = dataSpec
+        runBlocking(Dispatchers.IO) {
+            if (mediaId.contains(MergingMediaSourceFactory.isVideo)) {
+                val id = mediaId.removePrefix(MergingMediaSourceFactory.isVideo)
+                mainRepository.getStream(
+                    id, true
+                ).cancellable().collect {
+                    if (it != null) {
+                        dataSpecReturn = dataSpec.withUri(it.toUri())
                     }
-                    Log.d("DownloadUtils", "extract: ${extract.toString()}")
-                    return@runBlocking extract!!
                 }
-                else {
-                    mainRepository.getStream(mediaId, false).cancellable().collect { values ->
-                        if (values != null) {
-                            extract = dataSpec.withUri((values).toUri())
-                        }
+            }
+            else {
+                mainRepository.getStream(
+                    mediaId, isVideo = false
+                ).cancellable().collect {
+                    if (it != null) {
+                        dataSpecReturn = dataSpec.withUri(it.toUri())
                     }
-                    Log.d("DownloadUtils", "extract: ${extract.toString()}")
-                    return@runBlocking dataSpec
                 }
-
             }
         }
+        return@Factory dataSpecReturn
     }
     val downloadNotificationHelper = DownloadNotificationHelper(context, CHANNEL_ID)
     val downloadManager: DownloadManager = DownloadManager(
@@ -125,7 +128,13 @@ class DownloadUtils @Inject constructor(
                 ) {
                     downloads.update { map ->
                         map.toMutableMap().apply {
-                            set(download.request.id, download)
+                            val id = download.request.id
+                            if (id.contains(MergingMediaSourceFactory.isVideo)) {
+                                set(id.removePrefix(MergingMediaSourceFactory.isVideo), download)
+                            }
+                            else {
+                                set(download.request.id, download)
+                            }
                         }
                     }
                     if (download.state == Download.STATE_COMPLETED && playerCache.keys.contains(
