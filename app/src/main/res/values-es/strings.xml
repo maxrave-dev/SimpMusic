@@ -187,7 +187,7 @@
     <string name="preview">Vista previa</string>
     <string name="music_off_topic">Música Of-topic</string>
     <string name="poi_highlight">Resaltar POI</string>
-    <string name="filler">Rellenar</string>
+    <string name="filler">Filtro</string>
     <string name="sponsorBlock">Bloqueo de patrocinadores</string>
     <string name="enable_sponsor_block">Activar SponsorBlock</string>
     <string name="categories_sponsor_block">Seleccionar comportamiento del segmento de salto</string>
@@ -330,4 +330,5 @@
     <string name="day_s_ago">Hace %1$d día(s)</string>
     <string name="hour_s_ago">Hace %1$d hora(s)</string>
     <string name="no_notification">No hay notificaciones</string>
+    <string name="created_at">Creado en %1$s</string>
 </resources>

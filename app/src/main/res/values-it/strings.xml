@@ -187,7 +187,7 @@
     <string name="preview">Anteprima</string>
     <string name="music_off_topic">Musica fuori tema</string>
     <string name="poi_highlight">Evidenziare</string>
-    <string name="filler">Riempitivo</string>
+    <string name="filler">Filtro</string>
     <string name="sponsorBlock">SponsorBlock</string>
     <string name="enable_sponsor_block">Abilitare SponsorBlock</string>
     <string name="categories_sponsor_block">Seleziona il comportamento di salto del segmento</string>
@@ -268,7 +268,7 @@
     <string name="suggest">Suggerimento</string>
     <string name="reload">Ricarica</string>
     <string name="added_date">Data aggiunta</string>
-    <string name="credit_app">Una semplice app musicale che utilizza YouTube Music come backend \n\nSimpMusic è un progetto open source per lo streaming di musica da YouTube e YouTube Music senza pubblicità e tracciamento. SimpMusic offre molte funzionalità:\n\n - Musica in streaming\n - Testi sincronizzati\n - Personalizza dati\n - ecc… \n\nSimpMusic è sempre gratuito e senza pubblicità\n\nCrea con ❤️ di Tuan Minh Nguyen Duc (maxrave-dev)</string>
+    <string name="credit_app">Una semplice app musicale che utilizza YouTube Music come backend \n\nSimpMusic è un progetto open source per lo streaming di musica da YouTube e YouTube Music senza pubblicità e tracciamento. SimpMusic offre molte funzionalità:\n\n - Musica in streaming\n - Testi sincronizzati\n - Personalizza dati\n - ecc... \n\nSimpMusic è sempre gratuito e senza pubblicità\n\nCrea con ❤️ di Tuan Minh Nguyen Duc (maxrave-dev)</string>
     <string name="issue_tracker">Tracker dei problemi</string>
     <string name="featured_playlists">Playlist in primo piano</string>
     <string name="featured_inArtist">In primo piano</string>
@@ -319,4 +319,16 @@
     <string name="guide_miniplayer_content">Scorri per mostrare il pulsante salta e chiudi</string>
     <string name="guide_suggest_content">Mostra i brani suggeriti da AI in base alla tua playlist</string>
     <string name="guide_liked_title">Aggiungi alla playlist dei preferiti di YouTube</string>
+    <string name="log_out_from_spotify">Esci da Spotify</string>
+    <string name="delete">Elimina</string>
+    <string name="top_videos">Migliori Video</string>
+    <string name="trending">In tendenza</string>
+    <string name="new_singles">Nuovi singoli</string>
+    <string name="new_albums">Nuovi album</string>
+    <string name="notification">Notifiche</string>
+    <string name="month_s_ago">%1$d mese/i fa</string>
+    <string name="day_s_ago">%1$d giorno/i fa</string>
+    <string name="hour_s_ago">%1$d ora/e fa</string>
+    <string name="no_notification">Nessuna notifica</string>
+    <string name="created_at">Creato: %1$s</string>
 </resources>

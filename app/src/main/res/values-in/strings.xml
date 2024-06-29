@@ -187,7 +187,7 @@
     <string name="preview">Pratinjau</string>
     <string name="music_off_topic">Musik di luar topik</string>
     <string name="poi_highlight">Sorotan POI</string>
-    <string name="filler">Isian</string>
+    <string name="filler">Saringan</string>
     <string name="sponsorBlock">Blokir Sponsor</string>
     <string name="enable_sponsor_block">Aktifkan Blokir Sponsor</string>
     <string name="categories_sponsor_block">Pilih segmen yg lewati</string>
@@ -318,4 +318,16 @@
     <string name="guide_miniplayer_content">Gesek untuk menampilkan tombol lewati dan tutup</string>
     <string name="guide_suggest_content">Tampilkan lagu yang disarankan oleh AI berdasarkan playlist Anda</string>
     <string name="guide_liked_title">Tambahkan ke Daftar Putar yang Disukai YouTube</string>
+    <string name="log_out_from_spotify">Keluar dari Spotify</string>
+    <string name="delete">Hapus</string>
+    <string name="top_videos">Video populer</string>
+    <string name="trending">Tren</string>
+    <string name="new_singles">Single terbaru</string>
+    <string name="new_albums">Album baru</string>
+    <string name="notification">Pemberitahuan</string>
+    <string name="month_s_ago">%1$d bulan yang lalu</string>
+    <string name="day_s_ago">%1$d hari yang lalu</string>
+    <string name="hour_s_ago">%1$d jam yang lalu</string>
+    <string name="no_notification">Tidak ada pemberitahuan</string>
+    <string name="created_at">Dibuat pada %1$s</string>
 </resources>

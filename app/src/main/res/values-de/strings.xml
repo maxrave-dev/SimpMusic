@@ -9,7 +9,7 @@
     <string name="album_length">%1$s Songs  %2$s</string>
     <string name="view_count">%1$s Aufrufe</string>
     <string name="lyrics_provider">Songtexte von Musixmatch</string>
-    <string name="clear_search_history">Suchverlauf löschen</string>
+    <string name="clear_search_history">Suchverlauf leeren</string>
     <string name="liked">Gefällt mir</string>
     <string name="like">Gefällt mir</string>
     <string name="hello_blank_fragment">Hallo, leeres Fragment</string>
@@ -32,20 +32,20 @@
     <string name="your_playlists">Deine lokalen Playlists</string>
     <string name="no_playlists_added">Keine Playlists hinzugefügt</string>
     <string name="recently_added">Kürzlich hinzugefügt</string>
-    <string name="search_for_songs_artists_albums_playlists_and_more">Suche nach Liedern, Interpreten, Alben, Playlists und mehr</string>
+    <string name="search_for_songs_artists_albums_playlists_and_more">Suche nach Songs, Interpreten, Alben, Playlists und mehr</string>
     <string name="everything_you_need">Alles was du brauchst</string>
     <string name="restore_failed">Wiederherstellung fehlgeschlagen</string>
     <string name="restore_success">Wiederherstellung erfolgreich</string>
     <string name="search">Suche</string>
-    <string name="songs">Lieder</string>
+    <string name="songs">Songs</string>
     <string name="albums">Alben</string>
     <string name="playlists">Playlists</string>
     <string name="artists">Interpreten</string>
     <string name="library">Bibliothek</string>
     <string name="home">Start</string>
-    <string name="popular">Populär</string>
+    <string name="popular">Beliebt</string>
     <string name="error">Fehler</string>
-    <string name="follow">Folgen</string>
+    <string name="follow">Abonnieren</string>
     <string name="retry">Erneut versuchen</string>
     <string name="removed_download">Download entfernt</string>
     <string name="share_url">URL teilen</string>
@@ -59,7 +59,7 @@
     <string name="quick_picks">Schnellauswahl</string>
     <string name="this_song_is_not_available">Dieser Song ist nicht verfügbar</string>
     <string name="in_charts">in den Charts</string>
-    <string name="playlist_name_cannot_be_empty">Der Playlist-Name darf nicht leer sein</string>
+    <string name="playlist_name_cannot_be_empty">Playlist-Name darf nicht leer sein</string>
     <string name="this_app_needs_to_access_your_notification">Diese App muss auf deine Benachrichtigungen zugreifen können</string>
     <string name="shared">Geteilt</string>
     <string name="line_synced">Zeile synchronisiert</string>
@@ -74,8 +74,8 @@
     <string name="content_country">Inhaltsland</string>
     <string name="change">Ändern</string>
     <string name="quality">Qualität</string>
-    <string name="clear_downloaded_cache">Download-Cache löschen</string>
-    <string name="clear_thumbnail_cache">Titelbild-Cache löschen</string>
+    <string name="clear_downloaded_cache">Download-Cache leeren</string>
+    <string name="clear_thumbnail_cache">Titelbild-Cache leeren</string>
     <string name="add">Hinzufügen</string>
     <string name="playlist_name">Name der Playlist</string>
     <string name="create">Erstellen</string>
@@ -91,7 +91,7 @@
     <string name="more">Mehr</string>
     <string name="singles">Singles</string>
     <string name="related_artists">Ähnliche Künstler</string>
-    <string name="about">Über die App</string>
+    <string name="about">Über den Künstler</string>
     <string name="let_s_start_with_a_radio">STARTE MIT EINEM RADIO</string>
     <string name="let_s_pick_a_playlist_for_you">WÄHLE EINE PLAYLIST FÜR DICH AUS</string>
     <string name="moods_amp_moment"><![CDATA[Gefühle & Momente]]></string>
@@ -125,11 +125,11 @@
     <string name="album">Album</string>
     <string name="youtube_url">YouTube URL</string>
     <string name="download_url">Download-URL</string>
-    <string name="now_playing">Jetzt spielt</string>
+    <string name="now_playing">Jetzt läuft</string>
     <string name="queue">Wiedergabeliste</string>
     <string name="recently">Kürzlich</string>
     <string name="settings">Einstellungen</string>
-    <string name="now_playing_upper">JETZT SPIELT</string>
+    <string name="now_playing_upper">JETZT LÄUFT</string>
     <string name="language">Sprache</string>
     <string name="what_do_you_want_to_listen_to">Was möchtest du hören?</string>
     <string name="songs_inArtist">Songs</string>
@@ -149,7 +149,7 @@
     <string name="logged_in">Angemeldet</string>
     <string name="logged_out">Abgemeldet</string>
     <string name="playlist">Playlist</string>
-    <string name="restart_app">App neu starten, um die Änderungen zu übernehmen</string>
+    <string name="restart_app">App neu starten, um die Änderung zu übernehmen</string>
     <string name="balance_media_loudness">Medienlautstärke ausgleichen</string>
     <string name="normalize_volume">Lautstärke normalisieren</string>
     <string name="audio">Audio</string>
@@ -187,7 +187,7 @@
     <string name="preview">Vorschau</string>
     <string name="music_off_topic">Off-Topic Musik</string>
     <string name="poi_highlight">POI Highlight</string>
-    <string name="filler">Füller</string>
+    <string name="filler">Filter</string>
     <string name="sponsorBlock">SponsorBlock</string>
     <string name="enable_sponsor_block">SponsorBlock aktivieren</string>
     <string name="categories_sponsor_block">Auswählen, welche Segmente übersprungen werden sollen</string>
@@ -330,4 +330,5 @@
     <string name="day_s_ago">Vor %d Tagen</string>
     <string name="hour_s_ago">Vor %1$d Stunden</string>
     <string name="no_notification">Keine Benachrichtigung</string>
+    <string name="created_at">Erstellt am: %1$s</string>
 </resources>

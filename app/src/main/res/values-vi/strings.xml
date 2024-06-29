@@ -318,4 +318,16 @@
     <string name="guide_miniplayer_content">Vuốt để hiện thị nút bỏ qua và nút đóng trình phát</string>
     <string name="guide_suggest_content">Hiện những bài hát được đề xuất bởi AI dựa trên danh sách phát của bạn</string>
     <string name="guide_liked_title">Thêm vào danh sách phát YouTube</string>
+    <string name="log_out_from_spotify">Đăng xuất khỏi Spotify</string>
+    <string name="delete">Xóa</string>
+    <string name="top_videos">Video hàng đầu</string>
+    <string name="trending">Xu hướng</string>
+    <string name="new_singles">Đĩa đơn mới</string>
+    <string name="new_albums">Album mới</string>
+    <string name="notification">Thông báo</string>
+    <string name="month_s_ago">%1$d tháng trước</string>
+    <string name="day_s_ago">%1$d ngày trước</string>
+    <string name="hour_s_ago">%1$d giờ trước</string>
+    <string name="no_notification">Không có thông báo</string>
+    <string name="created_at">Đã tạo lúc: %1$s</string>
 </resources>

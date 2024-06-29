@@ -1,0 +1,7 @@
+- Add Chinese Traditional
+- Add option menu for album's tracks
+- Swipe actions for miniplayer
+- Paging for Local Playlist Page
+- Add Lrclib as backup for Musixmatch
+- Fixed all about changing API of YouTube
+- Fixed some small bugs

@@ -187,7 +187,7 @@
     <string name="preview">預覽</string>
     <string name="music_off_topic">相關音樂</string>
     <string name="poi_highlight">POI熱門</string>
-    <string name="filler">背景音樂</string>
+    <string name="filler">篩選器</string>
     <string name="sponsorBlock">SponsorBlock</string>
     <string name="enable_sponsor_block">啟用 SponsorBlock</string>
     <string name="categories_sponsor_block">選擇跳過段行為</string>
@@ -329,4 +329,5 @@
     <string name="day_s_ago">%1$d天前</string>
     <string name="hour_s_ago">%1$d小時前</string>
     <string name="no_notification">沒有通知</string>
+    <string name="created_at">建立於：%1$s</string>
 </resources>

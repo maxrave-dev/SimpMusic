@@ -187,7 +187,7 @@
     <string name="preview">استعراض</string>
     <string name="music_off_topic">موسيقى خارج الموضوع</string>
     <string name="poi_highlight">تسليط الضوء على النقاط الهامة</string>
-    <string name="filler">تصفية</string>
+    <string name="filler">فلتر</string>
     <string name="sponsorBlock">SponsorBlock</string>
     <string name="enable_sponsor_block">تمكين SponsorBlock</string>
     <string name="categories_sponsor_block">حدد سلوك تخطي الجزء</string>
@@ -323,15 +323,16 @@
     <string name="guide_miniplayer_content">اسحب لإظهار زر تخطي وإغلاق</string>
     <string name="guide_suggest_content">إظهار الأغاني المقترحة بواسطة الذكاء الاصطناعي استنادًا إلى قوائم التشغيل الخاصة بك</string>
     <string name="guide_liked_title">تمت الإضافة إلى إعجابات YouTube قوائم التشغيل</string>
-    <string name="log_out_from_spotify">Log out from Spotify</string>
-    <string name="delete">Delete</string>
-    <string name="top_videos">Top videos</string>
-    <string name="trending">Trending</string>
-    <string name="new_singles">New singles</string>
-    <string name="new_albums">New albums</string>
-    <string name="notification">Notification</string>
-    <string name="month_s_ago">%1$d month(s) ago</string>
-    <string name="day_s_ago">%1$d day(s) ago</string>
-    <string name="hour_s_ago">%1$d hour(s) ago</string>
-    <string name="no_notification">No notification</string>
+    <string name="log_out_from_spotify">تسجيل الخروج من Spotify</string>
+    <string name="delete">حذف</string>
+    <string name="top_videos">أعلى الفيديوهات</string>
+    <string name="trending">الشائع</string>
+    <string name="new_singles">الفردي الجديد</string>
+    <string name="new_albums">ألبوم جديد</string>
+    <string name="notification">إشعار</string>
+    <string name="month_s_ago">منذ %1$d اشهر</string>
+    <string name="day_s_ago">منذ %1$d يوم</string>
+    <string name="hour_s_ago">منذ %1$d ساعة</string>
+    <string name="no_notification">لا إشعارات</string>
+    <string name="created_at">تم الانشاء في %1$s</string>
 </resources>

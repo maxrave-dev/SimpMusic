@@ -833,7 +833,7 @@ constructor(
     private fun getSavedLyrics(track: Track) {
         viewModelScope.launch {
             resetLyrics()
-            mainRepository.getSavedLyrics(track.videoId).collect { lyrics ->
+            mainRepository.getSavedLyrics(track.videoId).cancellable().collect { lyrics ->
                 if (lyrics != null) {
                     _lyricsProvider.value = LyricsProvider.OFFLINE
                     _lyrics.value = Resource.Success(lyrics.toLyrics())
@@ -843,7 +843,7 @@ constructor(
                 } else {
                     resetLyrics()
                     mainRepository.getLyricsData(track.artists.toListName().firstOrNull() ?: "", track.title, track.durationSeconds)
-                        .collect { response ->
+                        .cancellable().collect { response ->
                             _lyrics.value = response.second
                             when (_lyrics.value) {
                                 is Resource.Success -> {
@@ -854,7 +854,7 @@ constructor(
                                         )
                                         parseLyrics(_lyrics.value?.data)
                                         if (dataStoreManager.enableTranslateLyric.first() == TRUE) {
-                                            mainRepository.getTranslateLyrics(response.first)
+                                            mainRepository.getTranslateLyrics(response.first).cancellable()
                                                 .collect { translate ->
                                                     if (translate != null) {
                                                         _translateLyrics.value =
@@ -1607,7 +1607,7 @@ constructor(
                                             if (dataStoreManager.enableTranslateLyric.first() == TRUE) {
                                                 mainRepository.getTranslateLyrics(
                                                     response.first,
-                                                )
+                                                ).cancellable()
                                                     .collect { translate ->
                                                         if (translate != null) {
                                                             _translateLyrics.value =
@@ -1710,7 +1710,7 @@ constructor(
     ) {
         viewModelScope.launch {
             Log.d("Check SpotifyLyrics", "SpotifyLyrics $query")
-            mainRepository.getSpotifyLyrics(query, duration).collect { response ->
+            mainRepository.getSpotifyLyrics(query, duration).cancellable().collect { response ->
                 Log.d("Check SpotifyLyrics", response.toString())
                 _lyrics.value = response
                 when (response) {

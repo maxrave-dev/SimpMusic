@@ -187,7 +187,7 @@
     <string name="preview">プレビュー</string>
     <string name="music_off_topic">音楽 オフトピック</string>
     <string name="poi_highlight">POIハイライト</string>
-    <string name="filler">つなぎ</string>
+    <string name="filler">フィルター</string>
     <string name="sponsorBlock">SponsorBlock</string>
     <string name="enable_sponsor_block">SponsorBlockを有効にする</string>
     <string name="categories_sponsor_block">スキップセグメントの動作を選択</string>
@@ -320,4 +320,14 @@
     <string name="guide_liked_title">YouTubeの高評価プレイリストに追加</string>
     <string name="log_out_from_spotify">Spotifyアカウントからログアウト</string>
     <string name="delete">消去</string>
+    <string name="top_videos">トップビデオ</string>
+    <string name="trending">トレンド</string>
+    <string name="new_singles">新しいシングル</string>
+    <string name="new_albums">新しいアルバム</string>
+    <string name="notification">通知</string>
+    <string name="month_s_ago">%1$d ヶ月前</string>
+    <string name="day_s_ago">%1$d日前</string>
+    <string name="hour_s_ago">%1$d時間前</string>
+    <string name="no_notification">通知なし</string>
+    <string name="created_at">%1$s に作成されました</string>
 </resources>

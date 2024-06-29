@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="demo_description">Vous pouvez également nous trouver avec : electronic dance music 2023 edm top electronic dance songs 2023 edm songs edm music 2023 electronic dance music best electro dance music popular edm songs top edm songs edm songs 2023 edm music top edm songs 2023 top electronic dance songs edm 2023 popular edm songs 2023 best electro dance music 2023 Peu importe comment se passe votre journée, vous pouvez toujours écouter de la bonne musique : 1. EDM Hits Playlist - Popular EDM Hits in 2023 - Nous aimerions vous garder avec nous pendant de nombreuses années à partir de maintenant ! Ainsi, dans l\'année à venir, vous pourriez trouver notre playlist comme ceci : EDM 2024 ♫ Top EDM Songs 2024</string>
-    <string name="Song_and_artist_name">Musique • %1$s</string>
+    <string name="Song_and_artist_name">Morceau • %1$s</string>
     <string name="playlist_and_author">Playlist • %1$s</string>
     <string name="album_and_artist_name">Album • %1$s</string>
     <string name="subscribers">%1$s abonnés</string>
@@ -37,7 +37,7 @@
     <string name="restore_failed">Échec de la restauration</string>
     <string name="restore_success">Restauration réussie</string>
     <string name="search">Rechercher</string>
-    <string name="songs">Chansons</string>
+    <string name="songs">Musiques</string>
     <string name="albums">Albums</string>
     <string name="playlists">Playlists</string>
     <string name="artists">Artistes</string>
@@ -47,7 +47,7 @@
     <string name="error">Erreur</string>
     <string name="follow">Suivre</string>
     <string name="retry">Réessayer</string>
-    <string name="removed_download">Supprimer le téléchargement</string>
+    <string name="removed_download">Téléchargement supprimé</string>
     <string name="share_url">Partager l\'URL</string>
     <string name="available_online">Disponible en ligne</string>
     <string name="unavailable">Indisponible</string>
@@ -57,7 +57,7 @@
     <string name="good_evening">Bonsoir</string>
     <string name="good_night">Bonne Nuit</string>
     <string name="quick_picks">Sélection rapide</string>
-    <string name="this_song_is_not_available">Cette chanson n\'est pas disponible</string>
+    <string name="this_song_is_not_available">Ce morceau n\'est pas disponible</string>
     <string name="in_charts">dans les graphiques</string>
     <string name="playlist_name_cannot_be_empty">Le nom de la playlist ne peut pas être vide</string>
     <string name="this_app_needs_to_access_your_notification">Cette application doit accéder à vos notifications</string>
@@ -74,7 +74,7 @@
     <string name="content_country">Pays du contenu</string>
     <string name="change">Changer</string>
     <string name="quality">Qualité</string>
-    <string name="clear_downloaded_cache">Vider le cache téléchargé</string>
+    <string name="clear_downloaded_cache">Effacer le cache téléchargé</string>
     <string name="clear_thumbnail_cache">Effacer le cache des vignettes</string>
     <string name="add">Ajouter</string>
     <string name="playlist_name">Nom de la playlist</string>
@@ -187,7 +187,7 @@
     <string name="preview">Aperçu</string>
     <string name="music_off_topic">Musique hors sujet</string>
     <string name="poi_highlight">Surbrillance du POI</string>
-    <string name="filler">Remplir</string>
+    <string name="filler">Filtre</string>
     <string name="sponsorBlock">SponsorBlock</string>
     <string name="enable_sponsor_block">Activer SponsorBlock</string>
     <string name="categories_sponsor_block">Sélectionnez le comportement du segment ignoré</string>
@@ -197,12 +197,12 @@
     <string name="sponsor_block_intro">SponsorBlock est un système qui permet de sauter les parties gênantes des vidéos YouTube.\nPlus d\'informations : https://sponsor.ajay.app/\nDans SimpMusic, SponsorBlock n\'est disponible que lorsque l\'appareil est en ligne.</string>
     <string name="skip_sponsor_part_of_video">Ignorer la partie sponsorisée de la vidéo</string>
     <string name="customactivityoncrash_error_activity_error_occurred_explanation">Une erreur inattendue s\'est produite. Désolé pour la gêne occasionnée.</string>
-    <string name="customactivityoncrash_error_activity_restart_app">Redémarrez l\'application</string>
+    <string name="customactivityoncrash_error_activity_restart_app">Redémarrer l\'application</string>
     <string name="customactivityoncrash_error_activity_close_app">Fermer l\'application</string>
     <string name="customactivityoncrash_error_activity_error_details">Détails de l\'erreur</string>
     <string name="customactivityoncrash_error_activity_error_details_title">Détails de l\'erreur</string>
     <string name="customactivityoncrash_error_activity_error_details_close">Fermer</string>
-    <string name="customactivityoncrash_error_activity_error_details_copy">Copier dans le presse-papier</string>
+    <string name="customactivityoncrash_error_activity_error_details_copy">Copier dans le presse-papiers</string>
     <string name="customactivityoncrash_error_activity_error_details_copied">Copié dans le presse-papiers</string>
     <string name="customactivityoncrash_error_activity_error_details_clipboard_label">Informations sur l\'erreur</string>
     <string name="no_update">Votre version est la plus récente</string>
@@ -273,8 +273,8 @@
     <string name="featured_playlists">Listes de lecture en vedette</string>
     <string name="featured_inArtist">À retrouver ici</string>
     <string name="audio_quality">Qualité audio</string>
-    <string name="play_video_for_video_track_instead_of_audio_only">Toista video videoraidalla pelkän äänen sijaan</string>
-    <string name="such_as_music_video_lyrics_video_podcasts_and_more">Kuten musiikkivideo, sanoitusvideo, podcastit ja paljon muuta</string>
+    <string name="play_video_for_video_track_instead_of_audio_only">Lire la vidéo pour un morceau avec une vidéo au lieu de l\'audio uniquement</string>
+    <string name="such_as_music_video_lyrics_video_podcasts_and_more">Comme la vidéo du morceau, des paroles, des podcasts et plus encore</string>
     <string name="video_quality">Qualité de la vidéo</string>
     <plurals name="n_song">
         <item quantity="one">%d morceau</item>
@@ -282,7 +282,7 @@
     </plurals>
     <string name="dummy_button">Bouton factice</string>
     <string name="dummy_content">FAUX\nCONTENU</string>
-    <string name="play_video_instead_of_audio_warning">Cette action va supprimer le cache du joueur. Continuer ?</string>
+    <string name="play_video_instead_of_audio_warning">Cette action va supprimer le cache du lecteur. Continuer ?</string>
     <string name="quality_video">Qualité de la vidéo</string>
     <string name="add_to_queue">Ajouter à la file d\'attente</string>
     <string name="added_to_queue">Ajouté à la file d\'attente</string>
@@ -300,17 +300,17 @@
     <string name="codec">Codec</string>
     <string name="plays">Nombre de Lectures/Vues</string>
     <string name="like_and_dislike">%1$d j\'aime, %2$d je n\'aime pas</string>
-    <string name="published_at">Publié à %1$s</string>
+    <string name="published_at">Publié le %1$s</string>
     <string name="less">Moins</string>
     <string name="spotify">Spotify</string>
     <string name="log_in_to_spotify">Se connecter avec Spotify</string>
     <string name="intro_login_to_spotify">Connectez-vous pour des paroles Spotify, Canevas, et plus encore</string>
     <string name="enable_spotify_lyrics">Activer les Paroles Spotify</string>
     <string name="spotify_lyrícs_info">Plus de paroles sans traduction</string>
-    <string name="enable_canvas">Activer Canvas</string>
-    <string name="canvas_info">Afficher le Canevas Spotify dans SimpMusic</string>
+    <string name="enable_canvas">Activer le Canvas</string>
+    <string name="canvas_info">Afficher le Canvas Spotify dans SimpMusic</string>
     <string name="spotify_lyrics_provider">Paroles fournies par Spotify</string>
-    <string name="offline_mode">Mode hors connexion</string>
+    <string name="offline_mode">Mode hors-ligne</string>
     <string name="added_to_youtube_liked">Ajouté à YouTube Aimé</string>
     <string name="removed_from_youtube_liked">Supprimer de YouTube Aimé</string>
     <string name="home_limit">Limite de réseau pour actualiser la page accueil</string>
@@ -319,5 +319,16 @@
     <string name="guide_miniplayer_content">Glisser pour afficher le bouton ignorer et fermer</string>
     <string name="guide_suggest_content">Afficher les chansons suggérées par l\'IA à partir de votre playlist</string>
     <string name="guide_liked_title">Ajouter à la playlist YouTube J\'aime</string>
-    <string name="log_out_from_spotify">Log out from Spotify</string>
+    <string name="log_out_from_spotify">Se déconnecter de Spotify</string>
+    <string name="delete">Supprimer</string>
+    <string name="top_videos">Vidéos populaires</string>
+    <string name="trending">Tendances</string>
+    <string name="new_singles">Nouveaux singles</string>
+    <string name="new_albums">Nouveaux albums</string>
+    <string name="notification">Notification</string>
+    <string name="month_s_ago">Il y a %1$d mois</string>
+    <string name="day_s_ago">Il y a %1$d jour(s)</string>
+    <string name="hour_s_ago">Il y a %1$d heure(s)</string>
+    <string name="no_notification">Aucune notification</string>
+    <string name="created_at">Créé le : %1$s</string>
 </resources>

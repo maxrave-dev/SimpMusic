@@ -1,0 +1,7 @@
+- Thêm ngôn ngữ Trung Quốc Truyền Thống
+- Thêm menu tùy chọn cho bài hát trong trang Album
+- Cử chỉ vuốt trình phát thu nhỏ
+- Phân trang cho màn hình danh sách phát nội bộ
+- Thêm Lrclib làm dịch vụ dự phòng cho Musixmatch
+- Sửa các lỗi liên quan tới việc thay đổi API của YouTube
+- Sửa một số lỗi giao diện nhỏ khác
