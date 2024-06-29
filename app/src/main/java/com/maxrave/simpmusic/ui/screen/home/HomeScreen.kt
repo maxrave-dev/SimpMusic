@@ -150,17 +150,17 @@ fun HomeScreen(
         HomeTopAppBar(navController)
         Box(
             modifier =
-                Modifier
-                    .nestedScroll(pullToRefreshState.nestedScrollConnection)
-                    .padding(vertical = 8.dp),
+            Modifier
+                .nestedScroll(pullToRefreshState.nestedScrollConnection)
+                .padding(vertical = 8.dp),
             contentAlignment = Alignment.Center,
         ) {
             PullToRefreshContainer(
                 modifier =
-                    Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(top = 15.dp)
-                        .graphicsLayer(scaleX = scaleFraction, scaleY = scaleFraction),
+                Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 15.dp)
+                    .graphicsLayer(scaleX = scaleFraction, scaleY = scaleFraction),
                 state = pullToRefreshState,
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -237,54 +237,58 @@ fun HomeScreen(
                             }
                         }
                         item {
-                            Column(
-                                Modifier
-                                    .padding(vertical = 10.dp),
-                                verticalArrangement = Arrangement.SpaceBetween,
-                            ) {
-                                ChartTitle()
-                                Spacer(modifier = Modifier.height(5.dp))
-                                Crossfade(targetState = regionChart) {
-                                    Log.w("HomeScreen", "regionChart: $it")
-                                    if (it != null) {
-                                        DropdownButton(
-                                            items = CHART_SUPPORTED_COUNTRY.itemsData.toList(),
-                                            defaultSelected =
-                                                CHART_SUPPORTED_COUNTRY.itemsData.getOrNull(
-                                                    CHART_SUPPORTED_COUNTRY.items.indexOf(it),
+                            Crossfade(targetState = chart == null && !chartLoading) { noData ->
+                                if (!noData) {
+                                    Column(
+                                        Modifier
+                                            .padding(vertical = 10.dp),
+                                        verticalArrangement = Arrangement.SpaceBetween,
+                                    ) {
+                                        ChartTitle()
+                                        Spacer(modifier = Modifier.height(5.dp))
+                                        Crossfade(targetState = regionChart) {
+                                            Log.w("HomeScreen", "regionChart: $it")
+                                            if (it != null) {
+                                                DropdownButton(
+                                                    items = CHART_SUPPORTED_COUNTRY.itemsData.toList(),
+                                                    defaultSelected =
+                                                    CHART_SUPPORTED_COUNTRY.itemsData.getOrNull(
+                                                        CHART_SUPPORTED_COUNTRY.items.indexOf(it),
+                                                    )
+                                                        ?: CHART_SUPPORTED_COUNTRY.itemsData[1],
+                                                ) {
+                                                    viewModel.exploreChart(
+                                                        CHART_SUPPORTED_COUNTRY.items[
+                                                            CHART_SUPPORTED_COUNTRY.itemsData.indexOf(
+                                                                it,
+                                                            ),
+                                                        ],
+                                                    )
+                                                }
+                                            }
+                                        }
+                                        Spacer(modifier = Modifier.height(5.dp))
+                                        Crossfade(
+                                            targetState = chartLoading,
+                                            label = "Chart",
+                                        ) { loading ->
+                                            if (!loading) {
+                                                chart?.let {
+                                                    ChartData(
+                                                        chart = it,
+                                                        navController = navController,
+                                                        context = context,
+                                                    )
+                                                }
+                                            } else {
+                                                CenterLoadingBox(
+                                                    modifier =
+                                                    Modifier
+                                                        .fillMaxWidth()
+                                                        .height(400.dp),
                                                 )
-                                                    ?: CHART_SUPPORTED_COUNTRY.itemsData[1],
-                                        ) {
-                                            viewModel.exploreChart(
-                                                CHART_SUPPORTED_COUNTRY.items[
-                                                    CHART_SUPPORTED_COUNTRY.itemsData.indexOf(
-                                                        it,
-                                                    ),
-                                                ],
-                                            )
+                                            }
                                         }
-                                    }
-                                }
-                                Spacer(modifier = Modifier.height(5.dp))
-                                Crossfade(
-                                    targetState = chartLoading,
-                                    label = "Chart",
-                                ) { loading ->
-                                    if (!loading) {
-                                        chart?.let {
-                                            ChartData(
-                                                chart = it,
-                                                navController = navController,
-                                                context = context,
-                                            )
-                                        }
-                                    } else {
-                                        CenterLoadingBox(
-                                            modifier =
-                                                Modifier
-                                                    .fillMaxWidth()
-                                                    .height(400.dp),
-                                        )
                                     }
                                 }
                             }
@@ -391,11 +395,11 @@ fun AccountLayout(
                         )
                     },
                 modifier =
-                    Modifier
-                        .size(40.dp)
-                        .clip(
-                            CircleShape,
-                        ),
+                Modifier
+                    .size(40.dp)
+                    .clip(
+                        CircleShape,
+                    ),
             )
             Text(
                 text = accountName,
@@ -427,9 +431,9 @@ fun QuickPicks(
             style = typo.headlineMedium,
             maxLines = 1,
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 5.dp),
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 5.dp),
         )
         LazyHorizontalGrid(rows = GridCells.Fixed(3), modifier = Modifier.height(210.dp)) {
             items(homeItem.contents) {
@@ -472,9 +476,9 @@ fun MoodMomentAndGenre(
             style = typo.headlineMedium,
             maxLines = 1,
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 5.dp),
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 5.dp),
         )
         LazyHorizontalGrid(rows = GridCells.Fixed(3), modifier = Modifier.height(210.dp)) {
             items(mood.moodsMoments) {
@@ -493,9 +497,9 @@ fun MoodMomentAndGenre(
             style = typo.headlineMedium,
             maxLines = 1,
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 5.dp),
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 5.dp),
         )
         LazyHorizontalGrid(rows = GridCells.Fixed(3), modifier = Modifier.height(210.dp)) {
             items(mood.genres) {
@@ -524,9 +528,9 @@ fun ChartTitle() {
             style = typo.headlineMedium,
             maxLines = 1,
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 5.dp),
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 5.dp),
         )
     }
 }
@@ -549,9 +553,9 @@ fun ChartData(
                     style = typo.headlineMedium,
                     maxLines = 1,
                     modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 10.dp),
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 10.dp),
                 )
                 if (!chart.songs.isNullOrEmpty()) {
                     LazyHorizontalGrid(
@@ -585,9 +589,9 @@ fun ChartData(
             style = typo.headlineMedium,
             maxLines = 1,
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 10.dp),
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 10.dp),
         )
         LazyRow {
             items(chart.videos.items.size) {
@@ -616,9 +620,9 @@ fun ChartData(
             style = typo.headlineMedium,
             maxLines = 1,
             modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 10.dp),
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 10.dp),
         )
         LazyHorizontalGrid(rows = GridCells.Fixed(3), modifier = Modifier.height(240.dp)) {
             items(chart.artists.itemArtists.size) {
@@ -637,9 +641,9 @@ fun ChartData(
                     style = typo.headlineMedium,
                     maxLines = 1,
                     modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 10.dp),
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 10.dp),
                 )
                 if (!chart.trending.isNullOrEmpty()) {
                     LazyHorizontalGrid(

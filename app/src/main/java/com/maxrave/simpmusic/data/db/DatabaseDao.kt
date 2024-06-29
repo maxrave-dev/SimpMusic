@@ -414,12 +414,22 @@ interface DatabaseDao {
     ): List<PairSongLocalPlaylist>?
 
     @Query(
-        "SELECT * FROM pair_song_local_playlist WHERE playlistId = :playlistId ORDER BY position " +
-            "DESC LIMIT 50 OFFSET :offset",
+        "SELECT * FROM pair_song_local_playlist WHERE playlistId = :playlistId AND position >= :offset ORDER BY position " +
+            "LIMIT 50",
     )
     suspend fun getPlaylistPairSongByOffsetDesc(
         playlistId: Long,
         offset: Int,
+    ): List<PairSongLocalPlaylist>?
+
+    @Query(
+        "SELECT * FROM pair_song_local_playlist WHERE playlistId = :playlistId AND position >= :from AND position < :to ORDER BY position " +
+            "LIMIT 50",
+    )
+    suspend fun getPlaylistPairSongByFromToDesc(
+        playlistId: Long,
+        from: Int,
+        to: Int,
     ): List<PairSongLocalPlaylist>?
 
     @Query(

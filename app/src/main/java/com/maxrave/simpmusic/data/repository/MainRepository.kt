@@ -471,9 +471,10 @@ class MainRepository
             playlistId: Long,
             offset: Int,
             filterState: FilterState,
+            totalCount: Int
         ): Flow<List<PairSongLocalPlaylist>?> =
             flow {
-                emit(localDataSource.getPlaylistPairSongByOffset(playlistId, offset, filterState))
+                emit(localDataSource.getPlaylistPairSongByOffset(playlistId, offset, filterState, totalCount))
             }.flowOn(Dispatchers.IO)
 
         suspend fun deletePairSongLocalPlaylist(
@@ -936,6 +937,10 @@ class MainRepository
                                 )?.tabRenderer?.content?.sectionListRenderer?.continuations?.get(
                                     0,
                                 )?.nextContinuationData?.continuation
+                                ?:
+                                result.contents?.twoColumnBrowseResultsRenderer?.secondaryContents
+                                    ?.sectionListRenderer?.continuations?.firstOrNull()
+                                    ?.nextContinuationData?.continuation
                         val dataResult: ArrayList<MusicShelfRenderer.Content> = arrayListOf()
                         var reloadParams: String? = null
                         println("continueParam: $continueParam")

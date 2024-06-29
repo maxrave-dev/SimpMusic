@@ -89,6 +89,7 @@ import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.stateIn
@@ -220,6 +221,8 @@ constructor(
     private var jobWatchtime: Job? = null
 
     private var getFormatFlowJob: Job? = null
+
+    private var getLyricsJob: Job? = null
 
     var playlistId: MutableStateFlow<String?> = MutableStateFlow(null)
     private var initJob: Job? = null
@@ -552,10 +555,12 @@ constructor(
                         } else {
                             continuation.removePrefix(DESC).toInt()
                         }
+                    val total = mainRepository.getLocalPlaylist(longId).firstOrNull()?.tracks?.size ?: 0
                     mainRepository.getPlaylistPairSongByOffset(
                         longId,
                         offset,
                         filter,
+                        total
                     ).singleOrNull()?.let { pair ->
                         Log.w("Check loadMore response", pair.size.toString())
                         mainRepository.getSongsByListVideoId(pair.map { it.songId }).single().let { songs ->
@@ -1586,7 +1591,7 @@ constructor(
                                 (artist ?: "").toString(),
                                 song.title,
                                 duration,
-                            ).collect { response ->
+                            ).cancellable().collect { response ->
                                 _lyrics.value = response.second
 
                                 when (response.second) {
@@ -1651,7 +1656,7 @@ constructor(
                 }
             } else if (dataStoreManager.lyricsProvider.first() == DataStoreManager.YOUTUBE) {
                 mainRepository.getSongById(videoId).first().let { song ->
-                    mainRepository.getYouTubeCaption(videoId).collect { response ->
+                    mainRepository.getYouTubeCaption(videoId).cancellable().collect { response ->
                         _lyrics.value = response
                         when (response) {
                             is Resource.Success -> {

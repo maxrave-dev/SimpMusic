@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.data.db
 
+import android.util.Log
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
 import com.maxrave.simpmusic.data.db.entities.FollowedArtistSingleAndAlbum
@@ -239,13 +240,32 @@ class LocalDataSource
             playlistId: Long,
             offset: Int,
             filterState: FilterState,
+            totalCount: Int
         ) = if (filterState == FilterState.OlderFirst) {
             databaseDao.getPlaylistPairSongByOffsetAsc(
                 playlistId,
                 offset * 50,
             )
         } else {
-            databaseDao.getPlaylistPairSongByOffsetDesc(playlistId, offset * 50)
+            Log.w("Pair LocalPlaylistViewModel", "getPlaylistPairSongByOffset: ${totalCount - (offset+1) * 50}")
+            if ((totalCount - (offset+1) * 50) > 0) {
+                databaseDao.getPlaylistPairSongByOffsetDesc(
+                    playlistId, totalCount - (offset+1) * 50
+                )?.reversed()
+            }
+            else if ((totalCount - (offset + 1) * 50) >= -50 ) {
+                databaseDao.getPlaylistPairSongByFromToDesc(
+                    playlistId, 0, totalCount - (offset + 1) * 50 + 50
+                )?.reversed()
+            }
+            else if (offset == 0) {
+                databaseDao.getPlaylistPairSongByOffsetDesc(
+                    playlistId, 0
+                )?.reversed()
+            }
+            else {
+                null
+            }
         }
 
         suspend fun deletePairSongLocalPlaylist(

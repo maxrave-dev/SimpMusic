@@ -116,6 +116,7 @@ import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SuggestItems
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.FilterState
+import com.maxrave.simpmusic.viewModel.LocalPlaylistUIEvent
 import com.maxrave.simpmusic.viewModel.LocalPlaylistViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
@@ -345,7 +346,7 @@ fun PlaylistScreen(
     LaunchedEffect(key1 = localPlaylist, key2 = firstTimeGetLocalPlaylist) {
         if (localPlaylist != null && firstTimeGetLocalPlaylist && localPlaylist?.id == viewModel.id.value) {
             Log.w("PlaylistScreen", "new localPlaylist: $localPlaylist")
-            localPlaylist?.id?.let { viewModel.getListTrack(it, offset, filterState) }
+            localPlaylist?.id?.let { viewModel.getListTrack(it, offset, filterState, localPlaylist?.tracks?.size ?: 0) }
             localPlaylist?.downloadState?.let { viewModel.playlistDownloadState.emit(it) }
             shouldShowSuggestButton =
                 localPlaylist?.youtubePlaylistId != null &&
@@ -358,7 +359,7 @@ fun PlaylistScreen(
     }
     LaunchedEffect(key1 = lastItemVisible) {
         if (lastItemVisible && offset > 0 && !isLoadingMore) {
-            localPlaylist?.id?.let { viewModel.getListTrack(it, offset, filterState) }
+            localPlaylist?.id?.let { viewModel.getListTrack(it, offset, filterState, localPlaylist?.tracks?.size ?: 0) }
         }
     }
     LaunchedEffect(key1 = palette) {
@@ -679,7 +680,9 @@ fun PlaylistScreen(
                                                     modifier = Modifier.size(36.dp),
                                                 ) {
                                                     Log.w("PlaylistScreen", "downloadState: $downloadState")
-                                                    localPlaylist?.let { it1 -> viewModel.getAllTracksOfPlaylist(it1.id) }
+                                                    localPlaylist?.let { it1 ->
+                                                        viewModel.getAllTracksOfPlaylist(it1.id, it1.tracks?.size ?: 0)
+                                                    }
                                                     shouldDownload = true
                                                 }
                                             }
@@ -982,18 +985,7 @@ fun PlaylistScreen(
                                         Modifier
                                             .defaultMinSize(minWidth = 1.dp, minHeight = 1.dp),
                                     onClick = {
-                                        if (filterState == FilterState.OlderFirst) {
-                                            viewModel.setFilter(FilterState.NewerFirst)
-                                        } else {
-                                            viewModel.setFilter(FilterState.OlderFirst)
-                                        }
-                                        Log.w("PlaylistScreen", "new filterState: $filterState")
-                                        viewModel.setOffset(0)
-                                        viewModel.clearListPair()
-                                        viewModel.clearListTracks()
-                                        if (localPlaylist != null) {
-                                            localPlaylist?.id?.let { viewModel.getListTrack(it, offset, filterState) }
-                                        }
+                                        viewModel.onUIEvent(LocalPlaylistUIEvent.ChangeFilter)
                                     },
                                 ) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -1118,7 +1110,7 @@ fun PlaylistScreen(
                         viewModel.updatePlaylistThumbnail(thumbUri, it.id)
                     },
                 onAddToQueue = {
-                    viewModel.getAllTracksOfPlaylist(it.id)
+                    viewModel.getAllTracksOfPlaylist(it.id, it.tracks?.size ?: 0)
                     /*
                     Add to queue in LaunchedEffect
                      */

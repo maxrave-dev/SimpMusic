@@ -30,6 +30,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.singleOrNull
@@ -228,6 +229,7 @@ class LocalPlaylistViewModel
             playlistId: Long,
             offset: Int,
             filterState: FilterState,
+            totalCount: Int
         ) {
             viewModelScope.launch {
                 _loadingMore.value = true
@@ -237,7 +239,8 @@ class LocalPlaylistViewModel
                             playlistId,
                             offset,
                             filterState,
-                        ).singleOrNull().let { listPairPlaylist ->
+                            totalCount
+                        ).cancellable().singleOrNull().let { listPairPlaylist ->
                             Log.w("Pair", "getListTrack: $listPairPlaylist")
                             if (listPairPlaylist != null) {
                                 if (_listPair.value == null || offset == 0) {
@@ -251,6 +254,7 @@ class LocalPlaylistViewModel
                                 setOffset(offset + 1)
                                 Log.w("Pair LocalPlaylistViewModel", "offset: ${_offset.value}")
                                 Log.w("Pair LocalPlaylistViewModel", "listPair: $listPairPlaylist")
+                                Log.w("Pair LocalPlaylistViewModel", "firstPair: ${listPairPlaylist.firstOrNull()?.position}")
                                 mainRepository.getSongsByListVideoId(
                                     listPairPlaylist.map { it.songId },
                                 ).collect { list ->
@@ -910,7 +914,7 @@ class LocalPlaylistViewModel
                     if (offset.value > 0) {
                         setOffset(offset.value - 1)
                     }
-                    getListTrack(it.id, offset.value, filter.value)
+                    getListTrack(it.id, offset.value, filter.value, localPlaylist.value?.tracks?.size ?: 0)
                 }
             }
         }
@@ -918,13 +922,13 @@ class LocalPlaylistViewModel
         private val _fullListTracks = MutableStateFlow<MutableList<SongEntity>?>(null)
         val fullListTracks: StateFlow<MutableList<SongEntity>?> get() = _fullListTracks
 
-        fun getAllTracksOfPlaylist(id: Long) {
+        fun getAllTracksOfPlaylist(id: Long, totalCount: Int) {
             viewModelScope.launch {
                 Log.w("Pair", "getAllTracksOfPlaylist: $id")
                 val list: MutableList<SongEntity> = mutableListOf()
                 var os = 0
                 while (os >= 0) {
-                    mainRepository.getPlaylistPairSongByOffset(id, os, FilterState.OlderFirst).singleOrNull().let { pairSongLocalPlaylists ->
+                    mainRepository.getPlaylistPairSongByOffset(id, os, FilterState.OlderFirst, totalCount).singleOrNull().let { pairSongLocalPlaylists ->
                         if (!pairSongLocalPlaylists.isNullOrEmpty()) {
                             Log.w("Pair", "getAllTracksOfPlaylist: ${pairSongLocalPlaylists.size}")
                             mainRepository.getSongsByListVideoId(pairSongLocalPlaylists.map { it.songId }).firstOrNull().let {
@@ -953,10 +957,35 @@ class LocalPlaylistViewModel
         fun clearListTracks() {
             _listTrack.value = null
         }
+    fun onUIEvent(ev: LocalPlaylistUIEvent) {
+        when(ev) {
+            is LocalPlaylistUIEvent.ChangeFilter -> {
+                if (_filter.value == FilterState.OlderFirst) {
+                    setFilter(FilterState.NewerFirst)
+                } else {
+                    setFilter(FilterState.OlderFirst)
+                }
+                Log.w("PlaylistScreen", "new filterState: ${filter.value}")
+                setOffset(0)
+                clearListPair()
+                clearListTracks()
+                if (localPlaylist.value != null) {
+                    localPlaylist.value?.let {
+                        Log.w("Pair LocalPlaylistViewModel", "localPlaylist: ${it.tracks?.size}, listTrack: ${listTrack.value?.size}, listPair: ${listPair.value?.size}")
+                        getListTrack(it.id, offset.value, filter.value, it.tracks?.size ?: 0)
+                    }
+                }
+            }
+        }
     }
+}
 
 sealed class FilterState {
     data object OlderFirst : FilterState()
 
     data object NewerFirst : FilterState()
+}
+
+sealed class LocalPlaylistUIEvent {
+    data object ChangeFilter : LocalPlaylistUIEvent()
 }
