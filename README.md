@@ -22,7 +22,7 @@
 - Search everything on YouTube
 - Analyze your playing data, create custom playlists, and sync with YouTube Music...
 - Spotify Canvas supported
-- Play video option with subtitle
+- Play 1080p video option with subtitle
 - AI suggest songs
 - Notification from followed artists
 - Caching and can save data for offline playback

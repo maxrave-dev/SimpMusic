@@ -1,4 +1,5 @@
 - Thêm ngôn ngữ Trung Quốc Truyền Thống
+- Hỗ trợ video 1080p
 - Thêm menu tùy chọn cho bài hát trong trang Album
 - Cử chỉ vuốt trình phát thu nhỏ
 - Phân trang cho màn hình danh sách phát nội bộ
