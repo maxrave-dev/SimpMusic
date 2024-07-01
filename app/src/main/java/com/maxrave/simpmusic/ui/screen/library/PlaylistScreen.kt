@@ -119,7 +119,6 @@ import com.maxrave.simpmusic.viewModel.FilterState
 import com.maxrave.simpmusic.viewModel.LocalPlaylistUIEvent
 import com.maxrave.simpmusic.viewModel.LocalPlaylistViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import com.maxrave.simpmusic.viewModel.UIEvent
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.animation.crossfade.CrossfadePlugin
 import com.skydoves.landscapist.coil.CoilImage
@@ -128,9 +127,7 @@ import com.skydoves.landscapist.palette.PalettePlugin
 import com.skydoves.landscapist.palette.rememberPaletteState
 import com.skydoves.landscapist.placeholder.placeholder.PlaceholderPlugin
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import java.time.format.DateTimeFormatter
 
 @UnstableApi
@@ -163,10 +160,10 @@ fun PlaylistScreen(
         initialValue = -limit,
         targetValue = limit,
         animationSpec =
-            infiniteRepeatable(
-                animation = tween(5000, easing = LinearEasing),
-                repeatMode = RepeatMode.Reverse,
-            ),
+        infiniteRepeatable(
+            animation = tween(5000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse,
+        ),
         label = "shimmer",
     )
     val infiniteTransition = rememberInfiniteTransition(label = "rotation")
@@ -174,10 +171,10 @@ fun PlaylistScreen(
         initialValue = 0f,
         targetValue = 360f,
         animationSpec =
-            infiniteRepeatable(
-                animation = tween(5000, easing = LinearEasing),
-                repeatMode = RepeatMode.Restart,
-            ),
+        infiniteRepeatable(
+            animation = tween(5000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart,
+        ),
         label = "rotation",
     )
 
@@ -350,7 +347,7 @@ fun PlaylistScreen(
             localPlaylist?.downloadState?.let { viewModel.playlistDownloadState.emit(it) }
             shouldShowSuggestButton =
                 localPlaylist?.youtubePlaylistId != null &&
-                localPlaylist?.youtubePlaylistId != ""
+                    localPlaylist?.youtubePlaylistId != ""
             firstTimeGetLocalPlaylist = false
         }
     }
@@ -403,23 +400,23 @@ fun PlaylistScreen(
 //    Box {
     LazyColumn(
         modifier =
-            Modifier
-                .fillMaxWidth()
-                .background(Color.Black),
+        Modifier
+            .fillMaxWidth()
+            .background(Color.Black),
         state = lazyState,
     ) {
         item(contentType = "header") {
             Box(
                 modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .wrapContentHeight()
-                        .background(Color.Transparent),
+                Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .background(Color.Transparent),
             ) {
                 Box(
                     modifier =
-                        Modifier
-                            .fillMaxWidth(),
+                    Modifier
+                        .fillMaxWidth(),
 //                                .haze(
 //                                    hazeState,
 //                                    style = HazeMaterials.regular(),
@@ -427,29 +424,30 @@ fun PlaylistScreen(
                 ) {
                     Box(
                         modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .aspectRatio(1f)
-                                .clip(
-                                    RoundedCornerShape(8.dp),
-                                ).angledGradientBackground(bg, 25f),
+                        Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(1f)
+                            .clip(
+                                RoundedCornerShape(8.dp),
+                            )
+                            .angledGradientBackground(bg, 25f),
                     )
                     Box(
                         modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .height(180.dp)
-                                .align(Alignment.BottomCenter)
-                                .background(
-                                    brush =
-                                        Brush.verticalGradient(
-                                            listOf(
-                                                Color.Transparent,
-                                                Color(0x75000000),
-                                                Color.Black,
-                                            ),
-                                        ),
+                        Modifier
+                            .fillMaxWidth()
+                            .height(180.dp)
+                            .align(Alignment.BottomCenter)
+                            .background(
+                                brush =
+                                Brush.verticalGradient(
+                                    listOf(
+                                        Color.Transparent,
+                                        Color(0x75000000),
+                                        Color.Black,
+                                    ),
                                 ),
+                            ),
                     )
                 }
                 Column(
@@ -459,10 +457,10 @@ fun PlaylistScreen(
                 ) {
                     Row(
                         modifier =
-                            Modifier
-                                .wrapContentWidth()
-                                .padding(16.dp)
-                                .windowInsetsPadding(WindowInsets.statusBars),
+                        Modifier
+                            .wrapContentWidth()
+                            .padding(16.dp)
+                            .windowInsetsPadding(WindowInsets.statusBars),
                     ) {
                         RippleIconButton(
                             resId = R.drawable.baseline_arrow_back_ios_new_24,
@@ -478,43 +476,43 @@ fun PlaylistScreen(
                                 localPlaylist?.thumbnail
                             },
                             imageOptions =
-                                ImageOptions(
-                                    contentScale = ContentScale.FillHeight,
-                                    alignment = Alignment.Center,
-                                ),
+                            ImageOptions(
+                                contentScale = ContentScale.FillHeight,
+                                alignment = Alignment.Center,
+                            ),
                             previewPlaceholder = painterResource(id = R.drawable.holder),
                             component =
-                                rememberImageComponent {
-                                    add(
-                                        CrossfadePlugin(
-                                            duration = 550,
-                                        ),
-                                    )
-                                    add(
-                                        PalettePlugin(
-                                            paletteLoadedListener = {
-                                                palette = it
-                                            },
-                                            useCache = true,
-                                        ),
-                                    )
-                                    +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder))
-                                    +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder))
-                                },
-                            modifier =
-                                Modifier
-                                    .height(250.dp)
-                                    .wrapContentWidth()
-                                    .align(Alignment.CenterHorizontally)
-                                    .clip(
-                                        RoundedCornerShape(8.dp),
+                            rememberImageComponent {
+                                add(
+                                    CrossfadePlugin(
+                                        duration = 550,
                                     ),
+                                )
+                                add(
+                                    PalettePlugin(
+                                        paletteLoadedListener = {
+                                            palette = it
+                                        },
+                                        useCache = true,
+                                    ),
+                                )
+                                +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder))
+                                +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder))
+                            },
+                            modifier =
+                            Modifier
+                                .height(250.dp)
+                                .wrapContentWidth()
+                                .align(Alignment.CenterHorizontally)
+                                .clip(
+                                    RoundedCornerShape(8.dp),
+                                ),
                         )
                         Box(
                             modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .wrapContentHeight(),
+                            Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight(),
                         ) {
                             Column(Modifier.padding(horizontal = 32.dp)) {
                                 Spacer(modifier = Modifier.size(25.dp))
@@ -534,21 +532,21 @@ fun PlaylistScreen(
                                     Spacer(modifier = Modifier.height(8.dp))
                                     Text(
                                         text =
-                                            stringResource(
-                                                id = R.string.created_at,
-                                                localPlaylist?.inLibrary?.format(
-                                                    DateTimeFormatter.ofPattern(
-                                                        "kk:mm - dd MMM uuuu",
-                                                    ),
-                                                ) ?: "",
-                                            ),
+                                        stringResource(
+                                            id = R.string.created_at,
+                                            localPlaylist?.inLibrary?.format(
+                                                DateTimeFormatter.ofPattern(
+                                                    "kk:mm - dd MMM uuuu",
+                                                ),
+                                            ) ?: "",
+                                        ),
                                         style = typo.bodyLarge,
                                         color = Color(0xC4FFFFFF),
                                     )
                                 }
                                 Row(
                                     modifier =
-                                        Modifier.fillMaxWidth(),
+                                    Modifier.fillMaxWidth(),
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
                                     RippleIconButton(
@@ -606,36 +604,36 @@ fun PlaylistScreen(
                                             DownloadState.STATE_DOWNLOADED -> {
                                                 Box(
                                                     modifier =
-                                                        Modifier
-                                                            .size(36.dp)
-                                                            .clip(
-                                                                CircleShape,
-                                                            )
-                                                            .clickable(
-                                                                onClick = {
-                                                                    Toast
-                                                                        .makeText(
-                                                                            context,
-                                                                            context.getString(R.string.downloaded),
-                                                                            Toast.LENGTH_SHORT,
-                                                                        )
-                                                                        .show()
-                                                                },
-                                                                interactionSource =
-                                                                    remember {
-                                                                        MutableInteractionSource()
-                                                                    },
-                                                                indication = ripple(),
-                                                            ),
+                                                    Modifier
+                                                        .size(36.dp)
+                                                        .clip(
+                                                            CircleShape,
+                                                        )
+                                                        .clickable(
+                                                            onClick = {
+                                                                Toast
+                                                                    .makeText(
+                                                                        context,
+                                                                        context.getString(R.string.downloaded),
+                                                                        Toast.LENGTH_SHORT,
+                                                                    )
+                                                                    .show()
+                                                            },
+                                                            interactionSource =
+                                                            remember {
+                                                                MutableInteractionSource()
+                                                            },
+                                                            indication = ripple(),
+                                                        ),
                                                 ) {
                                                     Icon(
                                                         painter = painterResource(id = R.drawable.baseline_downloaded),
                                                         tint = Color(0xFF00A0CB),
                                                         contentDescription = "",
                                                         modifier =
-                                                            Modifier
-                                                                .size(36.dp)
-                                                                .padding(2.dp),
+                                                        Modifier
+                                                            .size(36.dp)
+                                                            .padding(2.dp),
                                                     )
                                                 }
                                             }
@@ -643,27 +641,27 @@ fun PlaylistScreen(
                                             DownloadState.STATE_DOWNLOADING -> {
                                                 Box(
                                                     modifier =
-                                                        Modifier
-                                                            .size(36.dp)
-                                                            .clip(
-                                                                CircleShape,
-                                                            )
-                                                            .clickable(
-                                                                onClick = {
-                                                                    Toast
-                                                                        .makeText(
-                                                                            context,
-                                                                            context.getString(R.string.downloading),
-                                                                            Toast.LENGTH_SHORT,
-                                                                        )
-                                                                        .show()
-                                                                },
-                                                                interactionSource =
-                                                                    remember {
-                                                                        MutableInteractionSource()
-                                                                    },
-                                                                indication = ripple(),
-                                                            ),
+                                                    Modifier
+                                                        .size(36.dp)
+                                                        .clip(
+                                                            CircleShape,
+                                                        )
+                                                        .clickable(
+                                                            onClick = {
+                                                                Toast
+                                                                    .makeText(
+                                                                        context,
+                                                                        context.getString(R.string.downloading),
+                                                                        Toast.LENGTH_SHORT,
+                                                                    )
+                                                                    .show()
+                                                            },
+                                                            interactionSource =
+                                                            remember {
+                                                                MutableInteractionSource()
+                                                            },
+                                                            indication = ripple(),
+                                                        ),
                                                 ) {
                                                     LottieAnimation(
                                                         composition,
@@ -693,75 +691,83 @@ fun PlaylistScreen(
                                     AnimatedVisibility(visible = shouldShowSuggestButton) {
                                         Box(
                                             modifier =
-                                                Modifier
-                                                    .size(36.dp)
-                                                    .clip(CircleShape)
-                                                    .graphicsLayer {
-                                                        compositingStrategy =
-                                                            CompositingStrategy.Offscreen
-                                                    }
-                                                    .clickable(
-                                                        onClick = {
-                                                            shouldShowSuggestions = !shouldShowSuggestions
-                                                        },
-                                                        interactionSource =
-                                                            remember {
-                                                                MutableInteractionSource()
-                                                            },
-                                                        indication = ripple(),
-                                                    )
-                                                    .drawWithCache {
-                                                        val width = size.width - 10
-                                                        val height = size.height - 10
+                                            Modifier
+                                                .size(36.dp)
+                                                .clip(CircleShape)
+                                                .graphicsLayer {
+                                                    compositingStrategy =
+                                                        CompositingStrategy.Offscreen
+                                                }
+                                                .clickable(
+                                                    onClick = {
+                                                        shouldShowSuggestions = !shouldShowSuggestions
+                                                    },
+                                                    interactionSource =
+                                                    remember {
+                                                        MutableInteractionSource()
+                                                    },
+                                                    indication = ripple(),
+                                                )
+                                                .drawWithCache {
+                                                    val width = size.width - 10
+                                                    val height = size.height - 10
 
-                                                        val offsetDraw = width * progressAnimated
-                                                        val gradientColors =
-                                                            listOf(
-                                                                Color(0xFF4C82EF),
-                                                                Color(0xFFD96570),
-                                                            )
-                                                        val brush =
-                                                            Brush.linearGradient(
-                                                                colors = gradientColors,
-                                                                start = Offset(offsetDraw, 0f),
-                                                                end =
-                                                                    Offset(
-                                                                        offsetDraw + width,
-                                                                        height,
-                                                                    ),
-                                                            )
+                                                    val offsetDraw = width * progressAnimated
+                                                    val gradientColors =
+                                                        listOf(
+                                                            Color(0xFF4C82EF),
+                                                            Color(0xFFD96570),
+                                                        )
+                                                    val brush =
+                                                        Brush.linearGradient(
+                                                            colors = gradientColors,
+                                                            start = Offset(offsetDraw, 0f),
+                                                            end =
+                                                            Offset(
+                                                                offsetDraw + width,
+                                                                height,
+                                                            ),
+                                                        )
 
-                                                        onDrawBehind {
-                                                            // Destination
-                                                            with(aiPainter) {
-                                                                draw(
-                                                                    size = Size(width, width),
-                                                                )
-                                                            }
-
-                                                            // Source
-                                                            drawRect(
-                                                                brush = brush,
-                                                                blendMode = BlendMode.SrcIn,
+                                                    onDrawBehind {
+                                                        // Destination
+                                                        with(aiPainter) {
+                                                            draw(
+                                                                size = Size(width, width),
                                                             )
                                                         }
-                                                    },
+
+                                                        // Source
+                                                        drawRect(
+                                                            brush = brush,
+                                                            blendMode = BlendMode.SrcIn,
+                                                        )
+                                                    }
+                                                },
                                         )
                                     }
                                     RippleIconButton(
                                         modifier =
-                                            Modifier.size(36.dp),
+                                        Modifier.size(36.dp),
                                         resId = R.drawable.baseline_shuffle_24,
                                         fillMaxSize = true,
                                     ) {
-                                        val temp = listTrack
-                                        if (!temp.isNullOrEmpty()) {
-                                            val random = temp.random()
+                                        val tempListTrack = listTrack
+                                        if (!tempListTrack.isNullOrEmpty()) {
+
+                                            val tempList: ArrayList<Track> = arrayListOf()
+                                            for (i in tempListTrack) {
+                                                tempList.add(i.toTrack())
+                                            }
+                                            tempList.shuffle()
+
+                                            val firstSong = tempList.first()
+                                            tempList.remove(firstSong)
                                             val args = Bundle()
                                             args.putString("type", Config.ALBUM_CLICK)
-                                            args.putString("videoId", random.videoId)
+                                            args.putString("videoId", firstSong.videoId)
                                             args.putString("from", "Playlist \"${(localPlaylist)?.title}\"")
-                                            args.putInt("index", temp.indexOf(random))
+                                            args.putInt("index", tempList.indexOf(firstSong))
                                             if (downloadState == DownloadState.STATE_DOWNLOADED) {
                                                 args.putInt("downloaded", 1)
                                             }
@@ -776,12 +782,7 @@ fun PlaylistScreen(
                                                 "Playlist \"${(viewModel.localPlaylist.value)?.title}\"",
                                                 Queue.PlaylistType.PLAYLIST,
                                             )
-                                            Queue.setNowPlaying(random.toTrack())
-                                            val tempList: ArrayList<Track> = arrayListOf()
-                                            for (i in temp) {
-                                                tempList.add(i.toTrack())
-                                            }
-                                            tempList.remove(random.toTrack())
+                                            Queue.setNowPlaying(firstSong)
                                             Queue.addAll(tempList)
                                             if (offset > 0) {
                                                 Queue.setContinuation(
@@ -790,12 +791,16 @@ fun PlaylistScreen(
                                                         (ASC + offset.toString())
                                                     } else {
                                                         (DESC + offset)
-                                                    },
+                                                    }
+
                                                 )
                                             }
-                                            if (runBlocking { sharedViewModel.simpleMediaServiceHandler?.shuffle?.first() } != true) {
-                                                sharedViewModel.onUIEvent(UIEvent.Shuffle)
-                                            }
+                                            
+                                            // Removed this because it randomized each time a new song is played instead of only once
+                                            //  if (runBlocking { sharedViewModel.simpleMediaServiceHandler?.shuffle?.first() } != true) {
+                                            //     sharedViewModel.onUIEvent(UIEvent.Shuffle)
+                                            //  }
+
                                             navController.navigateSafe(R.id.action_global_nowPlayingFragment, args)
                                         } else {
                                             Toast.makeText(context, context.getString(R.string.playlist_is_empty), Toast.LENGTH_SHORT).show()
@@ -804,7 +809,7 @@ fun PlaylistScreen(
                                     Spacer(Modifier.size(5.dp))
                                     RippleIconButton(
                                         modifier =
-                                            Modifier.size(36.dp),
+                                        Modifier.size(36.dp),
                                         resId = R.drawable.baseline_more_vert_24,
                                         fillMaxSize = true,
                                     ) {
@@ -824,11 +829,11 @@ fun PlaylistScreen(
                                 //                                )
                                 Text(
                                     text =
-                                        stringResource(
-                                            id = R.string.album_length,
-                                            (localPlaylist?.tracks?.size ?: 0).toString(),
-                                            "",
-                                        ),
+                                    stringResource(
+                                        id = R.string.album_length,
+                                        (localPlaylist?.tracks?.size ?: 0).toString(),
+                                        "",
+                                    ),
                                     color = Color.White,
                                     modifier = Modifier.padding(vertical = 8.dp),
                                 )
@@ -839,9 +844,9 @@ fun PlaylistScreen(
                                         Spacer(modifier = Modifier.size(8.dp))
                                         Text(
                                             text =
-                                                stringResource(
-                                                    id = R.string.suggest,
-                                                ),
+                                            stringResource(
+                                                id = R.string.suggest,
+                                            ),
                                             color = Color.White,
                                             modifier = Modifier.padding(vertical = 8.dp),
                                         )
@@ -850,10 +855,10 @@ fun PlaylistScreen(
                                             if (it) {
                                                 CenterLoadingBox(
                                                     modifier =
-                                                        Modifier
-                                                            .fillMaxWidth()
-                                                            .height(200.dp)
-                                                            .align(Alignment.CenterHorizontally),
+                                                    Modifier
+                                                        .fillMaxWidth()
+                                                        .height(200.dp)
+                                                        .align(Alignment.CenterHorizontally),
                                                 )
                                             } else {
                                                 Column {
@@ -915,60 +920,60 @@ fun PlaylistScreen(
                                         OutlinedButton(
                                             onClick = { viewModel.reloadSuggestion() },
                                             modifier =
-                                                Modifier.drawWithContent {
-                                                    val strokeWidthPx = 2.dp.toPx()
-                                                    val width = size.width
-                                                    val height = size.height
+                                            Modifier.drawWithContent {
+                                                val strokeWidthPx = 2.dp.toPx()
+                                                val width = size.width
+                                                val height = size.height
 
-                                                    drawContent()
+                                                drawContent()
 
-                                                    with(drawContext.canvas.nativeCanvas) {
-                                                        val checkPoint = saveLayer(null, null)
+                                                with(drawContext.canvas.nativeCanvas) {
+                                                    val checkPoint = saveLayer(null, null)
 
-                                                        // Destination
-                                                        drawRoundRect(
-                                                            cornerRadius = CornerRadius(x = 60f, y = 60f),
-                                                            color = Color.Gray,
-                                                            topLeft = Offset(strokeWidthPx / 2, strokeWidthPx / 2),
-                                                            size = Size(width - strokeWidthPx, height - strokeWidthPx),
-                                                            style = Stroke(strokeWidthPx),
+                                                    // Destination
+                                                    drawRoundRect(
+                                                        cornerRadius = CornerRadius(x = 60f, y = 60f),
+                                                        color = Color.Gray,
+                                                        topLeft = Offset(strokeWidthPx / 2, strokeWidthPx / 2),
+                                                        size = Size(width - strokeWidthPx, height - strokeWidthPx),
+                                                        style = Stroke(strokeWidthPx),
+                                                    )
+                                                    val gradientColors =
+                                                        listOf(
+                                                            Color(0xFF4C82EF),
+                                                            Color(0xFFD96570),
                                                         )
-                                                        val gradientColors =
-                                                            listOf(
-                                                                Color(0xFF4C82EF),
-                                                                Color(0xFFD96570),
-                                                            )
-                                                        val brush =
-                                                            Brush.linearGradient(
-                                                                colors = gradientColors,
-                                                                start = Offset(2f, 0f),
-                                                                end =
-                                                                    Offset(
-                                                                        2 + width,
-                                                                        height,
-                                                                    ),
-                                                            )
+                                                    val brush =
+                                                        Brush.linearGradient(
+                                                            colors = gradientColors,
+                                                            start = Offset(2f, 0f),
+                                                            end =
+                                                            Offset(
+                                                                2 + width,
+                                                                height,
+                                                            ),
+                                                        )
 
-                                                        // Source
-                                                        rotate(degrees = angle) {
-                                                            drawCircle(
-                                                                brush = brush,
-                                                                radius = size.width,
-                                                                blendMode = BlendMode.SrcIn,
-                                                            )
-                                                        }
-
-                                                        restoreToCount(checkPoint)
+                                                    // Source
+                                                    rotate(degrees = angle) {
+                                                        drawCircle(
+                                                            brush = brush,
+                                                            radius = size.width,
+                                                            blendMode = BlendMode.SrcIn,
+                                                        )
                                                     }
-                                                },
+
+                                                    restoreToCount(checkPoint)
+                                                }
+                                            },
                                         ) {
                                             Text(
                                                 text = stringResource(id = R.string.reload),
                                                 color = Color.White,
                                                 modifier =
-                                                    Modifier.align(
-                                                        Alignment.CenterVertically,
-                                                    ),
+                                                Modifier.align(
+                                                    Alignment.CenterVertically,
+                                                ),
                                             )
                                         }
                                         Spacer(modifier = Modifier.size(12.dp))
@@ -982,8 +987,8 @@ fun PlaylistScreen(
                                 ElevatedButton(
                                     contentPadding = PaddingValues(0.dp),
                                     modifier =
-                                        Modifier
-                                            .defaultMinSize(minWidth = 1.dp, minHeight = 1.dp),
+                                    Modifier
+                                        .defaultMinSize(minWidth = 1.dp, minHeight = 1.dp),
                                     onClick = {
                                         viewModel.onUIEvent(LocalPlaylistUIEvent.ChangeFilter)
                                     },
@@ -1096,19 +1101,19 @@ fun PlaylistScreen(
                 onDismiss = { playlistBottomSheetShow = false },
                 localPlaylist = it,
                 onEditTitle =
-                    { newTitle ->
-                        viewModel.updatePlaylistTitle(newTitle, it.id)
-                        if (it.syncedWithYouTubePlaylist == 1) {
-                            viewModel.updateYouTubePlaylistTitle(
-                                newTitle,
-                                it.youtubePlaylistId!!,
-                            )
-                        }
-                    },
+                { newTitle ->
+                    viewModel.updatePlaylistTitle(newTitle, it.id)
+                    if (it.syncedWithYouTubePlaylist == 1) {
+                        viewModel.updateYouTubePlaylistTitle(
+                            newTitle,
+                            it.youtubePlaylistId!!,
+                        )
+                    }
+                },
                 onEditThumbnail =
-                    { thumbUri ->
-                        viewModel.updatePlaylistThumbnail(thumbUri, it.id)
-                    },
+                { thumbUri ->
+                    viewModel.updatePlaylistThumbnail(thumbUri, it.id)
+                },
                 onAddToQueue = {
                     viewModel.getAllTracksOfPlaylist(it.id, it.tracks?.size ?: 0)
                     /*
@@ -1225,9 +1230,9 @@ fun PlaylistScreen(
                 }
             },
             colors =
-                TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
-                ),
+            TopAppBarDefaults.topAppBarColors(
+                containerColor = Color.Transparent,
+            ),
             modifier = Modifier.angledGradientBackground(bg, 90f),
         )
     }
