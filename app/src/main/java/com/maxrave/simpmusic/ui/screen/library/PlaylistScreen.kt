@@ -759,7 +759,6 @@ fun PlaylistScreen(
                                             for (i in tempListTrack) {
                                                 tempList.add(i.toTrack())
                                             }
-                                            tempList.shuffle()
 
                                             val firstSong = tempList.first()
                                             tempList.remove(firstSong)
@@ -795,7 +794,7 @@ fun PlaylistScreen(
 
                                                 )
                                             }
-                                            
+
                                             // Removed this because it randomized each time a new song is played instead of only once
                                             //  if (runBlocking { sharedViewModel.simpleMediaServiceHandler?.shuffle?.first() } != true) {
                                             //     sharedViewModel.onUIEvent(UIEvent.Shuffle)
