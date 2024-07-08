@@ -1379,14 +1379,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.8.0",
+            "artifactVersion": "1.8.1",
             "description": "The Support Library is a static library that you can add to your Android application in order to use APIs that are either not available for older platform versions or utility APIs that aren't a part of the framework APIs. Compatible on devices running API 14 or later.",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "fragment",
-            "website": "https://developer.android.com/jetpack/androidx/releases/fragment#1.8.0",
+            "website": "https://developer.android.com/jetpack/androidx/releases/fragment#1.8.1",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1404,14 +1404,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.8.0",
+            "artifactVersion": "1.8.1",
             "description": "Kotlin extensions for 'fragment' artifact",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Fragment Kotlin Extensions",
-            "website": "https://developer.android.com/jetpack/androidx/releases/fragment#1.8.0",
+            "website": "https://developer.android.com/jetpack/androidx/releases/fragment#1.8.1",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1592,14 +1592,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.2",
+            "artifactVersion": "2.8.3",
             "description": "Android Lifecycle-Common for Java 8 Language",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Lifecycle-Common for Java 8",
-            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.2",
+            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.3",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1617,14 +1617,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.2",
+            "artifactVersion": "2.8.3",
             "description": "Android Lifecycle-Common",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Lifecycle-Common",
-            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.2",
+            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.3",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1664,14 +1664,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.2",
+            "artifactVersion": "2.8.3",
             "description": "Android Lifecycle LiveData",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Lifecycle LiveData",
-            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.2",
+            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.3",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1689,14 +1689,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.2",
+            "artifactVersion": "2.8.3",
             "description": "Android Lifecycle LiveData Core",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Lifecycle LiveData Core",
-            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.2",
+            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.3",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1714,14 +1714,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.2",
+            "artifactVersion": "2.8.3",
             "description": "Kotlin extensions for 'livedata-core' artifact",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "LiveData Core Kotlin Extensions",
-            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.2",
+            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.3",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1739,14 +1739,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.2",
+            "artifactVersion": "2.8.3",
             "description": "Kotlin extensions for 'livedata' artifact",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "LiveData Kotlin Extensions",
-            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.2",
+            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.3",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1764,14 +1764,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.2",
+            "artifactVersion": "2.8.3",
             "description": "Android Lifecycle Process",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Lifecycle Process",
-            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.2",
+            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.3",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1789,14 +1789,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.2",
+            "artifactVersion": "2.8.3",
             "description": "Android Lifecycle Runtime",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Lifecycle Runtime",
-            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.2",
+            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.3",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1814,14 +1814,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.2",
+            "artifactVersion": "2.8.3",
             "description": "Android Lifecycle Runtime",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Lifecycle Runtime",
-            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.2",
+            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.3",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1839,14 +1839,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.2",
+            "artifactVersion": "2.8.3",
             "description": "Compose integration with Lifecycle",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Lifecycle Runtime Compose",
-            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.2",
+            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.3",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1864,14 +1864,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.2",
+            "artifactVersion": "2.8.3",
             "description": "Kotlin extensions for 'lifecycle' artifact",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Lifecycle Kotlin Extensions",
-            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.2",
+            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.3",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1889,14 +1889,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.2",
+            "artifactVersion": "2.8.3",
             "description": "Android Lifecycle Service",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Lifecycle Service",
-            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.2",
+            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.3",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1914,14 +1914,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.2",
+            "artifactVersion": "2.8.3",
             "description": "Android Lifecycle ViewModel",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Lifecycle ViewModel",
-            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.2",
+            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.3",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1939,14 +1939,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.2",
+            "artifactVersion": "2.8.3",
             "description": "Android Lifecycle ViewModel",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Lifecycle ViewModel",
-            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.2",
+            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.3",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1964,14 +1964,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.2",
+            "artifactVersion": "2.8.3",
             "description": "Compose integration with Lifecycle ViewModel",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Lifecycle ViewModel Compose",
-            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.2",
+            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.3",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1989,14 +1989,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.2",
+            "artifactVersion": "2.8.3",
             "description": "Kotlin extensions for 'viewmodel' artifact",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Lifecycle ViewModel Kotlin Extensions",
-            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.2",
+            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.3",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -2014,14 +2014,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.2",
+            "artifactVersion": "2.8.3",
             "description": "Android Lifecycle ViewModel",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Lifecycle ViewModel with SavedState",
-            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.2",
+            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.3",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -4886,7 +4886,7 @@
                     "name": "JetBrains Team"
                 }
             ],
-            "artifactVersion": "2.3.11",
+            "artifactVersion": "2.3.12",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -4908,7 +4908,7 @@
                     "name": "JetBrains Team"
                 }
             ],
-            "artifactVersion": "2.3.11",
+            "artifactVersion": "2.3.12",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -4930,7 +4930,7 @@
                     "name": "JetBrains Team"
                 }
             ],
-            "artifactVersion": "2.3.11",
+            "artifactVersion": "2.3.12",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -4952,7 +4952,7 @@
                     "name": "JetBrains Team"
                 }
             ],
-            "artifactVersion": "2.3.11",
+            "artifactVersion": "2.3.12",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -4974,7 +4974,7 @@
                     "name": "JetBrains Team"
                 }
             ],
-            "artifactVersion": "2.3.11",
+            "artifactVersion": "2.3.12",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -4996,7 +4996,7 @@
                     "name": "JetBrains Team"
                 }
             ],
-            "artifactVersion": "2.3.11",
+            "artifactVersion": "2.3.12",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5018,7 +5018,7 @@
                     "name": "JetBrains Team"
                 }
             ],
-            "artifactVersion": "2.3.11",
+            "artifactVersion": "2.3.12",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5040,7 +5040,7 @@
                     "name": "JetBrains Team"
                 }
             ],
-            "artifactVersion": "2.3.11",
+            "artifactVersion": "2.3.12",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5062,7 +5062,7 @@
                     "name": "JetBrains Team"
                 }
             ],
-            "artifactVersion": "2.3.11",
+            "artifactVersion": "2.3.12",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5084,7 +5084,7 @@
                     "name": "JetBrains Team"
                 }
             ],
-            "artifactVersion": "2.3.11",
+            "artifactVersion": "2.3.12",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5106,7 +5106,7 @@
                     "name": "JetBrains Team"
                 }
             ],
-            "artifactVersion": "2.3.11",
+            "artifactVersion": "2.3.12",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5128,7 +5128,7 @@
                     "name": "JetBrains Team"
                 }
             ],
-            "artifactVersion": "2.3.11",
+            "artifactVersion": "2.3.12",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5150,7 +5150,7 @@
                     "name": "JetBrains Team"
                 }
             ],
-            "artifactVersion": "2.3.11",
+            "artifactVersion": "2.3.12",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5172,7 +5172,7 @@
                     "name": "JetBrains Team"
                 }
             ],
-            "artifactVersion": "2.3.11",
+            "artifactVersion": "2.3.12",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5194,7 +5194,7 @@
                     "name": "JetBrains Team"
                 }
             ],
-            "artifactVersion": "2.3.11",
+            "artifactVersion": "2.3.12",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5216,7 +5216,7 @@
                     "name": "JetBrains Team"
                 }
             ],
-            "artifactVersion": "2.3.11",
+            "artifactVersion": "2.3.12",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5238,7 +5238,7 @@
                     "name": "JetBrains Team"
                 }
             ],
-            "artifactVersion": "2.3.11",
+            "artifactVersion": "2.3.12",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5260,7 +5260,7 @@
                     "name": "JetBrains Team"
                 }
             ],
-            "artifactVersion": "2.3.11",
+            "artifactVersion": "2.3.12",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5282,7 +5282,7 @@
                     "name": "JetBrains Team"
                 }
             ],
-            "artifactVersion": "2.3.11",
+            "artifactVersion": "2.3.12",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5444,7 +5444,7 @@
                     "name": "Kotlin Team"
                 }
             ],
-            "artifactVersion": "1.9.23",
+            "artifactVersion": "2.0.0",
             "description": "Kotlin Full Reflection Library",
             "scm": {
                 "connection": "scm:git:https://github.com/JetBrains/kotlin.git",

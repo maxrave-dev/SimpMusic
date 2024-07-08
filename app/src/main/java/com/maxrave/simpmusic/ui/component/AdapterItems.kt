@@ -63,12 +63,13 @@ import com.maxrave.simpmusic.data.model.home.Content
 import com.maxrave.simpmusic.data.model.home.HomeItem
 import com.maxrave.simpmusic.data.model.home.chart.ItemArtist
 import com.maxrave.simpmusic.data.model.home.chart.ItemVideo
-import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.generateRandomColor
 import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toTrack
+import com.maxrave.simpmusic.service.PlaylistType
+import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.HomeViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -222,20 +223,21 @@ fun HomeItem(
                             }, data = temp)
                     } else if (temp.thumbnails.firstOrNull()?.width != temp.thumbnails.firstOrNull()?.height) {
                         HomeItemVideo(onClick = {
-                            val args = Bundle()
-                            args.putString("videoId", temp.videoId)
-                            args.putString("from", temp.title)
-                            Queue.initPlaylist(
-                                "RDAMVM${temp.videoId}",
-                                temp.title,
-                                Queue.PlaylistType.RADIO
-                            )
                             val firstQueue: Track = temp.toTrack()
-                            Queue.setNowPlaying(firstQueue)
-                            args.putString("type", Config.SONG_CLICK)
-                            navController.navigateSafe(
-                                R.id.action_global_nowPlayingFragment,
-                                args
+                            sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                                QueueData(
+                                    listTracks = arrayListOf(firstQueue),
+                                    firstPlayedTrack = firstQueue,
+                                    playlistId = "RDAMVM${temp.videoId}",
+                                    playlistName = temp.title,
+                                    playlistType = PlaylistType.RADIO,
+                                    continuation = null
+                                )
+                            )
+                            sharedViewModel.loadMediaItemFromTrack(
+                                firstQueue,
+                                Config.SONG_CLICK,
+                                from = temp.title
                             )
                         }, onLongClick = {
                             homeViewModel.getSongEntity(temp.toTrack())
@@ -245,20 +247,22 @@ fun HomeItem(
                         )
                     } else {
                         HomeItemSong(onClick = {
-                            val args = Bundle()
-                            args.putString("videoId", temp.videoId)
-                            args.putString("from", temp.title)
-                            Queue.initPlaylist(
-                                "RDAMVM${temp.videoId}",
-                                temp.title,
-                                Queue.PlaylistType.RADIO
-                            )
+
                             val firstQueue: Track = temp.toTrack()
-                            Queue.setNowPlaying(firstQueue)
-                            args.putString("type", Config.SONG_CLICK)
-                            navController.navigateSafe(
-                                R.id.action_global_nowPlayingFragment,
-                                args
+                            sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                                QueueData(
+                                    listTracks = arrayListOf(firstQueue),
+                                    firstPlayedTrack = firstQueue,
+                                    playlistId = "RDAMVM${temp.videoId}",
+                                    playlistName = temp.title,
+                                    playlistType = PlaylistType.RADIO,
+                                    continuation = null
+                                )
+                            )
+                            sharedViewModel.loadMediaItemFromTrack(
+                                firstQueue,
+                                Config.SONG_CLICK,
+                                from = temp.title
                             )
                         }, onLongClick = {
                             homeViewModel.getSongEntity(temp.toTrack())

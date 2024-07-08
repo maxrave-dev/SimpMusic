@@ -49,14 +49,12 @@ import com.maxrave.simpmusic.common.SUPPORTED_LOCATION
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE
 import com.maxrave.simpmusic.data.model.browse.album.Track
-import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.databinding.ActivityMainBinding
 import com.maxrave.simpmusic.extension.isMyServiceRunning
 import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.observeOnce
 import com.maxrave.simpmusic.service.SimpleMediaService
-import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
 import com.maxrave.simpmusic.ui.screen.MiniPlayer
 import com.maxrave.simpmusic.ui.theme.AppTheme
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -100,19 +98,14 @@ class MainActivity : AppCompatActivity() {
                 if (service is SimpleMediaService.MusicBinder) {
                     Log.w("MainActivity", "onServiceConnected: ")
 
-                    viewModel.simpleMediaServiceHandler =
-                        SimpleMediaServiceHandler(
-                            player = service.service.player,
-                            mediaSession = service.service.mediaSession,
-                            mediaSessionCallback = service.service.simpleMediaSessionCallback,
-                            dataStoreManager = dataStoreManager,
-                            mainRepository = mainRepository,
-                            context = service.service,
-                            coroutineScope = lifecycleScope,
-                        )
+                    viewModel.simpleMediaServiceHandler = service.service.simpleMediaServiceHandler
+                    Log.w("MainActivity", "Now PLaying: ${viewModel.simpleMediaServiceHandler?.player?.currentMediaItem?.mediaMetadata?.title}")
+
 
                     viewModel.init()
-                    mayBeRestoreLastPlayedTrackAndQueue()
+                    if (service.service.simpleMediaServiceHandler.queueData.value == null) {
+                        mayBeRestoreLastPlayedTrackAndQueue()
+                    }
                     runCollect()
                     Log.w("TEST", viewModel.simpleMediaServiceHandler?.player.toString())
                 }
@@ -749,13 +742,23 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 }
-            val job2 =
-                launch {
-                    viewModel
-                }
             job1.join()
         }
         lifecycleScope.launch {
+            val miniplayerJob = launch {
+                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                    viewModel.nowPlayingMediaItem.collectLatest {
+                        Log.w("MainActivity", "Now Playing: $it")
+                        if (it != null && navController.currentDestination?.id != R.id.nowPlayingFragment
+                            && navController.currentDestination?.id != R.id.infoFragment
+                            && navController.currentDestination?.id != R.id.queueFragment
+                            && navController.currentDestination?.id != R.id.fullscreenFragment
+                            && binding.miniplayer.visibility == View.GONE) {
+                            binding.miniplayer.visibility = View.VISIBLE
+                        }
+                    }
+                }
+            }
             val job1 =
                 launch {
                     viewModel.progress.collect { progress ->
@@ -795,6 +798,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
             job1.join()
+            miniplayerJob.join()
         }
 //        binding.card.animation = AnimationUtils.loadAnimation(this, R.anim.bottom_to_top)
 //        binding.cbFavorite.setOnClickListener {
@@ -853,19 +857,23 @@ class MainActivity : AppCompatActivity() {
                 }
             binding.miniplayer.visibility = View.GONE
             result.observeOnce(this) { data ->
-                val queueData = data
-                Log.w("Check queue saved", queueData.toString())
+                val queueDataList = data
+                Log.w("Check queue saved", queueDataList.toString())
                 binding.miniplayer.visibility = View.VISIBLE
-                if (queueData.isNotEmpty()) {
-                    Log.w("Check queue saved", queueData.toString())
-                    Queue.initPlaylist(
-                        playlistId = Queue.LOCAL_PLAYLIST_ID_SAVED_QUEUE,
-                        playlistName = "",
-                        playlistType = Queue.PlaylistType.PLAYLIST,
-                    )
-                    Queue.addAll(queueData)
+                if (queueDataList.isNotEmpty()) {
+                    Log.w("Check queue saved", queueDataList.toString())
+                    with(viewModel.simpleMediaServiceHandler) {
+                        runBlocking {
+                            this@with?.queueData?.first()?.addTrackList(
+                                queueDataList
+                            )
+                        }?.let {
+                            this?.setQueueData(
+                                it
+                            )
+                        }
+                    }
                     viewModel.removeSaveQueue()
-                    viewModel.resetRelated()
                     viewModel.addQueueToPlayer()
                     checkForUpdate()
                 }
@@ -878,8 +886,13 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        stopService()
+//        stopService()
         Log.w("MainActivity", "onDestroy: ")
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        viewModel.activityRecreate()
     }
 
     private fun startMusicService() {

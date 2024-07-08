@@ -33,7 +33,6 @@ import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
-import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.BottomSheetAddToAPlaylistBinding
 import com.maxrave.simpmusic.databinding.BottomSheetNowPlayingBinding
 import com.maxrave.simpmusic.databinding.BottomSheetSeeArtistOfNowPlayingBinding
@@ -43,6 +42,8 @@ import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.removeConflicts
 import com.maxrave.simpmusic.extension.setEnabledAll
 import com.maxrave.simpmusic.extension.toTrack
+import com.maxrave.simpmusic.service.PlaylistType
+import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.viewModel.MostPlayedViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -97,22 +98,28 @@ class MostPlayedFragment: Fragment() {
 
 
         mostPlayedAdapter.setOnClickListener(object : SearchItemAdapter.onItemClickListener {
+            @UnstableApi
             override fun onItemClick(position: Int, type: String) {
                 if (type == Config.SONG_CLICK){
                     val songClicked = mostPlayedAdapter.getCurrentList()[position] as SongEntity
-                    val videoId = (mostPlayedAdapter.getCurrentList()[position] as SongEntity).videoId
-                    Queue.initPlaylist(
-                        "RDAMVM$videoId",
-                        getString(R.string.most_played),
-                        Queue.PlaylistType.RADIO
-                    )
+                    val videoId = songClicked.videoId
                     val firstQueue: Track = songClicked.toTrack()
-                    Queue.setNowPlaying(firstQueue)
-                    val args = Bundle()
-                    args.putString("videoId", videoId)
-                    args.putString("from", getString(R.string.most_played))
-                    args.putString("type", Config.SONG_CLICK)
-                    findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
+                    sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                        QueueData(
+                            listTracks = arrayListOf(firstQueue),
+                            firstPlayedTrack = firstQueue,
+                            playlistId = "RDAMVM$videoId",
+                            playlistName = getString(R.string.most_played),
+                            playlistType = PlaylistType.RADIO,
+                            continuation = null
+                        )
+                    )
+                    sharedViewModel.loadMediaItemFromTrack(
+                        firstQueue,
+                        Config.SONG_CLICK,
+                        0,
+                        getString(R.string.most_played)
+                    )
                 }
             }
 

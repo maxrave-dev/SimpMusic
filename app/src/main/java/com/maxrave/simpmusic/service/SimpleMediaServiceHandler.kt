@@ -9,7 +9,6 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.core.net.toUri
-import androidx.lifecycle.LifecycleCoroutineScope
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaItem.SubtitleConfiguration
@@ -24,14 +23,20 @@ import androidx.media3.session.CommandButton
 import androidx.media3.session.MediaSession
 import androidx.media3.session.SessionCommand
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.common.ASC
+import com.maxrave.simpmusic.common.DESC
+import com.maxrave.simpmusic.common.LOCAL_PLAYLIST_ID
 import com.maxrave.simpmusic.common.MEDIA_CUSTOM_COMMAND
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
-import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.extension.connectArtists
+import com.maxrave.simpmusic.extension.toArrayListTrack
 import com.maxrave.simpmusic.extension.toListName
+import com.maxrave.simpmusic.utils.Resource
+import com.maxrave.simpmusic.viewModel.FilterState
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -41,6 +46,8 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -53,7 +60,7 @@ class SimpleMediaServiceHandler(
     mediaSessionCallback: SimpleMediaSessionCallback,
     private val dataStoreManager: DataStoreManager,
     private val mainRepository: MainRepository,
-    var coroutineScope: LifecycleCoroutineScope,
+    var coroutineScope: CoroutineScope,
     private val context: Context,
 ) : Player.Listener {
     private var loudnessEnhancer: LoudnessEnhancer? = null
@@ -66,28 +73,35 @@ class SimpleMediaServiceHandler(
     val simpleMediaState = _simpleMediaState.asStateFlow()
 
     private var _nowPlaying = MutableStateFlow(player.currentMediaItem)
-    val nowPlaying = _nowPlaying.asSharedFlow()
+    val nowPlaying = _nowPlaying.asStateFlow()
 
-    private val _nextTrackAvailable = MutableStateFlow<Boolean>(false)
-    val nextTrackAvailable = _nextTrackAvailable.asSharedFlow()
+    private var _queueData = MutableStateFlow<QueueData?>(null)
+    val queueData = _queueData.asStateFlow()
 
-    private val _previousTrackAvailable = MutableStateFlow<Boolean>(false)
-    val previousTrackAvailable = _previousTrackAvailable.asSharedFlow()
+    private var _controlState = MutableStateFlow(ControlState(
+        isPlaying = player.isPlaying,
+        isShuffle = player.shuffleModeEnabled,
+        repeatState = when (player.repeatMode) {
+            Player.REPEAT_MODE_ONE -> RepeatState.One
+            Player.REPEAT_MODE_ALL -> RepeatState.All
+            Player.REPEAT_MODE_OFF -> RepeatState.None
+            else -> {
+                RepeatState.None
+            }
+        },
+        isLiked = false,
+        isNextAvailable = player.hasNextMediaItem(),
+        isPreviousAvailable = player.hasPreviousMediaItem(),
 
-    private val _shuffle = MutableStateFlow<Boolean>(false)
-    val shuffle = _shuffle.asSharedFlow()
+    ))
 
-    private val _repeat = MutableStateFlow<RepeatState>(RepeatState.None)
-    val repeat = _repeat.asSharedFlow()
+    val controlState = _controlState.asStateFlow()
 
     private val _sleepMinutes = MutableStateFlow<Int>(0)
     val sleepMinutes = _sleepMinutes.asSharedFlow()
 
     private val _sleepDone = MutableStateFlow<Boolean>(false)
     val sleepDone = _sleepDone.asSharedFlow()
-
-    private val _liked = MutableStateFlow(false)
-    val liked = _liked.asSharedFlow()
 
     private var skipSilent = false
 
@@ -100,11 +114,6 @@ class SimpleMediaServiceHandler(
     private var toggleLikeJob: Job? = null
 
     private var loadJob: Job? = null
-
-    // Add MusicSource to this
-    var catalogMetadata: ArrayList<Track> = (arrayListOf())
-
-    var added: MutableStateFlow<Boolean> = MutableStateFlow(false)
 
     private var _stateFlow = MutableStateFlow<StateSource>(StateSource.STATE_CREATED)
     val stateFlow = _stateFlow.asStateFlow()
@@ -139,16 +148,6 @@ class SimpleMediaServiceHandler(
                     }
                 }
         }
-        _shuffle.value = player.shuffleModeEnabled
-        _repeat.value =
-            when (player.repeatMode) {
-                Player.REPEAT_MODE_ONE -> RepeatState.One
-                Player.REPEAT_MODE_ALL -> RepeatState.All
-                Player.REPEAT_MODE_OFF -> RepeatState.None
-                else -> {
-                    RepeatState.None
-                }
-            }
         _nowPlaying.value = player.currentMediaItem
         mediaSessionCallback.apply {
             toggleLike = ::toggleLike
@@ -165,7 +164,7 @@ class SimpleMediaServiceHandler(
                 }
                 mainRepository.updateLikeStatus(
                     id,
-                    if (!(_liked.value)) 1 else 0,
+                    if (!(controlState.first().isLiked)) 1 else 0,
                 )
                 delay(500)
                 updateNotification()
@@ -173,12 +172,11 @@ class SimpleMediaServiceHandler(
     }
 
     fun like(liked: Boolean) {
-        _liked.value = liked
+        _controlState.value = _controlState.value.copy(isLiked = liked)
         updateNotification()
     }
 
     // Set sleep timer
-    @OptIn(DelicateCoroutinesApi::class)
     fun sleepStart(minutes: Int) {
         _sleepDone.value = false
         sleepTimerJob?.cancel()
@@ -204,17 +202,23 @@ class SimpleMediaServiceHandler(
     }
 
     private fun updateNextPreviousTrackAvailability() {
-        _nextTrackAvailable.value = player.hasNextMediaItem()
-        _previousTrackAvailable.value = player.hasPreviousMediaItem()
+        _controlState.value = _controlState.value.copy(
+            isNextAvailable = player.hasNextMediaItem(),
+            isPreviousAvailable = player.hasPreviousMediaItem(),
+        )
     }
 
-    fun getMediaItemWithIndex(index: Int): MediaItem {
+    private fun getMediaItemWithIndex(index: Int): MediaItem {
         return player.getMediaItemAt(index)
     }
 
     fun removeMediaItem(position: Int) {
         player.removeMediaItem(position)
-        catalogMetadata.removeAt(position)
+        val temp = _queueData.value?.listTracks
+        temp?.removeAt(position)
+        _queueData.value = _queueData.value?.copy(
+            listTracks = temp ?: arrayListOf(),
+        )
         _currentSongIndex.value = currentIndex()
     }
 
@@ -274,7 +278,7 @@ class SimpleMediaServiceHandler(
         _currentSongIndex.value = currentIndex()
     }
 
-    fun swap(
+    suspend fun swap(
         from: Int,
         to: Int,
     ) {
@@ -315,45 +319,45 @@ class SimpleMediaServiceHandler(
             PlayerEvent.Shuffle -> {
                 if (player.shuffleModeEnabled) {
                     player.shuffleModeEnabled = false
-                    _shuffle.value = false
+                    _controlState.value = _controlState.value.copy(isShuffle = false)
                 } else {
                     player.shuffleModeEnabled = true
-                    _shuffle.value = true
+                    _controlState.value = _controlState.value.copy(isShuffle = true)
                 }
             }
 
             PlayerEvent.Repeat -> {
                 when (player.repeatMode) {
                     ExoPlayer.REPEAT_MODE_OFF -> {
-                        player.repeatMode = ExoPlayer.REPEAT_MODE_ONE
-                        _repeat.value = RepeatState.One
+                        player.repeatMode = ExoPlayer.REPEAT_MODE_ALL
+                        _controlState.value = _controlState.value.copy(repeatState = RepeatState.All)
                     }
 
                     ExoPlayer.REPEAT_MODE_ONE -> {
-                        player.repeatMode = ExoPlayer.REPEAT_MODE_ALL
-                        _repeat.value = RepeatState.All
+                        player.repeatMode = ExoPlayer.REPEAT_MODE_OFF
+                        _controlState.value = _controlState.value.copy(repeatState = RepeatState.None)
                     }
 
                     ExoPlayer.REPEAT_MODE_ALL -> {
-                        player.repeatMode = ExoPlayer.REPEAT_MODE_OFF
-                        _repeat.value = RepeatState.None
+                        player.repeatMode = ExoPlayer.REPEAT_MODE_ONE
+                        _controlState.value = _controlState.value.copy(repeatState = RepeatState.One)
                     }
 
                     else -> {
-                        when (_repeat.value) {
+                        when (controlState.first().repeatState) {
                             RepeatState.None -> {
-                                player.repeatMode = ExoPlayer.REPEAT_MODE_ONE
-                                _repeat.value = RepeatState.One
+                                player.repeatMode = ExoPlayer.REPEAT_MODE_ALL
+                                _controlState.value = _controlState.value.copy(repeatState = RepeatState.All)
                             }
 
                             RepeatState.One -> {
                                 player.repeatMode = ExoPlayer.REPEAT_MODE_ALL
-                                _repeat.value = RepeatState.All
+                                _controlState.value = _controlState.value.copy(repeatState = RepeatState.All)
                             }
 
                             RepeatState.All -> {
-                                player.repeatMode = ExoPlayer.REPEAT_MODE_OFF
-                                _repeat.value = RepeatState.None
+                                player.repeatMode = ExoPlayer.REPEAT_MODE_ONE
+                                _controlState.value = _controlState.value.copy(repeatState = RepeatState.One)
                             }
                         }
                     }
@@ -420,6 +424,12 @@ class SimpleMediaServiceHandler(
         Log.w("REASON", "onMediaItemTransition: $reason")
         Log.d("Media Item Transition", "Media Item: ${mediaItem?.mediaMetadata?.title}")
         _nowPlaying.value = mediaItem
+        _queueData.value?.listTracks?.let { list ->
+            if (list.size > 3 && list.size - currentIndex() < 3 && list.size - currentIndex() >= 0 && _stateFlow.value == StateSource.STATE_INITIALIZED) {
+                Log.d("Check loadMore", "loadMore")
+                loadMore()
+            }
+        }
         updateNextPreviousTrackAvailability()
         updateNotification()
     }
@@ -442,11 +452,11 @@ class SimpleMediaServiceHandler(
     override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
         when (shuffleModeEnabled) {
             true -> {
-                _shuffle.value = true
+                _controlState.value = _controlState.value.copy(isShuffle = true)
             }
 
             false -> {
-                _shuffle.value = false
+                _controlState.value = _controlState.value.copy(isShuffle = false)
             }
         }
         updateNextPreviousTrackAvailability()
@@ -454,9 +464,9 @@ class SimpleMediaServiceHandler(
 
     override fun onRepeatModeChanged(repeatMode: Int) {
         when (repeatMode) {
-            ExoPlayer.REPEAT_MODE_OFF -> _repeat.value = RepeatState.None
-            ExoPlayer.REPEAT_MODE_ONE -> _repeat.value = RepeatState.One
-            ExoPlayer.REPEAT_MODE_ALL -> _repeat.value = RepeatState.All
+            ExoPlayer.REPEAT_MODE_OFF -> _controlState.value = _controlState.value.copy(repeatState = RepeatState.None)
+            ExoPlayer.REPEAT_MODE_ONE -> _controlState.value = _controlState.value.copy(repeatState = RepeatState.One)
+            ExoPlayer.REPEAT_MODE_ALL -> _controlState.value = _controlState.value.copy(repeatState = RepeatState.All)
         }
         updateNextPreviousTrackAvailability()
         updateNotification()
@@ -465,6 +475,7 @@ class SimpleMediaServiceHandler(
     @OptIn(DelicateCoroutinesApi::class)
     override fun onIsPlayingChanged(isPlaying: Boolean) {
         _simpleMediaState.value = SimpleMediaState.Playing(isPlaying = isPlaying)
+        _controlState.value = _controlState.value.copy(isPlaying = isPlaying)
         if (isPlaying) {
             coroutineScope.launch(Dispatchers.Main) {
                 startProgressUpdate()
@@ -491,6 +502,102 @@ class SimpleMediaServiceHandler(
                     SimpleMediaState.Loading(player.bufferedPercentage, player.duration)
             }
         }
+
+    fun loadMore() {
+        // Separate local and remote data
+        // Local Add Prefix to PlaylistID to differentiate between local and remote
+        // Local: LC-PlaylistID
+        val playlistId = _queueData.value?.playlistId ?: return
+        Log.w("Check loadMore", playlistId.toString())
+        val continuation = _queueData.value?.continuation
+        Log.w("Check loadMore", continuation.toString())
+        if (continuation != null) {
+            if (playlistId.startsWith(LOCAL_PLAYLIST_ID)) {
+                coroutineScope.launch {
+                    _stateFlow.value = StateSource.STATE_INITIALIZING
+                    val longId = playlistId.replace(LOCAL_PLAYLIST_ID, "").toLong()
+                    Log.w("Check loadMore", longId.toString())
+                    val filter = if (continuation.startsWith(ASC)) FilterState.OlderFirst else FilterState.NewerFirst
+                    val offset =
+                        if (filter == FilterState.OlderFirst) {
+                            continuation.removePrefix(
+                                ASC,
+                            ).toInt()
+                        } else {
+                            continuation.removePrefix(DESC).toInt()
+                        }
+                    val total = mainRepository.getLocalPlaylist(longId).firstOrNull()?.tracks?.size ?: 0
+                    mainRepository.getPlaylistPairSongByOffset(
+                        longId,
+                        offset,
+                        filter,
+                        total
+                    ).singleOrNull()?.let { pair ->
+                        Log.w("Check loadMore response", pair.size.toString())
+                        mainRepository.getSongsByListVideoId(pair.map { it.songId }).single().let { songs ->
+                            if (songs.isNotEmpty()) {
+                                delay(300)
+                                loadMoreCatalog(songs.toArrayListTrack())
+//                                Queue.setContinuation(
+//                                    playlistId,
+//                                    if (filter == FilterState.OlderFirst) ASC + (offset + 1) else DESC + (offset + 1).toString(),
+//                                )
+                                _queueData.value = _queueData.value?.copy(
+                                    continuation = if (filter == FilterState.OlderFirst) ASC + (offset + 1) else DESC + (offset + 1).toString(),
+                                )
+                            }
+//                            loadingMore.value = false
+                        }
+                    }
+                }
+            } else {
+                coroutineScope.launch {
+                    _stateFlow.value = StateSource.STATE_INITIALIZING
+                    Log.w("Check loadMore continuation", continuation.toString())
+                    mainRepository.getContinueTrack(playlistId, continuation)
+                        .singleOrNull().let { response ->
+                            val list = response?.first
+                            if (list != null) {
+                                Log.w("Check loadMore response", response.toString())
+                                loadMoreCatalog(list)
+                            }
+                            _queueData.value = _queueData.value?.copy(
+                                continuation = response?.second,
+                            )
+//                            loadingMore.value = false
+                        }
+                }
+            }
+        }
+    }
+
+    fun getRelated(videoId: String) {
+//            Queue.clear()
+        coroutineScope.launch {
+            mainRepository.getRelatedData(videoId).collect { response ->
+                when (response) {
+                    is Resource.Success -> {
+                        loadMoreCatalog(response.data?.first ?: arrayListOf())
+                        _queueData.value = _queueData.value?.copy(
+                            continuation = response.data?.second,
+                        )
+                    }
+                    is Resource.Error -> {
+                        Log.d("Check Related", "getRelated: ${response.message}")
+                        _queueData.value = _queueData.value?.copy(
+                            continuation = null,
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    fun setQueueData(
+        queueData: QueueData
+    ) {
+        _queueData.value = queueData
+    }
 
     fun currentIndex(): Int {
         return player.currentMediaItemIndex
@@ -585,13 +692,7 @@ class SimpleMediaServiceHandler(
                 Log.d("Check saved", player.currentMediaItem?.mediaMetadata?.title.toString())
                 val temp: ArrayList<Track> = ArrayList()
                 temp.clear()
-                Queue.getNowPlaying()?.let { nowPlaying ->
-                    if (nowPlaying.videoId != player.currentMediaItem?.mediaId) {
-                        temp += nowPlaying
-                    }
-                }
-                temp += Queue.getQueue()
-                Log.d("Check queue", Queue.getQueue().toString())
+                temp.addAll(_queueData.value?.listTracks ?: arrayListOf())
                 temp.find { it.videoId == player.currentMediaItem?.mediaId }?.let { track ->
                     temp.remove(track)
                 }
@@ -601,6 +702,7 @@ class SimpleMediaServiceHandler(
                     DataStoreManager.RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE,
                     DataStoreManager.FALSE,
                 )
+                dataStoreManager.setPlaylistFromSaved(queueData.first()?.playlistName ?: "")
             }
         }
     }
@@ -686,9 +788,10 @@ class SimpleMediaServiceHandler(
             loadJob = null
         }
         Log.w("Service", "Check job: ${job?.isActive}")
-        Log.w("Service", "scope is active: ${coroutineScope?.isActive}")
+        Log.w("Service", "scope is active: ${coroutineScope.isActive}")
     }
 
+    @SuppressLint("PrivateResource")
     private fun updateNotification() {
         updateNotificationJob?.cancel()
         updateNotificationJob =
@@ -701,7 +804,7 @@ class SimpleMediaServiceHandler(
                     mainRepository.getSongById(id)
                         .first()?.liked
                 if (liked != null) {
-                    _liked.value = liked
+                    _controlState.value = _controlState.value.copy(isLiked = liked)
                 }
                 mediaSession.setCustomLayout(
                     listOf(
@@ -721,18 +824,12 @@ class SimpleMediaServiceHandler(
                         CommandButton.Builder()
                             .setDisplayName(
                                 when (player.repeatMode) {
-                                    Player.REPEAT_MODE_ONE ->
-                                        context.getString(
-                                            androidx.media3.ui.R.string.exo_controls_repeat_one_description,
-                                        )
+                                    Player.REPEAT_MODE_ONE -> context.getString(R.string.repeat_one)
 
-                                    Player.REPEAT_MODE_ALL ->
-                                        context.getString(
-                                            androidx.media3.ui.R.string.exo_controls_repeat_all_description,
-                                        )
+                                    Player.REPEAT_MODE_ALL -> context.getString(R.string.repeat_all)
 
-                                    else -> context.getString(androidx.media3.ui.R.string.exo_controls_repeat_off_description)
-                                },
+                                    else -> context.getString(R.string.repeat_off)
+                                 },
                             )
                             .setSessionCommand(
                                 SessionCommand(
@@ -761,31 +858,41 @@ class SimpleMediaServiceHandler(
         return player.currentPosition
     }
 
-    fun changeAddedState() {
-        added.value = false
-    }
-
-    fun addFirstMetadata(it: Track) {
-        added.value = true
-        catalogMetadata.add(0, it)
-        Log.d("MusicSource", "addFirstMetadata: ${it.title}, ${catalogMetadata.size}")
-    }
+//    fun changeAddedState() {
+//        added.value = false
+//    }
+//
+//    fun addFirstMetadata(it: Track) {
+//        added.value = true
+//        catalogMetadata.add(0, it)
+//        Log.d("MusicSource", "addFirstMetadata: ${it.title}, ${catalogMetadata.size}")
+//    }
 
     @UnstableApi
-    fun moveItemUp(position: Int) {
+    suspend fun moveItemUp(position: Int) {
         moveMediaItem(position, position - 1)
-        val temp = catalogMetadata[position]
-        catalogMetadata[position] = catalogMetadata[position - 1]
-        catalogMetadata[position - 1] = temp
+        queueData.first()?.listTracks?.let { list ->
+            val temp = list[position]
+            list[position] = list[position - 1]
+            list[position - 1] = temp
+            _queueData.value = queueData.first()?.copy(
+                listTracks = list,
+            )
+        }
         _currentSongIndex.value = currentIndex()
     }
 
     @UnstableApi
-    fun moveItemDown(position: Int) {
+    suspend fun moveItemDown(position: Int) {
         moveMediaItem(position, position + 1)
-        val temp = catalogMetadata[position]
-        catalogMetadata[position] = catalogMetadata[position + 1]
-        catalogMetadata[position + 1] = temp
+        queueData.first()?.listTracks?.let { list ->
+            val temp = list[position]
+            list[position] = list[position + 1]
+            list[position + 1] = temp
+            _queueData.value = queueData.first()?.copy(
+                listTracks = list,
+            )
+        }
         _currentSongIndex.value = currentIndex()
     }
 
@@ -802,7 +909,6 @@ class SimpleMediaServiceHandler(
 
     fun reset() {
         _currentSongIndex.value = 0
-        catalogMetadata.clear()
         _stateFlow.value = StateSource.STATE_CREATED
     }
 
@@ -811,31 +917,18 @@ class SimpleMediaServiceHandler(
         downloaded: Int = 0,
         index: Int? = null,
     ) {
-        updateCatalog(downloaded).let {
-            _stateFlow.value = StateSource.STATE_INITIALIZED
-            if (index != null) {
-                when (index) {
-                    -1 -> {
-                    }
-
-                    else -> {
-                        Log.w("Check index", "load: $index")
-                        addFirstMediaItemToIndex(getMediaItemWithIndex(0), index)
-                        Queue.getNowPlaying().let { song ->
-                            if (song != null) {
-                                catalogMetadata.removeAt(0)
-                                catalogMetadata.add(index, song)
-                            }
-                        }
-                    }
-                }
+        updateCatalog(downloaded, index).let {
+            if (index != 0 && index != null) {
+                moveMediaItem(0, index)
             }
+            _stateFlow.value = StateSource.STATE_INITIALIZED
         }
     }
 
     suspend fun loadMoreCatalog(listTrack: ArrayList<Track>) {
         Log.d("Queue", listTrack.map { it.title }.toString())
         _stateFlow.value = StateSource.STATE_INITIALIZING
+        val catalogMetadata: ArrayList<Track> = arrayListOf()
         for (i in 0 until listTrack.size) {
             val track = listTrack[i]
             var thumbUrl =
@@ -924,18 +1017,24 @@ class SimpleMediaServiceHandler(
                 "MusicSource",
                 "updateCatalog: ${track.title}, ${catalogMetadata.size}",
             )
-            added.value = true
             Log.d("MusicSource", "updateCatalog: ${track.title}")
         }
+        _queueData.value = _queueData.value?.addTrackList(catalogMetadata)
         _stateFlow.value = StateSource.STATE_INITIALIZED
     }
 
     @UnstableApi
-    suspend fun updateCatalog(downloaded: Int = 0): Boolean {
+    suspend fun updateCatalog(downloaded: Int = 0, index: Int? = null): Boolean {
         _stateFlow.value = StateSource.STATE_INITIALIZING
         val tempQueue: ArrayList<Track> = arrayListOf()
-        tempQueue.addAll(Queue.getQueue())
+        tempQueue.addAll(_queueData.value?.listTracks ?: arrayListOf())
+        val catalogMetadata: ArrayList<Track> = arrayListOf()
+        Log.w("SimpleMediaServiceHandler", "Catalog size: ${tempQueue.size}")
+        Log.w("SimpleMediaServiceHandler", "Skip index: $index")
         for (i in 0 until tempQueue.size) {
+            if (i == index) {
+                continue
+            }
             val track = tempQueue[i]
             var thumbUrl =
                 track.thumbnails?.last()?.url
@@ -948,8 +1047,7 @@ class SimpleMediaServiceHandler(
                 && track.thumbnails.lastOrNull()?.url?.contains("maxresdefault") == false)
             if (downloaded == 1) {
                 if (track.artists.isNullOrEmpty()) {
-                    mainRepository.getSongInfo(track.videoId).singleOrNull()
-                        .let { songInfo ->
+                    mainRepository.getSongInfo(track.videoId).singleOrNull().let { songInfo ->
                             if (songInfo != null) {
                                 val mediaItem =
                                     MediaItem.Builder()
@@ -1022,7 +1120,6 @@ class SimpleMediaServiceHandler(
                     catalogMetadata.add(track)
                 }
                 Log.d("MusicSource", "updateCatalog: ${track.title}, ${catalogMetadata.size}")
-                added.value = true
             } else {
                 val artistName: String = track.artists.toListName().connectArtists()
                 if (track.artists.isNullOrEmpty()) {
@@ -1101,15 +1198,21 @@ class SimpleMediaServiceHandler(
                     "MusicSource",
                     "updateCatalog: ${track.title}, ${catalogMetadata.size}",
                 )
-                added.value = true
                 Log.d("MusicSource", "updateCatalog: ${track.title}")
             }
         }
+        if (index != null) {
+            catalogMetadata.add(index, tempQueue[index])
+        }
+        Log.w("SimpleMediaServiceHandler", "current queue: ${player.mediaItemCount}")
+        Log.d("SimpleMediaServiceHandler", "updateCatalog: ${catalogMetadata.size}")
+        _queueData.value = _queueData.value?.copy(
+            listTracks = catalogMetadata,
+        )
         return true
     }
 
     fun addQueueToPlayer() {
-        Log.d("Check Queue in handler", Queue.getQueue().toString())
         loadJob?.cancel()
         loadJob =
             coroutineScope.launch {
@@ -1152,6 +1255,7 @@ class SimpleMediaServiceHandler(
 
     suspend fun playNext(track: Track) {
         _stateFlow.value = StateSource.STATE_INITIALIZING
+        val catalogMetadata: ArrayList<Track> = queueData.first()?.listTracks ?: arrayListOf()
         var thumbUrl =
             track.thumbnails?.last()?.url
                 ?: "http://i.ytimg.com/vi/${track.videoId}/maxresdefault.jpg"
@@ -1162,7 +1266,7 @@ class SimpleMediaServiceHandler(
         val isSong = (track.thumbnails?.last()?.height != 0 && track.thumbnails?.last()?.height == track.thumbnails?.last()?.width
             && track.thumbnails?.last()?.height != null) && (track.thumbnails.lastOrNull()?.url?.contains("hq720") == false
             && track.thumbnails.lastOrNull()?.url?.contains("maxresdefault") == false)
-        if ((currentIndex() + 1 in 0..catalogMetadata.size)) {
+        if ((currentIndex() + 1 in 0..(queueData.first()?.listTracks?.size ?: 0))) {
             if (track.artists.isNullOrEmpty()) {
                 mainRepository.getSongInfo(track.videoId).cancellable().first().let { songInfo ->
                     if (songInfo != null) {
@@ -1242,8 +1346,10 @@ class SimpleMediaServiceHandler(
                 "MusicSource",
                 "updateCatalog: ${track.title}, ${catalogMetadata.size}",
             )
-            added.value = true
             Log.d("MusicSource", "updateCatalog: ${track.title}")
+            _queueData.value = queueData.first()?.copy(
+                listTracks = catalogMetadata,
+            )
         }
         _stateFlow.value = StateSource.STATE_INITIALIZED
     }
@@ -1298,4 +1404,65 @@ enum class StateSource {
     STATE_INITIALIZING,
     STATE_INITIALIZED,
     STATE_ERROR,
+}
+
+data class ControlState(
+    val isPlaying: Boolean,
+    val isShuffle: Boolean,
+    val repeatState: RepeatState,
+    val isLiked: Boolean,
+    val isNextAvailable: Boolean,
+    val isPreviousAvailable: Boolean
+)
+
+data class QueueData(
+    val listTracks: ArrayList<Track> = arrayListOf(),
+    val firstPlayedTrack: Track? = null,
+    val playlistId: String? = null,
+    val playlistName: String? = null,
+    val playlistType: PlaylistType? = null,
+    val continuation: String? = null
+) {
+    fun addTrackList(tracks: Collection<Track>): QueueData {
+        val temp = listTracks
+        temp.addAll(tracks)
+        return this.copy(
+            listTracks = temp
+        )
+    }
+
+    fun removeFirstTrackForPlaylistAndAlbum(): QueueData {
+        val temp = listTracks
+        temp.removeAt(0)
+        return this.copy(
+            listTracks = temp
+        )
+    }
+    fun removeTrackWithIndex(index: Int): QueueData {
+        val temp = listTracks
+        temp.removeAt(index)
+        return this.copy(
+            listTracks = temp
+        )
+    }
+    fun setContinuation(continuation: String): QueueData {
+        return this.copy(
+            continuation = continuation
+        )
+    }
+    fun isLocalPlaylist(): Boolean {
+        return playlistType == PlaylistType.LOCAL_PLAYLIST
+    }
+    fun isRadio(): Boolean {
+        return playlistType == PlaylistType.RADIO
+    }
+    fun isPlaylist(): Boolean {
+        return playlistType == PlaylistType.PLAYLIST
+    }
+}
+
+enum class PlaylistType {
+    PLAYLIST,
+    LOCAL_PLAYLIST,
+    RADIO,
 }

@@ -81,7 +81,6 @@ import com.maxrave.simpmusic.data.parser.search.parseSearchPlaylist
 import com.maxrave.simpmusic.data.parser.search.parseSearchSong
 import com.maxrave.simpmusic.data.parser.search.parseSearchVideo
 import com.maxrave.simpmusic.data.parser.toListThumbnail
-import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.extension.bestMatchingIndex
 import com.maxrave.simpmusic.extension.toListTrack
 import com.maxrave.simpmusic.extension.toLyrics
@@ -756,10 +755,11 @@ class MainRepository
         suspend fun getContinueTrack(
             playlistId: String,
             continuation: String,
-        ): Flow<ArrayList<Track>?> =
+        ): Flow<Pair<ArrayList<Track>?, String?>> =
             flow {
                 runCatching {
-                    Queue.setContinuation(playlistId, null)
+                    var newContinuation: String? = null
+                    newContinuation = null
                     YouTube.next(
                         if (playlistId.startsWith("RRDAMVM")) {
                             WatchEndpoint(videoId = playlistId.removePrefix("RRDAMVM"))
@@ -771,17 +771,11 @@ class MainRepository
                         .onSuccess { next ->
                             val data: ArrayList<SongItem> = arrayListOf()
                             data.addAll(next.items)
-                            val nextContinuation = next.continuation
-                            if (nextContinuation != null) {
-                                Queue.setContinuation(playlistId, nextContinuation)
-                            } else {
-                                Queue.setContinuation(playlistId, null)
-                            }
-                            emit(data.toListTrack())
+                            newContinuation = next.continuation
+                            emit(Pair(data.toListTrack(), newContinuation))
                         }.onFailure { exception ->
                             exception.printStackTrace()
-                            Queue.setContinuation(playlistId, null)
-                            emit(null)
+                            emit(Pair(null, null))
                         }
                 }
             }
@@ -790,7 +784,7 @@ class MainRepository
             radioId: String,
             originalTrack: SongEntity? = null,
             artist: ArtistEntity? = null,
-        ): Flow<Resource<PlaylistBrowse>> =
+        ): Flow<Resource<Pair<PlaylistBrowse, String?>>> =
             flow {
                 runCatching {
                     YouTube.next(endpoint = WatchEndpoint(playlistId = radioId)).onSuccess { next ->
@@ -807,29 +801,12 @@ class MainRepository
                                 data.addAll(nextContinue.items)
                                 continuation = nextContinue.continuation
                                 if (data.size >= 50) {
-                                    val nextContinuation = nextContinue.continuation
-                                    if (nextContinuation != null) {
-                                        Queue.setContinuation(radioId, nextContinuation)
-                                    }
-                                    continuation = null
+                                    count = 3
                                 }
                                 Log.w("Radio", "data: ${data.size}")
                                 count++
-                                if (count == 3) {
-                                    val nextContinuation = nextContinue.continuation
-                                    if (nextContinuation != null) {
-                                        Queue.setContinuation(radioId, nextContinuation)
-                                    }
-                                }
                             }.onFailure {
-                                if (count == 3) {
-                                    val nextContinuation = continuation
-                                    if (nextContinuation != null) {
-                                        Queue.setContinuation(radioId, nextContinuation)
-                                    }
-                                }
-                                continuation = null
-                                count++
+                                count = 3
                             }
                         }
                         val listTrackResult = data.toListTrack()
@@ -866,11 +843,11 @@ class MainRepository
                                 year = LocalDateTime.now().year.toString(),
                             )
                         Log.w("Repository", "playlistBrowse: $playlistBrowse")
-                        emit(Resource.Success<PlaylistBrowse>(playlistBrowse))
+                        emit(Resource.Success<Pair<PlaylistBrowse, String?>>(Pair(playlistBrowse, continuation)))
                     }
                         .onFailure { exception ->
                             exception.printStackTrace()
-                            emit(Resource.Error<PlaylistBrowse>(exception.message.toString()))
+                            emit(Resource.Error<Pair<PlaylistBrowse, String?>>(exception.message.toString()))
                         }
                 }
             }.flowOn(Dispatchers.IO)
@@ -1449,7 +1426,7 @@ class MainRepository
                 }
             }.flowOn(Dispatchers.IO)
 
-        suspend fun getRelatedData(videoId: String): Flow<Resource<ArrayList<Track>>> =
+        suspend fun getRelatedData(videoId: String): Flow<Resource<Pair<ArrayList<Track>, String?>>> =
             flow {
                 runCatching {
                     YouTube.next(WatchEndpoint(videoId = videoId))
@@ -1457,18 +1434,17 @@ class MainRepository
                             val data: ArrayList<SongItem> = arrayListOf()
                             data.addAll(next.items.filter { it.id != videoId }.toSet())
                             val nextContinuation = next.continuation
-                            if (nextContinuation != null) {
-                                Log.w("Queue", "nextContinuation: $nextContinuation")
-                                Queue.setContinuation("RDAMVM$videoId", nextContinuation)
-                            } else {
-                                Log.w("Related", "nextContinuation: null")
-                                Queue.setContinuation("RDAMVM$videoId", null)
-                            }
-                            emit(Resource.Success<ArrayList<Track>>(data.toListTrack()))
+//                            if (nextContinuation != null) {
+//                                Log.w("Queue", "nextContinuation: $nextContinuation")
+//                                Queue.setContinuation("RDAMVM$videoId", nextContinuation)
+//                            } else {
+//                                Log.w("Related", "nextContinuation: null")
+//                                Queue.setContinuation("RDAMVM$videoId", null)
+//                            }
+                            emit(Resource.Success<Pair<ArrayList<Track>, String?>>(Pair(data.toListTrack(), nextContinuation)))
                         }.onFailure { exception ->
                             exception.printStackTrace()
-                            Queue.setContinuation("RDAMVM$videoId", null)
-                            emit(Resource.Error<ArrayList<Track>>(exception.message.toString()))
+                            emit(Resource.Error<Pair<ArrayList<Track>, String?>>(exception.message.toString()))
                         }
                 }
             }.flowOn(Dispatchers.IO)

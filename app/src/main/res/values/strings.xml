@@ -334,4 +334,8 @@
     <string name="hour_s_ago">%1$d hour(s) ago</string>
     <string name="no_notification">No notification</string>
     <string name="created_at">Created at %1$s</string>
+    <string name="unknown">Unknown</string>
+    <string name="repeat_one">Repeat One</string>
+    <string name="repeat_all">Repeat All</string>
+    <string name="repeat_off">Repeat Off</string>
 </resources>

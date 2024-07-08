@@ -47,7 +47,6 @@ import com.maxrave.simpmusic.data.model.browse.artist.ResultRelated
 import com.maxrave.simpmusic.data.model.browse.artist.ResultSingle
 import com.maxrave.simpmusic.data.model.browse.artist.ResultSong
 import com.maxrave.simpmusic.data.model.browse.artist.ResultVideo
-import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.BottomSheetAddToAPlaylistBinding
 import com.maxrave.simpmusic.databinding.BottomSheetNowPlayingBinding
 import com.maxrave.simpmusic.databinding.BottomSheetSeeArtistOfNowPlayingBinding
@@ -59,6 +58,8 @@ import com.maxrave.simpmusic.extension.setEnabledAll
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.extension.toTrack
+import com.maxrave.simpmusic.service.PlaylistType
+import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.ArtistViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -243,27 +244,31 @@ class ArtistFragment : Fragment() {
         )
         popularAdapter.setOnClickListener(
             object : PopularAdapter.OnItemClickListener {
+                @UnstableApi
                 override fun onItemClick(
                     position: Int,
                     type: String,
                 ) {
                     val songClicked = popularAdapter.getCurrentList()[position]
                     val videoId = songClicked.videoId
-                    Queue.initPlaylist(
-                        "RDAMVM$videoId",
-                        "\"${viewModel.artistBrowse.value?.data?.name}\" ${getString(R.string.popular)}",
-                        Queue.PlaylistType.RADIO,
-                    )
                     val firstQueue: Track = songClicked.toTrack()
-                    Queue.setNowPlaying(firstQueue)
-                    val args = Bundle()
-                    args.putString("videoId", videoId)
-                    args.putString(
-                        "from",
+                    sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                        QueueData(
+                            listTracks = arrayListOf(firstQueue),
+                            firstPlayedTrack = firstQueue,
+                            "RDAMVM$videoId",
+                            "\"${viewModel.artistBrowse.value?.data?.name}\" ${getString(R.string.popular)}",
+                            PlaylistType.RADIO,
+                            continuation = null
+
+                        )
+                    )
+                    sharedViewModel.loadMediaItemFromTrack(
+                        firstQueue,
+                        Config.SONG_CLICK,
+                        0,
                         "\"${viewModel.artistBrowse.value?.data?.name}\" ${getString(R.string.popular)}",
                     )
-                    args.putString("type", Config.SONG_CLICK)
-                    findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
                 }
             },
         )
@@ -281,27 +286,30 @@ class ArtistFragment : Fragment() {
         )
         videoAdapter.setOnClickListener(
             object : VideoAdapter.OnItemClickListener {
+                @UnstableApi
                 override fun onItemClick(
                     position: Int,
                     type: String,
                 ) {
                     val songClicked = videoAdapter.getCurrentList()[position]
                     val videoId = songClicked.videoId
-                    Queue.initPlaylist(
-                        "RDAMVM$videoId",
-                        "\"${viewModel.artistBrowse.value?.data?.name}\" ${getString(R.string.videos)}",
-                        Queue.PlaylistType.RADIO,
-                    )
                     val firstQueue: Track = songClicked.toTrack()
-                    Queue.setNowPlaying(firstQueue)
-                    val args = Bundle()
-                    args.putString("videoId", videoId)
-                    args.putString(
-                        "from",
+                    sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                        QueueData(
+                            listTracks = arrayListOf(firstQueue),
+                            firstPlayedTrack = firstQueue,
+                            "RDAMVM$videoId",
+                            "\"${viewModel.artistBrowse.value?.data?.name}\" ${getString(R.string.videos)}",
+                            PlaylistType.RADIO,
+                            continuation = null
+                        )
+                    )
+                    sharedViewModel.loadMediaItemFromTrack(
+                        firstQueue,
+                        Config.VIDEO_CLICK,
+                        0,
                         "\"${viewModel.artistBrowse.value?.data?.name}\" ${getString(R.string.videos)}",
                     )
-                    args.putString("type", Config.VIDEO_CLICK)
-                    findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
                 }
             },
         )

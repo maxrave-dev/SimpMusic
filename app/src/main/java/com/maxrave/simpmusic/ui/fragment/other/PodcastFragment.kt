@@ -15,6 +15,7 @@ import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
+import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
 import androidx.palette.graphics.Palette
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -28,22 +29,25 @@ import com.maxrave.simpmusic.adapter.podcast.PodcastAdapter
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.podcast.PodcastBrowse
-import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.BottomSheetPlaylistMoreBinding
 import com.maxrave.simpmusic.databinding.FragmentPodcastBinding
-import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.toListTrack
 import com.maxrave.simpmusic.extension.toTrack
+import com.maxrave.simpmusic.service.PlaylistType
+import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.PodcastViewModel
+import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlin.math.abs
 import kotlin.random.Random
 
 @AndroidEntryPoint
+@UnstableApi
 class PodcastFragment : Fragment() {
 
     private val viewModel by activityViewModels<PodcastViewModel>()
+    private val sharedViewModel by activityViewModels<SharedViewModel>()
     private var _binding: FragmentPodcastBinding? = null
     private val binding get() = _binding!!
 
@@ -111,57 +115,59 @@ class PodcastFragment : Fragment() {
         }
         binding.btPlayPause.setOnClickListener {
             if (viewModel.podcastBrowse.value is Resource.Success && viewModel.podcastBrowse.value?.data != null) {
-                val args = Bundle()
-                args.putString("type", Config.PLAYLIST_CLICK)
-                args.putString(
-                    "videoId",
-                    viewModel.podcastBrowse.value?.data?.listEpisode?.get(0)?.videoId
+                val firstQueue = viewModel.podcastBrowse.value?.data?.listEpisode?.firstOrNull()?.toTrack()
+                sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                    QueueData(
+                        listTracks = viewModel.podcastBrowse.value?.data?.listEpisode?.toListTrack() ?: arrayListOf(),
+                        firstPlayedTrack = firstQueue,
+                        playlistId = id?.replaceFirst("VL", "") ?: "",
+                        playlistName = "Podcast \"${viewModel.podcastBrowse.value?.data?.title}\"",
+                        playlistType = PlaylistType.PLAYLIST,
+                        continuation = null
+
+                    )
                 )
-                args.putString("from", "Podcast \"${viewModel.podcastBrowse.value?.data?.title}\"")
-                args.putString("playlistId", id?.replaceFirst("VL", ""))
-                Queue.initPlaylist(
-                    id?.replaceFirst("VL", "") ?: "",
-                    "Podcast \"${viewModel.podcastBrowse.value?.data?.title}\"",
-                    Queue.PlaylistType.PLAYLIST
-                )
-                Queue.setNowPlaying(viewModel.podcastBrowse.value?.data!!.listEpisode[0].toTrack())
-                Queue.addAll(viewModel.podcastBrowse.value?.data!!.listEpisode.toListTrack())
-                if (Queue.getQueue().size >= 1) {
-                    Queue.removeFirstTrackForPlaylistAndAlbum()
+                if (firstQueue != null) {
+                    sharedViewModel.loadMediaItemFromTrack(
+                        firstQueue,
+                        Config.PLAYLIST_CLICK,
+                        0,
+                        "Podcast \"${viewModel.podcastBrowse.value?.data?.title}\""
+                    )
                 }
-                Log.d("PlaylistFragment", "Queue: ${Queue.getQueue().size}")
-                findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
             }
         }
         binding.btShuffle.setOnClickListener {
             if (viewModel.podcastBrowse.value is Resource.Success && viewModel.podcastBrowse.value?.data != null) {
-                val args = Bundle()
-                args.putString("type", Config.PLAYLIST_CLICK)
                 val index =
                     Random.nextInt(0, viewModel.podcastBrowse.value?.data!!.listEpisode.size - 1)
-                args.putString(
-                    "videoId",
-                    viewModel.podcastBrowse.value?.data?.listEpisode?.get(index)?.videoId
-                )
-                args.putString("from", "Podcast \"${viewModel.podcastBrowse.value?.data?.title}\"")
-                args.putString("playlistId", id?.replaceFirst("VL", ""))
-                Queue.initPlaylist(
-                    id?.replaceFirst("VL", "") ?: "",
-                    "Podcast \"${viewModel.podcastBrowse.value?.data?.title}\"",
-                    Queue.PlaylistType.PLAYLIST
-                )
-                Queue.setNowPlaying(viewModel.podcastBrowse.value?.data!!.listEpisode[index].toTrack())
                 val shuffleList: ArrayList<Track> = arrayListOf()
                 viewModel.podcastBrowse.value?.data?.listEpisode?.let {
                     shuffleList.addAll(it.toListTrack())
                 }
-                shuffleList.remove(
-                    viewModel.podcastBrowse.value?.data?.listEpisode?.get(index)?.toTrack()
-                )
+                shuffleList.removeAt(index)
+                val firstPlay = viewModel.podcastBrowse.value?.data?.listEpisode?.get(index)?.toTrack()
                 shuffleList.shuffle()
-                Queue.addAll(shuffleList)
-                Log.d("PlaylistFragment", "Queue: ${Queue.getQueue().size}")
-                findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
+                if (firstPlay != null) {
+                    shuffleList.add(0, firstPlay)
+                    sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                        QueueData(
+                            listTracks = shuffleList,
+                            firstPlayedTrack = firstPlay,
+                            id?.replaceFirst("VL", "") ?: "",
+                            "Podcast \"${viewModel.podcastBrowse.value?.data?.title}\"",
+                            PlaylistType.PLAYLIST,
+                            continuation = null
+                        )
+                    )
+                    sharedViewModel.loadMediaItemFromTrack(
+                        firstPlay,
+                        Config.PLAYLIST_CLICK,
+                        0,
+                        "Podcast \"${viewModel.podcastBrowse.value?.data?.title}\""
+                    )
+                }
+
             }
         }
         binding.btMore.setOnClickListener {
@@ -187,30 +193,26 @@ class PodcastFragment : Fragment() {
         podcastAdapter.setOnItemClickListener(object : PodcastAdapter.OnItemClickListener {
             override fun onItemClick(position: Int) {
                 if (viewModel.podcastBrowse.value is Resource.Success && viewModel.podcastBrowse.value?.data != null) {
-                    val args = Bundle()
-                    args.putString("type", Config.PLAYLIST_CLICK)
-                    args.putString(
-                        "videoId",
-                        viewModel.podcastBrowse.value?.data!!.listEpisode[position].videoId
+                    val firstQueue = viewModel.podcastBrowse.value?.data?.listEpisode?.getOrNull(position)?.toTrack()
+                    sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                        QueueData(
+                            listTracks = viewModel.podcastBrowse.value?.data?.listEpisode?.toListTrack() ?: arrayListOf(),
+                            firstPlayedTrack = firstQueue,
+                            playlistId = id?.replaceFirst("VL", "") ?: "",
+                            playlistName = "Podcast \"${viewModel.podcastBrowse.value?.data?.title}\"",
+                            playlistType = PlaylistType.PLAYLIST,
+                            continuation = null
+
+                        )
                     )
-                    args.putString(
-                        "from",
-                        "Podcast \"${viewModel.podcastBrowse.value?.data!!.title}\""
-                    )
-                    args.putString("playlistId", id?.replaceFirst("VL", ""))
-                    args.putInt("index", position)
-                    Queue.initPlaylist(
-                        id?.replaceFirst("VL", "") ?: "",
-                        "Podcast \"${viewModel.podcastBrowse.value?.data!!.title}\"",
-                        Queue.PlaylistType.PLAYLIST
-                    )
-                    Queue.setNowPlaying(viewModel.podcastBrowse.value?.data!!.listEpisode[position].toTrack())
-                    Queue.addAll(viewModel.podcastBrowse.value?.data!!.listEpisode.toListTrack())
-                    if (Queue.getQueue().size >= 1) {
-                        Queue.removeTrackWithIndex(position)
+                    if (firstQueue != null) {
+                        sharedViewModel.loadMediaItemFromTrack(
+                            firstQueue,
+                            Config.PLAYLIST_CLICK,
+                            position,
+                            "Podcast \"${viewModel.podcastBrowse.value?.data?.title}\""
+                        )
                     }
-                    Log.d("PlaylistFragment", "Queue: ${Queue.getQueue().size}")
-                    findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
                 }
             }
         })

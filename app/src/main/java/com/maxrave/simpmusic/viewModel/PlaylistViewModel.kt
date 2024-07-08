@@ -21,6 +21,7 @@ import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.browse.playlist.PlaylistBrowse
 import com.maxrave.simpmusic.data.repository.MainRepository
+import com.maxrave.simpmusic.extension.toPlaylistEntity
 import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.utils.Resource
@@ -28,6 +29,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
@@ -46,13 +48,17 @@ class PlaylistViewModel
         private var dataStoreManager: DataStoreManager,
     ) : AndroidViewModel(application) {
         @Inject
+        @UnstableApi
         lateinit var downloadUtils: DownloadUtils
 
-        var gradientDrawable: MutableLiveData<GradientDrawable?> = MutableLiveData()
-        var loading = MutableLiveData<Boolean>()
+        private var _gradientDrawable: MutableStateFlow<GradientDrawable?> = MutableStateFlow(null)
+        var gradientDrawable: StateFlow<GradientDrawable?> = _gradientDrawable
 
-        private val _playlistBrowse: MutableLiveData<Resource<PlaylistBrowse>?> = MutableLiveData()
-        var playlistBrowse: LiveData<Resource<PlaylistBrowse>?> = _playlistBrowse
+        private var _uiState = MutableStateFlow<PlaylistUIState>(PlaylistUIState.Loading)
+        val uiState: StateFlow<PlaylistUIState> = _uiState
+
+        private val _playlistBrowse: MutableStateFlow<PlaylistBrowse?> =  MutableStateFlow(null)
+        var playlistBrowse: StateFlow<PlaylistBrowse?> = _playlistBrowse
 
         private val _id: MutableLiveData<String> = MutableLiveData()
         var id: LiveData<String> = _id
@@ -60,8 +66,11 @@ class PlaylistViewModel
         private val _isRadio: MutableLiveData<Boolean> = MutableLiveData()
         var isRadio: LiveData<Boolean> = _isRadio
 
-        private var _playlistEntity: MutableLiveData<PlaylistEntity?> = MutableLiveData()
-        var playlistEntity: LiveData<PlaylistEntity?> = _playlistEntity
+        private var _radioContinuation: MutableStateFlow<Pair<String, String?>?> = MutableStateFlow(null)
+        var radioContinuation: StateFlow<Pair<String, String?>?> = _radioContinuation
+
+        private var _playlistEntity: MutableStateFlow<PlaylistEntity?> = MutableStateFlow(null)
+        var playlistEntity: StateFlow<PlaylistEntity?> = _playlistEntity
 
         private var _liked: MutableStateFlow<Boolean> = MutableStateFlow(false)
         var liked: MutableStateFlow<Boolean> = _liked
@@ -88,16 +97,30 @@ class PlaylistViewModel
         }
 
         fun browsePlaylist(id: String) {
-            loading.value = true
+            _uiState.value = PlaylistUIState.Loading
             viewModelScope.launch {
 //            mainRepository.browsePlaylist(id, regionCode!!, SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language!!)]).collect{ values ->
 //                _playlistBrowse.value = values
 //            }
                 mainRepository.getPlaylistData(id).collect {
-                    _playlistBrowse.value = it
-                }
-                withContext(Dispatchers.Main) {
-                    loading.value = false
+                    when(it) {
+                        is Resource.Success -> {
+                            _playlistBrowse.value = it.data
+                            it.data?.toPlaylistEntity()?.let { playlistEntity ->
+                                insertPlaylist(playlistEntity)
+                            }
+                            withContext(Dispatchers.Main) {
+                                _uiState.value = PlaylistUIState.Success
+                            }
+                        }
+                        is Resource.Error -> {
+                            Log.w("PlaylistViewModel", "Error: ${it.message}")
+                            _playlistBrowse.value = null
+                            withContext(Dispatchers.Main) {
+                                _uiState.value = PlaylistUIState.Error(it.message)
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -107,26 +130,58 @@ class PlaylistViewModel
             videoId: String? = null,
             channelId: String? = null,
         ) {
-            loading.value = true
+            _uiState.value = PlaylistUIState.Loading
             viewModelScope.launch {
                 if (videoId != null) {
                     mainRepository.getSongById(videoId).collectLatest { song ->
                         if (song != null) {
                             mainRepository.getRadio(radioId, song).collect {
-                                _playlistBrowse.value = it
-                            }
-                            withContext(Dispatchers.Main) {
-                                loading.value = false
+                                when (it) {
+                                    is Resource.Success -> {
+                                        _playlistBrowse.value = it.data?.first
+                                        it.data?.first?.id?.let { id ->
+                                            _radioContinuation.value = Pair(id, it.data.second)
+                                        }
+                                        it.data?.first?.toPlaylistEntity()?.let { playlistEntity ->
+                                            insertRadioPlaylist(playlistEntity)
+                                        }
+                                        withContext(Dispatchers.Main) {
+                                            _uiState.value = PlaylistUIState.Success
+                                        }
+                                    }
+                                    is Resource.Error -> {
+                                        Log.w("PlaylistViewModel", "Error: ${it.message}")
+                                        _playlistBrowse.value = null
+                                        _radioContinuation.value = null
+                                        withContext(Dispatchers.Main) {
+                                            _uiState.value = PlaylistUIState.Error(it.message)
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
                 } else if (channelId != null) {
                     mainRepository.getArtistById(channelId).collectLatest { artist ->
                         mainRepository.getRadio(radioId = radioId, artist = artist).collect {
-                            _playlistBrowse.value = it
-                        }
-                        withContext(Dispatchers.Main) {
-                            loading.value = false
+                            when (it) {
+                                is Resource.Success -> {
+                                    _playlistBrowse.value = it.data?.first
+                                    it.data?.first?.toPlaylistEntity()?.let { playlistEntity ->
+                                        insertRadioPlaylist(playlistEntity)
+                                    }
+                                    withContext(Dispatchers.Main) {
+                                        _uiState.value = PlaylistUIState.Success
+                                    }
+                                }
+                                is Resource.Error -> {
+                                    Log.w("PlaylistViewModel", "Error: ${it.message}")
+                                    _playlistBrowse.value = null
+                                    withContext(Dispatchers.Main) {
+                                        _uiState.value = PlaylistUIState.Error(it.message)
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -329,7 +384,12 @@ class PlaylistViewModel
 
         fun clearPlaylistBrowse() {
             _playlistBrowse.value = null
-            gradientDrawable.value = null
+            _gradientDrawable.value = null
+            _radioContinuation.value = null
+        }
+
+        fun clearPlaylistEntity() {
+            _playlistEntity.value = null
         }
 
         fun getLocation() {
@@ -529,4 +589,20 @@ class PlaylistViewModel
                 }
             }
         }
+
+    fun checkSuccess() {
+        if (_playlistBrowse.value != null)  {
+            _uiState.value = PlaylistUIState.Success
+        }
     }
+
+    fun setGradientDrawable(gd: GradientDrawable) {
+        _gradientDrawable.value = gd
+    }
+}
+
+sealed class PlaylistUIState {
+    data object Loading : PlaylistUIState()
+    data object Success : PlaylistUIState()
+    data class Error(val message: String? = null) : PlaylistUIState()
+}

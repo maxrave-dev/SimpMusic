@@ -257,14 +257,9 @@ class FullscreenFragment : Fragment() {
                     }
                 val job11 =
                     launch {
-                        viewModel.simpleMediaServiceHandler?.previousTrackAvailable?.collect { available ->
-                            setEnabledAll(binding.btPrevious, available)
-                        }
-                    }
-                val job12 =
-                    launch {
-                        viewModel.simpleMediaServiceHandler?.nextTrackAvailable?.collect { available ->
-                            setEnabledAll(binding.btNext, available)
+                        viewModel.simpleMediaServiceHandler?.controlState?.collect { controlState ->
+                            setEnabledAll(binding.btPrevious, controlState.isPreviousAvailable)
+                            setEnabledAll(binding.btNext, controlState.isNextAvailable)
                         }
                     }
                 val job5 =
@@ -324,14 +319,14 @@ class FullscreenFragment : Fragment() {
                 title.join()
                 repeat.join()
                 job11.join()
-                job12.join()
                 shuffle.join()
             }
         }
         binding.toolbar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.now_playing_dialog_menu_item_more -> {
-                    if (!viewModel.simpleMediaServiceHandler?.catalogMetadata.isNullOrEmpty()) {
+                    val queue = runBlocking { viewModel.simpleMediaServiceHandler?.queueData?.first()?.listTracks }
+                    if (!queue.isNullOrEmpty()) {
                         viewModel.refreshSongDB()
                         val dialog = BottomSheetDialog(requireContext())
                         dialog.apply {
@@ -385,9 +380,9 @@ class FullscreenFragment : Fragment() {
                                     setEnabledAll(btDownload, true)
                                 }
                             }
-                            if (!viewModel.simpleMediaServiceHandler?.catalogMetadata.isNullOrEmpty()) {
+                            if (queue.isNotEmpty()) {
                                 val song =
-                                    viewModel.simpleMediaServiceHandler!!.catalogMetadata[viewModel.getCurrentMediaItemIndex()]
+                                    queue[viewModel.getCurrentMediaItemIndex()]
                                 tvSongTitle.text = song.title
                                 tvSongTitle.isSelected = true
                                 tvSongArtist.text = song.artists.toListName().connectArtists()

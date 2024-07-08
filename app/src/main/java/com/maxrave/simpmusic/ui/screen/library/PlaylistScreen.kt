@@ -95,17 +95,18 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants.IterateForever
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.common.ASC
 import com.maxrave.simpmusic.common.Config
+import com.maxrave.simpmusic.common.DESC
 import com.maxrave.simpmusic.common.DownloadState
+import com.maxrave.simpmusic.common.LOCAL_PLAYLIST_ID
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
-import com.maxrave.simpmusic.data.queue.Queue
-import com.maxrave.simpmusic.data.queue.Queue.ASC
-import com.maxrave.simpmusic.data.queue.Queue.DESC
 import com.maxrave.simpmusic.extension.angledGradientBackground
-import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.toArrayListTrack
 import com.maxrave.simpmusic.extension.toTrack
+import com.maxrave.simpmusic.service.PlaylistType
+import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -232,45 +233,30 @@ fun PlaylistScreen(
         val list = listTrack
         val track = listTrack?.find { it.videoId == videoId }
         if (!list.isNullOrEmpty() && track != null) {
-            val args = Bundle()
-            args.putString("type", Config.PLAYLIST_CLICK)
-            args.putString("videoId", track.videoId)
-            args.putString("from", "Playlist \"${localPlaylist?.title}\"")
-            args.putInt("index", list.indexOf(track))
-            if (localPlaylist?.downloadState == DownloadState.STATE_DOWNLOADED) {
-                args.putInt("downloaded", 1)
-            }
-            if (localPlaylist?.syncedWithYouTubePlaylist == 1) {
-                args.putString(
-                    "playlistId",
-                    localPlaylist?.youtubePlaylistId?.replaceFirst("VL", ""),
-                )
-            }
-            Queue.initPlaylist(
-                Queue.LOCAL_PLAYLIST_ID + localPlaylist?.id,
-                "Playlist \"${localPlaylist?.title}\"",
-                Queue.PlaylistType.PLAYLIST,
-            )
-            Queue.setNowPlaying(track.toTrack())
             val tempList: ArrayList<Track> = arrayListOf()
             for (i in list) {
                 tempList.add(i.toTrack())
             }
-            Queue.addAll(tempList)
-            if (Queue.getQueue().size >= 1) {
-                Queue.removeTrackWithIndex(list.indexOf(track))
-            }
-            if (offset > 0) {
-                Queue.setContinuation(
-                    Queue.LOCAL_PLAYLIST_ID + localPlaylist?.id,
-                    if (filterState == FilterState.OlderFirst) {
-                        (ASC + offset.toString())
-                    } else {
-                        (DESC + offset)
-                    },
+            sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                QueueData(
+                    listTracks = tempList,
+                    firstPlayedTrack = track.toTrack(),
+                    playlistId = LOCAL_PLAYLIST_ID + localPlaylist?.id,
+                    playlistName = "Playlist \"${localPlaylist?.title}\"",
+                    playlistType = PlaylistType.LOCAL_PLAYLIST,
+                    continuation = if (offset > 0) {
+                        if (filterState == FilterState.OlderFirst) {
+                            (ASC + offset.toString())
+                        } else {
+                            (DESC + offset)
+                        }
+                    } else null
+
                 )
-            }
-            navController.navigateSafe(R.id.action_global_nowPlayingFragment, args)
+            )
+            sharedViewModel.loadMediaItemFromTrack(
+                track = track.toTrack(), type = Config.PLAYLIST_CLICK, index = list.indexOf(track), from = "Playlist \"${localPlaylist?.title}\""
+            )
         }
     }
     val onItemMoreClick: (videoId: String) -> Unit = { videoId ->
@@ -403,18 +389,18 @@ fun PlaylistScreen(
 //    Box {
     LazyColumn(
         modifier =
-            Modifier
-                .fillMaxWidth()
-                .background(Color.Black),
+        Modifier
+            .fillMaxWidth()
+            .background(Color.Black),
         state = lazyState,
     ) {
         item(contentType = "header") {
             Box(
                 modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .wrapContentHeight()
-                        .background(Color.Transparent),
+                Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .background(Color.Transparent),
             ) {
                 Box(
                     modifier =
@@ -427,29 +413,30 @@ fun PlaylistScreen(
                 ) {
                     Box(
                         modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .aspectRatio(1f)
-                                .clip(
-                                    RoundedCornerShape(8.dp),
-                                ).angledGradientBackground(bg, 25f),
+                        Modifier
+                            .fillMaxWidth()
+                            .aspectRatio(1f)
+                            .clip(
+                                RoundedCornerShape(8.dp),
+                            )
+                            .angledGradientBackground(bg, 25f),
                     )
                     Box(
                         modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .height(180.dp)
-                                .align(Alignment.BottomCenter)
-                                .background(
-                                    brush =
-                                        Brush.verticalGradient(
-                                            listOf(
-                                                Color.Transparent,
-                                                Color(0x75000000),
-                                                Color.Black,
-                                            ),
-                                        ),
+                        Modifier
+                            .fillMaxWidth()
+                            .height(180.dp)
+                            .align(Alignment.BottomCenter)
+                            .background(
+                                brush =
+                                Brush.verticalGradient(
+                                    listOf(
+                                        Color.Transparent,
+                                        Color(0x75000000),
+                                        Color.Black,
+                                    ),
                                 ),
+                            ),
                     )
                 }
                 Column(
@@ -459,10 +446,10 @@ fun PlaylistScreen(
                 ) {
                     Row(
                         modifier =
-                            Modifier
-                                .wrapContentWidth()
-                                .padding(16.dp)
-                                .windowInsetsPadding(WindowInsets.statusBars),
+                        Modifier
+                            .wrapContentWidth()
+                            .padding(16.dp)
+                            .windowInsetsPadding(WindowInsets.statusBars),
                     ) {
                         RippleIconButton(
                             resId = R.drawable.baseline_arrow_back_ios_new_24,
@@ -502,19 +489,19 @@ fun PlaylistScreen(
                                     +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder))
                                 },
                             modifier =
-                                Modifier
-                                    .height(250.dp)
-                                    .wrapContentWidth()
-                                    .align(Alignment.CenterHorizontally)
-                                    .clip(
-                                        RoundedCornerShape(8.dp),
-                                    ),
+                            Modifier
+                                .height(250.dp)
+                                .wrapContentWidth()
+                                .align(Alignment.CenterHorizontally)
+                                .clip(
+                                    RoundedCornerShape(8.dp),
+                                ),
                         )
                         Box(
                             modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .wrapContentHeight(),
+                            Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight(),
                         ) {
                             Column(Modifier.padding(horizontal = 32.dp)) {
                                 Spacer(modifier = Modifier.size(25.dp))
@@ -558,44 +545,30 @@ fun PlaylistScreen(
                                     ) {
                                         val temp = listTrack
                                         if (!temp.isNullOrEmpty()) {
-                                            val args = Bundle()
-                                            args.putString("type", Config.ALBUM_CLICK)
-                                            args.putString("videoId", temp.first().videoId)
-                                            args.putString("from", "Playlist \"${(localPlaylist)?.title}\"")
-                                            if (downloadState == DownloadState.STATE_DOWNLOADED) {
-                                                args.putInt("downloaded", 1)
-                                            }
-                                            if (viewModel.localPlaylist.value?.syncedWithYouTubePlaylist == 1) {
-                                                args.putString(
-                                                    "playlistId",
-                                                    viewModel.localPlaylist.value?.youtubePlaylistId?.replaceFirst("VL", ""),
-                                                )
-                                            }
-                                            Queue.initPlaylist(
-                                                Queue.LOCAL_PLAYLIST_ID + localPlaylist?.id,
-                                                "Playlist \"${(viewModel.localPlaylist.value)?.title}\"",
-                                                Queue.PlaylistType.PLAYLIST,
-                                            )
-                                            Queue.setNowPlaying(temp.first().toTrack())
                                             val tempList: ArrayList<Track> = arrayListOf()
                                             for (i in temp) {
                                                 tempList.add(i.toTrack())
                                             }
-                                            Queue.addAll(tempList)
-                                            if (Queue.getQueue().size >= 1) {
-                                                Queue.removeFirstTrackForPlaylistAndAlbum()
-                                            }
-                                            if (offset > 0) {
-                                                Queue.setContinuation(
-                                                    Queue.LOCAL_PLAYLIST_ID + localPlaylist?.id,
-                                                    if (filterState == FilterState.OlderFirst) {
-                                                        (ASC + offset.toString())
-                                                    } else {
-                                                        (DESC + offset)
-                                                    },
+                                            sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                                                QueueData(
+                                                    listTracks = tempList,
+                                                    firstPlayedTrack = temp.firstOrNull()?.toTrack(),
+                                                    playlistId = LOCAL_PLAYLIST_ID + localPlaylist?.id,
+                                                    playlistName = "Playlist \"${localPlaylist?.title}\"",
+                                                    playlistType = PlaylistType.LOCAL_PLAYLIST,
+                                                    continuation = if (offset > 0) {
+                                                        if (filterState == FilterState.OlderFirst) {
+                                                            (ASC + offset.toString())
+                                                        } else {
+                                                            (DESC + offset)
+                                                        }
+                                                    } else null
+
                                                 )
-                                            }
-                                            navController.navigateSafe(R.id.action_global_nowPlayingFragment, args)
+                                            )
+                                            sharedViewModel.loadMediaItemFromTrack(
+                                                track = temp.first().toTrack(), type = Config.PLAYLIST_CLICK, index = 0, from = "Playlist \"${localPlaylist?.title}\""
+                                            )
                                         } else {
                                             Toast.makeText(context, context.getString(R.string.playlist_is_empty), Toast.LENGTH_SHORT).show()
                                         }
@@ -606,36 +579,36 @@ fun PlaylistScreen(
                                             DownloadState.STATE_DOWNLOADED -> {
                                                 Box(
                                                     modifier =
-                                                        Modifier
-                                                            .size(36.dp)
-                                                            .clip(
-                                                                CircleShape,
-                                                            )
-                                                            .clickable(
-                                                                onClick = {
-                                                                    Toast
-                                                                        .makeText(
-                                                                            context,
-                                                                            context.getString(R.string.downloaded),
-                                                                            Toast.LENGTH_SHORT,
-                                                                        )
-                                                                        .show()
-                                                                },
-                                                                interactionSource =
-                                                                    remember {
-                                                                        MutableInteractionSource()
-                                                                    },
-                                                                indication = ripple(),
-                                                            ),
+                                                    Modifier
+                                                        .size(36.dp)
+                                                        .clip(
+                                                            CircleShape,
+                                                        )
+                                                        .clickable(
+                                                            onClick = {
+                                                                Toast
+                                                                    .makeText(
+                                                                        context,
+                                                                        context.getString(R.string.downloaded),
+                                                                        Toast.LENGTH_SHORT,
+                                                                    )
+                                                                    .show()
+                                                            },
+                                                            interactionSource =
+                                                            remember {
+                                                                MutableInteractionSource()
+                                                            },
+                                                            indication = ripple(),
+                                                        ),
                                                 ) {
                                                     Icon(
                                                         painter = painterResource(id = R.drawable.baseline_downloaded),
                                                         tint = Color(0xFF00A0CB),
                                                         contentDescription = "",
                                                         modifier =
-                                                            Modifier
-                                                                .size(36.dp)
-                                                                .padding(2.dp),
+                                                        Modifier
+                                                            .size(36.dp)
+                                                            .padding(2.dp),
                                                     )
                                                 }
                                             }
@@ -643,27 +616,27 @@ fun PlaylistScreen(
                                             DownloadState.STATE_DOWNLOADING -> {
                                                 Box(
                                                     modifier =
-                                                        Modifier
-                                                            .size(36.dp)
-                                                            .clip(
-                                                                CircleShape,
-                                                            )
-                                                            .clickable(
-                                                                onClick = {
-                                                                    Toast
-                                                                        .makeText(
-                                                                            context,
-                                                                            context.getString(R.string.downloading),
-                                                                            Toast.LENGTH_SHORT,
-                                                                        )
-                                                                        .show()
-                                                                },
-                                                                interactionSource =
-                                                                    remember {
-                                                                        MutableInteractionSource()
-                                                                    },
-                                                                indication = ripple(),
-                                                            ),
+                                                    Modifier
+                                                        .size(36.dp)
+                                                        .clip(
+                                                            CircleShape,
+                                                        )
+                                                        .clickable(
+                                                            onClick = {
+                                                                Toast
+                                                                    .makeText(
+                                                                        context,
+                                                                        context.getString(R.string.downloading),
+                                                                        Toast.LENGTH_SHORT,
+                                                                    )
+                                                                    .show()
+                                                            },
+                                                            interactionSource =
+                                                            remember {
+                                                                MutableInteractionSource()
+                                                            },
+                                                            indication = ripple(),
+                                                        ),
                                                 ) {
                                                     LottieAnimation(
                                                         composition,
@@ -762,41 +735,37 @@ fun PlaylistScreen(
                                             args.putString("videoId", random.videoId)
                                             args.putString("from", "Playlist \"${(localPlaylist)?.title}\"")
                                             args.putInt("index", temp.indexOf(random))
-                                            if (downloadState == DownloadState.STATE_DOWNLOADED) {
-                                                args.putInt("downloaded", 1)
-                                            }
-                                            if (viewModel.localPlaylist.value?.syncedWithYouTubePlaylist == 1) {
-                                                args.putString(
-                                                    "playlistId",
-                                                    viewModel.localPlaylist.value?.youtubePlaylistId?.replaceFirst("VL", ""),
-                                                )
-                                            }
-                                            Queue.initPlaylist(
-                                                Queue.LOCAL_PLAYLIST_ID + localPlaylist?.id,
-                                                "Playlist \"${(viewModel.localPlaylist.value)?.title}\"",
-                                                Queue.PlaylistType.PLAYLIST,
-                                            )
-                                            Queue.setNowPlaying(random.toTrack())
+                                            val index = temp.indexOf(random)
                                             val tempList: ArrayList<Track> = arrayListOf()
                                             for (i in temp) {
                                                 tempList.add(i.toTrack())
                                             }
-                                            tempList.remove(random.toTrack())
-                                            Queue.addAll(tempList)
-                                            if (offset > 0) {
-                                                Queue.setContinuation(
-                                                    Queue.LOCAL_PLAYLIST_ID + localPlaylist?.id,
-                                                    if (filterState == FilterState.OlderFirst) {
-                                                        (ASC + offset.toString())
-                                                    } else {
-                                                        (DESC + offset)
-                                                    },
+                                            sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                                                QueueData(
+                                                    listTracks = tempList,
+                                                    firstPlayedTrack = random.toTrack(),
+                                                    playlistId = LOCAL_PLAYLIST_ID + localPlaylist?.id,
+                                                    playlistName = "Playlist \"${localPlaylist?.title}\"",
+                                                    playlistType = PlaylistType.LOCAL_PLAYLIST,
+                                                    continuation = if (offset > 0) {
+                                                        if (filterState == FilterState.OlderFirst) {
+                                                            (ASC + offset.toString())
+                                                        } else {
+                                                            (DESC + offset)
+                                                        }
+                                                    } else null
+
                                                 )
-                                            }
-                                            if (runBlocking { sharedViewModel.simpleMediaServiceHandler?.shuffle?.first() } != true) {
+                                            )
+                                            sharedViewModel.loadMediaItemFromTrack(
+                                                track = random.toTrack(),
+                                                type = Config.PLAYLIST_CLICK,
+                                                index = index,
+                                                from = "Playlist \"${localPlaylist?.title}\""
+                                            )
+                                            if (!runBlocking { sharedViewModel.shuffleModeEnabled.first() }) {
                                                 sharedViewModel.onUIEvent(UIEvent.Shuffle)
                                             }
-                                            navController.navigateSafe(R.id.action_global_nowPlayingFragment, args)
                                         } else {
                                             Toast.makeText(context, context.getString(R.string.playlist_is_empty), Toast.LENGTH_SHORT).show()
                                         }
@@ -867,43 +836,36 @@ fun PlaylistScreen(
                                                                 )
                                                             },
                                                             onClickListener = {
-                                                                val args = Bundle()
-                                                                args.putString("type", Config.PLAYLIST_CLICK)
-                                                                args.putString("videoId", track.videoId)
-                                                                args.putString(
-                                                                    "from",
-                                                                    "${
-                                                                        context.getString(
-                                                                            R.string.playlist,
-                                                                        )
-                                                                    } \"${localPlaylist?.title}\" ${
-                                                                        context.getString(R.string.suggest)
-                                                                    }",
-                                                                )
-                                                                args.putInt("index", index)
-                                                                Queue.initPlaylist(
-                                                                    "RDAMVM${track.videoId}",
-                                                                    "${
-                                                                        context.getString(
-                                                                            R.string.playlist,
-                                                                        )
-                                                                    } \"${localPlaylist?.title}\" ${
-                                                                        context.getString(R.string.suggest)
-                                                                    }",
-                                                                    Queue.PlaylistType.RADIO,
-                                                                )
-                                                                Queue.setNowPlaying(track)
                                                                 val tempList: ArrayList<Track> = arrayListOf()
                                                                 for (i in suggestedTracks!!) {
                                                                     tempList.add(i)
                                                                 }
-                                                                Queue.addAll(tempList)
-                                                                if (Queue.getQueue().size >= 1) {
-                                                                    Queue.removeTrackWithIndex(index)
-                                                                }
-                                                                navController.navigateSafe(
-                                                                    R.id.action_global_nowPlayingFragment,
-                                                                    args,
+                                                                sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                                                                    QueueData(
+                                                                        listTracks = tempList,
+                                                                        firstPlayedTrack = track,
+                                                                        playlistId = "RDAMVM${track.videoId}",
+                                                                        playlistName = "${
+                                                                            context.getString(
+                                                                                R.string.playlist,
+                                                                            )
+                                                                        } \"${localPlaylist?.title}\" ${
+                                                                            context.getString(R.string.suggest)
+                                                                        }",
+                                                                        playlistType = PlaylistType.RADIO,
+                                                                        continuation = null
+
+                                                                    )
+                                                                )
+                                                                sharedViewModel.loadMediaItemFromTrack(
+                                                                    track = track, type = Config.SONG_CLICK, index = 0,
+                                                                    from = "${
+                                                                        context.getString(
+                                                                            R.string.playlist,
+                                                                        )
+                                                                    } \"${localPlaylist?.title}\" ${
+                                                                        context.getString(R.string.suggest)
+                                                                    }"
                                                                 )
                                                             },
                                                         )
