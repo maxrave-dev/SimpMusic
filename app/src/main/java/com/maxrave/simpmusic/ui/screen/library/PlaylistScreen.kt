@@ -120,6 +120,7 @@ import com.maxrave.simpmusic.viewModel.FilterState
 import com.maxrave.simpmusic.viewModel.LocalPlaylistUIEvent
 import com.maxrave.simpmusic.viewModel.LocalPlaylistViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
+import com.maxrave.simpmusic.viewModel.UIEvent
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.animation.crossfade.CrossfadePlugin
 import com.skydoves.landscapist.coil.CoilImage
@@ -128,7 +129,9 @@ import com.skydoves.landscapist.palette.PalettePlugin
 import com.skydoves.landscapist.palette.rememberPaletteState
 import com.skydoves.landscapist.placeholder.placeholder.PlaceholderPlugin
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.time.format.DateTimeFormatter
 
 @UnstableApi
@@ -564,7 +567,10 @@ fun PlaylistScreen(
                                                 )
                                             )
                                             sharedViewModel.loadMediaItemFromTrack(
-                                                track = temp.first().toTrack(), type = Config.PLAYLIST_CLICK, index = 0, from = "Playlist \"${localPlaylist?.title}\""
+                                                track = temp.first().toTrack(),
+                                                type = Config.PLAYLIST_CLICK,
+                                                index = 0,
+                                                from = "Playlist \"${localPlaylist?.title}\""
                                             )
                                         } else {
                                             Toast.makeText(context, context.getString(R.string.playlist_is_empty), Toast.LENGTH_SHORT).show()
@@ -724,19 +730,12 @@ fun PlaylistScreen(
                                         resId = R.drawable.baseline_shuffle_24,
                                         fillMaxSize = true,
                                     ) {
-                                        val tempListTrack = listTrack
-                                        if (!tempListTrack.isNullOrEmpty()) {
-
-                                            val tempList: ArrayList<Track> = arrayListOf()
-                                            for (i in tempListTrack) {
-                                                tempList.add(i.toTrack())
-                                            }
-
-                                            val firstSong = tempList.first()
-                                            tempList.remove(firstSong)
+                                        val temp = listTrack
+                                        if (!temp.isNullOrEmpty()) {
+                                            val random = temp.random()
                                             val args = Bundle()
                                             args.putString("type", Config.ALBUM_CLICK)
-                                            args.putString("videoId", firstSong.videoId)
+                                            args.putString("videoId", random.videoId)
                                             args.putString("from", "Playlist \"${(localPlaylist)?.title}\"")
                                             args.putInt("index", temp.indexOf(random))
                                             val index = temp.indexOf(random)
