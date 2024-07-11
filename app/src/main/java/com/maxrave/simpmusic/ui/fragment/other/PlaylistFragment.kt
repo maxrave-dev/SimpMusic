@@ -71,7 +71,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.time.LocalDateTime
 import kotlin.math.abs
-import kotlin.random.Random
 
 @AndroidEntryPoint
 class PlaylistFragment : Fragment() {
@@ -536,7 +535,7 @@ class PlaylistFragment : Fragment() {
                                         if (it.first == viewModel.playlistBrowse.value?.id) it.second else null
                                     },
 
-                                )
+                                    )
                             )
                             viewModel.listTrack.value?.get(position)?.let {
                                 Log.w("PlaylistFragment", "track: $it")
@@ -791,19 +790,17 @@ class PlaylistFragment : Fragment() {
         }
         binding.btShuffle.setOnClickListener {
             if (viewModel.playlistBrowse.value != null) {
-                val index =
-                    Random.nextInt(
-                        0,
-                        viewModel.playlistBrowse.value
-                            !!
-                            .tracks.size - 1,
-                    )
+
                 val shuffleList: ArrayList<Track> = arrayListOf()
                 viewModel.playlistBrowse.value?.tracks?.let {
                     shuffleList.addAll(it)
                 }
                 shuffleList.shuffle()
-                val afterShuffleIndex = shuffleList.indexOf(viewModel.playlistBrowse.value?.tracks?.get(index))
+                var index = viewModel.playlistBrowse.value?.tracks?.indexOf(shuffleList.first())
+                if (index == null || index == -1) {
+                    index = 0
+                }
+                val afterShuffleIndex = 0
                 sharedViewModel.simpleMediaServiceHandler?.setQueueData(
                     QueueData(
                         listTracks = shuffleList,
@@ -827,23 +824,19 @@ class PlaylistFragment : Fragment() {
                     )
                 }
             } else if (viewModel.playlistEntity.value != null && viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
-                val index =
-                    Random.nextInt(
-                        0,
-                        viewModel.playlistEntity.value
-                            ?.tracks
-                            ?.size
-                            ?.minus(1) ?: 0,
-                    )
                 val shuffleList: ArrayList<Track> = arrayListOf()
                 viewModel.listTrack.value
                     ?.toArrayListTrack()
                     ?.let { it1 -> shuffleList.addAll(it1) }
+                shuffleList.shuffle()
+                var index = viewModel.playlistBrowse.value?.tracks?.indexOf(shuffleList.first())
+                if (index == null || index == -1) {
+                    index = 0
+                }
+                val afterShuffleIndex = 0
                 viewModel.listTrack.value
                     ?.get(index)
                     ?.let { shuffleList.remove(it.toTrack()) }
-                shuffleList.shuffle()
-                val afterShuffleIndex = shuffleList.indexOf(viewModel.listTrack.value?.get(index)?.toTrack())
                 sharedViewModel.simpleMediaServiceHandler?.setQueueData(
                     QueueData(
                         listTracks = shuffleList,
@@ -890,7 +883,7 @@ class PlaylistFragment : Fragment() {
                 }
                 viewModel.getListTrack(
                     viewModel.playlistBrowse.value
-                        
+
                         ?.tracks
                         ?.toListVideoId(),
                 )
@@ -1233,9 +1226,8 @@ class PlaylistFragment : Fragment() {
                                 }
                             }
                         }
-                    }
-                    else if (playlistBrowse == null && playlistEntity != null) {
-                        with (binding) {
+                    } else if (playlistBrowse == null && playlistEntity != null) {
+                        with(binding) {
                             when (playlistEntity.downloadState) {
                                 DownloadState.STATE_DOWNLOADED -> {
                                     btDownload.visibility = View.VISIBLE
