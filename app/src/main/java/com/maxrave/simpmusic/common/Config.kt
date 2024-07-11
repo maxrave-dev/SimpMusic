@@ -384,3 +384,10 @@ const val SELECTED_LANGUAGE = "selected_language"
 const val STATUS_DONE = "status_done"
 
 const val RESTORE_SUCCESSFUL = "restore_successful"
+
+const val LOCAL_PLAYLIST_ID_SAVED_QUEUE = "LOCAL_PLAYLIST_ID_SAVED_QUEUE"
+const val LOCAL_PLAYLIST_ID_DOWNLOADED = "LOCAL_PLAYLIST_ID_DOWNLOADED"
+const val LOCAL_PLAYLIST_ID_LIKED = "LOCAL_PLAYLIST_ID_LIKED"
+const val LOCAL_PLAYLIST_ID = "LOCAL_PLAYLIST_ID"
+const val ASC = "ASC"
+const val DESC = "DESC"

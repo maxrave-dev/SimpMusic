@@ -15,16 +15,18 @@ import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.home.Content
 import com.maxrave.simpmusic.data.model.home.HomeItem
-import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.ItemHomeBinding
 import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.toTrack
+import com.maxrave.simpmusic.service.PlaylistType
+import com.maxrave.simpmusic.service.QueueData
 
 class HomeItemAdapter(
     private var homeItemList: ArrayList<HomeItem>,
     var context: Context,
     val navController: NavController,
-    private val onLongClickListener: HomeItemContentAdapter.OnSongOrVideoLongClickListener
+    private val onLongClickListener: HomeItemContentAdapter.OnSongOrVideoLongClickListener,
+    private val setQueueData: (queue: QueueData, type: String) -> Unit
 ) : RecyclerView.Adapter<HomeItemAdapter.ViewHolder>() {
     inner class ViewHolder(var binding: ItemHomeBinding) : RecyclerView.ViewHolder(binding.root)
 
@@ -82,17 +84,18 @@ class HomeItemAdapter(
         }
         itemAdapter.setOnSongClickListener(object : HomeItemContentAdapter.onSongItemClickListener {
             override fun onSongItemClick(position: Int) {
-                val args = Bundle()
-                args.putString("videoId", homeItemList[holder.bindingAdapterPosition].contents[position]?.videoId)
-                args.putString("from", homeItem.title)
-                Queue.initPlaylist(
-                    "RDAMVM${homeItemList[holder.bindingAdapterPosition].contents[position]?.videoId}", homeItem.title, Queue.PlaylistType.RADIO
-                )
-                Log.d("HomeItemAdapter", "onSongItemClick: ${homeItemList[holder.bindingAdapterPosition].contents[position]}")
                 val firstQueue: Track = homeItemList[holder.bindingAdapterPosition].contents[position]!!.toTrack()
-                Queue.setNowPlaying(firstQueue)
-                args.putString("type", Config.SONG_CLICK)
-                navController.navigateSafe(R.id.action_global_nowPlayingFragment, args)
+                setQueueData(
+                    QueueData(
+                        listTracks = arrayListOf(firstQueue),
+                        firstPlayedTrack = firstQueue,
+                        playlistId = "RDAMVM${homeItemList[holder.bindingAdapterPosition].contents[position]?.videoId}",
+                        playlistName = homeItem.title,
+                        playlistType = PlaylistType.RADIO,
+                        continuation = null
+                    ),
+                    Config.SONG_CLICK
+                )
             }
         })
         itemAdapter.setOnPlaylistClickListener(object : HomeItemContentAdapter.onPlaylistItemClickListener{

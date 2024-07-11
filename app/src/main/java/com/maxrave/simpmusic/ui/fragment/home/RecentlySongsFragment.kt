@@ -5,8 +5,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.maxrave.simpmusic.R
@@ -16,13 +18,15 @@ import com.maxrave.simpmusic.data.db.entities.ArtistEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
-import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.FragmentRecentlySongsBinding
 import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.pagination.RecentLoadStateAdapter
 import com.maxrave.simpmusic.pagination.RecentPagingAdapter
+import com.maxrave.simpmusic.service.PlaylistType
+import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.viewModel.RecentlySongsViewModel
+import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.Dispatchers
@@ -36,6 +40,7 @@ class RecentlySongsFragment: Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel by viewModels<RecentlySongsViewModel>()
+    private val sharedViewModel by activityViewModels<SharedViewModel>()
 
     private lateinit var mainAdapter: RecentPagingAdapter
     private lateinit var loadAdapter: RecentLoadStateAdapter
@@ -75,6 +80,7 @@ class RecentlySongsFragment: Fragment() {
         }
 
         mainAdapter.setOnClickListener(object : RecentPagingAdapter.onItemClickListener {
+            @UnstableApi
             override fun onItemClick(position: Int, type: String) {
                 if (type == "artist"){
                     val channelId = (mainAdapter.getItemByIndex(position) as ArtistEntity).channelId
@@ -97,14 +103,23 @@ class RecentlySongsFragment: Fragment() {
                 if (type == Config.SONG_CLICK){
                     val songClicked = mainAdapter.getItemByIndex(position) as SongEntity
                     val videoId = songClicked.videoId
-                    Queue.initPlaylist("RDAMVM$videoId", getString(R.string.recently_added), Queue.PlaylistType.RADIO)
                     val firstQueue: Track = songClicked.toTrack()
-                    Queue.setNowPlaying(firstQueue)
-                    val args = Bundle()
-                    args.putString("videoId", videoId)
-                    args.putString("from", getString(R.string.recently_added))
-                    args.putString("type", Config.SONG_CLICK)
-                    findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
+                    sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                        QueueData(
+                            listTracks = arrayListOf(firstQueue),
+                            firstPlayedTrack = firstQueue,
+                            playlistId = "RDAMVM$videoId",
+                            playlistName = getString(R.string.recently_added),
+                            playlistType = PlaylistType.RADIO,
+                            continuation = null
+                        )
+                    )
+                    sharedViewModel.loadMediaItemFromTrack(
+                        firstQueue,
+                        Config.SONG_CLICK,
+                        0,
+                        getString(R.string.recently_added)
+                    )
                 }
             }
         })

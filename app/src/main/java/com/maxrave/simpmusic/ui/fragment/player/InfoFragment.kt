@@ -78,19 +78,21 @@ class InfoFragment: BottomSheetDialogFragment(){
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         if (runBlocking { viewModel.nowPlayingMediaItem.first() } != null) {
             if (viewModel.simpleMediaServiceHandler != null) {
-                val data = viewModel.simpleMediaServiceHandler!!.catalogMetadata[viewModel.getCurrentMediaItemIndex()]
+                val data = (runBlocking {
+                    viewModel.simpleMediaServiceHandler?.queueData?.first()?.listTracks
+                })?.getOrNull(viewModel.getCurrentMediaItemIndex())
                 with(binding){
-                    toolbar.title = data.title
-                    artistsName.text = data.artists.toListName().connectArtists()
-                    "https://www.youtube.com/watch?v=${data.videoId}".also { youtubeUrl.text = it }
-                    title.text = data.title
-                    albumName.text = data.album?.name
+                    toolbar.title = data?.title ?: getString(R.string.unknown)
+                    artistsName.text = data?.artists.toListName().connectArtists()
+                    "https://www.youtube.com/watch?v=${data?.videoId}".also { youtubeUrl.text = it }
+                    title.text = data?.title
+                    albumName.text = data?.album?.name
                     albumName.setOnClickListener {
-                        if (!data.album?.id.isNullOrEmpty()) {
+                        if (!data?.album?.id.isNullOrEmpty()) {
                             findNavController().navigateSafe(
                                 R.id.action_global_albumFragment,
                                 Bundle().apply {
-                                    putString("browseId", data.album?.id)
+                                    putString("browseId", data?.album?.id)
                                 })
                         }
                     }

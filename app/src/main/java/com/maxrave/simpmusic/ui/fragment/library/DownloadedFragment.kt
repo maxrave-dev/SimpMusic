@@ -25,12 +25,12 @@ import com.maxrave.simpmusic.adapter.playlist.AddToAPlaylistAdapter
 import com.maxrave.simpmusic.adapter.search.SearchItemAdapter
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.DownloadState
+import com.maxrave.simpmusic.common.LOCAL_PLAYLIST_ID_DOWNLOADED
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
-import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.BottomSheetAddToAPlaylistBinding
 import com.maxrave.simpmusic.databinding.BottomSheetNowPlayingBinding
 import com.maxrave.simpmusic.databinding.BottomSheetSeeArtistOfNowPlayingBinding
@@ -40,6 +40,8 @@ import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.removeConflicts
 import com.maxrave.simpmusic.extension.setEnabledAll
 import com.maxrave.simpmusic.extension.toTrack
+import com.maxrave.simpmusic.service.PlaylistType
+import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.viewModel.DownloadedViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
@@ -96,20 +98,26 @@ class DownloadedFragment : Fragment() {
         }
 
         downloadedAdapter.setOnClickListener(object : SearchItemAdapter.onItemClickListener {
+            @UnstableApi
             override fun onItemClick(position: Int, type: String) {
                 val song = downloadedAdapter.getCurrentList()[position] as SongEntity
-                val args = Bundle()
-                args.putString("type", Config.ALBUM_CLICK)
-                args.putString("videoId", song.videoId)
-                args.putString("from", getString(R.string.downloaded))
-                args.putInt("index", position)
-                args.putInt("downloaded", 1)
-                val tracks = downloadedAdapter.getCurrentList().map { (it as SongEntity).toTrack() } as ArrayList<Track>
-                Queue.initPlaylist(Queue.LOCAL_PLAYLIST_ID_DOWNLOADED, getString(R.string.downloaded), Queue.PlaylistType.LOCAL_PLAYLIST)
-                Queue.setNowPlaying(song.toTrack())
-                Queue.addAll(tracks)
-                Queue.removeTrackWithIndex(position)
-                findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
+                val firstQueue = song.toTrack()
+                sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                    QueueData(
+                        listTracks = downloadedAdapter.getCurrentList().map { (it as SongEntity).toTrack()} as ArrayList<Track>,
+                        firstPlayedTrack = firstQueue,
+                        playlistId = LOCAL_PLAYLIST_ID_DOWNLOADED,
+                        playlistName = getString(R.string.downloaded),
+                        playlistType = PlaylistType.LOCAL_PLAYLIST,
+                        continuation = null
+                    )
+                )
+                sharedViewModel.loadMediaItemFromTrack(
+                    firstQueue,
+                    Config.PLAYLIST_CLICK,
+                    position,
+                    getString(R.string.downloaded)
+                )
             }
 
             @UnstableApi

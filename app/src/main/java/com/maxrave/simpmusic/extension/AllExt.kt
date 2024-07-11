@@ -185,6 +185,16 @@ fun VideoItem.toTrack(): Track {
     )
 }
 
+@UnstableApi
+fun MediaItem.isSong(): Boolean {
+    return this.mediaMetadata.description?.contains(MergingMediaSourceFactory.isSong) == true
+}
+
+@UnstableApi
+fun MediaItem.isVideo(): Boolean {
+    return this.mediaMetadata.description?.contains(MergingMediaSourceFactory.isVideo) == true
+}
+
 @JvmName("SongItemtoTrack")
 fun List<SongItem>?.toListTrack(): ArrayList<Track> {
     val listTrack = arrayListOf<Track>()

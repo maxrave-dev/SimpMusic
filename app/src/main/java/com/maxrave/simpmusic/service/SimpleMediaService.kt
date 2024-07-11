@@ -46,7 +46,10 @@ import com.maxrave.simpmusic.service.test.source.MergingMediaSourceFactory
 import com.maxrave.simpmusic.ui.MainActivity
 import com.maxrave.simpmusic.ui.widget.BasicWidget
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
@@ -75,6 +78,10 @@ class SimpleMediaService : MediaLibraryService() {
 
     @Inject
     lateinit var simpleMediaSessionCallback: SimpleMediaSessionCallback
+
+    lateinit var simpleMediaServiceHandler: SimpleMediaServiceHandler
+
+    private val serviceCoroutineScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
 
     private val binder = MusicBinder()
 
@@ -112,6 +119,15 @@ class SimpleMediaService : MediaLibraryService() {
         val sessionToken = SessionToken(this, ComponentName(this, SimpleMediaService::class.java))
         val controllerFuture = MediaController.Builder(this, sessionToken).buildAsync()
         controllerFuture.addListener({ controllerFuture.get() }, MoreExecutors.directExecutor())
+        simpleMediaServiceHandler = SimpleMediaServiceHandler(
+            player = player,
+            mediaSession = mediaSession,
+            mediaSessionCallback = simpleMediaSessionCallback,
+            dataStoreManager = dataStoreManager,
+            mainRepository = mainRepository,
+            coroutineScope = serviceCoroutineScope,
+            context = application.applicationContext
+        )
     }
 
     @UnstableApi
@@ -156,6 +172,7 @@ class SimpleMediaService : MediaLibraryService() {
     @UnstableApi
     override fun onDestroy() {
         super.onDestroy()
+        serviceCoroutineScope.cancel()
         release()
         Log.d("SimpleMediaService", "onDestroy: ")
     }
@@ -163,9 +180,10 @@ class SimpleMediaService : MediaLibraryService() {
     @UnstableApi
     override fun onTaskRemoved(rootIntent: Intent?) {
         super.onTaskRemoved(rootIntent)
-        Log.d("SimpleMediaService", "onTaskRemoved: ")
-        release()
-        stopSelf()
+//        serviceCoroutineScope.cancel()
+//        Log.d("SimpleMediaService", "onTaskRemoved: ")
+//        release()
+//        stopSelf()
 
     }
 
@@ -177,7 +195,7 @@ class SimpleMediaService : MediaLibraryService() {
     override fun onBind(intent: Intent?): IBinder =
         super.onBind(intent) ?: binder
 
-    fun provideAudioAttributes(): AudioAttributes =
+    private fun provideAudioAttributes(): AudioAttributes =
         AudioAttributes.Builder()
             .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
             .setUsage(C.USAGE_MEDIA)

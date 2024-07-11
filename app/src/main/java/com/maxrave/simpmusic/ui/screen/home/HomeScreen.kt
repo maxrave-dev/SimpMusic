@@ -59,9 +59,10 @@ import com.maxrave.simpmusic.data.model.explore.mood.Mood
 import com.maxrave.simpmusic.data.model.home.HomeItem
 import com.maxrave.simpmusic.data.model.home.chart.Chart
 import com.maxrave.simpmusic.data.model.home.chart.toTrack
-import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.toTrack
+import com.maxrave.simpmusic.service.PlaylistType
+import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.DropdownButton
 import com.maxrave.simpmusic.ui.component.EndOfPage
@@ -198,7 +199,7 @@ fun HomeScreen(
                                                     R.string.quick_picks,
                                                 )
                                         } ?: return@AnimatedVisibility,
-                                    navController = navController,
+                                    sharedViewModel = sharedViewModel,
                                 )
                             }
                         }
@@ -276,6 +277,7 @@ fun HomeScreen(
                                                 chart?.let {
                                                     ChartData(
                                                         chart = it,
+                                                        sharedViewModel = sharedViewModel,
                                                         navController = navController,
                                                         context = context,
                                                     )
@@ -413,10 +415,11 @@ fun AccountLayout(
     }
 }
 
+@androidx.annotation.OptIn(UnstableApi::class)
 @Composable
 fun QuickPicks(
     homeItem: HomeItem,
-    navController: NavController,
+    sharedViewModel: SharedViewModel,
 ) {
     Column(
         Modifier
@@ -439,18 +442,22 @@ fun QuickPicks(
             items(homeItem.contents) {
                 if (it != null) {
                     QuickPicksItem(onClick = {
-                        Queue.initPlaylist(
-                            playlistId = "RDAMVM${it.videoId}",
-                            playlistName = "\"${it.title}\" Radio",
-                            playlistType = Queue.PlaylistType.RADIO,
-                        )
                         val firstQueue: Track = it.toTrack()
-                        Queue.setNowPlaying(firstQueue)
-                        val args = Bundle()
-                        args.putString("videoId", firstQueue.videoId)
-                        args.putString("from", "\"${firstQueue.title}\" Radio")
-                        args.putString("type", Config.SONG_CLICK)
-                        navController.navigateSafe(R.id.action_global_nowPlayingFragment, args)
+                        sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                            QueueData(
+                                listTracks = arrayListOf(firstQueue),
+                                firstPlayedTrack = firstQueue,
+                                playlistId = "RDAMVM${it.videoId}",
+                                playlistName = "\"${it.title}\" Radio",
+                                playlistType = PlaylistType.RADIO,
+                                continuation = null
+                            )
+                        )
+                        sharedViewModel.loadMediaItemFromTrack(
+                            firstQueue,
+                            from = "\"${it.title}\" Radio",
+                            type = Config.SONG_CLICK,
+                        )
                     }, data = it)
                 }
             }
@@ -535,9 +542,11 @@ fun ChartTitle() {
     }
 }
 
+@UnstableApi
 @Composable
 fun ChartData(
     chart: Chart,
+    sharedViewModel: SharedViewModel,
     navController: NavController,
     context: Context,
 ) {
@@ -565,18 +574,20 @@ fun ChartData(
                         items(chart.songs.size) {
                             val data = chart.songs[it]
                             ItemTrackChart(onClick = {
-//                                Queue.clear()
-                                Queue.setNowPlaying(data)
-                                val args = Bundle()
-                                args.putString("videoId", data.videoId)
-                                args.putString(
-                                    "from",
-                                    "\"${data.title}\" ${context.getString(R.string.in_charts)}",
+                                sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                                    QueueData(
+                                        listTracks = arrayListOf(data),
+                                        firstPlayedTrack = data,
+                                        playlistName = "\"${data.title}\" ${context.getString(R.string.in_charts)}",
+                                        playlistType = PlaylistType.RADIO,
+                                        playlistId = "RDAMVM${data.videoId}",
+                                        continuation = null
+                                    )
                                 )
-                                args.putString("type", Config.SONG_CLICK)
-                                navController.navigateSafe(
-                                    R.id.action_global_nowPlayingFragment,
-                                    args,
+                                sharedViewModel.loadMediaItemFromTrack(
+                                    data,
+                                    from = "\"${data.title}\" ${context.getString(R.string.in_charts)}",
+                                    type = Config.VIDEO_CLICK,
                                 )
                             }, data = data, position = it + 1)
                         }
@@ -598,17 +609,22 @@ fun ChartData(
                 val data = chart.videos.items[it]
                 ItemVideoChart(
                     onClick = {
-//                        Queue.clear()
                         val firstQueue: Track = data.toTrack()
-                        Queue.setNowPlaying(firstQueue)
-                        val args = Bundle()
-                        args.putString("videoId", data.videoId)
-                        args.putString(
-                            "from",
-                            "\"${data.title}\" ${context.getString(R.string.in_charts)}",
+                        sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                            QueueData(
+                                listTracks = arrayListOf(firstQueue),
+                                firstPlayedTrack = firstQueue,
+                                playlistName = "\"${data.title}\" ${context.getString(R.string.in_charts)}",
+                                playlistType = PlaylistType.RADIO,
+                                playlistId = "RDAMVM${data.videoId}",
+                                continuation = null
+                            )
                         )
-                        args.putString("type", Config.VIDEO_CLICK)
-                        navController.navigateSafe(R.id.action_global_nowPlayingFragment, args)
+                        sharedViewModel.loadMediaItemFromTrack(
+                            firstQueue,
+                            from = "\"${data.title}\" ${context.getString(R.string.in_charts)}",
+                            type = Config.VIDEO_CLICK,
+                        )
                     },
                     data = data,
                     position = it + 1,
@@ -653,18 +669,20 @@ fun ChartData(
                         items(chart.trending.size) {
                             val data = chart.trending[it]
                             ItemTrackChart(onClick = {
-//                                Queue.clear()
-                                Queue.setNowPlaying(data)
-                                val args = Bundle()
-                                args.putString("videoId", data.videoId)
-                                args.putString(
-                                    "from",
-                                    "\"${data.title}\" ${context.getString(R.string.in_charts)}",
+                                sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                                    QueueData(
+                                        listTracks = arrayListOf(data),
+                                        firstPlayedTrack = data,
+                                        playlistName = "\"${data.title}\" ${context.getString(R.string.in_charts)}",
+                                        playlistType = PlaylistType.RADIO,
+                                        playlistId = "RDAMVM${data.videoId}",
+                                        continuation = null
+                                    )
                                 )
-                                args.putString("type", Config.VIDEO_CLICK)
-                                navController.navigateSafe(
-                                    R.id.action_global_nowPlayingFragment,
-                                    args,
+                                sharedViewModel.loadMediaItemFromTrack(
+                                    data,
+                                    from = "\"${data.title}\" ${context.getString(R.string.in_charts)}",
+                                    type = Config.VIDEO_CLICK,
                                 )
                             }, data = data, position = null)
                         }

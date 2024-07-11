@@ -48,7 +48,6 @@ import com.maxrave.simpmusic.data.model.searchResult.artists.ArtistsResult
 import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.SongsResult
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
-import com.maxrave.simpmusic.data.queue.Queue
 import com.maxrave.simpmusic.databinding.BottomSheetAddToAPlaylistBinding
 import com.maxrave.simpmusic.databinding.BottomSheetNowPlayingBinding
 import com.maxrave.simpmusic.databinding.BottomSheetSeeArtistOfNowPlayingBinding
@@ -59,6 +58,8 @@ import com.maxrave.simpmusic.extension.removeConflicts
 import com.maxrave.simpmusic.extension.setEnabledAll
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toTrack
+import com.maxrave.simpmusic.service.PlaylistType
+import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.SearchViewModel
@@ -338,30 +339,42 @@ class SearchFragment : Fragment() {
                 if (type == Config.SONG_CLICK){
                     val songClicked = suggestYTItemAdapter.getCurrentList()[position] as SongItem
                     val videoId = (suggestYTItemAdapter.getCurrentList()[position] as SongItem).id
-                    Queue.initPlaylist("RDAMVM$videoId", "\"${binding.svSearch.query}\" ${
-                        getString(R.string.in_search)
-                    }", Queue.PlaylistType.RADIO)
                     val firstQueue: Track = songClicked.toTrack()
-                    Queue.setNowPlaying(firstQueue)
-                    val args = Bundle()
-                    args.putString("videoId", videoId)
-                    args.putString("from", "\"${binding.svSearch.query}\" ${getString(R.string.in_search)}")
-                    args.putString("type", Config.SONG_CLICK)
-                    findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
+                    sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                        QueueData(
+                            listTracks = arrayListOf(firstQueue),
+                            firstPlayedTrack = firstQueue,
+                            playlistId = "RDAMVM$videoId",
+                            playlistName = "\"${binding.svSearch.query}\" ${getString(R.string.in_search)}",
+                            playlistType = PlaylistType.RADIO,
+                            continuation = null
+                        )
+                    )
+                    sharedViewModel.loadMediaItemFromTrack(
+                        firstQueue,
+                        type = Config.SONG_CLICK,
+                        from = "\"${binding.svSearch.query}\" ${getString(R.string.in_search)}"
+                    )
                 }
                 if (type == Config.VIDEO_CLICK) {
                     val videoClicked = suggestYTItemAdapter.getCurrentList()[position] as VideoItem
                     val videoId = videoClicked.id
-                    Queue.initPlaylist("RDAMVM$videoId", "\"${binding.svSearch.query}\" ${
-                        getString(R.string.in_search)
-                    }", Queue.PlaylistType.RADIO)
                     val firstQueue = videoClicked.toTrack()
-                    Queue.setNowPlaying(firstQueue)
-                    val args = Bundle()
-                    args.putString("videoId", videoId)
-                    args.putString("from", "\"${binding.svSearch.query}\" ${getString(R.string.in_search)}")
-                    args.putString("type", Config.VIDEO_CLICK)
-                    findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
+                    sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                        QueueData(
+                            listTracks = arrayListOf(firstQueue),
+                            firstPlayedTrack = firstQueue,
+                            playlistId = "RDAMVM$videoId",
+                            playlistName = "\"${binding.svSearch.query}\" ${getString(R.string.in_search)}",
+                            playlistType = PlaylistType.RADIO,
+                            continuation = null
+                        )
+                    )
+                    sharedViewModel.loadMediaItemFromTrack(
+                        firstQueue,
+                        type = Config.VIDEO_CLICK,
+                        from = "\"${binding.svSearch.query}\" ${getString(R.string.in_search)}"
+                    )
                 }
             }
         })
@@ -396,30 +409,41 @@ class SearchFragment : Fragment() {
                 if (type == Config.SONG_CLICK){
                     val songClicked = resultAdapter.getCurrentList()[position] as SongsResult
                     val videoId = (resultAdapter.getCurrentList()[position] as SongsResult).videoId
-                    Queue.initPlaylist("RDAMVM$videoId", "\"${binding.svSearch.query}\" ${
-                        getString(R.string.in_search)
-                    }", Queue.PlaylistType.RADIO)
-                    val firstQueue: Track = songClicked.toTrack()
-                    Queue.setNowPlaying(firstQueue)
-                    val args = Bundle()
-                    args.putString("videoId", videoId)
-                    args.putString("from", "\"${binding.svSearch.query}\" ${getString(R.string.in_search)}")
-                    args.putString("type", Config.SONG_CLICK)
-                    findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
+                    sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                        QueueData(
+                            listTracks = arrayListOf(songClicked.toTrack()),
+                            firstPlayedTrack = songClicked.toTrack(),
+                            playlistId = "RDAMVM$videoId",
+                            playlistName = "\"${binding.svSearch.query}\" ${getString(R.string.in_search)}",
+                            playlistType = PlaylistType.RADIO,
+                            continuation = null
+                        )
+                    )
+                    sharedViewModel.loadMediaItemFromTrack(
+                        songClicked.toTrack(),
+                        type = Config.SONG_CLICK,
+                        from = "\"${binding.svSearch.query}\" ${getString(R.string.in_search)}"
+                    )
                 }
                 if (type == Config.VIDEO_CLICK) {
                     val videoClicked = resultAdapter.getCurrentList()[position] as VideosResult
                     val videoId = videoClicked.videoId
-                    Queue.initPlaylist("RDAMVM$videoId", "\"${binding.svSearch.query}\" ${
-                        getString(R.string.in_search)
-                    }", Queue.PlaylistType.RADIO)
                     val firstQueue = videoClicked.toTrack()
-                    Queue.setNowPlaying(firstQueue)
-                    val args = Bundle()
-                    args.putString("videoId", videoId)
-                    args.putString("from", "\"${binding.svSearch.query}\" ${getString(R.string.in_search)}")
-                    args.putString("type", Config.VIDEO_CLICK)
-                    findNavController().navigateSafe(R.id.action_global_nowPlayingFragment, args)
+                    sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                        QueueData(
+                            listTracks = arrayListOf(firstQueue),
+                            firstPlayedTrack = firstQueue,
+                            playlistId = "RDAMVM$videoId",
+                            playlistName = "\"${binding.svSearch.query}\" ${getString(R.string.in_search)}",
+                            playlistType = PlaylistType.RADIO,
+                            continuation = null
+                        )
+                    )
+                    sharedViewModel.loadMediaItemFromTrack(
+                        firstQueue,
+                        type = Config.VIDEO_CLICK,
+                        from = "\"${binding.svSearch.query}\" ${getString(R.string.in_search)}"
+                    )
                 }
             }
 
