@@ -2,40 +2,51 @@ package com.maxrave.simpmusic.viewModel
 
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.viewModelScope
-import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
-import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.model.explore.mood.genre.GenreObject
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.utils.Resource
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-class GenreViewModel @Inject constructor(private val mainRepository: MainRepository, application: Application, private var dataStoreManager: DataStoreManager) : AndroidViewModel(application)  {
-    private val _genreObject: MutableLiveData<Resource<GenreObject>> = MutableLiveData()
-    var genreObject: LiveData<Resource<GenreObject>> = _genreObject
-    var loading = MutableLiveData<Boolean>()
+@HiltViewModel
+class GenreViewModel @Inject constructor(
+    application: Application,
+    private val mainRepository: MainRepository,
+    savedStateHandle: SavedStateHandle
+) : AndroidViewModel(application) {
+    private val _genreObject: MutableStateFlow<GenreObject?> = MutableStateFlow(null)
+    var genreObject: StateFlow<GenreObject?> = _genreObject
 
-    private var regionCode: String? = null
-    private var language: String? = null
+    var loading = MutableStateFlow(false)
+
     init {
-        regionCode = runBlocking { dataStoreManager.location.first() }
-        language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
+        savedStateHandle.get<String>("params")?.let { params ->
+            getGenre(params)
+        }
     }
 
-    fun getGenre(params: String){
+    private fun getGenre(params: String) {
         loading.value = true
         viewModelScope.launch {
             mainRepository.getGenreData(params).collect { values ->
-                _genreObject.value = values
+                when (values) {
+                    is Resource.Success -> {
+                        _genreObject.value = values.data
+                    }
+
+                    is Resource.Error -> {
+                        _genreObject.value = null
+                    }
+                }
             }
-            withContext(Dispatchers.Main){
+            withContext(Dispatchers.Main) {
                 loading.value = false
             }
         }
