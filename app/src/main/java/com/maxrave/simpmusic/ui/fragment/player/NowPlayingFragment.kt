@@ -932,10 +932,14 @@ class NowPlayingFragment : Fragment() {
                                 binding.tvUploader.text = songInfo.author
                                 binding.tvSmallArtist.text = songInfo.author
                                 binding.ivSmallArtist.load(songInfo.authorThumbnail) {
+                                    diskCacheKey(songInfo.authorThumbnail)
+                                    diskCachePolicy(CachePolicy.ENABLED)
                                     crossfade(true)
                                     placeholder(R.drawable.holder)
                                 }
                                 binding.ivAuthor.load(songInfo.authorThumbnail) {
+                                    diskCacheKey(songInfo.authorThumbnail)
+                                    diskCachePolicy(CachePolicy.ENABLED)
                                     crossfade(true)
                                     placeholder(R.drawable.holder_video)
                                 }
@@ -1091,6 +1095,8 @@ class NowPlayingFragment : Fragment() {
                                     binding.playerCanvas.visibility = View.GONE
                                     binding.ivCanvas.visibility = View.VISIBLE
                                     binding.ivCanvas.load(canva.canvas_url) {
+                                        diskCachePolicy(CachePolicy.ENABLED)
+                                        diskCacheKey(canva.canvas_url)
                                         crossfade(true)
                                     }
                                 }
@@ -1562,7 +1568,12 @@ class NowPlayingFragment : Fragment() {
                                 tvSongTitle.isSelected = true
                                 tvSongArtist.text = song.artists.toListName().connectArtists()
                                 tvSongArtist.isSelected = true
-                                ivThumbnail.load(song.thumbnails?.last()?.url)
+                                ivThumbnail.load(song.thumbnails?.last()?.url) {
+                                    diskCachePolicy(CachePolicy.ENABLED)
+                                    diskCacheKey(song.thumbnails?.last()?.url)
+                                    crossfade(true)
+                                    placeholder(R.drawable.holder)
+                                }
                                 if (song.album != null) {
                                     setEnabledAll(btAlbum, true)
                                     tvAlbum.text = song.album.name

@@ -173,8 +173,8 @@ interface DatabaseDao {
     @Query("SELECT * FROM song WHERE downloadState = 3")
     suspend fun getDownloadedSongs(): List<SongEntity>?
 
-    @Query("SELECT * FROM song WHERE downloadState = 3")
-    fun getDownloadedSongsAsFlow(): Flow<List<SongEntity>?>
+    @Query("SELECT * FROM song WHERE downloadState = 3 LIMIT 1000 OFFSET :offset")
+    fun getDownloadedSongsAsFlow(offset: Int): Flow<List<SongEntity>?>
 
     @Query("SELECT * FROM song WHERE downloadState = 1 OR downloadState = 2")
     suspend fun getDownloadingSongs(): List<SongEntity>?
@@ -187,6 +187,9 @@ interface DatabaseDao {
         primaryKeyList: List<String>,
         offset: Int,
     ): List<SongEntity>
+
+    @Query("SELECT videoId FROM song WHERE videoId IN (:primaryKeyList) AND downloadState = 3")
+    fun getDownloadedVideoIdByListVideoId(primaryKeyList: List<String>): Flow<List<String>>
 
     // Artist
     @Query("SELECT * FROM artist")

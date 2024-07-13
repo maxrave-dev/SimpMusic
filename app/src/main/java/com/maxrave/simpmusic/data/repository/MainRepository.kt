@@ -153,7 +153,7 @@ class MainRepository
 
         suspend fun getDownloadedSongs(): Flow<List<SongEntity>?> = flow { emit(localDataSource.getDownloadedSongs()) }.flowOn(Dispatchers.IO)
 
-        suspend fun getDownloadedSongsAsFlow() = localDataSource.getDownloadedSongsAsFlow()
+        fun getDownloadedSongsAsFlow(offset: Int) = localDataSource.getDownloadedSongsAsFlow(offset)
 
         suspend fun getDownloadingSongs(): Flow<List<SongEntity>?> = flow { emit(localDataSource.getDownloadingSongs()) }.flowOn(Dispatchers.IO)
 
@@ -161,6 +161,9 @@ class MainRepository
             flow {
                 emit(localDataSource.getPreparingSongs())
             }.flowOn(Dispatchers.IO)
+
+        fun getDownloadedVideoIdListFromListVideoIdAsFlow(listVideoId: List<String>) =
+            localDataSource.getDownloadedVideoIdListFromListVideoIdAsFlow(listVideoId)
 
         suspend fun getLikedSongs(): Flow<List<SongEntity>> =
             flow {

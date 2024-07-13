@@ -457,7 +457,7 @@ constructor(
                         }
                     val job9 =
                         launch {
-                            mainRepository.getDownloadedSongsAsFlow().distinctUntilChanged()
+                            mainRepository.getDownloadedSongsAsFlow(offset = 0).distinctUntilChanged()
                                 .collectLatest {
                                     _downloadList.value = it?.toCollection(ArrayList())
                                 }
