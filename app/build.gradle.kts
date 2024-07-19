@@ -267,7 +267,6 @@ dependencies {
     implementation(libs.shimmer)
 
     // Lottie
-    val lottieVersion = libs.versions.lottie.get()
     implementation(libs.lottie)
     implementation(libs.lottie.compose)
 

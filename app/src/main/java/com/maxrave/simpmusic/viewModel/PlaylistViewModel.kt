@@ -68,8 +68,8 @@ class PlaylistViewModel
         private val _id: MutableLiveData<String> = MutableLiveData()
         var id: LiveData<String> = _id
 
-        private val _isRadio: MutableLiveData<Boolean> = MutableLiveData()
-        var isRadio: LiveData<Boolean> = _isRadio
+        private val _isRadio: MutableStateFlow<Boolean> = MutableStateFlow(false)
+        var isRadio: StateFlow<Boolean> = _isRadio
 
         private var _radioContinuation: MutableStateFlow<Pair<String, String?>?> = MutableStateFlow(null)
         var radioContinuation: StateFlow<Pair<String, String?>?> = _radioContinuation
@@ -168,6 +168,9 @@ class PlaylistViewModel
                             when (it) {
                                 is Resource.Success -> {
                                     _playlistBrowse.value = it.data?.first
+                                    it.data?.first?.id?.let { id ->
+                                        _radioContinuation.value = Pair(id, it.data.second)
+                                    }
                                     it.data?.first?.let { playlistEntity ->
                                         getPlaylist(radioId, playlistEntity, true)
                                     }
@@ -178,6 +181,28 @@ class PlaylistViewModel
                                     withContext(Dispatchers.Main) {
                                         _uiState.value = PlaylistUIState.Error(it.message)
                                     }
+                                }
+                            }
+                        }
+                    }
+                }
+                else {
+                    mainRepository.getRDATRadioData(radioId).collect {
+                        when (it) {
+                            is Resource.Success -> {
+                                _playlistBrowse.value = it.data?.first
+                                it.data?.first?.id?.let { id ->
+                                    _radioContinuation.value = Pair(id, it.data.second)
+                                }
+                                it.data?.first?.let { playlistEntity ->
+                                    getPlaylist(radioId, playlistEntity, true)
+                                }
+                            }
+                            is Resource.Error -> {
+                                Log.w("PlaylistViewModel", "Error: ${it.message}")
+                                _playlistBrowse.value = null
+                                withContext(Dispatchers.Main) {
+                                    _uiState.value = PlaylistUIState.Error(it.message)
                                 }
                             }
                         }
@@ -295,7 +320,7 @@ class PlaylistViewModel
                     }
                 }
                 if (count == list.size) {
-                    updatePlaylistDownloadState(id.value!!, DownloadState.STATE_DOWNLOADED)
+                    id.value?.let { updatePlaylistDownloadState(it, DownloadState.STATE_DOWNLOADED) }
                 }
                 mainRepository.getPlaylist(id.value!!).collect { album ->
                     if (album != null) {

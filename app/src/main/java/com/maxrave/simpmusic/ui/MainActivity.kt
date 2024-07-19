@@ -98,11 +98,9 @@ class MainActivity : AppCompatActivity() {
                 if (service is SimpleMediaService.MusicBinder) {
                     Log.w("MainActivity", "onServiceConnected: ")
 
-                    viewModel.simpleMediaServiceHandler = service.service.simpleMediaServiceHandler
+                    viewModel.setHandler(service.service.simpleMediaServiceHandler)
+
                     Log.w("MainActivity", "Now PLaying: ${viewModel.simpleMediaServiceHandler?.player?.currentMediaItem?.mediaMetadata?.title}")
-
-
-                    viewModel.init()
                     if (service.service.simpleMediaServiceHandler.queueData.value == null) {
                         mayBeRestoreLastPlayedTrackAndQueue()
                     }
@@ -841,7 +839,6 @@ class MainActivity : AppCompatActivity() {
             val queue =
                 viewModel.saveLastPlayedSong.switchMap { saved: Boolean ->
                     if (saved) {
-                        viewModel.from.postValue(viewModel.from_backup)
                         viewModel.simpleMediaServiceHandler?.reset()
                         viewModel.getSavedSongAndQueue()
                         return@switchMap viewModel.savedQueue

@@ -52,10 +52,15 @@ val typo =
             ),
         bodyLarge =
             TextStyle(
-                fontSize = 15.sp,
+                fontSize = 18.sp,
                 fontWeight = FontWeight.Normal,
                 fontFamily = poppinsFamily,
             ),
+        displayLarge = TextStyle(
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Normal,
+            fontFamily = poppinsFamily,
+        ),
         headlineMedium =
             TextStyle(
                 fontSize = 20.sp,
@@ -64,7 +69,7 @@ val typo =
             ),
         headlineLarge =
             TextStyle(
-                fontSize = 25.sp,
+                fontSize = 23.sp,
                 fontWeight = FontWeight.Bold,
                 fontFamily = poppinsFamily,
             ),
@@ -74,5 +79,10 @@ val typo =
                 fontWeight = FontWeight.Bold,
                 fontFamily = poppinsFamily,
             ),
+        labelSmall = TextStyle(
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            fontFamily = poppinsFamily,
+        ),
         // ...
     )

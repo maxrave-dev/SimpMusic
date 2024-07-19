@@ -685,7 +685,8 @@
                                     android:layout_height="wrap_content"
                                     android:text="@string/artists"
                                     android:gravity="start"
-                                    style="@style/SubTitleToolBar"></TextView>
+                                    style="@style/SubTitleToolBar">
+                                </TextView>
 
                                 <RelativeLayout
                                     android:id="@+id/btUploader"

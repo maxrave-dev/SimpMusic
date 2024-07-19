@@ -791,6 +791,7 @@ class MainRepository
             flow {
                 runCatching {
                     YouTube.next(endpoint = WatchEndpoint(playlistId = radioId)).onSuccess { next ->
+                        Log.w("Radio", "Title: ${next.title}")
                         val data: ArrayList<SongItem> = arrayListOf()
                         data.addAll(next.items)
                         var continuation = next.continuation
@@ -1061,6 +1062,95 @@ class MainRepository
                     }
                 }
             }
+
+        suspend fun getRDATRadioData(radioId: String) : Flow<Resource<Pair<PlaylistBrowse, String>>> = flow<Resource<Pair<PlaylistBrowse, String>>> {
+            runCatching {
+                val id = if (radioId.startsWith("VL")) {
+                    radioId
+                } else {
+                    "VL$radioId"
+                }
+                YouTube.customQuery(browseId = id, setLogin = true).onSuccess { result ->
+                    val listContent: ArrayList<MusicShelfRenderer.Content> = arrayListOf()
+                    val data: List<MusicShelfRenderer.Content>? =
+                        result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(
+                            0,
+                        )?.tabRenderer?.content?.sectionListRenderer?.contents?.get(
+                            0,
+                        )?.musicPlaylistShelfRenderer?.contents
+                            ?: result.contents?.twoColumnBrowseResultsRenderer
+                                ?.secondaryContents?.sectionListRenderer?.contents?.get(0)
+                                ?.musicPlaylistShelfRenderer?.contents
+                    if (data != null) {
+                        Log.d("Data", "data: $data")
+                        Log.d("Data", "data size: ${data.size}")
+                        listContent.addAll(data)
+                    }
+                    val header =
+                        result.header?.musicDetailHeaderRenderer
+                            ?: result.header?.musicEditablePlaylistDetailHeaderRenderer
+                            ?: result.contents?.twoColumnBrowseResultsRenderer?.tabs?.get(0)
+                                ?.tabRenderer?.content?.sectionListRenderer?.contents?.get(0)
+                                ?.musicResponsiveHeaderRenderer
+                            ?: result.contents?.twoColumnBrowseResultsRenderer?.tabs?.get(0)
+                                ?.tabRenderer?.content?.sectionListRenderer?.contents?.get(0)
+                                ?.musicEditablePlaylistDetailHeaderRenderer?.header?.musicResponsiveHeaderRenderer
+                    Log.d("Header", "header: $header")
+                    var continueParam =
+                        result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(
+                            0,
+                        )?.tabRenderer?.content?.sectionListRenderer?.contents?.get(
+                            0,
+                        )?.musicPlaylistShelfRenderer?.continuations?.get(
+                            0,
+                        )?.nextContinuationData?.continuation ?:
+                        result.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer?.contents?.firstOrNull()
+                            ?.musicPlaylistShelfRenderer?.continuations?.firstOrNull()?.nextContinuationData?.continuation
+                    var count = 0
+                    Log.d("Repository", "playlist data: ${listContent.size}")
+                    Log.d("Repository", "continueParam: $continueParam")
+//                        else {
+//                            var listTrack = playlistBrowse.tracks.toMutableList()
+                    while (count < 1 && continueParam != null) {
+                        YouTube.customQuery(
+                            browseId = "",
+                            continuation = continueParam,
+                            setLogin = true,
+                        ).onSuccess { values ->
+                            Log.d("Continue", "continue: $continueParam")
+                            val dataMore: List<MusicShelfRenderer.Content>? =
+                                values.continuationContents?.musicPlaylistShelfContinuation?.contents
+                            if (dataMore != null) {
+                                listContent.addAll(dataMore)
+                            }
+                            continueParam =
+                                values.continuationContents?.musicPlaylistShelfContinuation?.continuations?.get(
+                                    0,
+                                )?.nextContinuationData?.continuation
+                            count++
+                        }.onFailure {
+                            Log.e("Continue", "Error: ${it.message}")
+                            count = 3
+                        }
+                    }
+                    Log.d("Repository", "playlist final data: ${listContent.size}")
+                    val finalContinueParam = continueParam
+                    if (finalContinueParam != null) {
+                        parsePlaylistData(header, listContent, radioId, context)?.let { playlist ->
+                            emit(Resource.Success(Pair(playlist.copy(
+                                author = Author("", "YouTube Music"),
+                            ), finalContinueParam)))
+                        } ?: emit(Resource.Error("Can't parse data"))
+                    }
+                    else {
+                        emit(Resource.Error("Continue param is null"))
+                    }
+                }.onFailure { e ->
+                    Log.e("Playlist Data", e.message ?: "Error")
+                    emit(Resource.Error(e.message.toString()))
+                }
+            }
+        }.flowOn(Dispatchers.IO)
 
         suspend fun getPlaylistData(playlistId: String): Flow<Resource<PlaylistBrowse>> =
             flow {
@@ -1686,6 +1776,7 @@ class MainRepository
         ): Flow<Pair<String, Resource<Lyrics>>> =
             flow {
                 runCatching {
+                    val TAG = "Lyrics"
 //            val q = query.replace(Regex("\\([^)]*?(feat.|ft.|cùng với|con)[^)]*?\\)"), "")
 //                .replace("  ", " ")
                     val qartist =
@@ -1705,21 +1796,24 @@ class MainRepository
                             " ",
                         ).replace("  ", " ").replace(Regex("([()])"), "").replace(".", " ")
                     val q = "$qtrack $qartist"
-                    Log.d("Lyrics", "query: $q")
+                    Log.d(TAG, "query: $q")
                     var musixMatchUserToken = YouTube.musixmatchUserToken
                     if (musixMatchUserToken == null) {
                         YouTube.getMusixmatchUserToken().onSuccess { usertoken ->
                             YouTube.musixmatchUserToken = usertoken.message.body.user_token
+                            Log.d(TAG, "musixMatchUserToken: ${usertoken.message.body.user_token}")
                             musixMatchUserToken = usertoken.message.body.user_token
                         }
                             .onFailure { throwable ->
-                                throwable.printStackTrace()
+                                Log.e(TAG, throwable.message.toString())
                                 emit(Pair("", Resource.Error<Lyrics>("Not found")))
                             }
                     }
                     YouTube.searchMusixmatchTrackId(q, musixMatchUserToken!!)
                         .onSuccess { searchResult ->
-                            Log.d("Lyrics", "searchResult: $searchResult")
+                            Log.d(TAG, "searchResult: ${searchResult.message.body.track_list?.map { 
+                                it.track.track_name + " " + it.track.artist_name
+                            }}")
                             val trackList =
                                 if (!searchResult.message.body.track_list.isNullOrEmpty()) {
                                     searchResult.message.body.track_list
@@ -1727,43 +1821,79 @@ class MainRepository
                                     searchResult.message.body.macro_result_list?.track_list
                                 }
                             if (!trackList.isNullOrEmpty()) {
-                                Log.d("Lyrics", "trackList: $trackList")
+                                Log.d(
+                                    TAG, "trackList: ${
+                                        trackList.map {
+                                            it.track.track_name + " " + it.track.artist_name
+                                        }
+                                    }"
+                                )
                                 val list = arrayListOf<String>()
                                 for (i in trackList) {
                                     list.add(i.track.track_name + " " + i.track.artist_name)
                                 }
                                 var id = ""
                                 var track: SearchMusixmatchResponse.Message.Body.Track.TrackX? = null
-                                Log.d("DURATION", "duration: $durationInt")
+                                Log.d(TAG, "duration: $durationInt")
                                 val bestMatchingIndex = bestMatchingIndex(q, list)
-                                if (durationInt != null && durationInt != 0) {
-                                    val trackLengthList = arrayListOf<Int>()
-                                    for (i in trackList) {
-                                        trackLengthList.add(i.track.track_length)
-                                    }
-                                    val closestIndex =
-                                        trackLengthList.minByOrNull {
-                                            kotlin.math.abs(
-                                                it - durationInt,
-                                            )
+                                if (bestMatchingIndex != null){
+                                    if (durationInt != null && durationInt != 0) {
+                                        val trackLengthList = arrayListOf<Int>()
+                                        for (i in trackList) {
+                                            trackLengthList.add(i.track.track_length)
                                         }
-                                    if (closestIndex != null && kotlin.math.abs(
-                                            closestIndex - durationInt,
-                                        ) < 2
-                                    ) {
-                                        id +=
-                                            trackList.find {
-                                                it.track.track_length == closestIndex
-                                            }?.track?.track_id.toString()
-                                        track =
-                                            trackList.find { it.track.track_length == closestIndex }?.track
-                                    }
-                                    if (id == "" &&
-                                        list.get(bestMatchingIndex).contains(
-                                            trackList.get(
-                                                bestMatchingIndex,
-                                            ).track.track_name,
-                                        ) &&
+                                        val closestIndex =
+                                            trackLengthList.minByOrNull {
+                                                kotlin.math.abs(
+                                                    it - durationInt,
+                                                )
+                                            }
+                                        if (closestIndex != null && kotlin.math.abs(
+                                                closestIndex - durationInt,
+                                            ) < 2
+                                        ) {
+                                            id +=
+                                                trackList.find {
+                                                    it.track.track_length == closestIndex
+                                                }?.track?.track_id.toString()
+                                            track =
+                                                trackList.find { it.track.track_length == closestIndex }?.track
+                                        }
+                                        if (id == "" &&
+                                            list.get(bestMatchingIndex).contains(
+                                                trackList.get(
+                                                    bestMatchingIndex,
+                                                ).track.track_name,
+                                            ) &&
+                                            q.contains(
+                                                trackList.get(
+                                                    bestMatchingIndex,
+                                                ).track.track_name,
+                                            )
+                                        ) {
+                                            Log.w(
+                                                "Lyrics",
+                                                "item: ${
+                                                    trackList.get(
+                                                        bestMatchingIndex,
+                                                    ).track.track_name
+                                                }",
+                                            )
+                                            id +=
+                                                trackList.get(
+                                                    bestMatchingIndex,
+                                                ).track.track_id.toString()
+                                            track =
+                                                trackList.get(
+                                                    bestMatchingIndex,
+                                                ).track
+                                        }
+                                    } else if (list.get(bestMatchingIndex)
+                                            .contains(
+                                                trackList.get(
+                                                    bestMatchingIndex,
+                                                ).track.track_name,
+                                            ) &&
                                         q.contains(
                                             trackList.get(
                                                 bestMatchingIndex,
@@ -1787,39 +1917,10 @@ class MainRepository
                                                 bestMatchingIndex,
                                             ).track
                                     }
-                                } else if (list.get(bestMatchingIndex)
-                                        .contains(
-                                            trackList.get(
-                                                bestMatchingIndex,
-                                            ).track.track_name,
-                                        ) &&
-                                    q.contains(
-                                        trackList.get(
-                                            bestMatchingIndex,
-                                        ).track.track_name,
-                                    )
-                                ) {
-                                    Log.w(
-                                        "Lyrics",
-                                        "item: ${
-                                            trackList.get(
-                                                bestMatchingIndex,
-                                            ).track.track_name
-                                        }",
-                                    )
-                                    id +=
-                                        trackList.get(
-                                            bestMatchingIndex,
-                                        ).track.track_id.toString()
-                                    track =
-                                        trackList.get(
-                                            bestMatchingIndex,
-                                        ).track
                                 }
-                                Log.d("DURATION", "id: $id")
-                                Log.w(
-                                    "item lyrics",
-                                    track.toString(),
+                                Log.d(TAG, "id: $id")
+                                Log.w(TAG,
+                                    "item lyrics ${track.toString()}",
                                 )
                                 if (id != "" && track != null) {
                                     YouTube.getMusixmatchLyricsByQ(track, musixMatchUserToken!!)
@@ -1853,8 +1954,10 @@ class MainRepository
                                     )
                                         .onSuccess {
                                             val trackX = it.message.body.track
-                                            if (trackX != null && abs(trackX.track_length - (durationInt ?: 0)) <= 10) {
+                                            Log.w(TAG, "Fix Search Musixmatch: $trackX")
+                                            if (trackX != null && (abs(trackX.track_length - (durationInt ?: 0)) <= 10)) {
                                                 YouTube.getMusixmatchLyricsByQ(trackX, musixMatchUserToken!!).onSuccess {
+                                                    Log.w(TAG, "Item lyrics ${it?.lyrics?.syncType.toString()}")
                                                     if (it != null) {
                                                         emit(
                                                             Pair(
@@ -1881,6 +1984,7 @@ class MainRepository
                                             }
                                         }
                                         .onFailure {
+                                            Log.e(TAG, "Fix musixmatch search" + it.message.toString())
                                             YouTube.getLrclibLyrics(qtrack, qartist, durationInt).onSuccess {
                                                 it?.let { emit(Pair(id, Resource.Success<Lyrics>(it.toLyrics()))) }
                                             }.onFailure {

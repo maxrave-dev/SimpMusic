@@ -55,7 +55,6 @@ ktor = "2.3.12"
 brotli = "0.1.2"
 ksoup = "0.3.1"
 
-
 [libraries]
 compose-material3 = { group = "androidx.wear.compose", name = "compose-material3", version.ref = "compose-material3" }
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "compose-bom" }

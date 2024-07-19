@@ -1,12 +1,15 @@
 package com.maxrave.simpmusic.extension
 
+import android.content.Context
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -25,14 +28,23 @@ import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
+import androidx.core.graphics.ColorUtils
+import com.kmpalette.palette.graphics.Palette
+import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.ui.theme.shimmerBackground
 import com.maxrave.simpmusic.ui.theme.shimmerLine
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import kotlin.math.PI
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.hypot
 import kotlin.math.max
+import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.random.Random
 
@@ -187,3 +199,121 @@ fun Modifier.angledGradientBackground(
         )
     },
 )
+
+// Angle Gradient Background without size
+fun GradientOffset(angle: GradientAngle): GradientOffset {
+    return when (angle) {
+        GradientAngle.CW45 -> GradientOffset(
+            start = Offset.Zero,
+            end = Offset.Infinite
+        )
+        GradientAngle.CW90 -> GradientOffset(
+            start = Offset.Zero,
+            end = Offset(0f, Float.POSITIVE_INFINITY)
+        )
+        GradientAngle.CW135 -> GradientOffset(
+            start = Offset(Float.POSITIVE_INFINITY, 0f),
+            end = Offset(0f, Float.POSITIVE_INFINITY)
+        )
+        GradientAngle.CW180 -> GradientOffset(
+            start = Offset(Float.POSITIVE_INFINITY, 0f),
+            end = Offset.Zero,
+        )
+        GradientAngle.CW225 -> GradientOffset(
+            start = Offset.Infinite,
+            end = Offset.Zero
+        )
+        GradientAngle.CW270 -> GradientOffset(
+            start = Offset(0f, Float.POSITIVE_INFINITY),
+            end = Offset.Zero
+        )
+        GradientAngle.CW315 -> GradientOffset(
+            start = Offset(0f, Float.POSITIVE_INFINITY),
+            end = Offset(Float.POSITIVE_INFINITY, 0f)
+        )
+        else -> GradientOffset(
+            start = Offset.Zero,
+            end = Offset(Float.POSITIVE_INFINITY, 0f)
+        )
+    }
+}
+
+/**
+ * Offset for [Brush.linearGradient] to rotate gradient depending on [start] and [end] offsets.
+ */
+data class GradientOffset(val start: Offset, val end: Offset)
+
+enum class GradientAngle {
+    CW0, CW45, CW90, CW135, CW180, CW225, CW270, CW315
+}
+
+@Composable
+fun getScreenSizeInfo(): ScreenSizeInfo {
+    val configuration = LocalConfiguration.current
+    val localDensity = LocalDensity.current
+
+    return remember(configuration) {
+        ScreenSizeInfo(
+            hDP = configuration.screenHeightDp,
+            wDP = configuration.screenWidthDp,
+            hPX = with(localDensity) { configuration.screenHeightDp.dp.toPx().roundToInt() },
+            wPX = with(localDensity) { configuration.screenWidthDp.dp.toPx().roundToInt() },
+        )
+    }
+}
+
+data class ScreenSizeInfo(
+    val hDP: Int,
+    val wDP: Int,
+    val hPX: Int,
+    val wPX: Int
+)
+
+fun getBrushListColorFromPalette(p: Palette , context: Context): List<Color> {
+    val defaultColor = 0x000000
+    var startColor = p.getDarkVibrantColor(defaultColor)
+    if (startColor == defaultColor) {
+        startColor = p.getDarkMutedColor(defaultColor)
+        if (startColor == defaultColor) {
+            startColor = p.getVibrantColor(defaultColor)
+            if (startColor == defaultColor) {
+                startColor =
+                    p.getMutedColor(defaultColor)
+                if (startColor == defaultColor) {
+                    startColor =
+                        p.getLightVibrantColor(
+                            defaultColor,
+                        )
+                    if (startColor == defaultColor) {
+                        startColor =
+                            p.getLightMutedColor(
+                                defaultColor,
+                            )
+                    }
+                }
+            }
+        }
+    }
+    val endColor =
+        context.resources.getColor(R.color.md_theme_dark_background, null)
+    val colorAndroid = ColorUtils.setAlphaComponent(startColor, 255)
+    val brush =
+        listOf(
+            Color(colorAndroid),
+            Color(endColor),
+        )
+    return brush
+}
+
+fun LazyListState.animateScrollAndCentralizeItem(index: Int, scope: CoroutineScope) {
+    val itemInfo = this.layoutInfo.visibleItemsInfo.firstOrNull { it.index == index }
+    scope.launch {
+        if (itemInfo != null) {
+            val center = this@animateScrollAndCentralizeItem.layoutInfo.viewportEndOffset / 2
+            val childCenter = itemInfo.offset + itemInfo.size / 2
+            this@animateScrollAndCentralizeItem.animateScrollBy((childCenter - center).toFloat())
+        } else {
+            this@animateScrollAndCentralizeItem.animateScrollToItem(index)
+        }
+    }
+}

@@ -39,7 +39,7 @@ class PlaylistItemAdapter(private var playlistItemList: ArrayList<Any>): Recycle
     fun setDownloadedList(downloadedList: Collection<String>?) {
         val oldList = arrayListOf<String>()
         oldList.addAll(this.downloadedList)
-        this.downloadedList = (downloadedList ?: arrayListOf()) as ArrayList<String>
+        this.downloadedList = (downloadedList ?: arrayListOf()).toCollection(arrayListOf())
         playlistItemList.mapIndexed { index, result ->
             if (result is SongEntity || result is Track) {
                 val videoId = when (result) {

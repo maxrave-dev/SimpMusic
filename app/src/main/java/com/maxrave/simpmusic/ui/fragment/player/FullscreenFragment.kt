@@ -595,7 +595,7 @@ class FullscreenFragment : Fragment() {
                                     subDialog.show()
                                 }
                                 btChangeLyricsProvider.setOnClickListener {
-                                    var mainLyricsProvider = viewModel.getLyricsProvier()
+                                    var mainLyricsProvider = viewModel.getLyricsProvider()
                                     var checkedIndex =
                                         if (mainLyricsProvider == DataStoreManager.MUSIXMATCH) 0 else 1
                                     val dialogChange =

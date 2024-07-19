@@ -81,7 +81,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.ColorUtils
 import androidx.core.net.toUri
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.DownloadRequest
@@ -103,6 +102,7 @@ import com.maxrave.simpmusic.common.LOCAL_PLAYLIST_ID
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.extension.angledGradientBackground
+import com.maxrave.simpmusic.extension.getBrushListColorFromPalette
 import com.maxrave.simpmusic.extension.toArrayListTrack
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.PlaylistType
@@ -351,38 +351,7 @@ fun PlaylistScreen(
     LaunchedEffect(key1 = palette) {
         val p = palette
         if (p != null) {
-            val defaultColor = 0x000000
-            var startColor = p.getDarkVibrantColor(defaultColor)
-            if (startColor == defaultColor) {
-                startColor = p.getDarkMutedColor(defaultColor)
-                if (startColor == defaultColor) {
-                    startColor = p.getVibrantColor(defaultColor)
-                    if (startColor == defaultColor) {
-                        startColor =
-                            p.getMutedColor(defaultColor)
-                        if (startColor == defaultColor) {
-                            startColor =
-                                p.getLightVibrantColor(
-                                    defaultColor,
-                                )
-                            if (startColor == defaultColor) {
-                                startColor =
-                                    p.getLightMutedColor(
-                                        defaultColor,
-                                    )
-                            }
-                        }
-                    }
-                }
-            }
-            val endColor =
-                context.resources.getColor(R.color.md_theme_dark_background, null)
-            val colorAndroid = ColorUtils.setAlphaComponent(startColor, 255)
-            val brush =
-                listOf(
-                    Color(colorAndroid),
-                    Color(endColor),
-                )
+            val brush = getBrushListColorFromPalette(p, context)
             viewModel.setBrush(brush)
         }
     }

@@ -59,6 +59,7 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
+import java.util.concurrent.TimeUnit
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
@@ -370,9 +371,15 @@ fun SongEntity.toMediaItem(): MediaItem {
 @JvmName("TracktoMediaItem")
 @UnstableApi
 fun Track.toMediaItem(): MediaItem {
+    var thumbUrl =
+        this.thumbnails?.last()?.url
+            ?: "http://i.ytimg.com/vi/${this.videoId}/maxresdefault.jpg"
+    if (thumbUrl.contains("w120")) {
+        thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
+    }
+    val artistName: String = this.artists.toListName().connectArtists()
     val isSong = (this.thumbnails?.last()?.height != 0 && this.thumbnails?.last()?.height == this.thumbnails?.last()?.width
-        && this.thumbnails?.last()?.height != null) && (this.thumbnails.lastOrNull()?.url?.contains("hq720") == false
-        && this.thumbnails.lastOrNull()?.url?.contains("maxresdefault") == false)
+        && this.thumbnails?.last()?.height != null) && (!thumbUrl.contains("hq720") && !thumbUrl.contains("maxresdefault"))
     return MediaItem.Builder()
         .setMediaId(this.videoId)
         .setUri(this.videoId)
@@ -381,7 +388,7 @@ fun Track.toMediaItem(): MediaItem {
             MediaMetadata.Builder()
                 .setTitle(this.title)
                 .setArtist(this.artists.toListName().connectArtists())
-                .setArtworkUri(this.thumbnails?.lastOrNull()?.url?.toUri())
+                .setArtworkUri(thumbUrl.toUri())
                 .setAlbumTitle(this.album?.name)
                 .setDescription(
                     if (isSong) MergingMediaSourceFactory.isSong else MergingMediaSourceFactory.isVideo,
@@ -910,6 +917,52 @@ fun LocalDateTime.formatTimeAgo(context: Context): String {
         hoursDiff <= 1 -> context.getString(R.string.recently)
         else -> context.getString(androidx.media3.ui.R.string.exo_track_unknown)
     }
+}
+
+fun formatDuration(duration: Long): String {
+    val minutes: Long = TimeUnit.MINUTES.convert(duration, TimeUnit.MILLISECONDS)
+    val seconds: Long = (
+        TimeUnit.SECONDS.convert(duration, TimeUnit.MILLISECONDS) -
+            minutes * TimeUnit.SECONDS.convert(1, TimeUnit.MINUTES)
+        )
+    return String.format("%02d:%02d", minutes, seconds)
+}
+
+fun parseTimestampToMilliseconds(timestamp: String): Double {
+    val parts = timestamp.split(":")
+    val totalSeconds =
+        when (parts.size) {
+            2 -> {
+                try {
+                    val minutes = parts[0].toDouble()
+                    val seconds = parts[1].toDouble()
+                    (minutes * 60 + seconds)
+                } catch (e: NumberFormatException) {
+                    // Handle parsing error
+                    e.printStackTrace()
+                    return 0.0
+                }
+            }
+
+            3 -> {
+                try {
+                    val hours = parts[0].toDouble()
+                    val minutes = parts[1].toDouble()
+                    val seconds = parts[2].toDouble()
+                    (hours * 3600 + minutes * 60 + seconds)
+                } catch (e: NumberFormatException) {
+                    // Handle parsing error
+                    e.printStackTrace()
+                    return 0.0
+                }
+            }
+
+            else -> {
+                // Handle incorrect format
+                return 0.0
+            }
+        }
+    return totalSeconds * 1000
 }
 
 operator fun File.div(child: String): File = File(this, child)

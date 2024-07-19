@@ -11,6 +11,7 @@ import android.widget.Toast
 import androidx.core.net.toUri
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaItem.EMPTY
 import androidx.media3.common.MediaItem.SubtitleConfiguration
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.MimeTypes
@@ -28,12 +29,16 @@ import com.maxrave.simpmusic.common.DESC
 import com.maxrave.simpmusic.common.LOCAL_PLAYLIST_ID
 import com.maxrave.simpmusic.common.MEDIA_CUSTOM_COMMAND
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
+import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.extension.connectArtists
+import com.maxrave.simpmusic.extension.isVideo
 import com.maxrave.simpmusic.extension.toArrayListTrack
 import com.maxrave.simpmusic.extension.toListName
+import com.maxrave.simpmusic.extension.toSongEntity
+import com.maxrave.simpmusic.service.test.source.MergingMediaSourceFactory
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.FilterState
 import kotlinx.coroutines.CoroutineScope
@@ -49,9 +54,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.singleOrNull
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import java.time.LocalDateTime
 
 @UnstableApi
 class SimpleMediaServiceHandler(
@@ -63,6 +70,8 @@ class SimpleMediaServiceHandler(
     var coroutineScope: CoroutineScope,
     private val context: Context,
 ) : Player.Listener {
+    private val TAG = "SimpleMediaServiceHandler"
+
     private var loudnessEnhancer: LoudnessEnhancer? = null
 
     private var volumeNormalizationJob: Job? = null
@@ -94,8 +103,15 @@ class SimpleMediaServiceHandler(
         isPreviousAvailable = player.hasPreviousMediaItem(),
 
     ))
-
     val controlState = _controlState.asStateFlow()
+
+    private var _stateFlow = MutableStateFlow<StateSource>(StateSource.STATE_CREATED)
+    val stateFlow = _stateFlow.asStateFlow()
+    private var _currentSongIndex = MutableStateFlow<Int>(0)
+    val currentSongIndex = _currentSongIndex.asSharedFlow()
+
+    private var _nowPlayingState = MutableStateFlow(NowPlayingTrackState.initial())
+    val nowPlayingState = _nowPlayingState.asStateFlow()
 
     private val _sleepMinutes = MutableStateFlow<Int>(0)
     val sleepMinutes = _sleepMinutes.asSharedFlow()
@@ -114,11 +130,6 @@ class SimpleMediaServiceHandler(
     private var toggleLikeJob: Job? = null
 
     private var loadJob: Job? = null
-
-    private var _stateFlow = MutableStateFlow<StateSource>(StateSource.STATE_CREATED)
-    val stateFlow = _stateFlow.asStateFlow()
-    private var _currentSongIndex = MutableStateFlow<Int>(0)
-    val currentSongIndex = _currentSongIndex.asSharedFlow()
 
     init {
         player.addListener(this)
@@ -152,6 +163,61 @@ class SimpleMediaServiceHandler(
         mediaSessionCallback.apply {
             toggleLike = ::toggleLike
         }
+        coroutineScope.launch {
+            nowPlayingState.collect {
+                Log.w(TAG, "init: $it")
+            }
+        }
+    }
+    private var getDataOfNowPlayingTrackStateJob: Job? = null
+    private fun getDataOfNowPlayingState(mediaItem: MediaItem) {
+        val videoId = if (mediaItem.isVideo()) {
+            mediaItem.mediaId.removePrefix(MergingMediaSourceFactory.isVideo)
+        } else {
+            mediaItem.mediaId
+        }
+        val track = queueData.value?.listTracks?.find { it.videoId == videoId }
+        _nowPlayingState.update {
+            it.copy(
+                mediaItem = mediaItem,
+                track = track,
+            )
+        }
+        getDataOfNowPlayingTrackStateJob?.cancel()
+        getDataOfNowPlayingTrackStateJob = coroutineScope.launch {
+            if (track != null) {
+                mainRepository.updateSongInLibrary(
+                    LocalDateTime.now(),
+                    track.videoId,
+                )
+                mainRepository.updateListenCount(track.videoId)
+                track.durationSeconds?.let {
+                    mainRepository.updateDurationSeconds(
+                        it,
+                        track.videoId,
+                    )
+                }
+            }
+            Log.w(TAG, "getDataOfNowPlayingState: $videoId")
+            mainRepository.getSongById(videoId).cancellable().singleOrNull().let { songEntity ->
+                if (songEntity != null) {
+                    _controlState.update { it.copy(isLiked = songEntity.liked) }
+                } else {
+                    _controlState.update { it.copy(isLiked = false) }
+                    mainRepository.insertSong(
+                        track?.toSongEntity() ?: mediaItem.toSongEntity()!!
+                    )
+                }
+                Log.w(TAG, "getDataOfNowPlayingState: $songEntity")
+                Log.w(TAG, "getDataOfNowPlayingState: $track")
+                _nowPlayingState.update {
+                    it.copy(
+                        songEntity = songEntity ?: track?.toSongEntity() ?: mediaItem.toSongEntity()
+                    )
+                }
+                Log.w(TAG, "getDataOfNowPlayingState: ${nowPlayingState.value}")
+            }
+        }
     }
 
     private fun toggleLike() {
@@ -166,7 +232,7 @@ class SimpleMediaServiceHandler(
                     id,
                     if (!(controlState.first().isLiked)) 1 else 0,
                 )
-                delay(500)
+                delay(200)
                 updateNotification()
             }
     }
@@ -363,6 +429,10 @@ class SimpleMediaServiceHandler(
                     }
                 }
             }
+
+            PlayerEvent.ToggleLike -> {
+                toggleLike()
+            }
         }
     }
 
@@ -423,7 +493,18 @@ class SimpleMediaServiceHandler(
         mayBeNormalizeVolume()
         Log.w("REASON", "onMediaItemTransition: $reason")
         Log.d("Media Item Transition", "Media Item: ${mediaItem?.mediaMetadata?.title}")
-        _nowPlaying.value = mediaItem
+        if (mediaItem?.mediaId != _nowPlaying.value?.mediaId ) {
+            _nowPlaying.value = mediaItem
+        }
+        if (mediaItem?.mediaId != nowPlayingState.value.mediaItem.mediaId) {
+            Log.w(TAG, "onMediaItemTransition: ${mediaItem?.mediaId}")
+            if (mediaItem != null) {
+                getDataOfNowPlayingState(mediaItem)
+            }
+            else {
+                _nowPlayingState.update { NowPlayingTrackState.initial() }
+            }
+        }
         _queueData.value?.listTracks?.let { list ->
             if (list.size > 3 && list.size - currentIndex() < 3 && list.size - currentIndex() >= 0 && _stateFlow.value == StateSource.STATE_INITIALIZED) {
                 Log.d("Check loadMore", "loadMore")
@@ -1381,6 +1462,8 @@ sealed class PlayerEvent {
     data object Repeat : PlayerEvent()
 
     data class UpdateProgress(val newProgress: Float) : PlayerEvent()
+
+    data object ToggleLike : PlayerEvent()
 }
 
 sealed class SimpleMediaState {
@@ -1397,6 +1480,20 @@ sealed class SimpleMediaState {
     data class Buffering(val position: Long) : SimpleMediaState()
 
     data class Playing(val isPlaying: Boolean) : SimpleMediaState()
+}
+
+data class NowPlayingTrackState(
+    val mediaItem: MediaItem,
+    val track: Track?,
+    val songEntity: SongEntity?
+) {
+    companion object {
+        fun initial(): NowPlayingTrackState {
+            return NowPlayingTrackState(
+                mediaItem = EMPTY, track = null, songEntity = null
+            )
+        }
+    }
 }
 
 enum class StateSource {
