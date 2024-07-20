@@ -563,7 +563,8 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
-                else -> {}
+                R.id.nowPlayingFragment, R.id. -> {
+                }
             }
         }
 
@@ -745,9 +746,9 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val miniplayerJob = launch {
                 repeatOnLifecycle(Lifecycle.State.CREATED) {
-                    viewModel.nowPlayingMediaItem.collectLatest {
+                    viewModel.nowPlayingScreenData.collectLatest {
                         Log.w("MainActivity", "Now Playing: $it")
-                        if (it != null && navController.currentDestination?.id != R.id.nowPlayingFragment
+                        if (navController.currentDestination?.id != R.id.nowPlayingFragment
                             && navController.currentDestination?.id != R.id.infoFragment
                             && navController.currentDestination?.id != R.id.queueFragment
                             && navController.currentDestination?.id != R.id.fullscreenFragment
@@ -759,35 +760,38 @@ class MainActivity : AppCompatActivity() {
             }
             val job1 =
                 launch {
-                    viewModel.progress.collect { progress ->
-                        val skipSegments = viewModel.skipSegments.first()
-                        val enabled = viewModel.sponsorBlockEnabled()
-                        val listCategory = viewModel.sponsorBlockCategories()
-                        if (skipSegments != null && enabled == DataStoreManager.TRUE) {
-                            for (skip in skipSegments) {
-                                if (listCategory.contains(skip.category)) {
-                                    val firstPart = (skip.segment[0] / skip.videoDuration).toFloat()
-                                    val secondPart =
-                                        (skip.segment[1] / skip.videoDuration).toFloat()
-                                    if (progress in firstPart..secondPart) {
-                                        Log.w(
-                                            "Seek to",
+                    viewModel.timeline.collect { timeline ->
+                        val progress = (timeline.current / timeline.total).toFloat()
+                        if (timeline.total > 0L && !timeline.loading){
+                            val skipSegments = viewModel.skipSegments.first()
+                            val enabled = viewModel.sponsorBlockEnabled()
+                            val listCategory = viewModel.sponsorBlockCategories()
+                            if (skipSegments != null && enabled == DataStoreManager.TRUE) {
+                                for (skip in skipSegments) {
+                                    if (listCategory.contains(skip.category)) {
+                                        val firstPart = (skip.segment[0] / skip.videoDuration).toFloat()
+                                        val secondPart =
                                             (skip.segment[1] / skip.videoDuration).toFloat()
-                                                .toString(),
-                                        )
-                                        viewModel.skipSegment((skip.segment[1] * 1000).toLong())
-                                        Toast.makeText(
-                                            this@MainActivity,
-                                            getString(
-                                                R.string.sponsorblock_skip_segment,
+                                        if (progress in firstPart..secondPart) {
+                                            Log.w(
+                                                "Seek to",
+                                                (skip.segment[1] / skip.videoDuration).toFloat()
+                                                    .toString(),
+                                            )
+                                            viewModel.skipSegment((skip.segment[1] * 1000).toLong())
+                                            Toast.makeText(
+                                                this@MainActivity,
                                                 getString(
-                                                    SPONSOR_BLOCK.listName.get(
-                                                        SPONSOR_BLOCK.list.indexOf(skip.category),
-                                                    ),
-                                                ).lowercase(),
-                                            ),
-                                            Toast.LENGTH_SHORT,
-                                        ).show()
+                                                    R.string.sponsorblock_skip_segment,
+                                                    getString(
+                                                        SPONSOR_BLOCK.listName.get(
+                                                            SPONSOR_BLOCK.list.indexOf(skip.category),
+                                                        ),
+                                                    ).lowercase(),
+                                                ),
+                                                Toast.LENGTH_SHORT,
+                                            ).show()
+                                        }
                                     }
                                 }
                             }

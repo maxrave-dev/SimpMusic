@@ -327,7 +327,6 @@ class FullscreenFragment : Fragment() {
                 R.id.now_playing_dialog_menu_item_more -> {
                     val queue = runBlocking { viewModel.simpleMediaServiceHandler?.queueData?.first()?.listTracks }
                     if (!queue.isNullOrEmpty()) {
-                        viewModel.refreshSongDB()
                         val dialog = BottomSheetDialog(requireContext())
                         dialog.apply {
                             behavior.state = BottomSheetBehavior.STATE_EXPANDED
@@ -418,12 +417,11 @@ class FullscreenFragment : Fragment() {
                                     if (cbFavorite.isChecked) {
                                         cbFavorite.isChecked = false
                                         tvFavorite.text = getString(R.string.like)
-                                        viewModel.updateLikeStatus(song.videoId, false)
                                     } else {
                                         cbFavorite.isChecked = true
                                         tvFavorite.text = getString(R.string.liked)
-                                        viewModel.updateLikeStatus(song.videoId, true)
                                     }
+                                    viewModel.onUIEvent(UIEvent.ToggleLike)
                                 }
                                 btRadio.setOnClickListener {
                                     val args = Bundle()

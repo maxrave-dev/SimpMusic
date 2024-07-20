@@ -130,12 +130,12 @@ class QueueFragment: BottomSheetDialogFragment() {
                 }
             }
             val job2 = launch {
-                viewModel.nowPlayingMediaItem.collect {
+                viewModel.nowPlayingState.collect {
                     if (it != null){
-                        binding.ivThumbnail.load(it.mediaMetadata.artworkUri)
-                        binding.tvSongTitle.text = it.mediaMetadata.title
+                        binding.ivThumbnail.load(it.mediaItem.mediaMetadata.artworkUri)
+                        binding.tvSongTitle.text = it.mediaItem.mediaMetadata.title
                         binding.tvSongTitle.isSelected = true
-                        binding.tvSongArtist.text = it.mediaMetadata.artist
+                        binding.tvSongArtist.text = it.mediaItem.mediaMetadata.artist
                         binding.tvSongArtist.isSelected = true
                     }
                 }

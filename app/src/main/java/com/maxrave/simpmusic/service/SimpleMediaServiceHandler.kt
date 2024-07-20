@@ -50,6 +50,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.cancellable
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.single
@@ -131,6 +133,8 @@ class SimpleMediaServiceHandler(
 
     private var loadJob: Job? = null
 
+    private var songEntityJob: Job? = null
+
     init {
         player.addListener(this)
         job = Job()
@@ -139,6 +143,7 @@ class SimpleMediaServiceHandler(
         updateNotificationJob = Job()
         toggleLikeJob = Job()
         loadJob = Job()
+        songEntityJob = Job()
         skipSilent = runBlocking { dataStoreManager.skipSilent.first() == DataStoreManager.TRUE }
         normalizeVolume =
             runBlocking { dataStoreManager.normalizeVolume.first() == DataStoreManager.TRUE }
@@ -162,11 +167,6 @@ class SimpleMediaServiceHandler(
         _nowPlaying.value = player.currentMediaItem
         mediaSessionCallback.apply {
             toggleLike = ::toggleLike
-        }
-        coroutineScope.launch {
-            nowPlayingState.collect {
-                Log.w(TAG, "init: $it")
-            }
         }
     }
     private var getDataOfNowPlayingTrackStateJob: Job? = null
@@ -217,10 +217,26 @@ class SimpleMediaServiceHandler(
                 }
                 Log.w(TAG, "getDataOfNowPlayingState: ${nowPlayingState.value}")
             }
+            songEntityJob?.cancel()
+            songEntityJob = coroutineScope.launch {
+                mainRepository.getSongAsFlow(videoId).cancellable().filterNotNull().collectLatest { songEntity ->
+                    _nowPlayingState.update {
+                        it.copy(
+                            songEntity = songEntity
+                        )
+                    }
+                    _controlState.update {
+                        it.copy(
+                            isLiked = songEntity.liked
+                        )
+                    }
+                }
+            }
         }
     }
 
     private fun toggleLike() {
+        Log.w(TAG, "toggleLike: ${nowPlayingState.value.mediaItem.mediaId}")
         toggleLikeJob?.cancel()
         toggleLikeJob =
             coroutineScope.launch {

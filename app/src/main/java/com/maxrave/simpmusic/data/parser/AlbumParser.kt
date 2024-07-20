@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.data.parser
 
+import android.util.Log
 import com.maxrave.kotlinytmusicscraper.pages.AlbumPage
 import com.maxrave.simpmusic.data.model.browse.album.AlbumBrowse
 import com.maxrave.simpmusic.data.model.browse.album.Track
@@ -8,6 +9,7 @@ import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 
 fun parseAlbumData(data: AlbumPage): AlbumBrowse {
     val artist: ArrayList<Artist> = arrayListOf()
+    Log.w("AlbumParser", "Parsing album data \n$data")
     data.album.artists?.forEach {
         artist.add(Artist(it.id, it.name))
     }
@@ -25,7 +27,7 @@ fun parseAlbumData(data: AlbumPage): AlbumBrowse {
                         name = artistItem.name
                     )
                 },
-                duration = if (songItem.duration != null) "%02d:%02d".format(songItem.duration!! / 60, songItem.duration!! % 60) else "",
+                duration = if (songItem.duration != null) "%02d:%02d".format((songItem.duration ?: 0) / 60, (songItem.duration ?: 0) % 60) else "",
                 durationSeconds = songItem.duration ?: 0,
                 isAvailable = false,
                 isExplicit = songItem.explicit,

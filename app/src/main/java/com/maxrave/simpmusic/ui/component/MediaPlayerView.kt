@@ -2,15 +2,19 @@ package com.maxrave.simpmusic.ui.component
 
 import android.util.Log
 import android.view.TextureView
+import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.C.VIDEO_SCALING_MODE_SCALE_TO_FIT
-import androidx.media3.common.C.VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -53,10 +57,12 @@ fun MediaPlayerView(
         factory = { ctx ->
             TextureView(ctx).also {
                 exoPlayer.setVideoTextureView(it)
-                exoPlayer.videoScalingMode = VIDEO_SCALING_MODE_SCALE_TO_FIT_WITH_CROPPING
             }
         },
-        modifier = modifier
+        modifier = modifier.wrapContentHeight().fillMaxWidth().border(
+            width = 1.dp,
+            color = Color.Red
+        )
     )
 }
 

@@ -165,7 +165,7 @@ fun LyricsLineItem(
             Spacer(modifier = Modifier.height(4.dp))
             Text(text = originalWords, style = typo.bodyLarge, color = Color.LightGray)
             if (translatedWords != null) {
-                Text(text = translatedWords, style = typo.bodyMedium, color = Color.Yellow)
+                Text(text = translatedWords, style = typo.bodyMedium, color = Color(0xFF97971A))
             }
             Spacer(modifier = Modifier.height(4.dp))
         }

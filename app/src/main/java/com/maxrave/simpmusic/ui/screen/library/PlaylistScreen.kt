@@ -128,16 +128,17 @@ import com.skydoves.landscapist.components.rememberImageComponent
 import com.skydoves.landscapist.palette.PalettePlugin
 import com.skydoves.landscapist.palette.rememberPaletteState
 import com.skydoves.landscapist.placeholder.placeholder.PlaceholderPlugin
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.runBlocking
 import java.time.format.DateTimeFormatter
 
 @UnstableApi
 @ExperimentalFoundationApi
 @OptIn(
-    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3Api::class, ExperimentalCoroutinesApi::class,
 )
 @Composable
 fun PlaylistScreen(
@@ -201,7 +202,9 @@ fun PlaylistScreen(
     val bg by viewModel.brush.collectAsState()
     val localPlaylist by viewModel.localPlaylist.collectAsState()
     val listTrack by viewModel.listTrack.collectAsState()
-    val playingTrack by sharedViewModel.nowPlayingMediaItem.collectAsState(initial = null)
+    val playingTrack by sharedViewModel.nowPlayingState.mapLatest {
+        it?.mediaItem
+    }.collectAsState(initial = null)
     val isPlaying by sharedViewModel.isPlaying.collectAsState()
     val suggestedTracks by viewModel.listSuggestions.collectAsState()
     val suggestionsLoading by viewModel.loading.collectAsState()
@@ -1006,12 +1009,6 @@ fun PlaylistScreen(
                         viewModel.updateLikeStatus(track.videoId, 1)
                     } else {
                         viewModel.updateLikeStatus(track.videoId, 0)
-                    }
-                    coroutineScope.launch {
-                        if (playingTrack?.mediaId == track.videoId) {
-                            delay(500)
-                            sharedViewModel.refreshSongDB()
-                        }
                     }
                 },
                 getLocalPlaylist = { sharedViewModel.getAllLocalPlaylist() },

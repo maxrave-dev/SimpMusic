@@ -7,7 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
-import android.view.animation.AnimationUtils
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.view.marginBottom
@@ -174,14 +174,15 @@ class NowPlayingFragment : Fragment() {
         }
     }
 
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        val activity = requireActivity()
-        val bottom = activity.findViewById<BottomNavigationView>(R.id.bottom_navigation_view)
-        val miniplayer = activity.findViewById<ComposeView>(R.id.miniplayer)
-
-        bottom.visibility = View.GONE
-        miniplayer.visibility = View.GONE
+//        val activity = requireActivity()
+//        val bottom = activity.findViewById<BottomNavigationView>(R.id.bottom_navigation_view)
+//        val miniplayer = activity.findViewById<ComposeView>(R.id.miniplayer)
+//
+//        bottom.visibility = View.GONE
+//        miniplayer.visibility = View.GONE
         composeView.apply {
             setContent {
                 AppTheme {
@@ -2318,13 +2319,13 @@ class NowPlayingFragment : Fragment() {
         arguments?.putString("videoId", null)
         val activity = requireActivity()
         activity.window.navigationBarColor = Color.parseColor("#CB0B0A0A")
-        val bottom = activity.findViewById<BottomNavigationView>(R.id.bottom_navigation_view)
-        val miniplayer = activity.findViewById<ComposeView>(R.id.miniplayer)
-        bottom.animation = AnimationUtils.loadAnimation(requireContext(), R.anim.bottom_to_top)
-        bottom.visibility = View.VISIBLE
-        miniplayer.animation =
-            AnimationUtils.loadAnimation(requireContext(), R.anim.bottom_to_top)
-        miniplayer.visibility = View.VISIBLE
+//        val bottom = activity.findViewById<BottomNavigationView>(R.id.bottom_navigation_view)
+//        val miniplayer = activity.findViewById<ComposeView>(R.id.miniplayer)
+//        bottom.animation = AnimationUtils.loadAnimation(requireContext(), R.anim.bottom_to_top)
+//        bottom.visibility = View.VISIBLE
+//        miniplayer.animation =
+//            AnimationUtils.loadAnimation(requireContext(), R.anim.bottom_to_top)
+//        miniplayer.visibility = View.VISIBLE
 //        if (!isFullScreen) {
 //            bottom.animation = AnimationUtils.loadAnimation(requireContext(), R.anim.bottom_to_top)
 //            bottom.visibility = View.VISIBLE

@@ -22,6 +22,7 @@ import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -76,7 +77,7 @@ class InfoFragment: BottomSheetDialogFragment(){
 
     @UnstableApi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        if (runBlocking { viewModel.nowPlayingMediaItem.first() } != null) {
+        if (runBlocking { viewModel.nowPlayingState.first() } != null) {
             if (viewModel.simpleMediaServiceHandler != null) {
                 val data = (runBlocking {
                     viewModel.simpleMediaServiceHandler?.queueData?.first()?.listTracks
@@ -118,15 +119,17 @@ class InfoFragment: BottomSheetDialogFragment(){
                     }
                 }
                 val job2 = launch {
-                    viewModel.songInfo.collect { s ->
-                        if (s != null) {
-                            binding.description.text = s.description
+                    viewModel.nowPlayingScreenData
+                        .collectLatest { s ->
+                            val songInfo = s.songInfoData
+                        if (songInfo != null) {
+                            binding.description.text = songInfo.description
                                 ?: context?.getString(androidx.media3.ui.R.string.exo_track_unknown)
-                            binding.plays.text = s.viewCount?.toString() ?: context?.getString(
+                            binding.plays.text = songInfo.viewCount?.toString() ?: context?.getString(
                                 androidx.media3.ui.R.string.exo_track_unknown
                             )
-                            binding.like.text = if (s.like != null && s.dislike != null) {
-                                getString(R.string.like_and_dislike, s.like, s.dislike)
+                            binding.like.text = if (songInfo.like != null && songInfo.dislike != null) {
+                                getString(R.string.like_and_dislike, songInfo.like, songInfo.dislike)
                             } else {
                                 getString(androidx.media3.ui.R.string.exo_track_unknown)
                             }

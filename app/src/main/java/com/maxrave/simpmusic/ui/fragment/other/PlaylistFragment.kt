@@ -65,7 +65,6 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -683,16 +682,6 @@ class PlaylistFragment : Fragment() {
                                 cbFavorite.isChecked = true
                                 tvFavorite.text = getString(R.string.liked)
                                 viewModel.updateLikeStatus(song.videoId, 1)
-                            }
-                            lifecycleScope.launch {
-                                if (sharedViewModel.simpleMediaServiceHandler
-                                        ?.nowPlaying
-                                        ?.first()
-                                        ?.mediaId == song.videoId
-                                ) {
-                                    delay(500)
-                                    sharedViewModel.refreshSongDB()
-                                }
                             }
                         }
                         btSeeArtists.setOnClickListener {

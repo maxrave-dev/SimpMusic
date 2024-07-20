@@ -11,7 +11,6 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.exoplayer.offline.Download
@@ -175,12 +174,6 @@ constructor(
     private var _translateLyrics: MutableStateFlow<Lyrics?> = MutableStateFlow(null)
     val translateLyrics: StateFlow<Lyrics?> = _translateLyrics
 
-    private var _nowPlayingMediaItem = MutableStateFlow<MediaItem?>(MediaItem.EMPTY)
-    val nowPlayingMediaItem: SharedFlow<MediaItem?> = _nowPlayingMediaItem.asSharedFlow()
-
-    private var _songTransitions = MutableStateFlow<Boolean>(false)
-    val songTransitions: StateFlow<Boolean> = _songTransitions
-
     private var _shuffleModeEnabled = MutableStateFlow<Boolean>(false)
     val shuffleModeEnabled: StateFlow<Boolean> = _shuffleModeEnabled
 
@@ -209,10 +202,6 @@ constructor(
 
     private var _saveLastPlayedSong: MutableLiveData<Boolean> = MutableLiveData()
     val saveLastPlayedSong: LiveData<Boolean> = _saveLastPlayedSong
-
-    private var _lyricsProvider: MutableStateFlow<LyricsProvider> =
-        MutableStateFlow(LyricsProvider.MUSIXMATCH)
-    val lyricsProvider: StateFlow<LyricsProvider> = _lyricsProvider
 
     private var _canvas: MutableStateFlow<CanvasResponse?> = MutableStateFlow(null)
     val canvas: StateFlow<CanvasResponse?> = _canvas
@@ -290,7 +279,6 @@ constructor(
                                 Log.w(TAG, "MediaId is ${nowPlaying.mediaItem.mediaId}")
                                 getCanvas(nowPlaying.mediaItem.mediaId, (timeline.total / 1000).toInt())
                             }
-                            getFormat(nowPlaying.mediaItem.mediaId)
                             nowPlaying.songEntity.let { song ->
                                 Log.w(TAG, "Get lyrics from format")
                                 getLyricsFromFormat(song, (timeline.total / 1000).toInt())
@@ -350,7 +338,9 @@ constructor(
         }
         _from.value = handler.queueData.value?.playlistName ?: ""
         viewModelScope.launch {
-            handler.nowPlayingState.collectLatest { state ->
+            handler.nowPlayingState.distinctUntilChangedBy {
+                it.songEntity?.videoId
+            }.collectLatest { state ->
                 Log.w(TAG, "NowPlayingState is $state")
                 _nowPlayingState.value = state
                 _nowPlayingScreenData.value = NowPlayingScreenData(
@@ -605,9 +595,6 @@ constructor(
                         _shuffleModeEnabled.value = controlState.isShuffle
                         _repeatMode.value = controlState.repeatState
                         isPlaying.value = controlState.isPlaying
-                        if (controlState.isLiked != _liked.value) {
-                            refreshSongDB()
-                        }
                     }
                 }
 //                    val job10 =
@@ -941,7 +928,7 @@ constructor(
         }
     }
 
-    fun getSkipSegments(videoId: String) {
+    private fun getSkipSegments(videoId: String) {
         resetSkipSegments()
         viewModelScope.launch {
             mainRepository.getSkipSegments(videoId).collect { segments ->
@@ -1020,15 +1007,6 @@ constructor(
         }
     }
 
-    fun getCurrentMediaItem(): MediaItem? {
-        transformEmit(simpleMediaServiceHandler?.getCurrentMediaItem())
-        val mediaItem = simpleMediaServiceHandler?.getCurrentMediaItem()
-        if (mediaItem != null && mediaItem.mediaId.contains("Video")) {
-            return mediaItem.buildUpon().setMediaId(mediaItem.mediaId.removePrefix("Video")).build()
-        }
-        return mediaItem
-    }
-
     fun getCurrentMediaItemIndex(): Int {
         return simpleMediaServiceHandler?.currentIndex() ?: 0
     }
@@ -1071,11 +1049,6 @@ constructor(
             withContext(Dispatchers.Main) {
                 simpleMediaServiceHandler?.addMediaItem(track.toMediaItem(), playWhenReady = type != RECOVER_TRACK_QUEUE)
             }
-            transformEmit(getCurrentMediaItem())
-            Log.d(
-                "Check MediaItem Thumbnail",
-                getCurrentMediaItem()?.mediaMetadata?.artworkUri.toString(),
-            )
 
             when (type) {
                 SONG_CLICK -> {
@@ -1296,34 +1269,11 @@ constructor(
         Log.w("Check onCleared", "onCleared")
     }
 
-    fun changeSongTransitionToFalse() {
-        _songTransitions.value = false
-    }
-
-    fun resetLyrics() {
+    private fun resetLyrics() {
         _lyrics.value = (Resource.Error<Lyrics>("reset"))
         lyricsFormat.postValue(arrayListOf())
         lyricsFull.postValue("")
         _translateLyrics.value = null
-    }
-
-    fun updateLikeStatus(
-        videoId: String,
-        likeStatus: Boolean,
-    ) {
-        println("Update Like Status $videoId $likeStatus")
-        viewModelScope.launch {
-            if (nowPlayingMediaItem.first()?.mediaId == videoId) {
-                if (likeStatus) {
-                    mainRepository.updateLikeStatus(videoId, 1)
-                } else {
-                    mainRepository.updateLikeStatus(videoId, 0)
-                }
-                delay(500)
-                refreshSongDB()
-                updateLikeInNotification(likeStatus)
-            }
-        }
     }
 
     fun updateDownloadState(
@@ -1342,20 +1292,6 @@ constructor(
                 }
             }
             mainRepository.updateDownloadState(videoId, state)
-        }
-    }
-
-    fun refreshSongDB() {
-        viewModelScope.launch {
-            nowPlayingMediaItem.first()?.mediaId?.let {
-                mainRepository.getSongById(it).collect { songEntity ->
-                    _songDB.value = songEntity
-                    if (songEntity != null) {
-                        Log.w("Check like", "SharedViewModel refreshSongDB ${songEntity.liked}")
-                        _liked.value = songEntity.liked
-                    }
-                }
-            }
         }
     }
 
@@ -1738,7 +1674,6 @@ constructor(
                     when (response) {
                         is Resource.Success -> {
                             if (response.data != null) {
-                                _lyricsProvider.value = LyricsProvider.YOUTUBE
                                 insertLyrics(response.data.toLyricsEntity(videoId))
                                 updateLyrics(
                                     videoId,
@@ -1796,7 +1731,6 @@ constructor(
                 when (response) {
                     is Resource.Success -> {
                         if (response.data != null) {
-                            _lyricsProvider.value = LyricsProvider.SPOTIFY
                             insertLyrics(response.data.toLyricsEntity(query))
                             updateLyrics(
                                 track.videoId,
@@ -1972,17 +1906,6 @@ constructor(
         )
     }
 
-    fun transformEmit(mediaItem: MediaItem?) {
-        val id = mediaItem?.mediaId
-        if (id != null && id.contains("Video")) {
-            _nowPlayingMediaItem.value = (
-                mediaItem.buildUpon().setMediaId(id.removePrefix("Video")).build()
-            )
-        }
-        else {
-            _nowPlayingMediaItem.value = (mediaItem)
-        }
-    }
 }
 
 sealed class UIEvent {

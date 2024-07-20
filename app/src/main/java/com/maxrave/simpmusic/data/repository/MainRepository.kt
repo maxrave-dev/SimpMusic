@@ -1058,6 +1058,7 @@ class MainRepository
                             emit(Resource.Error<PodcastBrowse>("Error"))
                         }
                     }.onFailure { error ->
+                        Log.w("Podcast", "Error: ${error.message}")
                         emit(Resource.Error<PodcastBrowse>(error.message.toString()))
                     }
                 }

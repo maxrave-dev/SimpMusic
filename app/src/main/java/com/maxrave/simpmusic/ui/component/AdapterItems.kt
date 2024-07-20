@@ -73,13 +73,11 @@ import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.HomeViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
+import com.maxrave.simpmusic.viewModel.UIEvent
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.animation.crossfade.CrossfadePlugin
 import com.skydoves.landscapist.coil.CoilImage
 import com.skydoves.landscapist.components.rememberImageComponent
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 
 @UnstableApi
 @Composable
@@ -100,18 +98,16 @@ fun HomeItem(
             navController = navController,
             onToggleLike = { checked ->
                 val track = homeViewModel.songEntity.value
-                if (track != null) {
+                if (track != null && track.videoId != sharedViewModel.nowPlayingState.value?.mediaItem?.mediaId) {
                     if (checked) {
                         homeViewModel.updateLikeStatus(track.videoId, true)
                     } else {
                         homeViewModel.updateLikeStatus(track.videoId, false)
                     }
-                    coroutineScope.launch {
-                        if (sharedViewModel.simpleMediaServiceHandler?.nowPlaying?.first()?.mediaId == track.videoId) {
-                            delay(500)
-                            sharedViewModel.refreshSongDB()
-                        }
-                    }
+                }
+                else if (track != null && track.videoId == sharedViewModel.nowPlayingState.value?.mediaItem?.mediaId) {
+                    sharedViewModel.onUIEvent(UIEvent.ToggleLike)
+
                 }
             },
             getLocalPlaylist = {
@@ -219,6 +215,7 @@ fun HomeItem(
                             HomeItemContentPlaylist(onClick = {
                                 val args = Bundle()
                                 args.putString("browseId", temp.browseId)
+                                Log.w("AdapterItems", "onItemClick: ${temp.browseId}")
                                 navController.navigateSafe(R.id.action_global_albumFragment, args)
                             }, data = temp)
                     } else if (temp.thumbnails.firstOrNull()?.width != temp.thumbnails.firstOrNull()?.height) {
