@@ -11,26 +11,26 @@ import coil.imageLoader
 import coil.request.ErrorResult
 import coil.request.ImageRequest
 import com.google.common.util.concurrent.ListenableFuture
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.guava.future
 import java.util.concurrent.ExecutionException
 
 @UnstableApi
-class CoilBitmapLoader(private val context: Context) : BitmapLoader {
+class CoilBitmapLoader(private val context: Context, private val coroutineScope: CoroutineScope) : BitmapLoader {
     override fun supportsMimeType(mimeType: String): Boolean {
         return true
     }
 
     override fun decodeBitmap(data: ByteArray): ListenableFuture<Bitmap> {
-        return GlobalScope.future(Dispatchers.IO) {
+        return coroutineScope.future(Dispatchers.IO) {
             BitmapFactory.decodeByteArray(data, 0, data.size)
                 ?: error("Could not decode image data")
         }
     }
 
     override fun loadBitmap(uri: Uri): ListenableFuture<Bitmap> {
-        return GlobalScope.future(Dispatchers.IO) {
+        return coroutineScope.future(Dispatchers.IO) {
             val result =
                 (context.imageLoader.execute(
                     ImageRequest.Builder(context)

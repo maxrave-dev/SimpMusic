@@ -12,7 +12,6 @@ import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -52,7 +51,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
-import androidx.wear.compose.material3.ripple
 import coil.compose.AsyncImage
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
@@ -122,15 +120,11 @@ fun HomeItem(
             modifier = if (data.channelId != null) {
                 Modifier
                     .focusable(true)
-                    .clickable(
-                        onClick = {
-                            val args = Bundle()
-                            args.putString("channelId", data.channelId)
-                            navController.navigateSafe(R.id.action_global_artistFragment, args)
-                        },
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = ripple()
-                    )
+                    .clickable {
+                        val args = Bundle()
+                        args.putString("channelId", data.channelId)
+                        navController.navigateSafe(R.id.action_global_artistFragment, args)
+                    }
             } else Modifier
         ) {
             AnimatedVisibility(
@@ -274,6 +268,7 @@ fun HomeItem(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeItemContentPlaylist(
     onClick: () -> Unit,
@@ -283,11 +278,9 @@ fun HomeItemContentPlaylist(
         Modifier
             .wrapContentSize()
             .focusable(true)
-            .clickable(
-                onClick = onClick,
-                interactionSource = remember { MutableInteractionSource() },
-                indication = ripple()
-            )
+            .clickable {
+                onClick()
+            }
     ) {
         Column(
             modifier = Modifier
@@ -366,11 +359,9 @@ fun QuickPicksItem(
         modifier = Modifier
             .wrapContentSize()
             .focusable(true)
-            .clickable(
-                onClick = onClick,
-                interactionSource = remember { MutableInteractionSource() },
-                indication = ripple()
-            )
+            .clickable {
+                onClick()
+            }
     ) {
         Row(
             modifier = Modifier
@@ -444,11 +435,9 @@ fun HomeItemSong(
         modifier = Modifier
             .fillMaxSize()
             .focusable(true)
-            .clickable(
-                onClick = onClick,
-                interactionSource = remember { MutableInteractionSource() },
-                indication = ripple()
-            )
+            .clickable {
+                onClick()
+            }
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = onLongClick,
@@ -531,11 +520,9 @@ fun HomeItemVideo(
         Modifier
             .fillMaxSize()
             .focusable(true)
-            .clickable(
-                onClick = onClick,
-                interactionSource = remember { MutableInteractionSource() },
-                indication = ripple()
-            )
+            .clickable {
+                onClick()
+            }
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = onLongClick
@@ -602,6 +589,7 @@ fun HomeItemVideo(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeItemArtist(
     onClick: () -> Unit,
@@ -611,11 +599,9 @@ fun HomeItemArtist(
         Modifier
             .fillMaxSize()
             .focusable(true)
-            .clickable(
-                onClick = onClick,
-                interactionSource = remember { MutableInteractionSource() },
-                indication = ripple()
-            )
+            .clickable {
+                onClick()
+            }
     ) {
         Column(
             modifier = Modifier
@@ -728,11 +714,9 @@ fun ItemVideoChart(
         Modifier
             .wrapContentSize()
             .focusable(true)
-            .clickable(
-                onClick = onClick,
-                interactionSource = remember { MutableInteractionSource() },
-                indication = ripple()
-            )
+            .clickable{
+                onClick()
+            }
     ) {
         Column(
             modifier = Modifier
@@ -810,6 +794,7 @@ fun ItemVideoChart(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ItemArtistChart(
     onClick: () -> Unit,
@@ -820,11 +805,9 @@ fun ItemArtistChart(
         Modifier
             .wrapContentSize()
             .focusable(true)
-            .clickable(
-                onClick = onClick,
-                interactionSource = remember { MutableInteractionSource() },
-                indication = ripple()
-            )
+            .clickable {
+                onClick()
+            }
     ) {
         Row(
             modifier = Modifier.padding(10.dp),
@@ -899,11 +882,9 @@ fun ItemTrackChart(
         modifier = Modifier
             .wrapContentSize()
             .focusable(true)
-            .clickable(
-                onClick = onClick,
-                interactionSource = remember { MutableInteractionSource() },
-                indication = ripple()
-            )
+            .clickable {
+                onClick()
+            }
     ) {
         Row(
             modifier = Modifier

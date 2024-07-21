@@ -2,6 +2,7 @@ package com.maxrave.simpmusic.ui.component
 
 import android.util.Log
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
@@ -232,6 +233,7 @@ fun LyricsLineItem(
 }
 
 @ExperimentalMaterial3Api
+@ExperimentalFoundationApi
 @UnstableApi
 @Composable
 fun FullscreenLyricsSheet(
@@ -261,10 +263,12 @@ fun FullscreenLyricsSheet(
     }
 
     ModalBottomSheet(
-        onDismissRequest = onDismiss,
+        onDismissRequest = {
+            onDismiss()
+        },
         containerColor = color,
         contentColor = Color.Transparent,
-        dragHandle = null,
+        dragHandle = {},
         scrimColor = Color.Black.copy(alpha = .5f),
         sheetState = sheetState,
         modifier = Modifier.fillMaxHeight(),
@@ -310,7 +314,10 @@ fun FullscreenLyricsSheet(
                 },
                 navigationIcon = {
                     IconButton(onClick = {
-                        coroutineScope.launch { sheetState.hide() }
+                        coroutineScope.launch {
+                            sheetState.hide()
+                            onDismiss()
+                        }
                     }) {
                         Icon(
                             painter = painterResource(id = R.drawable.baseline_keyboard_arrow_down_24),

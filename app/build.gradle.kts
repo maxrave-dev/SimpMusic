@@ -165,7 +165,6 @@ android {
 
 dependencies {
 
-    implementation(libs.compose.material3)
     // Compose
     val composeBom = platform(libs.compose.bom)
     implementation(composeBom)

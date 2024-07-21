@@ -48,12 +48,7 @@ fun ExpandableText(
     Box(
         modifier =
             Modifier
-                .clickable(
-                    enabled = clickable,
-                    onClick = { isExpanded = !isExpanded },
-                    interactionSource = null,
-                    indication = null,
-                )
+                .clickable{ isExpanded = !isExpanded }
                 .then(modifier),
     ) {
         // Text composable with buildAnnotatedString to handle "Show More" and "Show Less" buttons.

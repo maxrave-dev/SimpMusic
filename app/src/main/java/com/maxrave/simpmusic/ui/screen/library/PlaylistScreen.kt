@@ -19,7 +19,6 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -47,7 +46,9 @@ import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -86,9 +87,6 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
-import androidx.wear.compose.material3.OutlinedButton
-import androidx.wear.compose.material3.TextButton
-import androidx.wear.compose.material3.ripple
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants.IterateForever
@@ -554,22 +552,15 @@ fun PlaylistScreen(
                                                         .clip(
                                                             CircleShape,
                                                         )
-                                                        .clickable(
-                                                            onClick = {
-                                                                Toast
-                                                                    .makeText(
-                                                                        context,
-                                                                        context.getString(R.string.downloaded),
-                                                                        Toast.LENGTH_SHORT,
-                                                                    )
-                                                                    .show()
-                                                            },
-                                                            interactionSource =
-                                                            remember {
-                                                                MutableInteractionSource()
-                                                            },
-                                                            indication = ripple(),
-                                                        ),
+                                                        .clickable{
+                                                            Toast
+                                                                .makeText(
+                                                                    context,
+                                                                    context.getString(R.string.downloaded),
+                                                                    Toast.LENGTH_SHORT,
+                                                                )
+                                                                .show()
+                                                        },
                                                 ) {
                                                     Icon(
                                                         painter = painterResource(id = R.drawable.baseline_downloaded),
@@ -591,22 +582,15 @@ fun PlaylistScreen(
                                                         .clip(
                                                             CircleShape,
                                                         )
-                                                        .clickable(
-                                                            onClick = {
-                                                                Toast
-                                                                    .makeText(
-                                                                        context,
-                                                                        context.getString(R.string.downloading),
-                                                                        Toast.LENGTH_SHORT,
-                                                                    )
-                                                                    .show()
-                                                            },
-                                                            interactionSource =
-                                                            remember {
-                                                                MutableInteractionSource()
-                                                            },
-                                                            indication = ripple(),
-                                                        ),
+                                                        .clickable{
+                                                            Toast
+                                                                .makeText(
+                                                                    context,
+                                                                    context.getString(R.string.downloading),
+                                                                    Toast.LENGTH_SHORT,
+                                                                )
+                                                                .show()
+                                                        }
                                                 ) {
                                                     LottieAnimation(
                                                         composition,
@@ -643,16 +627,9 @@ fun PlaylistScreen(
                                                         compositingStrategy =
                                                             CompositingStrategy.Offscreen
                                                     }
-                                                    .clickable(
-                                                        onClick = {
-                                                            shouldShowSuggestions = !shouldShowSuggestions
-                                                        },
-                                                        interactionSource =
-                                                            remember {
-                                                                MutableInteractionSource()
-                                                            },
-                                                        indication = ripple(),
-                                                    )
+                                                    .clickable{
+                                                        shouldShowSuggestions = !shouldShowSuggestions
+                                                    }
                                                     .drawWithCache {
                                                         val width = size.width - 10
                                                         val height = size.height - 10

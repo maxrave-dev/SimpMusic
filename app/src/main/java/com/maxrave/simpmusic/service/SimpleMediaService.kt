@@ -115,7 +115,8 @@ class SimpleMediaService : MediaLibraryService() {
             this,
             this,
             player,
-            simpleMediaSessionCallback
+            simpleMediaSessionCallback,
+            serviceCoroutineScope
         )
         val sessionToken = SessionToken(this, ComponentName(this, SimpleMediaService::class.java))
         val controllerFuture = MediaController.Builder(this, sessionToken).buildAsync()
@@ -343,7 +344,7 @@ class SimpleMediaService : MediaLibraryService() {
         }
 
     @UnstableApi
-    fun provideCoilBitmapLoader(context: Context): CoilBitmapLoader = CoilBitmapLoader(context)
+    fun provideCoilBitmapLoader(context: Context, coroutineScope: CoroutineScope): CoilBitmapLoader = CoilBitmapLoader(context, coroutineScope)
 
 
     @UnstableApi
@@ -351,7 +352,8 @@ class SimpleMediaService : MediaLibraryService() {
         context: Context,
         service: MediaLibraryService,
         player: ExoPlayer,
-        callback: SimpleMediaSessionCallback
+        callback: SimpleMediaSessionCallback,
+        coroutineScope: CoroutineScope
     ): MediaLibrarySession = MediaLibrarySession.Builder(
         service, player, callback
     )
@@ -361,25 +363,8 @@ class SimpleMediaService : MediaLibraryService() {
                 PendingIntent.FLAG_IMMUTABLE
             )
         )
-        .setBitmapLoader(provideCoilBitmapLoader(context))
+        .setBitmapLoader(provideCoilBitmapLoader(context, coroutineScope))
         .build()
-
-    @UnstableApi
-    fun provideMediaSession(
-        context: Context,
-        player: ExoPlayer,
-        callback: SimpleMediaSessionCallback
-    ): MediaSession =
-        MediaSession.Builder(context, player)
-            .setCallback(callback)
-            .setSessionActivity(
-                PendingIntent.getActivity(
-                    context, 0, Intent(context, MainActivity::class.java),
-                    PendingIntent.FLAG_IMMUTABLE
-                )
-            )
-            .setBitmapLoader(provideCoilBitmapLoader(context))
-            .build()
 
 }
 

@@ -11,6 +11,7 @@ import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -138,6 +139,7 @@ import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.mapNotNull
 import java.time.LocalDateTime
 
+@OptIn(ExperimentalFoundationApi::class)
 @UnstableApi
 @ExperimentalMaterial3Api
 @Composable
@@ -394,6 +396,7 @@ fun NowPlayingScreen(
             navController = navController
         ) {
             showFullscreenLyrics = false
+            Log.w(TAG, "ShowFullscreenLyrics: $showFullscreenLyrics")
         }
     }
 
@@ -623,7 +626,9 @@ fun NowPlayingScreen(
                                             .clickable(
                                                 onClick = { showHideFullscreenOverlay = !showHideFullscreenOverlay },
                                                 indication = null,
-                                                interactionSource = null
+                                                interactionSource = remember {
+                                                    MutableInteractionSource()
+                                                }
                                             )
                                     ) {
                                         Crossfade(
@@ -1135,7 +1140,9 @@ fun NowPlayingScreen(
                                                 }
                                             },
                                             indication = null,
-                                            interactionSource = null
+                                            interactionSource = remember {
+                                                MutableInteractionSource()
+                                            }
                                         ),
                                     contentAlignment = Alignment.BottomStart,
                                 ) {
@@ -1186,7 +1193,9 @@ fun NowPlayingScreen(
                                         }
                                     },
                                     indication = null,
-                                    interactionSource = null
+                                    interactionSource = remember {
+                                        MutableInteractionSource()
+                                    }
                                 )
                         )
                     }

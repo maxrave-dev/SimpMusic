@@ -2,11 +2,11 @@ package com.maxrave.simpmusic.ui.component
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -21,7 +21,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,7 +28,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.wear.compose.material3.ripple
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
@@ -47,6 +45,7 @@ import com.skydoves.landscapist.animation.crossfade.CrossfadePlugin
 import com.skydoves.landscapist.coil.CoilImage
 import com.skydoves.landscapist.components.rememberImageComponent
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PlaylistItems(
     track: Track? = null,
@@ -60,16 +59,9 @@ fun PlaylistItems(
     )
     Box(
         modifier =
-            Modifier.clickable(
-                onClick = {
-                    onClickListener?.invoke(track?.videoId ?: songEntity?.videoId ?: "")
-                },
-                indication = ripple(),
-                interactionSource =
-                    remember {
-                        MutableInteractionSource()
-                    },
-            ),
+            Modifier.clickable{
+                onClickListener?.invoke(track?.videoId ?: songEntity?.videoId ?: "")
+            }
     ) {
         Row(
             Modifier
@@ -168,6 +160,7 @@ fun PlaylistItems(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SuggestItems(
     track: Track,
@@ -180,14 +173,11 @@ fun SuggestItems(
     )
     Box(
         modifier =
-            Modifier.clickable(
-                onClick = onClickListener ?: {},
-                indication = ripple(),
-                interactionSource =
-                    remember {
-                        MutableInteractionSource()
-                    },
-            ),
+            Modifier.clickable {
+                if (onClickListener != null) {
+                    onClickListener()
+                }
+            }
     ) {
         Row(
             Modifier

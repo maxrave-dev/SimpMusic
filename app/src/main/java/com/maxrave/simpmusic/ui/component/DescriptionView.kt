@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -25,8 +26,8 @@ import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.wear.compose.material3.Text
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.ui.theme.typo
 
 @Composable
 fun DescriptionView(
@@ -123,6 +124,7 @@ fun DescriptionView(
                 },
             maxLines = maxLineAnimated,
             onTextLayout = { layoutResult = it },
+            style = typo.bodyMedium
         )
         Spacer(modifier = Modifier.height(5.dp))
         Text(
@@ -130,7 +132,8 @@ fun DescriptionView(
             color = Color.LightGray,
             modifier = Modifier.clickable {
                 expanded = !expanded
-            }
+            },
+            style = typo.labelSmall
         )
     }
 }

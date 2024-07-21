@@ -11,6 +11,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.StringRes
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.basicMarquee
@@ -92,7 +93,7 @@ import com.skydoves.landscapist.components.rememberImageComponent
 import kotlinx.coroutines.launch
 
 @UnstableApi
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun NowPlayingBottomSheet(
     isBottomSheetVisible: Boolean,
@@ -117,7 +118,12 @@ fun NowPlayingBottomSheet(
             skipPartiallyExpanded = true,
         )
     val hideModalBottomSheet: () -> Unit =
-        { coroutineScope.launch { modelBottomSheetState.hide() } }
+        {
+            coroutineScope.launch {
+                modelBottomSheetState.hide()
+                onDismiss()
+            }
+        }
 
     var addToAPlaylist by remember { mutableStateOf(false) }
     var artist by remember { mutableStateOf(false) }
@@ -695,7 +701,12 @@ fun AddToPlaylistModalBottomSheet(
             skipPartiallyExpanded = true,
         )
     val hideModalBottomSheet: () -> Unit =
-        { coroutineScope.launch { modelBottomSheetState.hide() } }
+        {
+            coroutineScope.launch {
+                modelBottomSheetState.hide()
+                onDismiss()
+            }
+        }
     if (isBottomSheetVisible) {
         ModalBottomSheet(
             onDismissRequest = onDismiss,
@@ -839,7 +850,10 @@ fun SleepTimerBottomSheet(
                 TextButton(onClick = {
                     if (minutes > 0) {
                         onSetTimer(minutes)
-                        coroutineScope.launch { modelBottomSheetState.hide() }
+                        coroutineScope.launch {
+                            modelBottomSheetState.hide()
+                            onDismiss()
+                        }
                     }
                     else {
                         Toast.makeText(context, context.getString(R.string.sleep_timer_set_error), Toast.LENGTH_SHORT).show()
@@ -870,7 +884,10 @@ fun ArtistModalBottomSheet(
             skipPartiallyExpanded = true,
         )
     val hideModalBottomSheet: () -> Unit =
-        { coroutineScope.launch { modelBottomSheetState.hide() } }
+        { coroutineScope.launch {
+            modelBottomSheetState.hide()
+            onDismiss()
+        } }
     if (isBottomSheetVisible) {
         ModalBottomSheet(
             onDismissRequest = onDismiss,
@@ -971,7 +988,10 @@ fun LocalPlaylistBottomSheet(
             skipPartiallyExpanded = true,
         )
     val hideModalBottomSheet: () -> Unit =
-        { coroutineScope.launch { modelBottomSheetState.hide() } }
+        { coroutineScope.launch {
+            modelBottomSheetState.hide()
+            onDismiss()
+        } }
     val context = LocalContext.current
     val resultLauncher =
         rememberLauncherForActivityResult(
@@ -1006,7 +1026,10 @@ fun LocalPlaylistBottomSheet(
                 skipPartiallyExpanded = true,
             )
         val hideEditTitleBottomSheet: () -> Unit =
-            { coroutineScope.launch { showEditTitleSheetState.hide() } }
+            { coroutineScope.launch {
+                showEditTitleSheetState.hide()
+                onDismiss()
+            } }
         ModalBottomSheet(
             onDismissRequest = { showEditTitle = false },
             sheetState = showEditTitleSheetState,
