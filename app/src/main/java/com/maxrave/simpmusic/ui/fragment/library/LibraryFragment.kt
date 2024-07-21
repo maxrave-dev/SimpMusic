@@ -49,9 +49,8 @@ import com.maxrave.simpmusic.viewModel.LibraryViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 
@@ -375,12 +374,6 @@ class LibraryFragment : Fragment() {
                                     adapterItem.updateList(listRecentlyAdded)
                                 }
                             }
-                            lifecycleScope.launch {
-                                if (sharedViewModel.nowPlayingMediaItem.first()?.mediaId == song.videoId) {
-                                    delay(500)
-                                    sharedViewModel.refreshSongDB()
-                                }
-                            }
                         }
 
                         btSeeArtists.setOnClickListener {
@@ -622,21 +615,22 @@ class LibraryFragment : Fragment() {
                             adapterItem.setDownloadedList(it)
                         }
                     }
-                val job2 =
-                    launch {
-                        combine(
-                            sharedViewModel.nowPlayingMediaItem,
-                            sharedViewModel.isPlaying,
-                        ) { nowPlaying, isPlaying ->
-                            Pair(nowPlaying, isPlaying)
-                        }.collect {
-                            if (it.first != null && it.second) {
-                                adapterItem.setNowPlaying(it.first!!.mediaId)
-                            } else {
-                                adapterItem.setNowPlaying(null)
-                            }
+                val job2 = launch {
+                    combine(sharedViewModel.nowPlayingState.distinctUntilChangedBy {
+                        it?.songEntity?.videoId
+                    }, sharedViewModel.controllerState.distinctUntilChangedBy {
+                        it.isPlaying
+                    }) { nowPlaying, controllerState ->
+                        Pair(nowPlaying, controllerState)
+                    }.collect {
+                        val songEntity = it.first?.songEntity
+                        if (songEntity != null && it.second.isPlaying) {
+                            adapterItem.setNowPlaying(songEntity.videoId)
+                        } else {
+                            adapterItem.setNowPlaying(null)
                         }
                     }
+                }
                 job1.join()
                 job2.join()
             }

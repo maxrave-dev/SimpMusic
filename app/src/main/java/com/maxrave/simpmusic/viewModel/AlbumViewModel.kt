@@ -74,10 +74,11 @@ class AlbumViewModel @Inject constructor(
         loading.value = true
         viewModelScope.launch {
             mainRepository.getAlbumData(browseId).collect { values ->
+                Log.w("AlbumViewModel", "Browse Album $values")
                 _albumBrowse.value = values
-            }
-            withContext(Dispatchers.Main){
-                loading.value = false
+                withContext(Dispatchers.Main){
+                    loading.value = false
+                }
             }
         }
     }

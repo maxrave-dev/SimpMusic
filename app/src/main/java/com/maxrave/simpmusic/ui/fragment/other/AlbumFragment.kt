@@ -69,7 +69,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -458,16 +458,6 @@ class AlbumFragment : Fragment() {
                                 tvFavorite.text = getString(R.string.liked)
                                 viewModel.updateLikeStatus(song.videoId, 1)
                             }
-                            lifecycleScope.launch {
-                                if (sharedViewModel.simpleMediaServiceHandler
-                                        ?.nowPlaying
-                                        ?.first()
-                                        ?.mediaId == song.videoId
-                                ) {
-                                    delay(500)
-                                    sharedViewModel.refreshSongDB()
-                                }
-                            }
                         }
                         btSeeArtists.setOnClickListener {
                             val subDialog = BottomSheetDialog(requireContext())
@@ -641,6 +631,22 @@ class AlbumFragment : Fragment() {
                             songsAdapter.setDownloadedList(it)
                         }
                     }
+                val playingJob = launch {
+                    combine(sharedViewModel.nowPlayingState.distinctUntilChangedBy {
+                        it?.songEntity?.videoId
+                    }, sharedViewModel.controllerState.distinctUntilChangedBy {
+                        it.isPlaying
+                    }) { nowPlaying, controllerState ->
+                        Pair(nowPlaying, controllerState)
+                    }.collect {
+                        val songEntity = it.first?.songEntity
+                        if (songEntity != null && it.second.isPlaying) {
+                            songsAdapter.setNowPlaying(songEntity.videoId)
+                        } else {
+                            songsAdapter.setNowPlaying(null)
+                        }
+                    }
+                }
                 val job2 =
                     launch {
                         combine(
@@ -897,6 +903,7 @@ class AlbumFragment : Fragment() {
                 albumEntity.join()
                 listTrackJob.join()
                 downloadJob.join()
+                playingJob.join()
 //                launch {
 //                    viewModel.listJob.collectLatest {jobs->
 //                        Log.d("AlbumFragment", "ListJob: $jobs")

@@ -47,9 +47,8 @@ import com.maxrave.simpmusic.viewModel.DownloadedViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 
@@ -239,12 +238,6 @@ class DownloadedFragment : Fragment() {
                                 downloadedAdapter.updateList(listDownloaded)
                             }
                         }
-                        lifecycleScope.launch {
-                            if (sharedViewModel.simpleMediaServiceHandler?.nowPlaying?.first()?.mediaId == song.videoId) {
-                                delay(500)
-                                sharedViewModel.refreshSongDB()
-                            }
-                        }
                     }
                     btAddPlaylist.setOnClickListener {
                         viewModel.getAllLocalPlaylist()
@@ -391,11 +384,16 @@ class DownloadedFragment : Fragment() {
                     }
                 }
                 val job2 = launch {
-                    combine(sharedViewModel.nowPlayingMediaItem, sharedViewModel.isPlaying) { nowPlaying, isPlaying ->
-                        Pair(nowPlaying, isPlaying)
+                    combine(sharedViewModel.nowPlayingState.distinctUntilChangedBy {
+                        it?.songEntity?.videoId
+                    }, sharedViewModel.controllerState.distinctUntilChangedBy {
+                        it.isPlaying
+                    }) { nowPlaying, controllerState ->
+                        Pair(nowPlaying, controllerState)
                     }.collect {
-                        if (it.first != null && it.second) {
-                            downloadedAdapter.setNowPlaying(it.first!!.mediaId)
+                        val songEntity = it.first?.songEntity
+                        if (songEntity != null && it.second.isPlaying) {
+                            downloadedAdapter.setNowPlaying(songEntity.videoId)
                         } else {
                             downloadedAdapter.setNowPlaying(null)
                         }

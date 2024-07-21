@@ -34,6 +34,15 @@ class QueueAdapter(
         mSwapListener = listener
     }
 
+    fun getIndexOf(videoId: String): Int? {
+        for (i in listTrack.indices) {
+            if (listTrack.getOrNull(i)?.videoId == videoId) {
+                return i
+            }
+        }
+        return null
+    }
+
     interface OnOptionClickListener {
         fun onOptionClick(position: Int)
     }

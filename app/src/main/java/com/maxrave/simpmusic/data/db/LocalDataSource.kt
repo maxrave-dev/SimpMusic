@@ -49,7 +49,10 @@ class LocalDataSource
 
         suspend fun getDownloadedSongs() = databaseDao.getDownloadedSongs()
 
-        suspend fun getDownloadedSongsAsFlow() = databaseDao.getDownloadedSongsAsFlow()
+        fun getDownloadedSongsAsFlow(offset: Int) = databaseDao.getDownloadedSongsAsFlow(offset)
+
+        fun getDownloadedVideoIdListFromListVideoIdAsFlow(listVideoId: List<String>) =
+            databaseDao.getDownloadedVideoIdByListVideoId(listVideoId)
 
         suspend fun getDownloadingSongs() = databaseDao.getDownloadingSongs()
 
@@ -212,6 +215,8 @@ class LocalDataSource
         suspend fun insertNewFormat(format: NewFormatEntity) = databaseDao.insertNewFormat(format)
 
         suspend fun getNewFormat(videoId: String) = databaseDao.getNewFormat(videoId)
+
+        suspend fun updateNewFormat(newFormatEntity: NewFormatEntity) = databaseDao.updateNewFormat(newFormatEntity)
 
         suspend fun getNewFormatAsFlow(videoId: String) = databaseDao.getNewFormatAsFlow(videoId)
 

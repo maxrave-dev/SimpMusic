@@ -64,10 +64,8 @@ import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.ArtistViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
@@ -377,16 +375,6 @@ class ArtistFragment : Fragment() {
                                 cbFavorite.isChecked = true
                                 tvFavorite.text = getString(R.string.liked)
                                 viewModel.updateLikeStatus(song.videoId, 1)
-                            }
-                            lifecycleScope.launch {
-                                if (sharedViewModel.simpleMediaServiceHandler
-                                        ?.nowPlaying
-                                        ?.first()
-                                        ?.mediaId == song.videoId
-                                ) {
-                                    delay(500)
-                                    sharedViewModel.refreshSongDB()
-                                }
                             }
                         }
                         btSeeArtists.setOnClickListener {

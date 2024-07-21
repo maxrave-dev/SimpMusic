@@ -22,7 +22,7 @@ import com.maxrave.simpmusic.data.db.entities.SongInfoEntity
 
 @Database(
     entities = [NewFormatEntity::class, SongInfoEntity::class, SearchHistory::class, SongEntity::class, ArtistEntity::class, AlbumEntity::class, PlaylistEntity::class, LocalPlaylistEntity::class, LyricsEntity::class, QueueEntity::class, SetVideoIdEntity::class, PairSongLocalPlaylist::class, GoogleAccountEntity::class, FollowedArtistSingleAndAlbum::class, NotificationEntity::class],
-    version = 9,
+    version = 10,
     exportSchema = true,
     autoMigrations = [AutoMigration(from = 2, to = 3), AutoMigration(
         from = 1,
@@ -34,7 +34,8 @@ import com.maxrave.simpmusic.data.db.entities.SongInfoEntity
         7,
         8,
         spec = AutoMigration7_8::class
-    ), AutoMigration(8, 9)]
+    ), AutoMigration(8, 9),
+    AutoMigration(9, 10)]
 )
 @TypeConverters(Converters::class)
 abstract class MusicDatabase : RoomDatabase() {

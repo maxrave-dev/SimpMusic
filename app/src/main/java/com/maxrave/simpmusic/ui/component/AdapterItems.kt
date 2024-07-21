@@ -12,7 +12,6 @@ import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -52,7 +51,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
-import androidx.wear.compose.material3.ripple
 import coil.compose.AsyncImage
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
@@ -73,13 +71,11 @@ import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.HomeViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
+import com.maxrave.simpmusic.viewModel.UIEvent
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.animation.crossfade.CrossfadePlugin
 import com.skydoves.landscapist.coil.CoilImage
 import com.skydoves.landscapist.components.rememberImageComponent
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 
 @UnstableApi
 @Composable
@@ -100,18 +96,16 @@ fun HomeItem(
             navController = navController,
             onToggleLike = { checked ->
                 val track = homeViewModel.songEntity.value
-                if (track != null) {
+                if (track != null && track.videoId != sharedViewModel.nowPlayingState.value?.mediaItem?.mediaId) {
                     if (checked) {
                         homeViewModel.updateLikeStatus(track.videoId, true)
                     } else {
                         homeViewModel.updateLikeStatus(track.videoId, false)
                     }
-                    coroutineScope.launch {
-                        if (sharedViewModel.simpleMediaServiceHandler?.nowPlaying?.first()?.mediaId == track.videoId) {
-                            delay(500)
-                            sharedViewModel.refreshSongDB()
-                        }
-                    }
+                }
+                else if (track != null && track.videoId == sharedViewModel.nowPlayingState.value?.mediaItem?.mediaId) {
+                    sharedViewModel.onUIEvent(UIEvent.ToggleLike)
+
                 }
             },
             getLocalPlaylist = {
@@ -126,15 +120,11 @@ fun HomeItem(
             modifier = if (data.channelId != null) {
                 Modifier
                     .focusable(true)
-                    .clickable(
-                        onClick = {
-                            val args = Bundle()
-                            args.putString("channelId", data.channelId)
-                            navController.navigateSafe(R.id.action_global_artistFragment, args)
-                        },
-                        interactionSource = remember { MutableInteractionSource() },
-                        indication = ripple()
-                    )
+                    .clickable {
+                        val args = Bundle()
+                        args.putString("channelId", data.channelId)
+                        navController.navigateSafe(R.id.action_global_artistFragment, args)
+                    }
             } else Modifier
         ) {
             AnimatedVisibility(
@@ -219,6 +209,7 @@ fun HomeItem(
                             HomeItemContentPlaylist(onClick = {
                                 val args = Bundle()
                                 args.putString("browseId", temp.browseId)
+                                Log.w("AdapterItems", "onItemClick: ${temp.browseId}")
                                 navController.navigateSafe(R.id.action_global_albumFragment, args)
                             }, data = temp)
                     } else if (temp.thumbnails.firstOrNull()?.width != temp.thumbnails.firstOrNull()?.height) {
@@ -277,6 +268,7 @@ fun HomeItem(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeItemContentPlaylist(
     onClick: () -> Unit,
@@ -286,11 +278,9 @@ fun HomeItemContentPlaylist(
         Modifier
             .wrapContentSize()
             .focusable(true)
-            .clickable(
-                onClick = onClick,
-                interactionSource = remember { MutableInteractionSource() },
-                indication = ripple()
-            )
+            .clickable {
+                onClick()
+            }
     ) {
         Column(
             modifier = Modifier
@@ -369,11 +359,9 @@ fun QuickPicksItem(
         modifier = Modifier
             .wrapContentSize()
             .focusable(true)
-            .clickable(
-                onClick = onClick,
-                interactionSource = remember { MutableInteractionSource() },
-                indication = ripple()
-            )
+            .clickable {
+                onClick()
+            }
     ) {
         Row(
             modifier = Modifier
@@ -447,11 +435,9 @@ fun HomeItemSong(
         modifier = Modifier
             .fillMaxSize()
             .focusable(true)
-            .clickable(
-                onClick = onClick,
-                interactionSource = remember { MutableInteractionSource() },
-                indication = ripple()
-            )
+            .clickable {
+                onClick()
+            }
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = onLongClick,
@@ -534,11 +520,9 @@ fun HomeItemVideo(
         Modifier
             .fillMaxSize()
             .focusable(true)
-            .clickable(
-                onClick = onClick,
-                interactionSource = remember { MutableInteractionSource() },
-                indication = ripple()
-            )
+            .clickable {
+                onClick()
+            }
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = onLongClick
@@ -605,6 +589,7 @@ fun HomeItemVideo(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeItemArtist(
     onClick: () -> Unit,
@@ -614,11 +599,9 @@ fun HomeItemArtist(
         Modifier
             .fillMaxSize()
             .focusable(true)
-            .clickable(
-                onClick = onClick,
-                interactionSource = remember { MutableInteractionSource() },
-                indication = ripple()
-            )
+            .clickable {
+                onClick()
+            }
     ) {
         Column(
             modifier = Modifier
@@ -731,11 +714,9 @@ fun ItemVideoChart(
         Modifier
             .wrapContentSize()
             .focusable(true)
-            .clickable(
-                onClick = onClick,
-                interactionSource = remember { MutableInteractionSource() },
-                indication = ripple()
-            )
+            .clickable{
+                onClick()
+            }
     ) {
         Column(
             modifier = Modifier
@@ -813,6 +794,7 @@ fun ItemVideoChart(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ItemArtistChart(
     onClick: () -> Unit,
@@ -823,11 +805,9 @@ fun ItemArtistChart(
         Modifier
             .wrapContentSize()
             .focusable(true)
-            .clickable(
-                onClick = onClick,
-                interactionSource = remember { MutableInteractionSource() },
-                indication = ripple()
-            )
+            .clickable {
+                onClick()
+            }
     ) {
         Row(
             modifier = Modifier.padding(10.dp),
@@ -902,11 +882,9 @@ fun ItemTrackChart(
         modifier = Modifier
             .wrapContentSize()
             .focusable(true)
-            .clickable(
-                onClick = onClick,
-                interactionSource = remember { MutableInteractionSource() },
-                indication = ripple()
-            )
+            .clickable {
+                onClick()
+            }
     ) {
         Row(
             modifier = Modifier
