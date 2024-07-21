@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.RawQuery
 import androidx.room.Transaction
+import androidx.room.Update
 import androidx.sqlite.db.SupportSQLiteQuery
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
@@ -369,6 +370,9 @@ interface DatabaseDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertNewFormat(format: NewFormatEntity)
+
+    @Update
+    suspend fun updateNewFormat(format: NewFormatEntity)
 
     @Query("SELECT * FROM new_format WHERE videoId = :videoId")
     suspend fun getNewFormat(videoId: String): NewFormatEntity?

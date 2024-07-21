@@ -51,6 +51,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.cancellable
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
@@ -107,7 +108,13 @@ class SimpleMediaService : MediaLibraryService() {
             .setHandleAudioBecomingNoisy(true)
             .setSeekForwardIncrementMs(5000)
             .setSeekBackIncrementMs(5000)
-            .setMediaSourceFactory(provideMergingMediaSource())
+            .setMediaSourceFactory(provideMergingMediaSource(
+                downloadCache,
+                playerCache,
+                mainRepository,
+                serviceCoroutineScope,
+                dataStoreManager
+            ))
             .setRenderersFactory(provideRendererFactory(this))
             .build()
 
@@ -254,7 +261,8 @@ class SimpleMediaService : MediaLibraryService() {
         cacheDataSourceFactory: CacheDataSource.Factory,
         @DownloadCache downloadCache: SimpleCache,
         @PlayerCache playerCache: SimpleCache,
-        mainRepository: MainRepository
+        mainRepository: MainRepository,
+        coroutineScope: CoroutineScope
     ): DataSource.Factory {
         return ResolvingDataSource.Factory(cacheDataSourceFactory) { dataSpec ->
             val mediaId = dataSpec.key ?: error("No media id")
@@ -267,6 +275,15 @@ class SimpleMediaService : MediaLibraryService() {
                     if (dataSpec.length >= 0) dataSpec.length else 1
                 ) || playerCache.isCached(mediaId, dataSpec.position, CHUNK_LENGTH)
             ) {
+                coroutineScope.launch {
+                    mainRepository.updateFormat(
+                        if (mediaId.contains(MergingMediaSourceFactory.isVideo)) {
+                            mediaId.removePrefix(MergingMediaSourceFactory.isVideo)
+                        } else {
+                            mediaId
+                        }
+                    )
+                }
                 return@Factory dataSpec
             }
             var dataSpecReturn: DataSpec = dataSpec
@@ -305,19 +322,36 @@ class SimpleMediaService : MediaLibraryService() {
     }
 
     @UnstableApi
-    fun provideMediaSourceFactory(): DefaultMediaSourceFactory =
+    fun provideMediaSourceFactory(
+        downloadCache: SimpleCache,
+        playerCache: SimpleCache,
+        mainRepository: MainRepository,
+        coroutineScope: CoroutineScope
+    ): DefaultMediaSourceFactory =
         DefaultMediaSourceFactory(
             provideResolvingDataSourceFactory(
                 provideCacheDataSource(downloadCache, playerCache),
                 downloadCache,
                 playerCache,
-                mainRepository
+                mainRepository,
+                coroutineScope
             ),
             provideExtractorFactory()
         )
 
-    private fun provideMergingMediaSource(): MergingMediaSourceFactory = MergingMediaSourceFactory(
-        provideMediaSourceFactory(),
+    private fun provideMergingMediaSource(
+        downloadCache: SimpleCache,
+        playerCache: SimpleCache,
+        mainRepository: MainRepository,
+        coroutineScope: CoroutineScope,
+        dataStoreManager: DataStoreManager
+    ): MergingMediaSourceFactory = MergingMediaSourceFactory(
+        provideMediaSourceFactory(
+            downloadCache,
+            playerCache,
+            mainRepository,
+            coroutineScope
+        ),
         dataStoreManager
     )
 

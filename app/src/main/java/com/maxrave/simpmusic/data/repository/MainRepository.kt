@@ -2273,6 +2273,41 @@ class MainRepository
                     }
                 }
             }.flowOn(Dispatchers.IO)
+        @UnstableApi
+        suspend fun updateFormat(
+            videoId: String
+        ) {
+            localDataSource.getNewFormat(videoId)?.let { oldFormat ->
+                if (oldFormat.expiredTime.isBefore(LocalDateTime.now())) {
+                    YouTube.player(videoId).onSuccess { triple ->
+                        val response = triple.second
+                        localDataSource.updateNewFormat(
+                            oldFormat.copy(
+                                playbackTrackingVideostatsPlaybackUrl =
+                                response.playbackTracking?.videostatsPlaybackUrl?.baseUrl?.replace(
+                                    "https://s.youtube.com",
+                                    "https://music.youtube.com",
+                                ),
+                                playbackTrackingAtrUrl =
+                                response.playbackTracking?.atrUrl?.baseUrl?.replace(
+                                    "https://s.youtube.com",
+                                    "https://music.youtube.com",
+                                ),
+                                playbackTrackingVideostatsWatchtimeUrl =
+                                response.playbackTracking?.videostatsWatchtimeUrl?.baseUrl?.replace(
+                                    "https://s.youtube.com",
+                                    "https://music.youtube.com",
+                                ),
+                                cpn = triple.first,
+                            )
+                        )
+                        Log.w("UpdateFormat", "Updated format for $videoId")
+                    }.onFailure { throwable ->
+                        Log.e("UpdateFormat", "Error: ${throwable.message}")
+                    }
+                }
+            }
+        }
 
         @UnstableApi
         suspend fun getStream(
@@ -2305,6 +2340,10 @@ class MainRepository
                         if (isVideo) {
                             response.streamingData?.formats?.find { it.itag == videoItag }
                                 ?: response.streamingData?.adaptiveFormats?.find { it.itag == videoItag }
+                                ?: response.streamingData?.formats?.find { it.itag == 136 }
+                                ?: response.streamingData?.adaptiveFormats?.find { it.itag == 136 }
+                                ?: response.streamingData?.formats?.find { it.itag == 134 }
+                                ?: response.streamingData?.adaptiveFormats?.find { it.itag == 134 }
                         } else {
                             if (response.streamingData?.adaptiveFormats?.find { it.itag == 141 } != null) {
                                 response.streamingData?.adaptiveFormats?.find { it.itag == 141 }
@@ -2316,6 +2355,7 @@ class MainRepository
                         format = response.streamingData?.adaptiveFormats?.lastOrNull()
                     }
                     Log.w("Stream", "format: $format")
+                    Log.d("Stream", "expireInSeconds ${response.streamingData?.expiresInSeconds}")
                     runBlocking {
                         insertNewFormat(
                             NewFormatEntity(
@@ -2350,6 +2390,7 @@ class MainRepository
                                         "https://music.youtube.com",
                                     ),
                                 cpn = data.first,
+                                expiredTime = LocalDateTime.now().plusSeconds(response.streamingData?.expiresInSeconds?.toLong() ?: 0L)
                             ),
                         )
                     }
