@@ -16,6 +16,7 @@ import android.os.Bundle
 import android.os.IBinder
 import android.util.Log
 import android.view.View
+import android.view.animation.AnimationUtils
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
@@ -104,7 +105,6 @@ class MainActivity : AppCompatActivity() {
                     if (service.service.simpleMediaServiceHandler.queueData.value == null) {
                         mayBeRestoreLastPlayedTrackAndQueue()
                     }
-                    runCollect()
                     Log.w("TEST", viewModel.simpleMediaServiceHandler?.player.toString())
                 }
             }
@@ -115,181 +115,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-    private fun runCollect() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.CREATED) {
-//                val job5 =
-//                    launch {
-//                        viewModel.simpleMediaServiceHandler?.nowPlaying?.collect {
-//                            if (it != null) {
-//                                Log.w(
-//                                    "Test service",
-//                                    viewModel.simpleMediaServiceHandler?.getCurrentMediaItem()?.mediaMetadata?.title.toString(),
-//                                )
-//                                binding.songTitle.setTextAnimation(it.mediaMetadata.title.toString())
-//                                binding.songTitle.isSelected = true
-//                                binding.songArtist.setTextAnimation(it.mediaMetadata.artist.toString())
-//                                binding.songArtist.isSelected = true
-//                                binding.ivArt.load(it.mediaMetadata.artworkUri) {
-//                                    crossfade(true)
-//                                    crossfade(300)
-//                                    placeholder(R.drawable.outline_album_24)
-//                                    transformations(
-//                                        object : Transformation {
-//                                            override val cacheKey: String
-//                                                get() = it.mediaMetadata.artworkUri.toString()
-//
-//                                            override suspend fun transform(
-//                                                input: Bitmap,
-//                                                size: Size,
-//                                            ): Bitmap {
-//                                                val p = Palette.from(input).generate()
-//                                                val defaultColor = 0x000000
-//                                                var startColor = p.getDarkVibrantColor(defaultColor)
-//                                                Log.d("Check Start Color", "transform: $startColor")
-//                                                if (startColor == defaultColor) {
-//                                                    startColor = p.getDarkMutedColor(defaultColor)
-//                                                    if (startColor == defaultColor) {
-//                                                        startColor = p.getVibrantColor(defaultColor)
-//                                                        if (startColor == defaultColor) {
-//                                                            startColor =
-//                                                                p.getMutedColor(defaultColor)
-//                                                            if (startColor == defaultColor) {
-//                                                                startColor =
-//                                                                    p.getLightVibrantColor(
-//                                                                        defaultColor,
-//                                                                    )
-//                                                                if (startColor == defaultColor) {
-//                                                                    startColor =
-//                                                                        p.getLightMutedColor(
-//                                                                            defaultColor,
-//                                                                        )
-//                                                                }
-//                                                            }
-//                                                        }
-//                                                    }
-//                                                    Log.d(
-//                                                        "Check Start Color",
-//                                                        "transform: $startColor",
-//                                                    )
-//                                                }
-//                                                val endColor = 0x1b1a1f
-//                                                val gd =
-//                                                    GradientDrawable(
-//                                                        GradientDrawable.Orientation.TOP_BOTTOM,
-//                                                        intArrayOf(startColor, endColor),
-//                                                    )
-//                                                gd.cornerRadius = 0f
-//                                                gd.gradientType = GradientDrawable.LINEAR_GRADIENT
-//                                                gd.gradientRadius = 0.5f
-//                                                gd.alpha = 150
-//                                                val bg =
-//                                                    ColorUtils.setAlphaComponent(startColor, 255)
-//                                                binding.card.setCardBackgroundColor(bg)
-//                                                binding.cardBottom.setCardBackgroundColor(bg)
-//                                                return input
-//                                            }
-//                                        },
-//                                    )
-//                                }
-// //                            val request = ImageRequest.Builder(this@MainActivity)
-// //                                .data(it.mediaMetadata.artworkUri)
-// //                                .target(
-// //                                    onSuccess = { result ->
-// //                                        binding.ivArt.setImageDrawable(result)
-// //                                    },
-// //                                )
-// //                                .transformations(object : Transformation {
-// //                                    override val cacheKey: String
-// //                                        get() = it.mediaMetadata.artworkUri.toString()
-// //
-// //                                    override suspend fun transform(input: Bitmap, size: Size): Bitmap {
-// //                                        val p = Palette.from(input).generate()
-// //                                        val defaultColor = 0x000000
-// //                                        var startColor = p.getDarkVibrantColor(defaultColor)
-// //                                        Log.d("Check Start Color", "transform: $startColor")
-// //                                        if (startColor == defaultColor){
-// //                                            startColor = p.getDarkMutedColor(defaultColor)
-// //                                            if (startColor == defaultColor){
-// //                                                startColor = p.getVibrantColor(defaultColor)
-// //                                                if (startColor == defaultColor){
-// //                                                    startColor = p.getMutedColor(defaultColor)
-// //                                                    if (startColor == defaultColor){
-// //                                                        startColor = p.getLightVibrantColor(defaultColor)
-// //                                                        if (startColor == defaultColor){
-// //                                                            startColor = p.getLightMutedColor(defaultColor)
-// //                                                        }
-// //                                                    }
-// //                                                }
-// //                                            }
-// //                                            Log.d("Check Start Color", "transform: $startColor")
-// //                                        }
-// //                                        val endColor = 0x1b1a1f
-// //                                        val gd = GradientDrawable(
-// //                                            GradientDrawable.Orientation.TOP_BOTTOM,
-// //                                            intArrayOf(startColor, endColor)
-// //                                        )
-// //                                        gd.cornerRadius = 0f
-// //                                        gd.gradientType = GradientDrawable.LINEAR_GRADIENT
-// //                                        gd.gradientRadius = 0.5f
-// //                                        gd.alpha = 150
-// //                                        val bg = ColorUtils.setAlphaComponent(startColor, 255)
-// //                                        binding.card.setCardBackgroundColor(bg)
-// //                                        binding.cardBottom.setCardBackgroundColor(bg)
-// //                                        return input
-// //                                    }
-// //
-// //                                })
-// //                                .build()
-// //                            ImageLoader(this@MainActivity).execute(request)
-//                            }
-//                        }
-//                    }
-//                val job2 =
-//                    launch {
-//                        viewModel.progress.collect {
-//                            binding.progressBar.progress = (it * 100).toInt()
-//                        }
-//                    }
-//                val job3 =
-//                    launch {
-//                        viewModel.isPlaying.collect {
-//                            if (it) {
-//                                binding.btPlayPause.setImageResource(R.drawable.baseline_pause_24)
-//                            } else {
-//                                binding.btPlayPause.setImageResource(R.drawable.baseline_play_arrow_24)
-//                            }
-//                        }
-//                    }
-                val job4 =
-                    launch {
-                        viewModel.simpleMediaServiceHandler?.sleepDone?.collect { done ->
-                            if (done) {
-                                MaterialAlertDialogBuilder(this@MainActivity)
-                                    .setTitle(getString(R.string.sleep_timer_off))
-                                    .setMessage(getString(R.string.good_night))
-                                    .setPositiveButton(getString(R.string.yes)) { d, _ ->
-                                        d.dismiss()
-                                    }
-                                    .show()
-                            }
-                        }
-                    }
-//                val likedJob =
-//                    launch {
-//                        viewModel.liked.collectLatest {
-//                            Log.w("Check Like", "Collect from main activity $it")
-//                            binding.cbFavorite.isChecked = it
-//                        }
-//                    }
-//                job2.join()
-//                job3.join()
-//                job5.join()
-                job4.join()
-//                likedJob.join()
-            }
-        }
-    }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
@@ -321,7 +146,6 @@ class MainActivity : AppCompatActivity() {
 //        }
         if (viewModel.recreateActivity.value == true) {
             viewModel.simpleMediaServiceHandler?.coroutineScope = lifecycleScope
-            runCollect()
             viewModel.activityRecreateDone()
         } else {
             startMusicService()
@@ -515,6 +339,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         navController.addOnDestinationChangedListener { nav, destination, _ ->
+            Log.w("Destination", "onCreate: ${destination.id}")
             when (destination.id) {
                 R.id.bottom_navigation_item_home, R.id.settingsFragment, R.id.recentlySongsFragment, R.id.moodFragment -> {
                     binding.bottomNavigationView.menu.findItem(
@@ -562,8 +387,26 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 }
-
-                R.id.nowPlayingFragment, R.id. -> {
+            }
+            if ((destination.id == R.id.nowPlayingFragment || destination.id == R.id.fullscreenFragment ||
+                destination.id == R.id.infoFragment || destination.id == R.id.queueFragment) &&
+                binding.miniplayer.visibility != View.GONE &&
+                binding.bottomNavigationView.visibility != View.GONE
+                ) {
+                binding.bottomNavigationView.animation = AnimationUtils.loadAnimation(this, R.anim.ttb)
+                binding.miniplayer.animation = AnimationUtils.loadAnimation(this, R.anim.ttb)
+                binding.bottomNavigationView.visibility = View.GONE
+                binding.miniplayer.visibility = View.GONE
+            }
+            else if (binding.bottomNavigationView.visibility != View.VISIBLE &&
+                binding.miniplayer.visibility != View.VISIBLE
+                ) {
+                lifecycleScope.launch {
+                    delay(500)
+                    binding.bottomNavigationView.animation = AnimationUtils.loadAnimation(this@MainActivity, R.anim.btt)
+                    binding.miniplayer.animation = AnimationUtils.loadAnimation(this@MainActivity, R.anim.btt)
+                    binding.miniplayer.visibility = View.VISIBLE
+                    binding.bottomNavigationView.visibility = View.VISIBLE
                 }
             }
         }
@@ -741,7 +584,24 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 }
+            val job2 =
+                launch {
+                    viewModel.sleepTimerState.collect { state ->
+                        if (state.isDone) {
+                            Log.w("MainActivity", "Collect from main activity $state")
+                            viewModel.stopSleepTimer()
+                            MaterialAlertDialogBuilder(this@MainActivity)
+                                .setTitle(getString(R.string.sleep_timer_off))
+                                .setMessage(getString(R.string.good_night))
+                                .setPositiveButton(getString(R.string.yes)) { d, _ ->
+                                    d.dismiss()
+                                }
+                                .show()
+                        }
+                    }
+                }
             job1.join()
+            job2.join()
         }
         lifecycleScope.launch {
             val miniplayerJob = launch {

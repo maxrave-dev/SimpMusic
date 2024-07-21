@@ -9,7 +9,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.compose.ui.platform.ComposeView
 import androidx.core.net.toUri
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -26,7 +25,6 @@ import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import coil.load
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -34,7 +32,6 @@ import com.google.android.material.slider.Slider
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.adapter.artist.SeeArtistOfNowPlayingAdapter
 import com.maxrave.simpmusic.adapter.playlist.AddToAPlaylistAdapter
-import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.LYRICS_PROVIDER
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
@@ -46,6 +43,7 @@ import com.maxrave.simpmusic.databinding.BottomSheetNowPlayingBinding
 import com.maxrave.simpmusic.databinding.BottomSheetSeeArtistOfNowPlayingBinding
 import com.maxrave.simpmusic.databinding.BottomSheetSleepTimerBinding
 import com.maxrave.simpmusic.extension.connectArtists
+import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.removeConflicts
 import com.maxrave.simpmusic.extension.setEnabledAll
@@ -59,6 +57,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.time.LocalDateTime
@@ -84,11 +83,6 @@ class FullscreenFragment : Fragment() {
         savedInstanceState: Bundle?,
     ) {
         super.onViewCreated(view, savedInstanceState)
-        val activity = requireActivity()
-        val bottom = activity.findViewById<BottomNavigationView>(R.id.bottom_navigation_view)
-        val miniplayer = activity.findViewById<ComposeView>(R.id.miniplayer)
-        bottom.visibility = View.GONE
-        miniplayer.visibility = View.GONE
         if (!viewModel.isFullScreen) {
             hideSystemUI()
             viewModel.isFullScreen = true
@@ -183,50 +177,77 @@ class FullscreenFragment : Fragment() {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.CREATED) {
                 val time =
                     launch {
-                        viewModel.progress.collect {
-                            if (it in 0.0..1.0) {
-                                binding.progressSong.value = it * 100
+                        viewModel.timeline.collect {
+                            if (it.total >= 0L) {
+                                val progress = it.current.toFloat()/it.total
+                                binding.progressSong.value = progress * 100
+                                binding.tvCurrentTime.text = formatDuration(it.current)
+                                binding.tvFullTime.text = formatDuration(it.total)
+                                if (viewModel._lyrics.value?.data != null && viewModel.isSubtitle) {
+//                            val temp = viewModel.getLyricsString(it)
+                                    val lyricsData = viewModel.nowPlayingScreenData.value.lyricsData
+                                    val lyrics = lyricsData?.lyrics
+                                    val translated = lyricsData?.translatedLyrics
+                                    val index = viewModel.getActiveLyrics(it.current)
+                                    if (index != null) {
+                                        if (lyrics?.lines?.get(0)?.words == "Lyrics not found") {
+                                            binding.subtitleView.visibility = View.GONE
+                                        } else {
+                                            lyrics.let { it1 ->
+                                                if (lyrics?.syncType == "LINE_SYNCED") {
+                                                    if (index == -1) {
+                                                        binding.subtitleView.visibility = View.GONE
+                                                    } else {
+                                                        binding.subtitleView.visibility = View.VISIBLE
+                                                        binding.tvMainSubtitle.text =
+                                                            it1?.lines?.get(index)?.words
+                                                        if (translated != null) {
+                                                            val line =
+                                                                translated.lines?.find { line ->
+                                                                    line.startTimeMs == it1?.lines?.get(index)?.startTimeMs
+                                                                }
+                                                            if (line != null) {
+                                                                binding.tvTranslatedSubtitle.visibility =
+                                                                    View.VISIBLE
+                                                                binding.tvTranslatedSubtitle.text =
+                                                                    line.words
+                                                            } else {
+                                                                binding.tvTranslatedSubtitle.visibility =
+                                                                    View.GONE
+                                                            }
+                                                        }
+                                                    }
+                                                } else if (lyrics?.syncType == "UNSYNCED") {
+                                                    binding.subtitleView.visibility = View.GONE
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        binding.subtitleView.visibility = View.GONE
+                                    }
+                                } else {
+                                    binding.subtitleView.visibility = View.GONE
+                                }
                             }
-                        }
-                    }
-                val timeString =
-                    launch {
-                        viewModel.progressString.collect { prog ->
-                            binding.tvCurrentTime.text = prog
-                        }
-                    }
-                val duration =
-                    launch {
-                        viewModel.duration.collect { dur ->
-                            if (dur < 0) {
+                            else {
+                                binding.progressSong.value = 0f
+                                binding.tvCurrentTime.text = getString(R.string.na_na)
                                 binding.tvFullTime.text = getString(R.string.na_na)
-                            } else {
-                                binding.tvFullTime.text = viewModel.formatDuration(dur)
-                            }
-                        }
-                    }
-                val isPlaying =
-                    launch {
-                        viewModel.isPlaying.collect { isPlaying ->
-                            if (isPlaying) {
-                                binding.btPlayPause.setImageResource(R.drawable.baseline_pause_circle_24)
-                            } else {
-                                binding.btPlayPause.setImageResource(R.drawable.baseline_play_circle_24)
                             }
                         }
                     }
                 val title =
                     launch {
-                        viewModel.simpleMediaServiceHandler?.nowPlaying?.collectLatest {
-                            if (it != null) {
-                                binding.toolbar.title = it.mediaMetadata.title.toString()
-                            }
+                        viewModel.nowPlayingScreenData.collectLatest {
+                            binding.toolbar.title = it.nowPlayingTitle
                         }
                     }
-                val shuffle =
+                val job11 =
                     launch {
-                        viewModel.shuffleModeEnabled.collect { shuffle ->
-                            when (shuffle) {
+                        viewModel.simpleMediaServiceHandler?.controlState?.collect { controlState ->
+                            setEnabledAll(binding.btPrevious, controlState.isPreviousAvailable)
+                            setEnabledAll(binding.btNext, controlState.isNextAvailable)
+                            when (controlState.isShuffle) {
                                 true -> {
                                     binding.btShuffle.setImageResource(R.drawable.baseline_shuffle_24_enable)
                                 }
@@ -235,12 +256,7 @@ class FullscreenFragment : Fragment() {
                                     binding.btShuffle.setImageResource(R.drawable.baseline_shuffle_24)
                                 }
                             }
-                        }
-                    }
-                val repeat =
-                    launch {
-                        viewModel.repeatMode.collect { repeatMode ->
-                            when (repeatMode) {
+                            when (controlState.repeatState) {
                                 RepeatState.None -> {
                                     binding.btRepeat.setImageResource(R.drawable.baseline_repeat_24)
                                 }
@@ -253,73 +269,23 @@ class FullscreenFragment : Fragment() {
                                     binding.btRepeat.setImageResource(R.drawable.baseline_repeat_24_enable)
                                 }
                             }
-                        }
-                    }
-                val job11 =
-                    launch {
-                        viewModel.simpleMediaServiceHandler?.controlState?.collect { controlState ->
-                            setEnabledAll(binding.btPrevious, controlState.isPreviousAvailable)
-                            setEnabledAll(binding.btNext, controlState.isNextAvailable)
+                            if (controlState.isPlaying) {
+                                binding.btPlayPause.setImageResource(R.drawable.baseline_pause_circle_24)
+                            } else {
+                                binding.btPlayPause.setImageResource(R.drawable.baseline_play_circle_24)
+                            }
                         }
                     }
                 val job5 =
                     launch {
                         viewModel.progressMillis.collect {
-                            if (viewModel._lyrics.value?.data != null && viewModel.isSubtitle) {
-//                            val temp = viewModel.getLyricsString(it)
-                                val lyrics = viewModel._lyrics.value!!.data
-                                val translated = viewModel.translateLyrics.value
-                                val index = viewModel.getActiveLyrics(it)
-                                if (index != null) {
-                                    if (lyrics?.lines?.get(0)?.words == "Lyrics not found") {
-                                        binding.subtitleView.visibility = View.GONE
-                                    } else {
-                                        lyrics.let { it1 ->
-                                            if (viewModel.getLyricsSyncState() == Config.SyncState.LINE_SYNCED) {
-                                                if (index == -1) {
-                                                    binding.subtitleView.visibility = View.GONE
-                                                } else {
-                                                    binding.subtitleView.visibility = View.VISIBLE
-                                                    binding.tvMainSubtitle.text =
-                                                        it1?.lines?.get(index)?.words
-                                                    if (translated != null) {
-                                                        val line =
-                                                            translated.lines?.find { line ->
-                                                                line.startTimeMs == it1?.lines?.get(index)?.startTimeMs
-                                                            }
-                                                        if (line != null) {
-                                                            binding.tvTranslatedSubtitle.visibility =
-                                                                View.VISIBLE
-                                                            binding.tvTranslatedSubtitle.text =
-                                                                line.words
-                                                        } else {
-                                                            binding.tvTranslatedSubtitle.visibility =
-                                                                View.GONE
-                                                        }
-                                                    }
-                                                }
-                                            } else if (viewModel.getLyricsSyncState() == Config.SyncState.UNSYNCED) {
-                                                binding.subtitleView.visibility = View.GONE
-                                            }
-                                        }
-                                    }
-                                } else {
-                                    binding.subtitleView.visibility = View.GONE
-                                }
-                            } else {
-                                binding.subtitleView.visibility = View.GONE
-                            }
+
                         }
                     }
                 job5.join()
                 time.join()
-                timeString.join()
-                duration.join()
-                isPlaying.join()
                 title.join()
-                repeat.join()
                 job11.join()
-                shuffle.join()
             }
         }
         binding.toolbar.setOnMenuItemClickListener { menuItem ->
@@ -334,7 +300,7 @@ class FullscreenFragment : Fragment() {
                         val bottomSheetView = BottomSheetNowPlayingBinding.inflate(layoutInflater)
                         with(bottomSheetView) {
                             lifecycleScope.launch {
-                                viewModel.simpleMediaServiceHandler?.sleepMinutes?.collect { min ->
+                                viewModel.sleepTimerState.map { it.timeRemaining }.collect { min ->
                                     if (min > 0) {
                                         tvSleepTimer.text =
                                             getString(R.string.sleep_timer, min.toString())
@@ -438,7 +404,7 @@ class FullscreenFragment : Fragment() {
                                 }
                                 btSleepTimer.setOnClickListener {
                                     Log.w("Sleep Timer", "onClick")
-                                    if (viewModel.sleepTimerRunning.value == true) {
+                                    if (viewModel.sleepTimerState.value.timeRemaining > 0) {
                                         MaterialAlertDialogBuilder(requireContext())
                                             .setTitle(getString(R.string.warning))
                                             .setMessage(getString(R.string.sleep_timer_warning))

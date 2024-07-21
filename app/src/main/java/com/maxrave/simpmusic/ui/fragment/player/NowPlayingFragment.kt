@@ -1,7 +1,6 @@
 package com.maxrave.simpmusic.ui.fragment.player
 
 import android.graphics.Color
-import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -18,14 +17,8 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.findNavController
-import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.adapter.lyrics.LyricsAdapter
-import com.maxrave.simpmusic.data.model.metadata.MetadataSong
-import com.maxrave.simpmusic.databinding.FragmentNowPlayingBinding
 import com.maxrave.simpmusic.ui.screen.player.NowPlayingScreen
 import com.maxrave.simpmusic.ui.theme.AppTheme
-import com.maxrave.simpmusic.utils.DisableTouchEventRecyclerView
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -34,24 +27,6 @@ import dagger.hilt.android.AndroidEntryPoint
 class NowPlayingFragment : Fragment() {
     val viewModel by activityViewModels<SharedViewModel>()
     private lateinit var composeView: ComposeView
-
-    private var _binding: FragmentNowPlayingBinding? = null
-    private val binding get() = _binding!!
-    private var metadataCurSong: MetadataSong? = null
-
-    private var videoId: String? = null
-    private var from: String? = null
-    private var type: String? = null
-    private var index: Int? = null
-    private var downloaded: Int? = null
-    private var playlistId: String? = null
-
-    private var gradientDrawable: GradientDrawable? = null
-    private var lyricsBackground: Int? = null
-
-    private lateinit var lyricsAdapter: LyricsAdapter
-    private lateinit var lyricsFullAdapter: LyricsAdapter
-    private lateinit var disableScrolling: DisableTouchEventRecyclerView
 //    private var overlayJob: Job? = null
 //
 //    private var canvasOverlayJob: Job? = null
@@ -183,6 +158,7 @@ class NowPlayingFragment : Fragment() {
 //
 //        bottom.visibility = View.GONE
 //        miniplayer.visibility = View.GONE
+
         composeView.apply {
             setContent {
                 AppTheme {
@@ -2359,43 +2335,6 @@ class NowPlayingFragment : Fragment() {
 //        isFullScreen = false
 //        overlayJob?.cancel()
 //        canvasOverlayJob?.cancel()
-    }
-
-    fun parseTimestampToMilliseconds(timestamp: String): Double {
-        val parts = timestamp.split(":")
-        val totalSeconds =
-            when (parts.size) {
-                2 -> {
-                    try {
-                        val minutes = parts[0].toDouble()
-                        val seconds = parts[1].toDouble()
-                        (minutes * 60 + seconds)
-                    } catch (e: NumberFormatException) {
-                        // Handle parsing error
-                        e.printStackTrace()
-                        return 0.0
-                    }
-                }
-
-                3 -> {
-                    try {
-                        val hours = parts[0].toDouble()
-                        val minutes = parts[1].toDouble()
-                        val seconds = parts[2].toDouble()
-                        (hours * 3600 + minutes * 60 + seconds)
-                    } catch (e: NumberFormatException) {
-                        // Handle parsing error
-                        e.printStackTrace()
-                        return 0.0
-                    }
-                }
-
-                else -> {
-                    // Handle incorrect format
-                    return 0.0
-                }
-            }
-        return totalSeconds * 1000
     }
 
     private inline fun View.getDimensions(

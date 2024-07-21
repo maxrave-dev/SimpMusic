@@ -8,6 +8,8 @@ import android.media.audiofx.LoudnessEnhancer
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
+import androidx.appcompat.content.res.AppCompatResources
+import androidx.core.graphics.drawable.toBitmap
 import androidx.core.net.toUri
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -23,6 +25,8 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.CommandButton
 import androidx.media3.session.MediaSession
 import androidx.media3.session.SessionCommand
+import coil.ImageLoader
+import coil.request.ImageRequest
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.ASC
 import com.maxrave.simpmusic.common.DESC
@@ -34,11 +38,13 @@ import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.extension.connectArtists
+import com.maxrave.simpmusic.extension.getScreenSize
 import com.maxrave.simpmusic.extension.isVideo
 import com.maxrave.simpmusic.extension.toArrayListTrack
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.service.test.source.MergingMediaSourceFactory
+import com.maxrave.simpmusic.ui.widget.BasicWidget
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.FilterState
 import kotlinx.coroutines.CoroutineScope
@@ -80,6 +86,10 @@ class SimpleMediaServiceHandler(
 
     private var sleepTimerJob: Job? = null
 
+    private var downloadImageForWidgetJob: Job? = null
+
+    private val basicWidget = BasicWidget.instance
+
     private val _simpleMediaState = MutableStateFlow<SimpleMediaState>(SimpleMediaState.Initial)
     val simpleMediaState = _simpleMediaState.asStateFlow()
 
@@ -109,17 +119,14 @@ class SimpleMediaServiceHandler(
 
     private var _stateFlow = MutableStateFlow<StateSource>(StateSource.STATE_CREATED)
     val stateFlow = _stateFlow.asStateFlow()
-    private var _currentSongIndex = MutableStateFlow<Int>(0)
+    private var _currentSongIndex = MutableStateFlow<Int>(player.currentMediaItemIndex)
     val currentSongIndex = _currentSongIndex.asSharedFlow()
 
     private var _nowPlayingState = MutableStateFlow(NowPlayingTrackState.initial())
     val nowPlayingState = _nowPlayingState.asStateFlow()
 
-    private val _sleepMinutes = MutableStateFlow<Int>(0)
-    val sleepMinutes = _sleepMinutes.asSharedFlow()
-
-    private val _sleepDone = MutableStateFlow<Boolean>(false)
-    val sleepDone = _sleepDone.asSharedFlow()
+    private var _sleepTimerState = MutableStateFlow<SleepTimerState>(SleepTimerState(false, 0))
+    val sleepTimerState = _sleepTimerState.asStateFlow()
 
     private var skipSilent = false
 
@@ -144,6 +151,7 @@ class SimpleMediaServiceHandler(
         toggleLikeJob = Job()
         loadJob = Job()
         songEntityJob = Job()
+        downloadImageForWidgetJob = Job()
         skipSilent = runBlocking { dataStoreManager.skipSilent.first() == DataStoreManager.TRUE }
         normalizeVolume =
             runBlocking { dataStoreManager.normalizeVolume.first() == DataStoreManager.TRUE }
@@ -183,6 +191,7 @@ class SimpleMediaServiceHandler(
                 track = track,
             )
         }
+        updateWidget(mediaItem)
         getDataOfNowPlayingTrackStateJob?.cancel()
         getDataOfNowPlayingTrackStateJob = coroutineScope.launch {
             if (track != null) {
@@ -202,6 +211,8 @@ class SimpleMediaServiceHandler(
             mainRepository.getSongById(videoId).cancellable().singleOrNull().let { songEntity ->
                 if (songEntity != null) {
                     _controlState.update { it.copy(isLiked = songEntity.liked) }
+                    mainRepository.updateSongInLibrary(LocalDateTime.now(), songEntity.videoId)
+                    mainRepository.updateListenCount(songEntity.videoId)
                 } else {
                     _controlState.update { it.copy(isLiked = false) }
                     mainRepository.insertSong(
@@ -260,27 +271,30 @@ class SimpleMediaServiceHandler(
 
     // Set sleep timer
     fun sleepStart(minutes: Int) {
-        _sleepDone.value = false
         sleepTimerJob?.cancel()
         sleepTimerJob =
             coroutineScope.launch(Dispatchers.Main) {
-                _sleepMinutes.value = minutes
+                _sleepTimerState.update {
+                    it.copy(isDone = false, timeRemaining = minutes)
+                }
                 var count = minutes
                 while (count > 0) {
                     delay(60 * 1000L)
                     count--
-                    _sleepMinutes.value = count
+                    _sleepTimerState.update {
+                        it.copy(isDone = false, timeRemaining = count)
+                    }
                 }
                 player.pause()
-                _sleepMinutes.value = 0
-                _sleepDone.value = true
+                _sleepTimerState.update {
+                    it.copy(isDone = true, timeRemaining = 0)
+                }
             }
     }
 
     fun sleepStop() {
-        _sleepDone.value = false
         sleepTimerJob?.cancel()
-        _sleepMinutes.value = 0
+        _sleepTimerState.value = SleepTimerState(false, 0)
     }
 
     private fun updateNextPreviousTrackAvailability() {
@@ -301,7 +315,7 @@ class SimpleMediaServiceHandler(
         _queueData.value = _queueData.value?.copy(
             listTracks = temp ?: arrayListOf(),
         )
-        _currentSongIndex.value = currentIndex()
+        _currentSongIndex.value = player.currentMediaItemIndex
     }
 
     fun addMediaItem(
@@ -357,7 +371,7 @@ class SimpleMediaServiceHandler(
         newIndex: Int,
     ) {
         player.moveMediaItem(fromIndex, newIndex)
-        _currentSongIndex.value = currentIndex()
+        _currentSongIndex.value = player.currentMediaItemIndex
     }
 
     suspend fun swap(
@@ -522,7 +536,10 @@ class SimpleMediaServiceHandler(
             }
         }
         _queueData.value?.listTracks?.let { list ->
-            if (list.size > 3 && list.size - currentIndex() < 3 && list.size - currentIndex() >= 0 && _stateFlow.value == StateSource.STATE_INITIALIZED) {
+            if (list.size > 3 && list.size - player.currentMediaItemIndex < 3
+                && list.size - player.currentMediaItemIndex >= 0
+                && _stateFlow.value == StateSource.STATE_INITIALIZED
+                ) {
                 Log.d("Check loadMore", "loadMore")
                 loadMore()
             }
@@ -569,10 +586,13 @@ class SimpleMediaServiceHandler(
         updateNotification()
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     override fun onIsPlayingChanged(isPlaying: Boolean) {
         _simpleMediaState.value = SimpleMediaState.Playing(isPlaying = isPlaying)
         _controlState.value = _controlState.value.copy(isPlaying = isPlaying)
+        basicWidget.updatePlayingState(
+            context,
+            isPlaying,
+        )
         if (isPlaying) {
             coroutineScope.launch(Dispatchers.Main) {
                 startProgressUpdate()
@@ -696,10 +716,6 @@ class SimpleMediaServiceHandler(
         _queueData.value = queueData
     }
 
-    fun currentIndex(): Int {
-        return player.currentMediaItemIndex
-    }
-
     fun mediaListSize(): Int {
         return player.mediaItemCount
     }
@@ -778,6 +794,64 @@ class SimpleMediaServiceHandler(
         skipSilent = runBlocking { dataStoreManager.skipSilent.first() } == DataStoreManager.TRUE
         player.skipSilenceEnabled = skipSilent
     }
+
+    private fun updateWidget(nowPlaying: MediaItem) {
+        basicWidget.performUpdate(
+            context,
+            this,
+            null,
+        )
+        downloadImageForWidgetJob?.cancel()
+        downloadImageForWidgetJob =
+            coroutineScope.launch {
+                val p = getScreenSize(context)
+                val widgetImageSize = p.x.coerceAtMost(p.y)
+                val imageRequest =
+                    ImageRequest.Builder(context)
+                        .data(nowPlaying.mediaMetadata.artworkUri)
+                        .size(widgetImageSize)
+                        .placeholder(R.drawable.holder_video)
+                        .target(
+                            onSuccess = { drawable ->
+                                basicWidget.updateImage(
+                                    context,
+                                    drawable.toBitmap(
+                                        widgetImageSize,
+                                        widgetImageSize,
+                                    ),
+                                )
+                            },
+                            onStart = { holder ->
+                                if (holder != null) {
+                                    basicWidget.updateImage(
+                                        context,
+                                        holder.toBitmap(
+                                            widgetImageSize,
+                                            widgetImageSize,
+                                        ),
+                                    )
+                                }
+                            },
+                            onError = {
+                                AppCompatResources.getDrawable(
+                                    context,
+                                    R.drawable.holder_video,
+                                )
+                                    ?.let { it1 ->
+                                        basicWidget.updateImage(
+                                            context,
+                                            it1.toBitmap(
+                                                widgetImageSize,
+                                                widgetImageSize,
+                                            ),
+                                        )
+                                    }
+                            },
+                        ).build()
+                ImageLoader(context).execute(imageRequest)
+            }
+    }
+
 
     fun mayBeSaveRecentSong() {
         runBlocking {
@@ -976,7 +1050,7 @@ class SimpleMediaServiceHandler(
                 listTracks = list,
             )
         }
-        _currentSongIndex.value = currentIndex()
+        _currentSongIndex.value = player.currentMediaItemIndex
     }
 
     @UnstableApi
@@ -990,7 +1064,7 @@ class SimpleMediaServiceHandler(
                 listTracks = list,
             )
         }
-        _currentSongIndex.value = currentIndex()
+        _currentSongIndex.value = player.currentMediaItemIndex
     }
 
     @UnstableApi
@@ -1330,7 +1404,7 @@ class SimpleMediaServiceHandler(
     }
 
     fun updateSubtitle(url: String) {
-        val index = currentIndex()
+        val index = player.currentMediaItemIndex
         val mediaItem = player.currentMediaItem
         Log.w("Subtitle", "updateSubtitle: $url")
         val subtitle =
@@ -1363,12 +1437,12 @@ class SimpleMediaServiceHandler(
         val isSong = (track.thumbnails?.last()?.height != 0 && track.thumbnails?.last()?.height == track.thumbnails?.last()?.width
             && track.thumbnails?.last()?.height != null) && (track.thumbnails.lastOrNull()?.url?.contains("hq720") == false
             && track.thumbnails.lastOrNull()?.url?.contains("maxresdefault") == false)
-        if ((currentIndex() + 1 in 0..(queueData.first()?.listTracks?.size ?: 0))) {
+        if ((player.currentMediaItemIndex + 1 in 0..(queueData.first()?.listTracks?.size ?: 0))) {
             if (track.artists.isNullOrEmpty()) {
                 mainRepository.getSongInfo(track.videoId).cancellable().first().let { songInfo ->
                     if (songInfo != null) {
                         catalogMetadata.add(
-                            currentIndex() + 1,
+                            player.currentMediaItemIndex + 1,
                             track.copy(
                                 artists =
                                     listOf(
@@ -1393,7 +1467,7 @@ class SimpleMediaServiceHandler(
                                         .build(),
                                 )
                                 .build(),
-                            currentIndex() + 1,
+                            player.currentMediaItemIndex + 1,
                         )
                     } else {
                         val mediaItem =
@@ -1411,9 +1485,9 @@ class SimpleMediaServiceHandler(
                                         .build(),
                                 )
                                 .build()
-                        addMediaItemNotSet(mediaItem, currentIndex() + 1)
+                        addMediaItemNotSet(mediaItem, player.currentMediaItemIndex + 1)
                         catalogMetadata.add(
-                            currentIndex() + 1,
+                            player.currentMediaItemIndex + 1,
                             track.copy(
                                 artists = listOf(Artist("", "Various Artists")),
                             ),
@@ -1435,9 +1509,9 @@ class SimpleMediaServiceHandler(
                                 .build(),
                         )
                         .build(),
-                    currentIndex() + 1,
+                    player.currentMediaItemIndex + 1,
                 )
-                catalogMetadata.add(currentIndex() + 1, track)
+                catalogMetadata.add(player.currentMediaItemIndex + 1, track)
             }
             Log.d(
                 "MusicSource",
@@ -1573,6 +1647,16 @@ data class QueueData(
         return playlistType == PlaylistType.PLAYLIST
     }
 }
+
+/**
+ * @param isDone whether the timer is done to make a notification
+ * @param timeRemaining the time remaining in minutes
+ */
+
+data class SleepTimerState(
+    val isDone : Boolean,
+    val timeRemaining: Int,
+)
 
 enum class PlaylistType {
     PLAYLIST,

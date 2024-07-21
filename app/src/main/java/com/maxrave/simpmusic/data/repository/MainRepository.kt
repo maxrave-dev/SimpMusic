@@ -1608,7 +1608,6 @@ class MainRepository
                                     } else {
                                         searchResponse.tracks.items.firstOrNull()
                                     }
-                                Log.d("Lyrics", "track: $track")
                                 if (track != null) {
                                     YouTube.getSpotifyCanvas(
                                         track.id,
@@ -1642,7 +1641,6 @@ class MainRepository
                                                 } else {
                                                     searchResponse.tracks.items.firstOrNull()
                                                 }
-                                            Log.d("Lyrics", "track: $track")
                                             if (track != null) {
                                                 YouTube.getSpotifyCanvas(
                                                     track.id,
@@ -1987,9 +1985,10 @@ class MainRepository
                                         .onFailure {
                                             Log.e(TAG, "Fix musixmatch search" + it.message.toString())
                                             YouTube.getLrclibLyrics(qtrack, qartist, durationInt).onSuccess {
+                                                Log.w(TAG, "Liblrc Item lyrics ${it?.lyrics?.syncType.toString()}")
                                                 it?.let { emit(Pair(id, Resource.Success<Lyrics>(it.toLyrics()))) }
                                             }.onFailure {
-                                                it.printStackTrace()
+                                                Log.e(TAG, "Liblrc Error: ${it.message}")
                                                 emit(Pair(id, Resource.Error<Lyrics>("Not found")))
                                             }
                                         }

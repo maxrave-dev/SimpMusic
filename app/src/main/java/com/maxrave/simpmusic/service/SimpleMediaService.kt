@@ -54,6 +54,7 @@ import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
+
 @AndroidEntryPoint
 @UnstableApi
 class SimpleMediaService : MediaLibraryService() {
@@ -175,6 +176,11 @@ class SimpleMediaService : MediaLibraryService() {
         serviceCoroutineScope.cancel()
         release()
         Log.d("SimpleMediaService", "onDestroy: ")
+    }
+
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        simpleMediaServiceHandler.mayBeSaveRecentSong()
     }
 
     @UnstableApi

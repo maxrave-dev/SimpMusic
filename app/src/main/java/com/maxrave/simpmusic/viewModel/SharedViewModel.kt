@@ -5,8 +5,6 @@ import android.content.Intent
 import android.graphics.drawable.GradientDrawable
 import android.util.Log
 import android.widget.Toast
-import androidx.appcompat.content.res.AppCompatResources
-import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -19,8 +17,6 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
-import coil.ImageLoader
-import coil.request.ImageRequest
 import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
 import com.maxrave.kotlinytmusicscraper.models.response.spotify.CanvasResponse
@@ -56,7 +52,6 @@ import com.maxrave.simpmusic.data.model.metadata.Lyrics
 import com.maxrave.simpmusic.data.model.metadata.MetadataSong
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.di.DownloadCache
-import com.maxrave.simpmusic.extension.getScreenSize
 import com.maxrave.simpmusic.extension.isSong
 import com.maxrave.simpmusic.extension.isVideo
 import com.maxrave.simpmusic.extension.toListName
@@ -73,9 +68,9 @@ import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.service.RepeatState
 import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
 import com.maxrave.simpmusic.service.SimpleMediaState
+import com.maxrave.simpmusic.service.SleepTimerState
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.service.test.notification.NotifyWork
-import com.maxrave.simpmusic.ui.widget.BasicWidget
 import com.maxrave.simpmusic.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -171,21 +166,12 @@ constructor(
     private var lyricsFormat: MutableLiveData<ArrayList<Line>> = MutableLiveData()
     var lyricsFull = MutableLiveData<String>()
 
-    private var _translateLyrics: MutableStateFlow<Lyrics?> = MutableStateFlow(null)
-    val translateLyrics: StateFlow<Lyrics?> = _translateLyrics
-
-    private var _shuffleModeEnabled = MutableStateFlow<Boolean>(false)
-    val shuffleModeEnabled: StateFlow<Boolean> = _shuffleModeEnabled
-
-    private var _repeatMode = MutableStateFlow<RepeatState>(RepeatState.None)
-    val repeatMode: StateFlow<RepeatState> = _repeatMode
-
     // SponsorBlock
     private var _skipSegments: MutableStateFlow<List<SkipSegments>?> = MutableStateFlow(null)
     val skipSegments: StateFlow<List<SkipSegments>?> = _skipSegments
 
-    private var _sleepTimerRunning: MutableLiveData<Boolean> = MutableLiveData(false)
-    val sleepTimerRunning: LiveData<Boolean> = _sleepTimerRunning
+    private var _sleepTimerState = MutableStateFlow(SleepTimerState(false, 0))
+    val sleepTimerState: StateFlow<SleepTimerState> = _sleepTimerState
 
     private var watchTimeList: ArrayList<Float> = arrayListOf()
 
@@ -219,8 +205,6 @@ constructor(
     private var getLyricsJob: Job? = null
 
     var playlistId: MutableStateFlow<String?> = MutableStateFlow(null)
-
-    private var downloadImageForWidgetJob: Job? = null
 
     private var _listYouTubeLiked: MutableStateFlow<ArrayList<String>?> = MutableStateFlow(null)
     val listYouTubeLiked: SharedFlow<ArrayList<String>?> = _listYouTubeLiked.asSharedFlow()
@@ -256,8 +240,6 @@ constructor(
         NowPlayingScreenData.initial(),
     )
     val nowPlayingScreenData: StateFlow<NowPlayingScreenData> = _nowPlayingScreenData
-
-    private val basicWidget = BasicWidget.instance
 
     init {
         viewModelScope.launch {
@@ -368,7 +350,6 @@ constructor(
                         )
                     }
                 }
-                updateWidget(state, handler)
             }
         }
 //        initJob =
@@ -403,10 +384,6 @@ constructor(
 
                             is SimpleMediaState.Playing -> {
                                 isPlaying.value = mediaState.isPlaying
-                                basicWidget.updatePlayingState(
-                                    context,
-                                    mediaState.isPlaying,
-                                )
                             }
 
                             is SimpleMediaState.Progress -> {
@@ -572,7 +549,11 @@ constructor(
                     _controllerState.value = it
                 }
             }
-            controllerJob.join()
+            val sleepTimerJob = launch {
+                handler.sleepTimerState.collectLatest {
+                    _sleepTimerState.value = it
+                }
+            }
 //                    val getDurationJob = launch {
 //                        combine(nowPlayingState, mediaState){ nowPlayingState, mediaState ->
 //                            Pair(nowPlayingState, mediaState)
@@ -589,14 +570,14 @@ constructor(
 //                        }
 //                    }
 //                    getDurationJob.join()
-            val job3 =
-                launch {
-                    handler.controlState.collectLatest { controlState ->
-                        _shuffleModeEnabled.value = controlState.isShuffle
-                        _repeatMode.value = controlState.repeatState
-                        isPlaying.value = controlState.isPlaying
-                    }
-                }
+//            val job3 =
+//                launch {
+//                    handler.controlState.collectLatest { controlState ->
+//                        _shuffleModeEnabled.value = controlState.isShuffle
+//                        _repeatMode.value = controlState.repeatState
+//                        isPlaying.value = controlState.isPlaying
+//                    }
+//                }
 //                    val job10 =
 //                        launch {
 //                            nowPlayingMediaItem.collectLatest { now ->
@@ -607,8 +588,10 @@ constructor(
 //                            }
 //                        }
             job1.join()
+            controllerJob.join()
+            sleepTimerJob.join()
 //                job2.join()
-            job3.join()
+//            job3.join()
 //            nowPlayingJob.join()
 //                    job10.join()
         }
@@ -617,62 +600,6 @@ constructor(
         }
     }
 
-    private fun updateWidget(nowPlaying: NowPlayingTrackState, handler: SimpleMediaServiceHandler) {
-        basicWidget.performUpdate(
-            context,
-            handler,
-            null,
-        )
-        downloadImageForWidgetJob?.cancel()
-        downloadImageForWidgetJob =
-            viewModelScope.launch {
-                val p = getScreenSize(context)
-                val widgetImageSize = p.x.coerceAtMost(p.y)
-                val imageRequest =
-                    ImageRequest.Builder(context)
-                        .data(nowPlaying.mediaItem.mediaMetadata.artworkUri)
-                        .size(widgetImageSize)
-                        .placeholder(R.drawable.holder_video)
-                        .target(
-                            onSuccess = { drawable ->
-                                basicWidget.updateImage(
-                                    context,
-                                    drawable.toBitmap(
-                                        widgetImageSize,
-                                        widgetImageSize,
-                                    ),
-                                )
-                            },
-                            onStart = { holder ->
-                                if (holder != null) {
-                                    basicWidget.updateImage(
-                                        context,
-                                        holder.toBitmap(
-                                            widgetImageSize,
-                                            widgetImageSize,
-                                        ),
-                                    )
-                                }
-                            },
-                            onError = {
-                                AppCompatResources.getDrawable(
-                                    context,
-                                    R.drawable.holder_video,
-                                )
-                                    ?.let { it1 ->
-                                        basicWidget.updateImage(
-                                            context,
-                                            it1.toBitmap(
-                                                widgetImageSize,
-                                                widgetImageSize,
-                                            ),
-                                        )
-                                    }
-                            },
-                        ).build()
-                ImageLoader(context).execute(imageRequest)
-            }
-    }
 
     private fun getYouTubeLiked() {
         viewModelScope.launch {
@@ -793,17 +720,11 @@ constructor(
     }
 
     fun setSleepTimer(minutes: Int) {
-        _sleepTimerRunning.value = true
-        simpleMediaServiceHandler!!.sleepStart(minutes)
+        simpleMediaServiceHandler?.sleepStart(minutes)
     }
 
     fun stopSleepTimer() {
-        _sleepTimerRunning.value = false
-        simpleMediaServiceHandler!!.sleepStop()
-    }
-
-    fun updateLikeInNotification(liked: Boolean) {
-        simpleMediaServiceHandler?.like(liked)
+        simpleMediaServiceHandler?.sleepStop()
     }
 
     private var _downloadState: MutableStateFlow<Download?> = MutableStateFlow(null)
@@ -1008,7 +929,7 @@ constructor(
     }
 
     fun getCurrentMediaItemIndex(): Int {
-        return simpleMediaServiceHandler?.currentIndex() ?: 0
+        return runBlocking { simpleMediaServiceHandler?.currentSongIndex?.first() } ?: 0
     }
 
     @UnstableApi
@@ -1038,8 +959,6 @@ constructor(
                         }
                     }
             }
-            mainRepository.updateSongInLibrary(LocalDateTime.now(), track.videoId)
-            mainRepository.updateListenCount(track.videoId)
             track.durationSeconds?.let {
                 mainRepository.updateDurationSeconds(
                     it,
@@ -1273,7 +1192,6 @@ constructor(
         _lyrics.value = (Resource.Error<Lyrics>("reset"))
         lyricsFormat.postValue(arrayListOf())
         lyricsFull.postValue("")
-        _translateLyrics.value = null
     }
 
     fun updateDownloadState(
@@ -1544,7 +1462,7 @@ constructor(
     private fun updateLyrics(
         videoId: String, lyrics: Lyrics?, isTranslatedLyrics: Boolean, lyricsProvider: LyricsProvider = LyricsProvider.MUSIXMATCH
     ) {
-        if (_nowPlayingState.value?.mediaItem?.mediaId == videoId) {
+        if (_nowPlayingState.value?.songEntity?.videoId == videoId) {
             when (isTranslatedLyrics) {
                 true -> {
                     _nowPlayingScreenData.update {

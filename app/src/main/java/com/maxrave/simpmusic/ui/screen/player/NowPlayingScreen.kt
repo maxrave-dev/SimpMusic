@@ -38,6 +38,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.QueueMusic
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Forward5
 import androidx.compose.material.icons.filled.PauseCircle
 import androidx.compose.material.icons.filled.PlayCircle
@@ -93,8 +94,12 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.offline.DownloadRequest
+import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.common.DownloadState
+import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.extension.GradientAngle
 import com.maxrave.simpmusic.extension.GradientOffset
 import com.maxrave.simpmusic.extension.formatDuration
@@ -102,12 +107,16 @@ import com.maxrave.simpmusic.extension.getBrushListColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.parseTimestampToMilliseconds
+import com.maxrave.simpmusic.extension.removeConflicts
 import com.maxrave.simpmusic.service.RepeatState
+import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.DescriptionView
+import com.maxrave.simpmusic.ui.component.FullscreenLyricsSheet
 import com.maxrave.simpmusic.ui.component.HeartCheckBox
 import com.maxrave.simpmusic.ui.component.LyricsView
 import com.maxrave.simpmusic.ui.component.MediaPlayerView
+import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.theme.AppTheme
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.ui.theme.overlay
@@ -126,6 +135,8 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.mapNotNull
+import java.time.LocalDateTime
 
 @UnstableApi
 @ExperimentalMaterial3Api
@@ -145,14 +156,24 @@ fun NowPlayingScreen(
     val controllerState by sharedViewModel.controllerState.collectAsState()
     val screenDataState by sharedViewModel.nowPlayingScreenData.collectAsState()
     val timelineState by sharedViewModel.timeline.collectAsState()
+    val listLiked by sharedViewModel.listYouTubeLiked.collectAsState(initial = arrayListOf())
 
     val playlistName by sharedViewModel.from.collectAsState(initial = "")
+    val songEntity = sharedViewModel.simpleMediaServiceHandler?.nowPlayingState?.mapNotNull { it.songEntity }?.collectAsState(initial = null)
 
     //State
     val mainScrollState = rememberScrollState()
 
     var showHideMiddleLayout by rememberSaveable {
         mutableStateOf(true)
+    }
+
+    var showSheet by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    var showFullscreenLyrics by rememberSaveable {
+        mutableStateOf(false)
     }
 
     //Palette state
@@ -289,6 +310,93 @@ fun NowPlayingScreen(
         }
     }
 
+    if (showSheet && songEntity != null) {
+        NowPlayingBottomSheet(
+            isBottomSheetVisible = showSheet,
+            onDismiss = {
+                showSheet = false
+            },
+            navController = navController,
+            sharedViewModel = sharedViewModel,
+            songEntity = songEntity,
+            onToggleLike = { sharedViewModel.onUIEvent(UIEvent.ToggleLike) },
+            getLocalPlaylist = { sharedViewModel.getAllLocalPlaylist() },
+            listLocalPlaylist = sharedViewModel.localPlaylist.collectAsState(),
+            onDownload = {
+                songEntity.value?.let { song ->
+                    sharedViewModel.updateDownloadState(
+                        song.videoId,
+                        DownloadState.STATE_PREPARING,
+                    )
+                    val downloadRequest =
+                        DownloadRequest
+                            .Builder(
+                                song.videoId,
+                                song.videoId.toUri(),
+                            ).setData(song.title.toByteArray())
+                            .setCustomCacheKey(song.videoId)
+                            .build()
+                    DownloadService.sendAddDownload(
+                        context,
+                        MusicDownloadService::class.java,
+                        downloadRequest,
+                        false,
+                    )
+                }
+            },
+            onSleepTimer = {
+                sharedViewModel.setSleepTimer(it)
+            },
+            onMainLyricsProvider = { provider ->
+                sharedViewModel.setLyricsProvider(provider)
+            },
+            onAddToLocalPlaylist = { playlist ->
+                val song = songEntity.value ?: return@NowPlayingBottomSheet
+                val tempTrack = ArrayList<String>()
+                if (playlist.tracks != null) {
+                    tempTrack.addAll(playlist.tracks)
+                }
+                if (!tempTrack.contains(
+                        song.videoId,
+                    ) &&
+                    playlist.syncedWithYouTubePlaylist == 1 &&
+                    playlist.youtubePlaylistId != null
+                ) {
+                    sharedViewModel.addToYouTubePlaylist(
+                        playlist.id,
+                        playlist.youtubePlaylistId,
+                        song.videoId,
+                    )
+                }
+                if (!tempTrack.contains(song.videoId)) {
+                    sharedViewModel.insertPairSongLocalPlaylist(
+                        PairSongLocalPlaylist(
+                            playlistId = playlist.id,
+                            songId = song.videoId,
+                            position = playlist.tracks?.size ?: 0,
+                            inPlaylist = LocalDateTime.now(),
+                        ),
+                    )
+                    tempTrack.add(song.videoId)
+                }
+                sharedViewModel.updateLocalPlaylistTracks(
+                    tempTrack.removeConflicts(),
+                    playlist.id,
+                )
+            }
+        )
+    }
+
+    if (showFullscreenLyrics) {
+        FullscreenLyricsSheet(
+            sharedViewModel = sharedViewModel,
+            color = startColor.value,
+            navController = navController
+        ) {
+            showFullscreenLyrics = false
+        }
+    }
+
     Column(
         Modifier
             .verticalScroll(
@@ -369,25 +477,9 @@ fun NowPlayingScreen(
                     }
 
                 }
-//                Box(
-//                    modifier =
-//                        if (screenDataState.canvasData != null && showHideControlLayout) {
-//                            Modifier.fillMaxSize().background(
-//                                Brush.verticalGradient(
-//                                    colorStops = arrayOf(
-//                                        0.9f to overlay,
-//                                        1f to Color.Black
-//                                    ),
-//                                )
-//                            )
-//                        }
-//                        else {
-//                            Modifier.fillMaxSize().background(Color.Transparent)
-//                        }
-//                    )
             }
 
-            TopAppBar(
+            TopAppBar (
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .onGloballyPositioned {
@@ -433,7 +525,9 @@ fun NowPlayingScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { }) {
+                    IconButton(onClick = {
+                        showSheet = true
+                    }) {
                         Icon(
                             painter = painterResource(id = R.drawable.baseline_more_vert_24),
                             contentDescription = "",
@@ -964,16 +1058,39 @@ fun NowPlayingScreen(
                                     Row(
                                         Modifier.align(Alignment.CenterEnd)
                                     ) {
-                                        IconButton(
-                                            modifier = Modifier
-                                                .size(24.dp)
-                                                .aspectRatio(1f)
-                                                .clip(
-                                                    CircleShape
-                                                ),
-                                            onClick = { /*TODO*/ }
+                                        Crossfade(
+                                            targetState = !listLiked.isNullOrEmpty() && listLiked?.contains(screenDataState.songInfoData?.videoId) == true
                                         ) {
-                                            Icon(imageVector = Icons.Filled.Add, tint = Color.White, contentDescription = "")
+                                            if (it){
+                                                IconButton(
+                                                    modifier = Modifier
+                                                        .size(24.dp)
+                                                        .aspectRatio(1f)
+                                                        .clip(
+                                                            CircleShape
+                                                        ),
+                                                    onClick = {
+                                                        sharedViewModel.addToYouTubeLiked()
+                                                    }
+                                                ) {
+                                                    Icon(imageVector = Icons.Filled.Done, tint = Color.White, contentDescription = "")
+                                                }
+                                            }
+                                            else {
+                                                IconButton(
+                                                    modifier = Modifier
+                                                        .size(24.dp)
+                                                        .aspectRatio(1f)
+                                                        .clip(
+                                                            CircleShape
+                                                        ),
+                                                    onClick = {
+                                                        sharedViewModel.addToYouTubeLiked()
+                                                    }
+                                                ) {
+                                                    Icon(imageVector = Icons.Filled.Add, tint = Color.White, contentDescription = "")
+                                                }
+                                            }
                                         }
                                         Spacer(modifier = Modifier.size(8.dp))
                                         IconButton(
@@ -1098,7 +1215,9 @@ fun NowPlayingScreen(
                                     )
                                     CompositionLocalProvider(LocalMinimumInteractiveComponentEnforcement provides false) {
                                         TextButton(
-                                            onClick = { /*TODO*/ }, contentPadding = PaddingValues(0.dp),
+                                            onClick = {
+                                                showFullscreenLyrics = true
+                                            }, contentPadding = PaddingValues(0.dp),
                                             modifier = Modifier
                                                 .height(20.dp)
                                                 .width(40.dp)
@@ -1281,6 +1400,7 @@ fun NowPlayingScreen(
                                 )
                             }
                         }
+                        Spacer(modifier = Modifier.height(10.dp))
                     }
                 }
             }

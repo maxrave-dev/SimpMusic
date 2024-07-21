@@ -130,9 +130,7 @@ import com.skydoves.landscapist.palette.rememberPaletteState
 import com.skydoves.landscapist.placeholder.placeholder.PlaceholderPlugin
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapLatest
-import kotlinx.coroutines.runBlocking
 import java.time.format.DateTimeFormatter
 
 @UnstableApi
@@ -735,7 +733,7 @@ fun PlaylistScreen(
                                                 index = index,
                                                 from = "Playlist \"${localPlaylist?.title}\""
                                             )
-                                            if (!runBlocking { sharedViewModel.shuffleModeEnabled.first() }) {
+                                            if (!sharedViewModel.controllerState.value.isShuffle) {
                                                 sharedViewModel.onUIEvent(UIEvent.Shuffle)
                                             }
                                         } else {
