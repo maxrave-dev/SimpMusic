@@ -19,7 +19,6 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -47,7 +46,9 @@ import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -81,15 +82,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.ColorUtils
 import androidx.core.net.toUri
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
-import androidx.wear.compose.material3.OutlinedButton
-import androidx.wear.compose.material3.TextButton
-import androidx.wear.compose.material3.ripple
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants.IterateForever
@@ -103,6 +100,7 @@ import com.maxrave.simpmusic.common.LOCAL_PLAYLIST_ID
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.extension.angledGradientBackground
+import com.maxrave.simpmusic.extension.getBrushListColorFromPalette
 import com.maxrave.simpmusic.extension.toArrayListTrack
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.PlaylistType
@@ -128,16 +126,15 @@ import com.skydoves.landscapist.components.rememberImageComponent
 import com.skydoves.landscapist.palette.PalettePlugin
 import com.skydoves.landscapist.palette.rememberPaletteState
 import com.skydoves.landscapist.placeholder.placeholder.PlaceholderPlugin
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.flow.mapLatest
 import java.time.format.DateTimeFormatter
 
 @UnstableApi
 @ExperimentalFoundationApi
 @OptIn(
-    ExperimentalMaterial3Api::class,
+    ExperimentalMaterial3Api::class, ExperimentalCoroutinesApi::class,
 )
 @Composable
 fun PlaylistScreen(
@@ -201,7 +198,9 @@ fun PlaylistScreen(
     val bg by viewModel.brush.collectAsState()
     val localPlaylist by viewModel.localPlaylist.collectAsState()
     val listTrack by viewModel.listTrack.collectAsState()
-    val playingTrack by sharedViewModel.nowPlayingMediaItem.collectAsState(initial = null)
+    val playingTrack by sharedViewModel.nowPlayingState.mapLatest {
+        it?.mediaItem
+    }.collectAsState(initial = null)
     val isPlaying by sharedViewModel.isPlaying.collectAsState()
     val suggestedTracks by viewModel.listSuggestions.collectAsState()
     val suggestionsLoading by viewModel.loading.collectAsState()
@@ -351,38 +350,7 @@ fun PlaylistScreen(
     LaunchedEffect(key1 = palette) {
         val p = palette
         if (p != null) {
-            val defaultColor = 0x000000
-            var startColor = p.getDarkVibrantColor(defaultColor)
-            if (startColor == defaultColor) {
-                startColor = p.getDarkMutedColor(defaultColor)
-                if (startColor == defaultColor) {
-                    startColor = p.getVibrantColor(defaultColor)
-                    if (startColor == defaultColor) {
-                        startColor =
-                            p.getMutedColor(defaultColor)
-                        if (startColor == defaultColor) {
-                            startColor =
-                                p.getLightVibrantColor(
-                                    defaultColor,
-                                )
-                            if (startColor == defaultColor) {
-                                startColor =
-                                    p.getLightMutedColor(
-                                        defaultColor,
-                                    )
-                            }
-                        }
-                    }
-                }
-            }
-            val endColor =
-                context.resources.getColor(R.color.md_theme_dark_background, null)
-            val colorAndroid = ColorUtils.setAlphaComponent(startColor, 255)
-            val brush =
-                listOf(
-                    Color(colorAndroid),
-                    Color(endColor),
-                )
+            val brush = getBrushListColorFromPalette(p, context)
             viewModel.setBrush(brush)
         }
     }
@@ -584,22 +552,15 @@ fun PlaylistScreen(
                                                         .clip(
                                                             CircleShape,
                                                         )
-                                                        .clickable(
-                                                            onClick = {
-                                                                Toast
-                                                                    .makeText(
-                                                                        context,
-                                                                        context.getString(R.string.downloaded),
-                                                                        Toast.LENGTH_SHORT,
-                                                                    )
-                                                                    .show()
-                                                            },
-                                                            interactionSource =
-                                                            remember {
-                                                                MutableInteractionSource()
-                                                            },
-                                                            indication = ripple(),
-                                                        ),
+                                                        .clickable{
+                                                            Toast
+                                                                .makeText(
+                                                                    context,
+                                                                    context.getString(R.string.downloaded),
+                                                                    Toast.LENGTH_SHORT,
+                                                                )
+                                                                .show()
+                                                        },
                                                 ) {
                                                     Icon(
                                                         painter = painterResource(id = R.drawable.baseline_downloaded),
@@ -621,22 +582,15 @@ fun PlaylistScreen(
                                                         .clip(
                                                             CircleShape,
                                                         )
-                                                        .clickable(
-                                                            onClick = {
-                                                                Toast
-                                                                    .makeText(
-                                                                        context,
-                                                                        context.getString(R.string.downloading),
-                                                                        Toast.LENGTH_SHORT,
-                                                                    )
-                                                                    .show()
-                                                            },
-                                                            interactionSource =
-                                                            remember {
-                                                                MutableInteractionSource()
-                                                            },
-                                                            indication = ripple(),
-                                                        ),
+                                                        .clickable{
+                                                            Toast
+                                                                .makeText(
+                                                                    context,
+                                                                    context.getString(R.string.downloading),
+                                                                    Toast.LENGTH_SHORT,
+                                                                )
+                                                                .show()
+                                                        }
                                                 ) {
                                                     LottieAnimation(
                                                         composition,
@@ -673,16 +627,9 @@ fun PlaylistScreen(
                                                         compositingStrategy =
                                                             CompositingStrategy.Offscreen
                                                     }
-                                                    .clickable(
-                                                        onClick = {
-                                                            shouldShowSuggestions = !shouldShowSuggestions
-                                                        },
-                                                        interactionSource =
-                                                            remember {
-                                                                MutableInteractionSource()
-                                                            },
-                                                        indication = ripple(),
-                                                    )
+                                                    .clickable{
+                                                        shouldShowSuggestions = !shouldShowSuggestions
+                                                    }
                                                     .drawWithCache {
                                                         val width = size.width - 10
                                                         val height = size.height - 10
@@ -763,7 +710,7 @@ fun PlaylistScreen(
                                                 index = index,
                                                 from = "Playlist \"${localPlaylist?.title}\""
                                             )
-                                            if (!runBlocking { sharedViewModel.shuffleModeEnabled.first() }) {
+                                            if (!sharedViewModel.controllerState.value.isShuffle) {
                                                 sharedViewModel.onUIEvent(UIEvent.Shuffle)
                                             }
                                         } else {
@@ -1037,12 +984,6 @@ fun PlaylistScreen(
                         viewModel.updateLikeStatus(track.videoId, 1)
                     } else {
                         viewModel.updateLikeStatus(track.videoId, 0)
-                    }
-                    coroutineScope.launch {
-                        if (playingTrack?.mediaId == track.videoId) {
-                            delay(500)
-                            sharedViewModel.refreshSongDB()
-                        }
                     }
                 },
                 getLocalPlaylist = { sharedViewModel.getAllLocalPlaylist() },

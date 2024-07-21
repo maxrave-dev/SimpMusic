@@ -13,18 +13,22 @@ import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.offline.DownloadNotificationHelper
+import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.di.DownloadCache
 import com.maxrave.simpmusic.di.PlayerCache
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService.Companion.CHANNEL_ID
 import com.maxrave.simpmusic.service.test.source.MergingMediaSourceFactory
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.util.concurrent.Executors
 import javax.inject.Inject
@@ -39,7 +43,7 @@ class DownloadUtils @Inject constructor(
     private val mainRepository: MainRepository,
     databaseProvider: DatabaseProvider
 ) {
-
+    private val coroutineScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
 
     private val dataSourceFactory = ResolvingDataSource.Factory(
         CacheDataSource.Factory()
@@ -107,10 +111,9 @@ class DownloadUtils @Inject constructor(
         )
     }
     val downloads = MutableStateFlow<Map<String, Download>>(emptyMap())
+    val downloadingVideoIds = MutableStateFlow<MutableSet<String>>(mutableSetOf())
 
     fun getDownload(songId: String): Flow<Download?> = downloads.map { it[songId] }
-
-    fun getAllDownloads(): Flow<List<Download>> = downloads.map { it.values.toList() }
 
     init {
         val result = mutableMapOf<String, Download>()
@@ -126,6 +129,95 @@ class DownloadUtils @Inject constructor(
                     download: Download,
                     finalException: Exception?
                 ) {
+                    download.request.id.let { id ->
+                        val songId = if (id.contains(MergingMediaSourceFactory.isVideo)) {
+                            id.removePrefix(MergingMediaSourceFactory.isVideo)
+                        } else {
+                            id
+                        }
+                        when(download.state) {
+                            Download.STATE_COMPLETED -> {
+                                coroutineScope.launch {
+                                    downloadingVideoIds.update {
+                                        it.apply {
+                                            remove(songId)
+                                        }
+                                    }
+                                    mainRepository.updateDownloadState(songId, DownloadState.STATE_DOWNLOADED)
+                                }
+                                playerCache.removeResource(id)
+                            }
+
+                            Download.STATE_DOWNLOADING -> {
+                                coroutineScope.launch {
+                                    downloadingVideoIds.update {
+                                        it.apply {
+                                            add(songId)
+                                        }
+                                    }
+                                    mainRepository.updateDownloadState(songId, DownloadState.STATE_DOWNLOADING)
+                                }
+                            }
+
+                            Download.STATE_FAILED -> {
+                                coroutineScope.launch {
+                                    downloadingVideoIds.update {
+                                        it.apply {
+                                            remove(songId)
+                                        }
+                                    }
+                                    mainRepository.updateDownloadState(songId, DownloadState.STATE_NOT_DOWNLOADED)
+                                }
+                            }
+
+                            Download.STATE_QUEUED -> {
+                                coroutineScope.launch {
+                                    downloadingVideoIds.update {
+                                        it.apply {
+                                            add(songId)
+                                        }
+                                    }
+                                    mainRepository.updateDownloadState(songId, DownloadState.STATE_PREPARING)
+                                }
+                            }
+
+                            Download.STATE_REMOVING -> {
+                                coroutineScope.launch {
+                                    downloadingVideoIds.update {
+                                        it.apply {
+                                            remove(songId)
+                                        }
+                                    }
+                                    mainRepository.updateDownloadState(songId, DownloadState.STATE_NOT_DOWNLOADED)
+                                }
+                            }
+
+                            Download.STATE_RESTARTING -> {
+                                coroutineScope.launch {
+                                    downloadingVideoIds.update {
+                                        it.apply {
+                                            add(songId)
+                                        }
+                                    }
+                                    mainRepository.updateDownloadState(songId, DownloadState.STATE_DOWNLOADING)
+                                }
+                            }
+
+                            Download.STATE_STOPPED -> {
+                                coroutineScope.launch {
+                                    downloadingVideoIds.update {
+                                        it.apply {
+                                            remove(songId)
+                                        }
+                                    }
+                                    mainRepository.updateDownloadState(songId, DownloadState.STATE_NOT_DOWNLOADED)
+                                }
+                            }
+                            else -> {
+
+                            }
+                        }
+                    }
                     downloads.update { map ->
                         map.toMutableMap().apply {
                             val id = download.request.id
@@ -137,12 +229,7 @@ class DownloadUtils @Inject constructor(
                             }
                         }
                     }
-                    if (download.state == Download.STATE_COMPLETED && playerCache.keys.contains(
-                            download.request.id
-                        )
-                    ) {
-                        playerCache.removeResource(download.request.id)
-                    }
+
                 }
             }
         )

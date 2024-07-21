@@ -51,8 +51,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.cancellable
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
+
 
 @AndroidEntryPoint
 @UnstableApi
@@ -106,7 +108,13 @@ class SimpleMediaService : MediaLibraryService() {
             .setHandleAudioBecomingNoisy(true)
             .setSeekForwardIncrementMs(5000)
             .setSeekBackIncrementMs(5000)
-            .setMediaSourceFactory(provideMergingMediaSource())
+            .setMediaSourceFactory(provideMergingMediaSource(
+                downloadCache,
+                playerCache,
+                mainRepository,
+                serviceCoroutineScope,
+                dataStoreManager
+            ))
             .setRenderersFactory(provideRendererFactory(this))
             .build()
 
@@ -114,7 +122,8 @@ class SimpleMediaService : MediaLibraryService() {
             this,
             this,
             player,
-            simpleMediaSessionCallback
+            simpleMediaSessionCallback,
+            serviceCoroutineScope
         )
         val sessionToken = SessionToken(this, ComponentName(this, SimpleMediaService::class.java))
         val controllerFuture = MediaController.Builder(this, sessionToken).buildAsync()
@@ -175,6 +184,11 @@ class SimpleMediaService : MediaLibraryService() {
         serviceCoroutineScope.cancel()
         release()
         Log.d("SimpleMediaService", "onDestroy: ")
+    }
+
+    override fun onTrimMemory(level: Int) {
+        super.onTrimMemory(level)
+        simpleMediaServiceHandler.mayBeSaveRecentSong()
     }
 
     @UnstableApi
@@ -247,7 +261,8 @@ class SimpleMediaService : MediaLibraryService() {
         cacheDataSourceFactory: CacheDataSource.Factory,
         @DownloadCache downloadCache: SimpleCache,
         @PlayerCache playerCache: SimpleCache,
-        mainRepository: MainRepository
+        mainRepository: MainRepository,
+        coroutineScope: CoroutineScope
     ): DataSource.Factory {
         return ResolvingDataSource.Factory(cacheDataSourceFactory) { dataSpec ->
             val mediaId = dataSpec.key ?: error("No media id")
@@ -260,6 +275,15 @@ class SimpleMediaService : MediaLibraryService() {
                     if (dataSpec.length >= 0) dataSpec.length else 1
                 ) || playerCache.isCached(mediaId, dataSpec.position, CHUNK_LENGTH)
             ) {
+                coroutineScope.launch {
+                    mainRepository.updateFormat(
+                        if (mediaId.contains(MergingMediaSourceFactory.isVideo)) {
+                            mediaId.removePrefix(MergingMediaSourceFactory.isVideo)
+                        } else {
+                            mediaId
+                        }
+                    )
+                }
                 return@Factory dataSpec
             }
             var dataSpecReturn: DataSpec = dataSpec
@@ -298,19 +322,36 @@ class SimpleMediaService : MediaLibraryService() {
     }
 
     @UnstableApi
-    fun provideMediaSourceFactory(): DefaultMediaSourceFactory =
+    fun provideMediaSourceFactory(
+        downloadCache: SimpleCache,
+        playerCache: SimpleCache,
+        mainRepository: MainRepository,
+        coroutineScope: CoroutineScope
+    ): DefaultMediaSourceFactory =
         DefaultMediaSourceFactory(
             provideResolvingDataSourceFactory(
                 provideCacheDataSource(downloadCache, playerCache),
                 downloadCache,
                 playerCache,
-                mainRepository
+                mainRepository,
+                coroutineScope
             ),
             provideExtractorFactory()
         )
 
-    private fun provideMergingMediaSource(): MergingMediaSourceFactory = MergingMediaSourceFactory(
-        provideMediaSourceFactory(),
+    private fun provideMergingMediaSource(
+        downloadCache: SimpleCache,
+        playerCache: SimpleCache,
+        mainRepository: MainRepository,
+        coroutineScope: CoroutineScope,
+        dataStoreManager: DataStoreManager
+    ): MergingMediaSourceFactory = MergingMediaSourceFactory(
+        provideMediaSourceFactory(
+            downloadCache,
+            playerCache,
+            mainRepository,
+            coroutineScope
+        ),
         dataStoreManager
     )
 
@@ -337,7 +378,7 @@ class SimpleMediaService : MediaLibraryService() {
         }
 
     @UnstableApi
-    fun provideCoilBitmapLoader(context: Context): CoilBitmapLoader = CoilBitmapLoader(context)
+    fun provideCoilBitmapLoader(context: Context, coroutineScope: CoroutineScope): CoilBitmapLoader = CoilBitmapLoader(context, coroutineScope)
 
 
     @UnstableApi
@@ -345,7 +386,8 @@ class SimpleMediaService : MediaLibraryService() {
         context: Context,
         service: MediaLibraryService,
         player: ExoPlayer,
-        callback: SimpleMediaSessionCallback
+        callback: SimpleMediaSessionCallback,
+        coroutineScope: CoroutineScope
     ): MediaLibrarySession = MediaLibrarySession.Builder(
         service, player, callback
     )
@@ -355,25 +397,8 @@ class SimpleMediaService : MediaLibraryService() {
                 PendingIntent.FLAG_IMMUTABLE
             )
         )
-        .setBitmapLoader(provideCoilBitmapLoader(context))
+        .setBitmapLoader(provideCoilBitmapLoader(context, coroutineScope))
         .build()
-
-    @UnstableApi
-    fun provideMediaSession(
-        context: Context,
-        player: ExoPlayer,
-        callback: SimpleMediaSessionCallback
-    ): MediaSession =
-        MediaSession.Builder(context, player)
-            .setCallback(callback)
-            .setSessionActivity(
-                PendingIntent.getActivity(
-                    context, 0, Intent(context, MainActivity::class.java),
-                    PendingIntent.FLAG_IMMUTABLE
-                )
-            )
-            .setBitmapLoader(provideCoilBitmapLoader(context))
-            .build()
 
 }
 

@@ -3,11 +3,11 @@ package com.maxrave.simpmusic.ui.screen.home
 import android.content.Context
 import android.os.Bundle
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,7 +30,6 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,7 +42,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import androidx.wear.compose.material3.ripple
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.data.db.entities.NotificationEntity
 import com.maxrave.simpmusic.extension.formatTimeAgo
@@ -131,21 +129,14 @@ fun NotificationItem(
     ) {
         Column {
             Row(
-                Modifier.clickable(
-                    onClick = {
-                        navController.navigateSafe(
-                            R.id.action_global_artistFragment,
-                            Bundle().apply {
-                                putString("channelId", notification.channelId)
-                            },
-                        )
-                    },
-                    interactionSource =
-                        remember {
-                            MutableInteractionSource()
+                Modifier.clickable {
+                    navController.navigateSafe(
+                        R.id.action_global_artistFragment,
+                        Bundle().apply {
+                            putString("channelId", notification.channelId)
                         },
-                    indication = ripple(),
-                ),
+                    )
+                },
             ) {
                 CoilImage(
                     imageModel = {
@@ -215,6 +206,7 @@ fun NotificationItem(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ItemAlbumNotification(
     isAlbum: Boolean,
@@ -226,21 +218,14 @@ fun ItemAlbumNotification(
     Box(
         modifier =
             Modifier
-                .clickable(
-                    onClick = {
-                        navController.navigateSafe(
-                            R.id.action_global_albumFragment,
-                            Bundle().apply {
-                                putString("browseId", browseId)
-                            },
-                        )
-                    },
-                    interactionSource =
-                        remember {
-                            MutableInteractionSource()
+                .clickable{
+                    navController.navigateSafe(
+                        R.id.action_global_albumFragment,
+                        Bundle().apply {
+                            putString("browseId", browseId)
                         },
-                    indication = ripple(),
-                ),
+                    )
+                },
     ) {
         Column(
             Modifier.padding(5.dp),

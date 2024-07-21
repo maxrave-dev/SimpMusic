@@ -37,8 +37,10 @@ fun parsePlaylistData(
                 listAuthor.add(author)
                 Log.d("PlaylistParser", "author: $author")
             }
-            if (!header.secondSubtitle.runs.isNullOrEmpty() && header.secondSubtitle.runs?.size!! > 2) {
-                duration += header.secondSubtitle.runs?.get(2)?.text
+            val secondSubtitle = header.secondSubtitle.runs
+            Log.w("PlaylistParser", "secondSubtitle: $secondSubtitle")
+            if (!secondSubtitle.isNullOrEmpty() && secondSubtitle.size > 2) {
+                duration += secondSubtitle.getOrNull(2)?.text
             }
             Log.d("PlaylistParser", "duration: $duration")
             if (!header.description?.runs.isNullOrEmpty()) {
@@ -82,11 +84,13 @@ fun parsePlaylistData(
             val author = Author(id = header.straplineTextOne?.runs?.get(0)?.navigationEndpoint?.browseEndpoint?.browseId ?: "", name = header.straplineTextOne?.runs?.get(0)?.text ?: "")
             listAuthor.add(author)
             Log.d("PlaylistParser", "author: $author")
-            if (header.secondSubtitle?.runs?.size!! > 4) {
-                duration += header.secondSubtitle?.runs?.get(4)?.text
+            val secondSubtitle = header.secondSubtitle?.runs
+            Log.w("PlaylistParser", "secondSubtitle: $secondSubtitle")
+            if (!secondSubtitle.isNullOrEmpty() && secondSubtitle.size > 4) {
+                duration += secondSubtitle.getOrNull(4)?.text
             }
-            else if (header.secondSubtitle?.runs?.size!! == 3) {
-                duration += header.secondSubtitle?.runs?.get(2)?.text
+            else if (!secondSubtitle.isNullOrEmpty() && secondSubtitle.size == 3) {
+                duration += secondSubtitle.getOrNull(2)?.text
             }
             Log.d("PlaylistParser", "duration: $duration")
             if (!header.description?.musicDescriptionShelfRenderer?.description?.runs.isNullOrEmpty()) {

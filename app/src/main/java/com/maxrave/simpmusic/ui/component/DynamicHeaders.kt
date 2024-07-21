@@ -1,8 +1,6 @@
 package com.maxrave.simpmusic.ui.component
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -37,7 +35,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
-import androidx.wear.compose.material3.ripple
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LocalPlaylistViewModel
@@ -223,15 +220,6 @@ fun LocalPlaylistHeader(
                                             text = stringResource(id = R.string.your_playlist),
                                             style = typo.bodyLarge,
                                             color = Color.White,
-                                            modifier =
-                                                Modifier.clickable(
-                                                    interactionSource =
-                                                        remember {
-                                                            MutableInteractionSource()
-                                                        },
-                                                    indication = ripple(),
-                                                    onClick = { },
-                                                ),
                                         )
                                         Spacer(modifier = Modifier.height(8.dp))
                                         Text(

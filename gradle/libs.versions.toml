@@ -1,9 +1,8 @@
 [versions]
-android = "8.5.0"
+android = "8.5.1"
 kotlin = "2.0.0"
 serialization = "2.0.0"
 ksp = "2.0.0-1.0.22"
-compose-material3 = "1.0.0-alpha23"
 compose-bom = "2024.06.00"
 constraintlayout-compose = "1.0.1"
 activity-compose = "1.9.0"
@@ -55,9 +54,7 @@ ktor = "2.3.12"
 brotli = "0.1.2"
 ksoup = "0.3.1"
 
-
 [libraries]
-compose-material3 = { group = "androidx.wear.compose", name = "compose-material3", version.ref = "compose-material3" }
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "compose-bom" }
 compose-material3-lib = { group = "androidx.compose.material3", name = "material3" }
 compose-ui = { group = "androidx.compose.ui", name = "ui" }

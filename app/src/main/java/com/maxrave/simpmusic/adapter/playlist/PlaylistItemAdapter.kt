@@ -14,7 +14,6 @@ import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.databinding.ItemPopularSongBinding
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.toListName
-import com.maxrave.simpmusic.extension.toVideoIdList
 
 class PlaylistItemAdapter(private var playlistItemList: ArrayList<Any>): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     private lateinit var mListener: OnItemClickListener
@@ -35,12 +34,12 @@ class PlaylistItemAdapter(private var playlistItemList: ArrayList<Any>): Recycle
         optionListener = listener
     }
 
-    private var downloadedList = arrayListOf<SongEntity>()
+    private var downloadedList = arrayListOf<String>()
     private var playingTrackVideoId: String? = null
-    fun setDownloadedList(downloadedList: ArrayList<SongEntity>?) {
-        val oldList = arrayListOf<SongEntity>()
+    fun setDownloadedList(downloadedList: Collection<String>?) {
+        val oldList = arrayListOf<String>()
         oldList.addAll(this.downloadedList)
-        this.downloadedList = downloadedList ?: arrayListOf()
+        this.downloadedList = (downloadedList ?: arrayListOf()).toCollection(arrayListOf())
         playlistItemList.mapIndexed { index, result ->
             if (result is SongEntity || result is Track) {
                 val videoId = when (result) {
@@ -49,12 +48,10 @@ class PlaylistItemAdapter(private var playlistItemList: ArrayList<Any>): Recycle
                     else -> null
                 }
                 if (downloadedList != null) {
-                    if (downloadedList.toVideoIdList().contains(videoId) && !oldList.toVideoIdList()
-                            .contains(videoId)
+                    if (downloadedList.contains(videoId) && !oldList.contains(videoId)
                     ) {
                         notifyItemChanged(index)
-                    } else if (!downloadedList.toVideoIdList()
-                            .contains(videoId) && oldList.toVideoIdList().contains(videoId)
+                    } else if (!downloadedList.contains(videoId) && oldList.contains(videoId)
                     ) {
                         notifyItemChanged(index)
                     }
@@ -103,7 +100,7 @@ class PlaylistItemAdapter(private var playlistItemList: ArrayList<Any>): Recycle
             binding.ivThumbnail.load(track.thumbnails?.last()?.url)
             binding.tvSongTitle.isSelected = true
             binding.tvSongArtist.isSelected = true
-            if (downloadedList.toVideoIdList().contains(track.videoId)) {
+            if (downloadedList.contains(track.videoId)) {
                 binding.ivDownloaded.visibility = View.VISIBLE
             } else {
                 binding.ivDownloaded.visibility = View.GONE
@@ -132,7 +129,7 @@ class PlaylistItemAdapter(private var playlistItemList: ArrayList<Any>): Recycle
             binding.tvSongTitle.isSelected = true
             binding.tvSongArtist.isSelected = true
             binding.ivThumbnail.load(song.thumbnails)
-            if (downloadedList.toVideoIdList().contains(song.videoId)) {
+            if (downloadedList.contains(song.videoId)) {
                 binding.ivDownloaded.visibility = View.VISIBLE
             } else {
                 binding.ivDownloaded.visibility = View.GONE
@@ -147,13 +144,15 @@ class PlaylistItemAdapter(private var playlistItemList: ArrayList<Any>): Recycle
         }
     }
     fun updateList(newList: ArrayList<Any>){
-        Log.d("PlaylistItemAdapter", "updateList: $newList")
-        playlistItemList.clear()
-        newList.forEach {
-            playlistItemList.add(it)
+        if (newList != playlistItemList) {
+            Log.d("PlaylistItemAdapter", "updateList: $newList")
+            playlistItemList.clear()
+            newList.forEach {
+                playlistItemList.add(it)
+            }
+            Log.d("PlaylistItemAdapter", "updateList: $playlistItemList")
+            notifyDataSetChanged()
         }
-        Log.d("PlaylistItemAdapter", "updateList: $playlistItemList")
-        notifyDataSetChanged()
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {

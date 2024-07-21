@@ -165,7 +165,6 @@ android {
 
 dependencies {
 
-    implementation(libs.compose.material3)
     // Compose
     val composeBom = platform(libs.compose.bom)
     implementation(composeBom)
@@ -267,7 +266,6 @@ dependencies {
     implementation(libs.shimmer)
 
     // Lottie
-    val lottieVersion = libs.versions.lottie.get()
     implementation(libs.lottie)
     implementation(libs.lottie.compose)
 

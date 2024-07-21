@@ -66,9 +66,8 @@ import com.maxrave.simpmusic.viewModel.SearchViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import javax.inject.Inject
@@ -555,12 +554,6 @@ class SearchFragment : Fragment() {
                                 tvFavorite.text = getString(R.string.liked)
                                 viewModel.updateLikeStatus(track.videoId, true)
                             }
-                            lifecycleScope.launch {
-                                if (sharedViewModel.simpleMediaServiceHandler?.nowPlaying?.first()?.mediaId == track.videoId) {
-                                    delay(500)
-                                    sharedViewModel.refreshSongDB()
-                                }
-                            }
                         }
 
                         btSeeArtists.setOnClickListener {
@@ -888,11 +881,16 @@ class SearchFragment : Fragment() {
                     }
                 }
                 val job2 = launch {
-                    combine(sharedViewModel.nowPlayingMediaItem, sharedViewModel.isPlaying) { nowPlaying, isPlaying ->
-                        Pair(nowPlaying, isPlaying)
+                    combine(sharedViewModel.nowPlayingState.distinctUntilChangedBy {
+                        it?.songEntity?.videoId
+                    }, sharedViewModel.controllerState.distinctUntilChangedBy {
+                        it.isPlaying
+                    }) { nowPlaying, controllerState ->
+                        Pair(nowPlaying, controllerState)
                     }.collect {
-                        if (it.first != null && it.second) {
-                            resultAdapter.setNowPlaying(it.first!!.mediaId)
+                        val songEntity = it.first?.songEntity
+                        if (songEntity != null && it.second.isPlaying) {
+                            resultAdapter.setNowPlaying(songEntity.videoId)
                         } else {
                             resultAdapter.setNowPlaying(null)
                         }

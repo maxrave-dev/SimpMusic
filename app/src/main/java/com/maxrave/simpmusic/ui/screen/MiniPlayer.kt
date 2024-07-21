@@ -1,7 +1,6 @@
 package com.maxrave.simpmusic.ui.screen
 
 // or just
-import android.graphics.drawable.GradientDrawable
 import android.util.Log
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.AnimatedContent
@@ -13,6 +12,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -55,14 +55,14 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.core.graphics.ColorUtils
-import androidx.lifecycle.viewModelScope
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.extension.getBrushListColorFromPalette
 import com.maxrave.simpmusic.ui.component.HeartCheckBox
 import com.maxrave.simpmusic.ui.component.PlayPauseButton
 import com.maxrave.simpmusic.ui.theme.typo
@@ -75,11 +75,11 @@ import com.skydoves.landscapist.components.rememberImageComponent
 import com.skydoves.landscapist.palette.PalettePlugin
 import com.skydoves.landscapist.palette.rememberPaletteState
 import com.skydoves.landscapist.placeholder.placeholder.PlaceholderPlugin
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlin.math.roundToInt
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 @UnstableApi
 fun MiniPlayer(
@@ -87,6 +87,8 @@ fun MiniPlayer(
     onClose: () -> Unit,
     onClick: () -> Unit,
 ) {
+    val context = LocalContext.current
+
     val (mediaItem, setMediaItem) =
         remember {
             mutableStateOf(MediaItem.EMPTY)
@@ -115,7 +117,7 @@ fun MiniPlayer(
     var palette by rememberPaletteState(null)
     val background =
         remember {
-            Animatable(Color(0x000000))
+            Animatable(Color.DarkGray)
         }
 
     val offsetX = remember { Animatable(initialValue = 0f) }
@@ -124,76 +126,40 @@ fun MiniPlayer(
     LaunchedEffect(key1 = true) {
         val job1 =
             launch {
-                sharedViewModel.nowPlayingMediaItem.collect { item ->
+                sharedViewModel.nowPlayingState.collect { item ->
                     if (item != null) {
-                        setMediaItem(item)
+                        setMediaItem(item.mediaItem)
                     }
                 }
             }
         val job2 =
             launch {
-                sharedViewModel.liked.collect { liked ->
-                    setLiked(liked)
-                }
-            }
-        val job3 =
-            launch {
-                sharedViewModel.isPlaying.collect { isPlaying ->
-                    setIsPlaying(isPlaying)
+                sharedViewModel.controllerState.collectLatest { state ->
+                    setLiked(state.isLiked)
+                    setIsPlaying(state.isPlaying)
                 }
             }
         val job4 =
             launch {
-                sharedViewModel.progress.collect { progress ->
-                    setProgress(progress)
+                sharedViewModel.timeline.collect { timeline ->
+                    val prog = if (timeline.total > 0L && timeline.current >= 0L) {
+                        timeline.current.toFloat() / timeline.total
+                    } else {
+                        0f
+                    }
+                    setProgress(prog)
                 }
             }
         job1.join()
         job2.join()
-        job3.join()
         job4.join()
     }
 
     LaunchedEffect(key1 = palette) {
         val p = palette
         if (p != null) {
-            val defaultColor = 0x000000
-            var startColor = p.getDarkVibrantColor(defaultColor)
-            if (startColor == defaultColor) {
-                startColor = p.getDarkMutedColor(defaultColor)
-                if (startColor == defaultColor) {
-                    startColor = p.getVibrantColor(defaultColor)
-                    if (startColor == defaultColor) {
-                        startColor =
-                            p.getMutedColor(defaultColor)
-                        if (startColor == defaultColor) {
-                            startColor =
-                                p.getLightVibrantColor(
-                                    defaultColor,
-                                )
-                            if (startColor == defaultColor) {
-                                startColor =
-                                    p.getLightMutedColor(
-                                        defaultColor,
-                                    )
-                            }
-                        }
-                    }
-                }
-            }
-            val endColor = 0x1b1a1f
-            val gd =
-                GradientDrawable(
-                    GradientDrawable.Orientation.TOP_BOTTOM,
-                    intArrayOf(startColor, endColor),
-                )
-            gd.cornerRadius = 0f
-            gd.gradientType = GradientDrawable.LINEAR_GRADIENT
-            gd.gradientRadius = 0.5f
-            gd.alpha = 150
-            val bg =
-                ColorUtils.setAlphaComponent(startColor, 255)
-            background.animateTo(Color(bg))
+            val list = getBrushListColorFromPalette(p, context)
+            background.animateTo(list[0])
         }
     }
 
@@ -396,14 +362,7 @@ fun MiniPlayer(
                 }
                 Spacer(modifier = Modifier.width(15.dp))
                 HeartCheckBox(checked = liked, size = 30) {
-                    sharedViewModel.viewModelScope.launch {
-                        sharedViewModel.nowPlayingMediaItem.first()?.let { nowPlayingSong ->
-                            sharedViewModel.updateLikeStatus(
-                                nowPlayingSong.mediaId,
-                                !runBlocking { sharedViewModel.liked.first() },
-                            )
-                        }
-                    }
+                    sharedViewModel.onUIEvent(UIEvent.ToggleLike)
                 }
                 Spacer(modifier = Modifier.width(15.dp))
                 PlayPauseButton(isPlaying = isPlaying, modifier = Modifier.size(48.dp)) {

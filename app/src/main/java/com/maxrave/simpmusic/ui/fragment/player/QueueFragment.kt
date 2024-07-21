@@ -130,24 +130,28 @@ class QueueFragment: BottomSheetDialogFragment() {
                 }
             }
             val job2 = launch {
-                viewModel.nowPlayingMediaItem.collect {
+                viewModel.nowPlayingState.collect {
                     if (it != null){
-                        binding.ivThumbnail.load(it.mediaMetadata.artworkUri)
-                        binding.tvSongTitle.text = it.mediaMetadata.title
+                        binding.ivThumbnail.load(it.mediaItem.mediaMetadata.artworkUri)
+                        binding.tvSongTitle.text = it.mediaItem.mediaMetadata.title
                         binding.tvSongTitle.isSelected = true
-                        binding.tvSongArtist.text = it.mediaMetadata.artist
+                        binding.tvSongArtist.text = it.mediaItem.mediaMetadata.artist
                         binding.tvSongArtist.isSelected = true
+                        if (viewModel.simpleMediaServiceHandler?.stateFlow?.first() == StateSource.STATE_INITIALIZED ||
+                            viewModel.simpleMediaServiceHandler?.stateFlow?.first() == StateSource.STATE_INITIALIZING){
+                            val index = it.songEntity?.videoId?.let { it1 -> queueAdapter.getIndexOf(it1) }
+                            if (index != null) {
+                                binding.rvQueue.smoothScrollToPosition(index)
+                                queueAdapter.setCurrentPlaying(index)
+                            }
+                        }
                     }
                 }
             }
             val job3 = launch {
                 viewModel.simpleMediaServiceHandler?.currentSongIndex?.collect{ index ->
                     Log.d("QueueFragment", "onViewCreated: $index")
-                    if (viewModel.simpleMediaServiceHandler?.stateFlow?.first() == StateSource.STATE_INITIALIZED ||
-                        viewModel.simpleMediaServiceHandler?.stateFlow?.first() == StateSource.STATE_INITIALIZING){
-                        binding.rvQueue.smoothScrollToPosition(index)
-                        queueAdapter.setCurrentPlaying(index)
-                    }
+
                 }
             }
 //            val job4 = launch {

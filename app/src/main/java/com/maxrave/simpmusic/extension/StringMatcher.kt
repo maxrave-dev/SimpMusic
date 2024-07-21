@@ -1,5 +1,7 @@
 package com.maxrave.simpmusic.extension
 
+import android.util.Log
+
 fun levenshtein(lhs : CharSequence, rhs : CharSequence) : Int {
     val lhsLength = lhs.length
     val rhsLength = rhs.length
@@ -28,12 +30,14 @@ fun levenshtein(lhs : CharSequence, rhs : CharSequence) : Int {
     return cost[lhsLength]
 }
 
-fun bestMatchingIndex(s: String, list: List<String>): Int {
+fun bestMatchingIndex(s: String, list: List<String>): Int? {
     val listCost = ArrayList<Int>()
     for (i in list.indices){
         listCost.add(levenshtein(s, list[i]))
     }
-    return listCost.indexOf(listCost.minOrNull())
+    Log.d("Lyrics", "Best cost " + listCost.minOrNull().toString())
+    val min = listCost.minOrNull()
+    return if (min != null && min < 20) listCost.indexOf(listCost.minOrNull()) else null
 }
 
 fun get3MatchingIndex(s: String, list: List<String>): ArrayList<Int> {
