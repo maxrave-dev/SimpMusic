@@ -8,6 +8,7 @@ import android.content.ServiceConnection
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.Rect
+import android.graphics.drawable.ColorDrawable
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.Uri
@@ -22,15 +23,12 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.runtime.compositionLocalOf
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.lifecycle.switchMap
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.findNavController
@@ -48,13 +46,10 @@ import com.maxrave.simpmusic.common.STATUS_DONE
 import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.common.SUPPORTED_LOCATION
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
-import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE
-import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.databinding.ActivityMainBinding
 import com.maxrave.simpmusic.extension.isMyServiceRunning
 import com.maxrave.simpmusic.extension.navigateSafe
-import com.maxrave.simpmusic.extension.observeOnce
 import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.ui.screen.MiniPlayer
 import com.maxrave.simpmusic.ui.theme.AppTheme
@@ -63,6 +58,7 @@ import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -102,9 +98,6 @@ class MainActivity : AppCompatActivity() {
                     viewModel.setHandler(service.service.simpleMediaServiceHandler)
 
                     Log.w("MainActivity", "Now PLaying: ${viewModel.simpleMediaServiceHandler?.player?.currentMediaItem?.mediaMetadata?.title}")
-                    if (service.service.simpleMediaServiceHandler.queueData.value == null) {
-                        mayBeRestoreLastPlayedTrackAndQueue()
-                    }
                     Log.w("TEST", viewModel.simpleMediaServiceHandler?.player.toString())
                 }
             }
@@ -145,7 +138,6 @@ class MainActivity : AppCompatActivity() {
 //            startMusicService()
 //        }
         if (viewModel.recreateActivity.value == true) {
-            viewModel.simpleMediaServiceHandler?.coroutineScope = lifecycleScope
             viewModel.activityRecreateDone()
         } else {
             startMusicService()
@@ -388,26 +380,17 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             }
-            if ((destination.id == R.id.nowPlayingFragment || destination.id == R.id.fullscreenFragment ||
-                destination.id == R.id.infoFragment || destination.id == R.id.queueFragment) &&
-                binding.miniplayer.visibility != View.GONE &&
-                binding.bottomNavigationView.visibility != View.GONE
-                ) {
-                binding.bottomNavigationView.animation = AnimationUtils.loadAnimation(this, R.anim.ttb)
-                binding.miniplayer.animation = AnimationUtils.loadAnimation(this, R.anim.ttb)
-                binding.bottomNavigationView.visibility = View.GONE
-                binding.miniplayer.visibility = View.GONE
+            Log.w("MainActivity", "Destination: ${destination.label}")
+            Log.w("MainActivity", "Show or Hide: ${viewModel.showOrHideMiniplayer}")
+            if (
+                    (listOf("NowPlayingFragment", "FullscreenFragment", "InfoFragment", "QueueFragment")).contains(destination.label)
+            ) {
+                lifecycleScope.launch{ viewModel.showOrHideMiniplayer.emit(false) }
+                Log.w("MainActivity", "onCreate: HIDE MINIPLAYER")
             }
-            else if (binding.bottomNavigationView.visibility != View.VISIBLE &&
-                binding.miniplayer.visibility != View.VISIBLE
-                ) {
-                lifecycleScope.launch {
-                    delay(500)
-                    binding.bottomNavigationView.animation = AnimationUtils.loadAnimation(this@MainActivity, R.anim.btt)
-                    binding.miniplayer.animation = AnimationUtils.loadAnimation(this@MainActivity, R.anim.btt)
-                    binding.miniplayer.visibility = View.VISIBLE
-                    binding.bottomNavigationView.visibility = View.VISIBLE
-                }
+            else {
+                lifecycleScope.launch{ viewModel.showOrHideMiniplayer.emit(true) }
+                Log.w("MainActivity", "onCreate: SHOW MINIPLAYER")
             }
         }
 
@@ -562,7 +545,6 @@ class MainActivity : AppCompatActivity() {
                                                 args.putString("from", getString(R.string.shared))
                                                 args.putString("type", Config.SHARE)
                                                 viewModel.videoId.value = videoId
-                                                hideBottomNav()
                                                 if (navController.currentDestination?.id == R.id.nowPlayingFragment) {
                                                     findNavController(
                                                         R.id.fragment_container_view,
@@ -659,8 +641,50 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
+            val showHideJob = launch {
+                repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                    viewModel.showOrHideMiniplayer.collectLatest {
+                        if (it && binding.miniplayer.visibility != View.VISIBLE &&
+                            binding.bottomNavigationView.visibility != View.VISIBLE &&
+                            viewModel.nowPlayingState.value?.isNotEmpty() == true
+                        ) {
+                            lifecycleScope.launch {
+                                delay(500)
+                                binding.bottomNavigationView.animation = AnimationUtils.loadAnimation(this@MainActivity, R.anim.btt)
+                                binding.miniplayer.animation = AnimationUtils.loadAnimation(this@MainActivity, R.anim.btt)
+                                binding.miniplayer.visibility = View.VISIBLE
+                                binding.bottomNavigationView.visibility = View.VISIBLE
+
+                            }
+                        } else if (binding.bottomNavigationView.visibility != View.GONE &&
+                            binding.miniplayer.visibility != View.GONE && !it ) {
+                            binding.bottomNavigationView.animation = AnimationUtils.loadAnimation(this@MainActivity, R.anim.ttb)
+                            binding.miniplayer.animation = AnimationUtils.loadAnimation(this@MainActivity, R.anim.ttb)
+                            binding.bottomNavigationView.visibility = View.GONE
+                            binding.miniplayer.visibility = View.GONE
+                        }
+                    }
+                }
+            }
+            val bottomNavBarJob = launch {
+                repeatOnLifecycle(Lifecycle.State.CREATED) {
+                    dataStoreManager.translucentBottomBar.distinctUntilChanged().collectLatest {
+                        if (it == DataStoreManager.TRUE) {
+                            binding.bottomNavigationView.background =
+                                ResourcesCompat.getDrawable(resources, R.drawable.transparent_rect, null)
+                        }
+                        else if (it == DataStoreManager.FALSE) {
+                            binding.bottomNavigationView.background =
+                                ColorDrawable(ResourcesCompat.getColor(resources, R.color.md_theme_dark_background, null))
+                        }
+                    }
+                }
+            }
+
             job1.join()
             miniplayerJob.join()
+            showHideJob.join()
+            bottomNavBarJob.join()
         }
 //        binding.card.animation = AnimationUtils.loadAnimation(this, R.anim.bottom_to_top)
 //        binding.cbFavorite.setOnClickListener {
@@ -696,54 +720,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun mayBeRestoreLastPlayedTrackAndQueue() {
-        if (getString(RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE) == DataStoreManager.FALSE) {
-            Log.d("Restore", "mayBeRestoreLastPlayedTrackAndQueue: ")
-            viewModel.getSaveLastPlayedSong()
-            val queue =
-                viewModel.saveLastPlayedSong.switchMap { saved: Boolean ->
-                    if (saved) {
-                        viewModel.simpleMediaServiceHandler?.reset()
-                        viewModel.getSavedSongAndQueue()
-                        return@switchMap viewModel.savedQueue
-                    } else {
-                        return@switchMap null
-                    }
-                }
-            val result: MediatorLiveData<List<Track>> =
-                MediatorLiveData<List<Track>>().apply {
-                    addSource(queue) {
-                        value = it ?: listOf()
-                    }
-                }
-            binding.miniplayer.visibility = View.GONE
-            result.observeOnce(this) { data ->
-                val queueDataList = data
-                Log.w("Check queue saved", queueDataList.toString())
-                binding.miniplayer.visibility = View.VISIBLE
-                if (queueDataList.isNotEmpty()) {
-                    Log.w("Check queue saved", queueDataList.toString())
-                    with(viewModel.simpleMediaServiceHandler) {
-                        runBlocking {
-                            this@with?.queueData?.first()?.addTrackList(
-                                queueDataList
-                            )
-                        }?.let {
-                            this?.setQueueData(
-                                it
-                            )
-                        }
-                    }
-                    viewModel.removeSaveQueue()
-                    viewModel.addQueueToPlayer()
-                    checkForUpdate()
-                }
-            }
-        } else {
-            binding.miniplayer.visibility = View.GONE
-            checkForUpdate()
-        }
-    }
 
     override fun onDestroy() {
         super.onDestroy()
@@ -823,16 +799,6 @@ class MainActivity : AppCompatActivity() {
 //
 //    }
 
-    fun hideBottomNav() {
-        binding.bottomNavigationView.visibility = View.GONE
-        binding.miniplayer.visibility = View.GONE
-    }
-
-    fun showBottomNav() {
-        binding.bottomNavigationView.visibility = View.VISIBLE
-        binding.miniPlayerContainer.visibility = View.VISIBLE
-    }
-
     private fun checkForUpdate() {
         viewModel.checkForUpdate()
         viewModel.githubResponse.observe(this) { response ->
@@ -897,6 +863,3 @@ class MainActivity : AppCompatActivity() {
         binding.miniplayer.visibility = View.GONE
     }
 }
-
-val LocalPlayerAwareWindowInsets =
-    compositionLocalOf<WindowInsets> { error("No WindowInsets provided") }

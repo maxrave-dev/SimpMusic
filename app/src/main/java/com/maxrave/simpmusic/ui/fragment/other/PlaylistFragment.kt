@@ -362,7 +362,7 @@ class PlaylistFragment : Fragment() {
         }
 
         binding.btPlayPause.setOnClickListener {
-            if (viewModel.isRadio.value != true) {
+            if (!viewModel.isRadio.value) {
                 if (viewModel.playlistBrowse.value != null) {
                     sharedViewModel.simpleMediaServiceHandler?.setQueueData(
                         QueueData(
@@ -479,7 +479,7 @@ class PlaylistFragment : Fragment() {
         playlistItemAdapter.setOnClickListener(
             object : PlaylistItemAdapter.OnItemClickListener {
                 override fun onItemClick(position: Int) {
-                    if (viewModel.isRadio.value != true) {
+                    if (!viewModel.isRadio.value) {
                         if (viewModel.playlistBrowse.value != null) {
                             sharedViewModel.simpleMediaServiceHandler?.setQueueData(
                                 QueueData(

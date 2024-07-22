@@ -81,6 +81,7 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.extension.KeepScreenOn
 import com.maxrave.simpmusic.extension.animateScrollAndCentralizeItem
 import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.navigateSafe
@@ -91,6 +92,8 @@ import com.maxrave.simpmusic.viewModel.NowPlayingScreenData
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.TimeLine
 import com.maxrave.simpmusic.viewModel.UIEvent
+import com.moriatsushi.insetsx.ExperimentalSoftwareKeyboardApi
+import com.moriatsushi.insetsx.systemBars
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
@@ -232,6 +235,7 @@ fun LyricsLineItem(
     }
 }
 
+@OptIn(ExperimentalSoftwareKeyboardApi::class)
 @ExperimentalMaterial3Api
 @ExperimentalFoundationApi
 @UnstableApi
@@ -250,6 +254,8 @@ fun FullscreenLyricsSheet(
         skipPartiallyExpanded = true,
     )
     val coroutineScope = rememberCoroutineScope()
+    val localDensity = LocalDensity.current
+    val windowInsets = WindowInsets.systemBars
 
     var sliderValue by rememberSaveable {
         mutableFloatStateOf(0f)
@@ -260,6 +266,10 @@ fun FullscreenLyricsSheet(
         } else {
             0f
         }
+    }
+
+    if (screenDataState.lyricsData != null) {
+        KeepScreenOn()
     }
 
     ModalBottomSheet(
@@ -283,406 +293,418 @@ fun FullscreenLyricsSheet(
             shape = RectangleShape,
             colors = CardDefaults.cardColors().copy(containerColor = color),
         ) {
-            TopAppBar(
-                colors = TopAppBarDefaults.topAppBarColors().copy(
-                    containerColor = Color.Transparent
-                ),
-                title = {
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.now_playing_upper),
-                            style = typo.bodyMedium,
-                            color = Color.White
-                        )
-                        Text(
-                            text = screenDataState.nowPlayingTitle,
-                            style = typo.labelMedium,
-                            color = Color.White,
-                            textAlign = TextAlign.Center,
-                            maxLines = 1,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .wrapContentHeight(align = Alignment.CenterVertically)
-                                .basicMarquee(animationMode = MarqueeAnimationMode.Immediately)
-                                .focusable()
-                        )
+            Column(
+                modifier = Modifier.padding(
+                    bottom = with(localDensity) {
+                        windowInsets.getBottom(localDensity).toDp()
+                    },
+                    top = with(localDensity) {
+                        windowInsets.getTop(localDensity).toDp()
                     }
-                },
-                navigationIcon = {
-                    IconButton(onClick = {
-                        coroutineScope.launch {
-                            sheetState.hide()
-                            onDismiss()
-                        }
-                    }) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.baseline_keyboard_arrow_down_24),
-                            contentDescription = "",
-                            tint = Color.White
-                        )
-                    }
-                },
-                actions = {
-                    IconButton(onClick = {}, modifier = Modifier.alpha(0f)) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.baseline_more_vert_24),
-                            contentDescription = "",
-                            tint = Color.White
-                        )
-                    }
-                },
-            )
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-
-
-            Crossfade(
-                targetState = screenDataState.lyricsData != null, modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
-                    .fillMaxWidth()
-                    .padding(horizontal = 50.dp)
-            ) {
-                if (it) {
-                    screenDataState.lyricsData?.let { lyrics ->
-                        LyricsView(lyricsData = lyrics, timeLine = sharedViewModel.timeline) { f ->
-                            sharedViewModel.onUIEvent(UIEvent.UpdateProgress(f))
-                        }
-                    }
-                } else {
-                    Text(
-                        text = stringResource(id = R.string.unavailable),
-                        style = typo.bodyMedium,
-                        color = Color.White,
-                        modifier = Modifier.fillMaxSize(),
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-            Box {
-                Column()
-                {
-                    //Real Slider
-                    Box(
-                        Modifier
-                            .padding(
-                                top = 15.dp
-                            )
-                            .padding(horizontal = 40.dp)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(24.dp),
-                            contentAlignment = Alignment.Center
+                )
+            ){
+                TopAppBar(
+                    windowInsets = WindowInsets(0, 0, 0, 0),
+                    colors = TopAppBarDefaults.topAppBarColors().copy(
+                        containerColor = Color.Transparent
+                    ),
+                    title = {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
                         ) {
-                            Crossfade(timelineState.loading) {
-                                if (it) {
-                                    LinearProgressIndicator(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(5.dp)
-                                            .padding(
-                                                horizontal = 10.dp
-                                            )
-                                            .clip(
-                                                RoundedCornerShape(8.dp)
-                                            ),
-                                    )
-                                } else {
-                                    LinearProgressIndicator(
-                                        progress = { timelineState.bufferedPercent.toFloat() / 100 },
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(5.dp)
-                                            .padding(
-                                                horizontal = 10.dp
-                                            )
-                                            .clip(
-                                                RoundedCornerShape(8.dp)
-                                            ),
-                                        color = Color.Gray,
-                                        trackColor = Color.DarkGray,
-                                    )
-                                }
-                            }
-                        }
-                        CompositionLocalProvider(LocalMinimumInteractiveComponentEnforcement provides false) {
-                            Slider(
-                                value = sliderValue,
-                                onValueChange = {
-                                    sharedViewModel.onUIEvent(
-                                        UIEvent.UpdateProgress(it)
-                                    )
-                                },
-                                valueRange = 0f..100f,
+                            Text(
+                                text = stringResource(id = R.string.now_playing_upper),
+                                style = typo.bodyMedium,
+                                color = Color.White
+                            )
+                            Text(
+                                text = screenDataState.nowPlayingTitle,
+                                style = typo.labelMedium,
+                                color = Color.White,
+                                textAlign = TextAlign.Center,
+                                maxLines = 1,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .align(
-                                        Alignment.TopCenter
-                                    ),
-                                colors = SliderDefaults.colors().copy(
-                                    thumbColor = Color.White,
-                                    activeTrackColor = Color.White,
-                                    inactiveTrackColor = Color.Transparent
-                                ),
-                                thumb = {
-                                    SliderDefaults.Thumb(
-                                        modifier = Modifier
-                                            .size(24.dp)
-                                            .padding(6.dp),
-                                        thumbSize = DpSize(8.dp, 8.dp),
-                                        interactionSource = remember {
-                                            MutableInteractionSource()
-                                        },
-                                        colors = SliderDefaults.colors().copy(
-                                            thumbColor = Color.White,
-                                            activeTrackColor = Color.White,
-                                            inactiveTrackColor = Color.Transparent
-                                        ),
-                                        enabled = true
-                                    )
-                                },
+                                    .wrapContentHeight(align = Alignment.CenterVertically)
+                                    .basicMarquee(animationMode = MarqueeAnimationMode.Immediately)
+                                    .focusable()
                             )
                         }
-                    }
-                    //Time Layout
-                    Row(
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 40.dp)
-                    ) {
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = {
+                            coroutineScope.launch {
+                                sheetState.hide()
+                                onDismiss()
+                            }
+                        }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.baseline_keyboard_arrow_down_24),
+                                contentDescription = "",
+                                tint = Color.White
+                            )
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = {}, modifier = Modifier.alpha(0f)) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.baseline_more_vert_24),
+                                contentDescription = "",
+                                tint = Color.White
+                            )
+                        }
+                    },
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+
+
+                Crossfade(
+                    targetState = screenDataState.lyricsData != null, modifier = Modifier
+                        .weight(1f)
+                        .fillMaxHeight()
+                        .fillMaxWidth()
+                        .padding(horizontal = 50.dp)
+                ) {
+                    if (it) {
+                        screenDataState.lyricsData?.let { lyrics ->
+                            LyricsView(lyricsData = lyrics, timeLine = sharedViewModel.timeline) { f ->
+                                sharedViewModel.onUIEvent(UIEvent.UpdateProgress(f))
+                            }
+                        }
+                    } else {
                         Text(
-                            text = if (timelineState.current >= 0L) formatDuration(timelineState.current) else stringResource(id = R.string.na_na),
+                            text = stringResource(id = R.string.unavailable),
                             style = typo.bodyMedium,
-                            modifier = Modifier.weight(1f),
-                            textAlign = TextAlign.Left
-                        )
-                        Text(
-                            text = if (timelineState.total >= 0L) formatDuration(timelineState.total) else stringResource(id = R.string.na_na),
-                            style = typo.bodyMedium, modifier = Modifier.weight(1f), textAlign = TextAlign.Right
+                            color = Color.White,
+                            modifier = Modifier.fillMaxSize(),
+                            textAlign = TextAlign.Center
                         )
                     }
+                }
 
-                    Spacer(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(5.dp)
-                    )
-                    //Control Button Layout
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(96.dp)
-                            .padding(horizontal = 40.dp)
-                    ) {
-                        FilledTonalIconButton(
-                            colors = IconButtonDefaults.iconButtonColors().copy(
-                                containerColor = Color.Transparent
-                            ),
-                            modifier = Modifier
-                                .size(48.dp)
-                                .aspectRatio(1f)
-                                .clip(
-                                    CircleShape
-                                ),
-                            onClick = {
-                                sharedViewModel.onUIEvent(UIEvent.Shuffle)
-                            }
+                Spacer(modifier = Modifier.height(20.dp))
+                Box {
+                    Column()
+                    {
+                        //Real Slider
+                        Box(
+                            Modifier
+                                .padding(
+                                    top = 15.dp
+                                )
+                                .padding(horizontal = 40.dp)
                         ) {
-                            Crossfade(targetState = controllerState.isShuffle, label = "Shuffle Button") { isShuffle ->
-                                if (isShuffle) {
-                                    Icon(
-                                        imageVector = Icons.Filled.Shuffle, tint = Color.White, contentDescription = "",
-                                        modifier = Modifier.size(32.dp)
-                                    )
-                                } else {
-                                    Icon(
-                                        imageVector = Icons.Filled.Shuffle, tint = seed, contentDescription = "",
-                                        modifier = Modifier.size(32.dp)
-                                    )
-                                }
-                            }
-                        }
-                        FilledTonalIconButton(
-                            colors = IconButtonDefaults.iconButtonColors().copy(
-                                containerColor = Color.Transparent
-                            ),
-                            modifier = Modifier
-                                .size(72.dp)
-                                .aspectRatio(1f)
-                                .clip(
-                                    CircleShape
-                                ),
-                            onClick = {
-                                if (controllerState.isPreviousAvailable) {
-                                    sharedViewModel.onUIEvent(UIEvent.Previous)
-                                }
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.SkipPrevious,
-                                tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
-                                contentDescription = "",
-                                modifier = Modifier.size(52.dp),
-                            )
-                        }
-                        FilledTonalIconButton(
-                            colors = IconButtonDefaults.iconButtonColors().copy(
-                                containerColor = Color.Transparent
-                            ),
-                            modifier = Modifier
-                                .size(96.dp)
-                                .aspectRatio(1f)
-                                .clip(
-                                    CircleShape
-                                ),
-                            onClick = {
-                                sharedViewModel.onUIEvent(UIEvent.PlayPause)
-                            }
-                        ) {
-                            Crossfade(targetState = controllerState.isPlaying) { isPlaying ->
-                                if (!isPlaying) {
-                                    Icon(
-                                        imageVector = Icons.Filled.PlayCircle,
-                                        tint = Color.White,
-                                        contentDescription = "",
-                                        modifier = Modifier.size(72.dp)
-                                    )
-                                } else {
-                                    Icon(
-                                        imageVector = Icons.Filled.PauseCircle,
-                                        tint = Color.White,
-                                        contentDescription = "",
-                                        modifier = Modifier.size(72.dp)
-                                    )
-                                }
-                            }
-                        }
-                        FilledTonalIconButton(
-                            colors = IconButtonDefaults.iconButtonColors().copy(
-                                containerColor = Color.Transparent
-                            ),
-                            modifier = Modifier
-                                .size(72.dp)
-                                .aspectRatio(1f)
-                                .clip(
-                                    CircleShape
-                                ),
-                            onClick = {
-                                if (controllerState.isNextAvailable) {
-                                    sharedViewModel.onUIEvent(UIEvent.Next)
-                                }
-                            }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Filled.SkipNext,
-                                tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
-                                contentDescription = "",
-                                modifier = Modifier.size(52.dp)
-                            )
-                        }
-                        FilledTonalIconButton(
-                            colors = IconButtonDefaults.iconButtonColors().copy(
-                                containerColor = Color.Transparent
-                            ),
-                            modifier = Modifier
-                                .size(48.dp)
-                                .aspectRatio(1f)
-                                .clip(
-                                    CircleShape
-                                ),
-                            onClick = {
-                                sharedViewModel.onUIEvent(UIEvent.Repeat)
-                            }
-                        ) {
-                            Crossfade(targetState = controllerState.repeatState) { rs ->
-                                when (rs) {
-                                    is RepeatState.None -> {
-                                        Icon(
-                                            imageVector = Icons.Filled.Repeat, tint = Color.White, contentDescription = "",
-                                            modifier = Modifier.size(32.dp)
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(24.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Crossfade(timelineState.loading) {
+                                    if (it) {
+                                        LinearProgressIndicator(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(5.dp)
+                                                .padding(
+                                                    horizontal = 10.dp
+                                                )
+                                                .clip(
+                                                    RoundedCornerShape(8.dp)
+                                                ),
                                         )
-                                    }
-
-                                    RepeatState.All -> {
-                                        Icon(
-                                            imageVector = Icons.Filled.Repeat, tint = seed, contentDescription = "",
-                                            modifier = Modifier.size(32.dp)
-                                        )
-                                    }
-
-                                    RepeatState.One -> {
-                                        Icon(
-                                            imageVector = Icons.Filled.RepeatOne, tint = seed, contentDescription = "",
-                                            modifier = Modifier.size(32.dp)
+                                    } else {
+                                        LinearProgressIndicator(
+                                            progress = { timelineState.bufferedPercent.toFloat() / 100 },
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .height(5.dp)
+                                                .padding(
+                                                    horizontal = 10.dp
+                                                )
+                                                .clip(
+                                                    RoundedCornerShape(8.dp)
+                                                ),
+                                            color = Color.Gray,
+                                            trackColor = Color.DarkGray,
                                         )
                                     }
                                 }
                             }
-                        }
-                    }
-                    //List Bottom Buttons
-                    //24.dp
-                    Box(
-                        modifier = Modifier
-                            .height(32.dp)
-                            .fillMaxWidth()
-                            .padding(horizontal = 40.dp),
-                    ) {
-                        IconButton(
-                            modifier = Modifier
-                                .size(24.dp)
-                                .aspectRatio(1f)
-                                .align(Alignment.CenterStart)
-                                .clip(
-                                    CircleShape
-                                ),
-                            onClick = {
-                                navController.navigateSafe(
-                                    R.id.action_global_infoFragment
+                            CompositionLocalProvider(LocalMinimumInteractiveComponentEnforcement provides false) {
+                                Slider(
+                                    value = sliderValue,
+                                    onValueChange = {
+                                        sharedViewModel.onUIEvent(
+                                            UIEvent.UpdateProgress(it)
+                                        )
+                                    },
+                                    valueRange = 0f..100f,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .align(
+                                            Alignment.TopCenter
+                                        ),
+                                    colors = SliderDefaults.colors().copy(
+                                        thumbColor = Color.White,
+                                        activeTrackColor = Color.White,
+                                        inactiveTrackColor = Color.Transparent
+                                    ),
+                                    thumb = {
+                                        SliderDefaults.Thumb(
+                                            modifier = Modifier
+                                                .size(24.dp)
+                                                .padding(6.dp),
+                                            thumbSize = DpSize(8.dp, 8.dp),
+                                            interactionSource = remember {
+                                                MutableInteractionSource()
+                                            },
+                                            colors = SliderDefaults.colors().copy(
+                                                thumbColor = Color.White,
+                                                activeTrackColor = Color.White,
+                                                inactiveTrackColor = Color.Transparent
+                                            ),
+                                            enabled = true
+                                        )
+                                    },
                                 )
                             }
-                        ) {
-                            Icon(imageVector = Icons.Outlined.Info, tint = Color.White, contentDescription = "")
                         }
+                        //Time Layout
                         Row(
-                            Modifier.align(Alignment.CenterEnd)
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 40.dp)
                         ) {
-                            Spacer(modifier = Modifier.size(8.dp))
-                            IconButton(
+                            Text(
+                                text = if (timelineState.current >= 0L) formatDuration(timelineState.current) else stringResource(id = R.string.na_na),
+                                style = typo.bodyMedium,
+                                modifier = Modifier.weight(1f),
+                                textAlign = TextAlign.Left
+                            )
+                            Text(
+                                text = if (timelineState.total >= 0L) formatDuration(timelineState.total) else stringResource(id = R.string.na_na),
+                                style = typo.bodyMedium, modifier = Modifier.weight(1f), textAlign = TextAlign.Right
+                            )
+                        }
+
+                        Spacer(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(5.dp)
+                        )
+                        //Control Button Layout
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(96.dp)
+                                .padding(horizontal = 40.dp)
+                        ) {
+                            FilledTonalIconButton(
+                                colors = IconButtonDefaults.iconButtonColors().copy(
+                                    containerColor = Color.Transparent
+                                ),
                                 modifier = Modifier
-                                    .size(24.dp)
+                                    .size(48.dp)
                                     .aspectRatio(1f)
                                     .clip(
                                         CircleShape
                                     ),
                                 onClick = {
-                                    navController.navigateSafe(
-                                        R.id.action_global_queueFragment
-                                    )
+                                    sharedViewModel.onUIEvent(UIEvent.Shuffle)
+                                }
+                            ) {
+                                Crossfade(targetState = controllerState.isShuffle, label = "Shuffle Button") { isShuffle ->
+                                    if (isShuffle) {
+                                        Icon(
+                                            imageVector = Icons.Filled.Shuffle, tint = Color.White, contentDescription = "",
+                                            modifier = Modifier.size(32.dp)
+                                        )
+                                    } else {
+                                        Icon(
+                                            imageVector = Icons.Filled.Shuffle, tint = seed, contentDescription = "",
+                                            modifier = Modifier.size(32.dp)
+                                        )
+                                    }
+                                }
+                            }
+                            FilledTonalIconButton(
+                                colors = IconButtonDefaults.iconButtonColors().copy(
+                                    containerColor = Color.Transparent
+                                ),
+                                modifier = Modifier
+                                    .size(72.dp)
+                                    .aspectRatio(1f)
+                                    .clip(
+                                        CircleShape
+                                    ),
+                                onClick = {
+                                    if (controllerState.isPreviousAvailable) {
+                                        sharedViewModel.onUIEvent(UIEvent.Previous)
+                                    }
                                 }
                             ) {
                                 Icon(
-                                    imageVector = Icons.AutoMirrored.Outlined.QueueMusic,
-                                    tint = Color.White,
-                                    contentDescription = ""
+                                    imageVector = Icons.Filled.SkipPrevious,
+                                    tint = if (controllerState.isPreviousAvailable) Color.White else Color.Gray,
+                                    contentDescription = "",
+                                    modifier = Modifier.size(52.dp),
                                 )
+                            }
+                            FilledTonalIconButton(
+                                colors = IconButtonDefaults.iconButtonColors().copy(
+                                    containerColor = Color.Transparent
+                                ),
+                                modifier = Modifier
+                                    .size(96.dp)
+                                    .aspectRatio(1f)
+                                    .clip(
+                                        CircleShape
+                                    ),
+                                onClick = {
+                                    sharedViewModel.onUIEvent(UIEvent.PlayPause)
+                                }
+                            ) {
+                                Crossfade(targetState = controllerState.isPlaying) { isPlaying ->
+                                    if (!isPlaying) {
+                                        Icon(
+                                            imageVector = Icons.Filled.PlayCircle,
+                                            tint = Color.White,
+                                            contentDescription = "",
+                                            modifier = Modifier.size(72.dp)
+                                        )
+                                    } else {
+                                        Icon(
+                                            imageVector = Icons.Filled.PauseCircle,
+                                            tint = Color.White,
+                                            contentDescription = "",
+                                            modifier = Modifier.size(72.dp)
+                                        )
+                                    }
+                                }
+                            }
+                            FilledTonalIconButton(
+                                colors = IconButtonDefaults.iconButtonColors().copy(
+                                    containerColor = Color.Transparent
+                                ),
+                                modifier = Modifier
+                                    .size(72.dp)
+                                    .aspectRatio(1f)
+                                    .clip(
+                                        CircleShape
+                                    ),
+                                onClick = {
+                                    if (controllerState.isNextAvailable) {
+                                        sharedViewModel.onUIEvent(UIEvent.Next)
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.SkipNext,
+                                    tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
+                                    contentDescription = "",
+                                    modifier = Modifier.size(52.dp)
+                                )
+                            }
+                            FilledTonalIconButton(
+                                colors = IconButtonDefaults.iconButtonColors().copy(
+                                    containerColor = Color.Transparent
+                                ),
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .aspectRatio(1f)
+                                    .clip(
+                                        CircleShape
+                                    ),
+                                onClick = {
+                                    sharedViewModel.onUIEvent(UIEvent.Repeat)
+                                }
+                            ) {
+                                Crossfade(targetState = controllerState.repeatState) { rs ->
+                                    when (rs) {
+                                        is RepeatState.None -> {
+                                            Icon(
+                                                imageVector = Icons.Filled.Repeat, tint = Color.White, contentDescription = "",
+                                                modifier = Modifier.size(32.dp)
+                                            )
+                                        }
+
+                                        RepeatState.All -> {
+                                            Icon(
+                                                imageVector = Icons.Filled.Repeat, tint = seed, contentDescription = "",
+                                                modifier = Modifier.size(32.dp)
+                                            )
+                                        }
+
+                                        RepeatState.One -> {
+                                            Icon(
+                                                imageVector = Icons.Filled.RepeatOne, tint = seed, contentDescription = "",
+                                                modifier = Modifier.size(32.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        //List Bottom Buttons
+                        //24.dp
+                        Box(
+                            modifier = Modifier
+                                .height(32.dp)
+                                .fillMaxWidth()
+                                .padding(horizontal = 40.dp),
+                        ) {
+                            IconButton(
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .aspectRatio(1f)
+                                    .align(Alignment.CenterStart)
+                                    .clip(
+                                        CircleShape
+                                    ),
+                                onClick = {
+                                    navController.navigateSafe(
+                                        R.id.action_global_infoFragment
+                                    )
+                                }
+                            ) {
+                                Icon(imageVector = Icons.Outlined.Info, tint = Color.White, contentDescription = "")
+                            }
+                            Row(
+                                Modifier.align(Alignment.CenterEnd)
+                            ) {
+                                Spacer(modifier = Modifier.size(8.dp))
+                                IconButton(
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .aspectRatio(1f)
+                                        .clip(
+                                            CircleShape
+                                        ),
+                                    onClick = {
+                                        navController.navigateSafe(
+                                            R.id.action_global_queueFragment
+                                        )
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Outlined.QueueMusic,
+                                        tint = Color.White,
+                                        contentDescription = ""
+                                    )
+                                }
                             }
                         }
                     }
                 }
+                Spacer(modifier = Modifier.height(20.dp))
             }
-            Spacer(modifier = Modifier.height(20.dp))
         }
     }
 }

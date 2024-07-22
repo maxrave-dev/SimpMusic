@@ -23,9 +23,7 @@ import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 @AndroidEntryPoint
 class InfoFragment: BottomSheetDialogFragment(){
@@ -77,29 +75,7 @@ class InfoFragment: BottomSheetDialogFragment(){
 
     @UnstableApi
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        if (runBlocking { viewModel.nowPlayingState.first() } != null) {
-            if (viewModel.simpleMediaServiceHandler != null) {
-                val data = (runBlocking {
-                    viewModel.simpleMediaServiceHandler?.queueData?.first()?.listTracks
-                })?.getOrNull(viewModel.getCurrentMediaItemIndex())
-                with(binding){
-                    toolbar.title = data?.title ?: getString(R.string.unknown)
-                    artistsName.text = data?.artists.toListName().connectArtists()
-                    "https://www.youtube.com/watch?v=${data?.videoId}".also { youtubeUrl.text = it }
-                    title.text = data?.title
-                    albumName.text = data?.album?.name
-                    albumName.setOnClickListener {
-                        if (!data?.album?.id.isNullOrEmpty()) {
-                            findNavController().navigateSafe(
-                                R.id.action_global_albumFragment,
-                                Bundle().apply {
-                                    putString("browseId", data?.album?.id)
-                                })
-                        }
-                    }
-                }
-            }
-        }
+        super.onViewCreated(view, savedInstanceState)
         binding.toolbar.setNavigationOnClickListener {
             dismiss()
         }
@@ -122,22 +98,47 @@ class InfoFragment: BottomSheetDialogFragment(){
                     viewModel.nowPlayingScreenData
                         .collectLatest { s ->
                             val songInfo = s.songInfoData
-                        if (songInfo != null) {
-                            binding.description.text = songInfo.description
-                                ?: context?.getString(androidx.media3.ui.R.string.exo_track_unknown)
-                            binding.plays.text = songInfo.viewCount?.toString() ?: context?.getString(
-                                androidx.media3.ui.R.string.exo_track_unknown
-                            )
-                            binding.like.text = if (songInfo.like != null && songInfo.dislike != null) {
-                                getString(R.string.like_and_dislike, songInfo.like, songInfo.dislike)
-                            } else {
-                                getString(androidx.media3.ui.R.string.exo_track_unknown)
+                            if (songInfo != null) {
+                                binding.description.text = songInfo.description
+                                binding.plays.text = songInfo.viewCount?.toString() ?: context?.getString(
+                                    androidx.media3.ui.R.string.exo_track_unknown
+                                )
+                                binding.like.text = if (songInfo.like != null && songInfo.dislike != null) {
+                                    getString(R.string.like_and_dislike, songInfo.like, songInfo.dislike)
+                                } else {
+                                    getString(androidx.media3.ui.R.string.exo_track_unknown)
+                                }
                             }
-                        }
+                    }
+                }
+                val job3 = launch {
+                    viewModel.nowPlayingState.collectLatest {
+                        val nowPlaying = it?.track
+                            if (nowPlaying != null) {
+                                if (viewModel.simpleMediaServiceHandler != null) {
+                                    with(binding){
+                                        toolbar.title = nowPlaying.title
+                                        artistsName.text = nowPlaying.artists.toListName().connectArtists()
+                                        "https://www.youtube.com/watch?v=${nowPlaying.videoId}".also { youtubeUrl.text = it }
+                                        title.text = nowPlaying.title
+                                        albumName.text = nowPlaying.album?.name
+                                        albumName.setOnClickListener {
+                                            if (!nowPlaying.album?.id.isNullOrEmpty()) {
+                                                findNavController().navigateSafe(
+                                                    R.id.action_global_albumFragment,
+                                                    Bundle().apply {
+                                                        putString("browseId", nowPlaying.album?.id)
+                                                    })
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                     }
                 }
                 job1.join()
                 job2.join()
+                job3.join()
             }
         }
     }

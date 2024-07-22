@@ -32,11 +32,9 @@ import com.maxrave.simpmusic.common.Config.SHARE
 import com.maxrave.simpmusic.common.Config.SONG_CLICK
 import com.maxrave.simpmusic.common.Config.VIDEO_CLICK
 import com.maxrave.simpmusic.common.DownloadState
-import com.maxrave.simpmusic.common.LOCAL_PLAYLIST_ID_SAVED_QUEUE
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.common.STATUS_DONE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
-import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.TRUE
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
@@ -63,8 +61,6 @@ import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.ControlState
 import com.maxrave.simpmusic.service.NowPlayingTrackState
 import com.maxrave.simpmusic.service.PlayerEvent
-import com.maxrave.simpmusic.service.PlaylistType
-import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.service.RepeatState
 import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
 import com.maxrave.simpmusic.service.SimpleMediaState
@@ -76,6 +72,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -109,6 +106,7 @@ constructor(
     var isFirstLiked: Boolean = false
     var isFirstMiniplayer: Boolean = false
     var isFirstSuggestions: Boolean = false
+    var showOrHideMiniplayer: MutableSharedFlow<Boolean> = MutableSharedFlow()
 
     private val TAG = "SharedViewModel"
 
@@ -138,24 +136,11 @@ constructor(
     val from: StateFlow<String> = _from
 
     var gradientDrawable: MutableLiveData<GradientDrawable> = MutableLiveData()
-    var lyricsBackground: MutableLiveData<Int> = MutableLiveData()
     private var _metadata = MutableLiveData<Resource<MetadataSong>>()
     val metadata: LiveData<Resource<MetadataSong>> = _metadata
 
-    private var _bufferedPercentage = MutableStateFlow<Int>(0)
-    val bufferedPercentage: SharedFlow<Int> = _bufferedPercentage.asSharedFlow()
-
-    private var _progress = MutableStateFlow<Float>(0F)
-    private var _progressMillis = MutableStateFlow<Long>(0L)
-    val progressMillis: SharedFlow<Long> = _progressMillis.asSharedFlow()
-    val progress: SharedFlow<Float> = _progress.asSharedFlow()
-    private var _progressString: MutableStateFlow<String> = MutableStateFlow("00:00")
-    val progressString: SharedFlow<String> = _progressString.asSharedFlow()
-
     private val _duration = MutableStateFlow<Long>(0L)
     val duration: SharedFlow<Long> = _duration.asSharedFlow()
-    private val _uiState = MutableStateFlow<UIState>(UIState.Initial)
-    val uiState = _uiState.asStateFlow()
 
     var isPlaying = MutableStateFlow<Boolean>(false)
     var notReady = MutableLiveData<Boolean>(true)
@@ -178,7 +163,6 @@ constructor(
     private var regionCode: String? = null
     private var language: String? = null
     private var quality: String? = null
-    var from_backup: String? = null
 
     private var _format: MutableStateFlow<NewFormatEntity?> = MutableStateFlow(null)
     val format: SharedFlow<NewFormatEntity?> = _format.asSharedFlow()
@@ -186,15 +170,10 @@ constructor(
     private var _songInfo: MutableStateFlow<SongInfoEntity?> = MutableStateFlow(null)
     val songInfo: SharedFlow<SongInfoEntity?> = _songInfo.asSharedFlow()
 
-    private var _saveLastPlayedSong: MutableLiveData<Boolean> = MutableLiveData()
-    val saveLastPlayedSong: LiveData<Boolean> = _saveLastPlayedSong
-
     private var _canvas: MutableStateFlow<CanvasResponse?> = MutableStateFlow(null)
     val canvas: StateFlow<CanvasResponse?> = _canvas
 
     private var canvasJob: Job? = null
-
-    var recentPosition: String = 0L.toString()
 
     val intent: MutableStateFlow<Intent?> = MutableStateFlow(null)
 
@@ -209,7 +188,6 @@ constructor(
     private var _listYouTubeLiked: MutableStateFlow<ArrayList<String>?> = MutableStateFlow(null)
     val listYouTubeLiked: SharedFlow<ArrayList<String>?> = _listYouTubeLiked.asSharedFlow()
 
-    var loadingMore: MutableStateFlow<Boolean> = MutableStateFlow(false)
     var isFullScreen: Boolean = false
     var isSubtitle: Boolean = true
 
@@ -225,6 +203,8 @@ constructor(
         )
     )
     val controllerState: StateFlow<ControlState> = _controllerState
+    private val _getVideo: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val getVideo: StateFlow<Boolean> = _getVideo
 
     private var _timeline = MutableStateFlow<TimeLine>(
         TimeLine(
@@ -279,15 +259,12 @@ constructor(
 
             val format =
                 launch {
-                    format
-                        .distinctUntilChangedBy {
-                            it?.videoId
-                        }
-                        .collectLatest { formatTemp ->
+                    format.distinctUntilChanged().collectLatest { formatTemp ->
                         if (dataStoreManager.sendBackToGoogle.first() == TRUE) {
                             if (formatTemp != null) {
                                 println("format in viewModel: $formatTemp")
                                 Log.d(TAG, "Collect format ${formatTemp.videoId}")
+                                Log.w(TAG, "Format expire at ${formatTemp.expiredTime}")
                                 Log.i(TAG, "AtrUrl ${formatTemp.playbackTrackingAtrUrl}")
                                 initPlayback(
                                     formatTemp.playbackTrackingVideostatsPlaybackUrl,
@@ -299,9 +276,20 @@ constructor(
                         }
                     }
                 }
+            val checkGetVideoJob = launch {
+                dataStoreManager.watchVideoInsteadOfPlayingAudio.collectLatest {
+                    Log.w(TAG, "GetVideo is $it")
+                    if (it == TRUE) {
+                        _getVideo.value = true
+                    } else {
+                        _getVideo.value = false
+                    }
+                }
+            }
             timeLineJob.join()
             downloadedJob.join()
             format.join()
+            checkGetVideoJob.join()
         }
     }
 
@@ -368,9 +356,10 @@ constructor(
                                 }
                             }
 
-                            SimpleMediaState.Initial -> _uiState.value = UIState.Initial
+                            SimpleMediaState.Initial -> {
+                                _timeline.update { it.copy(loading = true) }
+                            }
                             SimpleMediaState.Ended -> {
-                                _uiState.value = UIState.Ended
                                 Log.d("Check lại videoId", videoId.value.toString())
                                 _timeline.update {
                                     it.copy(
@@ -389,8 +378,6 @@ constructor(
                             is SimpleMediaState.Progress -> {
                                 if (_duration.value > 0) {
                                     notReady.value = false
-                                    calculateProgressValues(mediaState.progress)
-                                    _progressMillis.value = mediaState.progress
                                     _timeline.update {
                                         it.copy(
                                             current = mediaState.progress
@@ -400,7 +387,6 @@ constructor(
                             }
 
                             is SimpleMediaState.Loading -> {
-                                _bufferedPercentage.value = mediaState.bufferedPercentage
                                 _duration.value = mediaState.duration
                                 _timeline.update {
                                     it.copy(
@@ -414,10 +400,6 @@ constructor(
                             is SimpleMediaState.Ready -> {
                                 notReady.value = false
                                 _duration.value = mediaState.duration
-                                calculateProgressValues(
-                                    simpleMediaServiceHandler!!.getProgress(),
-                                )
-                                _uiState.value = UIState.Ready
                                 _timeline.update {
                                     it.copy(
                                         current = simpleMediaServiceHandler!!.getProgress(),
@@ -664,7 +646,8 @@ constructor(
         viewModelScope.launch {
             jobWatchtime =
                 launch {
-                    progressMillis.collect { value ->
+                    timeline.collect { timeline ->
+                        val value = timeline.current
                         if (value > 0 && watchTimeList.isNotEmpty()) {
                             val second = (value / 1000).toFloat()
                             if (second in watchTimeList.last()..watchTimeList.last() + 1.2f) {
@@ -1001,39 +984,6 @@ constructor(
                         loadPlaylistOrAlbum(index = index)
                     }
                 }
-
-                RECOVER_TRACK_QUEUE -> {
-                    if (getString(
-                            RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE,
-                        ) == DataStoreManager.FALSE
-                    ) {
-                        recentPosition = runBlocking { dataStoreManager.recentPosition.first() }
-                        restoreLastPLayedTrackDone()
-                        _from.emit(from_backup ?: "")
-                        simpleMediaServiceHandler?.seekTo(recentPosition)
-                        Log.d("Check recentPosition", recentPosition)
-                        if (songDB.value?.duration != null) {
-                            if (songDB.value?.duration != "" && songDB.value?.duration?.contains(
-                                    ":",
-                                ) == true
-                            ) {
-                                songDB.value?.duration?.split(":")?.let { split ->
-                                    _duration.emit(
-                                        ((split[0].toInt() * 60) + split[1].toInt()) * 1000.toLong(),
-                                    )
-                                    Log.d("Check Duration", _duration.value.toString())
-                                    calculateProgressValues(recentPosition.toLong())
-                                }
-                            }
-                        } else {
-                            simpleMediaServiceHandler?.getPlayerDuration()?.let {
-                                _duration.emit(it)
-                                calculateProgressValues(recentPosition.toLong())
-                            }
-                        }
-                        getSaveQueue()
-                    }
-                }
             }
         }
     }
@@ -1061,7 +1011,6 @@ constructor(
 
                 UIEvent.Stop -> simpleMediaServiceHandler?.onPlayerEvent(PlayerEvent.Stop)
                 is UIEvent.UpdateProgress -> {
-                    _progress.value = uiEvent.newProgress
                     simpleMediaServiceHandler?.onPlayerEvent(
                         PlayerEvent.UpdateProgress(
                             uiEvent.newProgress,
@@ -1076,21 +1025,6 @@ constructor(
                 )
             }
         }
-
-    fun formatDuration(duration: Long): String {
-        val minutes: Long = TimeUnit.MINUTES.convert(duration, TimeUnit.MILLISECONDS)
-        val seconds: Long = (
-            TimeUnit.SECONDS.convert(duration, TimeUnit.MILLISECONDS) -
-                minutes * TimeUnit.SECONDS.convert(1, TimeUnit.MINUTES)
-        )
-        return String.format("%02d:%02d", minutes, seconds)
-    }
-
-    private fun calculateProgressValues(currentProgress: Long) {
-        _progress.value =
-            if (currentProgress > 0) (currentProgress.toFloat() / _duration.value) else 0f
-        _progressString.value = formatDuration(currentProgress)
-    }
 
     private var _listLocalPlaylist: MutableStateFlow<List<LocalPlaylistEntity>> =
         MutableStateFlow(listOf())
@@ -1252,54 +1186,6 @@ constructor(
         quality = runBlocking { dataStoreManager.quality.first() }
         language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
         YouTube.locale = YouTubeLocale(gl = regionCode ?: "US", hl = language?.substring(0..1) ?: "en")
-        from_backup = runBlocking { dataStoreManager.playlistFromSaved.first() }
-        recentPosition = runBlocking { (dataStoreManager.recentPosition.first()) }
-    }
-
-    fun getSaveLastPlayedSong() {
-        viewModelScope.launch {
-            dataStoreManager.saveRecentSongAndQueue.first().let { saved ->
-                Log.d("Check SaveLastPlayedSong", restoreLastPlayedTrackDone.toString())
-                _saveLastPlayedSong.postValue(saved == TRUE)
-            }
-        }
-    }
-
-    private var _savedQueue: MutableLiveData<List<Track>> = MutableLiveData()
-    val savedQueue: LiveData<List<Track>> = _savedQueue
-
-    fun getSavedSongAndQueue() {
-        viewModelScope.launch {
-            dataStoreManager.recentMediaId.first().let { mediaId ->
-                mainRepository.getSongById(mediaId).collect { song ->
-                    if (song != null) {
-                        simpleMediaServiceHandler?.setQueueData(
-                            QueueData(
-                                listTracks = arrayListOf(song.toTrack()),
-                                firstPlayedTrack = song.toTrack(),
-                                playlistId = LOCAL_PLAYLIST_ID_SAVED_QUEUE,
-                                playlistName = dataStoreManager.playlistFromSaved.first(),
-                                playlistType = PlaylistType.PLAYLIST,
-                                continuation = null
-
-                            )
-                        )
-                        loadMediaItemFromTrack(song.toTrack(), RECOVER_TRACK_QUEUE, from = dataStoreManager.playlistFromSaved.first())
-                    }
-                }
-            }
-        }
-    }
-
-    private fun getSaveQueue() {
-        viewModelScope.launch {
-            mainRepository.getSavedQueue().collect { queue ->
-                Log.d("Check Queue", queue.toString())
-                if (!queue.isNullOrEmpty()) {
-                    _savedQueue.value = queue.first().listTrack
-                }
-            }
-        }
     }
 
     fun checkAllDownloadingSongs() {
@@ -1344,7 +1230,7 @@ constructor(
         }
     }
 
-    fun getFormat(mediaId: String?) {
+    private fun getFormat(mediaId: String?) {
         getFormatFlowJob?.cancel()
         getFormatFlowJob = viewModelScope.launch {
             if (mediaId != null) {
@@ -1374,16 +1260,6 @@ constructor(
                     }
                 }
             }
-        }
-    }
-
-    fun restoreLastPLayedTrackDone() {
-        putString(RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE, TRUE)
-    }
-
-    fun removeSaveQueue() {
-        viewModelScope.launch {
-            mainRepository.removeQueue()
         }
     }
 

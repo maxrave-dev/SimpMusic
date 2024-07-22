@@ -24,12 +24,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.rememberScrollState
@@ -94,6 +96,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import androidx.core.os.bundleOf
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
@@ -163,6 +166,8 @@ fun NowPlayingScreen(
     val playlistName by sharedViewModel.from.collectAsState(initial = "")
     val songEntity = sharedViewModel.simpleMediaServiceHandler?.nowPlayingState?.mapNotNull { it.songEntity }?.collectAsState(initial = null)
 
+    val shouldShowVideo by sharedViewModel.getVideo.collectAsState()
+
     //State
     val mainScrollState = rememberScrollState()
 
@@ -211,17 +216,25 @@ fun NowPlayingScreen(
     var middleLayoutPaddingPx by rememberSaveable {
         mutableIntStateOf(0)
     }
+    val minimumPaddingPx by rememberSaveable {
+        mutableIntStateOf(
+            with(localDensity) {
+                15.dp.toPx().toInt()
+            }
+        )
+    }
     LaunchedEffect(
-        topAppBarHeightPx, screenInfo, infoLayoutHeightPx
+        topAppBarHeightPx, screenInfo, infoLayoutHeightPx, minimumPaddingPx
     ) {
         if (topAppBarHeightPx > 0 && middleLayoutHeightPx > 0 && infoLayoutHeightPx > 0) {
-            val result = (screenInfo.hPX - topAppBarHeightPx - middleLayoutHeightPx - infoLayoutHeightPx - 50) / 2
-            middleLayoutPaddingPx = if (result > 50) {
+            val result = (screenInfo.hPX - topAppBarHeightPx - middleLayoutHeightPx - infoLayoutHeightPx - minimumPaddingPx) / 2
+            middleLayoutPaddingPx = if (result > minimumPaddingPx) {
                 result
             } else {
-                50
+                minimumPaddingPx
             }
             Log.w(TAG, "MiddleLayoutPadding: $middleLayoutPaddingPx")
+            Log.w(TAG, "Screen Height: ${screenInfo.hPX}")
         }
     }
 
@@ -259,7 +272,7 @@ fun NowPlayingScreen(
     LaunchedEffect(key1 = showHideJob) {
         if (!showHideJob) {
             delay(5000)
-            showHideControlLayout = false
+            if (mainScrollState.value == 0){ showHideControlLayout = false }
             showHideJob = true
         }
     }
@@ -440,10 +453,7 @@ fun NowPlayingScreen(
                         screenDataState.canvasData?.url?.let {
                             MediaPlayerView(
                                 url = it, modifier = Modifier
-                                    .fillMaxWidth()
-                                    .align(
-                                        Alignment.Center
-                                    )
+                                    .fillMaxSize()
                             )
                         }
                     } else if (isVideo == false) {
@@ -542,7 +552,8 @@ fun NowPlayingScreen(
             Column {
                 Spacer(modifier = Modifier.height(
                     with(localDensity) { topAppBarHeightPx.toDp() }
-                ))
+                )
+                )
                 Box {
                     Column(
                         Modifier
@@ -552,7 +563,9 @@ fun NowPlayingScreen(
                             .animateContentSize()
                             .height(
                                 with(localDensity) { middleLayoutPaddingPx.toDp() }
-                            ))
+                            )
+                            .fillMaxWidth()
+                        )
 
                         //Middle Layout
                         Box(modifier = Modifier
@@ -574,12 +587,16 @@ fun NowPlayingScreen(
                                 },
                                 previewPlaceholder = painterResource(id = R.drawable.holder),
                                 modifier = Modifier
-                                    .fillMaxSize()
+                                    .align(Alignment.Center)
+                                    .fillMaxWidth()
+                                    .aspectRatio(
+                                        if (!screenDataState.isVideo) 1f else 16f / 9
+                                    )
                                     .clip(
                                         RoundedCornerShape(8.dp)
                                     )
                                     .alpha(
-                                        if (!screenDataState.isVideo) 1f else 0f
+                                        if (!screenDataState.isVideo || !shouldShowVideo) 1f else 0f
                                     ),
                                 loading = {
                                     CenterLoadingBox(modifier = Modifier.fillMaxSize())
@@ -599,7 +616,7 @@ fun NowPlayingScreen(
 
                             //IS VIDEO => Show Video
                             androidx.compose.animation.AnimatedVisibility(
-                                visible = screenDataState.isVideo,
+                                visible = screenDataState.isVideo && shouldShowVideo,
                                 modifier = Modifier.align(Alignment.Center)
                             ) {
                                 Box(
@@ -725,7 +742,9 @@ fun NowPlayingScreen(
                             .animateContentSize()
                             .height(
                                 with(localDensity) { middleLayoutPaddingPx.toDp() }
-                            ))
+                            )
+                            .fillMaxWidth()
+                        )
 
                         //Info Layout
                         Box {
@@ -1136,6 +1155,7 @@ fun NowPlayingScreen(
                                         .clickable(
                                             onClick = {
                                                 if (mainScrollState.value == 0) {
+                                                    showHideJob = true
                                                     showHideControlLayout = !showHideControlLayout
                                                 }
                                             },
@@ -1189,6 +1209,7 @@ fun NowPlayingScreen(
                                 .clickable(
                                     onClick = {
                                         if (mainScrollState.value == 0) {
+                                            showHideJob = true
                                             showHideControlLayout = !showHideControlLayout
                                         }
                                     },
@@ -1287,7 +1308,23 @@ fun NowPlayingScreen(
                     AnimatedVisibility(visible = screenDataState.songInfoData != null) {
                         ElevatedCard(
                             onClick = {
-                                //TODO: Click Artist
+                                val song = songEntity?.value
+                                if (song != null && song.artistId?.firstOrNull() != null) {
+                                    navController.navigateSafe(
+                                        R.id.action_global_artistFragment,
+                                        bundleOf(
+                                            "channelId" to song.artistId.firstOrNull()
+                                        )
+                                    )
+                                }
+                                else {
+                                    navController.navigateSafe(
+                                        R.id.action_global_artistFragment,
+                                        bundleOf(
+                                            "channelId" to screenDataState.songInfoData?.authorId
+                                        )
+                                    )
+                                }
                             },
                             shape = RoundedCornerShape(8.dp),
                             colors = CardDefaults.elevatedCardColors().copy(
@@ -1412,6 +1449,9 @@ fun NowPlayingScreen(
                         Spacer(modifier = Modifier.height(5.dp))
                     }
                     Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(
+                        with(localDensity) { WindowInsets.systemBars.getBottom(localDensity).toDp() }
+                    ))
                 }
             }
         }

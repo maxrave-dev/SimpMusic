@@ -1,6 +1,7 @@
 package com.maxrave.simpmusic.extension
 
 import android.content.Context
+import android.view.View
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
@@ -32,6 +33,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.graphics.ColorUtils
 import com.kmpalette.palette.graphics.Palette
 import com.maxrave.simpmusic.R
@@ -317,3 +319,5 @@ fun LazyListState.animateScrollAndCentralizeItem(index: Int, scope: CoroutineSco
         }
     }
 }
+@Composable
+fun KeepScreenOn() = AndroidView({ View(it).apply { keepScreenOn = true } })

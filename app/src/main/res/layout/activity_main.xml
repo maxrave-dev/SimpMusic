@@ -208,8 +208,6 @@
             android:layout_alignParentBottom="true"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/transparent_rect"
-            app:itemBackground="@drawable/transparent_rect"
             app:menu="@menu/bottom_navigation_items">
 
         </com.google.android.material.bottomnavigation.BottomNavigationView>

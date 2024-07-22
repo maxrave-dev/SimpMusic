@@ -33,6 +33,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginVertical="5sp"
+                android:textColor="@android:color/white"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:gravity="center_horizontal">
@@ -47,13 +48,15 @@
                 android:id="@+id/title"
                 android:paddingHorizontal="16sp"
                 android:text=""
-                android:gravity="center_horizontal"></TextView>
+                android:gravity="center_horizontal">
+            </TextView>
             <TextView
                 android:text="@string/artists"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginVertical="5sp"
                 android:textSize="16sp"
+                android:textColor="@android:color/white"
                 android:textStyle="bold"
                 android:gravity="center_horizontal">
 
@@ -68,9 +71,12 @@
                 android:id="@+id/artists_name"
                 android:paddingHorizontal="16sp"
                 android:text=""
-                android:gravity="center_horizontal"></TextView>
+                android:gravity="center_horizontal">
+
+            </TextView>
             <TextView
                 android:text="@string/album"
+                android:textColor="@android:color/white"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginVertical="5sp"
@@ -89,10 +95,13 @@
                 android:id="@+id/album_name"
                 android:paddingHorizontal="16sp"
                 android:text=""
-                android:gravity="center_horizontal"></TextView>
+                android:gravity="center_horizontal">
+
+            </TextView>
             <TextView
                 android:text="@string/itag"
                 android:layout_width="match_parent"
+                android:textColor="@android:color/white"
                 android:layout_height="wrap_content"
                 android:layout_marginVertical="5sp"
                 android:textSize="16sp"
@@ -110,10 +119,13 @@
                 android:id="@+id/itag"
                 android:paddingHorizontal="16sp"
                 android:text=""
-                android:gravity="center_horizontal"></TextView>
+                android:gravity="center_horizontal">
+
+            </TextView>
             <TextView
                 android:text="@string/mime_type"
                 android:layout_width="match_parent"
+                android:textColor="@android:color/white"
                 android:layout_height="wrap_content"
                 android:layout_marginVertical="5sp"
                 android:textSize="16sp"
@@ -131,12 +143,15 @@
                 android:id="@+id/mimeType"
                 android:paddingHorizontal="16sp"
                 android:text=""
-                android:gravity="center_horizontal"></TextView>
+                android:gravity="center_horizontal">
+
+            </TextView>
 
             <TextView
                 android:text="@string/codec"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="@android:color/white"
                 android:layout_marginVertical="5sp"
                 android:textSize="16sp"
                 android:textStyle="bold"
@@ -153,13 +168,16 @@
                 android:id="@+id/codec"
                 android:paddingHorizontal="16sp"
                 android:text=""
-                android:gravity="center_horizontal"></TextView>
+                android:gravity="center_horizontal">
+
+            </TextView>
 
             <TextView
                 android:text="@string/bitrate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginVertical="5sp"
+                android:textColor="@android:color/white"
                 android:textSize="16sp"
                 android:textStyle="bold"
                 android:gravity="center_horizontal">
@@ -175,12 +193,15 @@
                 android:id="@+id/bitrate"
                 android:paddingHorizontal="16sp"
                 android:text=""
-                android:gravity="center_horizontal"></TextView>
+                android:gravity="center_horizontal">
+
+            </TextView>
 
             <TextView
                 android:text="@string/plays"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="@android:color/white"
                 android:layout_marginVertical="5sp"
                 android:textSize="16sp"
                 android:textStyle="bold"
@@ -197,12 +218,15 @@
                 android:id="@+id/plays"
                 android:paddingHorizontal="16sp"
                 android:text=""
-                android:gravity="center_horizontal"></TextView>
+                android:gravity="center_horizontal">
+
+            </TextView>
 
             <TextView
                 android:text="@string/like"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="@android:color/white"
                 android:layout_marginVertical="5sp"
                 android:textSize="16sp"
                 android:textStyle="bold"
@@ -219,12 +243,15 @@
                 android:id="@+id/like"
                 android:paddingHorizontal="16sp"
                 android:text=""
-                android:gravity="center_horizontal"></TextView>
+                android:gravity="center_horizontal">
+
+            </TextView>
 
             <TextView
                 android:text="@string/description"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:textColor="@android:color/white"
                 android:layout_marginVertical="5sp"
                 android:textSize="16sp"
                 android:textStyle="bold"
@@ -247,6 +274,7 @@
             </TextView>
             <TextView
                 android:text="@string/youtube_url"
+                android:textColor="@android:color/white"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginVertical="5sp"
