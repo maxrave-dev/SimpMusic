@@ -225,6 +225,10 @@ class PlaylistViewModel
 
         fun getPlaylist(id: String, playlistBrowse: PlaylistBrowse?, isRadio: Boolean?, message: String? = null) {
             viewModelScope.launch {
+                mainRepository.updatePlaylistInLibrary(
+                    LocalDateTime.now(),
+                    id
+                )
                 mainRepository.getPlaylist(id).collect { values ->
                     if (values != null) {
                         _playlistEntity.value = values
@@ -239,7 +243,7 @@ class PlaylistViewModel
                                 }
                             }
                         }
-                        if (count == list?.size) {
+                        if (count == list?.size && count > 0) {
                             updatePlaylistDownloadState(id, DownloadState.STATE_DOWNLOADED)
                         } else {
                             updatePlaylistDownloadState(id, DownloadState.STATE_NOT_DOWNLOADED)

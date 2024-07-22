@@ -29,6 +29,7 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.extractor.ExtractorsFactory
 import androidx.media3.extractor.mkv.MatroskaExtractor
 import androidx.media3.extractor.mp4.FragmentedMp4Extractor
+import androidx.media3.extractor.text.DefaultSubtitleParserFactory
 import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.MediaController
 import androidx.media3.session.MediaLibraryService
@@ -275,7 +276,7 @@ class SimpleMediaService : MediaLibraryService() {
                     if (dataSpec.length >= 0) dataSpec.length else 1
                 ) || playerCache.isCached(mediaId, dataSpec.position, CHUNK_LENGTH)
             ) {
-                coroutineScope.launch {
+                coroutineScope.launch(Dispatchers.IO) {
                     mainRepository.updateFormat(
                         if (mediaId.contains(MergingMediaSourceFactory.isVideo)) {
                             mediaId.removePrefix(MergingMediaSourceFactory.isVideo)
@@ -315,9 +316,15 @@ class SimpleMediaService : MediaLibraryService() {
     @UnstableApi
     fun provideExtractorFactory(): ExtractorsFactory = ExtractorsFactory {
         arrayOf(
-            MatroskaExtractor(),
-            FragmentedMp4Extractor(),
-            androidx.media3.extractor.mp4.Mp4Extractor(),
+            MatroskaExtractor(
+                DefaultSubtitleParserFactory()
+            ),
+            FragmentedMp4Extractor(
+                DefaultSubtitleParserFactory()
+            ),
+            androidx.media3.extractor.mp4.Mp4Extractor(
+                DefaultSubtitleParserFactory()
+            ),
         )
     }
 

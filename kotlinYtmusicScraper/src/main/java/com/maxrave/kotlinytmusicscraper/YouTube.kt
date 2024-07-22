@@ -479,15 +479,15 @@ object YouTube {
         val response = request.body<MusixmatchCredential>()
         if (response.message.body.get(0).credential.error == null && response.message.body.get(0).credential.account != null) {
             val setCookies = request.headers.getAll("Set-Cookie")
-            Log.w("postMusixmatchCredentials", setCookies.toString())
+//            Log.w("postMusixmatchCredentials", setCookies.toString())
             if (!setCookies.isNullOrEmpty()) {
                 fromArrayListNull(setCookies)?.let {
                     musixMatchCookie = it
                 }
             }
         }
-        Log.w("postMusixmatchCredentials cookie", musixMatchCookie.toString())
-        Log.w("postMusixmatchCredentials", response.toString())
+//        Log.w("postMusixmatchCredentials cookie", musixMatchCookie.toString())
+//        Log.w("postMusixmatchCredentials", response.toString())
         return@runCatching response
     }
 

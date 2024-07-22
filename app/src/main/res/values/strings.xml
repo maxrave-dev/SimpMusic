@@ -339,4 +339,7 @@
     <string name="repeat_all">Repeat All</string>
     <string name="repeat_off">Repeat Off</string>
     <string name="youtube_transcript">YouTube Transcript</string>
+    <string name="user_interface">Interface</string>
+    <string name="translucent_bottom_navigation_bar">Translucent bottom navigation bar</string>
+    <string name="you_can_see_the_content_below_the_bottom_bar">You can see the content below the bottom bar</string>
 </resources>

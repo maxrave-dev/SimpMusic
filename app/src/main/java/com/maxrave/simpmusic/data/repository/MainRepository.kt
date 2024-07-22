@@ -2278,11 +2278,15 @@ class MainRepository
             videoId: String
         ) {
             localDataSource.getNewFormat(videoId)?.let { oldFormat ->
+                Log.w("Stream", "oldFormatExpired: ${oldFormat.expiredTime}")
+                Log.w("Stream", "now: ${LocalDateTime.now()}")
+                Log.w("Stream", "isExpired: ${oldFormat.expiredTime.isBefore(LocalDateTime.now())}")
                 if (oldFormat.expiredTime.isBefore(LocalDateTime.now())) {
                     YouTube.player(videoId).onSuccess { triple ->
                         val response = triple.second
                         localDataSource.updateNewFormat(
                             oldFormat.copy(
+                                expiredTime = LocalDateTime.now().plusSeconds(response.streamingData?.expiresInSeconds?.toLong() ?: 0L),
                                 playbackTrackingVideostatsPlaybackUrl =
                                 response.playbackTracking?.videostatsPlaybackUrl?.baseUrl?.replace(
                                     "https://s.youtube.com",
@@ -2356,6 +2360,7 @@ class MainRepository
                     }
                     Log.w("Stream", "format: $format")
                     Log.d("Stream", "expireInSeconds ${response.streamingData?.expiresInSeconds}")
+                    Log.w("Stream", "expired at ${LocalDateTime.now().plusSeconds(response.streamingData?.expiresInSeconds?.toLong() ?: 0L)}")
                     runBlocking {
                         insertNewFormat(
                             NewFormatEntity(

@@ -276,13 +276,6 @@ class FullscreenFragment : Fragment() {
                             }
                         }
                     }
-                val job5 =
-                    launch {
-                        viewModel.progressMillis.collect {
-
-                        }
-                    }
-                job5.join()
                 time.join()
                 title.join()
                 job11.join()

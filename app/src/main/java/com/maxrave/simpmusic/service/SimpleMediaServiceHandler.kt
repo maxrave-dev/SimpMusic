@@ -31,6 +31,7 @@ import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.ASC
 import com.maxrave.simpmusic.common.DESC
 import com.maxrave.simpmusic.common.LOCAL_PLAYLIST_ID
+import com.maxrave.simpmusic.common.LOCAL_PLAYLIST_ID_SAVED_QUEUE
 import com.maxrave.simpmusic.common.MEDIA_CUSTOM_COMMAND
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.entities.SongEntity
@@ -42,7 +43,9 @@ import com.maxrave.simpmusic.extension.getScreenSize
 import com.maxrave.simpmusic.extension.isVideo
 import com.maxrave.simpmusic.extension.toArrayListTrack
 import com.maxrave.simpmusic.extension.toListName
+import com.maxrave.simpmusic.extension.toMediaItem
 import com.maxrave.simpmusic.extension.toSongEntity
+import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.test.source.MergingMediaSourceFactory
 import com.maxrave.simpmusic.ui.widget.BasicWidget
 import com.maxrave.simpmusic.utils.Resource
@@ -176,6 +179,7 @@ class SimpleMediaServiceHandler(
         mediaSessionCallback.apply {
             toggleLike = ::toggleLike
         }
+        mayBeRestoreQueue()
     }
     private var getDataOfNowPlayingTrackStateJob: Job? = null
     private fun getDataOfNowPlayingState(mediaItem: MediaItem) {
@@ -194,19 +198,6 @@ class SimpleMediaServiceHandler(
         updateWidget(mediaItem)
         getDataOfNowPlayingTrackStateJob?.cancel()
         getDataOfNowPlayingTrackStateJob = coroutineScope.launch {
-            if (track != null) {
-                mainRepository.updateSongInLibrary(
-                    LocalDateTime.now(),
-                    track.videoId,
-                )
-                mainRepository.updateListenCount(track.videoId)
-                track.durationSeconds?.let {
-                    mainRepository.updateDurationSeconds(
-                        it,
-                        track.videoId,
-                    )
-                }
-            }
             Log.w(TAG, "getDataOfNowPlayingState: $videoId")
             mainRepository.getSongById(videoId).cancellable().singleOrNull().let { songEntity ->
                 if (songEntity != null) {
@@ -409,6 +400,7 @@ class SimpleMediaServiceHandler(
             PlayerEvent.Stop -> {
                 stopProgressUpdate()
                 player.stop()
+                _nowPlayingState.value = NowPlayingTrackState.initial()
             }
 
             is PlayerEvent.UpdateProgress -> player.seekTo((player.duration * playerEvent.newProgress / 100).toLong())
@@ -599,6 +591,7 @@ class SimpleMediaServiceHandler(
             }
         } else {
             stopProgressUpdate()
+            mayBeSaveRecentSong()
         }
         updateNextPreviousTrackAvailability()
     }
@@ -795,6 +788,34 @@ class SimpleMediaServiceHandler(
         player.skipSilenceEnabled = skipSilent
     }
 
+    private fun mayBeRestoreQueue() {
+        coroutineScope.launch {
+            if (dataStoreManager.saveRecentSongAndQueue.first() == DataStoreManager.TRUE) {
+                val currentPlayingTrack = mainRepository.getSongById(dataStoreManager.recentMediaId.first()).singleOrNull()?.toTrack()
+                if (currentPlayingTrack != null) {
+                    val queue = mainRepository.getSavedQueue().singleOrNull()
+                    setQueueData(
+                        QueueData(
+                            listTracks = queue?.firstOrNull()?.listTrack?.toCollection(arrayListOf()) ?: arrayListOf(currentPlayingTrack),
+                            firstPlayedTrack = currentPlayingTrack,
+                            playlistId = LOCAL_PLAYLIST_ID_SAVED_QUEUE,
+                            playlistName = dataStoreManager.playlistFromSaved.first(),
+                            playlistType = PlaylistType.PLAYLIST,
+                            continuation = null
+                        )
+                    )
+                    var index = queue?.firstOrNull()?.listTrack?.map { it.videoId }?.indexOf(
+                        currentPlayingTrack.videoId
+                    )
+                    if (index == null || index == -1) index = 0
+                    addMediaItem(currentPlayingTrack.toMediaItem(), playWhenReady = false)
+                    seekTo(dataStoreManager.recentPosition.first())
+                    loadPlaylistOrAlbum(index = index)
+                }
+            }
+        }
+    }
+
     private fun updateWidget(nowPlaying: MediaItem) {
         basicWidget.performUpdate(
             context,
@@ -854,26 +875,19 @@ class SimpleMediaServiceHandler(
 
 
     fun mayBeSaveRecentSong() {
-        runBlocking {
+        coroutineScope.launch {
             if (dataStoreManager.saveRecentSongAndQueue.first() == DataStoreManager.TRUE) {
                 dataStoreManager.saveRecentSong(
                     player.currentMediaItem?.mediaId ?: "",
                     player.contentPosition,
                 )
+                dataStoreManager.setPlaylistFromSaved(queueData.value?.playlistName ?: "")
                 Log.d("Check saved", player.currentMediaItem?.mediaMetadata?.title.toString())
                 val temp: ArrayList<Track> = ArrayList()
                 temp.clear()
                 temp.addAll(_queueData.value?.listTracks ?: arrayListOf())
-                temp.find { it.videoId == player.currentMediaItem?.mediaId }?.let { track ->
-                    temp.remove(track)
-                }
                 Log.w("Check recover queue", temp.toString())
                 mainRepository.recoverQueue(temp)
-                dataStoreManager.putString(
-                    DataStoreManager.RESTORE_LAST_PLAYED_TRACK_AND_QUEUE_DONE,
-                    DataStoreManager.FALSE,
-                )
-                dataStoreManager.setPlaylistFromSaved(queueData.first()?.playlistName ?: "")
             }
         }
     }
@@ -1577,6 +1591,10 @@ data class NowPlayingTrackState(
     val track: Track?,
     val songEntity: SongEntity?
 ) {
+    fun isNotEmpty(): Boolean {
+        return this != initial()
+    }
+
     companion object {
         fun initial(): NowPlayingTrackState {
             return NowPlayingTrackState(

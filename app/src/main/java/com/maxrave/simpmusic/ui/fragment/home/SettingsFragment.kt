@@ -408,6 +408,11 @@ class SettingsFragment : Fragment() {
                         }
                     }
                 }
+                val job27 = launch {
+                    viewModel.translucentBottomBar.collectLatest { translucent ->
+                        binding.swEnableTranslucentNavBar.isChecked = translucent
+                    }
+                }
                 job1.join()
                 job2.join()
                 job3.join()
@@ -434,6 +439,7 @@ class SettingsFragment : Fragment() {
                 job24.join()
                 job25.join()
                 job26.join()
+                job27.join()
             }
         }
         binding.sliderHomeLimit.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
@@ -855,6 +861,13 @@ class SettingsFragment : Fragment() {
                 viewModel.setNormalizeVolume(true)
             } else {
                 viewModel.setNormalizeVolume(false)
+            }
+        }
+        binding.swEnableTranslucentNavBar.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                viewModel.setTranslucentBottomBar(true)
+            } else {
+                viewModel.setTranslucentBottomBar(false)
             }
         }
         binding.swEnableVideo.setOnCheckedChangeListener { _, checked ->

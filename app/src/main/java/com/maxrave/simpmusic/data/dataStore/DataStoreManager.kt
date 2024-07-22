@@ -546,6 +546,25 @@ class DataStoreManager
             }
         }
 
+        val translucentBottomBar =
+            settingsDataStore.data.map { preferences ->
+                preferences[TRANSLUCENT_BOTTOM_BAR] ?: TRUE
+            }
+
+        suspend fun setTranslucentBottomBar(translucent: Boolean) {
+            withContext(Dispatchers.IO) {
+                if (translucent) {
+                    settingsDataStore.edit { settings ->
+                        settings[TRANSLUCENT_BOTTOM_BAR] = TRUE
+                    }
+                } else {
+                    settingsDataStore.edit { settings ->
+                        settings[TRANSLUCENT_BOTTOM_BAR] = FALSE
+                    }
+                }
+            }
+        }
+
         companion object Settings {
             val COOKIE = stringPreferencesKey("cookie")
             val LOGGED_IN = stringPreferencesKey("logged_in")
@@ -562,8 +581,8 @@ class DataStoreManager
             val SEND_BACK_TO_GOOGLE = stringPreferencesKey("send_back_to_google")
             val FROM_SAVED_PLAYLIST = stringPreferencesKey("from_saved_playlist")
             val MUSIXMATCH_LOGGED_IN = stringPreferencesKey("musixmatch_logged_in")
-            val YOUTUBE = "youtube"
-            val MUSIXMATCH = "musixmatch"
+            const val YOUTUBE = "youtube"
+            const val MUSIXMATCH = "musixmatch"
             val LYRICS_PROVIDER = stringPreferencesKey("lyrics_provider")
             val TRANSLATION_LANGUAGE = stringPreferencesKey("translation_language")
             val USE_TRANSLATION_LANGUAGE = stringPreferencesKey("use_translation_language")
@@ -582,6 +601,7 @@ class DataStoreManager
             val SPOTIFY_CLIENT_TOKEN = stringPreferencesKey("spotify_client_token")
             val HOME_LIMIT = intPreferencesKey("home_limit")
             val CHART_KEY = stringPreferencesKey("chart_key")
+            val TRANSLUCENT_BOTTOM_BAR = stringPreferencesKey("translucent_bottom_bar")
             const val REPEAT_MODE_OFF = "REPEAT_MODE_OFF"
             const val REPEAT_ONE = "REPEAT_ONE"
             const val REPEAT_ALL = "REPEAT_ALL"
