@@ -594,7 +594,7 @@ class MainActivity : AppCompatActivity() {
                             && navController.currentDestination?.id != R.id.infoFragment
                             && navController.currentDestination?.id != R.id.queueFragment
                             && navController.currentDestination?.id != R.id.fullscreenFragment
-                            && binding.miniplayer.visibility == View.GONE) {
+                            && binding.miniplayer.visibility == View.GONE && it.nowPlayingTitle.isNotEmpty()) {
                             binding.miniplayer.visibility = View.VISIBLE
                         }
                     }
