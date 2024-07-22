@@ -132,9 +132,6 @@ constructor(
 
     var videoId = MutableLiveData<String>()
 
-    private var _from = MutableStateFlow<String>("")
-    val from: StateFlow<String> = _from
-
     var gradientDrawable: MutableLiveData<GradientDrawable> = MutableLiveData()
     private var _metadata = MutableLiveData<Resource<MetadataSong>>()
     val metadata: LiveData<Resource<MetadataSong>> = _metadata
@@ -306,7 +303,6 @@ constructor(
                 isFirstLiked = it != STATUS_DONE
             }
         }
-        _from.value = handler.queueData.value?.playlistName ?: ""
         viewModelScope.launch {
             handler.nowPlayingState.distinctUntilChangedBy {
                 it.songEntity?.videoId
@@ -320,7 +316,8 @@ constructor(
                     thumbnailURL = null,
                     canvasData = null,
                     lyricsData = null,
-                    songInfoData = null
+                    songInfoData = null,
+                    playlistName = simpleMediaServiceHandler?.queueData?.value?.playlistName ?: ""
                 )
                 _liked.value = state.songEntity?.liked ?: false
                 _format.value = null
@@ -536,6 +533,13 @@ constructor(
                     _sleepTimerState.value = it
                 }
             }
+            val playlistNameJob = launch {
+                handler.queueData.collectLatest {
+                    _nowPlayingScreenData.update {
+                        it.copy(playlistName = it.playlistName)
+                    }
+                }
+            }
 //                    val getDurationJob = launch {
 //                        combine(nowPlayingState, mediaState){ nowPlayingState, mediaState ->
 //                            Pair(nowPlayingState, mediaState)
@@ -572,6 +576,7 @@ constructor(
             job1.join()
             controllerJob.join()
             sleepTimerJob.join()
+            playlistNameJob.join()
 //                job2.join()
 //            job3.join()
 //            nowPlayingJob.join()
@@ -927,7 +932,6 @@ constructor(
         index: Int? = null,
         from: String
     ) {
-        _from.value = from
         quality = runBlocking { dataStoreManager.quality.first() }
         viewModelScope.launch {
             simpleMediaServiceHandler?.clearMediaItems()
@@ -1747,6 +1751,7 @@ data class TimeLine(
 )
 
 data class NowPlayingScreenData(
+    val playlistName: String,
     val nowPlayingTitle: String,
     val artistName: String,
     val isVideo: Boolean,
@@ -1775,6 +1780,7 @@ data class NowPlayingScreenData(
                 canvasData = null,
                 lyricsData = null,
                 songInfoData = null,
+                playlistName = "",
             )
         }
     }

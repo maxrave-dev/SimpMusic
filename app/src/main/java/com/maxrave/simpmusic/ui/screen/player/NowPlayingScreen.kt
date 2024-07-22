@@ -163,7 +163,6 @@ fun NowPlayingScreen(
     val timelineState by sharedViewModel.timeline.collectAsState()
     val listLiked by sharedViewModel.listYouTubeLiked.collectAsState(initial = arrayListOf())
 
-    val playlistName by sharedViewModel.from.collectAsState(initial = "")
     val songEntity = sharedViewModel.simpleMediaServiceHandler?.nowPlayingState?.mapNotNull { it.songEntity }?.collectAsState(initial = null)
 
     val shouldShowVideo by sharedViewModel.getVideo.collectAsState()
@@ -513,7 +512,7 @@ fun NowPlayingScreen(
                             color = Color.White
                         )
                         Text(
-                            text = playlistName,
+                            text = screenDataState.playlistName,
                             style = typo.labelMedium,
                             color = Color.White,
                             textAlign = TextAlign.Center,
@@ -819,6 +818,8 @@ fun NowPlayingScreen(
                                                         .clip(
                                                             RoundedCornerShape(8.dp)
                                                         ),
+                                                    color = Color.Gray,
+                                                    trackColor = Color.DarkGray,
                                                 )
                                             } else {
                                                 LinearProgressIndicator(

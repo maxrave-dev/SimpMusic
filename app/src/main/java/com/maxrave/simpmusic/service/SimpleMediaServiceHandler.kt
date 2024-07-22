@@ -804,8 +804,13 @@ class SimpleMediaServiceHandler(
                             continuation = null
                         )
                     )
+                    var index = queue?.firstOrNull()?.listTrack?.map { it.videoId }?.indexOf(
+                        currentPlayingTrack.videoId
+                    )
+                    if (index == null || index == -1) index = 0
                     addMediaItem(currentPlayingTrack.toMediaItem(), playWhenReady = false)
                     seekTo(dataStoreManager.recentPosition.first())
+                    loadPlaylistOrAlbum(index = index)
                 }
             }
         }

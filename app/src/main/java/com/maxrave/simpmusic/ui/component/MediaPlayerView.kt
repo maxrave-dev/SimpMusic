@@ -4,12 +4,15 @@ import android.util.Log
 import android.view.TextureView
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -17,6 +20,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
@@ -26,6 +30,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import com.maxrave.simpmusic.extension.KeepScreenOn
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
+import kotlin.math.roundToInt
 
 @UnstableApi
 @Composable
@@ -35,21 +40,12 @@ fun MediaPlayerView(
 ) {
     // Get the current context
     val context = LocalContext.current
+    val density = LocalDensity.current
 
-    // Initialize ExoPlayer
-    val exoPlayer = ExoPlayer.Builder(context).build()
+    val screenSize = getScreenSizeInfo()
 
-    // Create a MediaSource
-    val mediaSource = remember(url) {
-        MediaItem.fromUri(url)
-    }
-
-    var screenSize = getScreenSizeInfo()
-
-    var videoRatio by rememberSaveable {
-        mutableFloatStateOf(
-            9f / 16
-        )
+    var widthPx by rememberSaveable {
+        mutableIntStateOf(screenSize.wPX)
     }
 
     var keepScreenOn by rememberSaveable {
@@ -62,7 +58,9 @@ fun MediaPlayerView(
                 super.onVideoSizeChanged(videoSize)
                 Log.w("MediaPlayerView", "Video size changed: ${videoSize.width} / ${videoSize.height}")
                 if (videoSize.width != 0 && videoSize.height != 0) {
-                    videoRatio = videoSize.width.toFloat() / videoSize.height.toFloat()
+                    val h = (videoSize.width.toFloat()/videoSize.height)*screenSize.hPX
+                    Log.w("MediaPlayerView", "Calculated width: $h")
+                    widthPx = h.roundToInt()
                 }
             }
 
@@ -75,6 +73,16 @@ fun MediaPlayerView(
                 }
             }
         }
+    }
+
+    // Initialize ExoPlayer
+    val exoPlayer = ExoPlayer.Builder(context).build().apply {
+        addListener(playerListener)
+    }
+
+    // Create a MediaSource
+    val mediaSource = remember(url) {
+        MediaItem.fromUri(url)
     }
 
     // Set MediaSource to ExoPlayer
@@ -107,8 +115,8 @@ fun MediaPlayerView(
                 }
             },
             modifier = Modifier
-                .wrapContentSize()
-                .aspectRatio(if (videoRatio > 0f) videoRatio else 16f / 9)
+                .fillMaxHeight()
+                .width(with(density) { widthPx.toDp() })
                 .align(Alignment.Center)
         )
     }
