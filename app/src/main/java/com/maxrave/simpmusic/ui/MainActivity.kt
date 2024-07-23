@@ -29,6 +29,7 @@ import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.findNavController
@@ -271,6 +272,9 @@ class MainActivity : AppCompatActivity() {
                     navController?.navigateSafe(R.id.action_global_nowPlayingFragment, bundle)
                 }
             }
+        }
+        if (viewModel.nowPlayingState.value?.mediaItem == MediaItem.EMPTY || viewModel.nowPlayingState.value?.mediaItem == null) {
+            binding.miniplayer.visibility = View.GONE
         }
         binding.root.addOnLayoutChangeListener {
                 v,

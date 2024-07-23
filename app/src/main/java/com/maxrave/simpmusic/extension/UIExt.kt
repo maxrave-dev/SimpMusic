@@ -1,6 +1,11 @@
 package com.maxrave.simpmusic.extension
 
+import android.app.Activity
 import android.content.Context
+import android.content.ContextWrapper
+import android.graphics.Point
+import android.os.Build
+import android.util.Log
 import android.view.View
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -30,9 +35,9 @@ import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.graphics.ColorUtils
 import com.kmpalette.palette.graphics.Palette
@@ -46,7 +51,6 @@ import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.hypot
 import kotlin.math.max
-import kotlin.math.roundToInt
 import kotlin.math.sin
 import kotlin.random.Random
 
@@ -249,18 +253,44 @@ enum class GradientAngle {
     CW0, CW45, CW90, CW135, CW180, CW225, CW270, CW315
 }
 
+fun Context.getActivityOrNull(): Activity? {
+    var context = this
+    while (context is ContextWrapper) {
+        if (context is Activity) return context
+        context = context.baseContext
+    }
+
+    return null
+}
+
 @Composable
 fun getScreenSizeInfo(): ScreenSizeInfo {
+    val context = LocalContext.current
+    val activity = context.getActivityOrNull()
     val configuration = LocalConfiguration.current
     val localDensity = LocalDensity.current
 
     return remember(configuration) {
-        ScreenSizeInfo(
-            hDP = configuration.screenHeightDp,
-            wDP = configuration.screenWidthDp,
-            hPX = with(localDensity) { configuration.screenHeightDp.dp.toPx().roundToInt() },
-            wPX = with(localDensity) { configuration.screenWidthDp.dp.toPx().roundToInt() },
-        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val windowMetrics = activity?.windowManager?.currentWindowMetrics
+            Log.w("getScreenSizeInfo", "WindowMetrics: ${windowMetrics?.bounds?.height()}")
+            ScreenSizeInfo(
+                hDP = with(localDensity) { (windowMetrics?.bounds?.height())?.toDp()?.value?.toInt() ?: 0 },
+                wDP = with(localDensity) { (windowMetrics?.bounds?.height())?.toDp()?.value?.toInt() ?: 0 },
+                hPX = windowMetrics?.bounds?.height() ?: 0,
+                wPX = windowMetrics?.bounds?.width() ?: 0
+            )
+        } else {
+            val point = Point()
+            activity?.windowManager?.defaultDisplay?.getRealSize(point)
+            Log.w("getScreenSizeInfo", "WindowMetrics: ${point.y}")
+            ScreenSizeInfo(
+                hDP = with(localDensity) { point.y.toDp().value.toInt() },
+                wDP = with(localDensity) { point.x.toDp().value.toInt() },
+                hPX = point.y,
+                wPX = point.x
+            )
+        }
     }
 }
 
