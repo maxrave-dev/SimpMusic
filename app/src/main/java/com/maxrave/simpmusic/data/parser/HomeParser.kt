@@ -28,24 +28,26 @@ fun parseMixedContent(data: List<SectionListRenderer.Content>?, context: Context
             if (results != null) {
                 val title = results.header?.runs?.get(0)?.text ?: ""
                 val content = results.description.runs?.get(0)?.text ?: ""
-                list.add(
-                    HomeItem(
-                        contents = listOf(
-                            Content(
-                                album = null,
-                                artists = listOf(),
-                                description = content,
-                                isExplicit = null,
-                                playlistId = null,
-                                browseId = null,
-                                thumbnails = listOf(),
-                                title = content,
-                                videoId = null,
-                                views = null
-                            )
-                        ), title = title
+                if (title.isNotEmpty()) {
+                    list.add(
+                        HomeItem(
+                            contents = listOf(
+                                Content(
+                                    album = null,
+                                    artists = listOf(),
+                                    description = content,
+                                    isExplicit = null,
+                                    playlistId = null,
+                                    browseId = null,
+                                    thumbnails = listOf(),
+                                    title = content,
+                                    videoId = null,
+                                    views = null
+                                )
+                            ), title = title
+                        )
                     )
-                )
+                }
             } else {
                 val results1 = row.musicCarouselShelfRenderer
                 Log.w("parse_mixed_content", results1.toString())
