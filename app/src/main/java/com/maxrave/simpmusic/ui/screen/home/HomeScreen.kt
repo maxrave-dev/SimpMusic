@@ -9,6 +9,9 @@ import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider
+import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,6 +26,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -38,6 +42,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,7 +50,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -86,6 +93,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
+@ExperimentalFoundationApi
 @UnstableApi
 @Composable
 fun HomeScreen(
@@ -415,15 +423,27 @@ fun AccountLayout(
     }
 }
 
-@androidx.annotation.OptIn(UnstableApi::class)
+@UnstableApi
+@ExperimentalFoundationApi
 @Composable
 fun QuickPicks(
     homeItem: HomeItem,
     sharedViewModel: SharedViewModel,
 ) {
+    val lazyListState = rememberLazyGridState()
+    val snapperFlingBehavior = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyGridState = lazyListState))
+    val density = LocalDensity.current
+    var widthDp by remember {
+        mutableStateOf(0.dp)
+    }
     Column(
         Modifier
-            .padding(vertical = 8.dp),
+            .padding(vertical = 8.dp)
+            .onGloballyPositioned { coordinates ->
+                with(density) {
+                    widthDp = (coordinates.size.width).toDp()
+                }
+            },
     ) {
         Text(
             text = stringResource(id = R.string.let_s_start_with_a_radio),
@@ -438,7 +458,12 @@ fun QuickPicks(
                 .fillMaxWidth()
                 .padding(vertical = 5.dp),
         )
-        LazyHorizontalGrid(rows = GridCells.Fixed(3), modifier = Modifier.height(210.dp)) {
+        LazyHorizontalGrid(
+            rows = GridCells.Fixed(4),
+            modifier = Modifier.height(280.dp),
+            state = lazyListState,
+            flingBehavior = snapperFlingBehavior,
+        ) {
             items(homeItem.contents) {
                 if (it != null) {
                     QuickPicksItem(onClick = {
@@ -458,18 +483,29 @@ fun QuickPicks(
                             from = "\"${it.title}\" Radio",
                             type = Config.SONG_CLICK,
                         )
-                    }, data = it)
+                    },
+                        data = it,
+                        widthDp = widthDp,
+                    )
                 }
             }
         }
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MoodMomentAndGenre(
     mood: Mood,
     navController: NavController,
 ) {
+
+    val lazyListState1 = rememberLazyGridState()
+    val snapperFlingBehavior1 = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyGridState = lazyListState1))
+
+    val lazyListState2 = rememberLazyGridState()
+    val snapperFlingBehavior2 = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyGridState = lazyListState2))
+
     Column(
         Modifier
             .padding(vertical = 8.dp),
@@ -487,7 +523,12 @@ fun MoodMomentAndGenre(
                 .fillMaxWidth()
                 .padding(vertical = 5.dp),
         )
-        LazyHorizontalGrid(rows = GridCells.Fixed(3), modifier = Modifier.height(210.dp)) {
+        LazyHorizontalGrid(
+            rows = GridCells.Fixed(3),
+            modifier = Modifier.height(210.dp),
+            state = lazyListState1,
+            flingBehavior = snapperFlingBehavior1,
+        ) {
             items(mood.moodsMoments) {
                 MoodMomentAndGenreHomeItem(title = it.title) {
                     navController.navigateSafe(
@@ -508,7 +549,11 @@ fun MoodMomentAndGenre(
                 .fillMaxWidth()
                 .padding(vertical = 5.dp),
         )
-        LazyHorizontalGrid(rows = GridCells.Fixed(3), modifier = Modifier.height(210.dp)) {
+        LazyHorizontalGrid(
+            rows = GridCells.Fixed(3), modifier = Modifier.height(210.dp),
+            state = lazyListState2,
+            flingBehavior = snapperFlingBehavior2,
+        ) {
             items(mood.genres) {
                 MoodMomentAndGenreHomeItem(title = it.title) {
                     navController.navigateSafe(
@@ -542,6 +587,7 @@ fun ChartTitle() {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @UnstableApi
 @Composable
 fun ChartData(
@@ -550,7 +596,30 @@ fun ChartData(
     navController: NavController,
     context: Context,
 ) {
-    Column {
+    var gridWidthDp by remember {
+        mutableStateOf(0.dp)
+    }
+    val density = LocalDensity.current
+
+    val lazyListState = rememberLazyListState()
+    val snapperFlingBehavior = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyListState = lazyListState))
+
+    val lazyListState1 = rememberLazyGridState()
+    val snapperFlingBehavior1 = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyGridState = lazyListState1))
+
+    val lazyListState2 = rememberLazyGridState()
+    val snapperFlingBehavior2 = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyGridState = lazyListState2))
+
+    val lazyListState3 = rememberLazyGridState()
+    val snapperFlingBehavior3 = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyGridState = lazyListState3))
+
+    Column(
+        Modifier.onGloballyPositioned { coordinates ->
+            with(density) {
+                gridWidthDp = (coordinates.size.width).toDp()
+            }
+        }
+    ) {
         AnimatedVisibility(
             visible = !chart.songs.isNullOrEmpty(),
             enter = fadeIn(animationSpec = tween(2000)),
@@ -570,6 +639,8 @@ fun ChartData(
                     LazyHorizontalGrid(
                         rows = GridCells.Fixed(3),
                         modifier = Modifier.height(210.dp),
+                        state = lazyListState1,
+                        flingBehavior = snapperFlingBehavior1,
                     ) {
                         items(chart.songs.size) {
                             val data = chart.songs[it]
@@ -589,7 +660,7 @@ fun ChartData(
                                     from = "\"${data.title}\" ${context.getString(R.string.in_charts)}",
                                     type = Config.VIDEO_CLICK,
                                 )
-                            }, data = data, position = it + 1)
+                            }, data = data, position = it + 1, widthDp = gridWidthDp)
                         }
                     }
                 }
@@ -604,7 +675,10 @@ fun ChartData(
                 .fillMaxWidth()
                 .padding(vertical = 10.dp),
         )
-        LazyRow {
+        LazyRow(
+            state = lazyListState,
+            flingBehavior = snapperFlingBehavior
+        ) {
             items(chart.videos.items.size) {
                 val data = chart.videos.items[it]
                 ItemVideoChart(
@@ -640,14 +714,18 @@ fun ChartData(
                 .fillMaxWidth()
                 .padding(vertical = 10.dp),
         )
-        LazyHorizontalGrid(rows = GridCells.Fixed(3), modifier = Modifier.height(240.dp)) {
+        LazyHorizontalGrid(
+            rows = GridCells.Fixed(3), modifier = Modifier.height(240.dp),
+            state = lazyListState2,
+            flingBehavior = snapperFlingBehavior2,
+        ) {
             items(chart.artists.itemArtists.size) {
                 val data = chart.artists.itemArtists[it]
                 ItemArtistChart(onClick = {
                     val args = Bundle()
                     args.putString("channelId", data.browseId)
                     navController.navigateSafe(R.id.action_global_artistFragment, args)
-                }, data = data, context = context)
+                }, data = data, context = context, widthDp = gridWidthDp)
             }
         }
         AnimatedVisibility(visible = !chart.trending.isNullOrEmpty()) {
@@ -665,6 +743,8 @@ fun ChartData(
                     LazyHorizontalGrid(
                         rows = GridCells.Fixed(3),
                         modifier = Modifier.height(210.dp),
+                        state = lazyListState3,
+                        flingBehavior = snapperFlingBehavior3,
                     ) {
                         items(chart.trending.size) {
                             val data = chart.trending[it]
@@ -684,7 +764,7 @@ fun ChartData(
                                     from = "\"${data.title}\" ${context.getString(R.string.in_charts)}",
                                     type = Config.VIDEO_CLICK,
                                 )
-                            }, data = data, position = null)
+                            }, data = data, position = null, widthDp = gridWidthDp)
                         }
                     }
                 }

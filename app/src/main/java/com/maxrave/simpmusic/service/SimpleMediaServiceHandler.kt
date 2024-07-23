@@ -51,7 +51,6 @@ import com.maxrave.simpmusic.ui.widget.BasicWidget
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.FilterState
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -390,7 +389,6 @@ class SimpleMediaServiceHandler(
                     stopProgressUpdate()
                 } else {
                     player.play()
-                    _simpleMediaState.value = SimpleMediaState.Playing(isPlaying = true)
                     startProgressUpdate()
                 }
             }
@@ -540,18 +538,31 @@ class SimpleMediaServiceHandler(
         updateNotification()
     }
 
-    @SuppressLint("SwitchIntDef")
     override fun onPlaybackStateChanged(playbackState: Int) {
+        super.onPlaybackStateChanged(playbackState)
         when (playbackState) {
-            ExoPlayer.STATE_IDLE -> _simpleMediaState.value = SimpleMediaState.Initial
-            ExoPlayer.STATE_ENDED -> _simpleMediaState.value = SimpleMediaState.Ended
-            ExoPlayer.STATE_BUFFERING ->
+            Player.STATE_IDLE -> {
+                _simpleMediaState.value = SimpleMediaState.Initial
+                Log.d(TAG, "onPlaybackStateChanged: Idle")
+            }
+            Player.STATE_ENDED -> {
+                _simpleMediaState.value = SimpleMediaState.Ended
+                Log.d(TAG, "onPlaybackStateChanged: Ended")
+            }
+            Player.STATE_BUFFERING -> {
+                _simpleMediaState.value = SimpleMediaState.Buffering(player.currentPosition)
+                Log.d(TAG, "onPlaybackStateChanged: Buffering")
+            }
+            Player.STATE_READY -> {
+                Log.d(TAG, "onPlaybackStateChanged: Ready")
+                _simpleMediaState.value = SimpleMediaState.Ready(player.duration)
+
+            }
+            else -> {
+                Log.d(TAG, "onPlaybackStateChanged: $playbackState")
                 _simpleMediaState.value =
                     SimpleMediaState.Buffering(player.currentPosition)
-
-            ExoPlayer.STATE_READY ->
-                _simpleMediaState.value =
-                    SimpleMediaState.Ready(player.duration)
+            }
         }
     }
 
@@ -579,7 +590,6 @@ class SimpleMediaServiceHandler(
     }
 
     override fun onIsPlayingChanged(isPlaying: Boolean) {
-        _simpleMediaState.value = SimpleMediaState.Playing(isPlaying = isPlaying)
         _controlState.value = _controlState.value.copy(isPlaying = isPlaying)
         basicWidget.updatePlayingState(
             context,
@@ -719,7 +729,6 @@ class SimpleMediaServiceHandler(
 
     private fun stopProgressUpdate() {
         job?.cancel()
-        _simpleMediaState.value = SimpleMediaState.Playing(isPlaying = false)
     }
 
     private fun stopBufferedUpdate() {
@@ -728,7 +737,6 @@ class SimpleMediaServiceHandler(
             SimpleMediaState.Loading(player.bufferedPercentage, player.duration)
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     override fun onIsLoadingChanged(isLoading: Boolean) {
         super.onIsLoadingChanged(isLoading)
         _simpleMediaState.value =
@@ -1582,8 +1590,6 @@ sealed class SimpleMediaState {
     data class Progress(val progress: Long) : SimpleMediaState()
 
     data class Buffering(val position: Long) : SimpleMediaState()
-
-    data class Playing(val isPlaying: Boolean) : SimpleMediaState()
 }
 
 data class NowPlayingTrackState(

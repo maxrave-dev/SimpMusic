@@ -19,6 +19,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.viewinterop.AndroidView
@@ -106,7 +107,7 @@ fun MediaPlayerView(
     }
 
     // Use AndroidView to embed an Android View (PlayerView) into Compose
-    Box(modifier = modifier) {
+    Box(modifier = modifier.graphicsLayer { clip = true }) {
         AndroidView(
             factory = { ctx ->
                 TextureView(ctx).also {

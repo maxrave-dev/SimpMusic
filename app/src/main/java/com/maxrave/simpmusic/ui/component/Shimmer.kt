@@ -159,7 +159,7 @@ fun QuickPicksShimmer() {
                 .shimmer()
         )
         LazyColumn(userScrollEnabled = false) {
-            items(3) {
+            items(4) {
                 QuickPicksShimmerItem()
             }
         }

@@ -47,7 +47,6 @@ import com.maxrave.simpmusic.data.db.entities.SongInfoEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.metadata.Line
 import com.maxrave.simpmusic.data.model.metadata.Lyrics
-import com.maxrave.simpmusic.data.model.metadata.MetadataSong
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.di.DownloadCache
 import com.maxrave.simpmusic.extension.isSong
@@ -133,14 +132,8 @@ constructor(
     var videoId = MutableLiveData<String>()
 
     var gradientDrawable: MutableLiveData<GradientDrawable> = MutableLiveData()
-    private var _metadata = MutableLiveData<Resource<MetadataSong>>()
-    val metadata: LiveData<Resource<MetadataSong>> = _metadata
-
-    private val _duration = MutableStateFlow<Long>(0L)
-    val duration: SharedFlow<Long> = _duration.asSharedFlow()
 
     var isPlaying = MutableStateFlow<Boolean>(false)
-    var notReady = MutableLiveData<Boolean>(true)
 
     var _lyrics = MutableStateFlow<Resource<Lyrics>?>(null)
 
@@ -187,9 +180,6 @@ constructor(
 
     var isFullScreen: Boolean = false
     var isSubtitle: Boolean = true
-
-    private var  _mediaState = MutableStateFlow<SimpleMediaState>(SimpleMediaState.Initial)
-    val mediaState: StateFlow<SimpleMediaState> = _mediaState
 
     private var _nowPlayingState = MutableStateFlow<NowPlayingTrackState?>(null)
     val nowPlayingState: StateFlow<NowPlayingTrackState?> = _nowPlayingState
@@ -341,11 +331,9 @@ constructor(
         viewModelScope.launch {
             val job1 =
                 launch {
-                    handler.simpleMediaState.collectLatest { mediaState ->
-                        _mediaState.value = mediaState
+                    handler.simpleMediaState.collect { mediaState ->
                         when (mediaState) {
                             is SimpleMediaState.Buffering -> {
-                                notReady.value = true
                                 _timeline.update {
                                     it.copy(
                                         loading = true
@@ -357,37 +345,36 @@ constructor(
                                 _timeline.update { it.copy(loading = true) }
                             }
                             SimpleMediaState.Ended -> {
-                                Log.d("Check lại videoId", videoId.value.toString())
                                 _timeline.update {
                                     it.copy(
                                         current = -1L,
                                         total = -1L,
                                         bufferedPercent = 0,
-                                        loading = false
+                                        loading = true
                                     )
                                 }
                             }
 
-                            is SimpleMediaState.Playing -> {
-                                isPlaying.value = mediaState.isPlaying
-                            }
-
                             is SimpleMediaState.Progress -> {
-                                if (_duration.value > 0) {
-                                    notReady.value = false
+                                if (mediaState.progress >= 0L) {
                                     _timeline.update {
                                         it.copy(
                                             current = mediaState.progress
                                         )
                                     }
                                 }
+                                else {
+                                    _timeline.update {
+                                        it.copy(
+                                            loading = true
+                                        )
+                                    }
+                                }
                             }
 
                             is SimpleMediaState.Loading -> {
-                                _duration.value = mediaState.duration
                                 _timeline.update {
                                     it.copy(
-                                        loading = false,
                                         bufferedPercent = mediaState.bufferedPercentage,
                                         total = mediaState.duration
                                     )
@@ -395,8 +382,6 @@ constructor(
                             }
 
                             is SimpleMediaState.Ready -> {
-                                notReady.value = false
-                                _duration.value = mediaState.duration
                                 _timeline.update {
                                     it.copy(
                                         current = simpleMediaServiceHandler!!.getProgress(),
@@ -659,7 +644,7 @@ constructor(
                                 val watchTimeUrl =
                                     _format.value?.playbackTrackingVideostatsWatchtimeUrl
                                 val cpn = _format.value?.cpn
-                                if (second + 20.23f < (duration.first() / 1000).toFloat()) {
+                                if (second + 20.23f < (timeline.total / 1000).toFloat()) {
                                     watchTimeList.add(second + 20.23f)
                                     if (watchTimeUrl != null && cpn != null) {
                                         mainRepository.updateWatchTime(
