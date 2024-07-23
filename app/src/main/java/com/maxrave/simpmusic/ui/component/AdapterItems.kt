@@ -12,6 +12,8 @@ import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider
+import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,6 +29,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CardDefaults
@@ -48,6 +51,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
@@ -77,6 +81,7 @@ import com.skydoves.landscapist.animation.crossfade.CrossfadePlugin
 import com.skydoves.landscapist.coil.CoilImage
 import com.skydoves.landscapist.components.rememberImageComponent
 
+@OptIn(ExperimentalFoundationApi::class)
 @UnstableApi
 @Composable
 fun HomeItem(
@@ -87,6 +92,10 @@ fun HomeItem(
 ) {
     val coroutineScope = rememberCoroutineScope()
     var bottomSheetShow by remember { mutableStateOf(false) }
+
+    val lazyListState = rememberLazyListState()
+    val snapperFlingBehavior = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyListState = lazyListState))
+
     if (bottomSheetShow) {
         NowPlayingBottomSheet(
             isBottomSheetVisible = bottomSheetShow,
@@ -172,7 +181,9 @@ fun HomeItem(
         LazyRow(
             modifier = Modifier.padding(
                 vertical = 15.dp
-            )
+            ),
+            state = lazyListState,
+            flingBehavior = snapperFlingBehavior
         ) {
             items(data.contents) { temp ->
                 if (temp != null) {
@@ -352,12 +363,14 @@ fun HomeItemContentPlaylist(
 @Composable
 fun QuickPicksItem(
     onClick: () -> Unit,
+    widthDp: Dp,
     data: Content
 ) {
     val configuration = LocalConfiguration.current
     Box(
         modifier = Modifier
-            .wrapContentSize()
+            .wrapContentHeight()
+            .width(widthDp)
             .focusable(true)
             .clickable {
                 onClick()
@@ -799,7 +812,8 @@ fun ItemVideoChart(
 fun ItemArtistChart(
     onClick: () -> Unit,
     data: ItemArtist,
-    context: Context
+    context: Context,
+    widthDp: Dp
 ) {
     Box(
         Modifier
@@ -810,7 +824,7 @@ fun ItemArtistChart(
             }
     ) {
         Row(
-            modifier = Modifier.padding(10.dp),
+            modifier = Modifier.padding(10.dp).width(widthDp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
@@ -875,9 +889,9 @@ fun ItemArtistChart(
 fun ItemTrackChart(
     onClick: () -> Unit,
     data: Track,
-    position: Int?
+    position: Int?,
+    widthDp: Dp
 ) {
-    val configuration = LocalConfiguration.current
     Box(
         modifier = Modifier
             .wrapContentSize()
@@ -888,7 +902,7 @@ fun ItemTrackChart(
     ) {
         Row(
             modifier = Modifier
-                .width(configuration.screenWidthDp.dp)
+                .width(widthDp)
                 .padding(10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {

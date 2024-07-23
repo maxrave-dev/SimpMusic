@@ -31,6 +31,7 @@ import com.maxrave.kotlinytmusicscraper.models.response.spotify.SpotifyLyricsRes
 import com.maxrave.kotlinytmusicscraper.models.youtube.Transcript
 import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.SETTINGS_FILENAME
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.LyricsEntity
@@ -507,6 +508,7 @@ fun PlaylistBrowse.toPlaylistEntity(): PlaylistEntity {
         trackCount = this.trackCount,
         tracks = this.tracks.toListVideoId(),
         year = this.year,
+        downloadState = DownloadState.STATE_NOT_DOWNLOADED
     )
 }
 

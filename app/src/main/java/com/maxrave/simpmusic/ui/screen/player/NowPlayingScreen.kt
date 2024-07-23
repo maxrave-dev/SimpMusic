@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -34,6 +35,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -167,6 +169,10 @@ fun NowPlayingScreen(
 
     val shouldShowVideo by sharedViewModel.getVideo.collectAsState()
 
+    LaunchedEffect(key1 = timelineState) {
+        Log.w(TAG, "Loading: ${timelineState.loading}")
+    }
+
     //State
     val mainScrollState = rememberScrollState()
 
@@ -203,37 +209,33 @@ fun NowPlayingScreen(
     }
 
     //Height
-    var topAppBarHeightPx by rememberSaveable {
+    var topAppBarHeightDp by rememberSaveable {
         mutableIntStateOf(0)
     }
-    var middleLayoutHeightPx by rememberSaveable {
+    var middleLayoutHeightDp by rememberSaveable {
         mutableIntStateOf(0)
     }
-    var infoLayoutHeightPx by rememberSaveable {
+    var infoLayoutHeightDp by rememberSaveable {
         mutableIntStateOf(0)
     }
-    var middleLayoutPaddingPx by rememberSaveable {
+    var middleLayoutPaddingDp by rememberSaveable {
         mutableIntStateOf(0)
     }
-    val minimumPaddingPx by rememberSaveable {
+    val minimumPaddingDp by rememberSaveable {
         mutableIntStateOf(
-            with(localDensity) {
-                15.dp.toPx().toInt()
-            }
+            30
         )
     }
     LaunchedEffect(
-        topAppBarHeightPx, screenInfo, infoLayoutHeightPx, minimumPaddingPx
+        topAppBarHeightDp, screenInfo, infoLayoutHeightDp, minimumPaddingDp
     ) {
-        if (topAppBarHeightPx > 0 && middleLayoutHeightPx > 0 && infoLayoutHeightPx > 0) {
-            val result = (screenInfo.hPX - topAppBarHeightPx - middleLayoutHeightPx - infoLayoutHeightPx - minimumPaddingPx) / 2
-            middleLayoutPaddingPx = if (result > minimumPaddingPx) {
+        if (topAppBarHeightDp > 0 && middleLayoutHeightDp > 0 && infoLayoutHeightDp > 0 && screenInfo.hDP > 0) {
+            val result = (screenInfo.hDP - topAppBarHeightDp - middleLayoutHeightDp - infoLayoutHeightDp - minimumPaddingDp) / 2
+            middleLayoutPaddingDp = if (result > minimumPaddingDp) {
                 result
             } else {
-                minimumPaddingPx
+                minimumPaddingDp
             }
-            Log.w(TAG, "MiddleLayoutPadding: $middleLayoutPaddingPx")
-            Log.w(TAG, "Screen Height: ${screenInfo.hPX}")
         }
     }
 
@@ -248,7 +250,6 @@ fun NowPlayingScreen(
         }
     }
     LaunchedEffect(key1 = screenDataState) {
-        Log.w(TAG, "Canvas: ${screenDataState.canvasData}")
         showHideMiddleLayout = screenDataState.canvasData == null
     }
 
@@ -302,7 +303,6 @@ fun NowPlayingScreen(
         snapshotFlow { mainScrollState.value }
             .distinctUntilChanged()
             .collect {
-                Log.w(TAG, "Scroll: ${mainScrollState.value}")
                 if (it > 0 && !showHideControlLayout && screenDataState.canvasData != null) {
                     showHideJob = true
                     showHideControlLayout = true
@@ -408,7 +408,6 @@ fun NowPlayingScreen(
             navController = navController
         ) {
             showFullscreenLyrics = false
-            Log.w(TAG, "ShowFullscreenLyrics: $showFullscreenLyrics")
         }
     }
 
@@ -452,7 +451,8 @@ fun NowPlayingScreen(
                         screenDataState.canvasData?.url?.let {
                             MediaPlayerView(
                                 url = it, modifier = Modifier
-                                    .fillMaxSize()
+                                    .fillMaxHeight()
+                                    .wrapContentWidth(unbounded = true, align = Alignment.CenterHorizontally)
                             )
                         }
                     } else if (isVideo == false) {
@@ -467,7 +467,6 @@ fun NowPlayingScreen(
                 Crossfade(
                     targetState = (screenDataState.canvasData != null && showHideControlLayout),
                     modifier = Modifier
-                        .fillMaxWidth()
                         .fillMaxSize()
                         .align(
                             Alignment.BottomCenter
@@ -495,7 +494,7 @@ fun NowPlayingScreen(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .onGloballyPositioned {
-                        topAppBarHeightPx = it.size.height
+                        topAppBarHeightDp = with(localDensity) { it.size.height.toDp().value.toInt() }
                     },
                 colors = TopAppBarDefaults.topAppBarColors().copy(
                     containerColor = Color.Transparent
@@ -550,7 +549,7 @@ fun NowPlayingScreen(
             )
             Column {
                 Spacer(modifier = Modifier.height(
-                    with(localDensity) { topAppBarHeightPx.toDp() }
+                    topAppBarHeightDp.dp
                 )
                 )
                 Box {
@@ -561,7 +560,7 @@ fun NowPlayingScreen(
                         Spacer(modifier = Modifier
                             .animateContentSize()
                             .height(
-                                with(localDensity) { middleLayoutPaddingPx.toDp() }
+                                middleLayoutPaddingDp.dp
                             )
                             .fillMaxWidth()
                         )
@@ -571,7 +570,7 @@ fun NowPlayingScreen(
                             .fillMaxWidth()
                             .padding(horizontal = 40.dp)
                             .onGloballyPositioned {
-                                middleLayoutHeightPx = it.size.height
+                                middleLayoutHeightDp = with(localDensity) { it.size.height.toDp().value.toInt() }
                             }
                             .alpha(
                                 if (showHideMiddleLayout) 1f else 0f
@@ -740,7 +739,7 @@ fun NowPlayingScreen(
                         Spacer(modifier = Modifier
                             .animateContentSize()
                             .height(
-                                with(localDensity) { middleLayoutPaddingPx.toDp() }
+                                middleLayoutPaddingDp.dp
                             )
                             .fillMaxWidth()
                         )
@@ -751,8 +750,7 @@ fun NowPlayingScreen(
                                 Modifier
                                     .alpha(controlLayoutAlpha)
                                     .onGloballyPositioned {
-                                        Log.w(TAG, "InfoLayout: ${with(localDensity) { it.size.height.toDp() }}")
-                                        infoLayoutHeightPx = it.size.height
+                                        infoLayoutHeightDp = with(localDensity) { it.size.height.toDp().value.toInt() }
                                     }
                             )
                             {
@@ -1144,9 +1142,7 @@ fun NowPlayingScreen(
                                 Box(
                                     modifier = Modifier
                                         .height(
-                                            with(localDensity) {
-                                                infoLayoutHeightPx.toDp()
-                                            }
+                                            infoLayoutHeightDp.dp
                                         )
                                         .fillMaxWidth()
                                         .padding(
@@ -1203,9 +1199,7 @@ fun NowPlayingScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(
-                                    with(localDensity) {
-                                        (middleLayoutPaddingPx * 2 + middleLayoutHeightPx).toDp()
-                                    }
+                                    (middleLayoutPaddingDp * 2 + middleLayoutHeightDp).dp
                                 )
                                 .clickable(
                                     onClick = {
@@ -1407,7 +1401,7 @@ fun NowPlayingScreen(
                                 )
                                 Spacer(modifier = Modifier.height(10.dp))
                                 Text(
-                                    text = stringResource(id = R.string.view_count, String.format("%,d", screenDataState.songInfoData?.viewCount)),
+                                    text = stringResource(id = R.string.view_count, String.format(java.util.Locale.getDefault(), "%,d", screenDataState.songInfoData?.viewCount)),
                                     style = typo.labelMedium,
                                     color = Color.White,
                                 )

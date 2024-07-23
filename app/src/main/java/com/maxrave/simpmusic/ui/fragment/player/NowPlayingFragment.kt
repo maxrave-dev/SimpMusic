@@ -161,6 +161,8 @@ class NowPlayingFragment : Fragment() {
 
         composeView.apply {
             setContent {
+                val activity = requireActivity()
+                activity.window.navigationBarColor = Color.TRANSPARENT
                 AppTheme {
                     Scaffold { paddingValues ->
                         NowPlayingScreen(sharedViewModel = viewModel, navController = findNavController())
