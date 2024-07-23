@@ -4,6 +4,8 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
@@ -19,6 +21,8 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 @UnstableApi
+@ExperimentalFoundationApi
+@ExperimentalMaterial3Api
 class HomeFragment : Fragment() {
     private val viewModel by viewModels<HomeViewModel>()
     private val sharedViewModel by activityViewModels<SharedViewModel>()
