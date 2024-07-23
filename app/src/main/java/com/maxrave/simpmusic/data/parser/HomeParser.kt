@@ -347,15 +347,17 @@ fun parseMixedContent(data: List<SectionListRenderer.Content>?, context: Context
                         }
                     }
                 }
-                list.add(
-                    HomeItem(
-                        contents = listContent,
-                        title = title,
-                        subtitle = subtitle,
-                        thumbnail = thumbnail,
-                        channelId = if (artistChannelId?.contains("UC") == true) artistChannelId else null
+                if (title.isNotEmpty()) {
+                    list.add(
+                        HomeItem(
+                            contents = listContent,
+                            title = title,
+                            subtitle = subtitle,
+                            thumbnail = thumbnail,
+                            channelId = if (artistChannelId?.contains("UC") == true) artistChannelId else null
+                        )
                     )
-                )
+                }
                 Log.w("parse_mixed_content", list.toString())
             }
         }
