@@ -120,8 +120,7 @@ class FavoriteFragment : Fragment() {
                 sharedViewModel.loadMediaItemFromTrack(
                     firstQueue,
                     Config.PLAYLIST_CLICK,
-                    position,
-                    getString(R.string.favorite)
+                    position
                 )
             }
 

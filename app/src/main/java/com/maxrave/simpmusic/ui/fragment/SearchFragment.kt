@@ -351,8 +351,7 @@ class SearchFragment : Fragment() {
                     )
                     sharedViewModel.loadMediaItemFromTrack(
                         firstQueue,
-                        type = Config.SONG_CLICK,
-                        from = "\"${binding.svSearch.query}\" ${getString(R.string.in_search)}"
+                        type = Config.SONG_CLICK
                     )
                 }
                 if (type == Config.VIDEO_CLICK) {
@@ -371,8 +370,7 @@ class SearchFragment : Fragment() {
                     )
                     sharedViewModel.loadMediaItemFromTrack(
                         firstQueue,
-                        type = Config.VIDEO_CLICK,
-                        from = "\"${binding.svSearch.query}\" ${getString(R.string.in_search)}"
+                        type = Config.VIDEO_CLICK
                     )
                 }
             }
@@ -420,8 +418,7 @@ class SearchFragment : Fragment() {
                     )
                     sharedViewModel.loadMediaItemFromTrack(
                         songClicked.toTrack(),
-                        type = Config.SONG_CLICK,
-                        from = "\"${binding.svSearch.query}\" ${getString(R.string.in_search)}"
+                        type = Config.SONG_CLICK
                     )
                 }
                 if (type == Config.VIDEO_CLICK) {
@@ -440,8 +437,7 @@ class SearchFragment : Fragment() {
                     )
                     sharedViewModel.loadMediaItemFromTrack(
                         firstQueue,
-                        type = Config.VIDEO_CLICK,
-                        from = "\"${binding.svSearch.query}\" ${getString(R.string.in_search)}"
+                        type = Config.VIDEO_CLICK
                     )
                 }
             }

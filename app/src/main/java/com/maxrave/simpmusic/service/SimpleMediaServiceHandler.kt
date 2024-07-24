@@ -27,13 +27,17 @@ import androidx.media3.session.MediaSession
 import androidx.media3.session.SessionCommand
 import coil.ImageLoader
 import coil.request.ImageRequest
+import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.ASC
 import com.maxrave.simpmusic.common.DESC
 import com.maxrave.simpmusic.common.LOCAL_PLAYLIST_ID
 import com.maxrave.simpmusic.common.LOCAL_PLAYLIST_ID_SAVED_QUEUE
 import com.maxrave.simpmusic.common.MEDIA_CUSTOM_COMMAND
+import com.maxrave.simpmusic.common.SPONSOR_BLOCK
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
+import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.TRUE
+import com.maxrave.simpmusic.data.db.entities.NewFormatEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
@@ -55,6 +59,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.cancellable
@@ -130,6 +135,17 @@ class SimpleMediaServiceHandler(
     private var _sleepTimerState = MutableStateFlow<SleepTimerState>(SleepTimerState(false, 0))
     val sleepTimerState = _sleepTimerState.asStateFlow()
 
+    // SponsorBlock
+    private var _skipSegments: MutableStateFlow<List<SkipSegments>?> = MutableStateFlow(null)
+    val skipSegments: StateFlow<List<SkipSegments>?> = _skipSegments
+
+    private var getSkipSegmentsJob : Job? = null
+
+    private var _format: MutableStateFlow<NewFormatEntity?> = MutableStateFlow(null)
+    val format: StateFlow<NewFormatEntity?> = _format
+
+    private var getFormatJob : Job? = null
+
     private var skipSilent = false
 
     private var normalizeVolume = false
@@ -144,6 +160,11 @@ class SimpleMediaServiceHandler(
 
     private var songEntityJob: Job? = null
 
+    private var watchTimeList: ArrayList<Float> = arrayListOf()
+
+    private var jobWatchtime: Job? = null
+
+
     init {
         player.addListener(this)
         job = Job()
@@ -154,16 +175,19 @@ class SimpleMediaServiceHandler(
         loadJob = Job()
         songEntityJob = Job()
         downloadImageForWidgetJob = Job()
-        skipSilent = runBlocking { dataStoreManager.skipSilent.first() == DataStoreManager.TRUE }
+        getSkipSegmentsJob = Job()
+        getFormatJob = Job()
+        jobWatchtime = Job()
+        skipSilent = runBlocking { dataStoreManager.skipSilent.first() == TRUE }
         normalizeVolume =
-            runBlocking { dataStoreManager.normalizeVolume.first() == DataStoreManager.TRUE }
-        if (runBlocking { dataStoreManager.saveStateOfPlayback.first() } == DataStoreManager.TRUE) {
+            runBlocking { dataStoreManager.normalizeVolume.first() == TRUE }
+        if (runBlocking { dataStoreManager.saveStateOfPlayback.first() } == TRUE) {
             Log.d("CHECK INIT", "TRUE")
             val shuffleKey = runBlocking { dataStoreManager.shuffleKey.first() }
             val repeatKey = runBlocking { dataStoreManager.repeatKey.first() }
             Log.d("CHECK INIT", "Shuffle: $shuffleKey")
             Log.d("CHECK INIT", "Repeat: $repeatKey")
-            player.shuffleModeEnabled = shuffleKey == DataStoreManager.TRUE
+            player.shuffleModeEnabled = shuffleKey == TRUE
             player.repeatMode =
                 when (repeatKey) {
                     DataStoreManager.REPEAT_ONE -> Player.REPEAT_MODE_ONE
@@ -179,7 +203,71 @@ class SimpleMediaServiceHandler(
             toggleLike = ::toggleLike
         }
         mayBeRestoreQueue()
+        coroutineScope.launch {
+            val skipSegmentsJob = launch {
+                simpleMediaState.collect { state ->
+                    if (state is SimpleMediaState.Progress && dataStoreManager.sponsorBlockEnabled.first() == TRUE) {
+                        val progress = (state.progress / player.duration).toFloat()
+                        if (player.duration > 0L) {
+                            val skipSegments = skipSegments.value
+                            val listCategory = dataStoreManager.getSponsorBlockCategories()
+                            if (skipSegments != null) {
+                                for (skip in skipSegments) {
+                                    if (listCategory.contains(skip.category)) {
+                                        val firstPart = (skip.segment[0] / skip.videoDuration).toFloat()
+                                        val secondPart =
+                                            (skip.segment[1] / skip.videoDuration).toFloat()
+                                        if (progress in firstPart..secondPart) {
+                                            Log.w(
+                                                "Seek to",
+                                                (skip.segment[1] / skip.videoDuration).toFloat()
+                                                    .toString(),
+                                            )
+                                            skipSegment((skip.segment[1] * 1000).toLong())
+                                            Toast.makeText(
+                                                context,
+                                                context.getString(
+                                                    R.string.sponsorblock_skip_segment,
+                                                    context.getString(
+                                                        SPONSOR_BLOCK.listName.get(
+                                                            SPONSOR_BLOCK.list.indexOf(skip.category),
+                                                        ),
+                                                    ).lowercase(),
+                                                ),
+                                                Toast.LENGTH_SHORT,
+                                            ).show()
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            val playbackJob =
+                    launch {
+                        format.collectLatest { formatTemp ->
+                            if (dataStoreManager.sendBackToGoogle.first() == TRUE) {
+                                if (formatTemp != null) {
+                                    println("format in viewModel: $formatTemp")
+                                    Log.d(TAG, "Collect format ${formatTemp.videoId}")
+                                    Log.w(TAG, "Format expire at ${formatTemp.expiredTime}")
+                                    Log.i(TAG, "AtrUrl ${formatTemp.playbackTrackingAtrUrl}")
+                                    initPlayback(
+                                        formatTemp.playbackTrackingVideostatsPlaybackUrl,
+                                        formatTemp.playbackTrackingAtrUrl,
+                                        formatTemp.playbackTrackingVideostatsWatchtimeUrl,
+                                        formatTemp.cpn,
+                                    )
+                                }
+                            }
+                        }
+            }
+            skipSegmentsJob.join()
+            playbackJob.join()
+        }
     }
+
     private var getDataOfNowPlayingTrackStateJob: Job? = null
     private fun getDataOfNowPlayingState(mediaItem: MediaItem) {
         val videoId = if (mediaItem.isVideo()) {
@@ -195,6 +283,8 @@ class SimpleMediaServiceHandler(
             )
         }
         updateWidget(mediaItem)
+        _format.value = null
+        _skipSegments.value = null
         getDataOfNowPlayingTrackStateJob?.cancel()
         getDataOfNowPlayingTrackStateJob = coroutineScope.launch {
             Log.w(TAG, "getDataOfNowPlayingState: $videoId")
@@ -233,6 +323,113 @@ class SimpleMediaServiceHandler(
                     }
                 }
             }
+            if (dataStoreManager.sponsorBlockEnabled.first() == TRUE){ getSkipSegments(videoId) }
+            if (dataStoreManager.sendBackToGoogle.first() == TRUE){ getFormat(videoId) }
+        }
+    }
+
+    private fun getSkipSegments(videoId: String) {
+        _skipSegments.value = null
+        coroutineScope.launch {
+            mainRepository.getSkipSegments(videoId).collect { segments ->
+                if (segments != null) {
+                    Log.w("Check segments $videoId", segments.toString())
+                    _skipSegments.value = segments
+                } else {
+                    _skipSegments.value = null
+                }
+            }
+        }
+    }
+
+    private fun getFormat(mediaId: String?) {
+        getFormatJob?.cancel()
+        getFormatJob = coroutineScope.launch {
+            if (mediaId != null) {
+                mainRepository.getFormatFlow(mediaId).cancellable().collectLatest { f ->
+                    Log.w(TAG, "Get format for "+ mediaId.toString() + ": " +f.toString())
+                    if (f != null) {
+                        _format.emit(f)
+                    } else {
+                        _format.emit(null)
+                    }
+                }
+            }
+        }
+    }
+
+    private fun initPlayback(
+        playback: String?,
+        atr: String?,
+        watchTime: String?,
+        cpn: String?,
+    ) {
+        jobWatchtime?.cancel()
+        coroutineScope.launch {
+            if (playback != null && atr != null && watchTime != null && cpn != null) {
+                watchTimeList.clear()
+                mainRepository.initPlayback(playback, atr, watchTime, cpn, queueData.value?.playlistId)
+                    .collect {
+                        if (it.first == 204) {
+                            Log.d("Check initPlayback", "Success")
+                            watchTimeList.add(0f)
+                            watchTimeList.add(5.54f)
+                            watchTimeList.add(it.second)
+                            updateWatchTime()
+                        }
+                    }
+            }
+        }
+    }
+
+    private fun updateWatchTime() {
+        coroutineScope.launch {
+            jobWatchtime =
+                launch {
+                    simpleMediaState.collect { state ->
+                        if (state is SimpleMediaState.Progress){
+                            val value = state.progress
+                            if (value > 0 && watchTimeList.isNotEmpty()) {
+                                val second = (value / 1000).toFloat()
+                                if (second in watchTimeList.last()..watchTimeList.last() + 1.2f) {
+                                    val watchTimeUrl =
+                                        _format.value?.playbackTrackingVideostatsWatchtimeUrl
+                                    val cpn = _format.value?.cpn
+                                    if (second + 20.23f < (player.duration / 1000).toFloat()) {
+                                        watchTimeList.add(second + 20.23f)
+                                        if (watchTimeUrl != null && cpn != null) {
+                                            mainRepository.updateWatchTime(
+                                                watchTimeUrl,
+                                                watchTimeList,
+                                                cpn,
+                                                queueData.value?.playlistId
+                                            ).collect { response ->
+                                                if (response == 204) {
+                                                    Log.d("Check updateWatchTime", "Success")
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        watchTimeList.clear()
+                                        if (watchTimeUrl != null && cpn != null) {
+                                            mainRepository.updateWatchTimeFull(
+                                                watchTimeUrl,
+                                                cpn,
+                                                queueData.value?.playlistId
+                                            ).collect { response ->
+                                                if (response == 204) {
+                                                    Log.d("Check updateWatchTimeFull", "Success")
+                                                }
+                                            }
+                                        }
+                                    }
+                                    Log.w("Check updateWatchTime", watchTimeList.toString())
+                                }
+                            }
+                        }
+                    }
+                }
+            jobWatchtime?.join()
         }
     }
 
@@ -752,7 +949,7 @@ class SimpleMediaServiceHandler(
 
     private fun mayBeNormalizeVolume() {
         runBlocking {
-            normalizeVolume = dataStoreManager.normalizeVolume.first() == DataStoreManager.TRUE
+            normalizeVolume = dataStoreManager.normalizeVolume.first() == TRUE
         }
         if (!normalizeVolume) {
             loudnessEnhancer?.enabled = false
@@ -792,13 +989,13 @@ class SimpleMediaServiceHandler(
     }
 
     private fun maybeSkipSilent() {
-        skipSilent = runBlocking { dataStoreManager.skipSilent.first() } == DataStoreManager.TRUE
+        skipSilent = runBlocking { dataStoreManager.skipSilent.first() } == TRUE
         player.skipSilenceEnabled = skipSilent
     }
 
     private fun mayBeRestoreQueue() {
         coroutineScope.launch {
-            if (dataStoreManager.saveRecentSongAndQueue.first() == DataStoreManager.TRUE) {
+            if (dataStoreManager.saveRecentSongAndQueue.first() == TRUE) {
                 val currentPlayingTrack = mainRepository.getSongById(dataStoreManager.recentMediaId.first()).singleOrNull()?.toTrack()
                 if (currentPlayingTrack != null) {
                     val queue = mainRepository.getSavedQueue().singleOrNull()
@@ -884,7 +1081,7 @@ class SimpleMediaServiceHandler(
 
     fun mayBeSaveRecentSong() {
         coroutineScope.launch {
-            if (dataStoreManager.saveRecentSongAndQueue.first() == DataStoreManager.TRUE) {
+            if (dataStoreManager.saveRecentSongAndQueue.first() == TRUE) {
                 dataStoreManager.saveRecentSong(
                     player.currentMediaItem?.mediaId ?: "",
                     player.contentPosition,
@@ -901,7 +1098,7 @@ class SimpleMediaServiceHandler(
     }
 
     fun mayBeSavePlaybackState() {
-        if (runBlocking { dataStoreManager.saveStateOfPlayback.first() } == DataStoreManager.TRUE) {
+        if (runBlocking { dataStoreManager.saveStateOfPlayback.first() } == TRUE) {
             runBlocking {
                 dataStoreManager.recoverShuffleAndRepeatKey(
                     player.shuffleModeEnabled,

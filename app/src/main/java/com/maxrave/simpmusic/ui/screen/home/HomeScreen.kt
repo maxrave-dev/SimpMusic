@@ -480,7 +480,6 @@ fun QuickPicks(
                         )
                         sharedViewModel.loadMediaItemFromTrack(
                             firstQueue,
-                            from = "\"${it.title}\" Radio",
                             type = Config.SONG_CLICK,
                         )
                     },
@@ -657,7 +656,6 @@ fun ChartData(
                                 )
                                 sharedViewModel.loadMediaItemFromTrack(
                                     data,
-                                    from = "\"${data.title}\" ${context.getString(R.string.in_charts)}",
                                     type = Config.VIDEO_CLICK,
                                 )
                             }, data = data, position = it + 1, widthDp = gridWidthDp)
@@ -696,7 +694,6 @@ fun ChartData(
                         )
                         sharedViewModel.loadMediaItemFromTrack(
                             firstQueue,
-                            from = "\"${data.title}\" ${context.getString(R.string.in_charts)}",
                             type = Config.VIDEO_CLICK,
                         )
                     },
@@ -761,7 +758,6 @@ fun ChartData(
                                 )
                                 sharedViewModel.loadMediaItemFromTrack(
                                     data,
-                                    from = "\"${data.title}\" ${context.getString(R.string.in_charts)}",
                                     type = Config.VIDEO_CLICK,
                                 )
                             }, data = data, position = null, widthDp = gridWidthDp)

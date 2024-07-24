@@ -50,6 +50,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.PointerInputChange
@@ -171,6 +172,7 @@ fun MiniPlayer(
             ),
         modifier =
             Modifier
+                .clipToBounds()
                 .fillMaxHeight()
                 .offset { IntOffset(0, offsetY.value.roundToInt()) }
                 .clickable(

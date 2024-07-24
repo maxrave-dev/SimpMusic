@@ -42,7 +42,6 @@ import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.FIRST_TIME_MIGRATION
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
-import com.maxrave.simpmusic.common.SPONSOR_BLOCK
 import com.maxrave.simpmusic.common.STATUS_DONE
 import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.common.SUPPORTED_LOCATION
@@ -60,7 +59,6 @@ import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import okhttp3.CacheControl
@@ -604,46 +602,6 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             }
-            val job1 =
-                launch {
-                    viewModel.timeline.collect { timeline ->
-                        val progress = (timeline.current / timeline.total).toFloat()
-                        if (timeline.total > 0L && !timeline.loading){
-                            val skipSegments = viewModel.skipSegments.first()
-                            val enabled = viewModel.sponsorBlockEnabled()
-                            val listCategory = viewModel.sponsorBlockCategories()
-                            if (skipSegments != null && enabled == DataStoreManager.TRUE) {
-                                for (skip in skipSegments) {
-                                    if (listCategory.contains(skip.category)) {
-                                        val firstPart = (skip.segment[0] / skip.videoDuration).toFloat()
-                                        val secondPart =
-                                            (skip.segment[1] / skip.videoDuration).toFloat()
-                                        if (progress in firstPart..secondPart) {
-                                            Log.w(
-                                                "Seek to",
-                                                (skip.segment[1] / skip.videoDuration).toFloat()
-                                                    .toString(),
-                                            )
-                                            viewModel.skipSegment((skip.segment[1] * 1000).toLong())
-                                            Toast.makeText(
-                                                this@MainActivity,
-                                                getString(
-                                                    R.string.sponsorblock_skip_segment,
-                                                    getString(
-                                                        SPONSOR_BLOCK.listName.get(
-                                                            SPONSOR_BLOCK.list.indexOf(skip.category),
-                                                        ),
-                                                    ).lowercase(),
-                                                ),
-                                                Toast.LENGTH_SHORT,
-                                            ).show()
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
 
             val showHideJob = launch {
                 repeatOnLifecycle(Lifecycle.State.RESUMED) {
@@ -685,7 +643,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
 
-            job1.join()
             miniplayerJob.join()
             showHideJob.join()
             bottomNavBarJob.join()

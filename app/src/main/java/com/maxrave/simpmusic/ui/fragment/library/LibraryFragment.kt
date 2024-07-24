@@ -268,7 +268,6 @@ class LibraryFragment : Fragment() {
                             firstQueue,
                             Config.SONG_CLICK,
                             position,
-                            getString(R.string.recently_added),
                         )
                     }
                 }
