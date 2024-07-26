@@ -10,14 +10,14 @@ plugins {
 
 android {
     namespace = "com.maxrave.simpmusic"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.maxrave.simpmusic"
         minSdk = 26
-        targetSdk = 34
-        versionCode = 18
-        versionName = "0.2.2"
+        targetSdk = 35
+        versionCode = 19
+        versionName = "0.2.3"
         vectorDrawables.useSupportLibrary = true
 
         ksp {

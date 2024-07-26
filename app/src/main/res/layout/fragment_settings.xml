@@ -1435,7 +1435,7 @@
                         android:layout_height="wrap_content"
                         android:textSize="16sp"
                         android:id="@+id/tvPaypal"
-                        android:text="@string/paypal">
+                        android:text="@string/donation">
 
                     </TextView>
 
