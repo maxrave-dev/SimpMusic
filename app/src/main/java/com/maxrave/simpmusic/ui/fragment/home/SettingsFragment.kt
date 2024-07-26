@@ -601,7 +601,7 @@ class SettingsFragment : Fragment() {
         binding.btDonate.setOnClickListener {
             val urlIntent = Intent(
                 Intent.ACTION_VIEW,
-                Uri.parse("https://paypal.me/maxraveofficial")
+                Uri.parse("https://buymeacoffee.com/maxrave")
             )
             startActivity(urlIntent)
         }

@@ -377,7 +377,6 @@ class PlaylistFragment : Fragment() {
                         ?.tracks?.get(0)?.let {
                             sharedViewModel.loadMediaItemFromTrack(
                                 it,
-                                from = "Playlist \"${viewModel.playlistBrowse.value?.title}\"",
                                 type = Config.PLAYLIST_CLICK,
                                 index = 0
                             )
@@ -400,7 +399,6 @@ class PlaylistFragment : Fragment() {
                     viewModel.listTrack.value.firstOrNull()?.let {
                         sharedViewModel.loadMediaItemFromTrack(
                             it.toTrack(),
-                            from = "Playlist \"${viewModel.playlistEntity.value?.title}\"",
                             type = Config.PLAYLIST_CLICK,
                             index = 0
                         )
@@ -431,7 +429,6 @@ class PlaylistFragment : Fragment() {
                     viewModel.playlistBrowse.value?.tracks?.firstOrNull()?.let {
                         sharedViewModel.loadMediaItemFromTrack(
                             it,
-                            from = "${viewModel.playlistBrowse.value?.title}",
                             type = Config.PLAYLIST_CLICK,
                             index = 0
                         )
@@ -456,7 +453,6 @@ class PlaylistFragment : Fragment() {
                     viewModel.listTrack.value.firstOrNull()?.let {
                         sharedViewModel.loadMediaItemFromTrack(
                             it.toTrack(),
-                            from = "${viewModel.playlistBrowse.value?.title}",
                             type = Config.PLAYLIST_CLICK,
                             index = 0
                         )
@@ -494,7 +490,6 @@ class PlaylistFragment : Fragment() {
                                 Log.w(TAG, "track: $it")
                                 sharedViewModel.loadMediaItemFromTrack(
                                     it,
-                                    from = "Playlist \"${viewModel.playlistBrowse.value?.title}\"",
                                     type = Config.PLAYLIST_CLICK,
                                     index = position
                                 )
@@ -518,7 +513,6 @@ class PlaylistFragment : Fragment() {
                                 Log.w(TAG, "track: $it")
                                 sharedViewModel.loadMediaItemFromTrack(
                                     it.toTrack(),
-                                    from = "Playlist \"${viewModel.playlistEntity.value?.title}\"",
                                     type = Config.PLAYLIST_CLICK,
                                     index = position
                                 )
@@ -552,7 +546,6 @@ class PlaylistFragment : Fragment() {
                                 Log.w(TAG, "track: $it")
                                 sharedViewModel.loadMediaItemFromTrack(
                                     it,
-                                    from = "${viewModel.playlistBrowse.value?.title}",
                                     type = Config.PLAYLIST_CLICK,
                                     index = position
                                 )
@@ -579,7 +572,6 @@ class PlaylistFragment : Fragment() {
                                 Log.w(TAG, "track: $it")
                                 sharedViewModel.loadMediaItemFromTrack(
                                     it.toTrack(),
-                                    from = "${viewModel.playlistBrowse.value?.title}",
                                     type = Config.PLAYLIST_CLICK,
                                     index = position
                                 )
@@ -844,7 +836,6 @@ class PlaylistFragment : Fragment() {
                 viewModel.playlistBrowse.value?.tracks?.get(indexInPlaylist)?.let {
                     sharedViewModel.loadMediaItemFromTrack(
                         it,
-                        from = "Playlist \"${viewModel.playlistBrowse.value?.title}\"",
                         type = Config.PLAYLIST_CLICK,
                         index = indexInQueue
                     )
@@ -879,7 +870,6 @@ class PlaylistFragment : Fragment() {
                     ?.let {
                         sharedViewModel.loadMediaItemFromTrack(
                             it.toTrack(),
-                            from = "Playlist \"${viewModel.playlistEntity.value?.title}\"",
                             type = Config.PLAYLIST_CLICK,
                             index = indexInQueue
                         )

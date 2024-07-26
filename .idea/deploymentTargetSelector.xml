@@ -4,7 +4,7 @@
     <selectionStates>
       <SelectionState runConfigName="SimpMusic">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2024-07-23T06:25:01.138751535Z">
+        <DropdownSelection timestamp="2024-07-24T12:32:17.220310969Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="PhysicalDevice" identifier="serial=7189098c0720" />

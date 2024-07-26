@@ -116,8 +116,7 @@ class MostPlayedFragment: Fragment() {
                     sharedViewModel.loadMediaItemFromTrack(
                         firstQueue,
                         Config.SONG_CLICK,
-                        0,
-                        getString(R.string.most_played)
+                        0
                     )
                 }
             }

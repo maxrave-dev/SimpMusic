@@ -416,6 +416,8 @@ fun FullscreenLyricsSheet(
                                                 .clip(
                                                     RoundedCornerShape(8.dp)
                                                 ),
+                                            color = Color.Gray,
+                                            trackColor = Color.DarkGray,
                                         )
                                     } else {
                                         LinearProgressIndicator(

@@ -658,7 +658,7 @@ fun HeartCheckBox(
                 CircleShape,
             )
             .clickable {
-                onStateChange ?: {}
+                onStateChange?.invoke()
             },
     ) {
         Crossfade(targetState = checked, modifier = Modifier.fillMaxSize()) {

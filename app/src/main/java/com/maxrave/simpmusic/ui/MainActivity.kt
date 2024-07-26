@@ -42,7 +42,6 @@ import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.FIRST_TIME_MIGRATION
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
-import com.maxrave.simpmusic.common.SPONSOR_BLOCK
 import com.maxrave.simpmusic.common.STATUS_DONE
 import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.common.SUPPORTED_LOCATION
@@ -305,7 +304,6 @@ class MainActivity : AppCompatActivity() {
                 padding()
             }
         }
-        window.navigationBarColor = Color.parseColor("#E80B0A0A")
         if (!isMyServiceRunning(SimpleMediaService::class.java)) {
             binding.miniplayer.visibility = View.GONE
         }
@@ -604,46 +602,6 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
             }
-            val job1 =
-                launch {
-                    viewModel.timeline.collect { timeline ->
-                        val progress = (timeline.current / timeline.total).toFloat()
-                        if (timeline.total > 0L && !timeline.loading){
-                            val skipSegments = viewModel.skipSegments.first()
-                            val enabled = viewModel.sponsorBlockEnabled()
-                            val listCategory = viewModel.sponsorBlockCategories()
-                            if (skipSegments != null && enabled == DataStoreManager.TRUE) {
-                                for (skip in skipSegments) {
-                                    if (listCategory.contains(skip.category)) {
-                                        val firstPart = (skip.segment[0] / skip.videoDuration).toFloat()
-                                        val secondPart =
-                                            (skip.segment[1] / skip.videoDuration).toFloat()
-                                        if (progress in firstPart..secondPart) {
-                                            Log.w(
-                                                "Seek to",
-                                                (skip.segment[1] / skip.videoDuration).toFloat()
-                                                    .toString(),
-                                            )
-                                            viewModel.skipSegment((skip.segment[1] * 1000).toLong())
-                                            Toast.makeText(
-                                                this@MainActivity,
-                                                getString(
-                                                    R.string.sponsorblock_skip_segment,
-                                                    getString(
-                                                        SPONSOR_BLOCK.listName.get(
-                                                            SPONSOR_BLOCK.list.indexOf(skip.category),
-                                                        ),
-                                                    ).lowercase(),
-                                                ),
-                                                Toast.LENGTH_SHORT,
-                                            ).show()
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
 
             val showHideJob = launch {
                 repeatOnLifecycle(Lifecycle.State.RESUMED) {
@@ -658,7 +616,10 @@ class MainActivity : AppCompatActivity() {
                                 binding.miniplayer.animation = AnimationUtils.loadAnimation(this@MainActivity, R.anim.btt)
                                 binding.miniplayer.visibility = View.VISIBLE
                                 binding.bottomNavigationView.visibility = View.VISIBLE
-
+                                window.navigationBarColor = if (dataStoreManager.translucentBottomBar.first() == DataStoreManager.TRUE)
+                                    Color.parseColor("#E80B0A0A")
+                                else
+                                    ResourcesCompat.getColor(resources, R.color.md_theme_dark_background, null)
                             }
                         } else if (binding.bottomNavigationView.visibility != View.GONE &&
                             binding.miniplayer.visibility != View.GONE && !it ) {
@@ -676,16 +637,17 @@ class MainActivity : AppCompatActivity() {
                         if (it == DataStoreManager.TRUE) {
                             binding.bottomNavigationView.background =
                                 ResourcesCompat.getDrawable(resources, R.drawable.transparent_rect, null)
+                                window.navigationBarColor = Color.parseColor("#E80B0A0A")
                         }
                         else if (it == DataStoreManager.FALSE) {
                             binding.bottomNavigationView.background =
                                 ColorDrawable(ResourcesCompat.getColor(resources, R.color.md_theme_dark_background, null))
+                            window.navigationBarColor = ResourcesCompat.getColor(resources, R.color.md_theme_dark_background, null)
                         }
                     }
                 }
             }
 
-            job1.join()
             miniplayerJob.join()
             showHideJob.join()
             bottomNavBarJob.join()

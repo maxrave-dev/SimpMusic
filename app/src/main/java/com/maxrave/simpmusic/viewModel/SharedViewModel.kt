@@ -21,10 +21,7 @@ import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
 import com.maxrave.kotlinytmusicscraper.models.response.spotify.CanvasResponse
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
-import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
-import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
 import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.Config.ALBUM_CLICK
 import com.maxrave.simpmusic.common.Config.PLAYLIST_CLICK
 import com.maxrave.simpmusic.common.Config.RECOVER_TRACK_QUEUE
@@ -141,14 +138,8 @@ constructor(
     private var lyricsFormat: MutableLiveData<ArrayList<Line>> = MutableLiveData()
     var lyricsFull = MutableLiveData<String>()
 
-    // SponsorBlock
-    private var _skipSegments: MutableStateFlow<List<SkipSegments>?> = MutableStateFlow(null)
-    val skipSegments: StateFlow<List<SkipSegments>?> = _skipSegments
-
     private var _sleepTimerState = MutableStateFlow(SleepTimerState(false, 0))
     val sleepTimerState: StateFlow<SleepTimerState> = _sleepTimerState
-
-    private var watchTimeList: ArrayList<Float> = arrayListOf()
 
     private var regionCode: String? = null
     private var language: String? = null
@@ -167,7 +158,6 @@ constructor(
 
     val intent: MutableStateFlow<Intent?> = MutableStateFlow(null)
 
-    private var jobWatchtime: Job? = null
 
     private var getFormatFlowJob: Job? = null
 
@@ -244,25 +234,7 @@ constructor(
                         }
                 }
 
-            val format =
-                launch {
-                    format.distinctUntilChanged().collectLatest { formatTemp ->
-                        if (dataStoreManager.sendBackToGoogle.first() == TRUE) {
-                            if (formatTemp != null) {
-                                println("format in viewModel: $formatTemp")
-                                Log.d(TAG, "Collect format ${formatTemp.videoId}")
-                                Log.w(TAG, "Format expire at ${formatTemp.expiredTime}")
-                                Log.i(TAG, "AtrUrl ${formatTemp.playbackTrackingAtrUrl}")
-                                initPlayback(
-                                    formatTemp.playbackTrackingVideostatsPlaybackUrl,
-                                    formatTemp.playbackTrackingAtrUrl,
-                                    formatTemp.playbackTrackingVideostatsWatchtimeUrl,
-                                    formatTemp.cpn,
-                                )
-                            }
-                        }
-                    }
-                }
+
             val checkGetVideoJob = launch {
                 dataStoreManager.watchVideoInsteadOfPlayingAudio.collectLatest {
                     Log.w(TAG, "GetVideo is $it")
@@ -275,7 +247,6 @@ constructor(
             }
             timeLineJob.join()
             downloadedJob.join()
-            format.join()
             checkGetVideoJob.join()
         }
     }
@@ -316,7 +287,6 @@ constructor(
                 canvasJob?.cancel()
                 state.mediaItem.let { now ->
                     getSongInfo(now.mediaId)
-                    getSkipSegments(now.mediaId)
                     getFormat(now.mediaId)
                     _nowPlayingScreenData.update {
                         it.copy(
@@ -608,79 +578,6 @@ constructor(
         }
     }
 
-    private fun initPlayback(
-        playback: String?,
-        atr: String?,
-        watchTime: String?,
-        cpn: String?,
-    ) {
-        jobWatchtime?.cancel()
-        viewModelScope.launch {
-            if (playback != null && atr != null && watchTime != null && cpn != null) {
-                watchTimeList.clear()
-                mainRepository.initPlayback(playback, atr, watchTime, cpn, playlistId.value)
-                    .collect {
-                        if (it.first == 204) {
-                            Log.d("Check initPlayback", "Success")
-                            watchTimeList.add(0f)
-                            watchTimeList.add(5.54f)
-                            watchTimeList.add(it.second)
-                            updateWatchTime()
-                        }
-                    }
-            }
-        }
-    }
-
-    private fun updateWatchTime() {
-        viewModelScope.launch {
-            jobWatchtime =
-                launch {
-                    timeline.collect { timeline ->
-                        val value = timeline.current
-                        if (value > 0 && watchTimeList.isNotEmpty()) {
-                            val second = (value / 1000).toFloat()
-                            if (second in watchTimeList.last()..watchTimeList.last() + 1.2f) {
-                                val watchTimeUrl =
-                                    _format.value?.playbackTrackingVideostatsWatchtimeUrl
-                                val cpn = _format.value?.cpn
-                                if (second + 20.23f < (timeline.total / 1000).toFloat()) {
-                                    watchTimeList.add(second + 20.23f)
-                                    if (watchTimeUrl != null && cpn != null) {
-                                        mainRepository.updateWatchTime(
-                                            watchTimeUrl,
-                                            watchTimeList,
-                                            cpn,
-                                            playlistId.value,
-                                        ).collect { response ->
-                                            if (response == 204) {
-                                                Log.d("Check updateWatchTime", "Success")
-                                            }
-                                        }
-                                    }
-                                } else {
-                                    watchTimeList.clear()
-                                    if (watchTimeUrl != null && cpn != null) {
-                                        mainRepository.updateWatchTimeFull(
-                                            watchTimeUrl,
-                                            cpn,
-                                            playlistId.value,
-                                        ).collect { response ->
-                                            if (response == 204) {
-                                                Log.d("Check updateWatchTimeFull", "Success")
-                                            }
-                                        }
-                                    }
-                                }
-                                Log.w("Check updateWatchTime", watchTimeList.toString())
-                            }
-                        }
-                    }
-                }
-            jobWatchtime?.join()
-        }
-    }
-
     fun getString(key: String): String? {
         return runBlocking { dataStoreManager.getString(key).first() }
     }
@@ -822,24 +719,6 @@ constructor(
         }
     }
 
-    private fun getSkipSegments(videoId: String) {
-        resetSkipSegments()
-        viewModelScope.launch {
-            mainRepository.getSkipSegments(videoId).collect { segments ->
-                if (segments != null) {
-                    Log.w("Check segments $videoId", segments.toString())
-                    _skipSegments.value = segments
-                } else {
-                    _skipSegments.value = null
-                }
-            }
-        }
-    }
-
-    private fun resetSkipSegments() {
-        _skipSegments.value = null
-    }
-
     private fun getSavedLyrics(track: Track) {
         viewModelScope.launch {
             resetLyrics()
@@ -914,8 +793,7 @@ constructor(
     fun loadMediaItemFromTrack(
         track: Track,
         type: String,
-        index: Int? = null,
-        from: String
+        index: Int? = null
     ) {
         quality = runBlocking { dataStoreManager.quality.first() }
         viewModelScope.launch {
@@ -1009,9 +887,10 @@ constructor(
 
                 UIEvent.Repeat -> simpleMediaServiceHandler?.onPlayerEvent(PlayerEvent.Repeat)
                 UIEvent.Shuffle -> simpleMediaServiceHandler?.onPlayerEvent(PlayerEvent.Shuffle)
-                UIEvent.ToggleLike -> simpleMediaServiceHandler?.onPlayerEvent(
-                    PlayerEvent.ToggleLike
-                )
+                UIEvent.ToggleLike -> {
+                    Log.w(TAG, "ToggleLike")
+                    simpleMediaServiceHandler?.onPlayerEvent(PlayerEvent.ToggleLike)
+                }
             }
         }
 
@@ -1060,15 +939,6 @@ constructor(
         }
     }
 
-    fun getLyricsSyncState(): Config.SyncState {
-        return when (_lyrics.value?.data?.syncType) {
-            null -> Config.SyncState.NOT_FOUND
-            "LINE_SYNCED" -> Config.SyncState.LINE_SYNCED
-            "UNSYNCED" -> Config.SyncState.UNSYNCED
-            else -> Config.SyncState.NOT_FOUND
-        }
-    }
-
     fun getActiveLyrics(current: Long): Int? {
         val lyricsFormat = _lyrics.value?.data?.lines
         lyricsFormat?.indices?.forEach { i ->
@@ -1103,10 +973,6 @@ constructor(
 
     @UnstableApi
     override fun onCleared() {
-        runBlocking {
-            jobWatchtime?.cancel()
-//            simpleMediaServiceHandler?.onPlayerEvent(PlayerEvent.Stop)
-        }
         simpleMediaServiceHandler = null
         Log.w("Check onCleared", "onCleared")
     }
@@ -1145,17 +1011,6 @@ constructor(
                         DownloadState.STATE_NOT_DOWNLOADED,
                     )
                 }
-            }
-        }
-    }
-
-    private val _songFull: MutableLiveData<YouTubeInitialPage?> = MutableLiveData()
-    var songFull: LiveData<YouTubeInitialPage?> = _songFull
-
-    fun getSongFull(videoId: String) {
-        viewModelScope.launch {
-            mainRepository.getFullMetadata(videoId).collect {
-                _songFull.postValue(it)
             }
         }
     }
@@ -1266,14 +1121,6 @@ constructor(
             }
         }
     }
-
-    fun skipSegment(position: Long) {
-        simpleMediaServiceHandler?.skipSegment(position)
-    }
-
-    fun sponsorBlockEnabled() = runBlocking { dataStoreManager.sponsorBlockEnabled.first() }
-
-    fun sponsorBlockCategories() = runBlocking { dataStoreManager.getSponsorBlockCategories() }
 
     fun stopPlayer() {
         isPlaying.value = false

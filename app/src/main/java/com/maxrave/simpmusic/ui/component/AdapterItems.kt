@@ -80,6 +80,7 @@ import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.animation.crossfade.CrossfadePlugin
 import com.skydoves.landscapist.coil.CoilImage
 import com.skydoves.landscapist.components.rememberImageComponent
+import com.skydoves.landscapist.placeholder.placeholder.PlaceholderPlugin
 
 @OptIn(ExperimentalFoundationApi::class)
 @UnstableApi
@@ -148,9 +149,11 @@ fun HomeItem(
                     ),
                     previewPlaceholder = painterResource(id = R.drawable.holder),
                     component = rememberImageComponent {
-                        CrossfadePlugin(
+                        +CrossfadePlugin(
                             duration = 550
                         )
+                        +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder))
+                        +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder))
                     },
                     modifier = Modifier
                         .size(45.dp)
@@ -238,8 +241,7 @@ fun HomeItem(
                             )
                             sharedViewModel.loadMediaItemFromTrack(
                                 firstQueue,
-                                Config.SONG_CLICK,
-                                from = temp.title
+                                Config.SONG_CLICK
                             )
                         }, onLongClick = {
                             homeViewModel.getSongEntity(temp.toTrack())
@@ -263,8 +265,7 @@ fun HomeItem(
                             )
                             sharedViewModel.loadMediaItemFromTrack(
                                 firstQueue,
-                                Config.SONG_CLICK,
-                                from = temp.title
+                                Config.SONG_CLICK
                             )
                         }, onLongClick = {
                             homeViewModel.getSongEntity(temp.toTrack())
@@ -389,11 +390,12 @@ fun QuickPicksItem(
                     contentScale = ContentScale.Crop,
                     alignment = Alignment.Center,
                 ),
-                previewPlaceholder = painterResource(id = R.drawable.holder),
                 component = rememberImageComponent {
-                    CrossfadePlugin(
+                    +CrossfadePlugin(
                         duration = 550
                     )
+                    +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder))
+                    +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder))
                 },
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
@@ -474,9 +476,11 @@ fun HomeItemSong(
                 ),
                 previewPlaceholder = painterResource(id = R.drawable.holder),
                 component = rememberImageComponent {
-                    CrossfadePlugin(
+                    +CrossfadePlugin(
                         duration = 550
                     )
+                    +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder))
+                    +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder))
                 },
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
@@ -553,9 +557,11 @@ fun HomeItemVideo(
                 ),
                 previewPlaceholder = painterResource(id = R.drawable.holder_video),
                 component = rememberImageComponent {
-                    CrossfadePlugin(
+                    +CrossfadePlugin(
                         duration = 550
                     )
+                    +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder_video))
+                    +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder_video))
                 },
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
@@ -628,9 +634,11 @@ fun HomeItemArtist(
                 ),
                 previewPlaceholder = painterResource(id = R.drawable.holder),
                 component = rememberImageComponent {
-                    CrossfadePlugin(
+                    +CrossfadePlugin(
                         duration = 550
                     )
+                    +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder))
+                    +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder))
                 },
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
@@ -727,7 +735,7 @@ fun ItemVideoChart(
         Modifier
             .wrapContentSize()
             .focusable(true)
-            .clickable{
+            .clickable {
                 onClick()
             }
     ) {
@@ -743,9 +751,11 @@ fun ItemVideoChart(
                 ),
                 previewPlaceholder = painterResource(id = R.drawable.holder_video),
                 component = rememberImageComponent {
-                    CrossfadePlugin(
+                    +CrossfadePlugin(
                         duration = 550
                     )
+                    +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder_video))
+                    +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder_video))
                 },
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
@@ -824,7 +834,9 @@ fun ItemArtistChart(
             }
     ) {
         Row(
-            modifier = Modifier.padding(10.dp).width(widthDp),
+            modifier = Modifier
+                .padding(10.dp)
+                .width(widthDp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
@@ -845,9 +857,11 @@ fun ItemArtistChart(
                 ),
                 previewPlaceholder = painterResource(id = R.drawable.holder),
                 component = rememberImageComponent {
-                    CrossfadePlugin(
+                    +CrossfadePlugin(
                         duration = 550
                     )
+                    +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder))
+                    +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder))
                 },
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
@@ -934,9 +948,11 @@ fun ItemTrackChart(
                 ),
                 previewPlaceholder = painterResource(id = R.drawable.holder),
                 component = rememberImageComponent {
-                    CrossfadePlugin(
+                    +CrossfadePlugin(
                         duration = 550
                     )
+                    +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder))
+                    +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder))
                 },
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
