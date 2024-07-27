@@ -57,6 +57,7 @@ import com.maxrave.simpmusic.viewModel.FilterState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -150,7 +151,9 @@ class SimpleMediaServiceHandler(
 
     private var normalizeVolume = false
 
-    private var job: Job? = null
+    private var progressJob: Job? = null
+
+    private var bufferedJob : Job? = null
 
     private var updateNotificationJob: Job? = null
 
@@ -167,7 +170,8 @@ class SimpleMediaServiceHandler(
 
     init {
         player.addListener(this)
-        job = Job()
+        progressJob = Job()
+        bufferedJob = Job()
         sleepTimerJob = Job()
         volumeNormalizationJob = Job()
         updateNotificationJob = Job()
@@ -793,9 +797,7 @@ class SimpleMediaServiceHandler(
             isPlaying,
         )
         if (isPlaying) {
-            coroutineScope.launch(Dispatchers.Main) {
-                startProgressUpdate()
-            }
+            startProgressUpdate()
         } else {
             stopProgressUpdate()
             mayBeSaveRecentSong()
@@ -803,22 +805,24 @@ class SimpleMediaServiceHandler(
         updateNextPreviousTrackAvailability()
     }
 
-    private suspend fun startProgressUpdate() =
-        job.run {
+    private fun startProgressUpdate() {
+        progressJob = coroutineScope.launch {
             while (true) {
                 delay(100)
                 _simpleMediaState.value = SimpleMediaState.Progress(player.currentPosition)
             }
         }
+    }
 
-    private suspend fun startBufferedUpdate() =
-        job.run {
+    private fun startBufferedUpdate() {
+        bufferedJob = coroutineScope.launch {
             while (true) {
                 delay(500)
                 _simpleMediaState.value =
                     SimpleMediaState.Loading(player.bufferedPercentage, player.duration)
             }
         }
+    }
 
     fun loadMore() {
         // Separate local and remote data
@@ -925,11 +929,12 @@ class SimpleMediaServiceHandler(
     }
 
     private fun stopProgressUpdate() {
-        job?.cancel()
+        progressJob?.cancel()
+        Log.w(TAG, "stopProgressUpdate: ${progressJob?.isActive}")
     }
 
     private fun stopBufferedUpdate() {
-        job?.cancel()
+        bufferedJob?.cancel()
         _simpleMediaState.value =
             SimpleMediaState.Loading(player.bufferedPercentage, player.duration)
     }
@@ -939,9 +944,7 @@ class SimpleMediaServiceHandler(
         _simpleMediaState.value =
             SimpleMediaState.Loading(player.bufferedPercentage, player.duration)
         if (isLoading) {
-            coroutineScope.launch(Dispatchers.Main) {
-                startBufferedUpdate()
-            }
+            startBufferedUpdate()
         } else {
             stopBufferedUpdate()
         }
@@ -1153,9 +1156,13 @@ class SimpleMediaServiceHandler(
         player.playWhenReady = false
         player.removeListener(this)
         sendCloseEqualizerIntent()
-        if (job?.isActive == true) {
-            job?.cancel()
-            job = null
+        if (progressJob?.isActive == true) {
+            progressJob?.cancel()
+            progressJob = null
+        }
+        if (bufferedJob?.isActive == true) {
+            bufferedJob?.cancel()
+            bufferedJob = null
         }
         if (sleepTimerJob?.isActive == true) {
             sleepTimerJob?.cancel()
@@ -1177,7 +1184,9 @@ class SimpleMediaServiceHandler(
             loadJob?.cancel()
             loadJob = null
         }
-        Log.w("Service", "Check job: ${job?.isActive}")
+        if (coroutineScope.isActive) {
+            coroutineScope.cancel()
+        }
         Log.w("Service", "scope is active: ${coroutineScope.isActive}")
     }
 

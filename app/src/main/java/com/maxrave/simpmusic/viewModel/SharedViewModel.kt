@@ -111,8 +111,6 @@ constructor(
     @Inject
     lateinit var downloadUtils: DownloadUtils
 
-    private var restoreLastPlayedTrackDone: Boolean = false
-
     var simpleMediaServiceHandler: SimpleMediaServiceHandler? = null
 
     private var _songDB: MutableLiveData<SongEntity?> = MutableLiveData()
@@ -160,10 +158,7 @@ constructor(
 
     val intent: MutableStateFlow<Intent?> = MutableStateFlow(null)
 
-
     private var getFormatFlowJob: Job? = null
-
-    private var getLyricsJob: Job? = null
 
     var playlistId: MutableStateFlow<String?> = MutableStateFlow(null)
 
@@ -1585,14 +1580,6 @@ sealed class UIEvent {
     data class UpdateProgress(val newProgress: Float) : UIEvent()
 
     data object ToggleLike: UIEvent()
-}
-
-sealed class UIState {
-    object Initial : UIState()
-
-    object Ready : UIState()
-
-    object Ended : UIState()
 }
 
 enum class LyricsProvider {
