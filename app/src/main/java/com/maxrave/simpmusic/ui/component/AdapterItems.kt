@@ -56,6 +56,8 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import coil.request.SuccessResult
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.data.model.browse.album.Track
@@ -367,6 +369,7 @@ fun QuickPicksItem(
     widthDp: Dp,
     data: Content
 ) {
+    val tag = "QuickPicksItem"
     val configuration = LocalConfiguration.current
     Box(
         modifier = Modifier
@@ -390,6 +393,19 @@ fun QuickPicksItem(
                     contentScale = ContentScale.Crop,
                     alignment = Alignment.Center,
                 ),
+                requestListener = {
+                    object : ImageRequest.Listener {
+                        override fun onSuccess(request: ImageRequest, result: SuccessResult) {
+                            super.onSuccess(request, result)
+                            Log.w(tag, "onSuccess: ${data.title}")
+                        }
+
+                        override fun onStart(request: ImageRequest) {
+                            super.onStart(request)
+                            Log.w(tag, "onStart: ${data.thumbnails.lastOrNull()?.url}")
+                        }
+                    }
+                },
                 component = rememberImageComponent {
                     +CrossfadePlugin(
                         duration = 550

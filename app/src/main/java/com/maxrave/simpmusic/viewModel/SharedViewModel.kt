@@ -57,6 +57,8 @@ import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.ControlState
 import com.maxrave.simpmusic.service.NowPlayingTrackState
 import com.maxrave.simpmusic.service.PlayerEvent
+import com.maxrave.simpmusic.service.PlaylistType
+import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.service.RepeatState
 import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
 import com.maxrave.simpmusic.service.SimpleMediaState
@@ -787,6 +789,30 @@ constructor(
     @UnstableApi
     fun playMediaItemInMediaSource(index: Int) {
         simpleMediaServiceHandler?.playMediaItemInMediaSource(index)
+    }
+
+    fun loadSharedMediaItem(videoId: String) {
+        viewModelScope.launch {
+            mainRepository.getFullMetadata(videoId).collectLatest {
+                if (it != null) {
+                    val track = it.toTrack()
+                    simpleMediaServiceHandler?.setQueueData(
+                        QueueData(
+                            listTracks = arrayListOf(track),
+                            firstPlayedTrack = track,
+                            playlistId = "RDAMVM$videoId", playlistName = context.getString(R.string.shared),
+                            playlistType = PlaylistType.RADIO,
+                            continuation = null
+
+                        )
+                    )
+                    loadMediaItemFromTrack(track, SONG_CLICK)
+                }
+                else {
+                    Toast.makeText(context, context.getString(R.string.error), Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 
     @UnstableApi

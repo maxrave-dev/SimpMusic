@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.res.Configuration
-import android.graphics.Color
 import android.graphics.Rect
 import android.graphics.drawable.ColorDrawable
 import android.net.ConnectivityManager
@@ -32,7 +31,6 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.DownloadService
-import androidx.navigation.findNavController
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -59,7 +57,6 @@ import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import okhttp3.CacheControl
@@ -542,25 +539,7 @@ class MainActivity : AppCompatActivity() {
                                                 data!!.host == "youtu.be" -> path
                                                 else -> null
                                             }?.let { videoId ->
-                                                val args = Bundle()
-                                                args.putString("videoId", videoId)
-                                                args.putString("from", getString(R.string.shared))
-                                                args.putString("type", Config.SHARE)
-                                                viewModel.videoId.value = videoId
-                                                if (navController.currentDestination?.id == R.id.nowPlayingFragment) {
-                                                    findNavController(
-                                                        R.id.fragment_container_view,
-                                                    ).popBackStack()
-                                                    navController.navigateSafe(
-                                                        R.id.action_global_nowPlayingFragment,
-                                                        args,
-                                                    )
-                                                } else {
-                                                    navController.navigateSafe(
-                                                        R.id.action_global_nowPlayingFragment,
-                                                        args,
-                                                    )
-                                                }
+                                                viewModel.loadSharedMediaItem(videoId)
                                             }
                                     }
                                 }
@@ -615,11 +594,6 @@ class MainActivity : AppCompatActivity() {
                                 binding.bottomNavigationView.animation = AnimationUtils.loadAnimation(this@MainActivity, R.anim.btt)
                                 binding.miniplayer.animation = AnimationUtils.loadAnimation(this@MainActivity, R.anim.btt)
                                 binding.miniplayer.visibility = View.VISIBLE
-                                binding.bottomNavigationView.visibility = View.VISIBLE
-                                window.navigationBarColor = if (dataStoreManager.translucentBottomBar.first() == DataStoreManager.TRUE)
-                                    Color.parseColor("#E80B0A0A")
-                                else
-                                    ResourcesCompat.getColor(resources, R.color.md_theme_dark_background, null)
                             }
                         } else if (binding.bottomNavigationView.visibility != View.GONE &&
                             binding.miniplayer.visibility != View.GONE && !it ) {
@@ -637,12 +611,10 @@ class MainActivity : AppCompatActivity() {
                         if (it == DataStoreManager.TRUE) {
                             binding.bottomNavigationView.background =
                                 ResourcesCompat.getDrawable(resources, R.drawable.transparent_rect, null)
-                                window.navigationBarColor = Color.parseColor("#E80B0A0A")
                         }
                         else if (it == DataStoreManager.FALSE) {
                             binding.bottomNavigationView.background =
                                 ColorDrawable(ResourcesCompat.getColor(resources, R.color.md_theme_dark_background, null))
-                            window.navigationBarColor = ResourcesCompat.getColor(resources, R.color.md_theme_dark_background, null)
                         }
                     }
                 }
