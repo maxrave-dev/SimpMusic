@@ -57,6 +57,8 @@ import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.ControlState
 import com.maxrave.simpmusic.service.NowPlayingTrackState
 import com.maxrave.simpmusic.service.PlayerEvent
+import com.maxrave.simpmusic.service.PlaylistType
+import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.service.RepeatState
 import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
 import com.maxrave.simpmusic.service.SimpleMediaState
@@ -109,8 +111,6 @@ constructor(
     @Inject
     lateinit var downloadUtils: DownloadUtils
 
-    private var restoreLastPlayedTrackDone: Boolean = false
-
     var simpleMediaServiceHandler: SimpleMediaServiceHandler? = null
 
     private var _songDB: MutableLiveData<SongEntity?> = MutableLiveData()
@@ -158,10 +158,7 @@ constructor(
 
     val intent: MutableStateFlow<Intent?> = MutableStateFlow(null)
 
-
     private var getFormatFlowJob: Job? = null
-
-    private var getLyricsJob: Job? = null
 
     var playlistId: MutableStateFlow<String?> = MutableStateFlow(null)
 
@@ -326,10 +323,11 @@ constructor(
                             }
 
                             is SimpleMediaState.Progress -> {
-                                if (mediaState.progress >= 0L) {
+                                if (mediaState.progress >= 0L && mediaState.progress != _timeline.value.current) {
                                     _timeline.update {
                                         it.copy(
-                                            current = mediaState.progress
+                                            current = mediaState.progress,
+                                            loading = false
                                         )
                                     }
                                 }
@@ -787,6 +785,30 @@ constructor(
     @UnstableApi
     fun playMediaItemInMediaSource(index: Int) {
         simpleMediaServiceHandler?.playMediaItemInMediaSource(index)
+    }
+
+    fun loadSharedMediaItem(videoId: String) {
+        viewModelScope.launch {
+            mainRepository.getFullMetadata(videoId).collectLatest {
+                if (it != null) {
+                    val track = it.toTrack()
+                    simpleMediaServiceHandler?.setQueueData(
+                        QueueData(
+                            listTracks = arrayListOf(track),
+                            firstPlayedTrack = track,
+                            playlistId = "RDAMVM$videoId", playlistName = context.getString(R.string.shared),
+                            playlistType = PlaylistType.RADIO,
+                            continuation = null
+
+                        )
+                    )
+                    loadMediaItemFromTrack(track, SONG_CLICK)
+                }
+                else {
+                    Toast.makeText(context, context.getString(R.string.error), Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 
     @UnstableApi
@@ -1558,14 +1580,6 @@ sealed class UIEvent {
     data class UpdateProgress(val newProgress: Float) : UIEvent()
 
     data object ToggleLike: UIEvent()
-}
-
-sealed class UIState {
-    object Initial : UIState()
-
-    object Ready : UIState()
-
-    object Ended : UIState()
 }
 
 enum class LyricsProvider {

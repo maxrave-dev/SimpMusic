@@ -124,6 +124,7 @@ import com.maxrave.simpmusic.ui.component.LyricsView
 import com.maxrave.simpmusic.ui.component.MediaPlayerView
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.theme.AppTheme
+import com.maxrave.simpmusic.ui.theme.blackMoreOverlay
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.ui.theme.overlay
 import com.maxrave.simpmusic.ui.theme.seed
@@ -656,8 +657,8 @@ fun NowPlayingScreen(
                                                         .background(
                                                             Brush.verticalGradient(
                                                                 colorStops = arrayOf(
-                                                                    0.03f to Color.DarkGray,
-                                                                    0.3f to overlay,
+                                                                    0.03f to blackMoreOverlay,
+                                                                    0.15f to overlay,
                                                                     0.8f to Color.Transparent,
                                                                 )
                                                             )
