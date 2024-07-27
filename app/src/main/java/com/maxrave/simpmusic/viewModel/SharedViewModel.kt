@@ -328,10 +328,11 @@ constructor(
                             }
 
                             is SimpleMediaState.Progress -> {
-                                if (mediaState.progress >= 0L) {
+                                if (mediaState.progress >= 0L && mediaState.progress != _timeline.value.current) {
                                     _timeline.update {
                                         it.copy(
-                                            current = mediaState.progress
+                                            current = mediaState.progress,
+                                            loading = false
                                         )
                                     }
                                 }

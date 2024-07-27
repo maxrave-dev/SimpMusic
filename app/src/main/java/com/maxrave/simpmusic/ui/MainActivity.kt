@@ -594,6 +594,7 @@ class MainActivity : AppCompatActivity() {
                                 binding.bottomNavigationView.animation = AnimationUtils.loadAnimation(this@MainActivity, R.anim.btt)
                                 binding.miniplayer.animation = AnimationUtils.loadAnimation(this@MainActivity, R.anim.btt)
                                 binding.miniplayer.visibility = View.VISIBLE
+                                binding.bottomNavigationView.visibility = View.VISIBLE
                             }
                         } else if (binding.bottomNavigationView.visibility != View.GONE &&
                             binding.miniplayer.visibility != View.GONE && !it ) {

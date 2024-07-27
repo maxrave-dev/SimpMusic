@@ -40,5 +40,6 @@ val shimmerLine = Color(0xFF4D4848)
 
 val test = Color(0x00FFFFFF)
 val overlay = Color(0x32242424)
+val blackMoreOverlay = Color(0x8f242424)
 
 val seed = Color(0xFF8ECAE6)
