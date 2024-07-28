@@ -71,7 +71,6 @@
                                 <TextView
                                     android:id="@+id/tvTitle"
                                     style="@style/album_name"
-                                    android:text="Playlist"
                                     android:singleLine="true"
                                     android:ellipsize="marquee"
                                     android:marqueeRepeatLimit="marquee_forever"
@@ -102,7 +101,6 @@
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="5sp"
                                     android:fontFamily="@font/roboto"
-                                    android:text="@string/year_and_category"
                                     android:textSize="15sp"
                                     android:textStyle="normal" />
 
@@ -199,7 +197,6 @@
                                     app:expandAction="@string/more"
                                     app:expandActionColor="@color/md_theme_dark_outlineVariant"
                                     app:limitedMaxLines="3"
-                                    app:originalText="@string/demo_description"
                                     android:fontFamily="@font/roboto"
                                     android:textStyle="normal"
                                     android:textSize="15sp" />
@@ -211,7 +208,6 @@
                                     android:layout_marginTop="5sp"
                                     android:layout_marginBottom="5sp"
                                     android:fontFamily="@font/roboto"
-                                    android:text="@string/album_length"
                                     android:textSize="15sp"
                                     android:textStyle="bold" />
                             </LinearLayout>

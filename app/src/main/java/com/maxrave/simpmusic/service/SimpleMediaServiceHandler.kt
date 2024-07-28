@@ -65,9 +65,12 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.single
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.update
@@ -209,43 +212,54 @@ class SimpleMediaServiceHandler(
         mayBeRestoreQueue()
         coroutineScope.launch {
             val skipSegmentsJob = launch {
-                simpleMediaState.collect { state ->
-                    if (state is SimpleMediaState.Progress && dataStoreManager.sponsorBlockEnabled.first() == TRUE) {
-                        val progress = (state.progress / player.duration).toFloat()
-                        if (player.duration > 0L) {
-                            val skipSegments = skipSegments.value
-                            val listCategory = dataStoreManager.getSponsorBlockCategories()
-                            if (skipSegments != null) {
-                                for (skip in skipSegments) {
-                                    if (listCategory.contains(skip.category)) {
-                                        val firstPart = (skip.segment[0] / skip.videoDuration).toFloat()
-                                        val secondPart =
-                                            (skip.segment[1] / skip.videoDuration).toFloat()
-                                        if (progress in firstPart..secondPart) {
-                                            Log.w(
-                                                "Seek to",
-                                                (skip.segment[1] / skip.videoDuration).toFloat()
-                                                    .toString(),
-                                            )
-                                            skipSegment((skip.segment[1] * 1000).toLong())
-                                            Toast.makeText(
-                                                context,
-                                                context.getString(
-                                                    R.string.sponsorblock_skip_segment,
+                simpleMediaState.filter { it is SimpleMediaState.Progress }.map {
+                    val current = (it as SimpleMediaState.Progress).progress
+                    val duration = player.duration
+                    if (duration > 0L) {
+                        (current.toFloat() / player.duration)*100
+                    }
+                    else {
+                        -1f
+                    }
+                }.filter { it >= 0f }
+                    .distinctUntilChanged()
+                    .collect { current ->
+                        Log.d("Seek to", "Current $current")
+                        if (dataStoreManager.sponsorBlockEnabled.first() == TRUE) {
+                            if (player.duration > 0L) {
+                                val skipSegments = skipSegments.value
+                                val listCategory = dataStoreManager.getSponsorBlockCategories()
+                                if (skipSegments != null) {
+                                    for (skip in skipSegments) {
+                                        if (listCategory.contains(skip.category)) {
+                                            val firstPart = ((skip.segment[0] / skip.videoDuration)*100).toFloat()
+                                            val secondPart =
+                                                ((skip.segment[1] / skip.videoDuration)*100).toFloat()
+                                            if (current in firstPart..secondPart) {
+                                                Log.w(
+                                                    "Seek to",
+                                                    secondPart.toString(),
+                                                )
+                                                Log.d("Seek to", "Cr: $current, First: $firstPart, Second: $secondPart")
+                                                skipSegment((secondPart * player.duration).toLong()/100)
+                                                Toast.makeText(
+                                                    context,
                                                     context.getString(
-                                                        SPONSOR_BLOCK.listName.get(
-                                                            SPONSOR_BLOCK.list.indexOf(skip.category),
-                                                        ),
-                                                    ).lowercase(),
-                                                ),
-                                                Toast.LENGTH_SHORT,
-                                            ).show()
+                                                        R.string.sponsorblock_skip_segment,
+                                                        context.getString(
+                                                            SPONSOR_BLOCK.listName.get(
+                                                                SPONSOR_BLOCK.list.indexOf(skip.category),
+                                                            ),
+                                                        ).lowercase(),
+                                                    ),
+                                                    Toast.LENGTH_SHORT,
+                                                ).show()
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
-                    }
                 }
             }
             val playbackJob =
@@ -1120,12 +1134,12 @@ class SimpleMediaServiceHandler(
         normalizeVolume = normalize
     }
 
-    fun seekTo(position: String) {
+    private fun seekTo(position: String) {
         player.seekTo(position.toLong())
         Log.d("Check seek", "seekTo: ${player.currentPosition}")
     }
 
-    fun skipSegment(position: Long) {
+    private fun skipSegment(position: Long) {
         if (position in 0..player.duration) {
             player.seekTo(position)
         } else if (position > player.duration) {
