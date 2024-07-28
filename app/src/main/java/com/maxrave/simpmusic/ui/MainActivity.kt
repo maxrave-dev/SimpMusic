@@ -382,7 +382,10 @@ class MainActivity : AppCompatActivity() {
             Log.w("MainActivity", "Destination: ${destination.label}")
             Log.w("MainActivity", "Show or Hide: ${viewModel.showOrHideMiniplayer}")
             if (
-                    (listOf("NowPlayingFragment", "FullscreenFragment", "InfoFragment", "QueueFragment")).contains(destination.label)
+                    (listOf(
+                        "NowPlayingFragment", "FullscreenFragment", "InfoFragment",
+                        "QueueFragment", "SpotifyLogInFragment", "fragment_log_in", "MusixmatchFragment")
+                        ).contains(destination.label)
             ) {
                 lifecycleScope.launch{ viewModel.showOrHideMiniplayer.emit(false) }
                 Log.w("MainActivity", "onCreate: HIDE MINIPLAYER")
@@ -569,13 +572,18 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             val miniplayerJob = launch {
                 repeatOnLifecycle(Lifecycle.State.CREATED) {
-                    viewModel.nowPlayingScreenData.collectLatest {
-                        Log.w("MainActivity", "Now Playing: $it")
-                        if (navController.currentDestination?.id != R.id.nowPlayingFragment
-                            && navController.currentDestination?.id != R.id.infoFragment
-                            && navController.currentDestination?.id != R.id.queueFragment
-                            && navController.currentDestination?.id != R.id.fullscreenFragment
-                            && binding.miniplayer.visibility == View.GONE && it.nowPlayingTitle.isNotEmpty()) {
+                    viewModel.nowPlayingScreenData.collect {
+                        Log.w("MainActivity", "Current Destination: ${navController.currentDestination?.label}")
+                        if (!(listOf(
+                                "NowPlayingFragment", "FullscreenFragment", "InfoFragment",
+                                "QueueFragment", "SpotifyLogInFragment", "fragment_log_in", "MusixmatchFragment")
+                                ).contains(navController.currentDestination?.label)
+                            && it.nowPlayingTitle.isNotEmpty()
+                            && binding.miniplayer.visibility != View.VISIBLE
+                            ) {
+                            Log.w("MainActivity", "Show Miniplayer")
+                            binding.miniplayer.animation = AnimationUtils.loadAnimation(this@MainActivity, R.anim.slide_from_right
+                            )
                             binding.miniplayer.visibility = View.VISIBLE
                         }
                     }
@@ -589,6 +597,7 @@ class MainActivity : AppCompatActivity() {
                             binding.bottomNavigationView.visibility != View.VISIBLE &&
                             viewModel.nowPlayingState.value?.isNotEmpty() == true
                         ) {
+                            Log.w("MainActivity", "Show Miniplayer")
                             lifecycleScope.launch {
                                 delay(500)
                                 binding.bottomNavigationView.animation = AnimationUtils.loadAnimation(this@MainActivity, R.anim.btt)

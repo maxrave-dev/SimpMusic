@@ -48,6 +48,7 @@ import java.util.zip.ZipEntry
 import javax.inject.Inject
 import kotlin.system.exitProcess
 
+@UnstableApi
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val application: Application,
@@ -106,15 +107,13 @@ class SettingsViewModel @Inject constructor(
     val thumbCacheSize: StateFlow<Long?> = _thumbCacheSize
     private var _homeLimit = MutableStateFlow<Int?>(null)
     val homeLimit: StateFlow<Int?> = _homeLimit
-    private var _translucentBottomBar: MutableStateFlow<Boolean> = MutableStateFlow(true)
-    val translucentBottomBar: StateFlow<Boolean> = _translucentBottomBar
+    private var _translucentBottomBar: MutableStateFlow<String?> = MutableStateFlow(null)
+    val translucentBottomBar: StateFlow<String?> = _translucentBottomBar
 
     fun getTranslucentBottomBar() {
         viewModelScope.launch {
             dataStoreManager.translucentBottomBar.collect { translucentBottomBar ->
-                _translucentBottomBar.emit(
-                    if (translucentBottomBar == DataStoreManager.TRUE) true else false
-                )
+                _translucentBottomBar.emit(translucentBottomBar)
             }
         }
     }

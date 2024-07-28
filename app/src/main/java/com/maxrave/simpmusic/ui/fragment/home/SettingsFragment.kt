@@ -132,6 +132,7 @@ class SettingsFragment : Fragment() {
         viewModel.getSpotifyLogIn()
         viewModel.getSpotifyLyrics()
         viewModel.getSpotifyCanvas()
+        viewModel.getTranslucentBottomBar()
 
         lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.CREATED) {
@@ -410,7 +411,7 @@ class SettingsFragment : Fragment() {
                 }
                 val job27 = launch {
                     viewModel.translucentBottomBar.collectLatest { translucent ->
-                        binding.swEnableTranslucentNavBar.isChecked = translucent
+                        binding.swEnableTranslucentNavBar.isChecked = if (translucent == DataStoreManager.TRUE) true else false
                     }
                 }
                 job1.join()
