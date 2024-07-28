@@ -94,6 +94,7 @@ class LogInFragment : Fragment() {
                 }
             }
             settings.javaScriptEnabled = true
+            settings.domStorageEnabled = true
             loadUrl(Config.LOG_IN_URL)
         }
         binding.topAppBar.setNavigationOnClickListener {

@@ -49,6 +49,7 @@ class SpotifyLogInFragment : Fragment() {
         return binding.root
     }
 
+    @SuppressLint("SetJavaScriptEnabled")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.topAppBarLayout.applyInsetter {
@@ -94,6 +95,7 @@ class SpotifyLogInFragment : Fragment() {
                 }
             }
             settings.javaScriptEnabled = true
+            settings.domStorageEnabled = true
             loadUrl(Config.SPOTIFY_LOG_IN_URL)
         }
         binding.topAppBar.setNavigationOnClickListener {

@@ -288,8 +288,8 @@ fun MiniPlayer(
                                             palette = it
                                         },
                                     )
-                                    +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder))
-                                    +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder))
+                                    +PlaceholderPlugin.Loading(painterResource(id = R.drawable.outline_album_24))
+                                    +PlaceholderPlugin.Failure(painterResource(id = R.drawable.outline_album_24))
                                 },
                             modifier =
                             Modifier
