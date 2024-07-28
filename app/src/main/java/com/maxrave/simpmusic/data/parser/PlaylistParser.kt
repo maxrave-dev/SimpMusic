@@ -31,77 +31,81 @@ fun parsePlaylistData(
         var description = ""
         val listThumbnails: ArrayList<Thumbnail> = arrayListOf()
         var year = ""
-        if (header is BrowseResponse.Header.MusicDetailHeaderRenderer) {
-            title += header.title.runs?.get(0)?.text
-            Log.d("PlaylistParser", "title: $title")
-            if (!header.subtitle.runs.isNullOrEmpty() && header.subtitle.runs?.size!! > 2) {
-                val author = Author(id = header.subtitle.runs?.get(2)?.navigationEndpoint?.browseEndpoint?.browseId ?: "", name = header.subtitle.runs?.get(2)?.text ?: "")
+        when (header) {
+            is BrowseResponse.Header.MusicDetailHeaderRenderer -> {
+                title += header.title.runs?.get(0)?.text
+                Log.d("PlaylistParser", "title: $title")
+                if (!header.subtitle.runs.isNullOrEmpty() && header.subtitle.runs?.size!! > 2) {
+                    val author = Author(id = header.subtitle.runs?.get(2)?.navigationEndpoint?.browseEndpoint?.browseId ?: "", name = header.subtitle.runs?.get(2)?.text ?: "")
+                    listAuthor.add(author)
+                    Log.d("PlaylistParser", "author: $author")
+                }
+                val secondSubtitle = header.secondSubtitle.runs
+                Log.w("PlaylistParser", "secondSubtitle: $secondSubtitle")
+                if (!secondSubtitle.isNullOrEmpty() && secondSubtitle.size > 2) {
+                    duration += secondSubtitle.getOrNull(2)?.text
+                }
+                Log.d("PlaylistParser", "duration: $duration")
+                if (!header.description?.runs.isNullOrEmpty()) {
+                    for (run in header.description?.runs!!) {
+                        description += (run.text)
+                    }
+                }
+                if (!header.subtitle.runs.isNullOrEmpty() && header.subtitle.runs?.size!! > 4) {
+                    year += header.subtitle.runs?.get(4)?.text
+                }
+                header.thumbnail.croppedSquareThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail()
+                    ?.let { listThumbnails.addAll(it) }
+            }
+
+            is BrowseResponse.Header.MusicEditablePlaylistDetailHeaderRenderer? -> {
+                title += header.header.musicDetailHeaderRenderer?.title?.runs?.get(0)?.text
+                Log.d("PlaylistParser", "title: $title")
+                val author = Author(
+                    id = header.header.musicDetailHeaderRenderer?.subtitle?.runs?.get(2)?.navigationEndpoint?.browseEndpoint?.browseId
+                        ?: "",
+                    name = header.header.musicDetailHeaderRenderer?.subtitle?.runs?.get(2)?.text ?: "")
                 listAuthor.add(author)
                 Log.d("PlaylistParser", "author: $author")
-            }
-            val secondSubtitle = header.secondSubtitle.runs
-            Log.w("PlaylistParser", "secondSubtitle: $secondSubtitle")
-            if (!secondSubtitle.isNullOrEmpty() && secondSubtitle.size > 2) {
-                duration += secondSubtitle.getOrNull(2)?.text
-            }
-            Log.d("PlaylistParser", "duration: $duration")
-            if (!header.description?.runs.isNullOrEmpty()) {
-                for (run in header.description?.runs!!) {
-                    description += (run.text)
+                if (header.header.musicDetailHeaderRenderer?.secondSubtitle?.runs?.size!! > 4) {
+                    duration += header.header.musicDetailHeaderRenderer?.secondSubtitle?.runs?.get(4)?.text
                 }
-            }
-            if (!header.subtitle.runs.isNullOrEmpty() && header.subtitle.runs?.size!! > 4) {
-                year += header.subtitle.runs?.get(4)?.text
-            }
-            header.thumbnail.croppedSquareThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail()
-                ?.let { listThumbnails.addAll(it) }
-        }
-        else if (header is BrowseResponse.Header.MusicEditablePlaylistDetailHeaderRenderer?) {
-            title += header.header.musicDetailHeaderRenderer?.title?.runs?.get(0)?.text
-            Log.d("PlaylistParser", "title: $title")
-            val author = Author(
-                id = header.header.musicDetailHeaderRenderer?.subtitle?.runs?.get(2)?.navigationEndpoint?.browseEndpoint?.browseId
-                ?: "",
-                name = header.header.musicDetailHeaderRenderer?.subtitle?.runs?.get(2)?.text ?: "")
-            listAuthor.add(author)
-            Log.d("PlaylistParser", "author: $author")
-            if (header.header.musicDetailHeaderRenderer?.secondSubtitle?.runs?.size!! > 4) {
-                duration += header.header.musicDetailHeaderRenderer?.secondSubtitle?.runs?.get(4)?.text
-            }
-            else if (header.header.musicDetailHeaderRenderer?.secondSubtitle?.runs?.size!! == 3) {
-                duration += header.header.musicDetailHeaderRenderer?.secondSubtitle?.runs?.get(2)?.text
-            }
-            Log.d("PlaylistParser", "duration: $duration")
-            if (!header.header.musicDetailHeaderRenderer?.description?.runs.isNullOrEmpty()) {
-                for (run in header.header.musicDetailHeaderRenderer?.description?.runs!!) {
-                    description += (run.text)
+                else if (header.header.musicDetailHeaderRenderer?.secondSubtitle?.runs?.size!! == 3) {
+                    duration += header.header.musicDetailHeaderRenderer?.secondSubtitle?.runs?.get(2)?.text
                 }
-            }
-            header.header.musicDetailHeaderRenderer?.thumbnail?.croppedSquareThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail()
-                ?.let { listThumbnails.addAll(it) }
-        }
-        else if (header is SectionListRenderer.Content.MusicResponsiveHeaderRenderer?) {
-            title += header.title?.runs?.firstOrNull()?.text
-            Log.d("PlaylistParser", "title: $title")
-            val author = Author(id = header.straplineTextOne?.runs?.get(0)?.navigationEndpoint?.browseEndpoint?.browseId ?: "", name = header.straplineTextOne?.runs?.get(0)?.text ?: "")
-            listAuthor.add(author)
-            Log.d("PlaylistParser", "author: $author")
-            val secondSubtitle = header.secondSubtitle?.runs
-            Log.w("PlaylistParser", "secondSubtitle: $secondSubtitle")
-            if (!secondSubtitle.isNullOrEmpty() && secondSubtitle.size > 4) {
-                duration += secondSubtitle.getOrNull(4)?.text
-            }
-            else if (!secondSubtitle.isNullOrEmpty() && secondSubtitle.size == 3) {
-                duration += secondSubtitle.getOrNull(2)?.text
-            }
-            Log.d("PlaylistParser", "duration: $duration")
-            if (!header.description?.musicDescriptionShelfRenderer?.description?.runs.isNullOrEmpty()) {
-                for (run in header.description?.musicDescriptionShelfRenderer?.description?.runs!!) {
-                    description += (run.text)
+                Log.d("PlaylistParser", "duration: $duration")
+                if (!header.header.musicDetailHeaderRenderer?.description?.runs.isNullOrEmpty()) {
+                    for (run in header.header.musicDetailHeaderRenderer?.description?.runs!!) {
+                        description += (run.text)
+                    }
                 }
+                header.header.musicDetailHeaderRenderer?.thumbnail?.croppedSquareThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail()
+                    ?.let { listThumbnails.addAll(it) }
             }
-            header.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail()
-                ?.let { listThumbnails.addAll(it) }
+
+            is SectionListRenderer.Content.MusicResponsiveHeaderRenderer? -> {
+                title += header.title?.runs?.firstOrNull()?.text
+                Log.d("PlaylistParser", "title: $title")
+                val author = Author(id = header.straplineTextOne?.runs?.get(0)?.navigationEndpoint?.browseEndpoint?.browseId ?: "", name = header.straplineTextOne?.runs?.get(0)?.text ?: "")
+                listAuthor.add(author)
+                Log.d("PlaylistParser", "author: $author")
+                val secondSubtitle = header.secondSubtitle?.runs
+                Log.w("PlaylistParser", "secondSubtitle: $secondSubtitle")
+                if (!secondSubtitle.isNullOrEmpty() && secondSubtitle.size > 4) {
+                    duration += secondSubtitle.getOrNull(4)?.text
+                }
+                else if (!secondSubtitle.isNullOrEmpty() && secondSubtitle.size == 3) {
+                    duration += secondSubtitle.getOrNull(2)?.text
+                }
+                Log.d("PlaylistParser", "duration: $duration")
+                if (!header.description?.musicDescriptionShelfRenderer?.description?.runs.isNullOrEmpty()) {
+                    for (run in header.description?.musicDescriptionShelfRenderer?.description?.runs!!) {
+                        description += (run.text)
+                    }
+                }
+                header.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail()
+                    ?.let { listThumbnails.addAll(it) }
+            }
         }
         Log.d("PlaylistParser", "description: $description")
         val listTrack: MutableList<Track> = arrayListOf()

@@ -18,10 +18,13 @@ import android.util.Log
 import android.view.View
 import android.view.animation.AnimationUtils
 import android.widget.Toast
+import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.net.toUri
 import androidx.core.os.LocaleListCompat
@@ -207,7 +210,12 @@ class MainActivity : AppCompatActivity() {
 //
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
 //            WindowCompat.setDecorFitsSystemWindows(window, false)
-        enableEdgeToEdge()
+        enableEdgeToEdge(
+            navigationBarStyle = SystemBarStyle.auto(
+                lightScrim = Color.Transparent.toArgb(),
+                darkScrim = Color.Transparent.toArgb()
+            )
+        )
         viewModel.checkIsRestoring()
         viewModel.runWorker()
 //        } else {
@@ -620,7 +628,9 @@ class MainActivity : AppCompatActivity() {
                     dataStoreManager.translucentBottomBar.distinctUntilChanged().collectLatest {
                         if (it == DataStoreManager.TRUE) {
                             binding.bottomNavigationView.background =
-                                ResourcesCompat.getDrawable(resources, R.drawable.transparent_rect, null)
+                                ResourcesCompat.getDrawable(resources, R.drawable.transparent_rect, null)?.apply {
+                                    this.setDither(true)
+                                }
                         }
                         else if (it == DataStoreManager.FALSE) {
                             binding.bottomNavigationView.background =
