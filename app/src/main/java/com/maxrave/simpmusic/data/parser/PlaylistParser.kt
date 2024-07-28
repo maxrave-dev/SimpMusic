@@ -7,12 +7,14 @@ import com.maxrave.kotlinytmusicscraper.models.SectionListRenderer
 import com.maxrave.kotlinytmusicscraper.models.response.BrowseResponse
 import com.maxrave.kotlinytmusicscraper.models.response.SearchResponse
 import com.maxrave.kotlinytmusicscraper.pages.PodcastItem
+import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.data.db.entities.SetVideoIdEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.browse.playlist.Author
 import com.maxrave.simpmusic.data.model.browse.playlist.PlaylistBrowse
 import com.maxrave.simpmusic.data.model.podcast.PodcastBrowse
 import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
+import com.maxrave.simpmusic.data.model.searchResult.songs.Album
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 
@@ -105,7 +107,14 @@ fun parsePlaylistData(
         val listTrack: MutableList<Track> = arrayListOf()
         for (content in listContent){
             val track = Track(
-                album = null,
+                album = content.musicResponsiveListItemRenderer?.menu?.menuRenderer?.items?.find {
+                    it.menuNavigationItemRenderer?.icon?.iconType == "ALBUM"
+                }?.let {
+                    Album(
+                        id = it.menuNavigationItemRenderer?.navigationEndpoint?.browseEndpoint?.browseId ?: return null,
+                        name = context.getString(R.string.album)
+                    )
+                },
                 artists = content.musicResponsiveListItemRenderer?.let {
                     parseSongArtists(
                         it,
