@@ -13,14 +13,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.9.0",
+            "artifactVersion": "1.9.1",
             "description": "Provides the base Activity subclass and the relevant hooks to build a composable structure on top.",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Activity",
-            "website": "https://developer.android.com/jetpack/androidx/releases/activity#1.9.0",
+            "website": "https://developer.android.com/jetpack/androidx/releases/activity#1.9.1",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -38,14 +38,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.9.0",
+            "artifactVersion": "1.9.1",
             "description": "Compose integration with Activity",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Activity Compose",
-            "website": "https://developer.android.com/jetpack/androidx/releases/activity#1.9.0",
+            "website": "https://developer.android.com/jetpack/androidx/releases/activity#1.9.1",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -63,14 +63,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.9.0",
+            "artifactVersion": "1.9.1",
             "description": "Kotlin extensions for 'activity' artifact",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Activity Kotlin Extensions",
-            "website": "https://developer.android.com/jetpack/androidx/releases/activity#1.9.0",
+            "website": "https://developer.android.com/jetpack/androidx/releases/activity#1.9.1",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -348,14 +348,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.7.0-beta01",
+            "artifactVersion": "1.6.8",
             "description": "Compose animation library",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Compose Animation",
-            "website": "https://developer.android.com/jetpack/androidx/releases/compose-animation#1.7.0-beta01",
+            "website": "https://developer.android.com/jetpack/androidx/releases/compose-animation#1.6.8",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -373,14 +373,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.7.0-beta01",
+            "artifactVersion": "1.6.8",
             "description": "Animation engine and animation primitives that are the building blocks of the Compose animation library",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Compose Animation Core",
-            "website": "https://developer.android.com/jetpack/androidx/releases/compose-animation#1.7.0-beta01",
+            "website": "https://developer.android.com/jetpack/androidx/releases/compose-animation#1.6.8",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -398,14 +398,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.7.0-beta01",
+            "artifactVersion": "1.6.8",
             "description": "Higher level abstractions of the Compose UI primitives. This library is design system agnostic, providing the high-level building blocks for both application and design-system developers",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Compose Foundation",
-            "website": "https://developer.android.com/jetpack/androidx/releases/compose-foundation#1.7.0-beta01",
+            "website": "https://developer.android.com/jetpack/androidx/releases/compose-foundation#1.6.8",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -423,14 +423,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.7.0-beta01",
+            "artifactVersion": "1.6.8",
             "description": "Compose layout implementations",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Compose Layouts",
-            "website": "https://developer.android.com/jetpack/androidx/releases/compose-foundation#1.7.0-beta01",
+            "website": "https://developer.android.com/jetpack/androidx/releases/compose-foundation#1.6.8",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -548,14 +548,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.7.0-beta01",
+            "artifactVersion": "1.6.8",
             "description": "Material ripple used to build interactive components",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Compose Material Ripple",
-            "website": "https://developer.android.com/jetpack/androidx/releases/compose-material#1.7.0-beta01",
+            "website": "https://developer.android.com/jetpack/androidx/releases/compose-material#1.6.8",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -573,14 +573,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.7.0-beta01",
+            "artifactVersion": "1.6.8",
             "description": "Tree composition support for code generated by the Compose compiler plugin and corresponding public API",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Compose Runtime",
-            "website": "https://developer.android.com/jetpack/androidx/releases/compose-runtime#1.7.0-beta01",
+            "website": "https://developer.android.com/jetpack/androidx/releases/compose-runtime#1.6.8",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -598,14 +598,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.7.0-beta01",
+            "artifactVersion": "1.6.8",
             "description": "Compose components that allow saving and restoring the local ui state",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Compose Saveable",
-            "website": "https://developer.android.com/jetpack/androidx/releases/compose-runtime#1.7.0-beta01",
+            "website": "https://developer.android.com/jetpack/androidx/releases/compose-runtime#1.6.8",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -623,14 +623,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.7.0-beta01",
+            "artifactVersion": "1.6.8",
             "description": "Compose UI primitives. This library contains the primitives that form the Compose UI Toolkit, such as drawing, measurement and layout.",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Compose UI",
-            "website": "https://developer.android.com/jetpack/androidx/releases/compose-ui#1.7.0-beta01",
+            "website": "https://developer.android.com/jetpack/androidx/releases/compose-ui#1.6.8",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -648,14 +648,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.7.0-beta01",
+            "artifactVersion": "1.6.8",
             "description": "Compose classes related to dimensions without units",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Compose Geometry",
-            "website": "https://developer.android.com/jetpack/androidx/releases/compose-ui#1.7.0-beta01",
+            "website": "https://developer.android.com/jetpack/androidx/releases/compose-ui#1.6.8",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -673,14 +673,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.7.0-beta01",
+            "artifactVersion": "1.6.8",
             "description": "Compose graphics",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Compose Graphics",
-            "website": "https://developer.android.com/jetpack/androidx/releases/compose-ui#1.7.0-beta01",
+            "website": "https://developer.android.com/jetpack/androidx/releases/compose-ui#1.6.8",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -698,14 +698,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.7.0-beta01",
+            "artifactVersion": "1.6.8",
             "description": "Compose Text primitives and utilities",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Compose UI Text",
-            "website": "https://developer.android.com/jetpack/androidx/releases/compose-ui#1.7.0-beta01",
+            "website": "https://developer.android.com/jetpack/androidx/releases/compose-ui#1.6.8",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -723,14 +723,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.7.0-beta01",
+            "artifactVersion": "1.6.8",
             "description": "Compose tooling library API. This library provides the API required to declare @Preview composables in user apps.",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Compose UI Preview Tooling",
-            "website": "https://developer.android.com/jetpack/androidx/releases/compose-ui#1.7.0-beta01",
+            "website": "https://developer.android.com/jetpack/androidx/releases/compose-ui#1.6.8",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -748,14 +748,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.7.0-beta01",
+            "artifactVersion": "1.6.8",
             "description": "Compose classes for simple units",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Compose Unit",
-            "website": "https://developer.android.com/jetpack/androidx/releases/compose-ui#1.7.0-beta01",
+            "website": "https://developer.android.com/jetpack/androidx/releases/compose-ui#1.6.8",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -773,14 +773,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.7.0-beta01",
+            "artifactVersion": "1.6.8",
             "description": "Internal Compose utilities used by other modules",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Compose Util",
-            "website": "https://developer.android.com/jetpack/androidx/releases/compose-ui#1.7.0-beta01",
+            "website": "https://developer.android.com/jetpack/androidx/releases/compose-ui#1.6.8",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1105,7 +1105,7 @@
             "developers": [
                 
             ],
-            "artifactVersion": "8.5.0",
+            "artifactVersion": "8.5.1",
             "description": "",
             "name": "androidx.databinding:viewbinding",
             "licenses": [
@@ -1379,14 +1379,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.8.1",
+            "artifactVersion": "1.8.2",
             "description": "The Support Library is a static library that you can add to your Android application in order to use APIs that are either not available for older platform versions or utility APIs that aren't a part of the framework APIs. Compatible on devices running API 14 or later.",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "fragment",
-            "website": "https://developer.android.com/jetpack/androidx/releases/fragment#1.8.1",
+            "website": "https://developer.android.com/jetpack/androidx/releases/fragment#1.8.2",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1404,39 +1404,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.8.1",
+            "artifactVersion": "1.8.2",
             "description": "Kotlin extensions for 'fragment' artifact",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Fragment Kotlin Extensions",
-            "website": "https://developer.android.com/jetpack/androidx/releases/fragment#1.8.1",
-            "licenses": [
-                "Apache-2.0"
-            ],
-            "organization": {
-                "name": "The Android Open Source Project"
-            }
-        },
-        {
-            "uniqueId": "androidx.graphics:graphics-path",
-            "funding": [
-                
-            ],
-            "developers": [
-                {
-                    "name": "The Android Open Source Project"
-                }
-            ],
-            "artifactVersion": "1.0.1",
-            "description": "Query segment data for android.graphics.Path objects",
-            "scm": {
-                "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
-                "url": "https://cs.android.com/androidx/platform/frameworks/support"
-            },
-            "name": "Android Graphics Path",
-            "website": "https://developer.android.com/jetpack/androidx/releases/graphics#1.0.1",
+            "website": "https://developer.android.com/jetpack/androidx/releases/fragment#1.8.2",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1592,14 +1567,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.3",
+            "artifactVersion": "2.8.4",
             "description": "Android Lifecycle-Common for Java 8 Language",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Lifecycle-Common for Java 8",
-            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.3",
+            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.4",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1617,14 +1592,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.3",
+            "artifactVersion": "2.8.4",
             "description": "Android Lifecycle-Common",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Lifecycle-Common",
-            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.3",
+            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.4",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1664,14 +1639,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.3",
+            "artifactVersion": "2.8.4",
             "description": "Android Lifecycle LiveData",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Lifecycle LiveData",
-            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.3",
+            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.4",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1689,14 +1664,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.3",
+            "artifactVersion": "2.8.4",
             "description": "Android Lifecycle LiveData Core",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Lifecycle LiveData Core",
-            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.3",
+            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.4",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1714,14 +1689,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.3",
+            "artifactVersion": "2.8.4",
             "description": "Kotlin extensions for 'livedata-core' artifact",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "LiveData Core Kotlin Extensions",
-            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.3",
+            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.4",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1739,14 +1714,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.3",
+            "artifactVersion": "2.8.4",
             "description": "Kotlin extensions for 'livedata' artifact",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "LiveData Kotlin Extensions",
-            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.3",
+            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.4",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1764,14 +1739,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.3",
+            "artifactVersion": "2.8.4",
             "description": "Android Lifecycle Process",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Lifecycle Process",
-            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.3",
+            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.4",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1789,14 +1764,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.3",
+            "artifactVersion": "2.8.4",
             "description": "Android Lifecycle Runtime",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Lifecycle Runtime",
-            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.3",
+            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.4",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1814,39 +1789,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.3",
+            "artifactVersion": "2.8.4",
             "description": "Android Lifecycle Runtime",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Lifecycle Runtime",
-            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.3",
-            "licenses": [
-                "Apache-2.0"
-            ],
-            "organization": {
-                "name": "The Android Open Source Project"
-            }
-        },
-        {
-            "uniqueId": "androidx.lifecycle:lifecycle-runtime-compose-android",
-            "funding": [
-                
-            ],
-            "developers": [
-                {
-                    "name": "The Android Open Source Project"
-                }
-            ],
-            "artifactVersion": "2.8.3",
-            "description": "Compose integration with Lifecycle",
-            "scm": {
-                "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
-                "url": "https://cs.android.com/androidx/platform/frameworks/support"
-            },
-            "name": "Lifecycle Runtime Compose",
-            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.3",
+            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.4",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1864,14 +1814,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.3",
+            "artifactVersion": "2.8.4",
             "description": "Kotlin extensions for 'lifecycle' artifact",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Lifecycle Kotlin Extensions",
-            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.3",
+            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.4",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1889,14 +1839,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.3",
+            "artifactVersion": "2.8.4",
             "description": "Android Lifecycle Service",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Lifecycle Service",
-            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.3",
+            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.4",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1914,14 +1864,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.3",
+            "artifactVersion": "2.8.4",
             "description": "Android Lifecycle ViewModel",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Lifecycle ViewModel",
-            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.3",
+            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.4",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1939,14 +1889,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.3",
+            "artifactVersion": "2.8.4",
             "description": "Android Lifecycle ViewModel",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Lifecycle ViewModel",
-            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.3",
+            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.4",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1964,14 +1914,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.3",
+            "artifactVersion": "2.8.4",
             "description": "Compose integration with Lifecycle ViewModel",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Lifecycle ViewModel Compose",
-            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.3",
+            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.4",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1989,14 +1939,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.3",
+            "artifactVersion": "2.8.4",
             "description": "Kotlin extensions for 'viewmodel' artifact",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Lifecycle ViewModel Kotlin Extensions",
-            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.3",
+            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.4",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -2014,14 +1964,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.8.3",
+            "artifactVersion": "2.8.4",
             "description": "Android Lifecycle ViewModel",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Lifecycle ViewModel with SavedState",
-            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.3",
+            "website": "https://developer.android.com/jetpack/androidx/releases/lifecycle#2.8.4",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -2083,7 +2033,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.3.1",
+            "artifactVersion": "1.4.0",
             "description": "Media3 common module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2104,7 +2054,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.3.1",
+            "artifactVersion": "1.4.0",
             "description": "Media3 Container module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2125,7 +2075,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.3.1",
+            "artifactVersion": "1.4.0",
             "description": "Media3 database module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2146,7 +2096,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.3.1",
+            "artifactVersion": "1.4.0",
             "description": "Media3 DataSource module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2167,7 +2117,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.3.1",
+            "artifactVersion": "1.4.0",
             "description": "Media3 OkHttp DataSource module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2188,7 +2138,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.3.1",
+            "artifactVersion": "1.4.0",
             "description": "Media3 decoder module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2209,7 +2159,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.3.1",
+            "artifactVersion": "1.4.0",
             "description": "Media3 ExoPlayer module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2230,7 +2180,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.3.1",
+            "artifactVersion": "1.4.0",
             "description": "Media3 ExoPlayer DASH module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2251,7 +2201,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.3.1",
+            "artifactVersion": "1.4.0",
             "description": "Media3 ExoPlayer HLS module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2272,7 +2222,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.3.1",
+            "artifactVersion": "1.4.0",
             "description": "Media3 ExoPlayer RTSP module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2293,7 +2243,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.3.1",
+            "artifactVersion": "1.4.0",
             "description": "Media3 ExoPlayer SmoothStreaming module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2314,7 +2264,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.3.1",
+            "artifactVersion": "1.4.0",
             "description": "Media3 ExoPlayer WorkManager module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2335,7 +2285,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.3.1",
+            "artifactVersion": "1.4.0",
             "description": "Media3 Extractor module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2356,7 +2306,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.3.1",
+            "artifactVersion": "1.4.0",
             "description": "Media3 Session module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2377,7 +2327,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.3.1",
+            "artifactVersion": "1.4.0",
             "description": "Media3 UI module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2599,14 +2549,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "3.3.0",
+            "artifactVersion": "3.3.1",
             "description": "Android Paging-Common",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Paging-Common",
-            "website": "https://developer.android.com/jetpack/androidx/releases/paging#3.3.0",
+            "website": "https://developer.android.com/jetpack/androidx/releases/paging#3.3.1",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -2624,14 +2574,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "3.3.0",
+            "artifactVersion": "3.3.1",
             "description": "Kotlin extensions for 'paging-common' artifact",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Paging-Common Kotlin Extensions",
-            "website": "https://developer.android.com/jetpack/androidx/releases/paging#3.3.0",
+            "website": "https://developer.android.com/jetpack/androidx/releases/paging#3.3.1",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -2649,14 +2599,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "3.3.0",
+            "artifactVersion": "3.3.1",
             "description": "Android Paging-Runtime",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Paging-Runtime",
-            "website": "https://developer.android.com/jetpack/androidx/releases/paging#3.3.0",
+            "website": "https://developer.android.com/jetpack/androidx/releases/paging#3.3.1",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -2674,14 +2624,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "3.3.0",
+            "artifactVersion": "3.3.1",
             "description": "Kotlin extensions for 'paging-runtime' artifact",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Paging-Runtime Kotlin Extensions",
-            "website": "https://developer.android.com/jetpack/androidx/releases/paging#3.3.0",
+            "website": "https://developer.android.com/jetpack/androidx/releases/paging#3.3.1",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -3238,81 +3188,6 @@
             "licenses": [
                 "Apache-2.0"
             ]
-        },
-        {
-            "uniqueId": "androidx.wear.compose:compose-foundation",
-            "funding": [
-                
-            ],
-            "developers": [
-                {
-                    "name": "The Android Open Source Project"
-                }
-            ],
-            "artifactVersion": "1.4.0-beta01",
-            "description": "WearOS Compose Foundation Library. This library makes it easier for developersto write Jetpack Compose applications for Wearable devices by providing functionality to support wearable specific devices sizes, shapes and navigation gestures. It builds upon the Jetpack Compose libraries.",
-            "scm": {
-                "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
-                "url": "https://cs.android.com/androidx/platform/frameworks/support"
-            },
-            "name": "Android Wear Compose Foundation",
-            "website": "https://developer.android.com/jetpack/androidx/releases/wear-compose#1.4.0-beta01",
-            "licenses": [
-                "Apache-2.0"
-            ],
-            "organization": {
-                "name": "The Android Open Source Project"
-            }
-        },
-        {
-            "uniqueId": "androidx.wear.compose:compose-material-core",
-            "funding": [
-                
-            ],
-            "developers": [
-                {
-                    "name": "The Android Open Source Project"
-                }
-            ],
-            "artifactVersion": "1.4.0-beta01",
-            "description": "WearOS Compose Material Core Library. This library contains themeless components that are shared between different WearOS Compose Material libraries. It builds upon the Jetpack Compose libraries.",
-            "scm": {
-                "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
-                "url": "https://cs.android.com/androidx/platform/frameworks/support"
-            },
-            "name": "Android Wear Compose Material Core",
-            "website": "https://developer.android.com/jetpack/androidx/releases/wear-compose#1.4.0-beta01",
-            "licenses": [
-                "Apache-2.0"
-            ],
-            "organization": {
-                "name": "The Android Open Source Project"
-            }
-        },
-        {
-            "uniqueId": "androidx.wear.compose:compose-material3",
-            "funding": [
-                
-            ],
-            "developers": [
-                {
-                    "name": "The Android Open Source Project"
-                }
-            ],
-            "artifactVersion": "1.0.0-alpha23",
-            "description": "WearOS Compose Material 3 Library. This library makes it easier for developers to write Jetpack Compose applications for Wearable devices that implement Wear Material 3 Design UX guidelines and specifications. It builds upon the Jetpack Compose libraries.",
-            "scm": {
-                "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
-                "url": "https://cs.android.com/androidx/platform/frameworks/support"
-            },
-            "name": "Android Wear Compose Material 3",
-            "website": "https://developer.android.com/jetpack/androidx/releases/wear-compose#1.0.0-alpha23",
-            "licenses": [
-                "Apache-2.0"
-            ],
-            "organization": {
-                "name": "The Android Open Source Project"
-            }
         },
         {
             "uniqueId": "androidx.window:window",
@@ -4081,7 +3956,7 @@
             "developers": [
                 
             ],
-            "artifactVersion": "2.21.1",
+            "artifactVersion": "2.23.0",
             "description": "Error Prone is a static analysis tool for Java that catches common programming mistakes at compile-time.",
             "scm": {
                 "connection": "scm:git:https://github.com/google/error-prone.git",
@@ -4106,8 +3981,8 @@
             "developers": [
                 
             ],
-            "artifactVersion": "1.0.1",
-            "description": "Contains\n    com.google.common.util.concurrent.internal.InternalFutureFailureAccess and\n    InternalFutures. Most users will never need to use this artifact. Its\n    classes is conceptually a part of Guava, but they're in this separate\n    artifact so that Android libraries can use them without pulling in all of\n    Guava (just as they can use ListenableFuture by depending on the\n    listenablefuture artifact).",
+            "artifactVersion": "1.0.2",
+            "description": "Contains\n    com.google.common.util.concurrent.internal.InternalFutureFailureAccess and\n    InternalFutures. Most users will never need to use this artifact. Its\n    classes are conceptually a part of Guava, but they're in this separate\n    artifact so that Android libraries can use them without pulling in all of\n    Guava (just as they can use ListenableFuture by depending on the\n    listenablefuture artifact).",
             "scm": {
                 "connection": "scm:git:https://github.com/google/guava.git",
                 "url": "https://github.com/google/guava",
@@ -4127,7 +4002,7 @@
             "developers": [
                 
             ],
-            "artifactVersion": "32.1.3-android",
+            "artifactVersion": "33.0.0-android",
             "description": "Guava is a suite of core and expanded libraries that include\n    utility classes, Google's collections, I/O classes, and\n    much more.",
             "scm": {
                 "connection": "scm:git:https://github.com/google/guava.git",
@@ -5348,7 +5223,7 @@
                     "name": "Suzanne Millstein"
                 }
             ],
-            "artifactVersion": "3.37.0",
+            "artifactVersion": "3.41.0",
             "description": "checker-qual contains annotations (type qualifiers) that a programmer\nwrites to specify Java code for type-checking by the Checker Framework.",
             "scm": {
                 "connection": "scm:git:https://github.com/typetools/checker-framework.git",

@@ -225,6 +225,10 @@ class PlaylistViewModel
 
         fun getPlaylist(id: String, playlistBrowse: PlaylistBrowse?, isRadio: Boolean?, message: String? = null) {
             viewModelScope.launch {
+                mainRepository.updatePlaylistInLibrary(
+                    LocalDateTime.now(),
+                    id
+                )
                 mainRepository.getPlaylist(id).collect { values ->
                     if (values != null) {
                         _playlistEntity.value = values
@@ -239,7 +243,7 @@ class PlaylistViewModel
                                 }
                             }
                         }
-                        if (count == list?.size) {
+                        if (count == list?.size && count > 0) {
                             updatePlaylistDownloadState(id, DownloadState.STATE_DOWNLOADED)
                         } else {
                             updatePlaylistDownloadState(id, DownloadState.STATE_NOT_DOWNLOADED)
@@ -319,7 +323,7 @@ class PlaylistViewModel
                         }
                     }
                 }
-                if (count == list.size) {
+                if (count == list.size && count > 0) {
                     id.value?.let { updatePlaylistDownloadState(it, DownloadState.STATE_DOWNLOADED) }
                 }
                 mainRepository.getPlaylist(id.value!!).collect { album ->
@@ -462,7 +466,7 @@ class PlaylistViewModel
                     }
                     mainRepository.updateLocalPlaylistTracks(list, id)
                     Toast.makeText(getApplication(), application.getString(R.string.added_to_playlist), Toast.LENGTH_SHORT).show()
-                    if (count == values.size) {
+                    if (count == values.size && count > 0) {
                         mainRepository.updateLocalPlaylistDownloadState(DownloadState.STATE_DOWNLOADED, id)
                     } else {
                         mainRepository.updateLocalPlaylistDownloadState(DownloadState.STATE_NOT_DOWNLOADED, id)

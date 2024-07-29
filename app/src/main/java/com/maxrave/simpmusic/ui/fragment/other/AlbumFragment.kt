@@ -226,7 +226,6 @@ class AlbumFragment : Fragment() {
                         firstPlay,
                         Config.ALBUM_CLICK,
                         0,
-                        "Album \"${viewModel.albumBrowse.value?.data!!.title}\"",
                     )
                 }
 
@@ -261,7 +260,6 @@ class AlbumFragment : Fragment() {
                         firstPlay.toTrack(),
                         Config.ALBUM_CLICK,
                         0,
-                        "Album \"${viewModel.albumEntity.value?.title}\"",
                     )
                 }
             } else {
@@ -294,7 +292,6 @@ class AlbumFragment : Fragment() {
                         firstPlay,
                         Config.ALBUM_CLICK,
                         0,
-                        "Album \"${viewModel.albumBrowse.value?.data!!.title}\"",
                     )
                 }
             } else if (viewModel.albumEntity.value != null && viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
@@ -316,7 +313,6 @@ class AlbumFragment : Fragment() {
                         firstPlay,
                         Config.ALBUM_CLICK,
                         0,
-                        "Album \"${viewModel.albumEntity.value?.title}\"",
                     )
                 }
             } else {
@@ -346,7 +342,6 @@ class AlbumFragment : Fragment() {
                                 firstPlay,
                                 Config.ALBUM_CLICK,
                                 position,
-                                "Album \"${viewModel.albumBrowse.value?.data!!.title}\"",
                             )
                         }
                     } else if (viewModel.albumEntity.value != null && viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
@@ -368,7 +363,6 @@ class AlbumFragment : Fragment() {
                                 firstPlay,
                                 Config.ALBUM_CLICK,
                                 position,
-                                "Album \"${viewModel.albumEntity.value?.title}\"",
                             )
                         }
                     } else {

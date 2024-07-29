@@ -117,8 +117,7 @@ class RecentlySongsFragment: Fragment() {
                     sharedViewModel.loadMediaItemFromTrack(
                         firstQueue,
                         Config.SONG_CLICK,
-                        0,
-                        getString(R.string.recently_added)
+                        0
                     )
                 }
             }

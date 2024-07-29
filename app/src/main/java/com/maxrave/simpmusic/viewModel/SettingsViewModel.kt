@@ -48,6 +48,7 @@ import java.util.zip.ZipEntry
 import javax.inject.Inject
 import kotlin.system.exitProcess
 
+@UnstableApi
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val application: Application,
@@ -106,6 +107,23 @@ class SettingsViewModel @Inject constructor(
     val thumbCacheSize: StateFlow<Long?> = _thumbCacheSize
     private var _homeLimit = MutableStateFlow<Int?>(null)
     val homeLimit: StateFlow<Int?> = _homeLimit
+    private var _translucentBottomBar: MutableStateFlow<String?> = MutableStateFlow(null)
+    val translucentBottomBar: StateFlow<String?> = _translucentBottomBar
+
+    fun getTranslucentBottomBar() {
+        viewModelScope.launch {
+            dataStoreManager.translucentBottomBar.collect { translucentBottomBar ->
+                _translucentBottomBar.emit(translucentBottomBar)
+            }
+        }
+    }
+
+    fun setTranslucentBottomBar(translucentBottomBar: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setTranslucentBottomBar(translucentBottomBar)
+            getTranslucentBottomBar()
+        }
+    }
 
     @OptIn(ExperimentalCoilApi::class)
     fun getThumbCacheSize() {

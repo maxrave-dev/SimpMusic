@@ -265,7 +265,6 @@ class ArtistFragment : Fragment() {
                         firstQueue,
                         Config.SONG_CLICK,
                         0,
-                        "\"${viewModel.artistBrowse.value?.data?.name}\" ${getString(R.string.popular)}",
                     )
                 }
             },
@@ -306,7 +305,6 @@ class ArtistFragment : Fragment() {
                         firstQueue,
                         Config.VIDEO_CLICK,
                         0,
-                        "\"${viewModel.artistBrowse.value?.data?.name}\" ${getString(R.string.videos)}",
                     )
                 }
             },

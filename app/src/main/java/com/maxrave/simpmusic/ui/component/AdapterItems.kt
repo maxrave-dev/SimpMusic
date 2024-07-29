@@ -12,6 +12,8 @@ import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider
+import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,6 +29,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CardDefaults
@@ -48,10 +51,13 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import coil.request.SuccessResult
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.data.model.browse.album.Track
@@ -76,7 +82,9 @@ import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.animation.crossfade.CrossfadePlugin
 import com.skydoves.landscapist.coil.CoilImage
 import com.skydoves.landscapist.components.rememberImageComponent
+import com.skydoves.landscapist.placeholder.placeholder.PlaceholderPlugin
 
+@OptIn(ExperimentalFoundationApi::class)
 @UnstableApi
 @Composable
 fun HomeItem(
@@ -87,6 +95,10 @@ fun HomeItem(
 ) {
     val coroutineScope = rememberCoroutineScope()
     var bottomSheetShow by remember { mutableStateOf(false) }
+
+    val lazyListState = rememberLazyListState()
+    val snapperFlingBehavior = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyListState = lazyListState))
+
     if (bottomSheetShow) {
         NowPlayingBottomSheet(
             isBottomSheetVisible = bottomSheetShow,
@@ -139,9 +151,11 @@ fun HomeItem(
                     ),
                     previewPlaceholder = painterResource(id = R.drawable.holder),
                     component = rememberImageComponent {
-                        CrossfadePlugin(
+                        +CrossfadePlugin(
                             duration = 550
                         )
+                        +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder))
+                        +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder))
                     },
                     modifier = Modifier
                         .size(45.dp)
@@ -172,7 +186,9 @@ fun HomeItem(
         LazyRow(
             modifier = Modifier.padding(
                 vertical = 15.dp
-            )
+            ),
+            state = lazyListState,
+            flingBehavior = snapperFlingBehavior
         ) {
             items(data.contents) { temp ->
                 if (temp != null) {
@@ -227,8 +243,7 @@ fun HomeItem(
                             )
                             sharedViewModel.loadMediaItemFromTrack(
                                 firstQueue,
-                                Config.SONG_CLICK,
-                                from = temp.title
+                                Config.SONG_CLICK
                             )
                         }, onLongClick = {
                             homeViewModel.getSongEntity(temp.toTrack())
@@ -252,8 +267,7 @@ fun HomeItem(
                             )
                             sharedViewModel.loadMediaItemFromTrack(
                                 firstQueue,
-                                Config.SONG_CLICK,
-                                from = temp.title
+                                Config.SONG_CLICK
                             )
                         }, onLongClick = {
                             homeViewModel.getSongEntity(temp.toTrack())
@@ -352,12 +366,15 @@ fun HomeItemContentPlaylist(
 @Composable
 fun QuickPicksItem(
     onClick: () -> Unit,
+    widthDp: Dp,
     data: Content
 ) {
+    val tag = "QuickPicksItem"
     val configuration = LocalConfiguration.current
     Box(
         modifier = Modifier
-            .wrapContentSize()
+            .wrapContentHeight()
+            .width(widthDp)
             .focusable(true)
             .clickable {
                 onClick()
@@ -376,11 +393,25 @@ fun QuickPicksItem(
                     contentScale = ContentScale.Crop,
                     alignment = Alignment.Center,
                 ),
-                previewPlaceholder = painterResource(id = R.drawable.holder),
+                requestListener = {
+                    object : ImageRequest.Listener {
+                        override fun onSuccess(request: ImageRequest, result: SuccessResult) {
+                            super.onSuccess(request, result)
+                            Log.w(tag, "onSuccess: ${data.title}")
+                        }
+
+                        override fun onStart(request: ImageRequest) {
+                            super.onStart(request)
+                            Log.w(tag, "onStart: ${data.thumbnails.lastOrNull()?.url}")
+                        }
+                    }
+                },
                 component = rememberImageComponent {
-                    CrossfadePlugin(
+                    +CrossfadePlugin(
                         duration = 550
                     )
+                    +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder))
+                    +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder))
                 },
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
@@ -461,9 +492,11 @@ fun HomeItemSong(
                 ),
                 previewPlaceholder = painterResource(id = R.drawable.holder),
                 component = rememberImageComponent {
-                    CrossfadePlugin(
+                    +CrossfadePlugin(
                         duration = 550
                     )
+                    +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder))
+                    +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder))
                 },
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
@@ -540,9 +573,11 @@ fun HomeItemVideo(
                 ),
                 previewPlaceholder = painterResource(id = R.drawable.holder_video),
                 component = rememberImageComponent {
-                    CrossfadePlugin(
+                    +CrossfadePlugin(
                         duration = 550
                     )
+                    +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder_video))
+                    +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder_video))
                 },
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
@@ -615,9 +650,11 @@ fun HomeItemArtist(
                 ),
                 previewPlaceholder = painterResource(id = R.drawable.holder),
                 component = rememberImageComponent {
-                    CrossfadePlugin(
+                    +CrossfadePlugin(
                         duration = 550
                     )
+                    +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder))
+                    +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder))
                 },
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
@@ -714,7 +751,7 @@ fun ItemVideoChart(
         Modifier
             .wrapContentSize()
             .focusable(true)
-            .clickable{
+            .clickable {
                 onClick()
             }
     ) {
@@ -730,9 +767,11 @@ fun ItemVideoChart(
                 ),
                 previewPlaceholder = painterResource(id = R.drawable.holder_video),
                 component = rememberImageComponent {
-                    CrossfadePlugin(
+                    +CrossfadePlugin(
                         duration = 550
                     )
+                    +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder_video))
+                    +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder_video))
                 },
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
@@ -799,7 +838,8 @@ fun ItemVideoChart(
 fun ItemArtistChart(
     onClick: () -> Unit,
     data: ItemArtist,
-    context: Context
+    context: Context,
+    widthDp: Dp
 ) {
     Box(
         Modifier
@@ -810,7 +850,9 @@ fun ItemArtistChart(
             }
     ) {
         Row(
-            modifier = Modifier.padding(10.dp),
+            modifier = Modifier
+                .padding(10.dp)
+                .width(widthDp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
@@ -831,9 +873,11 @@ fun ItemArtistChart(
                 ),
                 previewPlaceholder = painterResource(id = R.drawable.holder),
                 component = rememberImageComponent {
-                    CrossfadePlugin(
+                    +CrossfadePlugin(
                         duration = 550
                     )
+                    +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder))
+                    +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder))
                 },
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
@@ -875,9 +919,9 @@ fun ItemArtistChart(
 fun ItemTrackChart(
     onClick: () -> Unit,
     data: Track,
-    position: Int?
+    position: Int?,
+    widthDp: Dp
 ) {
-    val configuration = LocalConfiguration.current
     Box(
         modifier = Modifier
             .wrapContentSize()
@@ -888,7 +932,7 @@ fun ItemTrackChart(
     ) {
         Row(
             modifier = Modifier
-                .width(configuration.screenWidthDp.dp)
+                .width(widthDp)
                 .padding(10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -920,9 +964,11 @@ fun ItemTrackChart(
                 ),
                 previewPlaceholder = painterResource(id = R.drawable.holder),
                 component = rememberImageComponent {
-                    CrossfadePlugin(
+                    +CrossfadePlugin(
                         duration = 550
                     )
+                    +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder))
+                    +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder))
                 },
                 modifier = Modifier
                     .align(Alignment.CenterVertically)

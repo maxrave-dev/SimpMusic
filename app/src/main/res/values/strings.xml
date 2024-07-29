@@ -155,7 +155,7 @@
     <string name="no_equalizer">Your device doesn\'t have equalizer</string>
     <string name="open_system_equalizer">Open system equalizer</string>
     <string name="use_your_system_equalizer">Use your system equalizer</string>
-    <string name="version_name" translatable="false">v0.2.2</string>
+    <string name="version_name" translatable="false">v0.2.3</string>
     <string name="streaming_data_provider_piped">Streaming data provider (Piped)</string>
     <string name="itag">Itag</string>
     <string name="mime_type">Mime Type</string>
@@ -339,4 +339,8 @@
     <string name="repeat_all">Repeat All</string>
     <string name="repeat_off">Repeat Off</string>
     <string name="youtube_transcript">YouTube Transcript</string>
+    <string name="user_interface">Interface</string>
+    <string name="translucent_bottom_navigation_bar">Translucent bottom navigation bar</string>
+    <string name="you_can_see_the_content_below_the_bottom_bar">You can see the content below the bottom bar</string>
+    <string name="donation">If you love my work, give me a coffee</string>
 </resources>

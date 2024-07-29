@@ -132,6 +132,7 @@ class SettingsFragment : Fragment() {
         viewModel.getSpotifyLogIn()
         viewModel.getSpotifyLyrics()
         viewModel.getSpotifyCanvas()
+        viewModel.getTranslucentBottomBar()
 
         lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.CREATED) {
@@ -408,6 +409,11 @@ class SettingsFragment : Fragment() {
                         }
                     }
                 }
+                val job27 = launch {
+                    viewModel.translucentBottomBar.collectLatest { translucent ->
+                        binding.swEnableTranslucentNavBar.isChecked = if (translucent == DataStoreManager.TRUE) true else false
+                    }
+                }
                 job1.join()
                 job2.join()
                 job3.join()
@@ -434,6 +440,7 @@ class SettingsFragment : Fragment() {
                 job24.join()
                 job25.join()
                 job26.join()
+                job27.join()
             }
         }
         binding.sliderHomeLimit.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
@@ -595,7 +602,7 @@ class SettingsFragment : Fragment() {
         binding.btDonate.setOnClickListener {
             val urlIntent = Intent(
                 Intent.ACTION_VIEW,
-                Uri.parse("https://paypal.me/maxraveofficial")
+                Uri.parse("https://buymeacoffee.com/maxrave")
             )
             startActivity(urlIntent)
         }
@@ -855,6 +862,13 @@ class SettingsFragment : Fragment() {
                 viewModel.setNormalizeVolume(true)
             } else {
                 viewModel.setNormalizeVolume(false)
+            }
+        }
+        binding.swEnableTranslucentNavBar.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked) {
+                viewModel.setTranslucentBottomBar(true)
+            } else {
+                viewModel.setTranslucentBottomBar(false)
             }
         }
         binding.swEnableVideo.setOnCheckedChangeListener { _, checked ->

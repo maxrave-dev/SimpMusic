@@ -131,8 +131,7 @@ class PodcastFragment : Fragment() {
                     sharedViewModel.loadMediaItemFromTrack(
                         firstQueue,
                         Config.PLAYLIST_CLICK,
-                        0,
-                        "Podcast \"${viewModel.podcastBrowse.value?.data?.title}\""
+                        0
                     )
                 }
             }
@@ -163,8 +162,7 @@ class PodcastFragment : Fragment() {
                     sharedViewModel.loadMediaItemFromTrack(
                         firstPlay,
                         Config.PLAYLIST_CLICK,
-                        0,
-                        "Podcast \"${viewModel.podcastBrowse.value?.data?.title}\""
+                        0
                     )
                 }
 
@@ -209,8 +207,7 @@ class PodcastFragment : Fragment() {
                         sharedViewModel.loadMediaItemFromTrack(
                             firstQueue,
                             Config.PLAYLIST_CLICK,
-                            position,
-                            "Podcast \"${viewModel.podcastBrowse.value?.data?.title}\""
+                            position
                         )
                     }
                 }

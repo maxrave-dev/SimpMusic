@@ -254,7 +254,7 @@ fun PlaylistScreen(
                 )
             )
             sharedViewModel.loadMediaItemFromTrack(
-                track = track.toTrack(), type = Config.PLAYLIST_CLICK, index = list.indexOf(track), from = "Playlist \"${localPlaylist?.title}\""
+                track = track.toTrack(), type = Config.PLAYLIST_CLICK, index = list.indexOf(track)
             )
         }
     }
@@ -535,7 +535,9 @@ fun PlaylistScreen(
                                                 )
                                             )
                                             sharedViewModel.loadMediaItemFromTrack(
-                                                track = temp.first().toTrack(), type = Config.PLAYLIST_CLICK, index = 0, from = "Playlist \"${localPlaylist?.title}\""
+                                                track = temp.first().toTrack(),
+                                                type = Config.PLAYLIST_CLICK,
+                                                index = 0
                                             )
                                         } else {
                                             Toast.makeText(context, context.getString(R.string.playlist_is_empty), Toast.LENGTH_SHORT).show()
@@ -707,8 +709,7 @@ fun PlaylistScreen(
                                             sharedViewModel.loadMediaItemFromTrack(
                                                 track = random.toTrack(),
                                                 type = Config.PLAYLIST_CLICK,
-                                                index = index,
-                                                from = "Playlist \"${localPlaylist?.title}\""
+                                                index = index
                                             )
                                             if (!sharedViewModel.controllerState.value.isShuffle) {
                                                 sharedViewModel.onUIEvent(UIEvent.Shuffle)
@@ -805,14 +806,9 @@ fun PlaylistScreen(
                                                                     )
                                                                 )
                                                                 sharedViewModel.loadMediaItemFromTrack(
-                                                                    track = track, type = Config.SONG_CLICK, index = 0,
-                                                                    from = "${
-                                                                        context.getString(
-                                                                            R.string.playlist,
-                                                                        )
-                                                                    } \"${localPlaylist?.title}\" ${
-                                                                        context.getString(R.string.suggest)
-                                                                    }"
+                                                                    track = track,
+                                                                    type = Config.SONG_CLICK,
+                                                                    index = 0
                                                                 )
                                                             },
                                                         )

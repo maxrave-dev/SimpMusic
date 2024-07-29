@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.fragment.player
 
-import android.graphics.Color
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -2293,8 +2292,6 @@ class NowPlayingFragment : Fragment() {
         super.onDestroyView()
         arguments?.putString("type", null)
         arguments?.putString("videoId", null)
-        val activity = requireActivity()
-        activity.window.navigationBarColor = Color.parseColor("#CB0B0A0A")
 //        val bottom = activity.findViewById<BottomNavigationView>(R.id.bottom_navigation_view)
 //        val miniplayer = activity.findViewById<ComposeView>(R.id.miniplayer)
 //        bottom.animation = AnimationUtils.loadAnimation(requireContext(), R.anim.bottom_to_top)

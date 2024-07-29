@@ -88,7 +88,7 @@ class QueueFragment: BottomSheetDialogFragment() {
         super.onViewCreated(view, savedInstanceState)
         binding.loadingQueue.visibility = View.VISIBLE
         binding.rvQueue.visibility = View.GONE
-        binding.topAppBar.subtitle = viewModel.from.value
+        binding.topAppBar.subtitle = viewModel.nowPlayingScreenData.value.playlistName
         binding.topAppBar.setNavigationOnClickListener {
             dismiss()
         }
