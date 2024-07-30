@@ -46,7 +46,6 @@ import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -58,7 +57,6 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -82,10 +80,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.offline.DownloadRequest
-import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
@@ -101,11 +96,9 @@ import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.extension.angledGradientBackground
 import com.maxrave.simpmusic.extension.getBrushListColorFromPalette
-import com.maxrave.simpmusic.extension.toArrayListTrack
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.PlaylistType
 import com.maxrave.simpmusic.service.QueueData
-import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.LocalPlaylistBottomSheet
@@ -144,7 +137,6 @@ fun PlaylistScreen(
     navController: NavController,
 ) {
     val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
 
     val composition by rememberLottieComposition(
         LottieCompositionSpec.RawRes(R.raw.downloading_animation),
@@ -204,7 +196,6 @@ fun PlaylistScreen(
     val isPlaying by sharedViewModel.isPlaying.collectAsState()
     val suggestedTracks by viewModel.listSuggestions.collectAsState()
     val suggestionsLoading by viewModel.loading.collectAsState()
-    val fullListTracks by viewModel.fullListTracks.collectAsState()
     var showSyncAlertDialog by rememberSaveable { mutableStateOf(false) }
     var showUnsyncAlertDialog by rememberSaveable { mutableStateOf(false) }
     var shouldDownload by remember {
@@ -280,52 +271,24 @@ fun PlaylistScreen(
             viewModel.setOffset(0)
             viewModel.removeListSuggestion()
             viewModel.removeData()
-            viewModel.removeFullListTracks()
             viewModel.getLocalPlaylist(id)
             delay(100)
             firstTimeGetLocalPlaylist = true
         }
     }
-    LaunchedEffect(key1 = fullListTracks, key2 = shouldDownload) {
-        val flt = fullListTracks.toArrayListTrack()
-        if (flt.isNotEmpty() && shouldDownload) {
-            Log.w("PlaylistScreen", "fullListTracks: $flt")
-            shouldDownload = false
-            val listJob: ArrayList<SongEntity> = arrayListOf()
-            for (song in viewModel.listTrack.value!!) {
-                if (song.downloadState == DownloadState.STATE_NOT_DOWNLOADED) {
-                    listJob.add(song)
-                }
-            }
-            viewModel.listJob.value = listJob
-            Log.d("PlaylistFragment", "ListJob: ${viewModel.listJob.value}")
-            listJob.forEach { job ->
-                val downloadRequest =
-                    DownloadRequest.Builder(job.videoId, job.videoId.toUri())
-                        .setData(job.title.toByteArray())
-                        .setCustomCacheKey(job.videoId)
-                        .build()
-                viewModel.updateDownloadState(
-                    job.videoId,
-                    DownloadState.STATE_DOWNLOADING,
-                )
-                DownloadService.sendAddDownload(
-                    context,
-                    MusicDownloadService::class.java,
-                    downloadRequest,
-                    false,
-                )
-                viewModel.getDownloadStateFromService(job.videoId)
-            }
+    LaunchedEffect(key1 = shouldDownload) {
+        val listJob = localPlaylist?.tracks
+        if (!listJob.isNullOrEmpty() && shouldDownload) {
+            viewModel.downloadTracks(listJob)
             localPlaylist?.let { viewModel.downloadFullPlaylistState(it.id) }
         }
+        shouldDownload = false
     }
-    LaunchedEffect(key1 = fullListTracks, key2 = shouldAddAllToQueue) {
-        val flt = fullListTracks.toArrayListTrack()
-        if (flt.isNotEmpty() && shouldAddAllToQueue) {
+    LaunchedEffect(key1 = shouldAddAllToQueue) {
+        val listTrackVideoId = localPlaylist?.tracks
+        if (!listTrackVideoId.isNullOrEmpty() && shouldAddAllToQueue) {
+            sharedViewModel.addListLocalToQueue(listTrackVideoId)
             shouldAddAllToQueue = false
-            sharedViewModel.addListToQueue(flt)
-            Toast.makeText(context, context.getString(R.string.added_to_queue), Toast.LENGTH_SHORT).show()
         }
     }
     LaunchedEffect(key1 = localPlaylist, key2 = firstTimeGetLocalPlaylist) {
@@ -483,7 +446,7 @@ fun PlaylistScreen(
                                 ) {
                                     Text(
                                         text = stringResource(id = R.string.your_playlist),
-                                        style = typo.bodyLarge,
+                                        style = typo.titleSmall,
                                         color = Color.White,
                                     )
                                     Spacer(modifier = Modifier.height(8.dp))
@@ -497,7 +460,7 @@ fun PlaylistScreen(
                                                     ),
                                                 ) ?: "",
                                             ),
-                                        style = typo.bodyLarge,
+                                        style = typo.bodyMedium,
                                         color = Color(0xC4FFFFFF),
                                     )
                                 }
@@ -609,9 +572,6 @@ fun PlaylistScreen(
                                                     modifier = Modifier.size(36.dp),
                                                 ) {
                                                     Log.w("PlaylistScreen", "downloadState: $downloadState")
-                                                    localPlaylist?.let { it1 ->
-                                                        viewModel.getAllTracksOfPlaylist(it1.id, it1.tracks?.size ?: 0)
-                                                    }
                                                     shouldDownload = true
                                                 }
                                             }
@@ -817,10 +777,12 @@ fun PlaylistScreen(
                                             }
                                         }
                                         Spacer(modifier = Modifier.size(8.dp))
-                                        OutlinedButton(
+                                        TextButton(
                                             onClick = { viewModel.reloadSuggestion() },
                                             modifier =
-                                                Modifier.drawWithContent {
+                                                Modifier
+                                                    .padding(horizontal = 8.dp)
+                                                    .drawWithContent {
                                                     val strokeWidthPx = 2.dp.toPx()
                                                     val width = size.width
                                                     val height = size.height
@@ -918,24 +880,24 @@ fun PlaylistScreen(
             }
         }
         items(listTrack ?: listOf(), contentType = { it.videoId }) { item ->
-            Box(modifier = Modifier.padding(horizontal = 16.dp)) {
-            }
             if (playingTrack?.mediaId == item.videoId && isPlaying) {
                 PlaylistItems(
                     isPlaying = true,
                     songEntity = item,
                     onMoreClickListener = { onItemMoreClick(it) },
-                ) {
-                    onPlaylistItemClick(it)
-                }
+                    onClickListener = {
+                        onPlaylistItemClick(it)
+                    },
+                    modifier = Modifier.animateItemPlacement()
+                )
             } else {
                 PlaylistItems(
                     isPlaying = false,
                     songEntity = item,
                     onMoreClickListener = { onItemMoreClick(it) },
-                ) {
-                    onPlaylistItemClick(it)
-                }
+                    onClickListener = { onPlaylistItemClick(it) },
+                    modifier = Modifier.animateItemPlacement()
+                )
             }
         }
         item {
@@ -1009,7 +971,6 @@ fun PlaylistScreen(
                         viewModel.updatePlaylistThumbnail(thumbUri, it.id)
                     },
                 onAddToQueue = {
-                    viewModel.getAllTracksOfPlaylist(it.id, it.tracks?.size ?: 0)
                     /*
                     Add to queue in LaunchedEffect
                      */

@@ -32,9 +32,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -506,10 +506,22 @@ class LocalPlaylistViewModel
 
                         mainRepository.deletePairSongLocalPlaylist(id, song.videoId)
                         delay(500)
-                        val temp = mutableListOf<SongEntity>()
-                        temp.addAll(_listTrack.value ?: listOf())
-                        temp.remove(song)
-                        _listTrack.value = temp
+                        _listTrack.update {
+                            it?.toMutableList()?.apply {
+                                remove(song)
+                            }
+                        }
+                        _localPlaylist.update { playlistEntity ->
+                            val pl = playlistEntity?.copy(
+                                tracks =  playlistEntity.tracks?.filter { it != song.videoId }
+                            )
+                            if (playlistEntity != null) {
+                                mainRepository.updateLocalPlaylistTracks(
+                                    playlistEntity.tracks?.filter { it != song.videoId } ?: arrayListOf(), playlistEntity.id
+                                )
+                            }
+                            return@update pl
+                        }
                     }
                 }
             }
@@ -891,16 +903,17 @@ class LocalPlaylistViewModel
             viewModelScope.launch {
                 _listSuggestions.value?.remove(track)
                 localPlaylist.value?.let {
+                    val pair =  PairSongLocalPlaylist(
+                        playlistId = it.id,
+                        songId = track.videoId,
+                        position = it.tracks?.size ?: 0,
+                    )
                     runBlocking {
-                        mainRepository.insertSong(track.toSongEntity()).firstOrNull()?.let {
+                        mainRepository.insertSong(track.toSongEntity()).singleOrNull()?.let {
                             println("Insert Song $it")
                         }
                         insertPairSongLocalPlaylist(
-                            PairSongLocalPlaylist(
-                                playlistId = it.id,
-                                songId = track.videoId,
-                                position = it.tracks?.size ?: 0,
-                            ),
+                            pair
                         )
                     }
                     val temp = it.tracks?.toMutableList() ?: mutableListOf<String>()
@@ -911,48 +924,60 @@ class LocalPlaylistViewModel
                     runBlocking {
                         updateLocalPlaylistTracks(temp, it.id)
                     }
-                    if (offset.value > 0) {
-                        setOffset(offset.value - 1)
+                    val loaded = isLoadedFullPlaylist()
+                    _localPlaylist.update { local ->
+                        local?.copy(
+                            tracks = local.tracks?.plus(track.videoId),
+                        )
                     }
-                    getListTrack(it.id, offset.value, filter.value, localPlaylist.value?.tracks?.size ?: 0)
-                }
-            }
-        }
-
-        private val _fullListTracks = MutableStateFlow<MutableList<SongEntity>?>(null)
-        val fullListTracks: StateFlow<MutableList<SongEntity>?> get() = _fullListTracks
-
-        fun getAllTracksOfPlaylist(id: Long, totalCount: Int) {
-            viewModelScope.launch {
-                Log.w("Pair", "getAllTracksOfPlaylist: $id")
-                val list: MutableList<SongEntity> = mutableListOf()
-                var os = 0
-                while (os >= 0) {
-                    mainRepository.getPlaylistPairSongByOffset(id, os, FilterState.OlderFirst, totalCount).singleOrNull().let { pairSongLocalPlaylists ->
-                        if (!pairSongLocalPlaylists.isNullOrEmpty()) {
-                            Log.w("Pair", "getAllTracksOfPlaylist: ${pairSongLocalPlaylists.size}")
-                            mainRepository.getSongsByListVideoId(pairSongLocalPlaylists.map { it.songId }).firstOrNull().let {
-                                if (!it.isNullOrEmpty()) {
-                                    Log.w("Pair", "getAllTracksOfPlaylist: $it")
-                                    list.addAll(it)
-                                    os++
-                                } else {
-                                    os = -1
+                    val song = mainRepository.getSongById(track.videoId).singleOrNull()
+                    if (song != null) {
+                        when (filter.value) {
+                            FilterState.NewerFirst -> {
+                                _listTrack.update { list ->
+                                    list?.toMutableList()?.apply {
+                                        add(0, song)
+                                    }
+                                }
+                                if (listPair.value?.size?.rem(50) == 0) {
+                                    _offset.update {
+                                        it + 1
+                                    }
+                                }
+                                _listPair.update {
+                                    it?.toMutableList()?.apply {
+                                        add(0, pair)
+                                    }
                                 }
                             }
-                        } else {
-                            os = -1
+                            FilterState.OlderFirst -> {
+                                if (loaded) {
+                                    _listTrack.update { list ->
+                                        list?.toMutableList()?.apply {
+                                            add(song)
+                                        }
+                                    }
+                                    if (listPair.value?.size?.rem(50) == 0) {
+                                        _offset.update {
+                                            it + 1
+                                        }
+                                    }
+                                    _listPair.update {
+                                        it?.toMutableList()?.apply {
+                                            add(pair)
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
-                _fullListTracks.value = list
-                Log.w("Pair", "getAllTracksOfPlaylist: ${_fullListTracks.value}")
             }
         }
 
-        fun removeFullListTracks() {
-            _fullListTracks.value = null
-        }
+    private fun isLoadedFullPlaylist(): Boolean {
+        return _listTrack.value?.size == _localPlaylist.value?.tracks?.size
+    }
 
         fun clearListTracks() {
             _listTrack.value = null
@@ -973,6 +998,18 @@ class LocalPlaylistViewModel
                     localPlaylist.value?.let {
                         Log.w("Pair LocalPlaylistViewModel", "localPlaylist: ${it.tracks?.size}, listTrack: ${listTrack.value?.size}, listPair: ${listPair.value?.size}")
                         getListTrack(it.id, offset.value, filter.value, it.tracks?.size ?: 0)
+                    }
+                }
+            }
+        }
+    }
+
+    fun downloadTracks(listJob: List<String>) {
+        viewModelScope.launch {
+            listJob.forEach { videoId ->
+                mainRepository.getSongById(videoId).singleOrNull()?.let { song ->
+                    if (song.downloadState != STATE_DOWNLOADED) {
+                        downloadUtils.downloadTrack(videoId, song.title)
                     }
                 }
             }
