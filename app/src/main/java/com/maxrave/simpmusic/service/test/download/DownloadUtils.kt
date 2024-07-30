@@ -13,6 +13,8 @@ import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.offline.DownloadNotificationHelper
+import androidx.media3.exoplayer.offline.DownloadRequest
+import androidx.media3.exoplayer.offline.DownloadService
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.di.DownloadCache
@@ -37,7 +39,7 @@ import javax.inject.Singleton
 @UnstableApi
 @Singleton
 class DownloadUtils @Inject constructor(
-    @ApplicationContext context: Context,
+    @ApplicationContext private val context: Context,
     @PlayerCache private val playerCache: SimpleCache,
     @DownloadCache private val downloadCache: SimpleCache,
     private val mainRepository: MainRepository,
@@ -112,6 +114,20 @@ class DownloadUtils @Inject constructor(
     }
     val downloads = MutableStateFlow<Map<String, Download>>(emptyMap())
     val downloadingVideoIds = MutableStateFlow<MutableSet<String>>(mutableSetOf())
+
+    fun downloadTrack(videoId: String, title: String) {
+        val downloadRequest =
+            DownloadRequest.Builder(videoId, videoId.toUri())
+                .setData(title.toByteArray())
+                .setCustomCacheKey(videoId)
+                .build()
+        DownloadService.sendAddDownload(
+            context,
+            MusicDownloadService::class.java,
+            downloadRequest,
+            false,
+        )
+    }
 
     fun getDownload(songId: String): Flow<Download?> = downloads.map { it[songId] }
 

@@ -48,6 +48,7 @@ import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.di.DownloadCache
 import com.maxrave.simpmusic.extension.isSong
 import com.maxrave.simpmusic.extension.isVideo
+import com.maxrave.simpmusic.extension.toArrayListTrack
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toLyrics
 import com.maxrave.simpmusic.extension.toLyricsEntity
@@ -82,6 +83,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -1454,9 +1456,31 @@ constructor(
         }
     }
 
-    fun addListToQueue(list: ArrayList<Track>) {
+    fun addListLocalToQueue(listVideoId: List<String>) {
         viewModelScope.launch {
-            simpleMediaServiceHandler?.loadMoreCatalog(list)
+            val listSong = mainRepository.getSongsByListVideoId(listVideoId).singleOrNull()
+            if (!listSong.isNullOrEmpty()){
+                simpleMediaServiceHandler?.loadMoreCatalog(listSong.toArrayListTrack())
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.added_to_queue),
+                    Toast.LENGTH_SHORT,
+                )
+                    .show()
+            }
+            else {
+                Toast.makeText(
+                    context,
+                    context.getString(R.string.error),
+                    Toast.LENGTH_SHORT,
+                ).show()
+            }
+        }
+    }
+
+    fun addListToQueue(listTrack: ArrayList<Track>) {
+        viewModelScope.launch {
+            simpleMediaServiceHandler?.loadMoreCatalog(listTrack)
             Toast.makeText(
                 context,
                 context.getString(R.string.added_to_queue),
@@ -1465,7 +1489,6 @@ constructor(
                 .show()
         }
     }
-
     fun playNext(song: Track) {
         viewModelScope.launch {
             simpleMediaServiceHandler?.playNext(song)

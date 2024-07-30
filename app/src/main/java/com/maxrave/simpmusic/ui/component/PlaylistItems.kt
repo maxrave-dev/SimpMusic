@@ -26,7 +26,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
@@ -36,7 +35,6 @@ import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
-import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.ui.theme.typo
@@ -53,13 +51,14 @@ fun PlaylistItems(
     isPlaying: Boolean,
     onMoreClickListener: ((videoId: String) -> Unit)? = null,
     onClickListener: ((videoId: String) -> Unit)? = null,
+    modifier: Modifier
 ) {
     val composition by rememberLottieComposition(
         LottieCompositionSpec.RawRes(R.raw.audio_playing_animation),
     )
     Box(
         modifier =
-            Modifier.clickable{
+            modifier.clickable{
                 onClickListener?.invoke(track?.videoId ?: songEntity?.videoId ?: "")
             }
     ) {
@@ -256,36 +255,4 @@ fun SuggestItems(
             )
         }
     }
-}
-
-@Preview
-@Composable
-fun PlaylistItemsPreview() {
-    PlaylistItems(
-        isPlaying = false,
-        track =
-            Track(
-                album = null,
-                artists =
-                    listOf(
-                        Artist(
-                            id = null,
-                            name = "Janai",
-                        ),
-                    ),
-                duration = null,
-                durationSeconds = null,
-                isAvailable = false,
-                isExplicit = false,
-                likeStatus = null,
-                thumbnails = listOf(),
-                title = "Ernest",
-                videoId = "Delaina",
-                videoType = null,
-                category = null,
-                feedbackTokens = null,
-                resultType = null,
-                year = null,
-            ),
-    )
 }

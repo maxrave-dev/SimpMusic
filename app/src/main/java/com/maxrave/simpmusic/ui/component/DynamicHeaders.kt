@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.ui.component
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,7 +16,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -46,9 +46,7 @@ import com.skydoves.landscapist.components.rememberImageComponent
 import java.time.format.DateTimeFormatter
 
 @androidx.annotation.OptIn(UnstableApi::class)
-@OptIn(
-    ExperimentalMaterial3Api::class,
-)
+@ExperimentalFoundationApi
 @Composable
 fun LocalPlaylistHeader(
     id: Long,
@@ -310,6 +308,7 @@ fun LocalPlaylistHeader(
                     PlaylistItems(
                         isPlaying = false,
                         songEntity = item,
+                        modifier = Modifier.animateItemPlacement()
                     )
                 }
             }

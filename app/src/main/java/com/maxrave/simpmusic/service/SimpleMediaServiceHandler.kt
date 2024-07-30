@@ -224,7 +224,6 @@ class SimpleMediaServiceHandler(
                 }.filter { it >= 0f }
                     .distinctUntilChanged()
                     .collect { current ->
-                        Log.d("Seek to", "Current $current")
                         if (dataStoreManager.sponsorBlockEnabled.first() == TRUE) {
                             if (player.duration > 0L) {
                                 val skipSegments = skipSegments.value

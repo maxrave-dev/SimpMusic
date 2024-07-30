@@ -529,20 +529,23 @@ class PlaylistViewModel
             viewModelScope.launch {
                 mainRepository.insertLocalPlaylist(localPlaylistEntity)
                 delay(500)
-                mainRepository.getLocalPlaylistByYoutubePlaylistId(localPlaylistEntity.youtubePlaylistId!!).collect { playlist ->
-                    if (playlist != null && playlist.youtubePlaylistId == localPlaylistEntity.youtubePlaylistId) {
+                mainRepository.getLocalPlaylistByYoutubePlaylistId(localPlaylistEntity.youtubePlaylistId!!).singleOrNull()?.let { playlist ->
+                    if (playlist.youtubePlaylistId == localPlaylistEntity.youtubePlaylistId) {
                         for (i in listTrack.indices) {
-                            mainRepository.insertSong(listTrack.get(i).toSongEntity()).first().let {
+                            mainRepository.insertSong(listTrack[i].toSongEntity()).first().let {
                                 println("Insert song $it")
                             }
                             mainRepository.insertPairSongLocalPlaylist(
                                 PairSongLocalPlaylist(
                                     playlistId = playlist.id,
-                                    songId = listTrack.get(i).videoId,
+                                    songId = listTrack[i].videoId,
                                     position = i,
                                     inPlaylist = LocalDateTime.now(),
                                 ),
                             )
+                            if (i == 100) {
+                                delay(100)
+                            }
                         }
                     }
                 }

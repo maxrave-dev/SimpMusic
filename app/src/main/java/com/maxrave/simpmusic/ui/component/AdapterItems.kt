@@ -60,6 +60,7 @@ import coil.request.ImageRequest
 import coil.request.SuccessResult
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
+import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.explore.mood.genre.ItemsPlaylist
 import com.maxrave.simpmusic.data.model.explore.mood.moodmoments.Item
@@ -70,6 +71,7 @@ import com.maxrave.simpmusic.data.model.home.chart.ItemVideo
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.generateRandomColor
 import com.maxrave.simpmusic.extension.navigateSafe
+import com.maxrave.simpmusic.extension.removeConflicts
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.PlaylistType
@@ -83,6 +85,7 @@ import com.skydoves.landscapist.animation.crossfade.CrossfadePlugin
 import com.skydoves.landscapist.coil.CoilImage
 import com.skydoves.landscapist.components.rememberImageComponent
 import com.skydoves.landscapist.placeholder.placeholder.PlaceholderPlugin
+import java.time.LocalDateTime
 
 @OptIn(ExperimentalFoundationApi::class)
 @UnstableApi
@@ -122,6 +125,40 @@ fun HomeItem(
             },
             getLocalPlaylist = {
                 homeViewModel.getAllLocalPlaylist()
+            },
+            onAddToLocalPlaylist = { playlist ->
+                val song = homeViewModel.songEntity.value ?: return@NowPlayingBottomSheet
+                val tempTrack = ArrayList<String>()
+                if (playlist.tracks != null) {
+                    tempTrack.addAll(playlist.tracks)
+                }
+                if (!tempTrack.contains(
+                        song.videoId,
+                    ) &&
+                    playlist.syncedWithYouTubePlaylist == 1 &&
+                    playlist.youtubePlaylistId != null
+                ) {
+                    sharedViewModel.addToYouTubePlaylist(
+                        playlist.id,
+                        playlist.youtubePlaylistId,
+                        song.videoId,
+                    )
+                }
+                if (!tempTrack.contains(song.videoId)) {
+                    sharedViewModel.insertPairSongLocalPlaylist(
+                        PairSongLocalPlaylist(
+                            playlistId = playlist.id,
+                            songId = song.videoId,
+                            position = playlist.tracks?.size ?: 0,
+                            inPlaylist = LocalDateTime.now(),
+                        ),
+                    )
+                    tempTrack.add(song.videoId)
+                }
+                sharedViewModel.updateLocalPlaylistTracks(
+                    tempTrack.removeConflicts(),
+                    playlist.id,
+                )
             },
             listLocalPlaylist = homeViewModel.localPlaylist.collectAsState(),
         )
