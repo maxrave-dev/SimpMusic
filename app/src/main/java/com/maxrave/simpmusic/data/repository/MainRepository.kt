@@ -577,11 +577,11 @@ class MainRepository
                 }
             }.flowOn(Dispatchers.IO)
 
-        suspend fun getHomeData(): Flow<Resource<ArrayList<HomeItem>>> =
+        suspend fun getHomeData(params: String? = null): Flow<Resource<ArrayList<HomeItem>>> =
             flow {
                 runCatching {
                     val limit = dataStoreManager.homeLimit.first()
-                    YouTube.customQuery(browseId = "FEmusic_home").onSuccess { result ->
+                    YouTube.customQuery(browseId = "FEmusic_home", params = params).onSuccess { result ->
                         val list: ArrayList<HomeItem> = arrayListOf()
                         if (result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(
                                 0,

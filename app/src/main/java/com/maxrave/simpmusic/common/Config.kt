@@ -28,6 +28,20 @@ object Config {
 
     val REMOVED_SONG_DATE_TIME = LocalDateTime.of(2003, Month.AUGUST, 26, 3, 0)
 
+    val listOfHomeChip = listOf(
+        R.string.all,
+        R.string.relax,
+        R.string.sleep,
+        R.string.energize,
+        R.string.sad,
+        R.string.romance,
+        R.string.feel_good,
+        R.string.workout,
+        R.string.party,
+        R.string.commute,
+        R.string.focus
+    )
+
 }
 
 object DownloadState {

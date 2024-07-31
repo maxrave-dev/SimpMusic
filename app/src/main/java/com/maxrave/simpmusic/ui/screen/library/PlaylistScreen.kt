@@ -707,6 +707,7 @@ fun PlaylistScreen(
                                             "",
                                         ),
                                     color = Color.White,
+                                    style = typo.bodyMedium,
                                     modifier = Modifier.padding(vertical = 8.dp),
                                 )
                                 AnimatedVisibility(visible = shouldShowSuggestions) {
