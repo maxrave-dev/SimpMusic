@@ -12,6 +12,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -29,6 +31,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
@@ -58,6 +61,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
+import com.maxrave.kotlinytmusicscraper.config.Constants
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.CHART_SUPPORTED_COUNTRY
 import com.maxrave.simpmusic.common.Config
@@ -71,6 +75,7 @@ import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.PlaylistType
 import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
+import com.maxrave.simpmusic.ui.component.Chip
 import com.maxrave.simpmusic.ui.component.DropdownButton
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.HomeItem
@@ -119,6 +124,8 @@ fun HomeScreen(
         rememberPullToRefreshState(
             20.dp,
         )
+    val chipRowState = rememberScrollState()
+    val params by viewModel.params.collectAsState()
     val scaleFraction =
         if (pullToRefreshState.isRefreshing) {
             1f
@@ -157,6 +164,44 @@ fun HomeScreen(
     }
     Column {
         HomeTopAppBar(navController)
+        Row (
+            modifier = Modifier
+                .horizontalScroll(chipRowState)
+                .padding(vertical = 8.dp, horizontal = 15.dp),
+        ) {
+            Config.listOfHomeChip.forEach { id ->
+                Spacer(modifier = Modifier.width(4.dp))
+                Chip(isSelected =
+                    when(params) {
+                        Constants.HOME_PARAMS_RELAX -> id == R.string.relax
+                        Constants.HOME_PARAMS_SLEEP -> id == R.string.sleep
+                        Constants.HOME_PARAMS_ENERGIZE -> id == R.string.energize
+                        Constants.HOME_PARAMS_SAD -> id == R.string.sad
+                        Constants.HOME_PARAMS_ROMANCE -> id == R.string.romance
+                        Constants.HOME_PARAMS_FEEL_GOOD -> id == R.string.feel_good
+                        Constants.HOME_PARAMS_WORKOUT -> id == R.string.workout
+                        Constants.HOME_PARAMS_PARTY -> id == R.string.party
+                        Constants.HOME_PARAMS_COMMUTE -> id == R.string.commute
+                        Constants.HOME_PARAMS_FOCUS -> id == R.string.focus
+                        else -> id == R.string.all
+                }, text = stringResource(id = id)) {
+                    when(id) {
+                        R.string.all -> viewModel.setParams(null)
+                        R.string.relax -> viewModel.setParams(Constants.HOME_PARAMS_RELAX)
+                        R.string.sleep -> viewModel.setParams(Constants.HOME_PARAMS_SLEEP)
+                        R.string.energize -> viewModel.setParams(Constants.HOME_PARAMS_ENERGIZE)
+                        R.string.sad -> viewModel.setParams(Constants.HOME_PARAMS_SAD)
+                        R.string.romance -> viewModel.setParams(Constants.HOME_PARAMS_ROMANCE)
+                        R.string.feel_good -> viewModel.setParams(Constants.HOME_PARAMS_FEEL_GOOD)
+                        R.string.workout -> viewModel.setParams(Constants.HOME_PARAMS_WORKOUT)
+                        R.string.party -> viewModel.setParams(Constants.HOME_PARAMS_PARTY)
+                        R.string.commute -> viewModel.setParams(Constants.HOME_PARAMS_COMMUTE)
+                        R.string.focus -> viewModel.setParams(Constants.HOME_PARAMS_FOCUS)
+                    }
+                }
+                Spacer(modifier = Modifier.width(4.dp))
+            }
+        }
         Box(
             modifier =
             Modifier

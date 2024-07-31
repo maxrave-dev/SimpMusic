@@ -35,6 +35,8 @@ val md_theme_dark_scrim = Color(0xFF000000)
 val colorPrimaryDark = Color(0x19000000)
 val back_button_color = Color(0x197E7E7E)
 
+val checkedFilterColor = Color(0xff4d4848)
+
 val shimmerBackground = Color(0x7E383737)
 val shimmerLine = Color(0xFF4D4848)
 

@@ -31,6 +31,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -77,6 +78,9 @@ class HomeViewModel
         private val _songEntity: MutableStateFlow<SongEntity?> = MutableStateFlow(null)
         val songEntity: StateFlow<SongEntity?> = _songEntity
 
+        private var _params: MutableStateFlow<String?> = MutableStateFlow(null)
+        val params: StateFlow<String?> = _params
+
         private val exceptionHandler =
             CoroutineExceptionHandler { _, throwable ->
                 onError("Exception handled: ${throwable.localizedMessage}")
@@ -92,7 +96,7 @@ class HomeViewModel
                     launch {
                         dataStoreManager.location.distinctUntilChanged().collect {
                             regionCode = it
-                            getHomeItemList()
+                            getHomeItemList(params.value)
                         }
                     }
                 //  refresh when language change
@@ -100,13 +104,13 @@ class HomeViewModel
                     launch {
                         dataStoreManager.language.distinctUntilChanged().collect {
                             language = it
-                            getHomeItemList()
+                            getHomeItemList(params.value)
                         }
                     }
                 val job3 =
                     launch {
                         dataStoreManager.cookie.distinctUntilChanged().collect {
-                            getHomeItemList()
+                            getHomeItemList(params.value)
                             _accountInfo.emit(
                                 Pair(
                                     dataStoreManager.getString("AccountName").first(),
@@ -115,13 +119,19 @@ class HomeViewModel
                             )
                         }
                     }
+                val job4 = launch {
+                    params.collectLatest {
+                        getHomeItemList(it)
+                    }
+                }
                 job1.join()
                 job2.join()
                 job3.join()
+                job4.join()
             }
         }
 
-        fun getHomeItemList() {
+        fun getHomeItemList(params: String? = null) {
             language =
                 runBlocking {
                     dataStoreManager.getString(SELECTED_LANGUAGE).first()
@@ -135,7 +145,7 @@ class HomeViewModel
 //                    regionCode,
 //                    SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language)]
 //                ),
-                    mainRepository.getHomeData(),
+                    mainRepository.getHomeData(params),
                     mainRepository.getMoodAndMomentsData(),
                     mainRepository.getChartData(dataStoreManager.chartKey.first()),
                     mainRepository.getNewRelease(),
@@ -420,4 +430,8 @@ class HomeViewModel
                 mainRepository.insertPairSongLocalPlaylist(pairSongLocalPlaylist)
             }
         }
+
+    fun setParams(params: String?) {
+        _params.value = params
     }
+}
