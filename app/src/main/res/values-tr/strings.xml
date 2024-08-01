@@ -331,4 +331,23 @@
     <string name="hour_s_ago">%1$d saat önce</string>
     <string name="no_notification">Bildirim yok</string>
     <string name="created_at">Oluşturuldu: %1$s</string>
+    <string name="unknown">Bilinmeyen</string>
+    <string name="repeat_one">Birini tekrarla</string>
+    <string name="repeat_all">Tümünü Tekrarla</string>
+    <string name="repeat_off">Tekrarlama Kapalı</string>
+    <string name="youtube_transcript">YouTube Transkripti</string>
+    <string name="user_interface">Arayüz</string>
+    <string name="translucent_bottom_navigation_bar">Yarı saydam alt gezinme çubuğu</string>
+    <string name="you_can_see_the_content_below_the_bottom_bar">İçeriği alt çubuğun altında görebilirsiniz</string>
+    <string name="donation">Eğer işimi seviyorsanız bana bir kahve verin</string>
+    <string name="relax">Rahatlama</string>
+    <string name="sleep">Uyku</string>
+    <string name="energize">Enerjik</string>
+    <string name="sad">Hüzünlü</string>
+    <string name="romance">Romantik</string>
+    <string name="feel_good">Keyifli</string>
+    <string name="workout">Antrenman</string>
+    <string name="party">Parti</string>
+    <string name="commute">İşe gidip gelme</string>
+    <string name="focus">Odaklanma</string>
 </resources>

@@ -48,7 +48,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
@@ -236,8 +237,6 @@ dependencies {
     // Coil
     implementation(libs.coil)
     implementation(libs.coil.compose)
-    // Glide
-    implementation(libs.glide)
     // Easy Permissions
     implementation(libs.easypermissions)
     // Palette Color
