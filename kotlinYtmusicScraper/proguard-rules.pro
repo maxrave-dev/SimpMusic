@@ -33,3 +33,4 @@
 # If there is no `java.lang.ClassValue` (for example, in Android), then R8/ProGuard will print a warning.
 # However, since in this case they will not be used, we can disable these warnings
 -dontwarn kotlinx.serialization.internal.ClassValueReferences
+-dontwarn org.slf4j.impl.StaticLoggerBinder

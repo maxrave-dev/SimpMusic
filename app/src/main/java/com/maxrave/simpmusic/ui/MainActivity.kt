@@ -137,6 +137,7 @@ class MainActivity : AppCompatActivity() {
 //        if (viewModel.simpleMediaServiceHandler == null) {
 //            startMusicService()
 //        }
+        checkForUpdate()
         if (viewModel.recreateActivity.value == true) {
             viewModel.activityRecreateDone()
         } else {
