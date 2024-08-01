@@ -121,8 +121,8 @@ fun HomeScreen(
     val moodMomentAndGenre by viewModel.exploreMoodItem.collectAsState()
     val chartLoading by viewModel.loadingChart.collectAsState()
     val loading by viewModel.loading.collectAsState()
-    val accountShow by rememberSaveable {
-        mutableStateOf(homeData.find { it.subtitle == accountInfo?.first } != null)
+    var accountShow by rememberSaveable {
+        mutableStateOf(false)
     }
     val regionChart by viewModel.regionCodeChart.collectAsState()
     val homeRefresh by sharedViewModel.homeRefresh.collectAsState()
@@ -140,10 +140,14 @@ fun HomeScreen(
         }
     if (pullToRefreshState.isRefreshing) {
         viewModel.getHomeItemList()
+        viewModel.getHomeItemList()
         if (!loading) {
             pullToRefreshState.endRefresh()
             sharedViewModel.homeRefreshDone()
         }
+    }
+    LaunchedEffect(key1 = homeData) {
+        accountShow = homeData.find { it.subtitle == accountInfo?.first } == null
     }
     LaunchedEffect(key1 = homeRefresh) {
         Log.w("HomeScreen", "homeRefresh: $homeRefresh")

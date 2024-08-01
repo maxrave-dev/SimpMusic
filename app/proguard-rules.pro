@@ -24,3 +24,8 @@
 -keepattributes Signature
 -keep class com.google.gson.reflect.TypeToken { *; }
 -keep class * extends com.google.gson.reflect.TypeToken
+-keep class kotlin.coroutines.Continuation
+-keep class com.maxrave.simpmusic.data.model.** { *; }
+-keep,allowobfuscation,allowshrinking class com.maxrave.simpmusic.extension.AllExtKt { *; }
+-keep,allowobfuscation,allowshrinking class com.maxrave.simpmusic.extension.AllExtKt$* { *; }
+-keep,allowobfuscation,allowshrinking class com.maxrave.kotlinytmusicscraper.extension.MapExtKt$* { *; }

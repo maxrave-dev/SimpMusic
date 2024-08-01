@@ -16,12 +16,14 @@ import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.draw.DrawModifier
@@ -358,12 +360,19 @@ fun KeepScreenOn() = AndroidView({ View(it).apply { keepScreenOn = true } })
 fun LazyListState.isScrollingUp(): Boolean {
     var previousIndex by remember(this) { mutableIntStateOf(firstVisibleItemIndex) }
     var previousScrollOffset by remember(this) { mutableIntStateOf(firstVisibleItemScrollOffset) }
+
+    LaunchedEffect(Unit) {
+        snapshotFlow { layoutInfo.totalItemsCount }.collect {
+            Log.w("isScrollingUp", "firstVisibleItemIndex: $firstVisibleItemIndex")
+            previousIndex = firstVisibleItemIndex
+            previousScrollOffset = firstVisibleItemScrollOffset
+        }
+    }
+
     return remember(this) {
         derivedStateOf {
-            if (firstVisibleItemIndex == 0) {
-                return@derivedStateOf true
-            }
-            else {
+            Log.w("isScrollingUp", "offset: $firstVisibleItemScrollOffset")
+            if (firstVisibleItemIndex > 0)  {
                 if (previousIndex != firstVisibleItemIndex) {
                     previousIndex > firstVisibleItemIndex
                 } else {
@@ -372,6 +381,9 @@ fun LazyListState.isScrollingUp(): Boolean {
                     previousIndex = firstVisibleItemIndex
                     previousScrollOffset = firstVisibleItemScrollOffset
                 }
+            }
+            else {
+                true
             }
         }
     }.value
