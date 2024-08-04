@@ -10,7 +10,7 @@ plugins {
 
 android {
     namespace = "com.maxrave.simpmusic"
-    compileSdk = 35
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.maxrave.simpmusic"
