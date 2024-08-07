@@ -20,7 +20,6 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
@@ -65,7 +64,9 @@ import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.time.LocalDateTime
@@ -926,16 +927,15 @@ class PlaylistFragment : Fragment() {
                 val job2 =
                     launch {
                         combine(
-                            sharedViewModel.simpleMediaServiceHandler?.nowPlaying
-                                ?: flowOf<MediaItem?>(
-                                    null,
-                                ),
-                            sharedViewModel.isPlaying,
+                            sharedViewModel.nowPlayingState.distinctUntilChangedBy {
+                                it?.songEntity?.videoId
+                            },
+                            sharedViewModel.controllerState.map { it.isPlaying }.distinctUntilChanged(),
                         ) { nowPlaying, isPlaying ->
                             Pair(nowPlaying, isPlaying)
                         }.collect {
                             if (it.first != null && it.second) {
-                                playlistItemAdapter.setNowPlaying(it.first!!.mediaId)
+                                playlistItemAdapter.setNowPlaying(it.first?.songEntity?.videoId)
                             } else {
                                 playlistItemAdapter.setNowPlaying(null)
                             }
