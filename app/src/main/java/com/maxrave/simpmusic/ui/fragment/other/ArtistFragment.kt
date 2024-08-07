@@ -16,7 +16,6 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
 import androidx.palette.graphics.Palette
@@ -66,7 +65,9 @@ import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import kotlin.math.abs
@@ -684,13 +685,15 @@ class ArtistFragment : Fragment() {
                 val job2 =
                     launch {
                         combine(
-                            sharedViewModel.simpleMediaServiceHandler?.nowPlaying ?: flowOf<MediaItem?>(null),
-                            sharedViewModel.isPlaying,
+                            sharedViewModel.nowPlayingState.distinctUntilChangedBy {
+                                it?.songEntity?.videoId
+                            },
+                            sharedViewModel.controllerState.map { it.isPlaying }.distinctUntilChanged(),
                         ) { nowPlaying, isPlaying ->
                             Pair(nowPlaying, isPlaying)
                         }.collect {
                             if (it.first != null && it.second) {
-                                popularAdapter.setNowPlaying(it.first!!.mediaId)
+                                popularAdapter.setNowPlaying(it.first?.songEntity?.videoId)
                             } else {
                                 popularAdapter.setNowPlaying(null)
                             }

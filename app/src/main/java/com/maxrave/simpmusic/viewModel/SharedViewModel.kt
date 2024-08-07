@@ -132,8 +132,6 @@ constructor(
 
     var gradientDrawable: MutableLiveData<GradientDrawable> = MutableLiveData()
 
-    var isPlaying = MutableStateFlow<Boolean>(false)
-
     var _lyrics = MutableStateFlow<Resource<Lyrics>?>(null)
 
     //    val lyrics: LiveData<Resource<Lyrics>> = _lyrics
@@ -1157,7 +1155,6 @@ constructor(
     }
 
     fun stopPlayer() {
-        isPlaying.value = false
         onUIEvent(UIEvent.Stop)
     }
 

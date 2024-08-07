@@ -330,4 +330,23 @@
     <string name="hour_s_ago">%1$d時間前</string>
     <string name="no_notification">通知なし</string>
     <string name="created_at">%1$s に作成されました</string>
+    <string name="unknown"></string>
+    <string name="repeat_one">Repeat One</string>
+    <string name="repeat_all">Repeat All</string>
+    <string name="repeat_off">Repeat Off</string>
+    <string name="youtube_transcript">YouTube Transcript</string>
+    <string name="user_interface">Interface</string>
+    <string name="translucent_bottom_navigation_bar">Translucent bottom navigation bar</string>
+    <string name="you_can_see_the_content_below_the_bottom_bar">You can see the content below the bottom bar</string>
+    <string name="donation">If you love my work, give me a coffee</string>
+    <string name="relax">Relax</string>
+    <string name="sleep">Sleep</string>
+    <string name="energize">Energize</string>
+    <string name="sad">Sad</string>
+    <string name="romance">Romance</string>
+    <string name="feel_good">Feel Good</string>
+    <string name="workout">Workout</string>
+    <string name="party">Party</string>
+    <string name="commute">Commute</string>
+    <string name="focus">Focus</string>
 </resources>

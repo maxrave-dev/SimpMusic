@@ -1,6 +1,6 @@
 
 <div align="center">
-	<img src="https://raw.githubusercontent.com/maxrave-dev/SimpMusic/dev/fastlane/metadata/android/en-US/images/featureGraphic.png">
+	<img src="https://raw.githubusercontent.com/maxrave-dev/SimpMusic/jetpack_compose/fastlane/metadata/android/en-US/images/featureGraphic.png">
 <h1>SimpMusic</h1>A FOSS YouTube Music client for Android with many features from<br>Spotify, Musixmatch, SponsorBlock, ReturnYouTubeDislike<br>
 <br>
 <a href="https://github.com/maxrave-dev/SimpMusic/releases"><img src="https://img.shields.io/github/v/release/maxrave-dev/SimpMusic"></a>

@@ -330,4 +330,23 @@
     <string name="hour_s_ago">%1$d jam yang lalu</string>
     <string name="no_notification">Tidak ada pemberitahuan</string>
     <string name="created_at">Dibuat pada %1$s</string>
+    <string name="unknown">Tak diketahui</string>
+    <string name="repeat_one">Ulangi Sekali</string>
+    <string name="repeat_all">Ulangi Semua</string>
+    <string name="repeat_off">Pengulangan Mati</string>
+    <string name="youtube_transcript">Transkripsi Youtube</string>
+    <string name="user_interface">Tampilan</string>
+    <string name="translucent_bottom_navigation_bar">Bilah navigasi bawah tembus pandang</string>
+    <string name="you_can_see_the_content_below_the_bottom_bar">Anda dapat melihat konten di bawah bilah dibawah</string>
+    <string name="donation">Jika Anda menyukai pekerjaan saya, beri saya kopi</string>
+    <string name="relax">Santai</string>
+    <string name="sleep">Tidur</string>
+    <string name="energize">Energik</string>
+    <string name="sad">Sedih</string>
+    <string name="romance">Romantis</string>
+    <string name="feel_good">Terasa Baik</string>
+    <string name="workout">Bekerja</string>
+    <string name="party">Pesta</string>
+    <string name="commute">Perjalanan</string>
+    <string name="focus">Fokus</string>
 </resources>

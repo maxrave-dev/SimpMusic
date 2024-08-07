@@ -341,13 +341,13 @@
     <string name="you_can_see_the_content_below_the_bottom_bar">Puedes ver el contenido debajo de la barra inferior</string>
     <string name="donation">Si te gusta mi trabajo, dame un café</string>
     <string name="relax">Relax</string>
-    <string name="sleep">Dormir</string>
-    <string name="energize">Energía</string>
+    <string name="sleep">Para dormir</string>
+    <string name="energize">Enérgica</string>
     <string name="sad">Triste</string>
-    <string name="romance">Amor</string>
-    <string name="feel_good">Siéntete bien</string>
-    <string name="workout">Entrenamiento</string>
+    <string name="romance">Romántica</string>
+    <string name="feel_good">Buenas vibras</string>
+    <string name="workout">Para entrenar</string>
     <string name="party">Fiesta</string>
-    <string name="commute">Desplazamientos diarios</string>
-    <string name="focus">Concentración</string>
+    <string name="commute">Viajes</string>
+    <string name="focus">Para concentrarte</string>
 </resources>
