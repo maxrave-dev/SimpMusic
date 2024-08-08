@@ -761,8 +761,8 @@ class MainActivity : AppCompatActivity() {
     private fun checkForUpdate() {
         viewModel.checkForUpdate()
         viewModel.githubResponse.observe(this) { response ->
-            if (response != null) {
-                if (response.tagName != getString(R.string.version_name)) {
+            if (response?.tagName != null) {
+                if (response.tagName!!.versionIsGreaterThanOrInvalid(getString(R.string.version_name))) {
                     val inputFormat =
                         SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
                     val outputFormat = SimpleDateFormat("dd MMM yyyy HH:mm:ss", Locale.getDefault())
@@ -804,6 +804,24 @@ class MainActivity : AppCompatActivity() {
         value: String,
     ) {
         viewModel.putString(key, value)
+    }
+
+   private fun String.versionIsGreaterThanOrInvalid(rightVersion:String): Boolean {
+       val leftVersionArray = this.drop(1).split(".").toList()
+       val rightVersionArray = rightVersion.drop(1).split(".").toList()
+
+       if (leftVersionArray.count() != rightVersionArray.count()){
+           return true
+       }
+       for (leftVersionNumberString in leftVersionArray){
+           val leftVersionNumber = leftVersionNumberString.toInt()
+           val rightVersionNumber = rightVersionArray[leftVersionArray.indexOf(leftVersionNumberString)].toInt()
+           if (leftVersionNumber > rightVersionNumber) {
+               return true
+           }
+       }
+
+       return false
     }
 
     private fun getString(key: String): String? {
