@@ -392,16 +392,16 @@ class MainActivity : AppCompatActivity() {
             Log.w("MainActivity", "Destination: ${destination.label}")
             Log.w("MainActivity", "Show or Hide: ${viewModel.showOrHideMiniplayer}")
             if (
-                    (listOf(
-                        "NowPlayingFragment", "FullscreenFragment", "InfoFragment",
-                        "QueueFragment", "SpotifyLogInFragment", "fragment_log_in", "MusixmatchFragment")
-                        ).contains(destination.label)
+                (listOf(
+                    "NowPlayingFragment", "FullscreenFragment", "InfoFragment",
+                    "QueueFragment", "SpotifyLogInFragment", "fragment_log_in", "MusixmatchFragment"
+                )
+                    ).contains(destination.label)
             ) {
-                lifecycleScope.launch{ viewModel.showOrHideMiniplayer.emit(false) }
+                lifecycleScope.launch { viewModel.showOrHideMiniplayer.emit(false) }
                 Log.w("MainActivity", "onCreate: HIDE MINIPLAYER")
-            }
-            else {
-                lifecycleScope.launch{ viewModel.showOrHideMiniplayer.emit(true) }
+            } else {
+                lifecycleScope.launch { viewModel.showOrHideMiniplayer.emit(true) }
                 Log.w("MainActivity", "onCreate: SHOW MINIPLAYER")
             }
         }
@@ -586,13 +586,15 @@ class MainActivity : AppCompatActivity() {
                         Log.w("MainActivity", "Current Destination: ${navController.currentDestination?.label}")
                         if (!(listOf(
                                 "NowPlayingFragment", "FullscreenFragment", "InfoFragment",
-                                "QueueFragment", "SpotifyLogInFragment", "fragment_log_in", "MusixmatchFragment")
+                                "QueueFragment", "SpotifyLogInFragment", "fragment_log_in", "MusixmatchFragment"
+                            )
                                 ).contains(navController.currentDestination?.label)
                             && it.nowPlayingTitle.isNotEmpty()
                             && binding.miniplayer.visibility != View.VISIBLE
-                            ) {
+                        ) {
                             Log.w("MainActivity", "Show Miniplayer")
-                            binding.miniplayer.animation = AnimationUtils.loadAnimation(this@MainActivity, R.anim.slide_from_right
+                            binding.miniplayer.animation = AnimationUtils.loadAnimation(
+                                this@MainActivity, R.anim.slide_from_right
                             )
                             binding.miniplayer.visibility = View.VISIBLE
                         }
@@ -616,7 +618,8 @@ class MainActivity : AppCompatActivity() {
                                 binding.bottomNavigationView.visibility = View.VISIBLE
                             }
                         } else if (binding.bottomNavigationView.visibility != View.GONE &&
-                            binding.miniplayer.visibility != View.GONE && !it ) {
+                            binding.miniplayer.visibility != View.GONE && !it
+                        ) {
                             binding.bottomNavigationView.animation = AnimationUtils.loadAnimation(this@MainActivity, R.anim.ttb)
                             binding.miniplayer.animation = AnimationUtils.loadAnimation(this@MainActivity, R.anim.ttb)
                             binding.bottomNavigationView.visibility = View.GONE
@@ -633,8 +636,7 @@ class MainActivity : AppCompatActivity() {
                                 ResourcesCompat.getDrawable(resources, R.drawable.transparent_rect, null)?.apply {
                                     this.setDither(true)
                                 }
-                        }
-                        else if (it == DataStoreManager.FALSE) {
+                        } else if (it == DataStoreManager.FALSE) {
                             binding.bottomNavigationView.background =
                                 ColorDrawable(ResourcesCompat.getColor(resources, R.color.md_theme_dark_background, null))
                         }
@@ -762,8 +764,8 @@ class MainActivity : AppCompatActivity() {
     private fun checkForUpdate() {
         viewModel.checkForUpdate()
         viewModel.githubResponse.observe(this) { response ->
-            if (response != null) {
-                if (response.tagName != getString(R.string.version_name)) {
+            if (response?.tagName != null) {
+                if (response.tagName!!.versionIsGreaterThanOrInvalid(getString(R.string.version_name))) {
                     val inputFormat =
                         SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
                     val outputFormat = SimpleDateFormat("dd MMM yyyy HH:mm:ss", Locale.getDefault())
@@ -805,6 +807,24 @@ class MainActivity : AppCompatActivity() {
         value: String,
     ) {
         viewModel.putString(key, value)
+    }
+
+    private fun String.versionIsGreaterThanOrInvalid(rightVersion: String): Boolean {
+        val leftVersionArray = this.drop(1).split(".").toList()
+        val rightVersionArray = rightVersion.drop(1).split(".").toList()
+
+        if (leftVersionArray.count() != rightVersionArray.count()) {
+            return true
+        }
+        for (leftVersionNumberString in leftVersionArray) {
+            val leftVersionNumber = leftVersionNumberString.toInt()
+            val rightVersionNumber = rightVersionArray[leftVersionArray.indexOf(leftVersionNumberString)].toInt()
+            if (leftVersionNumber > rightVersionNumber) {
+                return true
+            }
+        }
+
+        return false
     }
 
     private fun getString(key: String): String? {
