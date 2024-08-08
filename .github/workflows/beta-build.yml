@@ -1,0 +1,46 @@
+name: Build the latest beta APK
+
+env:
+    # The name of the main module repository
+    main_project_module: app
+
+    # The name of the Play Store
+    app_name: SimpMusic
+
+on:
+    workflow_dispatch:
+    push:
+        branches: ["main"]
+
+    pull_request:
+        branches: ["main"]
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Set Up JDK
+              uses: actions/setup-java@v4
+              with:
+                  distribution: "temurin"
+                  java-version: "17"
+                  cache: "gradle"
+
+            - name: Change wrapper permissions
+              run: chmod +x ./gradlew
+
+            # Create APK Release
+            - name: Build apk release project (APK) - ${{ env.main_project_module }} module
+              run: ./gradlew assemble
+
+            # Noted For Output [main_project_module]/build/outputs/apk/release/
+            - name: Upload APK Release
+              uses: actions/upload-artifact@v4
+              with:
+                  name: release-build
+                  path: ${{ env.main_project_module }}/build/outputs/apk/release/app-release-unsigned.apk
+                  overwrite: true
+                  if-no-files-found: error
