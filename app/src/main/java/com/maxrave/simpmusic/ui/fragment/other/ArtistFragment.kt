@@ -54,6 +54,7 @@ import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.removeConflicts
 import com.maxrave.simpmusic.extension.setEnabledAll
+import com.maxrave.simpmusic.extension.setStatusBarsColor
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.extension.toTrack
@@ -100,7 +101,7 @@ class ArtistFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         requireArguments().clear()
-        requireActivity().window.statusBarColor = ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark)
+        setStatusBarsColor(ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark), requireActivity())
         _binding = null
     }
 
@@ -491,15 +492,17 @@ class ArtistFragment : Fragment() {
                 binding.toolBar.background = viewModel.gradientDrawable.value
                 if (viewModel.gradientDrawable.value != null) {
                     if (viewModel.gradientDrawable.value?.colors != null) {
-                        requireActivity().window.statusBarColor =
+                        setStatusBarsColor(
                             viewModel.gradientDrawable.value
                                 ?.colors!!
-                                .first()
+                                .first(),
+                            requireActivity()
+                        )
                     }
                 }
             } else {
                 binding.toolBar.background = null
-                requireActivity().window.statusBarColor = ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark)
+                setStatusBarsColor(ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark), requireActivity())
                 Log.d("ArtistFragment", "Expanded")
             }
         }
@@ -594,7 +597,7 @@ class ArtistFragment : Fragment() {
                                             }
                                             tvSubscribers.text = it.subscribers
                                             if (it.views == null) {
-                                                tvViews.text = ""
+                                                tvViews.text = getString(R.string.unknown)
                                             } else {
                                                 tvViews.text = it.views.toString()
                                             }

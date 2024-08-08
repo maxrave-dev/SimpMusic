@@ -903,7 +903,7 @@ fun NowPlayingScreen(
                                 //Control Button Layout
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    horizontalArrangement = Arrangement.SpaceEvenly,
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .height(96.dp)
@@ -1402,7 +1402,10 @@ fun NowPlayingScreen(
                                 )
                                 Spacer(modifier = Modifier.height(10.dp))
                                 Text(
-                                    text = stringResource(id = R.string.view_count, String.format(java.util.Locale.getDefault(), "%,d", screenDataState.songInfoData?.viewCount)),
+                                    text = stringResource(
+                                        id = R.string.view_count,
+                                        "%,d".format(screenDataState.songInfoData?.viewCount)
+                                    ),
                                     style = typo.labelMedium,
                                     color = Color.White,
                                 )

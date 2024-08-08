@@ -14,9 +14,6 @@ import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
 import com.maxrave.kotlinytmusicscraper.models.response.spotify.TokenResponse
 import io.ktor.client.call.body
 import io.ktor.client.statement.bodyAsText
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlin.random.Random
 
@@ -72,38 +69,6 @@ fun testSongInfo() {
         }.onFailure {
             it.printStackTrace()
         }
-    }
-}
-
-fun testPlayerYouTube() {
-    runBlocking {
-        var time = 0
-        var isLoading = true
-        GlobalScope.launch {
-            while (isLoading) {
-                delay(100)
-                time += 100
-                println("Loading... $time")
-            }
-        }
-        YouTube.apply {
-            locale = YouTubeLocale("VN", "vi")
-        }.player("QZrZbEEAOZ8").onSuccess {
-            println(it)
-            isLoading = false
-            println("\nTime $time ms")
-        }.onFailure {
-            it.printStackTrace()
-            isLoading = false
-            println("\nTime $time ms")
-        }
-    }
-}
-
-suspend fun timer() {
-    GlobalScope.launch {
-        delay(1000)
-        println("World!")
     }
 }
 

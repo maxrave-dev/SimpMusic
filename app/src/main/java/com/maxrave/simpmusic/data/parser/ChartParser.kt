@@ -105,7 +105,14 @@ fun parseChart(data: SectionListRenderer?): Chart? {
                                                     id = it.navigationEndpoint?.browseEndpoint?.browseId
                                                 )
                                             }?.toMutableList()?.apply {
-                                                removeLastOrNull()
+                                                runCatching{ removeAt(this.lastIndex) }
+                                                    .onSuccess {
+                                                        Log.i("parse_mixed_content", "Removed last artist")
+                                                    }
+                                                    .onFailure {
+                                                        Log.e("parse_mixed_content", "Failed to remove last artist")
+                                                        it.printStackTrace()
+                                                    }
                                             } ?: return null,
                                         duration = null,
                                         durationSeconds = null,
