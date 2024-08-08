@@ -137,7 +137,14 @@ fun parseMixedContent(data: List<SectionListRenderer.Content>?, context: Context
                                         Regex("\\d")
                                     ) == true
                                 ) {
-                                    artists.removeLast()
+                                    runCatching{ artists.removeAt(artists.lastIndex) }
+                                        .onSuccess {
+                                            Log.i("parse_mixed_content", "Removed last artist")
+                                        }
+                                        .onFailure {
+                                            Log.e("parse_mixed_content", "Failed to remove last artist")
+                                            it.printStackTrace()
+                                        }
                                 }
                                 Log.w("Song", ytItem.toString())
                                 if (ytItem != null) {
@@ -178,7 +185,14 @@ fun parseMixedContent(data: List<SectionListRenderer.Content>?, context: Context
                                         Regex("\\d")
                                     ) == true
                                 ) {
-                                    artists.removeLast()
+                                    runCatching{ artists.removeAt(artists.lastIndex) }
+                                        .onSuccess {
+                                            Log.i("parse_mixed_content", "Removed last artist")
+                                        }
+                                        .onFailure {
+                                            Log.e("parse_mixed_content", "Failed to remove last artist")
+                                            it.printStackTrace()
+                                        }
                                 }
                                 if (ytItem != null) {
                                     listContent.add(
@@ -702,17 +716,24 @@ fun parseNewRelease(explore: ExplorePage, context: Context): ArrayList<HomeItem>
         HomeItem(
             title = context.getString(R.string.music_video),
             contents = explore.musicVideo.map { videoItem ->
-                val artists = videoItem?.artists?.map {
+                val artists = videoItem.artists.map {
                     Artist(
                         name = it.name,
                         id = it.id
                     )
-                }?.toMutableList()
-                if (artists?.lastOrNull()?.id == null && artists?.lastOrNull()?.name?.contains(
+                }.toMutableList()
+                if (artists.lastOrNull()?.id == null && artists.lastOrNull()?.name?.contains(
                         Regex("\\d")
                     ) == true
                 ) {
-                    artists.removeLast()
+                    runCatching{ artists.removeAt(artists.lastIndex) }
+                        .onSuccess {
+                            Log.i("parse_mixed_content", "Removed last artist")
+                        }
+                        .onFailure {
+                            Log.e("parse_mixed_content", "Failed to remove last artist")
+                            it.printStackTrace()
+                        }
                 }
                 Content(
                     album = videoItem.album?.let {

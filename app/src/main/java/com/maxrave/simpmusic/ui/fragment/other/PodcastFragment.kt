@@ -31,6 +31,7 @@ import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.podcast.PodcastBrowse
 import com.maxrave.simpmusic.databinding.BottomSheetPlaylistMoreBinding
 import com.maxrave.simpmusic.databinding.FragmentPodcastBinding
+import com.maxrave.simpmusic.extension.setStatusBarsColor
 import com.maxrave.simpmusic.extension.toListTrack
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.PlaylistType
@@ -66,8 +67,10 @@ class PodcastFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        requireActivity().window.statusBarColor =
-            ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark)
+        setStatusBarsColor(
+            ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark),
+            requireActivity()
+        )
         _binding = null
     }
 
@@ -102,15 +105,19 @@ class PodcastFragment : Fragment() {
                 binding.collapsingToolbarLayout.isTitleEnabled = true
                 if (viewModel.gradientDrawable.value != null) {
                     if (viewModel.gradientDrawable.value?.colors != null) {
-                        requireActivity().window.statusBarColor =
-                            viewModel.gradientDrawable.value?.colors!!.first()
+                        setStatusBarsColor(
+                            viewModel.gradientDrawable.value?.colors!!.first(),
+                            requireActivity()
+                        )
                     }
                 }
             } else {
                 binding.collapsingToolbarLayout.isTitleEnabled = false
                 binding.topAppBar.background = null
-                requireActivity().window.statusBarColor =
-                    ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark)
+                setStatusBarsColor(
+                    ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark),
+                    requireActivity()
+                )
             }
         }
         binding.btPlayPause.setOnClickListener {
@@ -216,8 +223,7 @@ class PodcastFragment : Fragment() {
     }
 
     private fun fetchDataFromViewModel() {
-        val response = viewModel.podcastBrowse.value
-        when (response) {
+        when (val response = viewModel.podcastBrowse.value) {
             is Resource.Success -> {
                 response.data?.let {
                     with(binding) {

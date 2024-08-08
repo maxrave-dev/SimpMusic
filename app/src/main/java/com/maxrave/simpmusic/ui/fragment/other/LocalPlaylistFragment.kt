@@ -31,6 +31,7 @@ import com.maxrave.simpmusic.adapter.playlist.SuggestItemAdapter
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.databinding.FragmentLocalPlaylistBinding
+import com.maxrave.simpmusic.extension.setStatusBarsColor
 import com.maxrave.simpmusic.ui.screen.library.PlaylistScreen
 import com.maxrave.simpmusic.ui.theme.AppTheme
 import com.maxrave.simpmusic.viewModel.LocalPlaylistViewModel
@@ -1007,8 +1008,10 @@ class LocalPlaylistFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        requireActivity().window.statusBarColor =
-            ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark)
+        setStatusBarsColor(
+            ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark),
+            requireActivity()
+        )
         _binding = null
     }
 

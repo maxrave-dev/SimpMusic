@@ -68,6 +68,7 @@ class FullscreenFragment : Fragment() {
     private val binding by lazy { BottomSheetFullscreenBinding.inflate(layoutInflater) }
     private var showJob: Job? = null
 
+    @Suppress("DEPRECATION")
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,

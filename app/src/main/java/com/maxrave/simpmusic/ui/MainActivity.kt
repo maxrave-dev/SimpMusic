@@ -74,6 +74,7 @@ import javax.inject.Inject
 
 @UnstableApi
 @AndroidEntryPoint
+@Suppress("DEPRECATION")
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     val viewModel by viewModels<SharedViewModel>()
@@ -282,7 +283,7 @@ class MainActivity : AppCompatActivity() {
             binding.miniplayer.visibility = View.GONE
         }
         binding.root.addOnLayoutChangeListener {
-                v,
+                _,
                 left,
                 top,
                 right,

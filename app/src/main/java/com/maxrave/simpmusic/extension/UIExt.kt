@@ -7,6 +7,7 @@ import android.graphics.Point
 import android.os.Build
 import android.util.Log
 import android.view.View
+import androidx.annotation.ColorInt
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
@@ -268,6 +269,7 @@ fun Context.getActivityOrNull(): Activity? {
 }
 
 @Composable
+@Suppress("DEPRECATION")
 fun getScreenSizeInfo(): ScreenSizeInfo {
     val context = LocalContext.current
     val activity = context.getActivityOrNull()
@@ -387,4 +389,11 @@ fun LazyListState.isScrollingUp(): Boolean {
             }
         }
     }.value
+}
+
+@Suppress("DEPRECATION")
+fun setStatusBarsColor(@ColorInt color: Int, activity: Activity) {
+    if (Build.VERSION.SDK_INT < 35) {
+        activity.window.statusBarColor = color
+    }
 }

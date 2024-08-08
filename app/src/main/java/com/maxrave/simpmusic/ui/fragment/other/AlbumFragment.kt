@@ -52,6 +52,7 @@ import com.maxrave.simpmusic.extension.indexMap
 import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.removeConflicts
 import com.maxrave.simpmusic.extension.setEnabledAll
+import com.maxrave.simpmusic.extension.setStatusBarsColor
 import com.maxrave.simpmusic.extension.toAlbumEntity
 import com.maxrave.simpmusic.extension.toArrayListTrack
 import com.maxrave.simpmusic.extension.toListName
@@ -101,8 +102,7 @@ class AlbumFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         requireArguments().clear()
-        requireActivity().window.statusBarColor =
-            ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark)
+        setStatusBarsColor(ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark), requireActivity())
         _binding = null
     }
 
@@ -603,16 +603,18 @@ class AlbumFragment : Fragment() {
                 binding.topAppBar.background = viewModel.gradientDrawable.value
                 if (viewModel.gradientDrawable.value != null) {
                     if (viewModel.gradientDrawable.value?.colors != null) {
-                        requireActivity().window.statusBarColor =
-                            viewModel.gradientDrawable.value
-                                ?.colors!!
-                                .first()
+                        setStatusBarsColor(viewModel.gradientDrawable.value
+                            ?.colors!!
+                            .first(), requireActivity())
+
                     }
                 }
             } else {
                 binding.topAppBar.background = null
-                requireActivity().window.statusBarColor =
-                    ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark)
+                setStatusBarsColor(
+                    ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark),
+                    requireActivity(),
+                )
             }
         }
         lifecycleScope.launch {

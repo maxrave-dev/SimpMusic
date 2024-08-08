@@ -60,12 +60,14 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.time.LocalDateTime
 import java.time.temporal.ChronoUnit
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
 
 val Context.dataStore by preferencesDataStore(name = SETTINGS_FILENAME)
 
+@Suppress("deprecation")
 fun Context.isMyServiceRunning(serviceClass: Class<out Service>) =
     try {
         (getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager)
@@ -927,7 +929,22 @@ fun formatDuration(duration: Long): String {
         TimeUnit.SECONDS.convert(duration, TimeUnit.MILLISECONDS) -
             minutes * TimeUnit.SECONDS.convert(1, TimeUnit.MINUTES)
         )
-    return String.format("%02d:%02d", minutes, seconds)
+    return "%02d:%02d".format(minutes, seconds)
+}
+
+fun String?.format(vararg data: Any): String {
+    return try {
+        if (this != null) {
+            String.format(Locale.getDefault(), this, data)
+        }
+        else {
+            ""
+        }
+    }
+    catch (e: Exception) {
+        e.printStackTrace()
+        ""
+    }
 }
 
 fun parseTimestampToMilliseconds(timestamp: String): Double {

@@ -49,6 +49,7 @@ import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.removeConflicts
 import com.maxrave.simpmusic.extension.setEnabledAll
+import com.maxrave.simpmusic.extension.setStatusBarsColor
 import com.maxrave.simpmusic.extension.toArrayListTrack
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toListVideoId
@@ -99,8 +100,10 @@ class PlaylistFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         requireArguments().clear()
-        requireActivity().window.statusBarColor =
-            ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark)
+        setStatusBarsColor(
+            ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark),
+            requireActivity()
+        )
         _binding = null
     }
 
@@ -799,18 +802,22 @@ class PlaylistFragment : Fragment() {
                 binding.collapsingToolbarLayout.isTitleEnabled = true
                 if (viewModel.gradientDrawable.value != null) {
                     if (viewModel.gradientDrawable.value?.colors != null) {
-                        requireActivity().window.statusBarColor =
+                        setStatusBarsColor(
                             viewModel.gradientDrawable.value
                                 ?.colors!!
-                                .first()
+                                .first(),
+                            requireActivity()
+                        )
                     }
                 }
             } else {
                 binding.collapsingToolbarLayout.isTitleEnabled = false
                 binding.topAppBar.background = null
                 binding.topAppBarLayout.background = viewModel.gradientDrawable.value
-                requireActivity().window.statusBarColor =
-                    ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark)
+                setStatusBarsColor(
+                    ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark),
+                    requireActivity()
+                )
             }
         }
         binding.btShuffle.setOnClickListener {
