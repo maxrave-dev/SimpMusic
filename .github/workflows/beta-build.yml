@@ -4,9 +4,9 @@ env:
     # The name of the main module repository
     main_project_module: app
 
-    # The name of the Play Store
     app_name: SimpMusic
 
+    apk_file_name: SimpMusic
 on:
     workflow_dispatch:
     push:
@@ -36,11 +36,27 @@ jobs:
             - name: Build apk release project (APK) - ${{ env.main_project_module }} module
               run: ./gradlew assemble
 
-            # Noted For Output [main_project_module]/build/outputs/apk/release/
+            - uses: r0adkll/sign-android-release@v1
+              name: Sign app APK
+              # ID used to access action output
+              id: sign_app
+              with:
+                  releaseDirectory: ${{ env.main_project_module }}/build/outputs/apk/release
+                  signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+                  alias: ${{ secrets.ALIAS }}
+                  keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+                  keyPassword: ${{ secrets.KEY_PASSWORD }}
+              env:
+                  # override default build-tools version (33.0.0) -- optional
+                  BUILD_TOOLS_VERSION: "34.0.0"
+
+            - name: Rename APK file
+              run: sudo mv ${{steps.sign_app.outputs.signedReleaseFile}} /${{env.apk_file_name}}.apk
+
             - name: Upload APK Release
               uses: actions/upload-artifact@v4
               with:
                   name: release-build
-                  path: ${{ env.main_project_module }}/build/outputs/apk/release/app-release-unsigned.apk
+                  path: /${{env.apk_file_name}}.apk
                   overwrite: true
                   if-no-files-found: error
