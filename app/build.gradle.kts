@@ -73,8 +73,8 @@ android {
         viewBinding = true
         compose = true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.11"
+    composeCompiler {
+        enableStrongSkippingMode = true
     }
     packaging {
         jniLibs.useLegacyPackaging = true

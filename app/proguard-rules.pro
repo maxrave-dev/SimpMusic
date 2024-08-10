@@ -19,6 +19,8 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+-keep class kotlinx.coroutines.CoroutineExceptionHandler
+-keep class kotlinx.coroutines.internal.MainDispatcherFactory
 -dontwarn org.slf4j.impl.StaticLoggerBinder
 -dontwarn kotlinx.serialization.internal.ClassValueReferences
 -keepattributes Signature
