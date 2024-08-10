@@ -1,3 +1,5 @@
+import com.android.build.gradle.internal.tasks.CompileArtProfileTask
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -299,4 +301,7 @@ aboutLibraries {
     prettyPrint = true
     registerAndroidTasks = false
     excludeFields = arrayOf("generated")
+}
+tasks.withType<CompileArtProfileTask>() {
+    enabled = false
 }

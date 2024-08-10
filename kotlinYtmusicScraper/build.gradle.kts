@@ -1,3 +1,5 @@
+import com.android.build.gradle.internal.tasks.CompileArtProfileTask
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
@@ -145,4 +147,7 @@ dependencies {
 
     implementation(libs.ksoup.html)
     implementation(libs.ksoup.entities)
+}
+tasks.withType<CompileArtProfileTask>() {
+    enabled = false
 }
