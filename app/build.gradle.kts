@@ -64,11 +64,16 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        isCoreLibraryDesugaringEnabled = true
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlin {
+        jvmToolchain(17)
     }
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8.toString()
+        freeCompilerArgs = freeCompilerArgs + "-Xcontext-receivers"
+        jvmTarget = "17"
     }
     // enable view binding
     buildFeatures {
@@ -293,6 +298,8 @@ dependencies {
     implementation(libs.landscapist.transformation)
     // InsetsX
     implementation(libs.insetsx)
+
+    coreLibraryDesugaring(libs.desugaring)
 }
 hilt {
     enableAggregatingTask = true
