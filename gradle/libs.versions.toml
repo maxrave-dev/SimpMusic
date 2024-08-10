@@ -52,8 +52,10 @@ insetsx = "0.1.0-alpha10"
 ktor = "2.3.12"
 brotli = "0.1.2"
 ksoup = "0.3.1"
+desugaring = "2.0.4"
 
 [libraries]
+desugaring = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugaring"}
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "compose-bom" }
 compose-material3-lib = { group = "androidx.compose.material3", name = "material3" }
 compose-ui = { group = "androidx.compose.ui", name = "ui" }
