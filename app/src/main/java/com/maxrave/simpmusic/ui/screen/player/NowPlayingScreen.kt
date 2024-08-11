@@ -918,7 +918,8 @@ fun NowPlayingScreen(
                                             .aspectRatio(1f)
                                             .clip(
                                                 CircleShape
-                                            ),
+                                            )
+                                            .weight(1f),
                                         onClick = {
                                             sharedViewModel.onUIEvent(UIEvent.Shuffle)
                                         }
@@ -946,7 +947,8 @@ fun NowPlayingScreen(
                                             .aspectRatio(1f)
                                             .clip(
                                                 CircleShape
-                                            ),
+                                            )
+                                            .weight(1f),
                                         onClick = {
                                             if (controllerState.isPreviousAvailable) {
                                                 sharedViewModel.onUIEvent(UIEvent.Previous)
@@ -969,7 +971,8 @@ fun NowPlayingScreen(
                                             .aspectRatio(1f)
                                             .clip(
                                                 CircleShape
-                                            ),
+                                            )
+                                            .weight(1f),
                                         onClick = {
                                             sharedViewModel.onUIEvent(UIEvent.PlayPause)
                                         }
@@ -1001,7 +1004,8 @@ fun NowPlayingScreen(
                                             .aspectRatio(1f)
                                             .clip(
                                                 CircleShape
-                                            ),
+                                            )
+                                            .weight(1f),
                                         onClick = {
                                             if (controllerState.isNextAvailable) {
                                                 sharedViewModel.onUIEvent(UIEvent.Next)
@@ -1024,7 +1028,8 @@ fun NowPlayingScreen(
                                             .aspectRatio(1f)
                                             .clip(
                                                 CircleShape
-                                            ),
+                                            )
+                                            .weight(1f),
                                         onClick = {
                                             sharedViewModel.onUIEvent(UIEvent.Repeat)
                                         }

@@ -13,11 +13,6 @@ import android.widget.ImageButton
 import android.widget.TextView
 import androidx.core.net.toUri
 import androidx.datastore.preferences.preferencesDataStore
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MediatorLiveData
-import androidx.lifecycle.Observer
-import androidx.lifecycle.asFlow
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.util.UnstableApi
@@ -54,7 +49,6 @@ import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
 import com.maxrave.simpmusic.data.parser.toListThumbnail
 import com.maxrave.simpmusic.service.test.source.MergingMediaSourceFactory
-import kotlinx.coroutines.flow.Flow
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -775,54 +769,6 @@ fun NavController.navigateSafe(
     }
 }
 
-fun <T> LiveData<T>.observeOnce(
-    lifecycleOwner: LifecycleOwner,
-    observer: Observer<T>,
-) {
-    observe(
-        lifecycleOwner,
-        object : Observer<T> {
-            override fun onChanged(value: T) {
-                observer.onChanged(value)
-                removeObserver(this)
-            }
-        },
-    )
-}
-
-fun <A, B> zip(
-    first: LiveData<A>,
-    second: LiveData<B>,
-): Flow<Pair<A, B>> {
-    val mediatorLiveData = MediatorLiveData<Pair<A, B>>()
-
-    var isFirstEmitted = false
-    var isSecondEmitted = false
-    var firstValue: A? = null
-    var secondValue: B? = null
-
-    mediatorLiveData.addSource(first) {
-        isFirstEmitted = true
-        firstValue = it
-        if (isSecondEmitted) {
-            mediatorLiveData.value = Pair(firstValue!!, secondValue!!)
-            isFirstEmitted = false
-            isSecondEmitted = false
-        }
-    }
-    mediatorLiveData.addSource(second) {
-        isSecondEmitted = true
-        secondValue = it
-        if (isFirstEmitted) {
-            mediatorLiveData.value = Pair(firstValue!!, secondValue!!)
-            isFirstEmitted = false
-            isSecondEmitted = false
-        }
-    }
-
-    return mediatorLiveData.asFlow()
-}
-
 fun PodcastBrowse.EpisodeItem.toTrack(): Track {
     return Track(
         album = null,
@@ -919,7 +865,7 @@ fun LocalDateTime.formatTimeAgo(context: Context): String {
         hoursDiff >= 24 -> context.getString(R.string.day_s_ago, daysDiff)
         hoursDiff > 1 -> context.getString(R.string.hour_s_ago, hoursDiff)
         hoursDiff <= 1 -> context.getString(R.string.recently)
-        else -> context.getString(androidx.media3.ui.R.string.exo_track_unknown)
+        else -> context.getString(R.string.unknown)
     }
 }
 
@@ -929,22 +875,7 @@ fun formatDuration(duration: Long): String {
         TimeUnit.SECONDS.convert(duration, TimeUnit.MILLISECONDS) -
             minutes * TimeUnit.SECONDS.convert(1, TimeUnit.MINUTES)
         )
-    return "%02d:%02d".format(minutes, seconds)
-}
-
-fun String?.format(vararg data: Any): String {
-    return try {
-        if (this != null) {
-            String.format(Locale.getDefault(), this, data)
-        }
-        else {
-            ""
-        }
-    }
-    catch (e: Exception) {
-        e.printStackTrace()
-        ""
-    }
+    return String.format(Locale.ENGLISH, "%02d:%02d", minutes, seconds)
 }
 
 fun parseTimestampToMilliseconds(timestamp: String): Double {

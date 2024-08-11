@@ -1,3 +1,5 @@
+import com.android.build.gradle.internal.tasks.CompileArtProfileTask
+
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
@@ -25,12 +27,8 @@ android {
             )
         }
     }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
-    }
-    kotlinOptions {
-        jvmTarget = "1.8"
+    kotlin {
+        jvmToolchain(17)
     }
     packaging {
         jniLibs.useLegacyPackaging = true
@@ -145,4 +143,7 @@ dependencies {
 
     implementation(libs.ksoup.html)
     implementation(libs.ksoup.entities)
+}
+tasks.withType<CompileArtProfileTask>() {
+    enabled = false
 }
