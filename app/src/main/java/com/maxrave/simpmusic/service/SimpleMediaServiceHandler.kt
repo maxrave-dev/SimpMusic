@@ -1431,6 +1431,9 @@ class SimpleMediaServiceHandler(
             )
             Log.d("MusicSource", "updateCatalog: ${track.title}")
         }
+        if (!player.isPlaying) {
+            player.playWhenReady = false
+        }
         _queueData.value = _queueData.value?.addTrackList(catalogMetadata)
         _stateFlow.value = StateSource.STATE_INITIALIZED
     }
