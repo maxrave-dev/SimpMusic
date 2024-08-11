@@ -330,4 +330,23 @@
     <string name="hour_s_ago">%1$d giờ trước</string>
     <string name="no_notification">Không có thông báo</string>
     <string name="created_at">Đã tạo lúc: %1$s</string>
+    <string name="unknown">Không rõ</string>
+    <string name="repeat_one">Lặp lại một lần</string>
+    <string name="repeat_all">Lặp lại tất cả</string>
+    <string name="repeat_off">Tắt lặp lại</string>
+    <string name="youtube_transcript">Phụ đề YouTube</string>
+    <string name="user_interface">Giao diện</string>
+    <string name="translucent_bottom_navigation_bar">Thanh điều hướng mờ</string>
+    <string name="you_can_see_the_content_below_the_bottom_bar">Bạn có thể xem nội dung phía dưới thanh điều hướng</string>
+    <string name="donation">Nếu bạn yêu thích những gi mà tác giả đã làm, hãy gửi cho họ một ly cà phê</string>
+    <string name="relax">Thư giãn</string>
+    <string name="sleep">Dễ ngủ</string>
+    <string name="energize">Nạp năng lượng</string>
+    <string name="sad">Buồn</string>
+    <string name="romance">Lãng mạn</string>
+    <string name="feel_good">Vui tươi</string>
+    <string name="workout">Tập thể dục</string>
+    <string name="party">Tiệc tùng</string>
+    <string name="commute">Trên đường đi làm</string>
+    <string name="focus">Tập trung</string>
 </resources>

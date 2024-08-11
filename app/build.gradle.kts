@@ -1,3 +1,5 @@
+import com.android.build.gradle.internal.tasks.CompileArtProfileTask
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -16,8 +18,8 @@ android {
         applicationId = "com.maxrave.simpmusic"
         minSdk = 26
         targetSdk = 35
-        versionCode = 19
-        versionName = "0.2.3"
+        versionCode = 20
+        versionName = "0.2.3-hotfix"
         vectorDrawables.useSupportLibrary = true
 
         ksp {
@@ -48,7 +50,8 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
@@ -61,19 +64,24 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        isCoreLibraryDesugaringEnabled = true
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlin {
+        jvmToolchain(17)
     }
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_1_8.toString()
+        freeCompilerArgs = freeCompilerArgs + "-Xcontext-receivers"
+        jvmTarget = "17"
     }
     // enable view binding
     buildFeatures {
         viewBinding = true
         compose = true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.11"
+    composeCompiler {
+        enableStrongSkippingMode = true
     }
     packaging {
         jniLibs.useLegacyPackaging = true
@@ -236,8 +244,6 @@ dependencies {
     // Coil
     implementation(libs.coil)
     implementation(libs.coil.compose)
-    // Glide
-    implementation(libs.glide)
     // Easy Permissions
     implementation(libs.easypermissions)
     // Palette Color
@@ -292,6 +298,8 @@ dependencies {
     implementation(libs.landscapist.transformation)
     // InsetsX
     implementation(libs.insetsx)
+
+    coreLibraryDesugaring(libs.desugaring)
 }
 hilt {
     enableAggregatingTask = true
@@ -300,4 +308,7 @@ aboutLibraries {
     prettyPrint = true
     registerAndroidTasks = false
     excludeFields = arrayOf("generated")
+}
+tasks.withType<CompileArtProfileTask>() {
+    enabled = false
 }

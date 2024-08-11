@@ -16,7 +16,6 @@ import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
 import androidx.palette.graphics.Palette
@@ -55,6 +54,7 @@ import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.removeConflicts
 import com.maxrave.simpmusic.extension.setEnabledAll
+import com.maxrave.simpmusic.extension.setStatusBarsColor
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.extension.toTrack
@@ -66,7 +66,9 @@ import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import kotlin.math.abs
@@ -99,7 +101,7 @@ class ArtistFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         requireArguments().clear()
-        requireActivity().window.statusBarColor = ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark)
+        setStatusBarsColor(ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark), requireActivity())
         _binding = null
     }
 
@@ -490,15 +492,17 @@ class ArtistFragment : Fragment() {
                 binding.toolBar.background = viewModel.gradientDrawable.value
                 if (viewModel.gradientDrawable.value != null) {
                     if (viewModel.gradientDrawable.value?.colors != null) {
-                        requireActivity().window.statusBarColor =
+                        setStatusBarsColor(
                             viewModel.gradientDrawable.value
                                 ?.colors!!
-                                .first()
+                                .first(),
+                            requireActivity()
+                        )
                     }
                 }
             } else {
                 binding.toolBar.background = null
-                requireActivity().window.statusBarColor = ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark)
+                setStatusBarsColor(ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark), requireActivity())
                 Log.d("ArtistFragment", "Expanded")
             }
         }
@@ -593,7 +597,7 @@ class ArtistFragment : Fragment() {
                                             }
                                             tvSubscribers.text = it.subscribers
                                             if (it.views == null) {
-                                                tvViews.text = ""
+                                                tvViews.text = getString(R.string.unknown)
                                             } else {
                                                 tvViews.text = it.views.toString()
                                             }
@@ -684,13 +688,15 @@ class ArtistFragment : Fragment() {
                 val job2 =
                     launch {
                         combine(
-                            sharedViewModel.simpleMediaServiceHandler?.nowPlaying ?: flowOf<MediaItem?>(null),
-                            sharedViewModel.isPlaying,
+                            sharedViewModel.nowPlayingState.distinctUntilChangedBy {
+                                it?.songEntity?.videoId
+                            },
+                            sharedViewModel.controllerState.map { it.isPlaying }.distinctUntilChanged(),
                         ) { nowPlaying, isPlaying ->
                             Pair(nowPlaying, isPlaying)
                         }.collect {
                             if (it.first != null && it.second) {
-                                popularAdapter.setNowPlaying(it.first!!.mediaId)
+                                popularAdapter.setNowPlaying(it.first?.songEntity?.videoId)
                             } else {
                                 popularAdapter.setNowPlaying(null)
                             }

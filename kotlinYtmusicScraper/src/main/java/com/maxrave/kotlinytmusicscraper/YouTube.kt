@@ -20,6 +20,7 @@ import com.maxrave.kotlinytmusicscraper.models.SongInfo
 import com.maxrave.kotlinytmusicscraper.models.SongItem
 import com.maxrave.kotlinytmusicscraper.models.VideoItem
 import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
+import com.maxrave.kotlinytmusicscraper.models.YTItemType
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.ANDROID_MUSIC
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.WEB
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.WEB_REMIX
@@ -648,17 +649,21 @@ object YouTube {
 //            .orEmpty()
             ExplorePage(
                 released =
-                    response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()?.gridRenderer?.items
-                        ?.mapNotNull { it.musicTwoRowItemRenderer }
-                        ?.mapNotNull(RelatedPage::fromMusicTwoRowItemRenderer)
-                        .orEmpty() as List<PlaylistItem>,
+                response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()?.gridRenderer?.items
+                    ?.mapNotNull { it.musicTwoRowItemRenderer }
+                    ?.mapNotNull(RelatedPage::fromMusicTwoRowItemRenderer)
+                    .orEmpty().mapNotNull {
+                        if (it.type == YTItemType.PLAYLIST) it as? PlaylistItem else null
+                    },
                 musicVideo =
                     response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.lastOrNull()?.musicCarouselShelfRenderer?.contents?.mapNotNull {
                         it.musicTwoRowItemRenderer
                     }
                         ?.mapNotNull(
                             ArtistPage::fromMusicTwoRowItemRenderer,
-                        ).orEmpty() as List<VideoItem>,
+                        ).orEmpty().mapNotNull {
+                            if (it.type == YTItemType.VIDEO) it as? VideoItem else null
+                        },
             )
         }
 

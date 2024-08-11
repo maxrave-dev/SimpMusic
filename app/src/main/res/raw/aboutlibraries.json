@@ -113,14 +113,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.8.0",
+            "artifactVersion": "1.8.1",
             "description": "Provides source annotations for tooling and readability.",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Annotation",
-            "website": "https://developer.android.com/jetpack/androidx/releases/annotation#1.8.0",
+            "website": "https://developer.android.com/jetpack/androidx/releases/annotation#1.8.1",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -1105,7 +1105,7 @@
             "developers": [
                 
             ],
-            "artifactVersion": "8.5.1",
+            "artifactVersion": "8.5.2",
             "description": "",
             "name": "androidx.databinding:viewbinding",
             "licenses": [
@@ -2549,14 +2549,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "3.3.1",
+            "artifactVersion": "3.3.2",
             "description": "Android Paging-Common",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Paging-Common",
-            "website": "https://developer.android.com/jetpack/androidx/releases/paging#3.3.1",
+            "website": "https://developer.android.com/jetpack/androidx/releases/paging#3.3.2",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -2574,14 +2574,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "3.3.1",
+            "artifactVersion": "3.3.2",
             "description": "Kotlin extensions for 'paging-common' artifact",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Paging-Common Kotlin Extensions",
-            "website": "https://developer.android.com/jetpack/androidx/releases/paging#3.3.1",
+            "website": "https://developer.android.com/jetpack/androidx/releases/paging#3.3.2",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -2599,14 +2599,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "3.3.1",
+            "artifactVersion": "3.3.2",
             "description": "Android Paging-Runtime",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Paging-Runtime",
-            "website": "https://developer.android.com/jetpack/androidx/releases/paging#3.3.1",
+            "website": "https://developer.android.com/jetpack/androidx/releases/paging#3.3.2",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -2624,14 +2624,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "3.3.1",
+            "artifactVersion": "3.3.2",
             "description": "Kotlin extensions for 'paging-runtime' artifact",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "Paging-Runtime Kotlin Extensions",
-            "website": "https://developer.android.com/jetpack/androidx/releases/paging#3.3.1",
+            "website": "https://developer.android.com/jetpack/androidx/releases/paging#3.3.2",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -3221,14 +3221,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.9.0",
+            "artifactVersion": "2.9.1",
             "description": "Android WorkManager runtime library",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "WorkManager Runtime",
-            "website": "https://developer.android.com/jetpack/androidx/releases/work#2.9.0",
+            "website": "https://developer.android.com/jetpack/androidx/releases/work#2.9.1",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -3246,14 +3246,14 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "2.9.0",
+            "artifactVersion": "2.9.1",
             "description": "Android WorkManager Kotlin Extensions",
             "scm": {
                 "connection": "scm:git:https://android.googlesource.com/platform/frameworks/support",
                 "url": "https://cs.android.com/androidx/platform/frameworks/support"
             },
             "name": "WorkManager Kotlin Extensions",
-            "website": "https://developer.android.com/jetpack/androidx/releases/work#2.9.0",
+            "website": "https://developer.android.com/jetpack/androidx/releases/work#2.9.1",
             "licenses": [
                 "Apache-2.0"
             ],
@@ -3373,102 +3373,6 @@
             "name": "Shimmer",
             "website": "http://facebook.github.io/shimmer-android",
             "licenses": [
-                "BSD-2-Clause"
-            ]
-        },
-        {
-            "uniqueId": "com.github.bumptech.glide:annotations",
-            "funding": [
-                
-            ],
-            "developers": [
-                {
-                    "name": "Sam Judd"
-                }
-            ],
-            "artifactVersion": "4.16.0",
-            "description": "A set of annotations for configuring Glide.",
-            "scm": {
-                "connection": "scm:git@github.com:bumptech/glide.git",
-                "url": "https://github.com/bumptech/glide",
-                "developerConnection": "scm:git@github.com:bumptech/glide.git"
-            },
-            "name": "Glide Annotations",
-            "website": "https://github.com/bumptech/glide",
-            "licenses": [
-                "Apache-2.0",
-                "BSD-2-Clause"
-            ]
-        },
-        {
-            "uniqueId": "com.github.bumptech.glide:disklrucache",
-            "funding": [
-                
-            ],
-            "developers": [
-                {
-                    "name": "Sam Judd"
-                }
-            ],
-            "artifactVersion": "4.16.0",
-            "description": "A cache that uses a bounded amount of space on a filesystem. Based on Jake Wharton's tailored for Glide.",
-            "scm": {
-                "connection": "scm:git@github.com:bumptech/glide.git",
-                "url": "https://github.com/bumptech/glide",
-                "developerConnection": "scm:git@github.com:bumptech/glide.git"
-            },
-            "name": "Glide Disk LRU Cache Library",
-            "website": "https://github.com/bumptech/glide",
-            "licenses": [
-                "Apache-2.0",
-                "BSD-2-Clause"
-            ]
-        },
-        {
-            "uniqueId": "com.github.bumptech.glide:gifdecoder",
-            "funding": [
-                
-            ],
-            "developers": [
-                {
-                    "name": "Sam Judd"
-                }
-            ],
-            "artifactVersion": "4.16.0",
-            "description": "Implementation of GifDecoder that is more memory efficient to animate for Android devices.",
-            "scm": {
-                "connection": "scm:git@github.com:bumptech/glide.git",
-                "url": "https://github.com/bumptech/glide",
-                "developerConnection": "scm:git@github.com:bumptech/glide.git"
-            },
-            "name": "Glide GIF Decoder Library",
-            "website": "https://github.com/bumptech/glide",
-            "licenses": [
-                "Apache-2.0",
-                "BSD-2-Clause"
-            ]
-        },
-        {
-            "uniqueId": "com.github.bumptech.glide:glide",
-            "funding": [
-                
-            ],
-            "developers": [
-                {
-                    "name": "Sam Judd"
-                }
-            ],
-            "artifactVersion": "4.16.0",
-            "description": "A fast and efficient image loading library for Android focused on smooth scrolling.",
-            "scm": {
-                "connection": "scm:git@github.com:bumptech/glide.git",
-                "url": "https://github.com/bumptech/glide",
-                "developerConnection": "scm:git@github.com:bumptech/glide.git"
-            },
-            "name": "Glide",
-            "website": "https://github.com/bumptech/glide",
-            "licenses": [
-                "Apache-2.0",
                 "BSD-2-Clause"
             ]
         },

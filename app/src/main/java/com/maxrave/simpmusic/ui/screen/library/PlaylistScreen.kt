@@ -121,6 +121,7 @@ import com.skydoves.landscapist.palette.rememberPaletteState
 import com.skydoves.landscapist.placeholder.placeholder.PlaceholderPlugin
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
 import java.time.format.DateTimeFormatter
 
@@ -193,7 +194,7 @@ fun PlaylistScreen(
     val playingTrack by sharedViewModel.nowPlayingState.mapLatest {
         it?.mediaItem
     }.collectAsState(initial = null)
-    val isPlaying by sharedViewModel.isPlaying.collectAsState()
+    val isPlaying by sharedViewModel.controllerState.map { it.isPlaying }.collectAsState(initial = false)
     val suggestedTracks by viewModel.listSuggestions.collectAsState()
     val suggestionsLoading by viewModel.loading.collectAsState()
     var showSyncAlertDialog by rememberSaveable { mutableStateOf(false) }

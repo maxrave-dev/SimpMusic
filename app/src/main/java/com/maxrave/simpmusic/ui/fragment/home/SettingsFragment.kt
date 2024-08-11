@@ -4,6 +4,7 @@ import android.app.usage.StorageStatsManager
 import android.content.Intent
 import android.media.audiofx.AudioEffect
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.storage.StorageManager
 import android.util.Log
@@ -664,9 +665,20 @@ class SettingsFragment : Fragment() {
                                         )]
                                     }.onSuccess { temp ->
                                         binding.tvLanguage.text = temp
+                                        val code = SUPPORTED_LANGUAGE.codes.getOrNull(checkedIndex)
                                         val localeList = LocaleListCompat.forLanguageTags(
-                                            SUPPORTED_LANGUAGE.codes.getOrNull(checkedIndex)
+                                            if (code == "id-ID") {
+                                                if (Build.VERSION.SDK_INT >= 35) {
+                                                    "id-ID"
+                                                } else {
+                                                    "in-ID"
+                                                }
+                                            }
+                                            else {
+                                                code
+                                            }
                                         )
+                                        Log.d("Language", localeList.toString())
                                         sharedViewModel.activityRecreate()
                                         AppCompatDelegate.setApplicationLocales(localeList)
                                     }

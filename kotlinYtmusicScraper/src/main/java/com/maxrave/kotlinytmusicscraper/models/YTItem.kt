@@ -6,6 +6,7 @@ sealed class YTItem {
     abstract val thumbnail: String
     abstract val explicit: Boolean
     abstract val shareLink: String
+    abstract val type: YTItemType
 }
 
 data class Artist(
@@ -31,6 +32,8 @@ data class SongItem(
 ) : YTItem() {
     override val shareLink: String
         get() = "https://music.youtube.com/watch?v=$id"
+    override val type: YTItemType
+        get() = YTItemType.SONG
 }
 data class VideoItem(
     override val id: String,
@@ -47,6 +50,8 @@ data class VideoItem(
     ): YTItem() {
     override val shareLink: String
         get() = "https://music.youtube.com/watch?v=$id"
+    override val type: YTItemType
+        get() = YTItemType.VIDEO
 }
 
 data class AlbumItem(
@@ -62,6 +67,8 @@ data class AlbumItem(
 ) : YTItem() {
     override val shareLink: String
         get() = "https://music.youtube.com/playlist?list=$playlistId"
+    override val type: YTItemType
+        get() = YTItemType.ALBUM
 }
 
 data class PlaylistItem(
@@ -78,6 +85,8 @@ data class PlaylistItem(
         get() = false
     override val shareLink: String
         get() = "https://music.youtube.com/playlist?list=$id"
+    override val type: YTItemType
+        get() = YTItemType.PLAYLIST
 }
 
 data class ArtistItem(
@@ -92,4 +101,14 @@ data class ArtistItem(
         get() = false
     override val shareLink: String
         get() = "https://music.youtube.com/channel/$id"
+    override val type: YTItemType
+        get() = YTItemType.ARTIST
+}
+
+enum class YTItemType {
+    SONG,
+    VIDEO,
+    ALBUM,
+    PLAYLIST,
+    ARTIST
 }

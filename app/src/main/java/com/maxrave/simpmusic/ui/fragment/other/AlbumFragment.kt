@@ -19,7 +19,6 @@ import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
-import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
@@ -53,6 +52,7 @@ import com.maxrave.simpmusic.extension.indexMap
 import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.removeConflicts
 import com.maxrave.simpmusic.extension.setEnabledAll
+import com.maxrave.simpmusic.extension.setStatusBarsColor
 import com.maxrave.simpmusic.extension.toAlbumEntity
 import com.maxrave.simpmusic.extension.toArrayListTrack
 import com.maxrave.simpmusic.extension.toListName
@@ -70,7 +70,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChangedBy
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.time.LocalDateTime
@@ -103,8 +102,7 @@ class AlbumFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         requireArguments().clear()
-        requireActivity().window.statusBarColor =
-            ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark)
+        setStatusBarsColor(ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark), requireActivity())
         _binding = null
     }
 
@@ -605,16 +603,18 @@ class AlbumFragment : Fragment() {
                 binding.topAppBar.background = viewModel.gradientDrawable.value
                 if (viewModel.gradientDrawable.value != null) {
                     if (viewModel.gradientDrawable.value?.colors != null) {
-                        requireActivity().window.statusBarColor =
-                            viewModel.gradientDrawable.value
-                                ?.colors!!
-                                .first()
+                        setStatusBarsColor(viewModel.gradientDrawable.value
+                            ?.colors!!
+                            .first(), requireActivity())
+
                     }
                 }
             } else {
                 binding.topAppBar.background = null
-                requireActivity().window.statusBarColor =
-                    ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark)
+                setStatusBarsColor(
+                    ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark),
+                    requireActivity(),
+                )
             }
         }
         lifecycleScope.launch {
@@ -644,16 +644,15 @@ class AlbumFragment : Fragment() {
                 val job2 =
                     launch {
                         combine(
-                            sharedViewModel.simpleMediaServiceHandler?.nowPlaying
-                                ?: flowOf<MediaItem?>(
-                                    null,
-                                ),
-                            sharedViewModel.isPlaying,
+                            sharedViewModel.nowPlayingState.distinctUntilChangedBy {
+                                it?.songEntity?.videoId
+                            },
+                            sharedViewModel.controllerState,
                         ) { nowPlaying, isPlaying ->
                             Pair(nowPlaying, isPlaying)
                         }.collect {
-                            if (it.first != null && it.second) {
-                                songsAdapter.setNowPlaying(it.first!!.mediaId)
+                            if (it.first != null && it.second.isPlaying) {
+                                songsAdapter.setNowPlaying(it.first?.songEntity?.videoId)
                             } else {
                                 songsAdapter.setNowPlaying(null)
                             }

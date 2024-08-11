@@ -132,8 +132,6 @@ constructor(
 
     var gradientDrawable: MutableLiveData<GradientDrawable> = MutableLiveData()
 
-    var isPlaying = MutableStateFlow<Boolean>(false)
-
     var _lyrics = MutableStateFlow<Resource<Lyrics>?>(null)
 
     //    val lyrics: LiveData<Resource<Lyrics>> = _lyrics
@@ -296,7 +294,6 @@ constructor(
                 }
             }
         }
-//        initJob =
         viewModelScope.launch {
             val job1 =
                 launch {
@@ -326,11 +323,22 @@ constructor(
 
                             is SimpleMediaState.Progress -> {
                                 if (mediaState.progress >= 0L && mediaState.progress != _timeline.value.current) {
-                                    _timeline.update {
-                                        it.copy(
-                                            current = mediaState.progress,
-                                            loading = false
-                                        )
+                                    if (_timeline.value.total > 0L) {
+                                        _timeline.update {
+                                            it.copy(
+                                                current = mediaState.progress,
+                                                loading = false
+                                            )
+                                        }
+                                    }
+                                    else {
+                                        _timeline.update {
+                                            it.copy(
+                                                current = mediaState.progress,
+                                                loading = true,
+                                                total = handler.getPlayerDuration()
+                                            )
+                                        }
                                     }
                                 }
                                 else {
@@ -354,7 +362,7 @@ constructor(
                             is SimpleMediaState.Ready -> {
                                 _timeline.update {
                                     it.copy(
-                                        current = simpleMediaServiceHandler!!.getProgress(),
+                                        current = handler.getProgress(),
                                         loading = false,
                                         total = mediaState.duration
                                     )
@@ -1147,7 +1155,6 @@ constructor(
     }
 
     fun stopPlayer() {
-        isPlaying.value = false
         onUIEvent(UIEvent.Stop)
     }
 

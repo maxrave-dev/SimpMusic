@@ -903,7 +903,7 @@ fun NowPlayingScreen(
                                 //Control Button Layout
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    horizontalArrangement = Arrangement.SpaceEvenly,
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .height(96.dp)
@@ -918,7 +918,8 @@ fun NowPlayingScreen(
                                             .aspectRatio(1f)
                                             .clip(
                                                 CircleShape
-                                            ),
+                                            )
+                                            .weight(1f),
                                         onClick = {
                                             sharedViewModel.onUIEvent(UIEvent.Shuffle)
                                         }
@@ -946,7 +947,8 @@ fun NowPlayingScreen(
                                             .aspectRatio(1f)
                                             .clip(
                                                 CircleShape
-                                            ),
+                                            )
+                                            .weight(1f),
                                         onClick = {
                                             if (controllerState.isPreviousAvailable) {
                                                 sharedViewModel.onUIEvent(UIEvent.Previous)
@@ -969,7 +971,8 @@ fun NowPlayingScreen(
                                             .aspectRatio(1f)
                                             .clip(
                                                 CircleShape
-                                            ),
+                                            )
+                                            .weight(1f),
                                         onClick = {
                                             sharedViewModel.onUIEvent(UIEvent.PlayPause)
                                         }
@@ -1001,7 +1004,8 @@ fun NowPlayingScreen(
                                             .aspectRatio(1f)
                                             .clip(
                                                 CircleShape
-                                            ),
+                                            )
+                                            .weight(1f),
                                         onClick = {
                                             if (controllerState.isNextAvailable) {
                                                 sharedViewModel.onUIEvent(UIEvent.Next)
@@ -1024,7 +1028,8 @@ fun NowPlayingScreen(
                                             .aspectRatio(1f)
                                             .clip(
                                                 CircleShape
-                                            ),
+                                            )
+                                            .weight(1f),
                                         onClick = {
                                             sharedViewModel.onUIEvent(UIEvent.Repeat)
                                         }
@@ -1402,7 +1407,10 @@ fun NowPlayingScreen(
                                 )
                                 Spacer(modifier = Modifier.height(10.dp))
                                 Text(
-                                    text = stringResource(id = R.string.view_count, String.format(java.util.Locale.getDefault(), "%,d", screenDataState.songInfoData?.viewCount)),
+                                    text = stringResource(
+                                        id = R.string.view_count,
+                                        "%,d".format(screenDataState.songInfoData?.viewCount)
+                                    ),
                                     style = typo.labelMedium,
                                     color = Color.White,
                                 )

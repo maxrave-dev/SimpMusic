@@ -376,7 +376,12 @@ class SimpleMediaService : MediaLibraryService() {
                     .setAudioProcessorChain(
                         DefaultAudioSink.DefaultAudioProcessorChain(
                             emptyArray(),
-                            SilenceSkippingAudioProcessor(2_000_000, 20_000, 256),
+                            SilenceSkippingAudioProcessor(
+                                2_000_000, (20_000/2_000_000).toFloat(),
+                                2_000_000,
+                                0,
+                                256
+                            ),
                             SonicAudioProcessor()
                         )
                     )

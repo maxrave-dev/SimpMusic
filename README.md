@@ -1,6 +1,6 @@
 
 <div align="center">
-	<img src="https://raw.githubusercontent.com/maxrave-dev/SimpMusic/dev/fastlane/metadata/android/en-US/images/featureGraphic.png">
+	<img src="https://raw.githubusercontent.com/maxrave-dev/SimpMusic/jetpack_compose/fastlane/metadata/android/en-US/images/featureGraphic.png">
 <h1>SimpMusic</h1>A FOSS YouTube Music client for Android with many features from<br>Spotify, Musixmatch, SponsorBlock, ReturnYouTubeDislike<br>
 <br>
 <a href="https://github.com/maxrave-dev/SimpMusic/releases"><img src="https://img.shields.io/github/v/release/maxrave-dev/SimpMusic"></a>
@@ -23,10 +23,10 @@
 - Analyze your playing data, create custom playlists, and sync with YouTube Music...
 - Spotify Canvas supported
 - Play 1080p video option with subtitle
-- AI suggest songs
+- AI suggestions songs
 - Notification from followed artists
 - Caching and can save data for offline playback
-- Synced lyrics from Musixmatch, Spotify (require login) and YouTube Transcript and translated lyrics (Community translation from Musixmatch)
+- Synced lyrics from Musixmatch, LRCLIB, Spotify (require login) and YouTube Transcript and translated lyrics (Community translation from Musixmatch)
 - Personalize data (*) and multi-YouTube-account support
 - Support SponsorBlock, Return YouTube Dislike
 - Sleep Timer
@@ -43,20 +43,21 @@
 ## Screenshots
 
 <p align="center">  
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/2.jpg?raw=true" width="200" />  
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/3.jpg?raw=true" width="200" />  
-   <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/4.jpg?raw=true" width="200" />  
-   <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/5.jpg?raw=true" width="200" />  
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/2.png?raw=true" width="200" />  
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/3.png?raw=true" width="200" />  
+   <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/4.png?raw=true" width="200" />  
+   <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/5.png?raw=true" width="200" />  
 </p>  
 <p align="center">  
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/6.jpg?raw=true" width="200" />  
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/7.jpg?raw=true" width="200" />  
-   <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/8.jpg?raw=true" width="200" />  
-   <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/9.jpg?raw=true" width="200" />  
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/6.png?raw=true" width="200" />  
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/7.png?raw=true" width="200" />  
+   <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/8.png?raw=true" width="200" />  
+   <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/9.png?raw=true" width="200" />  
 </p> 
 <p align="center">  
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/10.jpg?raw=true" width="200" />  
-  <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/11.jpg?raw=true" width="200" /> 
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/10.png?raw=true" width="200" />  
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/11.png?raw=true" width="200" /> 
+  <img src="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/asset/screenshot/12.png?raw=true" width="200" /> 
 </p>  
 
 #### More [screenshot](https://photos.app.goo.gl/AbieoXG5ctDrpwzp7) here.
@@ -68,7 +69,7 @@
 - Thanks to [InnerTune](https://github.com/z-huang/InnerTune/) for the idea to get data from YouTube Music. This repo is my inspiration to create this app
 - My app is using [SponsorBlock](https://sponsor.ajay.app/) to skip sponsor in YouTube videos.
 - ReturnYouTubeDislike for getting information on votes
-- Lyrics data from Musixmatch. More information [Musixmatch](https://developer.musixmatch.com/)
+- Lyrics data from Musixmatch and LRCLIB. More information [Musixmatch](https://developer.musixmatch.com/), [LRCLIB](https://lrclib.net/)
 
 ## Privacy
 
@@ -152,7 +153,7 @@ Simply, because I love this name. It's a combination of Simple and Music. But Si
 
 ### [maxrave-dev](https://github.com/maxrave-dev/SimpMusic): Founder/Developer/Designer 
 
-### [owen connor](https://github.com/owencz1998): Discord Server Admin. 
+### [Owen Connor](https://github.com/owencz1998): Discord Server Admin. 
 
 ## Support & Donations
 <div align="left">
@@ -165,7 +166,7 @@ Simply, because I love this name. It's a combination of Simple and Music. But Si
 &nbsp;
 <a href="https://liberapay.com/maxrave/"><img alt="liberapay" height="50"
 src="https://raw.githubusercontent.com/liberapay/liberapay.com/master/www/assets/liberapay/logo-v2_black-on-yellow.svg"></a>
-<div/>
+</div>
 
 ### MOMO or Vietnamese banking
 <p float="left">

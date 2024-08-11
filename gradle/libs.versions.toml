@@ -1,5 +1,5 @@
 [versions]
-android = "8.5.1"
+android = "8.5.2"
 kotlin = "2.0.0"
 serialization = "2.0.0"
 ksp = "2.0.0-1.0.22"
@@ -10,7 +10,7 @@ lifecycle-viewmodel-compose = "2.8.4"
 lifecycle-runtime-ktx = "2.8.4"
 core-ktx = "1.13.1"
 appcompat = "1.7.0"
-work = "2.9.0"
+work = "2.9.1"
 material = "1.11.0" #Version 1.12.0 caused bug
 startup-runtime = "1.1.1"
 lifecycle-livedata-ktx = "2.8.4"
@@ -30,7 +30,6 @@ coroutines-guava = "1.8.1"
 navigation = "2.7.7"
 gson = "2.10.1"
 coil = "2.6.0"
-glide = "4.16.0"
 easypermissions = "3.0.0"
 preference-ktx = "1.2.1"
 fragment-ktx = "1.8.2"
@@ -41,7 +40,7 @@ swiperefreshlayout = "1.2.0-alpha01"
 insetter = "0.6.1"
 shimmer = "0.5.0"
 lottie = "6.4.0"
-paging = "3.3.1"
+paging = "3.3.2"
 customactivityoncrash = "2.4.0"
 sdp-android = "1.1.0"
 ssp-android = "1.1.0"
@@ -53,8 +52,10 @@ insetsx = "0.1.0-alpha10"
 ktor = "2.3.12"
 brotli = "0.1.2"
 ksoup = "0.3.1"
+desugaring = "2.0.4"
 
 [libraries]
+desugaring = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugaring"}
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "compose-bom" }
 compose-material3-lib = { group = "androidx.compose.material3", name = "material3" }
 compose-ui = { group = "androidx.compose.ui", name = "ui" }
@@ -101,7 +102,6 @@ navigation-ui-ktx = { group = "androidx.navigation", name = "navigation-ui-ktx",
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 coil = { group = "io.coil-kt", name = "coil", version.ref = "coil" }
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
-glide = { group = "com.github.bumptech.glide", name = "glide", version.ref = "glide" }
 easypermissions = { group = "pub.devrel", name = "easypermissions", version.ref = "easypermissions" }
 preference-ktx = { group = "androidx.preference", name = "preference-ktx", version.ref = "preference-ktx" }
 fragment-ktx = { group = "androidx.fragment", name = "fragment-ktx", version.ref = "fragment-ktx" }

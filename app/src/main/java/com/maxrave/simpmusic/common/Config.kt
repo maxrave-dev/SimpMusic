@@ -5,11 +5,6 @@ import java.time.LocalDateTime
 import java.time.Month
 
 object Config {
-    enum class SyncState {
-        LINE_SYNCED,
-        UNSYNCED,
-        NOT_FOUND,
-    }
 
     const val SPOTIFY_LOG_IN_URL: String = "https://accounts.spotify.com/en/login"
     const val SPOTIFY_ACCOUNT_URL = "https://accounts.spotify.com/en/status"
@@ -203,7 +198,7 @@ object SUPPORTED_LANGUAGE {
             "fr-FR",
             "es-ES",
             "zh-CN",
-            "in-ID",
+            "id-ID",
             "ar-SA",
             "ja-JP",
             "zh-Hant-TW",

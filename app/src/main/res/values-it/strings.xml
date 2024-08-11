@@ -331,4 +331,23 @@
     <string name="hour_s_ago">%1$d ora/e fa</string>
     <string name="no_notification">Nessuna notifica</string>
     <string name="created_at">Creato: %1$s</string>
+    <string name="unknown">Sconosciuto</string>
+    <string name="repeat_one">Ripeti Uno</string>
+    <string name="repeat_all">Ripeti tutti</string>
+    <string name="repeat_off">Disattiva ripetizione</string>
+    <string name="youtube_transcript">Trascrizione YouTube</string>
+    <string name="user_interface">Interfaccia</string>
+    <string name="translucent_bottom_navigation_bar">Barra di navigazione inferiore traslucida</string>
+    <string name="you_can_see_the_content_below_the_bottom_bar">Puoi vedere il contenuto sotto la barra inferiore</string>
+    <string name="donation">Se ami il mio lavoro, offrimi un caffè</string>
+    <string name="relax">Relax</string>
+    <string name="sleep">Dormire</string>
+    <string name="energize">Energetico</string>
+    <string name="sad">Triste</string>
+    <string name="romance">Romantico</string>
+    <string name="feel_good">Buonumore</string>
+    <string name="workout">Allenamento</string>
+    <string name="party">Party</string>
+    <string name="commute">In viaggio</string>
+    <string name="focus">Concentrazione</string>
 </resources>
