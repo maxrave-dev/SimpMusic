@@ -810,21 +810,28 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun String.versionIsGreaterThanOrInvalid(rightVersion: String): Boolean {
-        val leftVersionArray = this.drop(1).split(".").toList()
-        val rightVersionArray = rightVersion.drop(1).split(".").toList()
+        try {
+            if (rightVersion == this) {
+                return false
+            }
 
-        if (leftVersionArray.count() != rightVersionArray.count()) {
-            return true
-        }
-        for (leftVersionNumberString in leftVersionArray) {
-            val leftVersionNumber = leftVersionNumberString.toInt()
-            val rightVersionNumber = rightVersionArray[leftVersionArray.indexOf(leftVersionNumberString)].toInt()
-            if (leftVersionNumber > rightVersionNumber) {
+            val leftVersionArray = this.drop(1).split(".").toList()
+            val rightVersionArray = rightVersion.drop(1).split(".").toList()
+
+            if (leftVersionArray.count() != rightVersionArray.count()) {
                 return true
             }
+            for (leftVersionNumberString in leftVersionArray) {
+                val leftVersionNumber = leftVersionNumberString.toInt()
+                val rightVersionNumber = rightVersionArray[leftVersionArray.indexOf(leftVersionNumberString)].toInt()
+                if (leftVersionNumber > rightVersionNumber) {
+                    return true
+                }
+            }
+            return false
+        } catch (_: Exception) {
+            return true
         }
-
-        return false
     }
 
     private fun getString(key: String): String? {
