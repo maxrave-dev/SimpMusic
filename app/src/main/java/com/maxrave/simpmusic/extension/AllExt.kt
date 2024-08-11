@@ -865,7 +865,7 @@ fun LocalDateTime.formatTimeAgo(context: Context): String {
         hoursDiff >= 24 -> context.getString(R.string.day_s_ago, daysDiff)
         hoursDiff > 1 -> context.getString(R.string.hour_s_ago, hoursDiff)
         hoursDiff <= 1 -> context.getString(R.string.recently)
-        else -> context.getString(androidx.media3.ui.R.string.exo_track_unknown)
+        else -> context.getString(R.string.unknown)
     }
 }
 
@@ -875,21 +875,7 @@ fun formatDuration(duration: Long): String {
         TimeUnit.SECONDS.convert(duration, TimeUnit.MILLISECONDS) -
             minutes * TimeUnit.SECONDS.convert(1, TimeUnit.MINUTES)
         )
-    return "%02d:%02d".format(minutes, seconds)
-}
-
-fun String?.format(vararg data: Any): String {
-    return try {
-        if (this != null) {
-            String.format(Locale.getDefault(), this, data)
-        }
-        else {
-            ""
-        }
-    }
-    catch (e: Exception) {
-        ""
-    }
+    return String.format(Locale.ENGLISH, "%02d:%02d", minutes, seconds)
 }
 
 fun parseTimestampToMilliseconds(timestamp: String): Double {
