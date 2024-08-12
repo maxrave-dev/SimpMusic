@@ -19,7 +19,7 @@ android {
         minSdk = 26
         targetSdk = 35
         versionCode = 20
-        versionName = "0.2.3-hotfix"
+        versionName = "0.2.3-hf2"
         vectorDrawables.useSupportLibrary = true
 
         ksp {
@@ -309,6 +309,6 @@ aboutLibraries {
     registerAndroidTasks = false
     excludeFields = arrayOf("generated")
 }
-tasks.withType<CompileArtProfileTask>() {
+tasks.withType<CompileArtProfileTask> {
     enabled = false
 }
