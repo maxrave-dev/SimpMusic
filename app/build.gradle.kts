@@ -17,7 +17,7 @@ android {
     defaultConfig {
         applicationId = "com.maxrave.simpmusic"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 34
         versionCode = 20
         versionName = "0.2.3-hotfix"
         vectorDrawables.useSupportLibrary = true
