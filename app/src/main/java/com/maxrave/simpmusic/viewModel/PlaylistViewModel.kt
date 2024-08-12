@@ -326,10 +326,12 @@ class PlaylistViewModel
                 if (count == list.size && count > 0) {
                     id.value?.let { updatePlaylistDownloadState(it, DownloadState.STATE_DOWNLOADED) }
                 }
-                mainRepository.getPlaylist(id.value!!).collect { album ->
-                    if (album != null) {
-                        if (playlistEntity.value?.downloadState != album.downloadState) {
-                            _playlistEntity.value = album
+                    id.value?.let {
+                    mainRepository.getPlaylist(it).collect { album ->
+                        if (album != null) {
+                            if (playlistEntity.value?.downloadState != album.downloadState) {
+                                _playlistEntity.value = album
+                            }
                         }
                     }
                 }
