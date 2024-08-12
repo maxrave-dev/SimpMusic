@@ -9,7 +9,7 @@ plugins {
 
 android {
     namespace = "com.maxrave.kotlinytmusicscraper"
-    compileSdk = 35
+    compileSdk = 34
 
     defaultConfig {
         minSdk = 26
