@@ -26,6 +26,6 @@
 -keep class com.google.gson.reflect.TypeToken { *; }
 -keep class * extends com.google.gson.reflect.TypeToken
 -keep class com.maxrave.simpmusic.data.model.** { *; }
--keep,allowobfuscation,allowshrinking class com.maxrave.simpmusic.extension.AllExtKt { *; }
--keep,allowobfuscation,allowshrinking class com.maxrave.simpmusic.extension.AllExtKt$* { *; }
--keep,allowobfuscation,allowshrinking class com.maxrave.kotlinytmusicscraper.extension.MapExtKt$* { *; }
+-keep class com.maxrave.simpmusic.extension.AllExtKt { *; }
+-keep class com.maxrave.simpmusic.extension.AllExtKt$* { *; }
+-keep class com.maxrave.kotlinytmusicscraper.extension.MapExtKt$* { *; }
