@@ -7,6 +7,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.widget.RemoteViews
+import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
 import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
@@ -27,6 +28,7 @@ abstract class BaseAppWidget : AppWidgetProvider() {
     /**
      * Handle a change notification coming over from [MusicService]
      */
+    @OptIn(UnstableApi::class)
     fun notifyChange(context: Context, handler: SimpleMediaServiceHandler, what: String) {
         if (hasInstances(context)) {
             if (META_CHANGED == what || PLAY_STATE_CHANGED == what || REPEAT_MODE_CHANGED == what || SHUFFLE_MODE_CHANGED == what) {
@@ -85,6 +87,7 @@ abstract class BaseAppWidget : AppWidgetProvider() {
 
     protected abstract fun defaultAppWidget(context: Context, appWidgetIds: IntArray)
 
+    @OptIn(UnstableApi::class)
     abstract fun performUpdate(
         context: Context,
         handler: SimpleMediaServiceHandler,

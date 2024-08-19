@@ -48,9 +48,12 @@ import androidx.compose.material.icons.filled.Forward5
 import androidx.compose.material.icons.filled.PauseCircle
 import androidx.compose.material.icons.filled.PlayCircle
 import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.RepeatOn
 import androidx.compose.material.icons.filled.RepeatOne
+import androidx.compose.material.icons.filled.RepeatOneOn
 import androidx.compose.material.icons.filled.Replay5
 import androidx.compose.material.icons.filled.Shuffle
+import androidx.compose.material.icons.filled.ShuffleOn
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material.icons.outlined.Info
@@ -925,15 +928,15 @@ fun NowPlayingScreen(
                                         }
                                     ) {
                                         Crossfade(targetState = controllerState.isShuffle, label = "Shuffle Button") { isShuffle ->
-                                            if (isShuffle) {
+                                            if (!isShuffle) {
                                                 Icon(
                                                     imageVector = Icons.Filled.Shuffle, tint = Color.White, contentDescription = "",
-                                                    modifier = Modifier.size(32.dp)
+                                                    modifier = Modifier.size(34.dp)
                                                 )
                                             } else {
                                                 Icon(
                                                     imageVector = Icons.Filled.Shuffle, tint = seed, contentDescription = "",
-                                                    modifier = Modifier.size(32.dp)
+                                                    modifier = Modifier.size(34.dp)
                                                 )
                                             }
                                         }
@@ -1039,21 +1042,21 @@ fun NowPlayingScreen(
                                                 is RepeatState.None -> {
                                                     Icon(
                                                         imageVector = Icons.Filled.Repeat, tint = Color.White, contentDescription = "",
-                                                        modifier = Modifier.size(32.dp)
+                                                        modifier = Modifier.size(34.dp)
                                                     )
                                                 }
 
                                                 RepeatState.All -> {
                                                     Icon(
                                                         imageVector = Icons.Filled.Repeat, tint = seed, contentDescription = "",
-                                                        modifier = Modifier.size(32.dp)
+                                                        modifier = Modifier.size(34.dp)
                                                     )
                                                 }
 
                                                 RepeatState.One -> {
                                                     Icon(
                                                         imageVector = Icons.Filled.RepeatOne, tint = seed, contentDescription = "",
-                                                        modifier = Modifier.size(32.dp)
+                                                        modifier = Modifier.size(34.dp)
                                                     )
                                                 }
                                             }

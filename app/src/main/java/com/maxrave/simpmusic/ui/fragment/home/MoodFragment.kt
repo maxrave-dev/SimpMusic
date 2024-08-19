@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.ui.fragment.home
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -44,6 +45,7 @@ class MoodFragment: Fragment() {
         super.onDestroyView()
     }
 
+    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 //        binding.contentLayout.visibility = View.GONE

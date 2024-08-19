@@ -44,4 +44,4 @@ val test = Color(0x00FFFFFF)
 val overlay = Color(0x32242424)
 val blackMoreOverlay = Color(0x8f242424)
 
-val seed = Color(0xFF8ECAE6)
+val seed = Color(0xFF4A90E2)
