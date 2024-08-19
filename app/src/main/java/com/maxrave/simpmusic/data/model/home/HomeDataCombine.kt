@@ -9,5 +9,4 @@ data class HomeDataCombine(
     val mood: Resource<Mood>,
     val chart: Resource<Chart>,
     val newRelease: Resource<ArrayList<HomeItem>>,
-) {
-}
+)

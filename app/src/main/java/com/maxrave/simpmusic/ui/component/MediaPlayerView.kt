@@ -59,7 +59,7 @@ fun MediaPlayerView(
                 super.onVideoSizeChanged(videoSize)
                 Log.w("MediaPlayerView", "Video size changed: ${videoSize.width} / ${videoSize.height}")
                 if (videoSize.width != 0 && videoSize.height != 0) {
-                    val h = (videoSize.width.toFloat()/videoSize.height)*screenSize.hPX
+                    val h = (videoSize.width.toFloat() / videoSize.height) * screenSize.hPX
                     Log.w("MediaPlayerView", "Calculated width: $h")
                     widthPx = h.roundToInt()
                 }
@@ -67,11 +67,7 @@ fun MediaPlayerView(
 
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 super.onIsPlayingChanged(isPlaying)
-                if (isPlaying) {
-                    keepScreenOn = true
-                } else {
-                    keepScreenOn = false
-                }
+                keepScreenOn = isPlaying
             }
         }
     }
@@ -128,7 +124,7 @@ fun MediaPlayerView(
 fun MediaPlayerView(player: ExoPlayer, modifier: Modifier = Modifier) {
 
     var videoRatio by rememberSaveable {
-        mutableFloatStateOf(16f/9)
+        mutableFloatStateOf(16f / 9)
     }
 
     var keepScreenOn by rememberSaveable {
@@ -147,11 +143,7 @@ fun MediaPlayerView(player: ExoPlayer, modifier: Modifier = Modifier) {
 
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 super.onIsPlayingChanged(isPlaying)
-                if (isPlaying) {
-                    keepScreenOn = true
-                } else {
-                    keepScreenOn = false
-                }
+                keepScreenOn = isPlaying
             }
         }
     }
@@ -170,7 +162,7 @@ fun MediaPlayerView(player: ExoPlayer, modifier: Modifier = Modifier) {
         KeepScreenOn()
     }
 
-    Box (modifier) {
+    Box(modifier) {
         AndroidView(
             factory = { ctx ->
                 TextureView(ctx).also {

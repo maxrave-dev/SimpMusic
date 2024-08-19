@@ -103,7 +103,7 @@ data class YouTubeDataPage(
                                 @Serializable
                                 data class VideoViewCountRenderer(
                                     @SerialName("viewCount")
-                                    val viewCount: VideoViewCountRenderer.ViewCount? = null
+                                    val viewCount: ViewCount? = null
                                 ) {
                                     @Serializable
                                     data class ViewCount(
@@ -154,11 +154,13 @@ data class YouTubeDataPage(
                                         @SerialName("thumbnails")
                                         val thumbnails: List<com.maxrave.kotlinytmusicscraper.models.Thumbnail>? = null
                                     )
+
                                     @Serializable
                                     data class SubscriberCountText(
                                         @SerialName("simpleText")
                                         val simpleText: String? = null
                                     )
+
                                     @Serializable
                                     data class Title(
                                         @SerialName("runs")

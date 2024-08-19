@@ -110,9 +110,6 @@ class Ytmusic {
     private var cookieMap = emptyMap<String, String>()
 
     var musixMatchCookie: String? = null
-        set(value) {
-            field = value
-        }
 
     var musixmatchUserToken: String? = null
 
@@ -287,10 +284,10 @@ class Ytmusic {
                 )
                 xml(
                     format =
-                        XML {
-                            xmlDeclMode = XmlDeclMode.Charset
-                            autoPolymorphic = true
-                        },
+                    XML {
+                        xmlDeclMode = XmlDeclMode.Charset
+                        autoPolymorphic = true
+                    },
                     contentType = ContentType.Text.Xml,
                 )
             }
@@ -394,18 +391,18 @@ class Ytmusic {
         setBody(
             PlayerBody(
                 context =
-                    client.toContext(locale, visitorData).let {
-                        if (client == YouTubeClient.TVHTML5) {
-                            it.copy(
-                                thirdParty =
-                                    Context.ThirdParty(
-                                        embedUrl = "https://www.youtube.com/watch?v=$videoId",
-                                    ),
-                            )
-                        } else {
-                            it
-                        }
-                    },
+                client.toContext(locale, visitorData).let {
+                    if (client == YouTubeClient.TVHTML5) {
+                        it.copy(
+                            thirdParty =
+                            Context.ThirdParty(
+                                embedUrl = "https://www.youtube.com/watch?v=$videoId",
+                            ),
+                        )
+                    } else {
+                        it
+                    }
+                },
                 videoId = videoId,
                 playlistId = playlistId,
                 cpn = cpn,
@@ -714,12 +711,12 @@ class Ytmusic {
                 context = YouTubeClient.WEB_REMIX.toContext(locale, visitorData),
                 playlistId = playlistId.removePrefix("VL"),
                 actions =
-                    listOf(
-                        EditPlaylistBody.Action(
-                            action = "ACTION_SET_PLAYLIST_NAME",
-                            playlistName = title ?: "",
-                        ),
+                listOf(
+                    EditPlaylistBody.Action(
+                        action = "ACTION_SET_PLAYLIST_NAME",
+                        playlistName = title ?: "",
                     ),
+                ),
             ),
         )
     }
@@ -734,13 +731,13 @@ class Ytmusic {
                 context = YouTubeClient.WEB_REMIX.toContext(locale, visitorData),
                 playlistId = playlistId.removePrefix("VL"),
                 actions =
-                    listOf(
-                        EditPlaylistBody.Action(
-                            playlistName = null,
-                            action = "ACTION_ADD_VIDEO",
-                            addedVideoId = videoId,
-                        ),
+                listOf(
+                    EditPlaylistBody.Action(
+                        playlistName = null,
+                        action = "ACTION_ADD_VIDEO",
+                        addedVideoId = videoId,
                     ),
+                ),
             ),
         )
     }
@@ -756,14 +753,14 @@ class Ytmusic {
                 context = YouTubeClient.WEB_REMIX.toContext(locale, visitorData),
                 playlistId = playlistId.removePrefix("VL"),
                 actions =
-                    listOf(
-                        EditPlaylistBody.Action(
-                            playlistName = null,
-                            action = "ACTION_REMOVE_VIDEO",
-                            removedVideoId = videoId,
-                            setVideoId = setVideoId,
-                        ),
+                listOf(
+                    EditPlaylistBody.Action(
+                        playlistName = null,
+                        action = "ACTION_REMOVE_VIDEO",
+                        removedVideoId = videoId,
+                        setVideoId = setVideoId,
                     ),
+                ),
             ),
         )
     }
@@ -845,11 +842,11 @@ class Ytmusic {
                 tunerSettingValue = "AUTOMIX_SETTING_NORMAL",
                 playlistId = "RDAMVM$videoId",
                 watchEndpointMusicSupportedConfigs =
-                    WatchEndpoint.WatchEndpointMusicSupportedConfigs(
-                        WatchEndpoint.WatchEndpointMusicSupportedConfigs.WatchEndpointMusicConfig(
-                            musicVideoType = "MUSIC_VIDEO_TYPE_ATV",
-                        ),
+                WatchEndpoint.WatchEndpointMusicSupportedConfigs(
+                    WatchEndpoint.WatchEndpointMusicSupportedConfigs.WatchEndpointMusicConfig(
+                        musicVideoType = "MUSIC_VIDEO_TYPE_ATV",
                     ),
+                ),
             ),
         )
         parameter("alt", "json")
@@ -1061,11 +1058,11 @@ class Ytmusic {
         setBody(
             CanvasBody(
                 tracks =
-                    listOf(
-                        CanvasBody.Track(
-                            track_uri = "spotify:track:$trackId",
-                        ),
+                listOf(
+                    CanvasBody.Track(
+                        track_uri = "spotify:track:$trackId",
                     ),
+                ),
             ),
         )
     }

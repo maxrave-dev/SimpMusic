@@ -53,7 +53,7 @@ private val DarkColors =
 @Composable
 fun AppTheme(
     content:
-        @Composable()
+    @Composable()
         () -> Unit,
 ) {
 //    val colors = if (supportsDynamic()) {
@@ -85,7 +85,7 @@ fun AppTheme(
     )
 }
 
-fun supportsDynamic(): Boolean = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) true else false
+fun supportsDynamic(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
 @Composable
 @Preview(

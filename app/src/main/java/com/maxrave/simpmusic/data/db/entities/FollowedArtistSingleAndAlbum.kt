@@ -10,5 +10,4 @@ data class FollowedArtistSingleAndAlbum(
     val single: List<Map<String, String>> = listOf(),
     val album: List<Map<String, String>> = listOf()
 
-) {
-}
+)

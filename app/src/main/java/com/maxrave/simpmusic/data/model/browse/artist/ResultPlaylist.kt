@@ -7,5 +7,4 @@ data class ResultPlaylist(
     val author: String,
     val thumbnails: List<Thumbnail>,
     val title: String,
-) {
-}
+)

@@ -1230,7 +1230,4 @@ class LocalPlaylistFragment : Fragment() {
         ImageLoader(requireContext()).enqueue(request)
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-    }
 }

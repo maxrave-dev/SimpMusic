@@ -88,7 +88,7 @@ class SettingsFragment : Fragment() {
     ): View {
         _binding = FragmentSettingsBinding.inflate(inflater, container, false)
         binding.topAppBarLayout.applyInsetter {
-            type(statusBars = true){
+            type(statusBars = true) {
                 margin()
             }
         }
@@ -385,21 +385,13 @@ class SettingsFragment : Fragment() {
 
                 val job24 = launch {
                     viewModel.spotifyLyrics.collect {
-                        if (it) {
-                            binding.swEnableSpotifyLyrics.isChecked = true
-                        } else {
-                            binding.swEnableSpotifyLyrics.isChecked = false
-                        }
+                        binding.swEnableSpotifyLyrics.isChecked = it
                     }
                 }
 
                 val job25 = launch {
                     viewModel.spotifyCanvas.collect {
-                        if (it) {
-                            binding.swEnableCanvas.isChecked = true
-                        } else {
-                            binding.swEnableCanvas.isChecked = false
-                        }
+                        binding.swEnableCanvas.isChecked = it
                     }
                 }
                 val job26 = launch {
@@ -412,7 +404,7 @@ class SettingsFragment : Fragment() {
                 }
                 val job27 = launch {
                     viewModel.translucentBottomBar.collectLatest { translucent ->
-                        binding.swEnableTranslucentNavBar.isChecked = if (translucent == DataStoreManager.TRUE) true else false
+                        binding.swEnableTranslucentNavBar.isChecked = translucent == DataStoreManager.TRUE
                     }
                 }
                 job1.join()
@@ -567,13 +559,12 @@ class SettingsFragment : Fragment() {
         binding.btVersion.setOnClickListener {
             findNavController().navigateSafe(R.id.action_global_creditFragment)
         }
-        
+
         binding.btMusixmatchLogin.setOnClickListener {
             if (viewModel.musixmatchLoggedIn.value == DataStoreManager.TRUE) {
                 viewModel.clearMusixmatchCookie()
                 Toast.makeText(requireContext(), getString(R.string.logged_out), Toast.LENGTH_SHORT).show()
-            }
-            else if (viewModel.musixmatchLoggedIn.value == DataStoreManager.FALSE) {
+            } else if (viewModel.musixmatchLoggedIn.value == DataStoreManager.FALSE) {
                 findNavController().navigateSafe(R.id.action_global_musixmatchFragment)
             }
         }
@@ -588,8 +579,7 @@ class SettingsFragment : Fragment() {
             Log.d("EQ", resolveInfo.toString())
             if (resolveInfo.isEmpty()) {
                 Toast.makeText(requireContext(), getString(R.string.no_equalizer), Toast.LENGTH_SHORT).show()
-            }
-            else{
+            } else {
                 resultLauncher.launch(eqIntent)
             }
         }
@@ -673,8 +663,7 @@ class SettingsFragment : Fragment() {
                                                 } else {
                                                     "in-ID"
                                                 }
-                                            }
-                                            else {
+                                            } else {
                                                 code
                                             }
                                         )
@@ -751,7 +740,7 @@ class SettingsFragment : Fragment() {
                         if (checkedIndex == 0) {
                             viewModel.setLyricsProvider(DataStoreManager.MUSIXMATCH)
                             binding.tvMainLyricsProvider.text = DataStoreManager.MUSIXMATCH
-                        } else if (checkedIndex == 1){
+                        } else if (checkedIndex == 1) {
                             viewModel.setLyricsProvider(DataStoreManager.YOUTUBE)
                             binding.tvMainLyricsProvider.text = DataStoreManager.YOUTUBE
                         }
@@ -762,7 +751,7 @@ class SettingsFragment : Fragment() {
             dialog.show()
         }
 
-        binding.btTranslationLanguage.setOnClickListener{
+        binding.btTranslationLanguage.setOnClickListener {
             val materialAlertDialogBuilder = MaterialAlertDialogBuilder(requireContext())
             materialAlertDialogBuilder.setTitle(getString(R.string.translation_language))
             materialAlertDialogBuilder.setMessage(getString(R.string.translation_language_message))
@@ -775,12 +764,10 @@ class SettingsFragment : Fragment() {
                 if (editText.text.toString().isNotEmpty()) {
                     if (editText.text.toString().length == 2) {
                         viewModel.setTranslationLanguage(editText.text.toString())
-                    }
-                    else {
+                    } else {
                         Toast.makeText(requireContext(), getString(R.string.invalid_language_code), Toast.LENGTH_SHORT).show()
                     }
-                }
-                else {
+                } else {
                     if (viewModel.language.value != null && viewModel.language.value!!.length >= 2) {
                         viewModel.language.value?.slice(0..1)
                             ?.let { it1 -> viewModel.setTranslationLanguage(it1) }
@@ -819,15 +806,14 @@ class SettingsFragment : Fragment() {
         binding.btCategoriesSponsorBlock.setOnClickListener {
             Log.d("Check category", viewModel.sponsorBlockCategories.value.toString())
             val selectedItem: ArrayList<String> = arrayListOf()
-            val item: Array<CharSequence> = Array(9) {i ->
+            val item: Array<CharSequence> = Array(9) { i ->
                 getString(SPONSOR_BLOCK.listName[i])
             }
 
             val checked = BooleanArray(9) { i ->
                 if (!viewModel.sponsorBlockCategories.value.isNullOrEmpty()) {
                     viewModel.sponsorBlockCategories.value!!.contains(SPONSOR_BLOCK.list[i].toString())
-                }
-                else {
+                } else {
                     false
                 }
             }
@@ -1001,6 +987,7 @@ class SettingsFragment : Fragment() {
             startActivity(intent)
         }
     }
+
     private fun browseFiles(dir: File): Long {
         var dirSize: Long = 0
         if (!dir.listFiles().isNullOrEmpty()) {
@@ -1013,6 +1000,7 @@ class SettingsFragment : Fragment() {
         }
         return dirSize
     }
+
     private fun drawDataStat() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.CREATED) {

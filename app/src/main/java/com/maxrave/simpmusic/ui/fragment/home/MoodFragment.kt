@@ -5,7 +5,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.compose.material3.Scaffold
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -16,11 +15,10 @@ import com.maxrave.simpmusic.viewModel.MoodViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
-class MoodFragment: Fragment() {
+class MoodFragment : Fragment() {
     private val viewModel by viewModels<MoodViewModel>()
 
     private lateinit var composeView: ComposeView
-
 
 
     override fun onCreateView(
@@ -38,10 +36,6 @@ class MoodFragment: Fragment() {
         return ComposeView(requireContext()).also {
             composeView = it
         }
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -74,7 +68,7 @@ class MoodFragment: Fragment() {
         composeView.apply {
             setContent {
                 AppTheme {
-                    Scaffold() {
+                    Scaffold {
                         MoodScreen(findNavController(), viewModel, params)
                     }
                 }
