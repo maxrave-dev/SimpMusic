@@ -13,4 +13,6 @@
     <locale android:name="zh" />
     <locale android:name="in" />
     <locale android:name="zh-Hant-TW" />
+    <locale android:name="uk" />
+    <locale android:name="iw" />
 </locale-config>

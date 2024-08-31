@@ -183,6 +183,8 @@ object SUPPORTED_LANGUAGE {
             "اللغة العربية",
             "日本語",
             "繁體中文",
+            "Українська",
+            "עברית"
         )
     val codes: Array<String> =
         arrayOf(
@@ -202,6 +204,8 @@ object SUPPORTED_LANGUAGE {
             "ar-SA",
             "ja-JP",
             "zh-Hant-TW",
+            "uk-UA",
+            "iw-IL"
         )
 }
 
