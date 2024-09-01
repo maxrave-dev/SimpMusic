@@ -164,7 +164,7 @@ fun NowPlayingScreen(
     val controllerState by sharedViewModel.controllerState.collectAsState()
     val screenDataState by sharedViewModel.nowPlayingScreenData.collectAsState()
     val timelineState by sharedViewModel.timeline.collectAsState()
-    val listLiked by sharedViewModel.listYouTubeLiked.collectAsState(initial = arrayListOf())
+    val likeStatus by sharedViewModel.likeStatus.collectAsState()
 
     val songEntity = sharedViewModel.simpleMediaServiceHandler?.nowPlayingState?.mapNotNull { it.songEntity }?.collectAsState(initial = null)
 
@@ -925,7 +925,7 @@ fun NowPlayingScreen(
                                         }
                                     ) {
                                         Crossfade(targetState = controllerState.isShuffle, label = "Shuffle Button") { isShuffle ->
-                                            if (isShuffle) {
+                                            if (!isShuffle) {
                                                 Icon(
                                                     imageVector = Icons.Filled.Shuffle, tint = Color.White, contentDescription = "",
                                                     modifier = Modifier.size(32.dp)
@@ -1088,7 +1088,7 @@ fun NowPlayingScreen(
                                         Modifier.align(Alignment.CenterEnd)
                                     ) {
                                         Crossfade(
-                                            targetState = !listLiked.isNullOrEmpty() && listLiked?.contains(screenDataState.songInfoData?.videoId) == true
+                                            targetState = likeStatus == true
                                         ) {
                                             if (it){
                                                 IconButton(

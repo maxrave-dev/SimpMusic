@@ -184,7 +184,6 @@ class SimpleMediaService : MediaLibraryService() {
         super.onDestroy()
         serviceCoroutineScope.cancel()
         release()
-        Log.d("SimpleMediaService", "onDestroy: ")
     }
 
     override fun onTrimMemory(level: Int) {
@@ -195,11 +194,6 @@ class SimpleMediaService : MediaLibraryService() {
     @UnstableApi
     override fun onTaskRemoved(rootIntent: Intent?) {
         super.onTaskRemoved(rootIntent)
-//        serviceCoroutineScope.cancel()
-//        Log.d("SimpleMediaService", "onTaskRemoved: ")
-//        release()
-//        stopSelf()
-
     }
 
     inner class MusicBinder : Binder() {
@@ -215,16 +209,6 @@ class SimpleMediaService : MediaLibraryService() {
             .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
             .setUsage(C.USAGE_MEDIA)
             .build()
-
-//    @Provides
-//    @Singleton
-//    @UnstableApi
-//    fun provideDataSource( context: Context): DefaultMediaSourceFactory = DefaultMediaSourceFactory(context).setDataSourceFactory(
-//        DefaultHttpDataSource.Factory()
-//            .setAllowCrossProtocolRedirects(true)
-//            .setUserAgent("Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36")
-//            .setConnectTimeoutMs(5000)
-//    )
 
     @UnstableApi
     fun provideCacheDataSource(
@@ -246,16 +230,6 @@ class SimpleMediaService : MediaLibraryService() {
             .setCacheWriteDataSinkFactory(null)
             .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
     }
-
-//    @Provides
-//    @Singleton
-//    @UnstableApi
-//    fun provideMediaSourceFactory(
-//         context: Context,
-//        cacheDataSourceFactory: CacheDataSource.Factory
-//    ): DefaultMediaSourceFactory =
-//        DefaultMediaSourceFactory(context).setDataSourceFactory(cacheDataSourceFactory)
-
 
     @UnstableApi
     fun provideResolvingDataSourceFactory(

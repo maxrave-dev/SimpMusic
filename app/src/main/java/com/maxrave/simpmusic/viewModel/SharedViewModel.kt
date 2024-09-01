@@ -148,9 +148,6 @@ constructor(
     private var _format: MutableStateFlow<NewFormatEntity?> = MutableStateFlow(null)
     val format: SharedFlow<NewFormatEntity?> = _format.asSharedFlow()
 
-    private var _songInfo: MutableStateFlow<SongInfoEntity?> = MutableStateFlow(null)
-    val songInfo: SharedFlow<SongInfoEntity?> = _songInfo.asSharedFlow()
-
     private var _canvas: MutableStateFlow<CanvasResponse?> = MutableStateFlow(null)
     val canvas: StateFlow<CanvasResponse?> = _canvas
 
@@ -195,6 +192,9 @@ constructor(
     )
     val nowPlayingScreenData: StateFlow<NowPlayingScreenData> = _nowPlayingScreenData
 
+    private var _likeStatus = MutableStateFlow<Boolean>(false)
+    val likeStatus: StateFlow<Boolean> = _likeStatus
+
     init {
         viewModelScope.launch {
             val timeLineJob = launch {
@@ -235,11 +235,7 @@ constructor(
             val checkGetVideoJob = launch {
                 dataStoreManager.watchVideoInsteadOfPlayingAudio.collectLatest {
                     Log.w(TAG, "GetVideo is $it")
-                    if (it == TRUE) {
-                        _getVideo.value = true
-                    } else {
-                        _getVideo.value = false
-                    }
+                    _getVideo.value = it == TRUE
                 }
             }
             timeLineJob.join()
@@ -277,12 +273,13 @@ constructor(
                     songInfoData = null,
                     playlistName = simpleMediaServiceHandler?.queueData?.value?.playlistName ?: ""
                 )
+                _likeStatus.value = false
                 _liked.value = state.songEntity?.liked ?: false
                 _format.value = null
-                _songInfo.value = null
                 _canvas.value = null
                 canvasJob?.cancel()
                 state.mediaItem.let { now ->
+                    getLikeStatus(now.mediaId)
                     getSongInfo(now.mediaId)
                     getFormat(now.mediaId)
                     _nowPlayingScreenData.update {
@@ -550,6 +547,19 @@ constructor(
         }
     }
 
+    private fun getLikeStatus(videoId: String?) {
+        viewModelScope.launch {
+            if (videoId != null) {
+                mainRepository.getLikeStatus(videoId).collectLatest { status ->
+                    _likeStatus.value = status
+                }
+            }
+            else {
+                _likeStatus.value = false
+            }
+        }
+    }
+
 
     private fun getYouTubeLiked() {
         viewModelScope.launch {
@@ -567,19 +577,21 @@ constructor(
         Log.w("Start getCanvas", "$videoId $duration")
 //        canvasJob?.cancel()
         viewModelScope.launch {
-            mainRepository.getCanvas(videoId, duration).cancellable().collect { response ->
-                _canvas.value = response
-                Log.w(TAG, "Canvas is $response")
-                if (nowPlayingState.value?.mediaItem?.mediaId == videoId) {
-                    _nowPlayingScreenData.update {
-                        it.copy(
-                            canvasData = response?.canvases?.firstOrNull()?.canvas_url?.let { canvasUrl ->
-                                NowPlayingScreenData.CanvasData(
-                                    isVideo = canvasUrl.contains(".mp4"),
-                                    url = canvasUrl
-                                )
-                            }
-                        )
+            if (dataStoreManager.spotifyCanvas.first() == TRUE){
+                mainRepository.getCanvas(videoId, duration).cancellable().collect { response ->
+                    _canvas.value = response
+                    Log.w(TAG, "Canvas is $response")
+                    if (nowPlayingState.value?.mediaItem?.mediaId == videoId) {
+                        _nowPlayingScreenData.update {
+                            it.copy(
+                                canvasData = response?.canvases?.firstOrNull()?.canvas_url?.let { canvasUrl ->
+                                    NowPlayingScreenData.CanvasData(
+                                        isVideo = canvasUrl.contains(".mp4"),
+                                        url = canvasUrl
+                                    )
+                                }
+                            )
+                        }
                     }
                 }
             }
@@ -1128,7 +1140,6 @@ constructor(
         songInfoJob = viewModelScope.launch {
             if (mediaId != null) {
                 mainRepository.getSongInfo(mediaId).collect { song ->
-                    _songInfo.value = song
                     _nowPlayingScreenData.update {
                         it.copy(
                             songInfoData = song
@@ -1510,7 +1521,7 @@ constructor(
         viewModelScope.launch {
             val videoId = simpleMediaServiceHandler?.nowPlaying?.first()?.mediaId
             if (videoId != null) {
-                val like = (listYouTubeLiked.first()?.contains(videoId) == true)
+                val like = likeStatus.value
                 if (!like) {
                     mainRepository.addToYouTubeLiked(
                         simpleMediaServiceHandler?.nowPlaying?.first()?.mediaId,
@@ -1522,7 +1533,7 @@ constructor(
                                     context.getString(R.string.added_to_youtube_liked),
                                     Toast.LENGTH_SHORT,
                                 ).show()
-                                getYouTubeLiked()
+                                getLikeStatus(videoId)
                             } else {
                                 Toast.makeText(
                                     context,
@@ -1542,7 +1553,7 @@ constructor(
                                     context.getString(R.string.removed_from_youtube_liked),
                                     Toast.LENGTH_SHORT,
                                 ).show()
-                                getYouTubeLiked()
+                                getLikeStatus(videoId)
                             } else {
                                 Toast.makeText(
                                     context,

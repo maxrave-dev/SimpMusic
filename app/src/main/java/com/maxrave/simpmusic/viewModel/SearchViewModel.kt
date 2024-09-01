@@ -42,6 +42,7 @@ import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 import javax.inject.Inject
 
+@UnstableApi
 @HiltViewModel
 class SearchViewModel @Inject constructor(private val mainRepository: MainRepository, private val application: Application, private var dataStoreManager: DataStoreManager) : AndroidViewModel(application) {
     @Inject
@@ -84,8 +85,6 @@ class SearchViewModel @Inject constructor(private val mainRepository: MainReposi
 
     private var _suggestQuery: MutableLiveData<Resource<SearchSuggestions>> = MutableLiveData()
     val suggestQuery: LiveData<Resource<SearchSuggestions>> = _suggestQuery
-
-    var errorMessage = MutableLiveData<String>()
 
     private val _songEntity: MutableLiveData<SongEntity?> = MutableLiveData()
     val songEntity: LiveData<SongEntity?> = _songEntity

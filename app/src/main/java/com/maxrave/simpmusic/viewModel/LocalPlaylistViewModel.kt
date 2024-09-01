@@ -108,17 +108,6 @@ class LocalPlaylistViewModel
             _brush.value = brush
         }
 
-        fun resetBrush() {
-            Log.w("resetBrush", "resetBrush: ")
-            _brush.value =
-                listOf(
-                    Color.Black,
-                    Color(
-                        application.resources.getColor(R.color.md_theme_dark_background, null),
-                    ),
-                )
-        }
-
         init {
             viewModelScope.launch {
                 val checkDownloadedJob =
@@ -149,6 +138,14 @@ class LocalPlaylistViewModel
                                         count != it.size &&
                                         localPlaylist.value?.downloadState != STATE_NOT_DOWNLOADED &&
                                         localPlaylist.value?.downloadState != STATE_DOWNLOADING
+                                    ) {
+                                        updatePlaylistDownloadState(
+                                            id,
+                                            STATE_NOT_DOWNLOADED,
+                                        )
+                                        getLocalPlaylist(id)
+                                    } else if (
+                                        count < it.size && localPlaylist.value?.downloadState == STATE_DOWNLOADED
                                     ) {
                                         updatePlaylistDownloadState(
                                             id,
