@@ -5,7 +5,6 @@ import android.graphics.drawable.GradientDrawable
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.ui.graphics.Color
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
@@ -20,12 +19,11 @@ import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.SetVideoIdEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
-import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.extension.toListVideoId
 import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.utils.Resource
-import dagger.hilt.android.lifecycle.HiltViewModel
+import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,19 +36,20 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.koin.android.annotation.KoinViewModel
+import org.koin.core.component.inject
 import java.time.LocalDateTime
-import javax.inject.Inject
 
 @UnstableApi
-@HiltViewModel
-class LocalPlaylistViewModel
-    @Inject
-    constructor(
-        private val mainRepository: MainRepository,
+@KoinViewModel
+class LocalPlaylistViewModel(
         private val application: Application,
-    ) : AndroidViewModel(application) {
-        @Inject
-        lateinit var downloadUtils: DownloadUtils
+    ) : BaseViewModel(application) {
+
+    override val tag: String
+        get() = "LocalPlaylistViewModel"
+
+        private val downloadUtils: DownloadUtils by inject()
 
         val id: MutableLiveData<Long> = MutableLiveData()
 

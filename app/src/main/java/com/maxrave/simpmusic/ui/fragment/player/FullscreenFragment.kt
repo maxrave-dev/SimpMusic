@@ -52,7 +52,6 @@ import com.maxrave.simpmusic.service.RepeatState
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -62,7 +61,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.time.LocalDateTime
 
-@AndroidEntryPoint
+@UnstableApi
 class FullscreenFragment : Fragment() {
     private val viewModel: SharedViewModel by activityViewModels()
     private val binding by lazy { BottomSheetFullscreenBinding.inflate(layoutInflater) }

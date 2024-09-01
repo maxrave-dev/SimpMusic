@@ -3,23 +3,19 @@ package com.maxrave.simpmusic.ui.fragment.other
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowInsets
 import androidx.core.view.WindowInsetsCompat
+import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.databinding.FragmentCreditBinding
-import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.Insetter
 
-@AndroidEntryPoint
 class CreditFragment : Fragment() {
 
     private var _binding: FragmentCreditBinding? = null
-    private val binding get() = _binding!!
+    val binding get() = _binding!!
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

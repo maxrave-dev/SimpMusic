@@ -35,20 +35,16 @@ import com.maxrave.simpmusic.extension.toPlaylistEntity
 import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.utils.Resource
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.guava.future
-import javax.inject.Inject
 
-class SimpleMediaSessionCallback
-    @Inject
-    constructor(
-        @ApplicationContext private val context: Context,
-        private val mainRepository: MainRepository,
-    ) : MediaLibrarySession.Callback {
+class SimpleMediaSessionCallback(
+    private val context: Context,
+    private val mainRepository: MainRepository,
+) : MediaLibrarySession.Callback {
         var toggleLike: () -> Unit = {}
         private val scope = CoroutineScope(Dispatchers.Main + Job())
         val searchTempList = mutableListOf<Track>()

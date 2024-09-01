@@ -2,24 +2,23 @@ package com.maxrave.simpmusic.viewModel
 
 import android.app.Application
 import android.graphics.drawable.GradientDrawable
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.model.podcast.PodcastBrowse
-import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.utils.Resource
-import dagger.hilt.android.lifecycle.HiltViewModel
+import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
+import org.koin.android.annotation.KoinViewModel
 
-@HiltViewModel
-class PodcastViewModel @Inject constructor(
-    private val mainRepository: MainRepository,
-    private val application: Application
-) : AndroidViewModel(application) {
+@KoinViewModel
+class PodcastViewModel(
+    application: Application,
+) : BaseViewModel(application) {
+    override val tag: String
+        get() = "PodcastViewModel"
+
     var gradientDrawable: MutableLiveData<GradientDrawable?> = MutableLiveData()
     var loading = MutableLiveData<Boolean>()
     var id = MutableLiveData<String>()

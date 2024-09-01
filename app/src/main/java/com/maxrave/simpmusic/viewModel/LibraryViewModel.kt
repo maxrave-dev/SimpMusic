@@ -2,7 +2,6 @@ package com.maxrave.simpmusic.viewModel
 
 import android.app.Application
 import android.widget.Toast
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -15,23 +14,22 @@ import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
-import com.maxrave.simpmusic.data.repository.MainRepository
-import dagger.hilt.android.lifecycle.HiltViewModel
+import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.koin.android.annotation.KoinViewModel
 import java.time.LocalDateTime
-import javax.inject.Inject
 
-@HiltViewModel
-class LibraryViewModel
-    @Inject
-    constructor(
-        private val mainRepository: MainRepository,
-        private val application: Application,
-        private val dataStoreManager: DataStoreManager,
-    ) : AndroidViewModel(application) {
+@KoinViewModel
+class LibraryViewModel(
+        private val application: Application
+    ) : BaseViewModel(application) {
+
+    override val tag: String
+        get() = "LibraryViewModel"
+
         private var _listRecentlyAdded: MutableLiveData<List<Any>> = MutableLiveData()
         val listRecentlyAdded: LiveData<List<Any>> = _listRecentlyAdded
 

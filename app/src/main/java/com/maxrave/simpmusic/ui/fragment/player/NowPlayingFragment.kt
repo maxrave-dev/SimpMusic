@@ -19,10 +19,8 @@ import androidx.navigation.findNavController
 import com.maxrave.simpmusic.ui.screen.player.NowPlayingScreen
 import com.maxrave.simpmusic.ui.theme.AppTheme
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import dagger.hilt.android.AndroidEntryPoint
 
 @UnstableApi
-@AndroidEntryPoint
 class NowPlayingFragment : Fragment() {
     val viewModel by activityViewModels<SharedViewModel>()
     private lateinit var composeView: ComposeView
@@ -34,15 +32,15 @@ class NowPlayingFragment : Fragment() {
 //
 //    private var isFullScreen = false
 //
-////    private lateinit var songChangeListener: OnNowPlayingSongChangeListener
-////    override fun onAttach(context: Context) {
-////        super.onAttach(context)
-////        if (context is OnNowPlayingSongChangeListener) {
-////            songChangeListener = context
-////        } else {
-////            throw RuntimeException("$context must implement OnNowPlayingSongChangeListener")
-////        }
-////    }
+// //    private lateinit var songChangeListener: OnNowPlayingSongChangeListener
+// //    override fun onAttach(context: Context) {
+// //        super.onAttach(context)
+// //        if (context is OnNowPlayingSongChangeListener) {
+// //            songChangeListener = context
+// //        } else {
+// //            throw RuntimeException("$context must implement OnNowPlayingSongChangeListener")
+// //        }
+// //    }
 //
 //    override fun onResume() {
 //        super.onResume()
@@ -149,7 +147,10 @@ class NowPlayingFragment : Fragment() {
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
         super.onViewCreated(view, savedInstanceState)
 //        val activity = requireActivity()
 //        val bottom = activity.findViewById<BottomNavigationView>(R.id.bottom_navigation_view)
@@ -226,9 +227,9 @@ class NowPlayingFragment : Fragment() {
 //            layoutParams = layoutParamsCopy
 //            Log.w("Check Height", layoutParams.height.toString())
 //        }
-////            val location = IntArray(2)
-////            binding.belowControllerButtonLayout.getLocationInWindow(location)
-////            val y = binding.belowControllerButtonLayout.top
+// //            val location = IntArray(2)
+// //            binding.belowControllerButtonLayout.getLocationInWindow(location)
+// //            val y = binding.belowControllerButtonLayout.top
 //
 //
 //        val activity = requireActivity()
@@ -290,312 +291,312 @@ class NowPlayingFragment : Fragment() {
 //        }
 //        binding.playerView.player = viewModel.simpleMediaServiceHandler?.player
 //
-////        when (type) {
-////            SONG_CLICK -> {
-////                viewModel.playlistId.value = null
-////                if (viewModel.videoId.value == videoId) {
-////                    gradientDrawable = viewModel.gradientDrawable.value
-////                    lyricsBackground = viewModel.lyricsBackground.value
-////                    metadataCurSong = viewModel.metadata.value?.data
-////                    updateUIfromCurrentMediaItem(viewModel.getCurrentMediaItem())
-////                } else {
-////                    Log.i("Now Playing Fragment", "Song Click")
-////                    binding.ivArt.setImageResource(0)
-////                    binding.loadingArt.visibility = View.VISIBLE
-////                    viewModel.gradientDrawable.postValue(null)
-////                    viewModel.lyricsBackground.postValue(null)
-////                    binding.tvSongTitle.visibility = View.GONE
-////                    binding.tvSongArtist.visibility = View.GONE
-////                    Queue.getNowPlaying()?.let {
-//////                        lifecycleScope.launch {
-//////                            repeatOnLifecycle(Lifecycle.State.CREATED) {
-//////                                viewModel.firstTrackAdded.collect { added ->
-//////                                    if (added && type == Config.SONG_CLICK) {
-//////                                        viewModel.changeFirstTrackAddedToFalse()
-////// //                                        viewModel.getFormat(it.videoId)
-//////                                        getRelated(it.videoId)
-//////                                    }
-//////                                }
-//////                            }
-//////                        }
-////                        viewModel.simpleMediaServiceHandler?.reset()
-//////                        if (requireContext().isMyServiceRunning(FetchQueue::class.java)) {
-//////                            requireActivity().stopService(
-//////                                Intent(
-//////                                    requireContext(),
-//////                                    FetchQueue::class.java
-//////                                )
-//////                            )
-//////                        }
-////
-//////                        viewModel.loadMediaItemFromTrack(it, SONG_CLICK)
-////                        viewModel.videoId.postValue(it.videoId)
-////                        viewModel.from.postValue(from)
-////                        updateUIfromQueueNowPlaying()
-////                    }
-////                }
-////            }
-////
-////            SHARE -> {
-////                viewModel.playlistId.value = null
-////                viewModel.stopPlayer()
-////                binding.ivArt.setImageResource(0)
-////                binding.loadingArt.visibility = View.VISIBLE
-////                viewModel.gradientDrawable.postValue(null)
-////                viewModel.lyricsBackground.postValue(null)
-////                binding.tvSongTitle.visibility = View.GONE
-////                binding.tvSongArtist.visibility = View.GONE
-////                if (videoId != null) {
-////                    Log.d("Check Video ID", videoId!!)
-////                    Log.d("Check videoId in ViewModel", viewModel.videoId.value.toString())
-////                    viewModel.getSongFull(videoId!!)
-////                    viewModel.songFull.observe(viewLifecycleOwner) {
-////                        Log.w("Check Song Full", it?.videoDetails?.title.toString())
-////                        if (it != null && it.videoDetails?.videoId == videoId && it.videoDetails?.videoId != null) {
-////                            val track = it.toTrack()
-//////                            Queue.clear()
-////                            Queue.setNowPlaying(track)
-////                            viewModel.simpleMediaServiceHandler?.reset()
-//////                            if (requireContext().isMyServiceRunning(FetchQueue::class.java)) {
-//////                                requireActivity().stopService(
-//////                                    Intent(
-//////                                        requireContext(),
-//////                                        FetchQueue::class.java
-//////                                    )
-//////                                )
-//////                            }
-//////                            viewModel.loadMediaItemFromTrack(track, SHARE)
-////                            viewModel.videoId.postValue(track.videoId)
-////                            viewModel.from.postValue(from)
-////                            updateUIfromQueueNowPlaying()
-////                            miniplayer.visibility = View.GONE
-////                            bottom.visibility = View.GONE
-//////                            lifecycleScope.launch {
-//////                                repeatOnLifecycle(Lifecycle.State.CREATED) {
-//////                                    viewModel.firstTrackAdded.collect { added ->
-//////                                        if (added && type == Config.SHARE) {
-//////                                            viewModel.changeFirstTrackAddedToFalse()
-////// //                                            viewModel.getFormat(track.videoId)
-//////                                            getRelated(track.videoId)
-//////                                        }
-//////                                    }
-//////                                }
-//////                            }
-////                        }
-////                    }
-////                }
-////            }
-////
-////            VIDEO_CLICK -> {
-////                viewModel.playlistId.value = null
-////                if (viewModel.videoId.value == videoId) {
-////                    gradientDrawable = viewModel.gradientDrawable.value
-////                    lyricsBackground = viewModel.lyricsBackground.value
-////                    metadataCurSong = viewModel.metadata.value?.data
-////                    updateUIfromCurrentMediaItem(viewModel.getCurrentMediaItem())
-////                } else {
-//////                if (!viewModel.songTransitions.value){
-////                    Log.i("Now Playing Fragment", "Video Click")
-////                    binding.ivArt.setImageResource(0)
-////                    binding.loadingArt.visibility = View.VISIBLE
-////                    viewModel.gradientDrawable.postValue(null)
-////                    viewModel.lyricsBackground.postValue(null)
-////                    binding.tvSongTitle.visibility = View.GONE
-////                    binding.tvSongArtist.visibility = View.GONE
-////                    Queue.getNowPlaying()?.let {
-////                        viewModel.simpleMediaServiceHandler?.reset()
-//////                        viewModel.resetRelated()
-//////                        if (requireContext().isMyServiceRunning(FetchQueue::class.java)) {
-//////                            requireActivity().stopService(
-//////                                Intent(
-//////                                    requireContext(),
-//////                                    FetchQueue::class.java
-//////                                )
-//////                            )
-//////                        }
-//////                        viewModel.loadMediaItemFromTrack(it, VIDEO_CLICK)
-////                        viewModel.videoId.postValue(it.videoId)
-////                        viewModel.from.postValue(from)
-////                        updateUIfromQueueNowPlaying()
-//////                        lifecycleScope.launch {
-//////                            repeatOnLifecycle(Lifecycle.State.CREATED) {
-//////                                viewModel.firstTrackAdded.collect { added ->
-//////                                    if (added && type == Config.VIDEO_CLICK) {
-//////                                        viewModel.changeFirstTrackAddedToFalse()
-////// //                                        viewModel.getFormat(it.videoId)
-//////                                        getRelated(it.videoId)
-//////                                    }
-//////                                }
-//////                            }
-//////                        }
-////                    }
-////                    // }
-//////                viewModel.loadMediaItems(videoId!!)
-////                }
-////            }
-////
-////            ALBUM_CLICK -> {
-////                if (playlistId != null) {
-////                    viewModel.playlistId.value = playlistId
-////                }
-//////                if (!viewModel.songTransitions.value){
-////                Log.i("Now Playing Fragment", "Album Click")
-////                binding.ivArt.setImageResource(0)
-////                binding.loadingArt.visibility = View.VISIBLE
-////                viewModel.gradientDrawable.postValue(null)
-////                viewModel.lyricsBackground.postValue(null)
-////                binding.tvSongTitle.visibility = View.GONE
-////                binding.tvSongArtist.visibility = View.GONE
-////                Queue.getNowPlaying()?.let {
-////                    viewModel.simpleMediaServiceHandler?.reset()
-//////                        if (requireContext().isMyServiceRunning(FetchQueue::class.java)) {
-//////                            requireActivity().stopService(
-//////                                Intent(
-//////                                    requireContext(),
-//////                                    FetchQueue::class.java
-//////                                )
-//////                            )
-//////                        }
-//////                    viewModel.loadMediaItemFromTrack(it, ALBUM_CLICK, index)
-////                    viewModel.videoId.postValue(it.videoId)
-////                    viewModel.from.postValue(from)
-//////                        viewModel.resetLyrics()
-//////                        viewModel.getLyrics(it.title + " " + it.artists?.first()?.name)
-////                    updateUIfromQueueNowPlaying()
-//////                        viewModel._lyrics.observe(viewLifecycleOwner){ resourceLyrics ->
-//////                            when(resourceLyrics){
-//////                                is Resource.Success -> {
-//////                                    if (resourceLyrics.data != null) {
-//////                                        viewModel.insertLyrics(resourceLyrics.data.toLyricsEntity(it.videoId))
-//////                                        viewModel.parseLyrics(resourceLyrics.data)
-//////                                    }
-//////                                }
-//////                                is Resource.Error -> {
-//////                                    viewModel.getSavedLyrics(it.videoId)
-//////                                }
-//////                            }
-//////                        }
-////                    Log.d("check index", index.toString())
-//////                        lifecycleScope.launch {
-//////                            repeatOnLifecycle(Lifecycle.State.CREATED) {
-//////                                viewModel.firstTrackAdded.collect { added ->
-//////                                    if (added && type == Config.ALBUM_CLICK) {
-//////                                        viewModel.changeFirstTrackAddedToFalse()
-////// //                                        viewModel.getFormat(it.videoId)
-//////                                        if (index == null) {
-//////                                            fetchSourceFromQueue(downloaded = downloaded ?: 0)
-//////                                        } else {
-//////                                            fetchSourceFromQueue(index!!, downloaded = downloaded ?: 0)
-//////                                        }
-//////                                    }
-//////                                }
-//////                            }
-//////                        }
-////                }
-////            }
-////
-////            PLAYLIST_CLICK -> {
-////                if (playlistId != null) {
-////                    viewModel.playlistId.value = playlistId
-////                }
-////                Log.i("Now Playing Fragment", "Playlist Click")
-////                binding.ivArt.setImageResource(0)
-////                binding.loadingArt.visibility = View.VISIBLE
-////                viewModel.gradientDrawable.postValue(null)
-////                viewModel.lyricsBackground.postValue(null)
-////                binding.tvSongTitle.visibility = View.GONE
-////                binding.tvSongArtist.visibility = View.GONE
-////                Queue.getNowPlaying()?.let {
-////                    viewModel.simpleMediaServiceHandler?.reset()
-//////                    viewModel.resetRelated()
-//////                        if (requireContext().isMyServiceRunning(FetchQueue::class.java)) {
-//////                            requireActivity().stopService(
-//////                                Intent(
-//////                                    requireContext(),
-//////                                    FetchQueue::class.java
-//////                                )
-//////                            )
-//////                        }
-////                    Log.d("check index", index.toString())
-//////                    viewModel.loadMediaItemFromTrack(it, PLAYLIST_CLICK, index)
-////                    viewModel.videoId.postValue(it.videoId)
-////                    viewModel.from.postValue(from)
-//////                        viewModel.resetLyrics()
-//////                        viewModel.getLyrics(it.title + " " + it.artists?.first()?.name)
-////                    updateUIfromQueueNowPlaying()
-//////                        viewModel._lyrics.observe(viewLifecycleOwner){ resourceLyrics ->
-//////                            when(resourceLyrics){
-//////                                is Resource.Success -> {
-//////                                    if (resourceLyrics.data != null) {
-//////                                        viewModel.insertLyrics(resourceLyrics.data.toLyricsEntity(it.videoId))
-//////                                        viewModel.parseLyrics(resourceLyrics.data)
-//////                                    }
-//////                                }
-//////                                is Resource.Error -> {
-//////                                    viewModel.getSavedLyrics(it.videoId)
-//////                                }
-//////                            }
-//////                        }
-//////                        lifecycleScope.launch {
-//////                            repeatOnLifecycle(Lifecycle.State.CREATED) {
-//////                                viewModel.firstTrackAdded.collect { added ->
-//////                                    if (added && type == Config.PLAYLIST_CLICK) {
-//////                                        viewModel.changeFirstTrackAddedToFalse()
-////// //                                        viewModel.getFormat(it.videoId)
-//////                                        if (index == null) {
-//////                                            fetchSourceFromQueue(downloaded = downloaded ?: 0)
-//////                                        } else {
-//////                                            fetchSourceFromQueue(index!!, downloaded = downloaded ?: 0)
-//////                                        }
-//////                                    }
-//////                                }
-//////                            }
-//////                        }
-////                }
-////            }
-////
-////            MINIPLAYER_CLICK -> {
-////                videoId = viewModel.videoId.value
-////                from = viewModel.from.value
-////                metadataCurSong = viewModel.metadata.value?.data
-////                gradientDrawable = viewModel.gradientDrawable.value
-////                lyricsBackground = viewModel.lyricsBackground.value
-//////                if (viewModel.progress.value in 0.0..1.0) {
-//////                    binding.progressSong.value = viewModel.progress.value * 100
-//////                }
-////                if (videoId == null) {
-////                    videoId = runBlocking { viewModel.nowPlayingMediaItem.first()?.mediaId }
-////                    viewModel.videoId.postValue(videoId)
-////                }
-////                updateUIfromCurrentMediaItem(viewModel.getCurrentMediaItem())
-////            }
-////        }
+// //        when (type) {
+// //            SONG_CLICK -> {
+// //                viewModel.playlistId.value = null
+// //                if (viewModel.videoId.value == videoId) {
+// //                    gradientDrawable = viewModel.gradientDrawable.value
+// //                    lyricsBackground = viewModel.lyricsBackground.value
+// //                    metadataCurSong = viewModel.metadata.value?.data
+// //                    updateUIfromCurrentMediaItem(viewModel.getCurrentMediaItem())
+// //                } else {
+// //                    Log.i("Now Playing Fragment", "Song Click")
+// //                    binding.ivArt.setImageResource(0)
+// //                    binding.loadingArt.visibility = View.VISIBLE
+// //                    viewModel.gradientDrawable.postValue(null)
+// //                    viewModel.lyricsBackground.postValue(null)
+// //                    binding.tvSongTitle.visibility = View.GONE
+// //                    binding.tvSongArtist.visibility = View.GONE
+// //                    Queue.getNowPlaying()?.let {
+// ////                        lifecycleScope.launch {
+// ////                            repeatOnLifecycle(Lifecycle.State.CREATED) {
+// ////                                viewModel.firstTrackAdded.collect { added ->
+// ////                                    if (added && type == Config.SONG_CLICK) {
+// ////                                        viewModel.changeFirstTrackAddedToFalse()
+// //// //                                        viewModel.getFormat(it.videoId)
+// ////                                        getRelated(it.videoId)
+// ////                                    }
+// ////                                }
+// ////                            }
+// ////                        }
+// //                        viewModel.simpleMediaServiceHandler?.reset()
+// ////                        if (requireContext().isMyServiceRunning(FetchQueue::class.java)) {
+// ////                            requireActivity().stopService(
+// ////                                Intent(
+// ////                                    requireContext(),
+// ////                                    FetchQueue::class.java
+// ////                                )
+// ////                            )
+// ////                        }
+// //
+// ////                        viewModel.loadMediaItemFromTrack(it, SONG_CLICK)
+// //                        viewModel.videoId.postValue(it.videoId)
+// //                        viewModel.from.postValue(from)
+// //                        updateUIfromQueueNowPlaying()
+// //                    }
+// //                }
+// //            }
+// //
+// //            SHARE -> {
+// //                viewModel.playlistId.value = null
+// //                viewModel.stopPlayer()
+// //                binding.ivArt.setImageResource(0)
+// //                binding.loadingArt.visibility = View.VISIBLE
+// //                viewModel.gradientDrawable.postValue(null)
+// //                viewModel.lyricsBackground.postValue(null)
+// //                binding.tvSongTitle.visibility = View.GONE
+// //                binding.tvSongArtist.visibility = View.GONE
+// //                if (videoId != null) {
+// //                    Log.d("Check Video ID", videoId!!)
+// //                    Log.d("Check videoId in ViewModel", viewModel.videoId.value.toString())
+// //                    viewModel.getSongFull(videoId!!)
+// //                    viewModel.songFull.observe(viewLifecycleOwner) {
+// //                        Log.w("Check Song Full", it?.videoDetails?.title.toString())
+// //                        if (it != null && it.videoDetails?.videoId == videoId && it.videoDetails?.videoId != null) {
+// //                            val track = it.toTrack()
+// ////                            Queue.clear()
+// //                            Queue.setNowPlaying(track)
+// //                            viewModel.simpleMediaServiceHandler?.reset()
+// ////                            if (requireContext().isMyServiceRunning(FetchQueue::class.java)) {
+// ////                                requireActivity().stopService(
+// ////                                    Intent(
+// ////                                        requireContext(),
+// ////                                        FetchQueue::class.java
+// ////                                    )
+// ////                                )
+// ////                            }
+// ////                            viewModel.loadMediaItemFromTrack(track, SHARE)
+// //                            viewModel.videoId.postValue(track.videoId)
+// //                            viewModel.from.postValue(from)
+// //                            updateUIfromQueueNowPlaying()
+// //                            miniplayer.visibility = View.GONE
+// //                            bottom.visibility = View.GONE
+// ////                            lifecycleScope.launch {
+// ////                                repeatOnLifecycle(Lifecycle.State.CREATED) {
+// ////                                    viewModel.firstTrackAdded.collect { added ->
+// ////                                        if (added && type == Config.SHARE) {
+// ////                                            viewModel.changeFirstTrackAddedToFalse()
+// //// //                                            viewModel.getFormat(track.videoId)
+// ////                                            getRelated(track.videoId)
+// ////                                        }
+// ////                                    }
+// ////                                }
+// ////                            }
+// //                        }
+// //                    }
+// //                }
+// //            }
+// //
+// //            VIDEO_CLICK -> {
+// //                viewModel.playlistId.value = null
+// //                if (viewModel.videoId.value == videoId) {
+// //                    gradientDrawable = viewModel.gradientDrawable.value
+// //                    lyricsBackground = viewModel.lyricsBackground.value
+// //                    metadataCurSong = viewModel.metadata.value?.data
+// //                    updateUIfromCurrentMediaItem(viewModel.getCurrentMediaItem())
+// //                } else {
+// ////                if (!viewModel.songTransitions.value){
+// //                    Log.i("Now Playing Fragment", "Video Click")
+// //                    binding.ivArt.setImageResource(0)
+// //                    binding.loadingArt.visibility = View.VISIBLE
+// //                    viewModel.gradientDrawable.postValue(null)
+// //                    viewModel.lyricsBackground.postValue(null)
+// //                    binding.tvSongTitle.visibility = View.GONE
+// //                    binding.tvSongArtist.visibility = View.GONE
+// //                    Queue.getNowPlaying()?.let {
+// //                        viewModel.simpleMediaServiceHandler?.reset()
+// ////                        viewModel.resetRelated()
+// ////                        if (requireContext().isMyServiceRunning(FetchQueue::class.java)) {
+// ////                            requireActivity().stopService(
+// ////                                Intent(
+// ////                                    requireContext(),
+// ////                                    FetchQueue::class.java
+// ////                                )
+// ////                            )
+// ////                        }
+// ////                        viewModel.loadMediaItemFromTrack(it, VIDEO_CLICK)
+// //                        viewModel.videoId.postValue(it.videoId)
+// //                        viewModel.from.postValue(from)
+// //                        updateUIfromQueueNowPlaying()
+// ////                        lifecycleScope.launch {
+// ////                            repeatOnLifecycle(Lifecycle.State.CREATED) {
+// ////                                viewModel.firstTrackAdded.collect { added ->
+// ////                                    if (added && type == Config.VIDEO_CLICK) {
+// ////                                        viewModel.changeFirstTrackAddedToFalse()
+// //// //                                        viewModel.getFormat(it.videoId)
+// ////                                        getRelated(it.videoId)
+// ////                                    }
+// ////                                }
+// ////                            }
+// ////                        }
+// //                    }
+// //                    // }
+// ////                viewModel.loadMediaItems(videoId!!)
+// //                }
+// //            }
+// //
+// //            ALBUM_CLICK -> {
+// //                if (playlistId != null) {
+// //                    viewModel.playlistId.value = playlistId
+// //                }
+// ////                if (!viewModel.songTransitions.value){
+// //                Log.i("Now Playing Fragment", "Album Click")
+// //                binding.ivArt.setImageResource(0)
+// //                binding.loadingArt.visibility = View.VISIBLE
+// //                viewModel.gradientDrawable.postValue(null)
+// //                viewModel.lyricsBackground.postValue(null)
+// //                binding.tvSongTitle.visibility = View.GONE
+// //                binding.tvSongArtist.visibility = View.GONE
+// //                Queue.getNowPlaying()?.let {
+// //                    viewModel.simpleMediaServiceHandler?.reset()
+// ////                        if (requireContext().isMyServiceRunning(FetchQueue::class.java)) {
+// ////                            requireActivity().stopService(
+// ////                                Intent(
+// ////                                    requireContext(),
+// ////                                    FetchQueue::class.java
+// ////                                )
+// ////                            )
+// ////                        }
+// ////                    viewModel.loadMediaItemFromTrack(it, ALBUM_CLICK, index)
+// //                    viewModel.videoId.postValue(it.videoId)
+// //                    viewModel.from.postValue(from)
+// ////                        viewModel.resetLyrics()
+// ////                        viewModel.getLyrics(it.title + " " + it.artists?.first()?.name)
+// //                    updateUIfromQueueNowPlaying()
+// ////                        viewModel._lyrics.observe(viewLifecycleOwner){ resourceLyrics ->
+// ////                            when(resourceLyrics){
+// ////                                is Resource.Success -> {
+// ////                                    if (resourceLyrics.data != null) {
+// ////                                        viewModel.insertLyrics(resourceLyrics.data.toLyricsEntity(it.videoId))
+// ////                                        viewModel.parseLyrics(resourceLyrics.data)
+// ////                                    }
+// ////                                }
+// ////                                is Resource.Error -> {
+// ////                                    viewModel.getSavedLyrics(it.videoId)
+// ////                                }
+// ////                            }
+// ////                        }
+// //                    Log.d("check index", index.toString())
+// ////                        lifecycleScope.launch {
+// ////                            repeatOnLifecycle(Lifecycle.State.CREATED) {
+// ////                                viewModel.firstTrackAdded.collect { added ->
+// ////                                    if (added && type == Config.ALBUM_CLICK) {
+// ////                                        viewModel.changeFirstTrackAddedToFalse()
+// //// //                                        viewModel.getFormat(it.videoId)
+// ////                                        if (index == null) {
+// ////                                            fetchSourceFromQueue(downloaded = downloaded ?: 0)
+// ////                                        } else {
+// ////                                            fetchSourceFromQueue(index!!, downloaded = downloaded ?: 0)
+// ////                                        }
+// ////                                    }
+// ////                                }
+// ////                            }
+// ////                        }
+// //                }
+// //            }
+// //
+// //            PLAYLIST_CLICK -> {
+// //                if (playlistId != null) {
+// //                    viewModel.playlistId.value = playlistId
+// //                }
+// //                Log.i("Now Playing Fragment", "Playlist Click")
+// //                binding.ivArt.setImageResource(0)
+// //                binding.loadingArt.visibility = View.VISIBLE
+// //                viewModel.gradientDrawable.postValue(null)
+// //                viewModel.lyricsBackground.postValue(null)
+// //                binding.tvSongTitle.visibility = View.GONE
+// //                binding.tvSongArtist.visibility = View.GONE
+// //                Queue.getNowPlaying()?.let {
+// //                    viewModel.simpleMediaServiceHandler?.reset()
+// ////                    viewModel.resetRelated()
+// ////                        if (requireContext().isMyServiceRunning(FetchQueue::class.java)) {
+// ////                            requireActivity().stopService(
+// ////                                Intent(
+// ////                                    requireContext(),
+// ////                                    FetchQueue::class.java
+// ////                                )
+// ////                            )
+// ////                        }
+// //                    Log.d("check index", index.toString())
+// ////                    viewModel.loadMediaItemFromTrack(it, PLAYLIST_CLICK, index)
+// //                    viewModel.videoId.postValue(it.videoId)
+// //                    viewModel.from.postValue(from)
+// ////                        viewModel.resetLyrics()
+// ////                        viewModel.getLyrics(it.title + " " + it.artists?.first()?.name)
+// //                    updateUIfromQueueNowPlaying()
+// ////                        viewModel._lyrics.observe(viewLifecycleOwner){ resourceLyrics ->
+// ////                            when(resourceLyrics){
+// ////                                is Resource.Success -> {
+// ////                                    if (resourceLyrics.data != null) {
+// ////                                        viewModel.insertLyrics(resourceLyrics.data.toLyricsEntity(it.videoId))
+// ////                                        viewModel.parseLyrics(resourceLyrics.data)
+// ////                                    }
+// ////                                }
+// ////                                is Resource.Error -> {
+// ////                                    viewModel.getSavedLyrics(it.videoId)
+// ////                                }
+// ////                            }
+// ////                        }
+// ////                        lifecycleScope.launch {
+// ////                            repeatOnLifecycle(Lifecycle.State.CREATED) {
+// ////                                viewModel.firstTrackAdded.collect { added ->
+// ////                                    if (added && type == Config.PLAYLIST_CLICK) {
+// ////                                        viewModel.changeFirstTrackAddedToFalse()
+// //// //                                        viewModel.getFormat(it.videoId)
+// ////                                        if (index == null) {
+// ////                                            fetchSourceFromQueue(downloaded = downloaded ?: 0)
+// ////                                        } else {
+// ////                                            fetchSourceFromQueue(index!!, downloaded = downloaded ?: 0)
+// ////                                        }
+// ////                                    }
+// ////                                }
+// ////                            }
+// ////                        }
+// //                }
+// //            }
+// //
+// //            MINIPLAYER_CLICK -> {
+// //                videoId = viewModel.videoId.value
+// //                from = viewModel.from.value
+// //                metadataCurSong = viewModel.metadata.value?.data
+// //                gradientDrawable = viewModel.gradientDrawable.value
+// //                lyricsBackground = viewModel.lyricsBackground.value
+// ////                if (viewModel.progress.value in 0.0..1.0) {
+// ////                    binding.progressSong.value = viewModel.progress.value * 100
+// ////                }
+// //                if (videoId == null) {
+// //                    videoId = runBlocking { viewModel.nowPlayingMediaItem.first()?.mediaId }
+// //                    viewModel.videoId.postValue(videoId)
+// //                }
+// //                updateUIfromCurrentMediaItem(viewModel.getCurrentMediaItem())
+// //            }
+// //        }
 //
 //        lifecycleScope.launch {
-////            val job7 = launch {
-////                viewModel.songTransitions.collectLatest { isChanged ->
-////                    if (isChanged) {
-////                        val song = viewModel.getCurrentMediaItem()
-////                        if (song != null) {
-////                            Log.i("Now Playing Fragment", "Bên dưới")
-////                            Log.d("Song Transition", "Song Transition")
-////                            videoId = viewModel.videoId.value
-////                            binding.ivArt.setImageResource(0)
-////                            binding.loadingArt.visibility = View.VISIBLE
-////                            Log.d("Check Lyrics", viewModel._lyrics.value?.data.toString())
-////                            updateUIfromCurrentMediaItem(song)
-////                            simpleMediaServiceHandler.setCurrentSongIndex(viewModel.getCurrentMediaItemIndex())
-////                            viewModel.changeSongTransitionToFalse()
-////                        }
-////                    }
-////                }
-////            }
+// //            val job7 = launch {
+// //                viewModel.songTransitions.collectLatest { isChanged ->
+// //                    if (isChanged) {
+// //                        val song = viewModel.getCurrentMediaItem()
+// //                        if (song != null) {
+// //                            Log.i("Now Playing Fragment", "Bên dưới")
+// //                            Log.d("Song Transition", "Song Transition")
+// //                            videoId = viewModel.videoId.value
+// //                            binding.ivArt.setImageResource(0)
+// //                            binding.loadingArt.visibility = View.VISIBLE
+// //                            Log.d("Check Lyrics", viewModel._lyrics.value?.data.toString())
+// //                            updateUIfromCurrentMediaItem(song)
+// //                            simpleMediaServiceHandler.setCurrentSongIndex(viewModel.getCurrentMediaItemIndex())
+// //                            viewModel.changeSongTransitionToFalse()
+// //                        }
+// //                    }
+// //                }
+// //            }
 //            repeatOnLifecycle(Lifecycle.State.CREATED) {
 //                val job7 =
 //                    launch {
 //                        viewModel.nowPlayingMediaItem.collectLatest { song ->
 //                            if (song != null) {
-////                                viewModel.getFormat(song.mediaId)
+// //                                viewModel.getFormat(song.mediaId)
 //                                Log.i("Now Playing Fragment", "song ${song.mediaMetadata.title}")
 //                                Log.w("Now Playing Fragment", "song ${song.mediaMetadata.description}")
 //                                videoId = viewModel.videoId.value
@@ -658,10 +659,10 @@ class NowPlayingFragment : Fragment() {
 //                    launch {
 //                        viewModel.progressString.collect {
 //                            binding.tvCurrentTime.text = it
-////                        if (viewModel.progress.value * 100 in 0f..100f) {
-////                            binding.progressSong.value = viewModel.progress.value * 100
-//// //                        songChangeListener.onUpdateProgressBar(viewModel.progress.value * 100)
-////                        }
+// //                        if (viewModel.progress.value * 100 in 0f..100f) {
+// //                            binding.progressSong.value = viewModel.progress.value * 100
+// // //                        songChangeListener.onUpdateProgressBar(viewModel.progress.value * 100)
+// //                        }
 //                        }
 //                    }
 //                val job2 =
@@ -672,12 +673,12 @@ class NowPlayingFragment : Fragment() {
 //                                binding.btPlayPause.setImageResource(
 //                                    R.drawable.baseline_pause_circle_24,
 //                                )
-////                        songChangeListener.onIsPlayingChange()
+// //                        songChangeListener.onIsPlayingChange()
 //                            } else {
 //                                binding.btPlayPause.setImageResource(
 //                                    R.drawable.baseline_play_circle_24,
 //                                )
-////                        songChangeListener.onIsPlayingChange()
+// //                        songChangeListener.onIsPlayingChange()
 //                            }
 //                        }
 //                    }
@@ -686,7 +687,7 @@ class NowPlayingFragment : Fragment() {
 //                    launch {
 //                        viewModel.bufferedPercentage.collect {
 //                            binding.buffered.progress = it
-////                    Log.d("buffered", it.toString())
+// //                    Log.d("buffered", it.toString())
 //                        }
 //                    }
 //                // Check if song is ready to play. And make progress bar indeterminate
@@ -700,7 +701,7 @@ class NowPlayingFragment : Fragment() {
 //                    launch {
 //                        viewModel.progressMillis.collect {
 //                            if (viewModel._lyrics.value?.data != null) {
-////                            val temp = viewModel.getLyricsString(it)
+// //                            val temp = viewModel.getLyricsString(it)
 //                                val lyrics = viewModel._lyrics.value!!.data
 //                                binding.tvSyncState.text =
 //                                    when (viewModel.getLyricsSyncState()) {
@@ -712,9 +713,9 @@ class NowPlayingFragment : Fragment() {
 //
 //                                        Config.SyncState.UNSYNCED -> getString(R.string.unsynced)
 //                                    }
-////                                viewModel._lyrics.value?.data?.let {
-////
-////                                }
+// //                                viewModel._lyrics.value?.data?.let {
+// //
+// //                                }
 //                                val index = viewModel.getActiveLyrics(it)
 //                                if (index != null) {
 //                                    if (lyrics?.lines?.get(0)?.words == "Lyrics not found") {
@@ -731,7 +732,7 @@ class NowPlayingFragment : Fragment() {
 //                                            )
 //                                            lyricsFullAdapter.updateOriginalLyrics(it1)
 //                                            if (viewModel.getLyricsSyncState() == Config.SyncState.LINE_SYNCED && lyricsAdapter.index != index) {
-////                                                binding.rvLyrics.addOnItemTouchListener(disableScrolling)
+// //                                                binding.rvLyrics.addOnItemTouchListener(disableScrolling)
 //                                                lyricsAdapter.setActiveLyrics(index)
 //                                                lyricsFullAdapter.setActiveLyrics(index)
 //                                                if (index == -1) {
@@ -742,13 +743,13 @@ class NowPlayingFragment : Fragment() {
 //                                            } else if (viewModel.getLyricsSyncState() == Config.SyncState.UNSYNCED && lyricsAdapter.index != -1) {
 //                                                lyricsAdapter.setActiveLyrics(-1)
 //                                                lyricsFullAdapter.setActiveLyrics(-1)
-////                                                binding.rvLyrics.removeOnItemTouchListener(disableScrolling)
+// //                                                binding.rvLyrics.removeOnItemTouchListener(disableScrolling)
 //                                            }
-////                                        it1.lines?.find { line -> line.words == temp.nowLyric }
-////                                            ?.let { it2 ->
-////                                                lyricsAdapter.setActiveLyrics(it2)
-////                                                binding.rvLyrics.smoothScrollToPosition(it1.lines.indexOf(it2))
-////                                            }
+// //                                        it1.lines?.find { line -> line.words == temp.nowLyric }
+// //                                            ?.let { it2 ->
+// //                                                lyricsAdapter.setActiveLyrics(it2)
+// //                                                binding.rvLyrics.smoothScrollToPosition(it1.lines.indexOf(it2))
+// //                                            }
 //                                        }
 //
 //                                        if (binding.btFull.text == getString(R.string.show)) {
@@ -759,34 +760,34 @@ class NowPlayingFragment : Fragment() {
 //                                        if (binding.lyricsLayout.visibility != View.VISIBLE) {
 //                                            binding.lyricsLayout.visibility = View.VISIBLE
 //                                        }
-////                                    if (temp.nowLyric != null) {
-////                                        binding.tvNowLyrics.visibility = View.VISIBLE
-////                                        binding.tvNowLyrics.text = temp.nowLyric
-////                                    } else {
-////                                        binding.tvNowLyrics.visibility = View.GONE
-////                                    }
-////                                    if (temp.prevLyrics != null) {
-////                                        binding.tvPrevLyrics.visibility = View.VISIBLE
-////                                        if (temp.prevLyrics.size > 1) {
-////                                            val txt = temp.prevLyrics[0] + "\n" + temp.prevLyrics[1]
-////                                            binding.tvPrevLyrics.text = txt
-////                                        } else {
-////                                            binding.tvPrevLyrics.text = temp.prevLyrics[0]
-////                                        }
-////                                    } else {
-////                                        binding.tvPrevLyrics.visibility = View.GONE
-////                                    }
-////                                    if (temp.nextLyric != null) {
-////                                        binding.tvNextLyrics.visibility = View.VISIBLE
-////                                        if (temp.nextLyric.size > 1) {
-////                                            val txt = temp.nextLyric[0] + "\n" + temp.nextLyric[1]
-////                                            binding.tvNextLyrics.text = txt
-////                                        } else {
-////                                            binding.tvNextLyrics.text = temp.nextLyric[0]
-////                                        }
-////                                    } else {
-////                                        binding.tvNextLyrics.visibility = View.GONE
-////                                    }
+// //                                    if (temp.nowLyric != null) {
+// //                                        binding.tvNowLyrics.visibility = View.VISIBLE
+// //                                        binding.tvNowLyrics.text = temp.nowLyric
+// //                                    } else {
+// //                                        binding.tvNowLyrics.visibility = View.GONE
+// //                                    }
+// //                                    if (temp.prevLyrics != null) {
+// //                                        binding.tvPrevLyrics.visibility = View.VISIBLE
+// //                                        if (temp.prevLyrics.size > 1) {
+// //                                            val txt = temp.prevLyrics[0] + "\n" + temp.prevLyrics[1]
+// //                                            binding.tvPrevLyrics.text = txt
+// //                                        } else {
+// //                                            binding.tvPrevLyrics.text = temp.prevLyrics[0]
+// //                                        }
+// //                                    } else {
+// //                                        binding.tvPrevLyrics.visibility = View.GONE
+// //                                    }
+// //                                    if (temp.nextLyric != null) {
+// //                                        binding.tvNextLyrics.visibility = View.VISIBLE
+// //                                        if (temp.nextLyric.size > 1) {
+// //                                            val txt = temp.nextLyric[0] + "\n" + temp.nextLyric[1]
+// //                                            binding.tvNextLyrics.text = txt
+// //                                        } else {
+// //                                            binding.tvNextLyrics.text = temp.nextLyric[0]
+// //                                        }
+// //                                    } else {
+// //                                        binding.tvNextLyrics.visibility = View.GONE
+// //                                    }
 //                                    }
 //                                }
 //                            } else {
@@ -910,49 +911,49 @@ class NowPlayingFragment : Fragment() {
 //                            }
 //                        }
 //                    }
-////                val job16 = launch {
-////                    viewModel.firstTrackAdded.collectLatest { added ->
-////                        if (added) {
-////                            when(type) {
-////                                Config.SONG_CLICK -> {
-////                                    viewModel.nowPLaying.first()?.let { getRelated(it.mediaId) }
-////                                    viewModel.changeFirstTrackAddedToFalse()
-////                                }
-////                                Config.SHARE -> {
-////                                    viewModel.nowPLaying.first()?.let { getRelated(it.mediaId) }
-////                                    viewModel.changeFirstTrackAddedToFalse()
-////                                }
-////                                Config.VIDEO_CLICK -> {
-////
-//// //                                        viewModel.getFormat(it.videoId)
-////                                    viewModel.nowPLaying.first()?.let { getRelated(it.mediaId) }
-////                                    viewModel.changeFirstTrackAddedToFalse()
-////                                }
-////                                Config.ALBUM_CLICK -> {
-////                                    if (index == null) {
-//// //                                        fetchSourceFromQueue(downloaded = downloaded ?: 0)
-////                                        viewModel.loadPlaylistOrAlbum(downloaded = downloaded ?: 0)
-////                                    } else {
-//// //                                        fetchSourceFromQueue(index!!, downloaded = downloaded ?: 0)
-////                                        viewModel.loadPlaylistOrAlbum(downloaded = downloaded ?: 0, index = index)
-////                                    }
-////
-////                                    viewModel.changeFirstTrackAddedToFalse()
-////                                }
-////                                Config.PLAYLIST_CLICK -> {
-////                                    if (index == null) {
-//// //                                        fetchSourceFromQueue(downloaded = downloaded ?: 0)
-////                                        viewModel.loadPlaylistOrAlbum(downloaded = downloaded ?: 0)
-////                                    } else {
-//// //                                        fetchSourceFromQueue(index!!, downloaded = downloaded ?: 0)
-////                                        viewModel.loadPlaylistOrAlbum(downloaded = downloaded ?: 0, index = index)
-////                                    }
-////                                    viewModel.changeFirstTrackAddedToFalse()
-////                                }
-////                            }
-////                        }
-////                    }
-////                }
+// //                val job16 = launch {
+// //                    viewModel.firstTrackAdded.collectLatest { added ->
+// //                        if (added) {
+// //                            when(type) {
+// //                                Config.SONG_CLICK -> {
+// //                                    viewModel.nowPLaying.first()?.let { getRelated(it.mediaId) }
+// //                                    viewModel.changeFirstTrackAddedToFalse()
+// //                                }
+// //                                Config.SHARE -> {
+// //                                    viewModel.nowPLaying.first()?.let { getRelated(it.mediaId) }
+// //                                    viewModel.changeFirstTrackAddedToFalse()
+// //                                }
+// //                                Config.VIDEO_CLICK -> {
+// //
+// // //                                        viewModel.getFormat(it.videoId)
+// //                                    viewModel.nowPLaying.first()?.let { getRelated(it.mediaId) }
+// //                                    viewModel.changeFirstTrackAddedToFalse()
+// //                                }
+// //                                Config.ALBUM_CLICK -> {
+// //                                    if (index == null) {
+// // //                                        fetchSourceFromQueue(downloaded = downloaded ?: 0)
+// //                                        viewModel.loadPlaylistOrAlbum(downloaded = downloaded ?: 0)
+// //                                    } else {
+// // //                                        fetchSourceFromQueue(index!!, downloaded = downloaded ?: 0)
+// //                                        viewModel.loadPlaylistOrAlbum(downloaded = downloaded ?: 0, index = index)
+// //                                    }
+// //
+// //                                    viewModel.changeFirstTrackAddedToFalse()
+// //                                }
+// //                                Config.PLAYLIST_CLICK -> {
+// //                                    if (index == null) {
+// // //                                        fetchSourceFromQueue(downloaded = downloaded ?: 0)
+// //                                        viewModel.loadPlaylistOrAlbum(downloaded = downloaded ?: 0)
+// //                                    } else {
+// // //                                        fetchSourceFromQueue(index!!, downloaded = downloaded ?: 0)
+// //                                        viewModel.loadPlaylistOrAlbum(downloaded = downloaded ?: 0, index = index)
+// //                                    }
+// //                                    viewModel.changeFirstTrackAddedToFalse()
+// //                                }
+// //                            }
+// //                        }
+// //                    }
+// //                }
 //                val job16 =
 //                    launch {
 //                        viewModel.translateLyrics.collect {
@@ -1291,28 +1292,28 @@ class NowPlayingFragment : Fragment() {
 //            isFullScreen = true
 //            findNavController().navigateSafe(R.id.action_global_fullscreenFragment)
 //
-////                requireActivity().requestedOrientation =
-////                    ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
-////                val parent = fullscreen.root.parent as View
-////                parent.fitsSystemWindows = true
-////                val params =
-////                    parent.layoutParams as CoordinatorLayout.LayoutParams
-////                val behavior = params.behavior
-////                if (behavior != null && behavior is BottomSheetBehavior<*>) {
-////                    behavior.peekHeight = binding.root.height
-////                    behavior.state = BottomSheetBehavior.STATE_EXPANDED
-////                    behavior.addBottomSheetCallback(object : BottomSheetCallback() {
-////                        override fun onStateChanged( bottomSheet: View, newState: Int) {
-////                            if (newState == BottomSheetBehavior.STATE_DRAGGING) {
-////                                behavior.state = BottomSheetBehavior.STATE_EXPANDED
-////                            }
-////                        }
-////
-////                        override fun onSlide(bottomSheet: View, slideOffset: Float) {}
-////                    })
-////                }
+// //                requireActivity().requestedOrientation =
+// //                    ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+// //                val parent = fullscreen.root.parent as View
+// //                parent.fitsSystemWindows = true
+// //                val params =
+// //                    parent.layoutParams as CoordinatorLayout.LayoutParams
+// //                val behavior = params.behavior
+// //                if (behavior != null && behavior is BottomSheetBehavior<*>) {
+// //                    behavior.peekHeight = binding.root.height
+// //                    behavior.state = BottomSheetBehavior.STATE_EXPANDED
+// //                    behavior.addBottomSheetCallback(object : BottomSheetCallback() {
+// //                        override fun onStateChanged( bottomSheet: View, newState: Int) {
+// //                            if (newState == BottomSheetBehavior.STATE_DRAGGING) {
+// //                                behavior.state = BottomSheetBehavior.STATE_EXPANDED
+// //                            }
+// //                        }
+// //
+// //                        override fun onSlide(bottomSheet: View, slideOffset: Float) {}
+// //                    })
+// //                }
 //
-////            }
+// //            }
 //        }
 //        binding.playerLayout.setOnClickListener {
 //            val shortAnimationDuration =
@@ -1913,7 +1914,7 @@ class NowPlayingFragment : Fragment() {
 //        Log.d("CHECK QUEUE", "updateUIfromQueueNowPlaying: ${Queue.getQueue()}")
 //        val nowPlaying = Queue.getNowPlaying()
 //        if (nowPlaying != null) {
-////            viewModel.getFormat(nowPlaying.videoId)
+// //            viewModel.getFormat(nowPlaying.videoId)
 //            binding.ivArt.setImageResource(0)
 //            binding.loadingArt.visibility = View.VISIBLE
 //            Log.d("Update UI", "current: ${nowPlaying.title}")
@@ -1954,7 +1955,7 @@ class NowPlayingFragment : Fragment() {
 //                            }
 //                            Log.d("Check Start Color", "transform: $startColor")
 //                        }
-////                    val centerColor = 0x6C6C6C
+// //                    val centerColor = 0x6C6C6C
 //                        val endColor = 0x1b1a1f
 //                        val gd =
 //                            GradientDrawable(
@@ -1979,100 +1980,100 @@ class NowPlayingFragment : Fragment() {
 //                        transition.isCrossFadeEnabled = true
 //                        transition.startTransition(500)
 //
-////                            viewModel.lyricsBackground.observe(viewLifecycleOwner, Observer { color ->
-////                                binding.lyricsLayout.setCardBackgroundColor(color)
-////                                Log.d("Update UI", "Lyrics: $color")
-////                                updateStatusBarColor(color)
-////                            })
+// //                            viewModel.lyricsBackground.observe(viewLifecycleOwner, Observer { color ->
+// //                                binding.lyricsLayout.setCardBackgroundColor(color)
+// //                                Log.d("Update UI", "Lyrics: $color")
+// //                                updateStatusBarColor(color)
+// //                            })
 //                        binding.lyricsLayout.setCardBackgroundColor(
 //                            bg,
 //                        )
 //                        binding.infoLayout.setCardBackgroundColor(bg)
-////                        songChangeListener.onNowPlayingSongChange()
+// //                        songChangeListener.onNowPlayingSongChange()
 //                    },
 //                )
 //                transformations(
 //                    RoundedCornersTransformation(8f),
 //                )
 //            }
-////            val request = ImageRequest.Builder(requireContext())
-////                .data(Uri.parse(thumbUrl))
-////                .diskCacheKey(nowPlaying.videoId)
-////                .diskCachePolicy(CachePolicy.ENABLED)
-////                .target(
-////                    onStart = {
-////                        binding.ivArt.setImageResource(0)
-////                        binding.loadingArt.visibility = View.VISIBLE
-////                        Log.d("Update UI", "onStart: ")
-////                    },
-////                    onSuccess = { result ->
-////                        binding.ivArt.visibility = View.VISIBLE
-////                        binding.loadingArt.visibility = View.GONE
-////                        binding.ivArt.setImageDrawable(result)
-////                        Log.d("Update UI", "onSuccess: ")
-////                        if (viewModel.gradientDrawable.value != null) {
-////                            viewModel.gradientDrawable.observe(viewLifecycleOwner) {
-////                                binding.rootLayout.background = it
-//// //                            viewModel.lyricsBackground.observe(viewLifecycleOwner, Observer { color ->
-//// //                                binding.lyricsLayout.setCardBackgroundColor(color)
-//// //                                Log.d("Update UI", "Lyrics: $color")
-//// //                                updateStatusBarColor(color)
-//// //                            })
-////                                viewModel.lyricsBackground.value?.let { it1 ->
-////                                    binding.lyricsLayout.setCardBackgroundColor(
-////                                        it1
-////                                    )
-////                                }
-////                            }
-////                            Log.d("Update UI", "updateUI: NULL")
-////                        }
-//// //                        songChangeListener.onNowPlayingSongChange()
-////                    },
-////                )
-////                .transformations(object : Transformation {
-////                    override val cacheKey: String
-////                        get() = nowPlaying.videoId
-////
-////                    override suspend fun transform(input: Bitmap, size: Size): Bitmap {
-////                        val p = Palette.from(input).generate()
-////                        val defaultColor = 0x000000
-////                        var startColor = p.getDarkVibrantColor(defaultColor)
-////                        Log.d("Check Start Color", "transform: $startColor")
-////                        if (startColor == defaultColor) {
-////                            startColor = p.getDarkMutedColor(defaultColor)
-////                            if (startColor == defaultColor) {
-////                                startColor = p.getVibrantColor(defaultColor)
-////                                if (startColor == defaultColor) {
-////                                    startColor = p.getMutedColor(defaultColor)
-////                                    if (startColor == defaultColor) {
-////                                        startColor = p.getLightVibrantColor(defaultColor)
-////                                        if (startColor == defaultColor) {
-////                                            startColor = p.getLightMutedColor(defaultColor)
-////                                        }
-////                                    }
-////                                }
-////                            }
-////                            Log.d("Check Start Color", "transform: $startColor")
-////                        }
-//// //                    val centerColor = 0x6C6C6C
-////                        val endColor = 0x1b1a1f
-////                        val gd = GradientDrawable(
-////                            GradientDrawable.Orientation.TOP_BOTTOM,
-////                            intArrayOf(startColor, endColor)
-////                        )
-////                        gd.cornerRadius = 0f
-////                        gd.gradientType = GradientDrawable.LINEAR_GRADIENT
-////                        gd.gradientRadius = 0.5f
-////                        gd.alpha = 150
-////                        val bg = ColorUtils.setAlphaComponent(startColor, 230)
-////                        viewModel.gradientDrawable.postValue(gd)
-////                        viewModel.lyricsBackground.postValue(bg)
-////                        return input
-////                    }
-////
-////                })
-////                .build()
-////            ImageLoader(requireContext()).enqueue(request)
+// //            val request = ImageRequest.Builder(requireContext())
+// //                .data(Uri.parse(thumbUrl))
+// //                .diskCacheKey(nowPlaying.videoId)
+// //                .diskCachePolicy(CachePolicy.ENABLED)
+// //                .target(
+// //                    onStart = {
+// //                        binding.ivArt.setImageResource(0)
+// //                        binding.loadingArt.visibility = View.VISIBLE
+// //                        Log.d("Update UI", "onStart: ")
+// //                    },
+// //                    onSuccess = { result ->
+// //                        binding.ivArt.visibility = View.VISIBLE
+// //                        binding.loadingArt.visibility = View.GONE
+// //                        binding.ivArt.setImageDrawable(result)
+// //                        Log.d("Update UI", "onSuccess: ")
+// //                        if (viewModel.gradientDrawable.value != null) {
+// //                            viewModel.gradientDrawable.observe(viewLifecycleOwner) {
+// //                                binding.rootLayout.background = it
+// // //                            viewModel.lyricsBackground.observe(viewLifecycleOwner, Observer { color ->
+// // //                                binding.lyricsLayout.setCardBackgroundColor(color)
+// // //                                Log.d("Update UI", "Lyrics: $color")
+// // //                                updateStatusBarColor(color)
+// // //                            })
+// //                                viewModel.lyricsBackground.value?.let { it1 ->
+// //                                    binding.lyricsLayout.setCardBackgroundColor(
+// //                                        it1
+// //                                    )
+// //                                }
+// //                            }
+// //                            Log.d("Update UI", "updateUI: NULL")
+// //                        }
+// // //                        songChangeListener.onNowPlayingSongChange()
+// //                    },
+// //                )
+// //                .transformations(object : Transformation {
+// //                    override val cacheKey: String
+// //                        get() = nowPlaying.videoId
+// //
+// //                    override suspend fun transform(input: Bitmap, size: Size): Bitmap {
+// //                        val p = Palette.from(input).generate()
+// //                        val defaultColor = 0x000000
+// //                        var startColor = p.getDarkVibrantColor(defaultColor)
+// //                        Log.d("Check Start Color", "transform: $startColor")
+// //                        if (startColor == defaultColor) {
+// //                            startColor = p.getDarkMutedColor(defaultColor)
+// //                            if (startColor == defaultColor) {
+// //                                startColor = p.getVibrantColor(defaultColor)
+// //                                if (startColor == defaultColor) {
+// //                                    startColor = p.getMutedColor(defaultColor)
+// //                                    if (startColor == defaultColor) {
+// //                                        startColor = p.getLightVibrantColor(defaultColor)
+// //                                        if (startColor == defaultColor) {
+// //                                            startColor = p.getLightMutedColor(defaultColor)
+// //                                        }
+// //                                    }
+// //                                }
+// //                            }
+// //                            Log.d("Check Start Color", "transform: $startColor")
+// //                        }
+// // //                    val centerColor = 0x6C6C6C
+// //                        val endColor = 0x1b1a1f
+// //                        val gd = GradientDrawable(
+// //                            GradientDrawable.Orientation.TOP_BOTTOM,
+// //                            intArrayOf(startColor, endColor)
+// //                        )
+// //                        gd.cornerRadius = 0f
+// //                        gd.gradientType = GradientDrawable.LINEAR_GRADIENT
+// //                        gd.gradientRadius = 0.5f
+// //                        gd.alpha = 150
+// //                        val bg = ColorUtils.setAlphaComponent(startColor, 230)
+// //                        viewModel.gradientDrawable.postValue(gd)
+// //                        viewModel.lyricsBackground.postValue(bg)
+// //                        return input
+// //                    }
+// //
+// //                })
+// //                .build()
+// //            ImageLoader(requireContext()).enqueue(request)
 //            binding.topAppBar.subtitle = from
 //            viewModel.from.postValue(from)
 //            binding.tvSongTitle.text = nowPlaying.title
@@ -2095,7 +2096,7 @@ class NowPlayingFragment : Fragment() {
 //        if (mediaItem != null) {
 //            binding.ivArt.setImageResource(0)
 //            binding.loadingArt.visibility = View.VISIBLE
-////            viewModel.getFormat(mediaItem.mediaId)
+// //            viewModel.getFormat(mediaItem.mediaId)
 //            Log.d("Update UI", "current: ${mediaItem.mediaMetadata.title}")
 //            binding.tvSongTitle.visibility = View.VISIBLE
 //            binding.tvSongArtist.visibility = View.VISIBLE
@@ -2139,7 +2140,7 @@ class NowPlayingFragment : Fragment() {
 //                            }
 //                            Log.d("Check Start Color", "transform: $startColor")
 //                        }
-////                    val centerColor = 0x6C6C6C
+// //                    val centerColor = 0x6C6C6C
 //                        val endColor = 0x1b1a1f
 //                        val gd =
 //                            GradientDrawable(
@@ -2163,108 +2164,108 @@ class NowPlayingFragment : Fragment() {
 //                        binding.rootLayout.background = transition
 //                        transition.isCrossFadeEnabled = true
 //                        transition.startTransition(500)
-////                            viewModel.lyricsBackground.observe(viewLifecycleOwner, Observer { color ->
-////                                binding.lyricsLayout.setCardBackgroundColor(color)
-////                                Log.d("Update UI", "Lyrics: $color")
-////                                updateStatusBarColor(color)
-////                            })
+// //                            viewModel.lyricsBackground.observe(viewLifecycleOwner, Observer { color ->
+// //                                binding.lyricsLayout.setCardBackgroundColor(color)
+// //                                Log.d("Update UI", "Lyrics: $color")
+// //                                updateStatusBarColor(color)
+// //                            })
 //                        binding.lyricsLayout.setCardBackgroundColor(
 //                            bg
 //                        )
 //                        binding.infoLayout.setCardBackgroundColor(bg)
-////                        songChangeListener.onNowPlayingSongChange()
+// //                        songChangeListener.onNowPlayingSongChange()
 //                    },
 //                )
 //                transformations(
 //                    RoundedCornersTransformation(8f)
 //                )
 //            }
-////            val request = ImageRequest.Builder(requireContext())
-////                .data(mediaItem.mediaMetadata.artworkUri)
-////                .diskCacheKey(mediaItem.mediaId)
-////                .diskCachePolicy(CachePolicy.ENABLED)
-////                .target(
-////                    onStart = {
-////                        binding.ivArt.setImageResource(0)
-////                        binding.loadingArt.visibility = View.VISIBLE
-////                        Log.d("Update UI", "onStart: ")
-////                    },
-////                    onSuccess = { result ->
-////                        binding.ivArt.visibility = View.VISIBLE
-////                        binding.loadingArt.visibility = View.GONE
-////                        binding.ivArt.setImageDrawable(result)
-////                        Log.d("Update UI", "onSuccess: ")
-////                        if (viewModel.gradientDrawable.value != null) {
-////                            viewModel.gradientDrawable.observe(viewLifecycleOwner) {
-////                                if (it != null) {
-////                                    val start = binding.rootLayout.background
-////                                    val transition = TransitionDrawable(arrayOf(start, it))
-////                                    binding.rootLayout.background = transition
-////                                    transition.isCrossFadeEnabled = true
-////                                    transition.startTransition(500)
-////                                }
-//// //                            viewModel.lyricsBackground.observe(viewLifecycleOwner, Observer { color ->
-//// //                                binding.lyricsLayout.setCardBackgroundColor(color)
-//// //                                Log.d("Update UI", "Lyrics: $color")
-//// //                                updateStatusBarColor(color)
-//// //                            })
-////                                viewModel.lyricsBackground.value?.let { it1 ->
-////                                    binding.lyricsLayout.setCardBackgroundColor(
-////                                        it1
-////                                    )
-////                                }
-////                            }
-////                            Log.d("Update UI", "updateUI: NULL")
-////                        }
-//// //                        songChangeListener.onNowPlayingSongChange()
-////                    },
-////                )
-////                .diskCacheKey(mediaItem.mediaMetadata.artworkUri.toString())
-////                .diskCachePolicy(CachePolicy.ENABLED)
-////                .transformations(object : Transformation {
-////                    override val cacheKey: String
-////                        get() = "paletteArtTransformer"
-////
-////                    override suspend fun transform(input: Bitmap, size: Size): Bitmap {
-////                        val p = Palette.from(input).generate()
-////                        val defaultColor = 0x000000
-////                        var startColor = p.getDarkVibrantColor(defaultColor)
-////                        Log.d("Check Start Color", "transform: $startColor")
-////                        if (startColor == defaultColor) {
-////                            startColor = p.getDarkMutedColor(defaultColor)
-////                            if (startColor == defaultColor) {
-////                                startColor = p.getVibrantColor(defaultColor)
-////                                if (startColor == defaultColor) {
-////                                    startColor = p.getMutedColor(defaultColor)
-////                                    if (startColor == defaultColor) {
-////                                        startColor = p.getLightVibrantColor(defaultColor)
-////                                        if (startColor == defaultColor) {
-////                                            startColor = p.getLightMutedColor(defaultColor)
-////                                        }
-////                                    }
-////                                }
-////                            }
-////                            Log.d("Check Start Color", "transform: $startColor")
-////                        }
-//// //                    val centerColor = 0x6C6C6C
-////                        val endColor = 0x1b1a1f
-////                        val gd = GradientDrawable(
-////                            GradientDrawable.Orientation.TOP_BOTTOM,
-////                            intArrayOf(startColor, endColor)
-////                        )
-////                        gd.cornerRadius = 0f
-////                        gd.gradientType = GradientDrawable.LINEAR_GRADIENT
-////                        gd.gradientRadius = 0.5f
-////                        gd.alpha = 150
-////                        val bg = ColorUtils.setAlphaComponent(startColor, 230)
-////                        viewModel.gradientDrawable.postValue(gd)
-////                        viewModel.lyricsBackground.postValue(bg)
-////                        return input
-////                    }
-////
-////                })
-////                .build()
-////            ImageLoader(requireContext()).enqueue(request)
+// //            val request = ImageRequest.Builder(requireContext())
+// //                .data(mediaItem.mediaMetadata.artworkUri)
+// //                .diskCacheKey(mediaItem.mediaId)
+// //                .diskCachePolicy(CachePolicy.ENABLED)
+// //                .target(
+// //                    onStart = {
+// //                        binding.ivArt.setImageResource(0)
+// //                        binding.loadingArt.visibility = View.VISIBLE
+// //                        Log.d("Update UI", "onStart: ")
+// //                    },
+// //                    onSuccess = { result ->
+// //                        binding.ivArt.visibility = View.VISIBLE
+// //                        binding.loadingArt.visibility = View.GONE
+// //                        binding.ivArt.setImageDrawable(result)
+// //                        Log.d("Update UI", "onSuccess: ")
+// //                        if (viewModel.gradientDrawable.value != null) {
+// //                            viewModel.gradientDrawable.observe(viewLifecycleOwner) {
+// //                                if (it != null) {
+// //                                    val start = binding.rootLayout.background
+// //                                    val transition = TransitionDrawable(arrayOf(start, it))
+// //                                    binding.rootLayout.background = transition
+// //                                    transition.isCrossFadeEnabled = true
+// //                                    transition.startTransition(500)
+// //                                }
+// // //                            viewModel.lyricsBackground.observe(viewLifecycleOwner, Observer { color ->
+// // //                                binding.lyricsLayout.setCardBackgroundColor(color)
+// // //                                Log.d("Update UI", "Lyrics: $color")
+// // //                                updateStatusBarColor(color)
+// // //                            })
+// //                                viewModel.lyricsBackground.value?.let { it1 ->
+// //                                    binding.lyricsLayout.setCardBackgroundColor(
+// //                                        it1
+// //                                    )
+// //                                }
+// //                            }
+// //                            Log.d("Update UI", "updateUI: NULL")
+// //                        }
+// // //                        songChangeListener.onNowPlayingSongChange()
+// //                    },
+// //                )
+// //                .diskCacheKey(mediaItem.mediaMetadata.artworkUri.toString())
+// //                .diskCachePolicy(CachePolicy.ENABLED)
+// //                .transformations(object : Transformation {
+// //                    override val cacheKey: String
+// //                        get() = "paletteArtTransformer"
+// //
+// //                    override suspend fun transform(input: Bitmap, size: Size): Bitmap {
+// //                        val p = Palette.from(input).generate()
+// //                        val defaultColor = 0x000000
+// //                        var startColor = p.getDarkVibrantColor(defaultColor)
+// //                        Log.d("Check Start Color", "transform: $startColor")
+// //                        if (startColor == defaultColor) {
+// //                            startColor = p.getDarkMutedColor(defaultColor)
+// //                            if (startColor == defaultColor) {
+// //                                startColor = p.getVibrantColor(defaultColor)
+// //                                if (startColor == defaultColor) {
+// //                                    startColor = p.getMutedColor(defaultColor)
+// //                                    if (startColor == defaultColor) {
+// //                                        startColor = p.getLightVibrantColor(defaultColor)
+// //                                        if (startColor == defaultColor) {
+// //                                            startColor = p.getLightMutedColor(defaultColor)
+// //                                        }
+// //                                    }
+// //                                }
+// //                            }
+// //                            Log.d("Check Start Color", "transform: $startColor")
+// //                        }
+// // //                    val centerColor = 0x6C6C6C
+// //                        val endColor = 0x1b1a1f
+// //                        val gd = GradientDrawable(
+// //                            GradientDrawable.Orientation.TOP_BOTTOM,
+// //                            intArrayOf(startColor, endColor)
+// //                        )
+// //                        gd.cornerRadius = 0f
+// //                        gd.gradientType = GradientDrawable.LINEAR_GRADIENT
+// //                        gd.gradientRadius = 0.5f
+// //                        gd.alpha = 150
+// //                        val bg = ColorUtils.setAlphaComponent(startColor, 230)
+// //                        viewModel.gradientDrawable.postValue(gd)
+// //                        viewModel.lyricsBackground.postValue(bg)
+// //                        return input
+// //                    }
+// //
+// //                })
+// //                .build()
+// //            ImageLoader(requireContext()).enqueue(request)
 //        }
 //    }
 

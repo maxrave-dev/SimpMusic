@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.ui.fragment.home
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -12,9 +13,7 @@ import androidx.navigation.fragment.findNavController
 import com.maxrave.simpmusic.ui.screen.home.NotificationScreen
 import com.maxrave.simpmusic.ui.theme.AppTheme
 import com.maxrave.simpmusic.viewModel.NotificationViewModel
-import dagger.hilt.android.AndroidEntryPoint
 
-@AndroidEntryPoint
 class NotificationFragment : Fragment() {
     private lateinit var composeView: ComposeView
 
@@ -31,6 +30,7 @@ class NotificationFragment : Fragment() {
         }
     }
 
+    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onViewCreated(
         view: View,
         savedInstanceState: Bundle?,

@@ -3,7 +3,7 @@ android = "8.6.0"
 kotlin = "2.0.0"
 serialization = "2.0.0"
 ksp = "2.0.0-1.0.22"
-compose-bom = "2024.06.00"
+compose-bom = "2024.08.00"
 constraintlayout-compose = "1.0.1"
 activity-compose = "1.9.1"
 lifecycle-viewmodel-compose = "2.8.4"
@@ -16,7 +16,7 @@ startup-runtime = "1.1.1"
 lifecycle-livedata-ktx = "2.8.4"
 lifecycle-viewmodel-ktx = "2.8.4"
 ui-tooling = "1.6.8"
-media3 = "1.4.0"
+media3 = "1.4.1"
 palette-ktx = "1.0.0"
 expandable-text = "2.0.0"
 constraintlayout = "2.1.4"
@@ -33,8 +33,6 @@ coil = "2.6.0"
 easypermissions = "3.0.0"
 preference-ktx = "1.2.1"
 fragment-ktx = "1.8.2"
-hilt = "2.50"
-hilt-work = "1.2.0"
 datastore-preferences = "1.1.1"
 swiperefreshlayout = "1.2.0-alpha01"
 insetter = "0.6.1"
@@ -52,7 +50,9 @@ insetsx = "0.1.0-alpha10"
 ktor = "2.3.12"
 brotli = "0.1.2"
 ksoup = "0.3.1"
-desugaring = "2.0.4"
+desugaring = "2.1.1"
+koin-bom = "4.0.0-RC1"
+koin-annotations = "1.4.0-RC4"
 
 [libraries]
 desugaring = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugaring"}
@@ -105,10 +105,6 @@ coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coi
 easypermissions = { group = "pub.devrel", name = "easypermissions", version.ref = "easypermissions" }
 preference-ktx = { group = "androidx.preference", name = "preference-ktx", version.ref = "preference-ktx" }
 fragment-ktx = { group = "androidx.fragment", name = "fragment-ktx", version.ref = "fragment-ktx" }
-hilt-android = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
-hilt-work = { group = "androidx.hilt", name = "hilt-work", version.ref = "hilt-work" }
-hilt-compiler = { group = "androidx.hilt", name = "hilt-compiler", version.ref = "hilt-work" }
-dagger-hilt-compiler = { group = "com.google.dagger", name = "hilt-compiler", version.ref = "hilt" }
 kotlinx-metadata-jvm = { group = "org.jetbrains.kotlinx", name = "kotlinx-metadata-jvm", version = "0.8.0" }
 datastore-preferences = { group = "androidx.datastore", name = "datastore-preferences", version.ref = "datastore-preferences" }
 swiperefreshlayout = { group = "androidx.swiperefreshlayout", name = "swiperefreshlayout", version.ref = "swiperefreshlayout" }
@@ -143,6 +139,14 @@ brotli-dec = { group = "org.brotli", name = "dec", version.ref = "brotli" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
 ksoup-html = { group = "com.mohamedrejeb.ksoup", name = "ksoup-html", version.ref = "ksoup" }
 ksoup-entities = { group = "com.mohamedrejeb.ksoup", name = "ksoup-entities", version.ref = "ksoup" }
+#Koin
+koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }
+koin-core = { module = "io.insert-koin:koin-core" }
+koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose" }
+koin-android = { module = "io.insert-koin:koin-android"}
+koin-workmanager = { module = "io.insert-koin:koin-androidx-workmanager" }
+koin-annotations = { module = "io.insert-koin:koin-annotations", version.ref = "koin-annotations" }
+koin-ksp = { module = "io.insert-koin:koin-ksp-compiler", version.ref = "koin-annotations"}
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "android" }
@@ -150,7 +154,6 @@ android-library = { id = "com.android.library", version.ref = "android" }
 kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 navigation-safeargs = { id = "androidx.navigation.safeargs.kotlin", version.ref = "navigation" }
-hilt-android = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "serialization" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 aboutlibraries = { id = "com.mikepenz.aboutlibraries.plugin", version.ref = "aboutlibraries" }

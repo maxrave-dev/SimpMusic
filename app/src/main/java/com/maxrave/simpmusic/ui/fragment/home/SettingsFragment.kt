@@ -47,7 +47,6 @@ import com.maxrave.simpmusic.viewModel.SettingsViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.mikepenz.aboutlibraries.Libs
 import com.mikepenz.aboutlibraries.LibsBuilder
-import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -61,34 +60,34 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import java.util.Scanner
 
-
 @UnstableApi
-@AndroidEntryPoint
 class SettingsFragment : Fragment() {
-
     private var _binding: FragmentSettingsBinding? = null
-    private val binding get() = _binding!!
+    val binding get() = _binding!!
     private val viewModel by activityViewModels<SettingsViewModel>()
     private val sharedViewModel by activityViewModels<SharedViewModel>()
 
-    private val backupLauncher = registerForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
-        if (uri != null) {
-            viewModel.backup(requireContext(), uri)
+    private val backupLauncher =
+        registerForActivityResult(ActivityResultContracts.CreateDocument("application/octet-stream")) { uri ->
+            if (uri != null) {
+                viewModel.backup(requireContext(), uri)
+            }
         }
-    }
-    private val restoreLauncher = registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) {
-            viewModel.restore(requireContext(), uri)
+    private val restoreLauncher =
+        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+            if (uri != null) {
+                viewModel.restore(requireContext(), uri)
+            }
         }
-    }
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
         _binding = FragmentSettingsBinding.inflate(inflater, container, false)
         binding.topAppBarLayout.applyInsetter {
-            type(statusBars = true){
+            type(statusBars = true) {
                 margin()
             }
         }
@@ -104,7 +103,10 @@ class SettingsFragment : Fragment() {
 
     @OptIn(ExperimentalCoilApi::class)
     @UnstableApi
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
         super.onViewCreated(view, savedInstanceState)
 
         viewModel.getLocation()
@@ -137,284 +139,320 @@ class SettingsFragment : Fragment() {
 
         lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.CREATED) {
-                val job1 = launch {
-                    viewModel.musixmatchLoggedIn.collect {
-                        if (it != null) {
+                val job1 =
+                    launch {
+                        viewModel.musixmatchLoggedIn.collect {
+                            if (it != null) {
+                                if (it == DataStoreManager.TRUE) {
+                                    binding.tvMusixmatchLoginTitle.text =
+                                        getString(R.string.log_out_from_musixmatch)
+                                    binding.tvMusixmatchLogin.text = getString(R.string.logged_in)
+                                    setEnabledAll(binding.swUseMusixmatchTranslation, true)
+                                    setEnabledAll(binding.btTranslationLanguage, true)
+                                } else if (it == DataStoreManager.FALSE) {
+                                    binding.tvMusixmatchLoginTitle.text =
+                                        getString(R.string.log_in_to_Musixmatch)
+                                    binding.tvMusixmatchLogin.text =
+                                        getString(R.string.only_support_email_and_password_type)
+                                    setEnabledAll(binding.swUseMusixmatchTranslation, false)
+                                    setEnabledAll(binding.btTranslationLanguage, false)
+                                }
+                            }
+                        }
+                    }
+                val job2 =
+                    launch {
+                        viewModel.playVideoInsteadOfAudio.collect {
                             if (it == DataStoreManager.TRUE) {
-                                binding.tvMusixmatchLoginTitle.text =
-                                    getString(R.string.log_out_from_musixmatch)
-                                binding.tvMusixmatchLogin.text = getString(R.string.logged_in)
-                                setEnabledAll(binding.swUseMusixmatchTranslation, true)
-                                setEnabledAll(binding.btTranslationLanguage, true)
+                                binding.swEnableVideo.isChecked = true
+                                setEnabledAll(binding.btVideoQuality, true)
                             } else if (it == DataStoreManager.FALSE) {
-                                binding.tvMusixmatchLoginTitle.text =
-                                    getString(R.string.log_in_to_Musixmatch)
-                                binding.tvMusixmatchLogin.text =
-                                    getString(R.string.only_support_email_and_password_type)
-                                setEnabledAll(binding.swUseMusixmatchTranslation, false)
-                                setEnabledAll(binding.btTranslationLanguage, false)
+                                binding.swEnableVideo.isChecked = false
+                                setEnabledAll(binding.btVideoQuality, false)
                             }
                         }
                     }
-                }
-                val job2 = launch {
-                    viewModel.playVideoInsteadOfAudio.collect {
-                        if (it == DataStoreManager.TRUE) {
-                            binding.swEnableVideo.isChecked = true
-                            setEnabledAll(binding.btVideoQuality, true)
-                        } else if (it == DataStoreManager.FALSE) {
-                            binding.swEnableVideo.isChecked = false
-                            setEnabledAll(binding.btVideoQuality, false)
-                        }
-                    }
-                }
 
-                val job3 = launch {
-                    viewModel.videoQuality.collect {
-                        binding.tvVideoQuality.text = it
-                    }
-                }
-                val job4 = launch {
-                    viewModel.mainLyricsProvider.collect {
-                        if (it == DataStoreManager.YOUTUBE) {
-                            binding.tvMainLyricsProvider.text = LYRICS_PROVIDER.items.get(1)
-                        } else if (it == DataStoreManager.MUSIXMATCH) {
-                            binding.tvMainLyricsProvider.text = LYRICS_PROVIDER.items.get(0)
+                val job3 =
+                    launch {
+                        viewModel.videoQuality.collect {
+                            binding.tvVideoQuality.text = it
                         }
                     }
-                }
-                val job5 = launch {
-                    viewModel.translationLanguage.collect {
-                        binding.tvTranslationLanguage.text = it
-                    }
-                }
-                val job6 = launch {
-                    viewModel.useTranslation.collect {
-                        binding.swUseMusixmatchTranslation.isChecked = it == DataStoreManager.TRUE
-                    }
-                }
-                val job7 = launch {
-                    viewModel.sendBackToGoogle.collect {
-                        binding.swSaveHistory.isChecked = it == DataStoreManager.TRUE
-                    }
-                }
-                val job8 = launch {
-                    viewModel.location.collect {
-                        binding.tvContentCountry.text = it
-                    }
-                }
-                val job9 = launch {
-                    viewModel.language.collect {
-                        Log.w("Language", it.toString())
-                        if (it != null) {
-                            if (it.contains("id") || it.contains("in")) {
-                                binding.tvLanguage.text = "Bahasa Indonesia"
-                            } else {
-                                val temp =
-                                    SUPPORTED_LANGUAGE.items.getOrNull(
-                                        SUPPORTED_LANGUAGE.codes.indexOf(
-                                            it
-                                        )
-                                    )
-                                binding.tvLanguage.text = temp
+                val job4 =
+                    launch {
+                        viewModel.mainLyricsProvider.collect {
+                            if (it == DataStoreManager.YOUTUBE) {
+                                binding.tvMainLyricsProvider.text = LYRICS_PROVIDER.items.get(1)
+                            } else if (it == DataStoreManager.MUSIXMATCH) {
+                                binding.tvMainLyricsProvider.text = LYRICS_PROVIDER.items.get(0)
                             }
-                        } else {
-                            binding.tvLanguage.text = "Automatic"
                         }
                     }
-                }
-                val job10 = launch {
-                    viewModel.quality.collect {
-                        binding.tvQuality.text = it
-                    }
-                }
-                val job11 = launch {
-                    viewModel.cacheSize.collect {
-                        if (it != null) {
-                            drawDataStat()
-                            binding.tvPlayerCache.text =
-                                getString(R.string.cache_size, bytesToMB(it).toString())
+                val job5 =
+                    launch {
+                        viewModel.translationLanguage.collect {
+                            binding.tvTranslationLanguage.text = it
                         }
                     }
-                }
-                val job12 = launch {
-                    viewModel.downloadedCacheSize.collect {
-                        if (it != null) {
-                            drawDataStat()
-                            binding.tvDownloadedCache.text =
-                                getString(R.string.cache_size, bytesToMB(it).toString())
+                val job6 =
+                    launch {
+                        viewModel.useTranslation.collect {
+                            binding.swUseMusixmatchTranslation.isChecked = it == DataStoreManager.TRUE
                         }
                     }
-                }
-                val job13 = launch {
-                    viewModel.normalizeVolume.collect {
-                        binding.swNormalizeVolume.isChecked = it == DataStoreManager.TRUE
-                    }
-                }
-                val job14 = launch {
-                    viewModel.skipSilent.collect {
-                        binding.swSkipSilent.isChecked = it == DataStoreManager.TRUE
-                    }
-                }
-                val job15 = launch {
-                    viewModel.savedPlaybackState.collect {
-                        binding.swSavePlaybackState.isChecked = it == DataStoreManager.TRUE
-                    }
-                }
-                val job16 = launch {
-                    viewModel.saveRecentSongAndQueue.collect {
-                        binding.swSaveLastPlayed.isChecked = it == DataStoreManager.TRUE
-                    }
-                }
-                val job17 = launch {
-                    viewModel.saveRecentSongAndQueue.collect {
-                        binding.swSaveLastPlayed.isChecked = it == DataStoreManager.TRUE
-                    }
-                }
-                val job18 = launch {
-                    viewModel.sponsorBlockEnabled.collect {
-                        binding.swEnableSponsorBlock.isChecked = it == DataStoreManager.TRUE
-                    }
-                }
-                val job19 = launch {
-                    viewModel.lastCheckForUpdate.collect {
-                        if (it != null) {
-                            binding.tvCheckForUpdate.text = getString(
-                                R.string.last_checked_at,
-                                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-                                    .withZone(ZoneId.systemDefault())
-                                    .format(Instant.ofEpochMilli(it.toLong()))
-                            )
+                val job7 =
+                    launch {
+                        viewModel.sendBackToGoogle.collect {
+                            binding.swSaveHistory.isChecked = it == DataStoreManager.TRUE
                         }
                     }
-                }
-                val job20 = launch {
-                    viewModel.playerCacheLimit.collect {
-                        binding.tvLimitPlayerCache.text =
-                            if (it != -1) "$it MB" else getString(R.string.unlimited)
+                val job8 =
+                    launch {
+                        viewModel.location.collect {
+                            binding.tvContentCountry.text = it
+                        }
                     }
-                }
-                val job21 = launch {
-                    viewModel.githubResponse.collect { response ->
-                        if (response != null) {
-                            if (response.tagName != getString(R.string.version_name)) {
-                                binding.tvCheckForUpdate.text = getString(
-                                    R.string.last_checked_at,
-                                    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-                                        .withZone(ZoneId.systemDefault())
-                                        .format(Instant.ofEpochMilli(System.currentTimeMillis()))
-                                )
-                                val inputFormat =
-                                    SimpleDateFormat(
-                                        "yyyy-MM-dd'T'HH:mm:ss'Z'",
-                                        Locale.getDefault()
-                                    )
-                                val outputFormat =
-                                    SimpleDateFormat("dd MMM yyyy HH:mm:ss", Locale.getDefault())
-                                val formatted = response.publishedAt?.let { input ->
-                                    inputFormat.parse(input)
-                                        ?.let { outputFormat.format(it) }
+                val job9 =
+                    launch {
+                        viewModel.language.collect {
+                            Log.w("Language", it.toString())
+                            if (it != null) {
+                                if (it.contains("id") || it.contains("in")) {
+                                    binding.tvLanguage.text = "Bahasa Indonesia"
+                                } else {
+                                    val temp =
+                                        SUPPORTED_LANGUAGE.items.getOrNull(
+                                            SUPPORTED_LANGUAGE.codes.indexOf(
+                                                it,
+                                            ),
+                                        )
+                                    binding.tvLanguage.text = temp
                                 }
-                                MaterialAlertDialogBuilder(requireContext())
-                                    .setTitle(getString(R.string.update_available))
-                                    .setMessage(
+                            } else {
+                                binding.tvLanguage.text = "Automatic"
+                            }
+                        }
+                    }
+                val job10 =
+                    launch {
+                        viewModel.quality.collect {
+                            binding.tvQuality.text = it
+                        }
+                    }
+                val job11 =
+                    launch {
+                        viewModel.cacheSize.collect {
+                            if (it != null) {
+                                drawDataStat()
+                                binding.tvPlayerCache.text =
+                                    getString(R.string.cache_size, bytesToMB(it).toString())
+                            }
+                        }
+                    }
+                val job12 =
+                    launch {
+                        viewModel.downloadedCacheSize.collect {
+                            if (it != null) {
+                                drawDataStat()
+                                binding.tvDownloadedCache.text =
+                                    getString(R.string.cache_size, bytesToMB(it).toString())
+                            }
+                        }
+                    }
+                val job13 =
+                    launch {
+                        viewModel.normalizeVolume.collect {
+                            binding.swNormalizeVolume.isChecked = it == DataStoreManager.TRUE
+                        }
+                    }
+                val job14 =
+                    launch {
+                        viewModel.skipSilent.collect {
+                            binding.swSkipSilent.isChecked = it == DataStoreManager.TRUE
+                        }
+                    }
+                val job15 =
+                    launch {
+                        viewModel.savedPlaybackState.collect {
+                            binding.swSavePlaybackState.isChecked = it == DataStoreManager.TRUE
+                        }
+                    }
+                val job16 =
+                    launch {
+                        viewModel.saveRecentSongAndQueue.collect {
+                            binding.swSaveLastPlayed.isChecked = it == DataStoreManager.TRUE
+                        }
+                    }
+                val job17 =
+                    launch {
+                        viewModel.saveRecentSongAndQueue.collect {
+                            binding.swSaveLastPlayed.isChecked = it == DataStoreManager.TRUE
+                        }
+                    }
+                val job18 =
+                    launch {
+                        viewModel.sponsorBlockEnabled.collect {
+                            binding.swEnableSponsorBlock.isChecked = it == DataStoreManager.TRUE
+                        }
+                    }
+                val job19 =
+                    launch {
+                        viewModel.lastCheckForUpdate.collect {
+                            if (it != null) {
+                                binding.tvCheckForUpdate.text =
+                                    getString(
+                                        R.string.last_checked_at,
+                                        DateTimeFormatter
+                                            .ofPattern("yyyy-MM-dd HH:mm:ss")
+                                            .withZone(ZoneId.systemDefault())
+                                            .format(Instant.ofEpochMilli(it.toLong())),
+                                    )
+                            }
+                        }
+                    }
+                val job20 =
+                    launch {
+                        viewModel.playerCacheLimit.collect {
+                            binding.tvLimitPlayerCache.text =
+                                if (it != -1) "$it MB" else getString(R.string.unlimited)
+                        }
+                    }
+                val job21 =
+                    launch {
+                        viewModel.githubResponse.collect { response ->
+                            if (response != null) {
+                                if (response.tagName != getString(R.string.version_name)) {
+                                    binding.tvCheckForUpdate.text =
                                         getString(
-                                            R.string.update_message,
-                                            response.tagName,
-                                            formatted,
-                                            response.body
-                                        )
-                                    )
-                                    .setPositiveButton(getString(R.string.download)) { _, _ ->
-                                        val browserIntent = Intent(
-                                            Intent.ACTION_VIEW,
-                                            Uri.parse(response.assets?.firstOrNull()?.browserDownloadUrl)
-                                        )
-                                        startActivity(browserIntent)
-                                    }
-                                    .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
-                                        dialog.dismiss()
-                                    }
-                                    .show()
-                            } else {
-                                Toast.makeText(
-                                    requireContext(),
-                                    getString(R.string.no_update),
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                                viewModel.getLastCheckForUpdate()
-                                viewModel.lastCheckForUpdate.collect {
-                                    if (it != null) {
-                                        binding.tvCheckForUpdate.text = getString(
                                             R.string.last_checked_at,
-                                            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+                                            DateTimeFormatter
+                                                .ofPattern("yyyy-MM-dd HH:mm:ss")
                                                 .withZone(ZoneId.systemDefault())
-                                                .format(Instant.ofEpochMilli(it.toLong()))
+                                                .format(Instant.ofEpochMilli(System.currentTimeMillis())),
                                         )
+                                    val inputFormat =
+                                        SimpleDateFormat(
+                                            "yyyy-MM-dd'T'HH:mm:ss'Z'",
+                                            Locale.getDefault(),
+                                        )
+                                    val outputFormat =
+                                        SimpleDateFormat("dd MMM yyyy HH:mm:ss", Locale.getDefault())
+                                    val formatted =
+                                        response.publishedAt?.let { input ->
+                                            inputFormat
+                                                .parse(input)
+                                                ?.let { outputFormat.format(it) }
+                                        }
+                                    MaterialAlertDialogBuilder(requireContext())
+                                        .setTitle(getString(R.string.update_available))
+                                        .setMessage(
+                                            getString(
+                                                R.string.update_message,
+                                                response.tagName,
+                                                formatted,
+                                                response.body,
+                                            ),
+                                        ).setPositiveButton(getString(R.string.download)) { _, _ ->
+                                            val browserIntent =
+                                                Intent(
+                                                    Intent.ACTION_VIEW,
+                                                    Uri.parse(response.assets?.firstOrNull()?.browserDownloadUrl),
+                                                )
+                                            startActivity(browserIntent)
+                                        }.setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                                            dialog.dismiss()
+                                        }.show()
+                                } else {
+                                    Toast
+                                        .makeText(
+                                            requireContext(),
+                                            getString(R.string.no_update),
+                                            Toast.LENGTH_SHORT,
+                                        ).show()
+                                    viewModel.getLastCheckForUpdate()
+                                    viewModel.lastCheckForUpdate.collect {
+                                        if (it != null) {
+                                            binding.tvCheckForUpdate.text =
+                                                getString(
+                                                    R.string.last_checked_at,
+                                                    DateTimeFormatter
+                                                        .ofPattern("yyyy-MM-dd HH:mm:ss")
+                                                        .withZone(ZoneId.systemDefault())
+                                                        .format(Instant.ofEpochMilli(it.toLong())),
+                                                )
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                }
-                val job22 = launch {
-                    viewModel.thumbCacheSize.collect {
-                        binding.tvThumbnailCache.text = getString(
-                            R.string.cache_size, if (it != null) {
-                                bytesToMB(it)
+                val job22 =
+                    launch {
+                        viewModel.thumbCacheSize.collect {
+                            binding.tvThumbnailCache.text =
+                                getString(
+                                    R.string.cache_size,
+                                    if (it != null) {
+                                        bytesToMB(it)
+                                    } else {
+                                        0
+                                    }.toString(),
+                                )
+                        }
+                    }
+
+                val job23 =
+                    launch {
+                        viewModel.spotifyLogIn.collect {
+                            if (it) {
+                                binding.tvSpotifyLogin.text = getString(R.string.logged_in)
+                                setEnabledAll(binding.btEnableCanvas, true)
+                                setEnabledAll(binding.btEnableSpotifyLyrics, true)
                             } else {
-                                0
-                            }.toString()
-                        )
+                                binding.tvSpotifyLogin.text = getString(R.string.intro_login_to_spotify)
+                                setEnabledAll(binding.btEnableCanvas, false)
+                                setEnabledAll(binding.btEnableSpotifyLyrics, false)
+                            }
+                        }
                     }
-                }
 
-                val job23 = launch {
-                    viewModel.spotifyLogIn.collect {
-                        if (it) {
-                            binding.tvSpotifyLogin.text = getString(R.string.logged_in)
-                            setEnabledAll(binding.btEnableCanvas, true)
-                            setEnabledAll(binding.btEnableSpotifyLyrics, true)
-                        } else {
-                            binding.tvSpotifyLogin.text = getString(R.string.intro_login_to_spotify)
-                            setEnabledAll(binding.btEnableCanvas, false)
-                            setEnabledAll(binding.btEnableSpotifyLyrics, false)
+                val job24 =
+                    launch {
+                        viewModel.spotifyLyrics.collect {
+                            if (it) {
+                                binding.swEnableSpotifyLyrics.isChecked = true
+                            } else {
+                                binding.swEnableSpotifyLyrics.isChecked = false
+                            }
                         }
                     }
-                }
 
-                val job24 = launch {
-                    viewModel.spotifyLyrics.collect {
-                        if (it) {
-                            binding.swEnableSpotifyLyrics.isChecked = true
-                        } else {
-                            binding.swEnableSpotifyLyrics.isChecked = false
+                val job25 =
+                    launch {
+                        viewModel.spotifyCanvas.collect {
+                            if (it) {
+                                binding.swEnableCanvas.isChecked = true
+                            } else {
+                                binding.swEnableCanvas.isChecked = false
+                            }
                         }
                     }
-                }
-
-                val job25 = launch {
-                    viewModel.spotifyCanvas.collect {
-                        if (it) {
-                            binding.swEnableCanvas.isChecked = true
-                        } else {
-                            binding.swEnableCanvas.isChecked = false
+                val job26 =
+                    launch {
+                        viewModel.homeLimit.collect {
+                            binding.tvHomeLimit.text = it.toString()
+                            if (it != null) {
+                                binding.sliderHomeLimit.value = it.toFloat()
+                            }
                         }
                     }
-                }
-                val job26 = launch {
-                    viewModel.homeLimit.collect {
-                        binding.tvHomeLimit.text = it.toString()
-                        if (it != null) {
-                            binding.sliderHomeLimit.value = it.toFloat()
+                val job27 =
+                    launch {
+                        viewModel.translucentBottomBar.collectLatest { translucent ->
+                            binding.swEnableTranslucentNavBar.isChecked = if (translucent == DataStoreManager.TRUE) true else false
                         }
                     }
-                }
-                val job27 = launch {
-                    viewModel.translucentBottomBar.collectLatest { translucent ->
-                        binding.swEnableTranslucentNavBar.isChecked = if (translucent == DataStoreManager.TRUE) true else false
-                    }
-                }
                 job1.join()
                 job2.join()
                 job3.join()
@@ -444,36 +482,38 @@ class SettingsFragment : Fragment() {
                 job27.join()
             }
         }
-        binding.sliderHomeLimit.addOnSliderTouchListener(object : Slider.OnSliderTouchListener {
-            override fun onStartTrackingTouch(slider: Slider) {
-                // Responds to when slider's touch event is being started
-            }
+        binding.sliderHomeLimit.addOnSliderTouchListener(
+            object : Slider.OnSliderTouchListener {
+                override fun onStartTrackingTouch(slider: Slider) {
+                    // Responds to when slider's touch event is being started
+                }
 
-            override fun onStopTrackingTouch(slider: Slider) {
-                viewModel.setHomeLimit(slider.value.toInt())
-            }
-        })
+                override fun onStopTrackingTouch(slider: Slider) {
+                    viewModel.setHomeLimit(slider.value.toInt())
+                }
+            },
+        )
         binding.btLimitPlayerCache.setOnClickListener {
             var checkedIndex = -1
-            val dialog = MaterialAlertDialogBuilder(requireContext())
-                .setSingleChoiceItems(LIMIT_CACHE_SIZE.items, -1) { _, which ->
-                    checkedIndex = which
-                }
-                .setTitle(getString(R.string.limit_player_cache))
-                .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
-                    dialog.dismiss()
-                }
-                .setPositiveButton(getString(R.string.change)) { dialog, _ ->
-                    if (checkedIndex != -1) {
-                        viewModel.setPlayerCacheLimit(LIMIT_CACHE_SIZE.data[checkedIndex])
-                        Toast.makeText(
-                            requireContext(),
-                            getString(R.string.restart_app),
-                            Toast.LENGTH_SHORT
-                        ).show()
+            val dialog =
+                MaterialAlertDialogBuilder(requireContext())
+                    .setSingleChoiceItems(LIMIT_CACHE_SIZE.items, -1) { _, which ->
+                        checkedIndex = which
+                    }.setTitle(getString(R.string.limit_player_cache))
+                    .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                        dialog.dismiss()
+                    }.setPositiveButton(getString(R.string.change)) { dialog, _ ->
+                        if (checkedIndex != -1) {
+                            viewModel.setPlayerCacheLimit(LIMIT_CACHE_SIZE.data[checkedIndex])
+                            Toast
+                                .makeText(
+                                    requireContext(),
+                                    getString(R.string.restart_app),
+                                    Toast.LENGTH_SHORT,
+                                ).show()
+                        }
+                        dialog.dismiss()
                     }
-                    dialog.dismiss()
-                }
             dialog.show()
         }
         binding.btYouTubeAccount.setOnClickListener {
@@ -487,15 +527,17 @@ class SettingsFragment : Fragment() {
                 adapter = accountAdapter
                 layoutManager = LinearLayoutManager(requireContext())
             }
-            accountAdapter.setOnAccountClickListener(object :
-                AccountAdapter.OnAccountClickListener {
-                override fun onAccountClick(pos: Int) {
-                    Log.w("Account", accountAdapter.getAccountList().getOrNull(pos).toString())
-                    if (accountAdapter.getAccountList().getOrNull(pos) != null) {
-                        viewModel.setUsedAccount(accountAdapter.getAccountList().get(pos))
+            accountAdapter.setOnAccountClickListener(
+                object :
+                    AccountAdapter.OnAccountClickListener {
+                    override fun onAccountClick(pos: Int) {
+                        Log.w("Account", accountAdapter.getAccountList().getOrNull(pos).toString())
+                        if (accountAdapter.getAccountList().getOrNull(pos) != null) {
+                            viewModel.setUsedAccount(accountAdapter.getAccountList().get(pos))
+                        }
                     }
-                }
-            })
+                },
+            )
             accountBinding.btAddAccount.setOnClickListener {
                 findNavController().navigateSafe(R.id.action_global_logInFragment)
                 alertDialog.dismiss()
@@ -508,52 +550,54 @@ class SettingsFragment : Fragment() {
                 alertDialog.dismiss()
             }
             accountBinding.btLogOut.setOnClickListener {
-                val subAlertDialogBuilder = MaterialAlertDialogBuilder(requireContext())
-                    .setTitle(getString(R.string.warning))
-                    .setMessage(getString(R.string.log_out_warning))
-                    .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
-                        dialog.dismiss()
-                    }
-                    .setPositiveButton(getString(R.string.log_out)) { dialog, _ ->
-                        viewModel.logOutAllYouTube()
-                    }
+                val subAlertDialogBuilder =
+                    MaterialAlertDialogBuilder(requireContext())
+                        .setTitle(getString(R.string.warning))
+                        .setMessage(getString(R.string.log_out_warning))
+                        .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                            dialog.dismiss()
+                        }.setPositiveButton(getString(R.string.log_out)) { dialog, _ ->
+                            viewModel.logOutAllYouTube()
+                        }
                 subAlertDialogBuilder.show()
             }
             viewModel.getAllGoogleAccount()
             accountBinding.loadingLayout.visibility = View.VISIBLE
             lifecycleScope.launch {
-                val job2 = launch {
-                    viewModel.loading.collectLatest {
-                        if (it) {
-                            accountBinding.loadingLayout.visibility = View.VISIBLE
-                            accountBinding.apply {
-                                setEnabledAll(btAddAccount, false)
-                                setEnabledAll(btLogOut, false)
-                                setEnabledAll(btGuest, false)
-                            }
-                        } else {
-                            accountBinding.loadingLayout.visibility = View.GONE
-                            accountBinding.apply {
-                                setEnabledAll(btAddAccount, true)
-                                setEnabledAll(btLogOut, true)
-                                setEnabledAll(btGuest, true)
+                val job2 =
+                    launch {
+                        viewModel.loading.collectLatest {
+                            if (it) {
+                                accountBinding.loadingLayout.visibility = View.VISIBLE
+                                accountBinding.apply {
+                                    setEnabledAll(btAddAccount, false)
+                                    setEnabledAll(btLogOut, false)
+                                    setEnabledAll(btGuest, false)
+                                }
+                            } else {
+                                accountBinding.loadingLayout.visibility = View.GONE
+                                accountBinding.apply {
+                                    setEnabledAll(btAddAccount, true)
+                                    setEnabledAll(btLogOut, true)
+                                    setEnabledAll(btGuest, true)
+                                }
                             }
                         }
                     }
-                }
-                val job1 = launch {
-                    viewModel.googleAccounts.collect {
-                        if (it != null) {
-                            accountBinding.tvNoAccount.visibility = View.GONE
-                            accountBinding.rvAccount.visibility = View.VISIBLE
-                            accountAdapter.updateAccountList(it)
-                        } else {
-                            accountAdapter.updateAccountList(arrayListOf())
-                            accountBinding.tvNoAccount.visibility = View.VISIBLE
-                            accountBinding.rvAccount.visibility = View.GONE
+                val job1 =
+                    launch {
+                        viewModel.googleAccounts.collect {
+                            if (it != null) {
+                                accountBinding.tvNoAccount.visibility = View.GONE
+                                accountBinding.rvAccount.visibility = View.VISIBLE
+                                accountAdapter.updateAccountList(it)
+                            } else {
+                                accountAdapter.updateAccountList(arrayListOf())
+                                accountBinding.tvNoAccount.visibility = View.VISIBLE
+                                accountBinding.rvAccount.visibility = View.GONE
+                            }
                         }
                     }
-                }
                 job1.join()
                 job2.join()
             }
@@ -567,13 +611,12 @@ class SettingsFragment : Fragment() {
         binding.btVersion.setOnClickListener {
             findNavController().navigateSafe(R.id.action_global_creditFragment)
         }
-        
+
         binding.btMusixmatchLogin.setOnClickListener {
             if (viewModel.musixmatchLoggedIn.value == DataStoreManager.TRUE) {
                 viewModel.clearMusixmatchCookie()
                 Toast.makeText(requireContext(), getString(R.string.logged_out), Toast.LENGTH_SHORT).show()
-            }
-            else if (viewModel.musixmatchLoggedIn.value == DataStoreManager.FALSE) {
+            } else if (viewModel.musixmatchLoggedIn.value == DataStoreManager.FALSE) {
                 findNavController().navigateSafe(R.id.action_global_musixmatchFragment)
             }
         }
@@ -588,181 +631,178 @@ class SettingsFragment : Fragment() {
             Log.d("EQ", resolveInfo.toString())
             if (resolveInfo.isEmpty()) {
                 Toast.makeText(requireContext(), getString(R.string.no_equalizer), Toast.LENGTH_SHORT).show()
-            }
-            else{
+            } else {
                 resultLauncher.launch(eqIntent)
             }
         }
         binding.btGithub.setOnClickListener {
-            val urlIntent = Intent(
-                Intent.ACTION_VIEW,
-                Uri.parse("https://github.com/maxrave-dev/")
-            )
+            val urlIntent =
+                Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse("https://github.com/maxrave-dev/"),
+                )
             startActivity(urlIntent)
         }
         binding.btDonate.setOnClickListener {
-            val urlIntent = Intent(
-                Intent.ACTION_VIEW,
-                Uri.parse("https://buymeacoffee.com/maxrave")
-            )
+            val urlIntent =
+                Intent(
+                    Intent.ACTION_VIEW,
+                    Uri.parse("https://buymeacoffee.com/maxrave"),
+                )
             startActivity(urlIntent)
         }
         binding.btStoragePlayerCache.setOnClickListener {
-            val dialog = MaterialAlertDialogBuilder(requireContext())
-                .setTitle(getString(R.string.clear_player_cache))
-                .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
-                    dialog.dismiss()
-                }
-                .setPositiveButton(getString(R.string.clear)) { dialog, _ ->
-                    viewModel.clearPlayerCache()
-                    dialog.dismiss()
-                }
+            val dialog =
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(getString(R.string.clear_player_cache))
+                    .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                        dialog.dismiss()
+                    }.setPositiveButton(getString(R.string.clear)) { dialog, _ ->
+                        viewModel.clearPlayerCache()
+                        dialog.dismiss()
+                    }
             dialog.show()
         }
         binding.btContentCountry.setOnClickListener {
             var checkedIndex = -1
-            val dialog = MaterialAlertDialogBuilder(requireContext())
-                .setSingleChoiceItems(SUPPORTED_LOCATION.items, -1) { _, which ->
-                    checkedIndex = which
-                }
-                .setTitle(getString(R.string.content_country))
-                .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
-                    dialog.dismiss()
-                }
-                .setPositiveButton(getString(R.string.change)) { dialog, _ ->
-                    if (checkedIndex != -1) {
-                        viewModel.changeLocation(SUPPORTED_LOCATION.items[checkedIndex].toString())
+            val dialog =
+                MaterialAlertDialogBuilder(requireContext())
+                    .setSingleChoiceItems(SUPPORTED_LOCATION.items, -1) { _, which ->
+                        checkedIndex = which
+                    }.setTitle(getString(R.string.content_country))
+                    .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                        dialog.dismiss()
+                    }.setPositiveButton(getString(R.string.change)) { dialog, _ ->
+                        if (checkedIndex != -1) {
+                            viewModel.changeLocation(SUPPORTED_LOCATION.items[checkedIndex].toString())
+                        }
+                        dialog.dismiss()
                     }
-                    dialog.dismiss()
-                }
             dialog.show()
         }
         binding.btLanguage.setOnClickListener {
             var checkedIndex = -1
-            val dialog = MaterialAlertDialogBuilder(requireContext())
-                .setSingleChoiceItems(SUPPORTED_LANGUAGE.items, -1) { _, which ->
-                    checkedIndex = which
-                }
-                .setTitle(getString(R.string.language))
-                .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
-                    dialog.dismiss()
-                }
-                .setPositiveButton(getString(R.string.change)) { dialog, _ ->
-                    if (checkedIndex != -1) {
-                        val alertDialog = MaterialAlertDialogBuilder(requireContext())
-                            .setTitle(R.string.warning)
-                            .setMessage(R.string.change_language_warning)
-                            .setNegativeButton(getString(R.string.cancel)) { d, _ ->
-                                d.dismiss()
-                                dialog.dismiss()
-                            }
-                            .setPositiveButton(getString(R.string.change)) { d, _ ->
-                                viewModel.changeLanguage(SUPPORTED_LANGUAGE.codes[checkedIndex])
-                                if (SUPPORTED_LANGUAGE.codes.getOrNull(checkedIndex) != null) {
-                                    runCatching {
-                                        SUPPORTED_LANGUAGE.items[SUPPORTED_LANGUAGE.codes.indexOf(
-                                            SUPPORTED_LANGUAGE.codes[checkedIndex]
-                                        )]
-                                    }.onSuccess { temp ->
-                                        binding.tvLanguage.text = temp
-                                        val code = SUPPORTED_LANGUAGE.codes.getOrNull(checkedIndex)
-                                        val localeList = LocaleListCompat.forLanguageTags(
-                                            if (code == "id-ID") {
-                                                if (Build.VERSION.SDK_INT >= 35) {
-                                                    "id-ID"
-                                                } else {
-                                                    "in-ID"
-                                                }
+            val dialog =
+                MaterialAlertDialogBuilder(requireContext())
+                    .setSingleChoiceItems(SUPPORTED_LANGUAGE.items, -1) { _, which ->
+                        checkedIndex = which
+                    }.setTitle(getString(R.string.language))
+                    .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                        dialog.dismiss()
+                    }.setPositiveButton(getString(R.string.change)) { dialog, _ ->
+                        if (checkedIndex != -1) {
+                            val alertDialog =
+                                MaterialAlertDialogBuilder(requireContext())
+                                    .setTitle(R.string.warning)
+                                    .setMessage(R.string.change_language_warning)
+                                    .setNegativeButton(getString(R.string.cancel)) { d, _ ->
+                                        d.dismiss()
+                                        dialog.dismiss()
+                                    }.setPositiveButton(getString(R.string.change)) { d, _ ->
+                                        viewModel.changeLanguage(SUPPORTED_LANGUAGE.codes[checkedIndex])
+                                        if (SUPPORTED_LANGUAGE.codes.getOrNull(checkedIndex) != null) {
+                                            runCatching {
+                                                SUPPORTED_LANGUAGE.items[
+                                                    SUPPORTED_LANGUAGE.codes.indexOf(
+                                                        SUPPORTED_LANGUAGE.codes[checkedIndex],
+                                                    ),
+                                                ]
+                                            }.onSuccess { temp ->
+                                                binding.tvLanguage.text = temp
+                                                val code = SUPPORTED_LANGUAGE.codes.getOrNull(checkedIndex)
+                                                val localeList =
+                                                    LocaleListCompat.forLanguageTags(
+                                                        if (code == "id-ID") {
+                                                            if (Build.VERSION.SDK_INT >= 35) {
+                                                                "id-ID"
+                                                            } else {
+                                                                "in-ID"
+                                                            }
+                                                        } else {
+                                                            code
+                                                        },
+                                                    )
+                                                Log.d("Language", localeList.toString())
+                                                sharedViewModel.activityRecreate()
+                                                AppCompatDelegate.setApplicationLocales(localeList)
+                                            }.onFailure {
+                                                Toast
+                                                    .makeText(
+                                                        requireContext(),
+                                                        getString(R.string.invalid_language_code),
+                                                        Toast.LENGTH_SHORT,
+                                                    ).show()
                                             }
-                                            else {
-                                                code
-                                            }
-                                        )
-                                        Log.d("Language", localeList.toString())
-                                        sharedViewModel.activityRecreate()
-                                        AppCompatDelegate.setApplicationLocales(localeList)
-                                    }
-                                        .onFailure {
-                                            Toast.makeText(
-                                                requireContext(),
-                                                getString(R.string.invalid_language_code),
-                                                Toast.LENGTH_SHORT
-                                            ).show()
                                         }
-                                }
-                                d.dismiss()
-                                dialog.dismiss()
-                            }
-                        alertDialog.show()
+                                        d.dismiss()
+                                        dialog.dismiss()
+                                    }
+                            alertDialog.show()
+                        }
+                        dialog.dismiss()
                     }
-                    dialog.dismiss()
-                }
             dialog.show()
         }
         binding.btQuality.setOnClickListener {
             var checkedIndex = -1
-            val dialog = MaterialAlertDialogBuilder(requireContext())
-                .setSingleChoiceItems(QUALITY.items, -1) { _, which ->
-                    checkedIndex = which
-                }
-                .setTitle(getString(R.string.quality))
-                .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
-                    dialog.dismiss()
-                }
-                .setPositiveButton(getString(R.string.change)) { dialog, _ ->
-                    if (checkedIndex != -1) {
-                        viewModel.changeQuality(checkedIndex)
+            val dialog =
+                MaterialAlertDialogBuilder(requireContext())
+                    .setSingleChoiceItems(QUALITY.items, -1) { _, which ->
+                        checkedIndex = which
+                    }.setTitle(getString(R.string.quality))
+                    .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                        dialog.dismiss()
+                    }.setPositiveButton(getString(R.string.change)) { dialog, _ ->
+                        if (checkedIndex != -1) {
+                            viewModel.changeQuality(checkedIndex)
+                        }
+                        dialog.dismiss()
                     }
-                    dialog.dismiss()
-                }
             dialog.show()
-
         }
         binding.btVideoQuality.setOnClickListener {
             var checkedIndex = -1
-            val dialog = MaterialAlertDialogBuilder(requireContext())
-                .setSingleChoiceItems(VIDEO_QUALITY.items, -1) { _, which ->
-                    checkedIndex = which
-                }
-                .setTitle(getString(R.string.quality_video))
-                .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
-                    dialog.dismiss()
-                }
-                .setPositiveButton(getString(R.string.change)) { dialog, _ ->
-                    if (checkedIndex != -1) {
-                        viewModel.changeVideoQuality(checkedIndex)
+            val dialog =
+                MaterialAlertDialogBuilder(requireContext())
+                    .setSingleChoiceItems(VIDEO_QUALITY.items, -1) { _, which ->
+                        checkedIndex = which
+                    }.setTitle(getString(R.string.quality_video))
+                    .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                        dialog.dismiss()
+                    }.setPositiveButton(getString(R.string.change)) { dialog, _ ->
+                        if (checkedIndex != -1) {
+                            viewModel.changeVideoQuality(checkedIndex)
+                        }
+                        dialog.dismiss()
                     }
-                    dialog.dismiss()
-                }
             dialog.show()
         }
         binding.btMainLyricsProvider.setOnClickListener {
             var checkedIndex = -1
-            val dialog = MaterialAlertDialogBuilder(requireContext())
-                .setTitle(getString(R.string.main_lyrics_provider))
-                .setSingleChoiceItems(LYRICS_PROVIDER.items, -1) { _, which ->
-                    checkedIndex = which
-                }
-                .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
-                    dialog.dismiss()
-                }
-                .setPositiveButton(getString(R.string.change)) { dialog, _ ->
-                    if (checkedIndex != -1) {
-                        if (checkedIndex == 0) {
-                            viewModel.setLyricsProvider(DataStoreManager.MUSIXMATCH)
-                            binding.tvMainLyricsProvider.text = DataStoreManager.MUSIXMATCH
-                        } else if (checkedIndex == 1){
-                            viewModel.setLyricsProvider(DataStoreManager.YOUTUBE)
-                            binding.tvMainLyricsProvider.text = DataStoreManager.YOUTUBE
+            val dialog =
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(getString(R.string.main_lyrics_provider))
+                    .setSingleChoiceItems(LYRICS_PROVIDER.items, -1) { _, which ->
+                        checkedIndex = which
+                    }.setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                        dialog.dismiss()
+                    }.setPositiveButton(getString(R.string.change)) { dialog, _ ->
+                        if (checkedIndex != -1) {
+                            if (checkedIndex == 0) {
+                                viewModel.setLyricsProvider(DataStoreManager.MUSIXMATCH)
+                                binding.tvMainLyricsProvider.text = DataStoreManager.MUSIXMATCH
+                            } else if (checkedIndex == 1) {
+                                viewModel.setLyricsProvider(DataStoreManager.YOUTUBE)
+                                binding.tvMainLyricsProvider.text = DataStoreManager.YOUTUBE
+                            }
                         }
+                        viewModel.getLyricsProvider()
+                        dialog.dismiss()
                     }
-                    viewModel.getLyricsProvider()
-                    dialog.dismiss()
-                }
             dialog.show()
         }
 
-        binding.btTranslationLanguage.setOnClickListener{
+        binding.btTranslationLanguage.setOnClickListener {
             val materialAlertDialogBuilder = MaterialAlertDialogBuilder(requireContext())
             materialAlertDialogBuilder.setTitle(getString(R.string.translation_language))
             materialAlertDialogBuilder.setMessage(getString(R.string.translation_language_message))
@@ -775,14 +815,13 @@ class SettingsFragment : Fragment() {
                 if (editText.text.toString().isNotEmpty()) {
                     if (editText.text.toString().length == 2) {
                         viewModel.setTranslationLanguage(editText.text.toString())
-                    }
-                    else {
+                    } else {
                         Toast.makeText(requireContext(), getString(R.string.invalid_language_code), Toast.LENGTH_SHORT).show()
                     }
-                }
-                else {
+                } else {
                     if (viewModel.language.value != null && viewModel.language.value!!.length >= 2) {
-                        viewModel.language.value?.slice(0..1)
+                        viewModel.language.value
+                            ?.slice(0..1)
                             ?.let { it1 -> viewModel.setTranslationLanguage(it1) }
                     }
                 }
@@ -792,70 +831,69 @@ class SettingsFragment : Fragment() {
         }
 
         binding.btStorageDownloadedCache.setOnClickListener {
-            val dialog = MaterialAlertDialogBuilder(requireContext())
-                .setTitle(getString(R.string.clear_downloaded_cache))
-                .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
-                    dialog.dismiss()
-                }
-                .setPositiveButton(getString(R.string.clear)) { dialog, _ ->
-                    viewModel.clearDownloadedCache()
-                    dialog.dismiss()
-                }
+            val dialog =
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(getString(R.string.clear_downloaded_cache))
+                    .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                        dialog.dismiss()
+                    }.setPositiveButton(getString(R.string.clear)) { dialog, _ ->
+                        viewModel.clearDownloadedCache()
+                        dialog.dismiss()
+                    }
             dialog.show()
         }
 
         binding.btStorageThumbnailCache.setOnClickListener {
-            val dialog = MaterialAlertDialogBuilder(requireContext())
-                .setTitle(getString(R.string.clear_thumbnail_cache))
-                .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
-                    dialog.dismiss()
-                }
-                .setPositiveButton(getString(R.string.clear)) { dialog, _ ->
-                    viewModel.clearThumbnailCache()
-                    dialog.dismiss()
-                }
+            val dialog =
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle(getString(R.string.clear_thumbnail_cache))
+                    .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                        dialog.dismiss()
+                    }.setPositiveButton(getString(R.string.clear)) { dialog, _ ->
+                        viewModel.clearThumbnailCache()
+                        dialog.dismiss()
+                    }
             dialog.show()
         }
         binding.btCategoriesSponsorBlock.setOnClickListener {
             Log.d("Check category", viewModel.sponsorBlockCategories.value.toString())
             val selectedItem: ArrayList<String> = arrayListOf()
-            val item: Array<CharSequence> = Array(9) {i ->
-                getString(SPONSOR_BLOCK.listName[i])
-            }
-
-            val checked = BooleanArray(9) { i ->
-                if (!viewModel.sponsorBlockCategories.value.isNullOrEmpty()) {
-                    viewModel.sponsorBlockCategories.value!!.contains(SPONSOR_BLOCK.list[i].toString())
+            val item: Array<CharSequence> =
+                Array(9) { i ->
+                    getString(SPONSOR_BLOCK.listName[i])
                 }
-                else {
-                    false
-                }
-            }
 
-            val dialog = MaterialAlertDialogBuilder(requireContext())
-                .setTitle("Category")
-                .setMultiChoiceItems(item, checked) { _, i, b ->
-                    if (b) {
-                        if (!selectedItem.contains(SPONSOR_BLOCK.list[i].toString())) {
-                            selectedItem.add(SPONSOR_BLOCK.list[i].toString())
-                        }
+            val checked =
+                BooleanArray(9) { i ->
+                    if (!viewModel.sponsorBlockCategories.value.isNullOrEmpty()) {
+                        viewModel.sponsorBlockCategories.value!!.contains(SPONSOR_BLOCK.list[i].toString())
                     } else {
-                        if (selectedItem.contains(SPONSOR_BLOCK.list[i].toString())) {
-                            selectedItem.remove(SPONSOR_BLOCK.list[i].toString())
-                        }
+                        false
                     }
                 }
-                .setPositiveButton(getString(R.string.save)) { dialog, _ ->
-                    viewModel.setSponsorBlockCategories(selectedItem)
-                    Log.d("Check category", selectedItem.toString())
-                    viewModel.getSponsorBlockCategories()
-                }
-                .setNegativeButton(R.string.cancel) { dialog, _ ->
-                    dialog.dismiss()
-                }
+
+            val dialog =
+                MaterialAlertDialogBuilder(requireContext())
+                    .setTitle("Category")
+                    .setMultiChoiceItems(item, checked) { _, i, b ->
+                        if (b) {
+                            if (!selectedItem.contains(SPONSOR_BLOCK.list[i].toString())) {
+                                selectedItem.add(SPONSOR_BLOCK.list[i].toString())
+                            }
+                        } else {
+                            if (selectedItem.contains(SPONSOR_BLOCK.list[i].toString())) {
+                                selectedItem.remove(SPONSOR_BLOCK.list[i].toString())
+                            }
+                        }
+                    }.setPositiveButton(getString(R.string.save)) { dialog, _ ->
+                        viewModel.setSponsorBlockCategories(selectedItem)
+                        Log.d("Check category", selectedItem.toString())
+                        viewModel.getSponsorBlockCategories()
+                    }.setNegativeButton(R.string.cancel) { dialog, _ ->
+                        dialog.dismiss()
+                    }
             dialog.show()
         }
-
 
         binding.topAppBar.setNavigationOnClickListener {
             findNavController().popBackStack()
@@ -887,22 +925,22 @@ class SettingsFragment : Fragment() {
             val test = viewModel.playVideoInsteadOfAudio.value
             val checkReal = (test == DataStoreManager.TRUE) != checked
             if (checkReal) {
-                val dialog = MaterialAlertDialogBuilder(requireContext())
-                    .setTitle(getString(R.string.warning))
-                    .setMessage(getString(R.string.play_video_instead_of_audio_warning))
-                    .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
-                        binding.swEnableVideo.isChecked = false
-                        dialog.dismiss()
-                    }
-                    .setPositiveButton(getString(R.string.change)) { dialog, _ ->
-                        viewModel.clearPlayerCache()
-                        if (checked) {
-                            viewModel.setPlayVideoInsteadOfAudio(true)
-                        } else {
-                            viewModel.setPlayVideoInsteadOfAudio(false)
+                val dialog =
+                    MaterialAlertDialogBuilder(requireContext())
+                        .setTitle(getString(R.string.warning))
+                        .setMessage(getString(R.string.play_video_instead_of_audio_warning))
+                        .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                            binding.swEnableVideo.isChecked = false
+                            dialog.dismiss()
+                        }.setPositiveButton(getString(R.string.change)) { dialog, _ ->
+                            viewModel.clearPlayerCache()
+                            if (checked) {
+                                viewModel.setPlayVideoInsteadOfAudio(true)
+                            } else {
+                                viewModel.setPlayVideoInsteadOfAudio(false)
+                            }
+                            dialog.dismiss()
                         }
-                        dialog.dismiss()
-                    }
                 dialog.show()
             }
         }
@@ -950,15 +988,15 @@ class SettingsFragment : Fragment() {
         }
         binding.btSpotifyLogin.setOnClickListener {
             if (runBlocking { viewModel.spotifyLogIn.value }) {
-                val subAlertDialogBuilder = MaterialAlertDialogBuilder(requireContext())
-                    .setTitle(getString(R.string.warning))
-                    .setMessage(getString(R.string.log_out_warning))
-                    .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
-                        dialog.dismiss()
-                    }
-                    .setPositiveButton(getString(R.string.log_out_from_spotify)) { dialog, _ ->
-                        viewModel.setSpotifyLogIn(false)
-                    }
+                val subAlertDialogBuilder =
+                    MaterialAlertDialogBuilder(requireContext())
+                        .setTitle(getString(R.string.warning))
+                        .setMessage(getString(R.string.log_out_warning))
+                        .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                            dialog.dismiss()
+                        }.setPositiveButton(getString(R.string.log_out_from_spotify)) { dialog, _ ->
+                            viewModel.setSpotifyLogIn(false)
+                        }
                 subAlertDialogBuilder.show()
             } else {
                 findNavController().navigateSafe(R.id.action_global_spotifyLogInFragment)
@@ -979,7 +1017,6 @@ class SettingsFragment : Fragment() {
             }
         }
         binding.bt3rdPartyLibraries.setOnClickListener {
-
             val inputStream = requireContext().resources.openRawResource(R.raw.aboutlibraries)
             val scanner = Scanner(inputStream).useDelimiter("\\A")
             val stringBuilder = StringBuilder()
@@ -988,19 +1025,20 @@ class SettingsFragment : Fragment() {
             }
             Log.w("AboutLibraries", stringBuilder.toString())
             val localLib = Libs.Builder().withJson(stringBuilder.toString()).build()
-            val intent = LibsBuilder()
-                .withLicenseShown(true)
-                .withVersionShown(true)
-                .withActivityTitle(getString(R.string.third_party_libraries))
-                .withSearchEnabled(true)
-                .withEdgeToEdge(true)
-                .withLibs(
-                    localLib
-                )
-                .intent(requireContext())
+            val intent =
+                LibsBuilder()
+                    .withLicenseShown(true)
+                    .withVersionShown(true)
+                    .withActivityTitle(getString(R.string.third_party_libraries))
+                    .withSearchEnabled(true)
+                    .withEdgeToEdge(true)
+                    .withLibs(
+                        localLib,
+                    ).intent(requireContext())
             startActivity(intent)
         }
     }
+
     private fun browseFiles(dir: File): Long {
         var dirSize: Long = 0
         if (!dir.listFiles().isNullOrEmpty()) {
@@ -1013,6 +1051,7 @@ class SettingsFragment : Fragment() {
         }
         return dirSize
     }
+
     private fun drawDataStat() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.CREATED) {
@@ -1020,7 +1059,6 @@ class SettingsFragment : Fragment() {
                     val mStorageStatsManager =
                         getSystemService(requireContext(), StorageStatsManager::class.java)
                     if (mStorageStatsManager != null) {
-
                         val totalByte =
                             mStorageStatsManager.getTotalBytes(StorageManager.UUID_DEFAULT)
                         val freeSpace =
@@ -1030,14 +1068,19 @@ class SettingsFragment : Fragment() {
                         val otherApp = simpMusicSize.let { usedSpace.minus(it) }
                         val databaseSize =
                             simpMusicSize - viewModel.playerCache.cacheSpace - viewModel.downloadCache.cacheSpace
-                        if (totalByte == freeSpace + otherApp + databaseSize + viewModel.playerCache.cacheSpace + viewModel.downloadCache.cacheSpace) {
+                        if (totalByte ==
+                            freeSpace + otherApp + databaseSize + viewModel.playerCache.cacheSpace + viewModel.downloadCache.cacheSpace
+                        ) {
                             (binding.flexBox.getChildAt(0).layoutParams as FlexboxLayout.LayoutParams).flexBasisPercent =
                                 otherApp.toFloat().div(totalByte.toFloat())
                             (binding.flexBox.getChildAt(1).layoutParams as FlexboxLayout.LayoutParams).flexBasisPercent =
-                                viewModel.downloadCache.cacheSpace.toFloat()
+                                viewModel.downloadCache.cacheSpace
+                                    .toFloat()
                                     .div(totalByte.toFloat())
                             (binding.flexBox.getChildAt(2).layoutParams as FlexboxLayout.LayoutParams).flexBasisPercent =
-                                viewModel.playerCache.cacheSpace.toFloat().div(totalByte.toFloat())
+                                viewModel.playerCache.cacheSpace
+                                    .toFloat()
+                                    .div(totalByte.toFloat())
                             (binding.flexBox.getChildAt(3).layoutParams as FlexboxLayout.LayoutParams).flexBasisPercent =
                                 databaseSize.toFloat().div(totalByte.toFloat())
                             (binding.flexBox.getChildAt(4).layoutParams as FlexboxLayout.LayoutParams).flexBasisPercent =

@@ -5,7 +5,6 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.navigation.safeargs)
-    alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
     alias(libs.plugins.aboutlibraries)
 }
@@ -24,6 +23,7 @@ android {
 
         ksp {
             arg("room.schemaLocation", "$projectDir/schemas")
+            arg("KOIN_CONFIG_CHECK", "true")
         }
 
         resourceConfigurations +=
@@ -256,11 +256,6 @@ dependencies {
 
     // Fragment KTX
     implementation(libs.fragment.ktx)
-    // Hilt
-    implementation(libs.hilt.android)
-    implementation(libs.hilt.work)
-    ksp(libs.hilt.compiler)
-    ksp(libs.dagger.hilt.compiler)
     ksp(libs.kotlinx.metadata.jvm)
     // DataStore
     implementation(libs.datastore.preferences)
@@ -302,9 +297,15 @@ dependencies {
     implementation(libs.insetsx)
 
     coreLibraryDesugaring(libs.desugaring)
-}
-hilt {
-    enableAggregatingTask = true
+
+    //Koin
+    implementation(platform(libs.koin.bom))
+    implementation(libs.koin.core)
+    implementation(libs.koin.android)
+    implementation(libs.koin.workmanager)
+    implementation(libs.koin.androidx.compose)
+    implementation(libs.koin.annotations)
+    ksp(libs.koin.ksp)
 }
 aboutLibraries {
     prettyPrint = true

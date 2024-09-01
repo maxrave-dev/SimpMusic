@@ -15,14 +15,12 @@ import com.maxrave.simpmusic.data.model.explore.mood.genre.ItemsPlaylist
 import com.maxrave.simpmusic.databinding.MoodMomentDialogBinding
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.GenreViewModel
-import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 
-@AndroidEntryPoint
 class GenreFragment: Fragment(){
     private val viewModel by viewModels<GenreViewModel>()
     private var _binding: MoodMomentDialogBinding? = null
-    private val binding get() = _binding!!
+    val binding get() = _binding!!
 
     private lateinit var genreList: ArrayList<ItemsPlaylist>
     private lateinit var genreItemAdapter: GenreItemAdapter

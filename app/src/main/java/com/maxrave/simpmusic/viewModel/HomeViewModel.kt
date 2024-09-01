@@ -3,7 +3,6 @@ package com.maxrave.simpmusic.viewModel
 import android.app.Application
 import android.util.Log
 import android.widget.Toast
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
@@ -12,7 +11,6 @@ import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
-import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.SongEntity
@@ -21,11 +19,10 @@ import com.maxrave.simpmusic.data.model.explore.mood.Mood
 import com.maxrave.simpmusic.data.model.home.HomeDataCombine
 import com.maxrave.simpmusic.data.model.home.HomeItem
 import com.maxrave.simpmusic.data.model.home.chart.Chart
-import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.utils.Resource
-import dagger.hilt.android.lifecycle.HiltViewModel
+import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,20 +35,20 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.koin.android.annotation.KoinViewModel
+import org.koin.core.component.inject
 import java.time.LocalDateTime
-import javax.inject.Inject
 
 @UnstableApi
-@HiltViewModel
-class HomeViewModel
-@Inject
-constructor(
-    private val mainRepository: MainRepository,
-    private val application: Application,
-    private var dataStoreManager: DataStoreManager,
-) : AndroidViewModel(application) {
-    @Inject
-    lateinit var downloadUtils: DownloadUtils
+@KoinViewModel
+class HomeViewModel(
+    private val application: Application
+) : BaseViewModel(application) {
+
+    override val tag: String
+        get() = "HomeViewModel"
+
+    private val downloadUtils: DownloadUtils by inject()
 
     private val _homeItemList: MutableStateFlow<ArrayList<HomeItem>> =
         MutableStateFlow(arrayListOf())
@@ -272,16 +269,16 @@ constructor(
         }
     }
 
-    private var _listLocalPlaylist: MutableStateFlow<List<LocalPlaylistEntity>> =
+    private var _localPlaylist: MutableStateFlow<List<LocalPlaylistEntity>> =
         MutableStateFlow(
             listOf(),
         )
-    val localPlaylist: StateFlow<List<LocalPlaylistEntity>> = _listLocalPlaylist
+    val localPlaylist: StateFlow<List<LocalPlaylistEntity>> = _localPlaylist
 
     fun getAllLocalPlaylist() {
         viewModelScope.launch {
             mainRepository.getAllLocalPlaylists().collect { values ->
-                _listLocalPlaylist.emit(values)
+                _localPlaylist.emit(values)
             }
         }
     }

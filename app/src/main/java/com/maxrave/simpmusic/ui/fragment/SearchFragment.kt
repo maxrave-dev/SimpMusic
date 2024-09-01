@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.fragment
 
-import android.app.Application
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -64,20 +63,13 @@ import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.SearchViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
-import javax.inject.Inject
 
-@AndroidEntryPoint
 class SearchFragment : Fragment() {
-
-    @Inject
-    lateinit var application: Application
-
     private var _binding: FragmentSearchBinding? = null
     private val binding get() = _binding!!
 

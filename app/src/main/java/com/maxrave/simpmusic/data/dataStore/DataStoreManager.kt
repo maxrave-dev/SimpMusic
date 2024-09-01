@@ -16,12 +16,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
 import com.maxrave.simpmusic.common.QUALITY as COMMON_QUALITY
 
-class DataStoreManager
-    @Inject
-    constructor(private val settingsDataStore: DataStore<Preferences>) {
+class DataStoreManager(private val settingsDataStore: DataStore<Preferences>) {
         val location: Flow<String> =
             settingsDataStore.data.map { preferences ->
                 preferences[LOCATION] ?: "VN"
