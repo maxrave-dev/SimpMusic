@@ -1,5 +1,5 @@
 [versions]
-android = "8.6.0"
+android = "8.5.2"
 kotlin = "2.0.0"
 serialization = "2.0.0"
 ksp = "2.0.0-1.0.22"
