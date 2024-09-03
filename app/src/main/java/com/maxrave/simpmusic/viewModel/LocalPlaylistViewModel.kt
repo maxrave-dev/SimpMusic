@@ -43,15 +43,15 @@ import java.time.LocalDateTime
 @UnstableApi
 @KoinViewModel
 class LocalPlaylistViewModel(
-        private val application: Application,
-    ) : BaseViewModel(application) {
+    private val application: Application,
+) : BaseViewModel(application) {
 
     override val tag: String
         get() = "LocalPlaylistViewModel"
 
-        private val downloadUtils: DownloadUtils by inject()
+    private val downloadUtils: DownloadUtils by inject()
 
-        val id: MutableLiveData<Long> = MutableLiveData()
+    val id: MutableLiveData<Long> = MutableLiveData()
 
     private var _localPlaylist: MutableStateFlow<LocalPlaylistEntity?> =
         MutableStateFlow(null)
@@ -107,14 +107,21 @@ class LocalPlaylistViewModel(
         _brush.value = brush
     }
 
-        init {
-            viewModelScope.launch {
-                val checkDownloadedJob =
-                    launch {
-                        listTrack.collect {
-                            if (it != null) {
-                                mainRepository.getPlaylistPairSong(id.value!!).collect {
-                                    Log.w("Pair LocalPlaylistViewModel", "init: ${it?.size}")
+    init {
+        viewModelScope.launch {
+            val checkDownloadedJob =
+                launch {
+                    listTrack.collect {
+                        if (it != null) {
+                            mainRepository.getPlaylistPairSong(id.value!!).collect {
+                                Log.w("Pair LocalPlaylistViewModel", "init: ${it?.size}")
+                            }
+                            val temp: ArrayList<SongEntity> = arrayListOf()
+                            var count = 0
+                            it.forEach { track ->
+                                temp.add(track)
+                                if (track.downloadState == STATE_DOWNLOADED) {
+                                    count++
                                 }
                             }
                             localPlaylist.value?.id?.let { id ->
@@ -136,35 +143,14 @@ class LocalPlaylistViewModel(
                                         STATE_NOT_DOWNLOADED,
                                     )
                                     getLocalPlaylist(id)
-                                }
-                                localPlaylist.value?.id?.let { id ->
-                                    if (count == it.size &&
-                                        localPlaylist.value?.downloadState != STATE_DOWNLOADED
-                                    ) {
-                                        updatePlaylistDownloadState(
-                                            id,
-                                            STATE_DOWNLOADED,
-                                        )
-                                        getLocalPlaylist(id)
-                                    } else if (
-                                        count != it.size &&
-                                        localPlaylist.value?.downloadState != STATE_NOT_DOWNLOADED &&
-                                        localPlaylist.value?.downloadState != STATE_DOWNLOADING
-                                    ) {
-                                        updatePlaylistDownloadState(
-                                            id,
-                                            STATE_NOT_DOWNLOADED,
-                                        )
-                                        getLocalPlaylist(id)
-                                    } else if (
-                                        count < it.size && localPlaylist.value?.downloadState == STATE_DOWNLOADED
-                                    ) {
-                                        updatePlaylistDownloadState(
-                                            id,
-                                            STATE_NOT_DOWNLOADED,
-                                        )
-                                        getLocalPlaylist(id)
-                                    }
+                                } else if (
+                                    count < it.size && localPlaylist.value?.downloadState == STATE_DOWNLOADED
+                                ) {
+                                    updatePlaylistDownloadState(
+                                        id,
+                                        STATE_NOT_DOWNLOADED,
+                                    )
+                                    getLocalPlaylist(id)
                                 }
                             }
                         }

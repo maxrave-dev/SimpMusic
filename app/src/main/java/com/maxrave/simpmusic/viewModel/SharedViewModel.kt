@@ -167,12 +167,7 @@ class SharedViewModel(
 
     private var _controllerState = MutableStateFlow<ControlState>(
         ControlState(
-            isPlaying = false,
-            isShuffle = false,
-            repeatState = RepeatState.None,
-            isLiked = false,
-            isNextAvailable = false,
-            isPreviousAvailable = false
+            isPlaying = false, isShuffle = false, repeatState = RepeatState.None, isLiked = false, isNextAvailable = false, isPreviousAvailable = false
         )
     )
     val controllerState: StateFlow<ControlState> = _controllerState
@@ -204,7 +199,8 @@ class SharedViewModel(
                     it.total
                 }, nowPlayingState.distinctUntilChangedBy {
                     it?.songEntity?.videoId
-                }) { timeline, nowPlayingState ->
+                }) {
+                        timeline, nowPlayingState ->
                     Pair(timeline, nowPlayingState)
                 }
                     .collectLatest {
@@ -308,7 +304,6 @@ class SharedViewModel(
                             SimpleMediaState.Initial -> {
                                 _timeline.update { it.copy(loading = true) }
                             }
-
                             SimpleMediaState.Ended -> {
                                 _timeline.update {
                                     it.copy(
@@ -329,7 +324,8 @@ class SharedViewModel(
                                                 loading = false
                                             )
                                         }
-                                    } else {
+                                    }
+                                    else {
                                         _timeline.update {
                                             it.copy(
                                                 current = mediaState.progress,
@@ -338,7 +334,8 @@ class SharedViewModel(
                                             )
                                         }
                                     }
-                                } else {
+                                }
+                                else {
                                     _timeline.update {
                                         it.copy(
                                             loading = true
@@ -825,7 +822,8 @@ class SharedViewModel(
                         )
                     )
                     loadMediaItemFromTrack(track, SONG_CLICK)
-                } else {
+                }
+                else {
                     Toast.makeText(context, context.getString(R.string.error), Toast.LENGTH_SHORT).show()
                 }
             }
@@ -1225,7 +1223,6 @@ class SharedViewModel(
                         )
                     }
                 }
-
                 false -> {
                     if (lyrics != null) {
                         _nowPlayingScreenData.update {
@@ -1236,7 +1233,8 @@ class SharedViewModel(
                                 )
                             )
                         }
-                    } else {
+                    }
+                    else {
                         _nowPlayingScreenData.update {
                             it.copy(
                                 lyricsData = null
@@ -1256,52 +1254,51 @@ class SharedViewModel(
             val videoId = song.videoId
             Log.w(tag, "Get Lyrics From Format for $videoId")
             if (dataStoreManager.lyricsProvider.first() == DataStoreManager.MUSIXMATCH) {
-                    val artist =
-                        if (song.artistName?.firstOrNull() != null && song.artistName.firstOrNull()
-                                ?.contains("Various Artists") == false
-                        ) {
-                            song.artistName.firstOrNull()
-                        } else {
-                            simpleMediaServiceHandler?.nowPlaying?.first()?.mediaMetadata?.artist
-                                ?: ""
-                        }
-                    mainRepository.getLyricsData(
-                        (artist ?: "").toString(),
-                        song.title,
-                        duration,
-                    ).cancellable().collect { response ->
-                        Log.w(tag, response.second.data.toString())
+                val artist =
+                    if (song.artistName?.firstOrNull() != null && song.artistName.firstOrNull()
+                            ?.contains("Various Artists") == false
+                    ) {
+                        song.artistName.firstOrNull()
+                    } else {
+                        simpleMediaServiceHandler?.nowPlaying?.first()?.mediaMetadata?.artist
+                            ?: ""
+                    }
+                mainRepository.getLyricsData(
+                    (artist ?: "").toString(),
+                    song.title,
+                    duration,
+                ).cancellable().collect { response ->
+                    Log.w(tag, response.second.data.toString())
 
-                        when (response.second) {
-                            is Resource.Success -> {
-                                if (response.second.data != null) {
-                                    Log.d(tag, "Get Lyrics Data Success")
-                                    updateLyrics(
+                    when (response.second) {
+                        is Resource.Success -> {
+                            if (response.second.data != null) {
+                                Log.d(tag, "Get Lyrics Data Success")
+                                updateLyrics(
+                                    videoId,
+                                    response.second.data,
+                                    false,
+                                    LyricsProvider.MUSIXMATCH
+                                )
+                                insertLyrics(
+                                    response.second.data!!.toLyricsEntity(
                                         videoId,
-                                        response.second.data,
-                                        false,
-                                        LyricsProvider.MUSIXMATCH
-                                    )
-                                    insertLyrics(
-                                        response.second.data!!.toLyricsEntity(
-                                            videoId,
-                                        ),
-                                    )
-                                    if (dataStoreManager.enableTranslateLyric.first() == TRUE) {
-                                        mainRepository.getTranslateLyrics(
-                                            response.first,
-                                        ).cancellable()
-                                            .collect { translate ->
-                                                if (translate != null) {
-                                                    Log.d(tag, "Get Translate Lyrics Success")
-                                                    updateLyrics(
-                                                        videoId,
-                                                        translate.toLyrics(
-                                                            response.second.data!!,
-                                                        ),
-                                                        true
-                                                    )
-                                                }
+                                    ),
+                                )
+                                if (dataStoreManager.enableTranslateLyric.first() == TRUE) {
+                                    mainRepository.getTranslateLyrics(
+                                        response.first,
+                                    ).cancellable()
+                                        .collect { translate ->
+                                            if (translate != null) {
+                                                Log.d(tag, "Get Translate Lyrics Success")
+                                                updateLyrics(
+                                                    videoId,
+                                                    translate.toLyrics(
+                                                        response.second.data!!,
+                                                    ),
+                                                    true
+                                                )
                                             }
                                         }
                                 }
@@ -1317,7 +1314,7 @@ class SharedViewModel(
                         }
 
                         is Resource.Error -> {
-                            Log.w(TAG, "Get Lyrics Data Error")
+                            Log.w(tag, "Get Lyrics Data Error")
                             if (_lyrics.value?.message != "reset") {
                                 if (dataStoreManager.spotifyLyrics.first() == TRUE) {
                                     getSpotifyLyrics(
@@ -1333,27 +1330,6 @@ class SharedViewModel(
                                             durationSeconds = duration,
                                         ),
                                     )
-                                }
-                            }
-
-                            is Resource.Error -> {
-                                Log.w(tag, "Get Lyrics Data Error")
-                                if (_lyrics.value?.message != "reset") {
-                                    if (dataStoreManager.spotifyLyrics.first() == TRUE) {
-                                        getSpotifyLyrics(
-                                            song.toTrack().copy(
-                                                durationSeconds = duration,
-                                            ),
-                                            "${song.title} $artist",
-                                            duration,
-                                        )
-                                    } else {
-                                        getSavedLyrics(
-                                            song.toTrack().copy(
-                                                durationSeconds = duration,
-                                            ),
-                                        )
-                                    }
                                 }
                             }
                         }
@@ -1454,7 +1430,7 @@ class SharedViewModel(
             dataStoreManager.setLyricsProvider(provider)
             delay(500)
             nowPlayingState.value?.songEntity?.let {
-                getLyricsFromFormat(it, timeline.value.total.toInt() / 1000)
+                getLyricsFromFormat(it, timeline.value.total.toInt()/1000)
             }
         }
     }
@@ -1497,7 +1473,7 @@ class SharedViewModel(
     fun addListLocalToQueue(listVideoId: List<String>) {
         viewModelScope.launch {
             val listSong = mainRepository.getSongsByListVideoId(listVideoId).singleOrNull()
-            if (!listSong.isNullOrEmpty()) {
+            if (!listSong.isNullOrEmpty()){
                 simpleMediaServiceHandler?.loadMoreCatalog(listSong.toArrayListTrack())
                 Toast.makeText(
                     context,
@@ -1505,7 +1481,8 @@ class SharedViewModel(
                     Toast.LENGTH_SHORT,
                 )
                     .show()
-            } else {
+            }
+            else {
                 Toast.makeText(
                     context,
                     context.getString(R.string.error),
@@ -1526,7 +1503,6 @@ class SharedViewModel(
                 .show()
         }
     }
-
     fun playNext(song: Track) {
         viewModelScope.launch {
             simpleMediaServiceHandler?.playNext(song)
@@ -1642,7 +1618,7 @@ sealed class UIEvent {
 
     data class UpdateProgress(val newProgress: Float) : UIEvent()
 
-    data object ToggleLike : UIEvent()
+    data object ToggleLike: UIEvent()
 }
 
 enum class LyricsProvider {
@@ -1671,9 +1647,8 @@ data class NowPlayingScreenData(
 ) {
     data class CanvasData(
         val isVideo: Boolean,
-        val url: String
+        val url : String
     )
-
     data class LyricsData(
         val lyrics: Lyrics,
         val translatedLyrics: Lyrics? = null,

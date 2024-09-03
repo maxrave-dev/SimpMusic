@@ -692,6 +692,10 @@ class MainRepository(
                                     count++
                                 }
                         }
+                        Log.d("Repository", "List size: ${list.size}")
+                        emit(Resource.Success<ArrayList<HomeItem>>(list))
+                    }.onFailure { error ->
+                        emit(Resource.Error<ArrayList<HomeItem>>(error.message.toString()))
                     }
             }
         }.flowOn(Dispatchers.IO)
@@ -752,16 +756,19 @@ class MainRepository(
                                 )
                             }
                         }
-                    }
-                    result[1].let { genres ->
-                        for (item in genres.items) {
-                            listGenre.add(
-                                Genre(
-                                    params = item.endpoint.params ?: "",
-                                    title = item.title,
-                                ),
-                            )
+                        result[1].let { genres ->
+                            for (item in genres.items) {
+                                listGenre.add(
+                                    Genre(
+                                        params = item.endpoint.params ?: "",
+                                        title = item.title,
+                                    ),
+                                )
+                            }
                         }
+                        emit(Resource.Success<Mood>(Mood(listGenre, listMoodMoments)))
+                    }.onFailure { e ->
+                        emit(Resource.Error<Mood>(e.message.toString()))
                     }
             }
         }.flowOn(Dispatchers.IO)
@@ -876,21 +883,21 @@ class MainRepository(
                             PlaylistBrowse(
                                 author = Author(id = "", name = "YouTube Music"),
                                 description =
-                                    context.getString(
-                                        R.string.auto_created_by_youtube_music,
-                                    ),
+                                context.getString(
+                                    R.string.auto_created_by_youtube_music,
+                                ),
                                 duration = "",
                                 durationSeconds = 0,
                                 id = radioId,
                                 privacy = "PRIVATE",
                                 thumbnails =
-                                    listOf(
-                                        Thumbnail(
-                                            544,
-                                            originalTrack?.thumbnails ?: artist?.thumbnails ?: "",
-                                            544,
-                                        ),
+                                listOf(
+                                    Thumbnail(
+                                        544,
+                                        originalTrack?.thumbnails ?: artist?.thumbnails ?: "",
+                                        544,
                                     ),
+                                ),
                                 title = "${originalTrack?.title ?: artist?.name} ${
                                     context.getString(
                                         R.string.radio,
@@ -938,7 +945,7 @@ class MainRepository(
                                         SearchPage.toYTItem(
                                             it.musicResponsiveListItemRenderer,
                                         ) as SongItem
-                                    ).toTrack(),
+                                        ).toTrack(),
                                 )
                             }
                             emit(Pair(reloadParamsNew, listTrack))
@@ -1053,18 +1060,22 @@ class MainRepository(
                                     continueParam = null
                                 }
                         }
-                    }
-                    println("dataResult: ${dataResult.size}")
-                    if (dataResult.isNotEmpty()) {
-                        val listTrack: ArrayList<Track> = arrayListOf()
-                        dataResult.forEach {
-                            listTrack.add(
-                                (
-                                    PlaylistPage.fromMusicResponsiveListItemRenderer(
-                                        it.musicResponsiveListItemRenderer,
-                                    ) as SongItem
-                                    ).toTrack(),
-                            )
+                        println("dataResult: ${dataResult.size}")
+                        if (dataResult.isNotEmpty()) {
+                            val listTrack: ArrayList<Track> = arrayListOf()
+                            dataResult.forEach {
+                                listTrack.add(
+                                    (
+                                        PlaylistPage.fromMusicResponsiveListItemRenderer(
+                                            it.musicResponsiveListItemRenderer,
+                                        ) as SongItem
+                                        ).toTrack(),
+                                )
+                            }
+                            println("listTrack: $listTrack")
+                            emit(Pair(reloadParams, listTrack))
+                        } else {
+                            emit(null)
                         }
                     }.onFailure { exception ->
                         exception.printStackTrace()
@@ -1115,17 +1126,17 @@ class MainRepository(
                                 ?.let {
                                     Artist(
                                         id =
-                                            it.straplineTextOne
-                                                ?.runs
-                                                ?.firstOrNull()
-                                                ?.navigationEndpoint
-                                                ?.browseEndpoint
-                                                ?.browseId,
+                                        it.straplineTextOne
+                                            ?.runs
+                                            ?.firstOrNull()
+                                            ?.navigationEndpoint
+                                            ?.browseEndpoint
+                                            ?.browseId,
                                         name =
-                                            it.straplineTextOne
-                                                ?.runs
-                                                ?.firstOrNull()
-                                                ?.text ?: "",
+                                        it.straplineTextOne
+                                            ?.runs
+                                            ?.firstOrNull()
+                                            ?.text ?: "",
                                     )
                                 }
                         val authorThumbnail =
@@ -1223,86 +1234,13 @@ class MainRepository(
                                         listEpisode = listEpisode,
                                     ),
                                 ),
-                            ),
-                        )
-                    } else {
-                        emit(Resource.Error<PodcastBrowse>("Error"))
-                    }
-                }.onFailure { error ->
-                    Log.w("Podcast", "Error: ${error.message}")
-                    emit(Resource.Error<PodcastBrowse>(error.message.toString()))
-                }
-            }
-        }
-
-    suspend fun getRDATRadioData(radioId: String): Flow<Resource<Pair<PlaylistBrowse, String>>> = flow<Resource<Pair<PlaylistBrowse, String>>> {
-        runCatching {
-            val id = if (radioId.startsWith("VL")) {
-                radioId
-            } else {
-                "VL$radioId"
-            }
-            YouTube.customQuery(browseId = id, setLogin = true).onSuccess { result ->
-                val listContent: ArrayList<MusicShelfRenderer.Content> = arrayListOf()
-                val data: List<MusicShelfRenderer.Content>? =
-                    result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(
-                        0,
-                    )?.tabRenderer?.content?.sectionListRenderer?.contents?.get(
-                        0,
-                    )?.musicPlaylistShelfRenderer?.contents
-                        ?: result.contents?.twoColumnBrowseResultsRenderer
-                            ?.secondaryContents?.sectionListRenderer?.contents?.get(0)
-                            ?.musicPlaylistShelfRenderer?.contents
-                if (data != null) {
-                    Log.d("Data", "data: $data")
-                    Log.d("Data", "data size: ${data.size}")
-                    listContent.addAll(data)
-                }
-                val header =
-                    result.header?.musicDetailHeaderRenderer
-                        ?: result.header?.musicEditablePlaylistDetailHeaderRenderer
-                        ?: result.contents?.twoColumnBrowseResultsRenderer?.tabs?.get(0)
-                            ?.tabRenderer?.content?.sectionListRenderer?.contents?.get(0)
-                            ?.musicResponsiveHeaderRenderer
-                        ?: result.contents?.twoColumnBrowseResultsRenderer?.tabs?.get(0)
-                            ?.tabRenderer?.content?.sectionListRenderer?.contents?.get(0)
-                            ?.musicEditablePlaylistDetailHeaderRenderer?.header?.musicResponsiveHeaderRenderer
-                Log.d("Header", "header: $header")
-                var continueParam =
-                    result.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(
-                        0,
-                    )?.tabRenderer?.content?.sectionListRenderer?.contents?.get(
-                        0,
-                    )?.musicPlaylistShelfRenderer?.continuations?.get(
-                        0,
-                    )?.nextContinuationData?.continuation
-                        ?: result.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer?.contents?.firstOrNull()
-                            ?.musicPlaylistShelfRenderer?.continuations?.firstOrNull()?.nextContinuationData?.continuation
-                var count = 0
-                Log.d("Repository", "playlist data: ${listContent.size}")
-                Log.d("Repository", "continueParam: $continueParam")
-//                        else {
-//                            var listTrack = playlistBrowse.tracks.toMutableList()
-                while (count < 1 && continueParam != null) {
-                    YouTube.customQuery(
-                        browseId = "",
-                        continuation = continueParam,
-                        setLogin = true,
-                    ).onSuccess { values ->
-                        Log.d("Continue", "continue: $continueParam")
-                        val dataMore: List<MusicShelfRenderer.Content>? =
-                            values.continuationContents?.musicPlaylistShelfContinuation?.contents
-                        if (dataMore != null) {
-                            listContent.addAll(dataMore)
+                            )
+                        } else {
+                            emit(Resource.Error<PodcastBrowse>("Error"))
                         }
-                        continueParam =
-                            values.continuationContents?.musicPlaylistShelfContinuation?.continuations?.get(
-                                0,
-                            )?.nextContinuationData?.continuation
-                        count++
-                    }.onFailure {
-                        Log.e("Continue", "Error: ${it.message}")
-                        count = 3
+                    }.onFailure { error ->
+                        Log.w("Podcast", "Error: ${error.message}")
+                        emit(Resource.Error<PodcastBrowse>(error.message.toString()))
                     }
             }
         }
@@ -1673,7 +1611,6 @@ class MainRepository(
                                     count++
                                 }
                         }
-                    }
 
                         emit(Resource.Success<ArrayList<SongsResult>>(listSongs))
                     }.onFailure { e ->
@@ -1710,6 +1647,11 @@ class MainRepository(
                                     count++
                                 }
                         }
+
+                        emit(Resource.Success<ArrayList<VideosResult>>(listSongs))
+                    }.onFailure { e ->
+                        Log.d("Search", "Error: ${e.message}")
+                        emit(Resource.Error<ArrayList<VideosResult>>(e.message.toString()))
                     }
             }
         }.flowOn(Dispatchers.IO)
@@ -1723,7 +1665,8 @@ class MainRepository(
                         println(query)
                         val listPlaylist: ArrayList<PlaylistsResult> = arrayListOf()
                         var countinueParam = result.continuation
-                        parseSearchPlaylist(result).let { list ->
+                        Log.w("Podcast", "result: $result")
+                        parsePodcast(result.listPodcast).let { list ->
                             listPlaylist.addAll(list)
                         }
                         var count = 0
@@ -1812,6 +1755,10 @@ class MainRepository(
                                     count++
                                 }
                         }
+                        emit(Resource.Success<ArrayList<ArtistsResult>>(listArtist))
+                    }.onFailure { e ->
+                        Log.d("Search", "Error: ${e.message}")
+                        emit(Resource.Error<ArrayList<ArtistsResult>>(e.message.toString()))
                     }
             }
         }.flowOn(Dispatchers.IO)
@@ -1824,8 +1771,8 @@ class MainRepository(
                     .onSuccess { result ->
                         val listAlbum: ArrayList<AlbumsResult> = arrayListOf()
                         var countinueParam = result.continuation
-                        parseSearchPlaylist(result).let { list ->
-                            listPlaylist.addAll(list)
+                        parseSearchAlbum(result).let { list ->
+                            listAlbum.addAll(list)
                         }
                         var count = 0
                         while (count < 2 && countinueParam != null) {
@@ -1843,10 +1790,10 @@ class MainRepository(
                                     count++
                                 }
                         }
-                        emit(Resource.Success<ArrayList<PlaylistsResult>>(listPlaylist))
+                        emit(Resource.Success<ArrayList<AlbumsResult>>(listAlbum))
                     }.onFailure { e ->
                         Log.d("Search", "Error: ${e.message}")
-                        emit(Resource.Error<ArrayList<PlaylistsResult>>(e.message.toString()))
+                        emit(Resource.Error<ArrayList<AlbumsResult>>(e.message.toString()))
                     }
             }
         }.flowOn(Dispatchers.IO)
@@ -2108,7 +2055,7 @@ class MainRepository(
                             Log.d("Lyrics", "spotifyPersonalToken: $spotifyPersonalToken")
                         }.onFailure {
                             it.printStackTrace()
-                            emit(null)
+                            emit(Resource.Error<Lyrics>("Not found"))
                         }
                 }
                 if (spotifyPersonalToken.isNotEmpty()) {
@@ -2118,7 +2065,7 @@ class MainRepository(
                         .searchSpotifyTrack(q, clientToken)
                         .onSuccess { searchResponse ->
                             val track =
-                                if (duration != 0) {
+                                if (duration != null && duration != 0) {
                                     searchResponse.tracks.items.find {
                                         abs(
                                             ((it.duration_ms / 1000) - duration),
@@ -2128,6 +2075,7 @@ class MainRepository(
                                 } else {
                                     searchResponse.tracks.items.firstOrNull()
                                 }
+                            Log.d("Lyrics", "track: $track")
                             if (track != null) {
                                 YouTube
                                     .getSpotifyLyrics(track.id, spotifyPersonalToken)
@@ -2138,7 +2086,7 @@ class MainRepository(
                                         emit(Resource.Error<Lyrics>("Not found"))
                                     }
                             } else {
-                                emit(null)
+                                emit(Resource.Error<Lyrics>("Not found"))
                             }
                         }.onFailure { throwable ->
                             throwable.printStackTrace()
@@ -2275,12 +2223,12 @@ class MainRepository(
                                     }
                                     val closestIndex =
                                         trackLengthList.minByOrNull {
-                                            kotlin.math.abs(
+                                            abs(
                                                 it - durationInt,
                                             )
                                         }
                                     if (closestIndex != null &&
-                                        kotlin.math.abs(
+                                        abs(
                                             closestIndex - durationInt,
                                         ) < 2
                                     ) {
@@ -2762,20 +2710,20 @@ class MainRepository(
                             oldFormat.copy(
                                 expiredTime = LocalDateTime.now().plusSeconds(response.streamingData?.expiresInSeconds?.toLong() ?: 0L),
                                 playbackTrackingVideostatsPlaybackUrl =
-                                    response.playbackTracking?.videostatsPlaybackUrl?.baseUrl?.replace(
-                                        "https://s.youtube.com",
-                                        "https://music.youtube.com",
-                                    ),
+                                response.playbackTracking?.videostatsPlaybackUrl?.baseUrl?.replace(
+                                    "https://s.youtube.com",
+                                    "https://music.youtube.com",
+                                ),
                                 playbackTrackingAtrUrl =
-                                    response.playbackTracking?.atrUrl?.baseUrl?.replace(
-                                        "https://s.youtube.com",
-                                        "https://music.youtube.com",
-                                    ),
+                                response.playbackTracking?.atrUrl?.baseUrl?.replace(
+                                    "https://s.youtube.com",
+                                    "https://music.youtube.com",
+                                ),
                                 playbackTrackingVideostatsWatchtimeUrl =
-                                    response.playbackTracking?.videostatsWatchtimeUrl?.baseUrl?.replace(
-                                        "https://s.youtube.com",
-                                        "https://music.youtube.com",
-                                    ),
+                                response.playbackTracking?.videostatsWatchtimeUrl?.baseUrl?.replace(
+                                    "https://s.youtube.com",
+                                    "https://music.youtube.com",
+                                ),
                                 cpn = triple.first,
                             ),
                         )
@@ -2834,8 +2782,14 @@ class MainRepository(
                                 ?: response.streamingData?.formats?.find { it.itag == 134 }
                                 ?: response.streamingData?.adaptiveFormats?.find { it.itag == 134 }
                         } else {
-                            response.streamingData?.adaptiveFormats?.find { it.itag == itag }
+                            if (response.streamingData?.adaptiveFormats?.find { it.itag == 141 } != null) {
+                                response.streamingData?.adaptiveFormats?.find { it.itag == 141 }
+                            } else {
+                                response.streamingData?.adaptiveFormats?.find { it.itag == itag }
+                            }
                         }
+                    if (format == null) {
+                        format = response.streamingData?.adaptiveFormats?.lastOrNull()
                     }
                     Log.w("Stream", "format: $format")
                     Log.d("Stream", "expireInSeconds ${response.streamingData?.expiresInSeconds}")
@@ -2846,64 +2800,51 @@ class MainRepository(
                                 videoId = if (VIDEO_QUALITY.itags.contains(format?.itag)) "${MergingMediaSourceFactory.isVideo}$videoId" else videoId,
                                 itag = format?.itag ?: itag ?: 141,
                                 mimeType =
-                                    Regex("""([^;]+);\s*codecs=["']([^"']+)["']""")
-                                        .find(
-                                            format?.mimeType ?: "",
-                                        )?.groupValues
-                                        ?.getOrNull(1) ?: format?.mimeType ?: "",
+                                Regex("""([^;]+);\s*codecs=["']([^"']+)["']""")
+                                    .find(
+                                        format?.mimeType ?: "",
+                                    )?.groupValues
+                                    ?.getOrNull(1) ?: format?.mimeType ?: "",
                                 codecs =
-                                    Regex("""([^;]+);\s*codecs=["']([^"']+)["']""")
-                                        .find(
-                                            format?.mimeType ?: "",
-                                        )?.groupValues
-                                        ?.getOrNull(2) ?: format?.mimeType ?: "",
+                                Regex("""([^;]+);\s*codecs=["']([^"']+)["']""")
+                                    .find(
+                                        format?.mimeType ?: "",
+                                    )?.groupValues
+                                    ?.getOrNull(2) ?: format?.mimeType ?: "",
                                 bitrate = format?.bitrate,
                                 sampleRate = format?.audioSampleRate,
                                 contentLength = format?.contentLength,
                                 loudnessDb =
-                                    response.playerConfig
-                                        ?.audioConfig
-                                        ?.loudnessDb
-                                        ?.toFloat(),
+                                response.playerConfig
+                                    ?.audioConfig
+                                    ?.loudnessDb
+                                    ?.toFloat(),
                                 lengthSeconds = response.videoDetails?.lengthSeconds?.toInt(),
                                 playbackTrackingVideostatsPlaybackUrl =
-                                    response.playbackTracking?.videostatsPlaybackUrl?.baseUrl?.replace(
-                                        "https://s.youtube.com",
-                                        "https://music.youtube.com",
-                                    ),
+                                response.playbackTracking?.videostatsPlaybackUrl?.baseUrl?.replace(
+                                    "https://s.youtube.com",
+                                    "https://music.youtube.com",
+                                ),
                                 playbackTrackingAtrUrl =
-                                    response.playbackTracking?.atrUrl?.baseUrl?.replace(
-                                        "https://s.youtube.com",
-                                        "https://music.youtube.com",
-                                    ),
+                                response.playbackTracking?.atrUrl?.baseUrl?.replace(
+                                    "https://s.youtube.com",
+                                    "https://music.youtube.com",
+                                ),
                                 playbackTrackingVideostatsWatchtimeUrl =
-                                    response.playbackTracking?.videostatsWatchtimeUrl?.baseUrl?.replace(
-                                        "https://s.youtube.com",
-                                        "https://music.youtube.com",
-                                    ),
+                                response.playbackTracking?.videostatsWatchtimeUrl?.baseUrl?.replace(
+                                    "https://s.youtube.com",
+                                    "https://music.youtube.com",
+                                ),
                                 cpn = data.first,
                                 expiredTime = LocalDateTime.now().plusSeconds(response.streamingData?.expiresInSeconds?.toLong() ?: 0L),
                             ),
-                            playbackTrackingAtrUrl =
-                            response.playbackTracking?.atrUrl?.baseUrl?.replace(
-                                "https://s.youtube.com",
-                                "https://music.youtube.com",
-                            ),
-                            playbackTrackingVideostatsWatchtimeUrl =
-                            response.playbackTracking?.videostatsWatchtimeUrl?.baseUrl?.replace(
-                                "https://s.youtube.com",
-                                "https://music.youtube.com",
-                            ),
-                            cpn = data.first,
-                            expiredTime = LocalDateTime.now().plusSeconds(response.streamingData?.expiresInSeconds?.toLong() ?: 0L)
-                        ),
-                    )
-                }
-                if (data.first != null) {
-                    emit(format?.url?.plus("&cpn=${data.first}"))
-                } else {
-                    emit(format?.url)
-                }
+                        )
+                    }
+                    if (data.first != null) {
+                        emit(format?.url?.plus("&cpn=${data.first}"))
+                    } else {
+                        emit(format?.url)
+                    }
 //                insertFormat(
 //                    FormatEntity(
 //                        videoId = videoId,
@@ -2924,28 +2865,9 @@ class MainRepository(
 //                        lengthSeconds = response.videoDetails?.lengthSeconds?.toInt(),
 //                    )
 //                )
-            }.onFailure {
-                it.printStackTrace()
-                Log.e("Stream", "Error: ${it.message}")
-                emit(null)
-            }
-        }.flowOn(Dispatchers.IO)
-
-    suspend fun getLibraryPlaylist(): Flow<ArrayList<PlaylistsResult>?> =
-        flow {
-            YouTube.getLibraryPlaylists().onSuccess { data ->
-                val input =
-                    data.contents?.singleColumnBrowseResultsRenderer?.tabs?.get(
-                        0,
-                    )?.tabRenderer?.content?.sectionListRenderer?.contents?.get(
-                        0,
-                    )?.gridRenderer?.items
-                        ?: null
-                if (input != null) {
-                    Log.w("Library", "input: ${input.size}")
-                    val list = parseLibraryPlaylist(input)
-                    emit(list)
-                } else {
+                }.onFailure {
+                    it.printStackTrace()
+                    Log.e("Stream", "Error: ${it.message}")
                     emit(null)
                 }
         }.flowOn(Dispatchers.IO)
@@ -3119,14 +3041,17 @@ class MainRepository(
                                     count++
                                 }
                         }
-                    }
-                    Log.d("Repository", "playlist final data: ${listContent.size}")
-                    parseSetVideoId(listContent).let { playlist ->
-                        Log.d("Repository", "playlist final data setVideoId: $playlist")
-                        playlist.forEach { item ->
-                            insertSetVideoId(item)
+                        Log.d("Repository", "playlist final data: ${listContent.size}")
+                        parseSetVideoId(listContent).let { playlist ->
+                            Log.d("Repository", "playlist final data setVideoId: $playlist")
+                            playlist.forEach { item ->
+                                insertSetVideoId(item)
+                            }
+                            emit(playlist)
                         }
-                        emit(playlist)
+                    }.onFailure { e ->
+                        e.printStackTrace()
+                        emit(null)
                     }
             }
         }.flowOn(Dispatchers.IO)
@@ -3207,8 +3132,7 @@ class MainRepository(
                     } else {
                         emit("FAILED")
                     }
-                    emit(it.status)
-                } else {
+                }.onFailure {
                     emit("FAILED")
                 }
         }

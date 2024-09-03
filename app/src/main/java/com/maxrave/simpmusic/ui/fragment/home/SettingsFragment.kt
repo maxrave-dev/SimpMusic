@@ -420,22 +420,14 @@ class SettingsFragment : Fragment() {
                 val job24 =
                     launch {
                         viewModel.spotifyLyrics.collect {
-                            if (it) {
-                                binding.swEnableSpotifyLyrics.isChecked = true
-                            } else {
-                                binding.swEnableSpotifyLyrics.isChecked = false
-                            }
+                            binding.swEnableSpotifyLyrics.isChecked = it
                         }
                     }
 
                 val job25 =
                     launch {
                         viewModel.spotifyCanvas.collect {
-                            if (it) {
-                                binding.swEnableCanvas.isChecked = true
-                            } else {
-                                binding.swEnableCanvas.isChecked = false
-                            }
+                            binding.swEnableCanvas.isChecked = it
                         }
                     }
                 val job26 =
@@ -450,7 +442,7 @@ class SettingsFragment : Fragment() {
                 val job27 =
                     launch {
                         viewModel.translucentBottomBar.collectLatest { translucent ->
-                            binding.swEnableTranslucentNavBar.isChecked = if (translucent == DataStoreManager.TRUE) true else false
+                            binding.swEnableTranslucentNavBar.isChecked = translucent == DataStoreManager.TRUE
                         }
                     }
                 job1.join()

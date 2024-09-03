@@ -366,13 +366,13 @@ class PlaylistFragment : Fragment() {
                         QueueData(
                             listTracks = (viewModel.playlistBrowse.value?.tracks ?: arrayListOf()) as ArrayList<Track>,
                             firstPlayedTrack =
-                                viewModel.playlistBrowse.value
-                                    ?.tracks
-                                    ?.get(0),
+                            viewModel.playlistBrowse.value
+                                ?.tracks
+                                ?.get(0),
                             playlistId =
-                                viewModel.playlistBrowse.value
-                                    ?.id
-                                    ?.replaceFirst("VL", "") ?: "",
+                            viewModel.playlistBrowse.value
+                                ?.id
+                                ?.replaceFirst("VL", "") ?: "",
                             playlistName = "Playlist \"${viewModel.playlistBrowse.value?.title}\"",
                             playlistType = PlaylistType.PLAYLIST,
                             continuation = null,
@@ -395,13 +395,13 @@ class PlaylistFragment : Fragment() {
                         QueueData(
                             listTracks = viewModel.listTrack.value.toArrayListTrack(),
                             firstPlayedTrack =
-                                viewModel.listTrack.value
-                                    .firstOrNull()
-                                    ?.toTrack(),
+                            viewModel.listTrack.value
+                                .firstOrNull()
+                                ?.toTrack(),
                             playlistId =
-                                viewModel.playlistEntity.value
-                                    ?.id
-                                    ?.replaceFirst("VL", "") ?: "",
+                            viewModel.playlistEntity.value
+                                ?.id
+                                ?.replaceFirst("VL", "") ?: "",
                             playlistName = "Playlist \"${viewModel.playlistEntity.value?.title}\"",
                             playlistType = PlaylistType.PLAYLIST,
                             continuation = null,
@@ -428,19 +428,19 @@ class PlaylistFragment : Fragment() {
                         QueueData(
                             listTracks = (viewModel.playlistBrowse.value?.tracks ?: arrayListOf()) as ArrayList<Track>,
                             firstPlayedTrack =
-                                viewModel.playlistBrowse.value
-                                    ?.tracks
-                                    ?.get(0),
+                            viewModel.playlistBrowse.value
+                                ?.tracks
+                                ?.get(0),
                             playlistId =
-                                viewModel.playlistBrowse.value
-                                    ?.id
-                                    ?.replaceFirst("VL", "") ?: "",
+                            viewModel.playlistBrowse.value
+                                ?.id
+                                ?.replaceFirst("VL", "") ?: "",
                             playlistName = "${viewModel.playlistBrowse.value?.title}",
                             playlistType = PlaylistType.RADIO,
                             continuation =
-                                viewModel.radioContinuation.value?.let {
-                                    if (it.first == viewModel.playlistBrowse.value?.id) it.second else null
-                                },
+                            viewModel.radioContinuation.value?.let {
+                                if (it.first == viewModel.playlistBrowse.value?.id) it.second else null
+                            },
                         ),
                     )
                     viewModel.playlistBrowse.value?.tracks?.firstOrNull()?.let {
@@ -457,19 +457,19 @@ class PlaylistFragment : Fragment() {
                         QueueData(
                             listTracks = viewModel.listTrack.value.toArrayListTrack(),
                             firstPlayedTrack =
-                                viewModel.listTrack.value
-                                    .firstOrNull()
-                                    ?.toTrack(),
+                            viewModel.listTrack.value
+                                .firstOrNull()
+                                ?.toTrack(),
                             playlistId =
-                                viewModel.playlistBrowse.value
-                                    ?.id
-                                    ?.replaceFirst("VL", ""),
+                            viewModel.playlistBrowse.value
+                                ?.id
+                                ?.replaceFirst("VL", ""),
                             playlistName = "${viewModel.playlistBrowse.value?.title}",
                             playlistType = PlaylistType.RADIO,
                             continuation =
-                                viewModel.radioContinuation.value?.let {
-                                    if (it.first == viewModel.playlistBrowse.value?.id) it.second else null
-                                },
+                            viewModel.radioContinuation.value?.let {
+                                if (it.first == viewModel.playlistBrowse.value?.id) it.second else null
+                            },
                         ),
                     )
                     viewModel.listTrack.value.firstOrNull()?.let {
@@ -499,13 +499,13 @@ class PlaylistFragment : Fragment() {
                                 QueueData(
                                     listTracks = (viewModel.playlistBrowse.value?.tracks ?: arrayListOf()) as ArrayList<Track>,
                                     firstPlayedTrack =
-                                        viewModel.playlistBrowse.value
-                                            ?.tracks
-                                            ?.get(position),
+                                    viewModel.playlistBrowse.value
+                                        ?.tracks
+                                        ?.get(position),
                                     playlistId =
-                                        viewModel.playlistBrowse.value
-                                            ?.id
-                                            ?.replaceFirst("VL", "") ?: "",
+                                    viewModel.playlistBrowse.value
+                                        ?.id
+                                        ?.replaceFirst("VL", "") ?: "",
                                     playlistName = "Playlist \"${viewModel.playlistBrowse.value?.title}\"",
                                     playlistType = PlaylistType.PLAYLIST,
                                     continuation = null,
@@ -526,13 +526,13 @@ class PlaylistFragment : Fragment() {
                                 QueueData(
                                     listTracks = viewModel.listTrack.value.toArrayListTrack(),
                                     firstPlayedTrack =
-                                        viewModel.listTrack.value
-                                            .getOrNull(position)
-                                            ?.toTrack(),
+                                    viewModel.listTrack.value
+                                        .getOrNull(position)
+                                        ?.toTrack(),
                                     playlistId =
-                                        viewModel.playlistEntity.value
-                                            ?.id
-                                            ?.replaceFirst("VL", "") ?: "",
+                                    viewModel.playlistEntity.value
+                                        ?.id
+                                        ?.replaceFirst("VL", "") ?: "",
                                     playlistName = "Playlist \"${viewModel.playlistEntity.value?.title}\"",
                                     playlistType = PlaylistType.PLAYLIST,
                                     continuation = null,
@@ -560,19 +560,19 @@ class PlaylistFragment : Fragment() {
                                 QueueData(
                                     listTracks = (viewModel.playlistBrowse.value?.tracks ?: arrayListOf()) as ArrayList<Track>,
                                     firstPlayedTrack =
-                                        viewModel.playlistBrowse.value
-                                            ?.tracks
-                                            ?.get(position),
+                                    viewModel.playlistBrowse.value
+                                        ?.tracks
+                                        ?.get(position),
                                     playlistId =
-                                        viewModel.playlistBrowse.value
-                                            ?.id
-                                            ?.replaceFirst("VL", "") ?: "",
+                                    viewModel.playlistBrowse.value
+                                        ?.id
+                                        ?.replaceFirst("VL", "") ?: "",
                                     playlistName = "${viewModel.playlistBrowse.value?.title}",
                                     playlistType = PlaylistType.RADIO,
                                     continuation =
-                                        viewModel.radioContinuation.value?.let {
-                                            if (it.first == viewModel.playlistBrowse.value?.id) it.second else null
-                                        },
+                                    viewModel.radioContinuation.value?.let {
+                                        if (it.first == viewModel.playlistBrowse.value?.id) it.second else null
+                                    },
                                 ),
                             )
                             viewModel.playlistBrowse.value?.tracks?.get(position)?.let {
@@ -590,19 +590,19 @@ class PlaylistFragment : Fragment() {
                                 QueueData(
                                     listTracks = viewModel.listTrack.value.toArrayListTrack(),
                                     firstPlayedTrack =
-                                        viewModel.listTrack.value
-                                            .getOrNull(position)
-                                            ?.toTrack(),
+                                    viewModel.listTrack.value
+                                        .getOrNull(position)
+                                        ?.toTrack(),
                                     playlistId =
-                                        viewModel.playlistBrowse.value
-                                            ?.id
-                                            ?.replaceFirst("VL", ""),
+                                    viewModel.playlistBrowse.value
+                                        ?.id
+                                        ?.replaceFirst("VL", ""),
                                     playlistName = "${viewModel.playlistBrowse.value?.title}",
                                     playlistType = PlaylistType.RADIO,
                                     continuation =
-                                        viewModel.radioContinuation.value?.let {
-                                            if (it.first == viewModel.playlistBrowse.value?.id) it.second else null
-                                        },
+                                    viewModel.radioContinuation.value?.let {
+                                        if (it.first == viewModel.playlistBrowse.value?.id) it.second else null
+                                    },
                                 ),
                             )
                             viewModel.listTrack.value.getOrNull(position)?.let {
@@ -925,8 +925,8 @@ class PlaylistFragment : Fragment() {
             }
         }
         binding.btDownload.setOnClickListener {
-            if (id != null) {
-                if (viewModel.playlistDownloadState.value == DownloadState.STATE_NOT_DOWNLOADED) {
+            if(id!=null){
+            if (viewModel.playlistDownloadState.value == DownloadState.STATE_NOT_DOWNLOADED) {
 //                if (!viewModel.prevPlaylistDownloading.value){
 //                    viewModel.downloading()
                 if (viewModel.playlistBrowse.value
@@ -948,27 +948,26 @@ class PlaylistFragment : Fragment() {
                     )
                 }
                 viewModel.updatePlaylistDownloadState(
-                    id!!,
+                    id,
                     DownloadState.STATE_PREPARING,
                 )
 //                }
 //                else{
 //                    Toast.makeText(requireContext(), getString(R.string.please_wait_before_playlist_downloaded), Toast.LENGTH_SHORT).show()
 //                }
-                } else if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
-                    Toast
-                        .makeText(requireContext(), getString(R.string.downloaded), Toast.LENGTH_SHORT)
-                        .show()
-                } else if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADING) {
-                    Toast
-                        .makeText(
-                            requireContext(),
-                            getString(R.string.downloading),
-                            Toast.LENGTH_SHORT,
-                        ).show()
-                }
-            } else {
-                Log.d("binding.btDownload.setOnClickListener", "id was null")
+            } else if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
+                Toast
+                    .makeText(requireContext(), getString(R.string.downloaded), Toast.LENGTH_SHORT)
+                    .show()
+            } else if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADING) {
+                Toast
+                    .makeText(
+                        requireContext(),
+                        getString(R.string.downloading),
+                        Toast.LENGTH_SHORT,
+                    ).show()
+            }}else{
+                Log.d("binding.btDownload.setOnClickListener","id was null")
             }
         }
         collectUIState()
@@ -1303,16 +1302,6 @@ class PlaylistFragment : Fragment() {
                                 )
                                 Log.w(tag, "Not downloaded")
                             }
-                        } else {
-                            val viewModelID: String? = viewModel.id.value
-                            if (viewModelID != null) {
-                                viewModel.updatePlaylistDownloadState(
-                                    viewModelID,
-                                    DownloadState.STATE_NOT_DOWNLOADED,
-                                )
-                                Log.w(TAG, "Not downloaded")
-                            }
-
                         }
                     }
                 job1.join()
