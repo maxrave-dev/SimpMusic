@@ -11,10 +11,17 @@ on:
     workflow_dispatch:
     push:
         branches: ["main"]
+        paths-ignore:
+            - "README.md"
+            - ".github/**/*.md"
+            - ".github/ISSUE_TEMPLATE/**"
 
     pull_request:
         branches: ["main"]
-
+        paths-ignore:
+            - "README.md"
+            - ".github/**/*.md"
+            - ".github/ISSUE_TEMPLATE/**"
 jobs:
     build:
         runs-on: ubuntu-latest
