@@ -43,7 +43,7 @@ jobs:
             - name: Build apk release project (APK) - ${{ env.main_project_module }} module
               run: ./gradlew assemble
 
-            - uses: r0adkll/sign-android-release@v1
+            - uses: filippoLeporati93/android-release-signer@v1
               name: Sign app APK
               # ID used to access action output
               id: sign_app

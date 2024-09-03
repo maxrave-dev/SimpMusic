@@ -171,6 +171,7 @@ android {
                 "META-INF/*.kotlin_module",
             )
     }
+    
 }
 
 dependencies {
