@@ -11,6 +11,7 @@ import com.maxrave.kotlinytmusicscraper.models.SectionListRenderer
 import com.maxrave.kotlinytmusicscraper.models.Thumbnail
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
+import com.maxrave.kotlinytmusicscraper.models.response.NextAndroidMusicResponse
 import com.maxrave.kotlinytmusicscraper.models.response.spotify.TokenResponse
 import io.ktor.client.call.body
 import io.ktor.client.statement.bodyAsText
@@ -19,14 +20,17 @@ import kotlin.random.Random
 
 fun main() {
     runBlocking {
-        YouTube.postMusixmatchCredentials(
-            email = "ndtminh2608@gmail.com", password = "minh123456",
-            userToken = "240722e1a19b35ee50239efd184f39a9f6bc7da172eb15c38de32d"
-
-        ).onSuccess {
-            println(it)
-        }.onFailure {
-            it.printStackTrace()
+        Ytmusic().apply {
+            cookie = "VISITOR_INFO1_LIVE=ej0GQpuOBos; VISITOR_PRIVACY_METADATA=CgJWThIEGgAgQQ%3D%3D; LOGIN_INFO=AFmmF2swRQIgfEnCJc4rCc5_Q70_MokB-2HMsW2LqaB-m7DOMpdA5ZoCIQC4Htl3LK79tMioZH08h7yuNsefHkP0mgAzS-5azSqf3w:QUQ3MjNmeGZtVEdLV1o2ZGgwdElidG5pNWkzcVF6Tl9VSjNEX1Bmb09XNWZxcXNUYzhsdEZOVWY4WkdqRGlxYUkxR1h0cHpCeGc2Z0hvUDRrU3N4dUZkQUNkVkdhQlM5S0FXUXhweUlyanZHN1ZJN3MyeG9GdTI4TUl0Z1hOMFZncGlSaU1KUWVkekVkcW9sUDBsaW91eVNpNUE4UnFxd0V3; PREF=f6=40000000&tz=Asia.Saigon&f5=20000&f7=100&repeat=NONE&autoplay=true&hl=vi; SID=g.a000ngiHuOY8jgmJeLJPBFtCR5mr1gHnrABtzUUka0E_P4-sTIdAWwBqOyl01hovpPSpjWaiTgACgYKATISARMSFQHGX2Mi7ZwahgxrzPHmQtXRYxqX7RoVAUF8yKpX1WTuOzJ4PtaZ24jJ49tQ0076; __Secure-1PSIDTS=sidts-CjIBUFGoh4ZfeeGZ9ZJGQJzW6dkdPrz7-BH_5SmEQiGTNRr4cOdKyf8fRGd3kcKkVGr0SxAA; __Secure-3PSIDTS=sidts-CjIBUFGoh4ZfeeGZ9ZJGQJzW6dkdPrz7-BH_5SmEQiGTNRr4cOdKyf8fRGd3kcKkVGr0SxAA; __Secure-1PSID=g.a000ngiHuOY8jgmJeLJPBFtCR5mr1gHnrABtzUUka0E_P4-sTIdAr3V1zfjK_W9FXuzqw7Za5QACgYKATcSARMSFQHGX2MiVxSCfBo_m-FXygl34Q8WjxoVAUF8yKovcVEDth2Pi29u9KQpNN5c0076; __Secure-3PSID=g.a000ngiHuOY8jgmJeLJPBFtCR5mr1gHnrABtzUUka0E_P4-sTIdAqjw43ggC06CrT_cmcI7KpAACgYKAeMSARMSFQHGX2Mio-Vfwe3BaUrbD04PdnYdAxoVAUF8yKpMQqSg4yD_9g2A-7ZBg8D00076; HSID=ANzF8FV_wvhOlj5i-; SSID=AfpQrKdbaQOUdSpaA; APISID=x07RZm3QDC6OUUyf/A-lAr51RKQCdh1qIU; SAPISID=WZVGvk8OAccoLVLE/ADzIBvD0MxBghSO_8; __Secure-1PAPISID=WZVGvk8OAccoLVLE/ADzIBvD0MxBghSO_8; __Secure-3PAPISID=WZVGvk8OAccoLVLE/ADzIBvD0MxBghSO_8; YSC=HS0aiOi6Hqg; SIDCC=AKEyXzXSO1wVpJyALOgo27uLxVg-Q0Vwe5QP6K9b5jaUbAhPodoA2Q-GdX3zemansPpcsP0w-RI; __Secure-1PSIDCC=AKEyXzVPWaJYK6EvJ411aYs2Nnbih4HBwqJfj-vphs_iOq57AFh_mlz53wDLX3ldIHSxW4F12VUB; __Secure-3PSIDCC=AKEyXzU19gZnXJkAIMXqWnOfvmJPvYQ1fn85bccHKIgDsDyCnLXbhHTDo6QOmGfFCo65F1Xq7N58; ST-tsiny9=csn=sIwy3ZUM6DEzRm22&itct=CCcQyfQCGAAiEwiSxtX7kZ6IAxU2m1YBHSngELk%3D"
+        }.next(
+            YouTubeClient.ANDROID_MUSIC,
+            "yoh-oXuR1-g",
+            null,
+            null,
+            null,
+            null,
+        ).apply {
+            println(body<NextAndroidMusicResponse>())
         }
     }
 }

@@ -40,3 +40,29 @@ data class NextResponse(
         val musicPlaylistShelfContinuation: BrowseResponse.ContinuationContents.MusicPlaylistShelfContinuation?
     )
 }
+
+@Serializable
+data class NextAndroidMusicResponse(
+    val playerOverlays: PlayerOverlays?
+) {
+    @Serializable
+    data class PlayerOverlays(
+        val playerOverlayRenderer: PlayerOverlayRenderer?
+    ) {
+        @Serializable
+        data class PlayerOverlayRenderer(
+            val actions: List<Action>?
+        ) {
+            @Serializable
+            data class Action(
+                val likeButtonRenderer: LikeButtonRenderer?
+            ) {
+                @Serializable
+                data class LikeButtonRenderer(
+                    val likeStatus: String?,
+                    val likesAllowed: Boolean?
+                )
+            }
+        }
+    }
+}

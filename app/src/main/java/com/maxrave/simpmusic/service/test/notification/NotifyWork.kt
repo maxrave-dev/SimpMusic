@@ -2,7 +2,6 @@ package com.maxrave.simpmusic.service.test.notification
 
 import android.content.Context
 import android.util.Log
-import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.maxrave.kotlinytmusicscraper.models.AlbumItem
@@ -14,24 +13,19 @@ import com.maxrave.simpmusic.data.model.browse.artist.ResultSingle
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.extension.symmetricDifference
 import com.maxrave.simpmusic.viewModel.MoreAlbumsViewModel
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedInject
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import java.time.LocalDateTime
-import javax.inject.Inject
 
-@HiltWorker
-class NotifyWork
-    @AssistedInject
-    constructor(
-        @Assisted context: Context,
-        @Assisted params: WorkerParameters,
-    ) : CoroutineWorker(context, params) {
-        @Inject
-        lateinit var mainRepository: MainRepository
+class NotifyWork(
+        context: Context,
+        params: WorkerParameters,
+    ) : CoroutineWorker(context, params), KoinComponent {
+        val mainRepository: MainRepository by inject()
 
         private val mapOfNotification = arrayListOf<NotificationModel>()
 
@@ -44,7 +38,10 @@ class NotifyWork
                 Log.w("NotifyWork", "doWork: $artistList")
                 Log.w("NotifyWork", "doWork: $listFollowedArtistSingleAndAlbum")
                 artistList.forEach { art ->
-                    combine(mainRepository.getAlbumMore("MPAD${art.channelId}", MoreAlbumsViewModel.ALBUM_PARAM), mainRepository.getAlbumMore("MPAD${art.channelId}", MoreAlbumsViewModel.SINGLE_PARAM)) {
+                    combine(
+                        mainRepository.getAlbumMore("MPAD${art.channelId}", MoreAlbumsViewModel.ALBUM_PARAM),
+                        mainRepository.getAlbumMore("MPAD${art.channelId}", MoreAlbumsViewModel.SINGLE_PARAM)
+                    ) {
                         album, single -> Pair(album, single)
                     }.first().let { pair ->
                         val albumItem = pair.first?.items?.firstOrNull()?.items

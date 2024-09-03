@@ -4,31 +4,36 @@ import android.app.Application
 import android.content.Context
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.hilt.work.HiltWorkerFactory
 import androidx.media3.common.util.UnstableApi
-import androidx.work.Configuration
 import cat.ereza.customactivityoncrash.config.CaocConfig
+import com.maxrave.simpmusic.di.databaseModule
+import com.maxrave.simpmusic.di.mediaServiceModule
 import com.maxrave.simpmusic.ui.MainActivity
-import dagger.hilt.android.HiltAndroidApp
-import javax.inject.Inject
+import org.koin.android.ext.koin.androidContext
+import org.koin.android.ext.koin.androidLogger
+import org.koin.androidx.workmanager.koin.workManagerFactory
+import org.koin.core.component.KoinComponent
+import org.koin.core.context.startKoin
+import org.koin.core.logger.Level
 
-@HiltAndroidApp
-class SimpMusicApplication : Application(), Configuration.Provider {
-    @Inject
-    lateinit var workerFactory: HiltWorkerFactory
-
-    override val workManagerConfiguration: Configuration
-        get() =
-            Configuration.Builder()
-                .setWorkerFactory(workerFactory)
-                .setMinimumLoggingLevel(Log.WARN)
-                .build()
-
+class SimpMusicApplication :
+    Application(),
+    KoinComponent {
     @UnstableApi
     override fun onCreate() {
         super.onCreate()
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-        CaocConfig.Builder.create()
+        startKoin {
+            androidLogger(level = Level.DEBUG)
+            androidContext(this@SimpMusicApplication)
+            modules(
+                databaseModule,
+                mediaServiceModule,
+            )
+            workManagerFactory()
+        }
+        CaocConfig.Builder
+            .create()
             .backgroundMode(CaocConfig.BACKGROUND_MODE_SILENT) // default: CaocConfig.BACKGROUND_MODE_SHOW_CUSTOM
             .enabled(true) // default: true
             .showErrorDetails(true) // default: true
@@ -59,8 +64,6 @@ class SimpMusicApplication : Application(), Configuration.Provider {
     companion object {
         private var instance: SimpMusicApplication? = null
 
-        fun applicationContext(): Context {
-            return instance!!.applicationContext
-        }
+        fun applicationContext(): Context = instance!!.applicationContext
     }
 }

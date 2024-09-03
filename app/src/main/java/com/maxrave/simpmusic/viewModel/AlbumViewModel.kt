@@ -4,7 +4,6 @@ import android.app.Application
 import android.graphics.drawable.GradientDrawable
 import android.util.Log
 import android.widget.Toast
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -13,17 +12,15 @@ import androidx.media3.exoplayer.offline.Download
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
-import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.AlbumBrowse
 import com.maxrave.simpmusic.data.model.browse.album.Track
-import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.utils.Resource
-import dagger.hilt.android.lifecycle.HiltViewModel
+import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -32,17 +29,19 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.koin.android.annotation.KoinViewModel
+import org.koin.core.component.inject
 import java.time.LocalDateTime
-import javax.inject.Inject
 
-@HiltViewModel
-class AlbumViewModel @Inject constructor(
-    private var dataStoreManager: DataStoreManager,
-    private val mainRepository: MainRepository,
+@KoinViewModel
+@UnstableApi
+class AlbumViewModel(
     private val application: Application
-): AndroidViewModel(application) {
-    @Inject
-    lateinit var downloadUtils: DownloadUtils
+): BaseViewModel(application) {
+
+    private val downloadUtils: DownloadUtils by inject()
+
+    override val tag: String = "AlbumViewModel"
 
     var gradientDrawable: MutableLiveData<GradientDrawable> = MutableLiveData()
     private var _loading: MutableStateFlow<Boolean> = MutableStateFlow(false)

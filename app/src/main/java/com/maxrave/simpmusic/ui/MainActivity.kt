@@ -47,7 +47,6 @@ import com.maxrave.simpmusic.common.STATUS_DONE
 import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.common.SUPPORTED_LOCATION
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
-import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.databinding.ActivityMainBinding
 import com.maxrave.simpmusic.extension.isMyServiceRunning
 import com.maxrave.simpmusic.extension.navigateSafe
@@ -55,7 +54,6 @@ import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.ui.screen.MiniPlayer
 import com.maxrave.simpmusic.ui.theme.AppTheme
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -70,22 +68,14 @@ import pub.devrel.easypermissions.EasyPermissions
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
-import javax.inject.Inject
 
 @UnstableApi
-@AndroidEntryPoint
 @Suppress("DEPRECATION")
 class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     val viewModel by viewModels<SharedViewModel>()
     private var action: String? = null
     private var data: Uri? = null
-
-    @Inject
-    lateinit var dataStoreManager: DataStoreManager
-
-    @Inject
-    lateinit var mainRepository: MainRepository
 
     private val serviceConnection =
         object : ServiceConnection {
@@ -108,7 +98,6 @@ class MainActivity : AppCompatActivity() {
                 viewModel.simpleMediaServiceHandler = null
             }
         }
-
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
@@ -213,10 +202,11 @@ class MainActivity : AppCompatActivity() {
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
 //            WindowCompat.setDecorFitsSystemWindows(window, false)
         enableEdgeToEdge(
-            navigationBarStyle = SystemBarStyle.auto(
-                lightScrim = Color.Transparent.toArgb(),
-                darkScrim = Color.Transparent.toArgb()
-            )
+            navigationBarStyle =
+                SystemBarStyle.auto(
+                    lightScrim = Color.Transparent.toArgb(),
+                    darkScrim = Color.Transparent.toArgb(),
+                ),
         )
         viewModel.checkIsRestoring()
         viewModel.runWorker()
@@ -240,12 +230,14 @@ class MainActivity : AppCompatActivity() {
                     val originalResponse = chain.proceed(chain.request())
                     if (isNetworkAvailable(applicationContext)) {
                         val maxAge = 60 // read from cache for 1 minute
-                        return originalResponse.newBuilder()
+                        return originalResponse
+                            .newBuilder()
                             .header("Cache-Control", "public, max-age=$maxAge")
                             .build()
                     } else {
                         val maxStale = 60 * 60 * 24 * 28 // tolerate 4-weeks stale
-                        return originalResponse.newBuilder()
+                        return originalResponse
+                            .newBuilder()
                             .header("Cache-Control", "public, only-if-cached, max-stale=$maxStale")
                             .build()
                     }
@@ -295,7 +287,8 @@ class MainActivity : AppCompatActivity() {
             ->
             val rect = Rect(left, top, right, bottom)
             val oldRect = Rect(oldLeft, oldTop, oldRight, oldBottom)
-            if ((rect.width() != oldRect.width() || rect.height() != oldRect.height()) && oldRect !=
+            if ((rect.width() != oldRect.width() || rect.height() != oldRect.height()) &&
+                oldRect !=
                 Rect(
                     0,
                     0,
@@ -343,23 +336,29 @@ class MainActivity : AppCompatActivity() {
             Log.w("Destination", "onCreate: ${destination.id}")
             when (destination.id) {
                 R.id.bottom_navigation_item_home, R.id.settingsFragment, R.id.recentlySongsFragment, R.id.moodFragment -> {
-                    binding.bottomNavigationView.menu.findItem(
-                        R.id.bottom_navigation_item_home,
-                    )?.isChecked =
+                    binding.bottomNavigationView.menu
+                        .findItem(
+                            R.id.bottom_navigation_item_home,
+                        )?.isChecked =
                         true
                 }
 
                 R.id.bottom_navigation_item_search -> {
-                    binding.bottomNavigationView.menu.findItem(
-                        R.id.bottom_navigation_item_search,
-                    )?.isChecked =
+                    binding.bottomNavigationView.menu
+                        .findItem(
+                            R.id.bottom_navigation_item_search,
+                        )?.isChecked =
                         true
                 }
 
-                R.id.bottom_navigation_item_library, R.id.downloadedFragment, R.id.mostPlayedFragment, R.id.followedFragment, R.id.favoriteFragment, R.id.localPlaylistFragment -> {
-                    binding.bottomNavigationView.menu.findItem(
-                        R.id.bottom_navigation_item_library,
-                    )?.isChecked =
+                R.id.bottom_navigation_item_library, R.id.downloadedFragment,
+                R.id.mostPlayedFragment, R.id.followedFragment,
+                R.id.favoriteFragment, R.id.localPlaylistFragment,
+                -> {
+                    binding.bottomNavigationView.menu
+                        .findItem(
+                            R.id.bottom_navigation_item_library,
+                        )?.isChecked =
                         true
                 }
 
@@ -367,23 +366,26 @@ class MainActivity : AppCompatActivity() {
                     val currentBackStack = nav.previousBackStackEntry?.destination?.id
                     when (currentBackStack) {
                         R.id.bottom_navigation_item_library, R.id.downloadedFragment, R.id.mostPlayedFragment, R.id.followedFragment, R.id.favoriteFragment, R.id.localPlaylistFragment -> {
-                            binding.bottomNavigationView.menu.findItem(
-                                R.id.bottom_navigation_item_library,
-                            )?.isChecked =
+                            binding.bottomNavigationView.menu
+                                .findItem(
+                                    R.id.bottom_navigation_item_library,
+                                )?.isChecked =
                                 true
                         }
 
                         R.id.bottom_navigation_item_search -> {
-                            binding.bottomNavigationView.menu.findItem(
-                                R.id.bottom_navigation_item_search,
-                            )?.isChecked =
+                            binding.bottomNavigationView.menu
+                                .findItem(
+                                    R.id.bottom_navigation_item_search,
+                                )?.isChecked =
                                 true
                         }
 
                         R.id.bottom_navigation_item_home, R.id.settingsFragment, R.id.recentlySongsFragment, R.id.moodFragment -> {
-                            binding.bottomNavigationView.menu.findItem(
-                                R.id.bottom_navigation_item_home,
-                            )?.isChecked =
+                            binding.bottomNavigationView.menu
+                                .findItem(
+                                    R.id.bottom_navigation_item_home,
+                                )?.isChecked =
                                 true
                         }
                     }
@@ -392,11 +394,17 @@ class MainActivity : AppCompatActivity() {
             Log.w("MainActivity", "Destination: ${destination.label}")
             Log.w("MainActivity", "Show or Hide: ${viewModel.showOrHideMiniplayer}")
             if (
-                (listOf(
-                    "NowPlayingFragment", "FullscreenFragment", "InfoFragment",
-                    "QueueFragment", "SpotifyLogInFragment", "fragment_log_in", "MusixmatchFragment"
-                )
-                    ).contains(destination.label)
+                (
+                    listOf(
+                        "NowPlayingFragment",
+                        "FullscreenFragment",
+                        "InfoFragment",
+                        "QueueFragment",
+                        "SpotifyLogInFragment",
+                        "fragment_log_in",
+                        "MusixmatchFragment",
+                    )
+                ).contains(destination.label)
             ) {
                 lifecycleScope.launch { viewModel.showOrHideMiniplayer.emit(false) }
                 Log.w("MainActivity", "onCreate: HIDE MINIPLAYER")
@@ -479,7 +487,8 @@ class MainActivity : AppCompatActivity() {
                                     Log.d("MainActivity", "onCreate: $data")
                                     when (val path = data!!.pathSegments.firstOrNull()) {
                                         "playlist" ->
-                                            data!!.getQueryParameter("list")
+                                            data!!
+                                                .getQueryParameter("list")
                                                 ?.let { playlistId ->
                                                     if (playlistId.startsWith("OLAK5uy_")) {
                                                         viewModel.intent.value = null
@@ -519,13 +528,14 @@ class MainActivity : AppCompatActivity() {
                                                         },
                                                     )
                                                 } else {
-                                                    Toast.makeText(
-                                                        this@MainActivity,
-                                                        getString(
-                                                            R.string.this_link_is_not_supported,
-                                                        ),
-                                                        Toast.LENGTH_SHORT,
-                                                    ).show()
+                                                    Toast
+                                                        .makeText(
+                                                            this@MainActivity,
+                                                            getString(
+                                                                R.string.this_link_is_not_supported,
+                                                            ),
+                                                            Toast.LENGTH_SHORT,
+                                                        ).show()
                                                 }
 //                                    else {
 //                                        viewModel.convertNameToId(artistId)
@@ -571,8 +581,7 @@ class MainActivity : AppCompatActivity() {
                                 .setMessage(getString(R.string.good_night))
                                 .setPositiveButton(getString(R.string.yes)) { d, _ ->
                                     d.dismiss()
-                                }
-                                .show()
+                                }.show()
                         }
                     }
                 }
@@ -580,69 +589,82 @@ class MainActivity : AppCompatActivity() {
             job2.join()
         }
         lifecycleScope.launch {
-            val miniplayerJob = launch {
-                repeatOnLifecycle(Lifecycle.State.CREATED) {
-                    viewModel.nowPlayingScreenData.collect {
-                        Log.w("MainActivity", "Current Destination: ${navController.currentDestination?.label}")
-                        if (!(listOf(
-                                "NowPlayingFragment", "FullscreenFragment", "InfoFragment",
-                                "QueueFragment", "SpotifyLogInFragment", "fragment_log_in", "MusixmatchFragment"
-                            )
-                                ).contains(navController.currentDestination?.label)
-                            && it.nowPlayingTitle.isNotEmpty()
-                            && binding.miniplayer.visibility != View.VISIBLE
-                        ) {
-                            Log.w("MainActivity", "Show Miniplayer")
-                            binding.miniplayer.animation = AnimationUtils.loadAnimation(
-                                this@MainActivity, R.anim.slide_from_right
-                            )
-                            binding.miniplayer.visibility = View.VISIBLE
-                        }
-                    }
-                }
-            }
-
-            val showHideJob = launch {
-                repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                    viewModel.showOrHideMiniplayer.collectLatest {
-                        if (it && binding.miniplayer.visibility != View.VISIBLE &&
-                            binding.bottomNavigationView.visibility != View.VISIBLE &&
-                            viewModel.nowPlayingState.value?.isNotEmpty() == true
-                        ) {
-                            Log.w("MainActivity", "Show Miniplayer")
-                            lifecycleScope.launch {
-                                delay(500)
-                                binding.bottomNavigationView.animation = AnimationUtils.loadAnimation(this@MainActivity, R.anim.btt)
-                                binding.miniplayer.animation = AnimationUtils.loadAnimation(this@MainActivity, R.anim.btt)
+            val miniplayerJob =
+                launch {
+                    repeatOnLifecycle(Lifecycle.State.CREATED) {
+                        viewModel.nowPlayingScreenData.collect {
+                            Log.w("MainActivity", "Current Destination: ${navController.currentDestination?.label}")
+                            if (!(
+                                    listOf(
+                                        "NowPlayingFragment",
+                                        "FullscreenFragment",
+                                        "InfoFragment",
+                                        "QueueFragment",
+                                        "SpotifyLogInFragment",
+                                        "fragment_log_in",
+                                        "MusixmatchFragment",
+                                    )
+                                ).contains(navController.currentDestination?.label) &&
+                                it.nowPlayingTitle.isNotEmpty() &&
+                                binding.miniplayer.visibility != View.VISIBLE
+                            ) {
+                                Log.w("MainActivity", "Show Miniplayer")
+                                binding.miniplayer.animation =
+                                    AnimationUtils.loadAnimation(
+                                        this@MainActivity,
+                                        R.anim.slide_from_right,
+                                    )
                                 binding.miniplayer.visibility = View.VISIBLE
-                                binding.bottomNavigationView.visibility = View.VISIBLE
                             }
-                        } else if (binding.bottomNavigationView.visibility != View.GONE &&
-                            binding.miniplayer.visibility != View.GONE && !it
-                        ) {
-                            binding.bottomNavigationView.animation = AnimationUtils.loadAnimation(this@MainActivity, R.anim.ttb)
-                            binding.miniplayer.animation = AnimationUtils.loadAnimation(this@MainActivity, R.anim.ttb)
-                            binding.bottomNavigationView.visibility = View.GONE
-                            binding.miniplayer.visibility = View.GONE
                         }
                     }
                 }
-            }
-            val bottomNavBarJob = launch {
-                repeatOnLifecycle(Lifecycle.State.CREATED) {
-                    dataStoreManager.translucentBottomBar.distinctUntilChanged().collectLatest {
-                        if (it == DataStoreManager.TRUE) {
-                            binding.bottomNavigationView.background =
-                                ResourcesCompat.getDrawable(resources, R.drawable.transparent_rect, null)?.apply {
-                                    this.setDither(true)
+
+            val showHideJob =
+                launch {
+                    repeatOnLifecycle(Lifecycle.State.RESUMED) {
+                        viewModel.showOrHideMiniplayer.collectLatest {
+                            if (it &&
+                                binding.miniplayer.visibility != View.VISIBLE &&
+                                binding.bottomNavigationView.visibility != View.VISIBLE &&
+                                viewModel.nowPlayingState.value?.isNotEmpty() == true
+                            ) {
+                                Log.w("MainActivity", "Show Miniplayer")
+                                lifecycleScope.launch {
+                                    delay(500)
+                                    binding.bottomNavigationView.animation = AnimationUtils.loadAnimation(this@MainActivity, R.anim.btt)
+                                    binding.miniplayer.animation = AnimationUtils.loadAnimation(this@MainActivity, R.anim.btt)
+                                    binding.miniplayer.visibility = View.VISIBLE
+                                    binding.bottomNavigationView.visibility = View.VISIBLE
                                 }
-                        } else if (it == DataStoreManager.FALSE) {
-                            binding.bottomNavigationView.background =
-                                ColorDrawable(ResourcesCompat.getColor(resources, R.color.md_theme_dark_background, null))
+                            } else if (binding.bottomNavigationView.visibility != View.GONE &&
+                                binding.miniplayer.visibility != View.GONE &&
+                                !it
+                            ) {
+                                binding.bottomNavigationView.animation = AnimationUtils.loadAnimation(this@MainActivity, R.anim.ttb)
+                                binding.miniplayer.animation = AnimationUtils.loadAnimation(this@MainActivity, R.anim.ttb)
+                                binding.bottomNavigationView.visibility = View.GONE
+                                binding.miniplayer.visibility = View.GONE
+                            }
                         }
                     }
                 }
-            }
+            val bottomNavBarJob =
+                launch {
+                    repeatOnLifecycle(Lifecycle.State.CREATED) {
+                        viewModel.getTranslucentBottomBar().distinctUntilChanged().collectLatest {
+                            if (it == DataStoreManager.TRUE) {
+                                binding.bottomNavigationView.background =
+                                    ResourcesCompat.getDrawable(resources, R.drawable.transparent_rect, null)?.apply {
+                                        this.setDither(true)
+                                    }
+                            } else if (it == DataStoreManager.FALSE) {
+                                binding.bottomNavigationView.background =
+                                    ColorDrawable(ResourcesCompat.getColor(resources, R.color.md_theme_dark_background, null))
+                            }
+                        }
+                    }
+                }
 
             miniplayerJob.join()
             showHideJob.join()
@@ -681,7 +703,6 @@ class MainActivity : AppCompatActivity() {
             else -> false
         }
     }
-
 
     override fun onDestroy() {
         super.onDestroy()
@@ -771,7 +792,8 @@ class MainActivity : AppCompatActivity() {
                     val outputFormat = SimpleDateFormat("dd MMM yyyy HH:mm:ss", Locale.getDefault())
                     val formatted =
                         response.publishedAt?.let { input ->
-                            inputFormat.parse(input)
+                            inputFormat
+                                .parse(input)
                                 ?.let { outputFormat.format(it) }
                         }
 
@@ -784,19 +806,16 @@ class MainActivity : AppCompatActivity() {
                                 formatted,
                                 response.body,
                             ),
-                        )
-                        .setPositiveButton(getString(R.string.download)) { _, _ ->
+                        ).setPositiveButton(getString(R.string.download)) { _, _ ->
                             val browserIntent =
                                 Intent(
                                     Intent.ACTION_VIEW,
                                     Uri.parse(response.assets?.firstOrNull()?.browserDownloadUrl),
                                 )
                             startActivity(browserIntent)
-                        }
-                        .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                        }.setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
                             dialog.dismiss()
-                        }
-                        .show()
+                        }.show()
                 }
             }
         }

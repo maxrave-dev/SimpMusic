@@ -1,18 +1,20 @@
 package com.maxrave.simpmusic.viewModel
 
 import android.app.Application
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.maxrave.kotlinytmusicscraper.pages.BrowseResult
-import com.maxrave.simpmusic.data.repository.MainRepository
-import dagger.hilt.android.lifecycle.HiltViewModel
+import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+import org.koin.android.annotation.KoinViewModel
 
-@HiltViewModel
-class MoreAlbumsViewModel @Inject constructor(application: Application, private val mainRepository: MainRepository): AndroidViewModel(application) {
+@KoinViewModel
+class MoreAlbumsViewModel(application: Application) : BaseViewModel(application) {
+
+    override val tag: String
+        get() = "MoreAlbumsViewModel"
+
     private var _browseResult: MutableStateFlow<BrowseResult?> = MutableStateFlow(null)
     val browseResult: StateFlow<BrowseResult?> = _browseResult
 

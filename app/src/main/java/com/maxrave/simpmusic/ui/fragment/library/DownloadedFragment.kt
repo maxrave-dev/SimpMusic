@@ -45,17 +45,15 @@ import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.viewModel.DownloadedViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 
-@AndroidEntryPoint
 class DownloadedFragment : Fragment() {
     private var _binding: FragmentDownloadedBinding? = null
-    private val binding get() = _binding!!
+    val binding get() = _binding!!
 
     private val viewModel by viewModels<DownloadedViewModel>()
     private val sharedViewModel by activityViewModels<SharedViewModel>()

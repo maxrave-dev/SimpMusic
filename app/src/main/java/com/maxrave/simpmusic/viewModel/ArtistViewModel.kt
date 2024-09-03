@@ -4,22 +4,19 @@ import android.app.Application
 import android.graphics.drawable.GradientDrawable
 import android.util.Log
 import android.widget.Toast
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
-import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.artist.ArtistBrowse
-import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.utils.Resource
-import dagger.hilt.android.lifecycle.HiltViewModel
+import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -27,11 +24,15 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.koin.android.annotation.KoinViewModel
 import java.time.LocalDateTime
-import javax.inject.Inject
 
-@HiltViewModel
-class ArtistViewModel @Inject constructor(private val application: Application, private val mainRepository: MainRepository, private var dataStoreManager: DataStoreManager): AndroidViewModel(application){
+@KoinViewModel
+class ArtistViewModel (private val application: Application): BaseViewModel(application){
+
+    override val tag: String
+        get() = "ArtistViewModel"
+
     var gradientDrawable: MutableLiveData<GradientDrawable> = MutableLiveData()
     private val _artistBrowse: MutableStateFlow<Resource<ArtistBrowse>?> = MutableStateFlow(null)
     var artistBrowse: StateFlow<Resource<ArtistBrowse>?> = _artistBrowse

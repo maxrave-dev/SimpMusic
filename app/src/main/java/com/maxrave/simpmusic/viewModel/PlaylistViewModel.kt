@@ -4,7 +4,6 @@ import android.app.Application
 import android.graphics.drawable.GradientDrawable
 import android.util.Log
 import android.widget.Toast
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -13,20 +12,18 @@ import androidx.media3.exoplayer.offline.Download
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
-import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.browse.playlist.PlaylistBrowse
-import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.extension.toPlaylistEntity
 import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.extension.toVideoIdList
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.utils.Resource
-import dagger.hilt.android.lifecycle.HiltViewModel
+import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -41,20 +38,19 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.koin.android.annotation.KoinViewModel
+import org.koin.core.component.inject
 import java.time.LocalDateTime
-import javax.inject.Inject
 
-@HiltViewModel
-class PlaylistViewModel
-@Inject
-constructor(
-    private val mainRepository: MainRepository,
+@KoinViewModel
+@UnstableApi
+class PlaylistViewModel(
     private val application: Application,
-    private var dataStoreManager: DataStoreManager,
-) : AndroidViewModel(application) {
-    @Inject
-    @UnstableApi
-    lateinit var downloadUtils: DownloadUtils
+) : BaseViewModel(application) {
+    override val tag: String
+        get() = "PlaylistViewModel"
+
+    val downloadUtils: DownloadUtils by inject()
 
     private var _gradientDrawable: MutableStateFlow<GradientDrawable?> = MutableStateFlow(null)
     var gradientDrawable: StateFlow<GradientDrawable?> = _gradientDrawable
@@ -119,7 +115,6 @@ constructor(
                             getPlaylist(id, playlistEntity, false)
                         }
                     }
-
                     is Resource.Error -> {
                         Log.w("PlaylistViewModel", "Error: ${it.message}")
                         _playlistBrowse.value = null
@@ -200,7 +195,6 @@ constructor(
                                 getPlaylist(radioId, playlistEntity, true)
                             }
                         }
-
                         is Resource.Error -> {
                             Log.w("PlaylistViewModel", "Error: ${it.message}")
                             _playlistBrowse.value = null
@@ -226,11 +220,16 @@ constructor(
         }
     }
 
-    fun getPlaylist(id: String, playlistBrowse: PlaylistBrowse?, isRadio: Boolean?, message: String? = null) {
+    fun getPlaylist(
+        id: String,
+        playlistBrowse: PlaylistBrowse?,
+        isRadio: Boolean?,
+        message: String? = null,
+    ) {
         viewModelScope.launch {
             mainRepository.updatePlaylistInLibrary(
                 LocalDateTime.now(),
-                id
+                id,
             )
             mainRepository.getPlaylist(id).collect { values ->
                 if (values != null) {
@@ -263,7 +262,6 @@ constructor(
                         true -> {
                             insertRadioPlaylist(playlistBrowse.toPlaylistEntity())
                         }
-
                         false -> {
                             insertPlaylist(playlistBrowse.toPlaylistEntity())
                         }
@@ -290,21 +288,23 @@ constructor(
                 listFlow.add(mainRepository.getSongsByListVideoId(videoIds).stateIn(viewModelScope))
             }
             combine(
-                listFlow
+                listFlow,
             ) { list ->
                 list.map { it }.flatten()
             }.collectLatest { values ->
-                val sortedList = values.sortedBy {
-                    tracks?.indexOf(it.videoId)
-                }
+                val sortedList =
+                    values.sortedBy {
+                        tracks?.indexOf(it.videoId)
+                    }
                 _listTrack.value = sortedList
                 collectDownloadedJob?.cancel()
                 if (values.isNotEmpty()) {
-                    collectDownloadedJob = launch {
-                        mainRepository.getDownloadedVideoIdListFromListVideoIdAsFlow(values.toVideoIdList()).collectLatest {
-                            _downloadedList.value = it
+                    collectDownloadedJob =
+                        launch {
+                            mainRepository.getDownloadedVideoIdListFromListVideoIdAsFlow(values.toVideoIdList()).collectLatest {
+                                _downloadedList.value = it
+                            }
                         }
-                    }
                 } else {
                     _downloadedList.value = emptyList()
                 }
@@ -327,11 +327,13 @@ constructor(
             if (count == list.size && count > 0) {
                 id.value?.let { updatePlaylistDownloadState(it, DownloadState.STATE_DOWNLOADED) }
             }
-
             id.value?.let {
                 mainRepository.getPlaylist(it).collect { album ->
                     if (album != null) {
-                        if (playlistEntity.value?.downloadState != album.downloadState) {
+                        if (album.downloadState == DownloadState.STATE_DOWNLOADED && count < list.size) {
+                            updatePlaylistDownloadState(it, DownloadState.STATE_NOT_DOWNLOADED)
+                            _playlistEntity.value = album
+                        } else if (playlistEntity.value?.downloadState != album.downloadState) {
                             _playlistEntity.value = album
                         }
                     }
@@ -642,6 +644,10 @@ constructor(
 
 sealed class PlaylistUIState {
     data object Loading : PlaylistUIState()
+
     data object Success : PlaylistUIState()
-    data class Error(val message: String? = null) : PlaylistUIState()
+
+    data class Error(
+        val message: String? = null,
+    ) : PlaylistUIState()
 }

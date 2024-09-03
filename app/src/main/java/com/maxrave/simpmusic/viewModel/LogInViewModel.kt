@@ -1,18 +1,21 @@
 package com.maxrave.simpmusic.viewModel
 
+import android.app.Application
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.maxrave.kotlinytmusicscraper.YouTube
-import com.maxrave.simpmusic.data.dataStore.DataStoreManager
-import dagger.hilt.android.lifecycle.HiltViewModel
+import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.launch
-import javax.inject.Inject
+import org.koin.android.annotation.KoinViewModel
 
-@HiltViewModel
-class LogInViewModel @Inject constructor(private val dataStore: DataStoreManager) : ViewModel() {
+@KoinViewModel
+class LogInViewModel(private val application: Application) : BaseViewModel(application) {
+
+    override val tag: String
+        get() = "LogInViewModel"
+    
     private val _status: MutableLiveData<Boolean> = MutableLiveData(false)
     var status: LiveData<Boolean> = _status
 
@@ -22,8 +25,8 @@ class LogInViewModel @Inject constructor(private val dataStore: DataStoreManager
     fun saveCookie(cookie: String) {
         viewModelScope.launch {
             Log.d("LogInViewModel", "saveCookie: $cookie")
-            dataStore.setCookie(cookie)
-            dataStore.setLoggedIn(true)
+            dataStoreManager.setCookie(cookie)
+            dataStoreManager.setLoggedIn(true)
             YouTube.cookie = cookie
             _status.postValue(true)
         }
@@ -37,7 +40,7 @@ class LogInViewModel @Inject constructor(private val dataStore: DataStoreManager
                     val (key, value) = it.split("=")
                     key to value
                 }.let {
-                    dataStore.setSpdc(it["sp_dc"] ?: "")
+                    dataStoreManager.setSpdc(it["sp_dc"] ?: "")
                     _spotifyStatus.postValue(true)
                 }
         }

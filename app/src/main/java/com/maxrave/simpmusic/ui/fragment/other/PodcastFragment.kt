@@ -39,11 +39,9 @@ import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.PodcastViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import dagger.hilt.android.AndroidEntryPoint
 import kotlin.math.abs
 import kotlin.random.Random
 
-@AndroidEntryPoint
 @UnstableApi
 class PodcastFragment : Fragment() {
 

@@ -12,11 +12,9 @@ import androidx.media3.exoplayer.offline.DownloadService
 import androidx.media3.exoplayer.scheduler.PlatformScheduler
 import androidx.media3.exoplayer.scheduler.Scheduler
 import com.maxrave.simpmusic.R
-import dagger.hilt.android.AndroidEntryPoint
-import javax.inject.Inject
+import org.koin.android.ext.android.inject
 
 @UnstableApi
-@AndroidEntryPoint
 class MusicDownloadService : DownloadService(
     NOTIFICATION_ID,
     1000L,
@@ -24,8 +22,7 @@ class MusicDownloadService : DownloadService(
     R.string.download,
     0
 ) {
-    @Inject
-    lateinit var downloadUtil: DownloadUtils
+    private val downloadUtil: DownloadUtils by inject()
 
     override fun getDownloadManager() = downloadUtil.downloadManager
 

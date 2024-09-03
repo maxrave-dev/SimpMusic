@@ -17,11 +17,8 @@ import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.data.repository.MainRepository
-import com.maxrave.simpmusic.di.DownloadCache
-import com.maxrave.simpmusic.di.PlayerCache
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService.Companion.CHANNEL_ID
 import com.maxrave.simpmusic.service.test.source.MergingMediaSourceFactory
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -33,15 +30,12 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.util.concurrent.Executors
-import javax.inject.Inject
-import javax.inject.Singleton
 
 @UnstableApi
-@Singleton
-class DownloadUtils @Inject constructor(
-    @ApplicationContext private val context: Context,
-    @PlayerCache private val playerCache: SimpleCache,
-    @DownloadCache private val downloadCache: SimpleCache,
+class DownloadUtils (
+    private val context: Context,
+    private val playerCache: SimpleCache,
+    private val downloadCache: SimpleCache,
     private val mainRepository: MainRepository,
     databaseProvider: DatabaseProvider
 ) {
@@ -61,12 +55,12 @@ class DownloadUtils @Inject constructor(
         val mediaId = dataSpec.key ?: error("No media id")
         Log.w("Stream", mediaId)
         Log.w("Stream", mediaId.startsWith(MergingMediaSourceFactory.isVideo).toString())
-        val CHUNK_LENGTH = 512 * 1024L
+        val chunkLength = 512 * 1024L
         if (downloadCache.isCached(
                 mediaId,
                 dataSpec.position,
                 if (dataSpec.length >= 0) dataSpec.length else 1
-            ) || playerCache.isCached(mediaId, dataSpec.position, CHUNK_LENGTH)
+            ) || playerCache.isCached(mediaId, dataSpec.position, chunkLength)
         ) {
             return@Factory dataSpec
         }

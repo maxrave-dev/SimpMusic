@@ -2,7 +2,6 @@ package com.maxrave.simpmusic.viewModel
 
 import android.app.Application
 import android.widget.Toast
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -11,19 +10,22 @@ import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.SongEntity
-import com.maxrave.simpmusic.data.repository.MainRepository
-import dagger.hilt.android.lifecycle.HiltViewModel
+import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.launch
+import org.koin.android.annotation.KoinViewModel
 import java.time.LocalDateTime
-import javax.inject.Inject
 
-@HiltViewModel
-class DownloadedViewModel @Inject constructor(private val application: Application, private val mainRepository: MainRepository): AndroidViewModel(application) {
+@KoinViewModel
+class DownloadedViewModel(private val application: Application): BaseViewModel(application) {
+
+    override val tag: String
+        get() = "DownloadedViewModel"
+
     private var _listDownloadedSong: MutableLiveData<ArrayList<SongEntity>> = MutableLiveData()
     val listDownloadedSong: LiveData<ArrayList<SongEntity>> get() = _listDownloadedSong
 
-    private var _listLocalPlaylist: MutableLiveData<List<LocalPlaylistEntity>> = MutableLiveData()
-    val localPlaylist: LiveData<List<LocalPlaylistEntity>> = _listLocalPlaylist
+    private var _localPlaylist: MutableLiveData<List<LocalPlaylistEntity>> = MutableLiveData()
+    val localPlaylist: LiveData<List<LocalPlaylistEntity>> = _localPlaylist
 
     private var _songEntity: MutableLiveData<SongEntity?> = MutableLiveData()
     val songEntity: LiveData<SongEntity?> = _songEntity
@@ -63,7 +65,7 @@ class DownloadedViewModel @Inject constructor(private val application: Applicati
     fun getAllLocalPlaylist() {
         viewModelScope.launch {
             mainRepository.getAllLocalPlaylists().collect { values ->
-                _listLocalPlaylist.postValue(values)
+                _localPlaylist.postValue(values)
             }
         }
     }

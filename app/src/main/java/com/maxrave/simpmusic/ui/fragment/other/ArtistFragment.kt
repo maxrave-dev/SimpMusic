@@ -63,7 +63,6 @@ import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.ArtistViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -73,12 +72,11 @@ import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import kotlin.math.abs
 
-@AndroidEntryPoint
 class ArtistFragment : Fragment() {
     private val viewModel by viewModels<ArtistViewModel>()
     private val sharedViewModel by activityViewModels<SharedViewModel>()
     private var _binding: FragmentArtistBinding? = null
-    private val binding get() = _binding!!
+    val binding get() = _binding!!
 
     private lateinit var popularAdapter: PopularAdapter
     private lateinit var singlesAdapter: SinglesAdapter

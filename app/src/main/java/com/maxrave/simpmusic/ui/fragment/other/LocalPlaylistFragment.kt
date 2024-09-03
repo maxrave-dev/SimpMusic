@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.ui.fragment.other
 
+import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
@@ -36,15 +37,13 @@ import com.maxrave.simpmusic.ui.screen.library.PlaylistScreen
 import com.maxrave.simpmusic.ui.theme.AppTheme
 import com.maxrave.simpmusic.viewModel.LocalPlaylistViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import dagger.hilt.android.AndroidEntryPoint
 import java.time.format.DateTimeFormatter
 
-@AndroidEntryPoint
 @UnstableApi
 @ExperimentalFoundationApi
 class LocalPlaylistFragment : Fragment() {
     private var _binding: FragmentLocalPlaylistBinding? = null
-    private val binding get() = _binding!!
+    val binding get() = _binding!!
 
     private val viewModel by activityViewModels<LocalPlaylistViewModel>()
     private val sharedViewModel by activityViewModels<SharedViewModel>()
@@ -71,6 +70,7 @@ class LocalPlaylistFragment : Fragment() {
         }
     }
 
+    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     @UnstableApi
     override fun onViewCreated(
         view: View,

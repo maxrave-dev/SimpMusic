@@ -39,6 +39,8 @@ import com.maxrave.kotlinytmusicscraper.models.response.BrowseResponse
 import com.maxrave.kotlinytmusicscraper.models.response.CreatePlaylistResponse
 import com.maxrave.kotlinytmusicscraper.models.response.GetQueueResponse
 import com.maxrave.kotlinytmusicscraper.models.response.GetSearchSuggestionsResponse
+import com.maxrave.kotlinytmusicscraper.models.response.LikeStatus
+import com.maxrave.kotlinytmusicscraper.models.response.NextAndroidMusicResponse
 import com.maxrave.kotlinytmusicscraper.models.response.NextResponse
 import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
 import com.maxrave.kotlinytmusicscraper.models.response.PlayerResponse
@@ -47,6 +49,7 @@ import com.maxrave.kotlinytmusicscraper.models.response.spotify.CanvasResponse
 import com.maxrave.kotlinytmusicscraper.models.response.spotify.PersonalTokenResponse
 import com.maxrave.kotlinytmusicscraper.models.response.spotify.SpotifyLyricsResponse
 import com.maxrave.kotlinytmusicscraper.models.response.spotify.TokenResponse
+import com.maxrave.kotlinytmusicscraper.models.response.toLikeStatus
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
 import com.maxrave.kotlinytmusicscraper.models.youtube.Transcript
@@ -737,10 +740,19 @@ object YouTube {
             return@runCatching json.decodeFromString<YouTubeInitialPage>(response)
         }
 
+    suspend fun getLikedInfo(videoId: String): Result<LikeStatus> = runCatching {
+        val response = ytMusic.next(
+            ANDROID_MUSIC, videoId, null, null, null, null, null
+        ).body<NextAndroidMusicResponse>()
+        val likeStatus = response.playerOverlays?.playerOverlayRenderer?.actions?.find {it.likeButtonRenderer != null}
+            ?.likeButtonRenderer?.likeStatus?.toLikeStatus()
+        Log.w("YouTube", "Like Status ${response.playerOverlays}")
+        return@runCatching likeStatus ?: LikeStatus.INDIFFERENT
+    }
+
     suspend fun getSongInfo(videoId: String): Result<SongInfo> =
         runCatching {
             val ytNext = ytMusic.next(WEB, videoId, null, null, null, null, null).body<NextResponse>()
-//        val ytScrapeInitial: YouTubeInitialPage = ytMusic.player(WEB, videoId, null, null).body<YouTubeInitialPage>()
             val videoSecondary =
                 ytNext.contents.twoColumnWatchNextResults?.results?.results?.content?.find {
                     it?.videoSecondaryInfoRenderer != null

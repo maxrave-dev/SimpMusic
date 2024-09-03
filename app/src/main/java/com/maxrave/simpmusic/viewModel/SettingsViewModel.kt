@@ -6,7 +6,6 @@ import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import android.widget.Toast
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.cache.SimpleCache
@@ -16,6 +15,7 @@ import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.DB_NAME
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.QUALITY
@@ -26,15 +26,12 @@ import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.DatabaseDao
 import com.maxrave.simpmusic.data.db.MusicDatabase
 import com.maxrave.simpmusic.data.db.entities.GoogleAccountEntity
-import com.maxrave.simpmusic.data.repository.MainRepository
-import com.maxrave.simpmusic.di.DownloadCache
-import com.maxrave.simpmusic.di.PlayerCache
 import com.maxrave.simpmusic.extension.div
 import com.maxrave.simpmusic.extension.zipInputStream
 import com.maxrave.simpmusic.extension.zipOutputStream
 import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.ui.MainActivity
-import dagger.hilt.android.lifecycle.HiltViewModel
+import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,25 +39,25 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import org.koin.android.annotation.KoinViewModel
+import org.koin.core.component.inject
+import org.koin.core.qualifier.named
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.zip.ZipEntry
-import javax.inject.Inject
 import kotlin.system.exitProcess
 
 @UnstableApi
-@HiltViewModel
-class SettingsViewModel @Inject constructor(
+@KoinViewModel
+class SettingsViewModel(
     private val application: Application,
-    private var mainRepository: MainRepository,
-    private var database: MusicDatabase,
-    private var databaseDao: DatabaseDao,
-    @PlayerCache val playerCache: SimpleCache,
-    @DownloadCache val downloadCache: SimpleCache,
-) : AndroidViewModel(application) {
+) : BaseViewModel(application) {
+    override val tag: String = "SettingsViewModel"
 
-    @Inject
-    lateinit var dataStoreManager: DataStoreManager
+    private val database: MusicDatabase by inject()
+    private val databaseDao: DatabaseDao by inject()
+    val playerCache: SimpleCache by inject(named(Config.PLAYER_CACHE))
+    val downloadCache: SimpleCache by inject(named(Config.DOWNLOAD_CACHE))
 
     private var _location: MutableStateFlow<String?> = MutableStateFlow(null)
     val location: StateFlow<String?> = _location
@@ -128,10 +125,8 @@ class SettingsViewModel @Inject constructor(
     @OptIn(ExperimentalCoilApi::class)
     fun getThumbCacheSize() {
         viewModelScope.launch {
-
             val diskCache = application.imageLoader.diskCache
             _thumbCacheSize.emit(diskCache?.size)
-
         }
     }
 
@@ -148,64 +143,70 @@ class SettingsViewModel @Inject constructor(
 
     fun getTranslationLanguage() {
         viewModelScope.launch {
-                dataStoreManager.translationLanguage.collect { translationLanguage ->
-                    _translationLanguage.emit(translationLanguage)
+            dataStoreManager.translationLanguage.collect { translationLanguage ->
+                _translationLanguage.emit(translationLanguage)
             }
         }
     }
 
     fun setTranslationLanguage(language: String) {
         viewModelScope.launch {
-                dataStoreManager.setTranslationLanguage(language)
-                getTranslationLanguage()
+            dataStoreManager.setTranslationLanguage(language)
+            getTranslationLanguage()
         }
     }
+
     fun getUseTranslation() {
         viewModelScope.launch {
-                dataStoreManager.enableTranslateLyric.collect { useTranslation ->
-                    _useTranslation.emit(useTranslation)
-                }
+            dataStoreManager.enableTranslateLyric.collect { useTranslation ->
+                _useTranslation.emit(useTranslation)
+            }
         }
     }
+
     fun setUseTranslation(useTranslation: Boolean) {
         viewModelScope.launch {
-                dataStoreManager.setEnableTranslateLyric(useTranslation)
-                getUseTranslation()
+            dataStoreManager.setEnableTranslateLyric(useTranslation)
+            getUseTranslation()
         }
     }
+
     fun getMusixmatchLoggedIn() {
         viewModelScope.launch {
-                dataStoreManager.musixmatchLoggedIn.collect { musixmatchLoggedIn ->
-                    _musixmatchLoggedIn.emit(musixmatchLoggedIn)
-                }
+            dataStoreManager.musixmatchLoggedIn.collect { musixmatchLoggedIn ->
+                _musixmatchLoggedIn.emit(musixmatchLoggedIn)
+            }
         }
     }
+
     fun setMusixmatchLoggedIn(loggedIn: Boolean) {
         viewModelScope.launch {
-                dataStoreManager.setMusixmatchLoggedIn(loggedIn)
-                getMusixmatchLoggedIn()
+            dataStoreManager.setMusixmatchLoggedIn(loggedIn)
+            getMusixmatchLoggedIn()
         }
     }
+
     fun getLyricsProvider() {
         viewModelScope.launch {
-                dataStoreManager.lyricsProvider.collect { mainLyricsProvider ->
-                    _mainLyricsProvider.emit(mainLyricsProvider)
-                }
+            dataStoreManager.lyricsProvider.collect { mainLyricsProvider ->
+                _mainLyricsProvider.emit(mainLyricsProvider)
             }
+        }
     }
+
     fun setLyricsProvider(provider: String) {
         viewModelScope.launch {
-                dataStoreManager.setLyricsProvider(provider)
-                getLyricsProvider()
+            dataStoreManager.setLyricsProvider(provider)
+            getLyricsProvider()
         }
     }
 
     fun checkForUpdate() {
         viewModelScope.launch {
-            mainRepository.checkForUpdate().collect {response ->
+            mainRepository.checkForUpdate().collect { response ->
                 dataStoreManager.putString(
                     "CheckForUpdateAt",
-                    System.currentTimeMillis().toString()
+                    System.currentTimeMillis().toString(),
                 )
                 _githubResponse.emit(response)
             }
@@ -214,47 +215,50 @@ class SettingsViewModel @Inject constructor(
 
     fun getLocation() {
         viewModelScope.launch {
-                dataStoreManager.location.collect { location ->
-                    _location.emit(location)
-                }
+            dataStoreManager.location.collect { location ->
+                _location.emit(location)
+            }
         }
     }
+
     fun getLoggedIn() {
         viewModelScope.launch {
-                dataStoreManager.loggedIn.collect { loggedIn ->
-                    _loggedIn.emit(loggedIn)
-                }
+            dataStoreManager.loggedIn.collect { loggedIn ->
+                _loggedIn.emit(loggedIn)
+            }
         }
     }
 
     fun changeLocation(location: String) {
         viewModelScope.launch {
-                dataStoreManager.setLocation(location)
-                YouTube.locale = YouTubeLocale(location, language.value!!)
-                getLocation()
+            dataStoreManager.setLocation(location)
+            YouTube.locale = YouTubeLocale(location, language.value!!)
+            getLocation()
         }
     }
+
     fun getSaveRecentSongAndQueue() {
         viewModelScope.launch {
-                dataStoreManager.saveRecentSongAndQueue.collect { saved ->
-                    _saveRecentSongAndQueue.emit(saved)
-                }
+            dataStoreManager.saveRecentSongAndQueue.collect { saved ->
+                _saveRecentSongAndQueue.emit(saved)
+            }
         }
     }
+
     fun getLastCheckForUpdate() {
         viewModelScope.launch {
-                dataStoreManager.getString("CheckForUpdateAt").first().let { lastCheckForUpdate ->
-                    _lastCheckForUpdate.emit(lastCheckForUpdate)
-                }
+            dataStoreManager.getString("CheckForUpdateAt").first().let { lastCheckForUpdate ->
+                _lastCheckForUpdate.emit(lastCheckForUpdate)
+            }
         }
     }
 
     fun getSponsorBlockEnabled() {
         viewModelScope.launch {
-                dataStoreManager.sponsorBlockEnabled.first().let { enabled ->
-                    _sponsorBlockEnabled.emit(enabled)
-                }
+            dataStoreManager.sponsorBlockEnabled.first().let { enabled ->
+                _sponsorBlockEnabled.emit(enabled)
             }
+        }
     }
 
     fun setSponsorBlockEnabled(enabled: Boolean) {
@@ -266,24 +270,24 @@ class SettingsViewModel @Inject constructor(
 
     fun getPlayVideoInsteadOfAudio() {
         viewModelScope.launch {
-                dataStoreManager.watchVideoInsteadOfPlayingAudio.collect { playVideoInsteadOfAudio ->
-                    _playVideoInsteadOfAudio.emit(playVideoInsteadOfAudio)
-                }
+            dataStoreManager.watchVideoInsteadOfPlayingAudio.collect { playVideoInsteadOfAudio ->
+                _playVideoInsteadOfAudio.emit(playVideoInsteadOfAudio)
+            }
         }
     }
 
     fun setPlayVideoInsteadOfAudio(playVideoInsteadOfAudio: Boolean) {
         viewModelScope.launch {
-                dataStoreManager.setWatchVideoInsteadOfPlayingAudio(playVideoInsteadOfAudio)
-                getPlayVideoInsteadOfAudio()
+            dataStoreManager.setWatchVideoInsteadOfPlayingAudio(playVideoInsteadOfAudio)
+            getPlayVideoInsteadOfAudio()
         }
     }
 
     fun getSponsorBlockCategories() {
         viewModelScope.launch {
-                dataStoreManager.getSponsorBlockCategories().let {
-                    _sponsorBlockCategories.emit(it)
-                }
+            dataStoreManager.getSponsorBlockCategories().let {
+                _sponsorBlockCategories.emit(it)
+            }
         }
     }
 
@@ -310,11 +314,11 @@ class SettingsViewModel @Inject constructor(
 
     fun changeVideoQuality(checkedIndex: Int) {
         viewModelScope.launch {
-                when (checkedIndex) {
-                    0 -> dataStoreManager.setVideoQuality(VIDEO_QUALITY.items[0].toString())
-                    1 -> dataStoreManager.setVideoQuality(VIDEO_QUALITY.items[1].toString())
-                }
-                getVideoQuality()
+            when (checkedIndex) {
+                0 -> dataStoreManager.setVideoQuality(VIDEO_QUALITY.items[0].toString())
+                1 -> dataStoreManager.setVideoQuality(VIDEO_QUALITY.items[1].toString())
+            }
+            getVideoQuality()
         }
     }
 
@@ -361,7 +365,7 @@ class SettingsViewModel @Inject constructor(
             downloadCache.keys.forEach { key ->
                 downloadCache.removeResource(key)
             }
-            mainRepository.getDownloadedSongs().collect {songs ->
+            mainRepository.getDownloadedSongs().collect { songs ->
                 songs?.forEach { song ->
                     mainRepository.updateDownloadState(song.videoId, DownloadState.STATE_NOT_DOWNLOADED)
                 }
@@ -371,11 +375,14 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun backup(context: Context, uri: Uri) {
+    fun backup(
+        context: Context,
+        uri: Uri,
+    ) {
         runCatching {
             context.applicationContext.contentResolver.openOutputStream(uri)?.use {
                 it.buffered().zipOutputStream().use { outputStream ->
-                    (context.filesDir/"datastore"/"$SETTINGS_FILENAME.preferences_pb").inputStream().buffered().use { inputStream ->
+                    (context.filesDir / "datastore" / "$SETTINGS_FILENAME.preferences_pb").inputStream().buffered().use { inputStream ->
                         outputStream.putNextEntry(ZipEntry("$SETTINGS_FILENAME.preferences_pb"))
                         inputStream.copyTo(outputStream)
                     }
@@ -389,17 +396,28 @@ class SettingsViewModel @Inject constructor(
                 }
             }
         }.onSuccess {
-            Toast.makeText(context,
-                context.getString(R.string.backup_create_success), Toast.LENGTH_SHORT).show()
+            Toast
+                .makeText(
+                    context,
+                    context.getString(R.string.backup_create_success),
+                    Toast.LENGTH_SHORT,
+                ).show()
         }.onFailure {
             it.printStackTrace()
-            Toast.makeText(context,
-                context.getString(R.string.backup_create_failed), Toast.LENGTH_SHORT).show()
+            Toast
+                .makeText(
+                    context,
+                    context.getString(R.string.backup_create_failed),
+                    Toast.LENGTH_SHORT,
+                ).show()
         }
     }
 
     @UnstableApi
-    fun restore(context: Context, uri: Uri) {
+    fun restore(
+        context: Context,
+        uri: Uri,
+    ) {
         runCatching {
             context.applicationContext.contentResolver.openInputStream(uri)?.use {
                 it.zipInputStream().use { inputStream ->
@@ -408,7 +426,7 @@ class SettingsViewModel @Inject constructor(
                     while (entry != null && count < 2) {
                         when (entry.name) {
                             "$SETTINGS_FILENAME.preferences_pb" -> {
-                                (context.filesDir/"datastore"/"$SETTINGS_FILENAME.preferences_pb").outputStream().use { outputStream ->
+                                (context.filesDir / "datastore" / "$SETTINGS_FILENAME.preferences_pb").outputStream().use { outputStream ->
                                     inputStream.copyTo(outputStream)
                                 }
                             }
@@ -428,11 +446,12 @@ class SettingsViewModel @Inject constructor(
                     }
                 }
             }
-            Toast.makeText(
-                context,
-                context.getString(R.string.restore_success),
-                Toast.LENGTH_SHORT
-            ).show()
+            Toast
+                .makeText(
+                    context,
+                    context.getString(R.string.restore_success),
+                    Toast.LENGTH_SHORT,
+                ).show()
             context.stopService(Intent(context, SimpleMediaService::class.java))
             context.startActivity(Intent(context, MainActivity::class.java))
             exitProcess(0)
@@ -444,63 +463,65 @@ class SettingsViewModel @Inject constructor(
 
     fun getLanguage() {
         viewModelScope.launch {
-                dataStoreManager.getString(SELECTED_LANGUAGE).collect { language ->
-                    _language.emit(language)
-                }
+            dataStoreManager.getString(SELECTED_LANGUAGE).collect { language ->
+                _language.emit(language)
+            }
         }
     }
 
     @UnstableApi
     fun changeLanguage(code: String) {
         viewModelScope.launch {
-                dataStoreManager.putString(SELECTED_LANGUAGE, code)
-                Log.w("SettingsViewModel", "changeLanguage: $code")
-                YouTube.locale = YouTubeLocale(location.value!!, code.substring(0..1))
-                getLanguage()
+            dataStoreManager.putString(SELECTED_LANGUAGE, code)
+            Log.w("SettingsViewModel", "changeLanguage: $code")
+            YouTube.locale = YouTubeLocale(location.value!!, code.substring(0..1))
+            getLanguage()
         }
     }
 
     fun clearCookie() {
         viewModelScope.launch {
-                dataStoreManager.setCookie("")
-                YouTube.cookie = null
-                dataStoreManager.setLoggedIn(false)
+            dataStoreManager.setCookie("")
+            YouTube.cookie = null
+            dataStoreManager.setLoggedIn(false)
         }
     }
 
     fun getNormalizeVolume() {
         viewModelScope.launch {
-                dataStoreManager.normalizeVolume.collect { normalizeVolume ->
-                    _normalizeVolume.emit(normalizeVolume)
+            dataStoreManager.normalizeVolume.collect { normalizeVolume ->
+                _normalizeVolume.emit(normalizeVolume)
             }
         }
     }
+
     @UnstableApi
     fun setNormalizeVolume(normalizeVolume: Boolean) {
         viewModelScope.launch {
-                dataStoreManager.setNormalizeVolume(normalizeVolume)
-                getNormalizeVolume()
+            dataStoreManager.setNormalizeVolume(normalizeVolume)
+            getNormalizeVolume()
         }
     }
+
     fun getSendBackToGoogle() {
         viewModelScope.launch {
-
-                dataStoreManager.sendBackToGoogle.collect { sendBackToGoogle ->
-                    _sendBackToGoogle.emit(sendBackToGoogle)
+            dataStoreManager.sendBackToGoogle.collect { sendBackToGoogle ->
+                _sendBackToGoogle.emit(sendBackToGoogle)
             }
         }
     }
+
     fun setSendBackToGoogle(sendBackToGoogle: Boolean) {
         viewModelScope.launch {
-                dataStoreManager.setSendBackToGoogle(sendBackToGoogle)
-                getSendBackToGoogle()
+            dataStoreManager.setSendBackToGoogle(sendBackToGoogle)
+            getSendBackToGoogle()
         }
     }
+
     fun getSkipSilent() {
         viewModelScope.launch {
-                dataStoreManager.skipSilent.collect { skipSilent ->
-                    _skipSilent.emit(skipSilent)
-
+            dataStoreManager.skipSilent.collect { skipSilent ->
+                _skipSilent.emit(skipSilent)
             }
         }
     }
@@ -508,36 +529,38 @@ class SettingsViewModel @Inject constructor(
     @UnstableApi
     fun setSkipSilent(skip: Boolean) {
         viewModelScope.launch {
-                dataStoreManager.setSkipSilent(skip)
-                getSkipSilent()
+            dataStoreManager.setSkipSilent(skip)
+            getSkipSilent()
         }
     }
+
     fun getSavedPlaybackState() {
         viewModelScope.launch {
-                dataStoreManager.saveStateOfPlayback.collect { savedPlaybackState ->
-                    _savedPlaybackState.emit(savedPlaybackState)
+            dataStoreManager.saveStateOfPlayback.collect { savedPlaybackState ->
+                _savedPlaybackState.emit(savedPlaybackState)
             }
         }
     }
+
     fun setSavedPlaybackState(savedPlaybackState: Boolean) {
         viewModelScope.launch {
-                dataStoreManager.setSaveStateOfPlayback(savedPlaybackState)
-                getSavedPlaybackState()
+            dataStoreManager.setSaveStateOfPlayback(savedPlaybackState)
+            getSavedPlaybackState()
         }
     }
 
     fun setSaveLastPlayed(b: Boolean) {
         viewModelScope.launch {
-                dataStoreManager.setSaveRecentSongAndQueue(b)
-                getSaveRecentSongAndQueue()
+            dataStoreManager.setSaveRecentSongAndQueue(b)
+            getSaveRecentSongAndQueue()
         }
     }
 
     fun clearMusixmatchCookie() {
         viewModelScope.launch {
-                dataStoreManager.setMusixmatchCookie("")
-                YouTube.musixMatchCookie = null
-                dataStoreManager.setMusixmatchLoggedIn(false)
+            dataStoreManager.setMusixmatchCookie("")
+            YouTube.musixMatchCookie = null
+            dataStoreManager.setMusixmatchLoggedIn(false)
         }
     }
 
@@ -580,7 +603,7 @@ class SettingsViewModel @Inject constructor(
                                 dataStoreManager.putString("AccountName", it.name)
                                 dataStoreManager.putString(
                                     "AccountThumbUrl",
-                                    it.thumbnails.lastOrNull()?.url ?: ""
+                                    it.thumbnails.lastOrNull()?.url ?: "",
                                 )
                                 mainRepository.insertGoogleAccount(
                                     GoogleAccountEntity(
@@ -588,8 +611,8 @@ class SettingsViewModel @Inject constructor(
                                         name = it.name,
                                         thumbnailUrl = it.thumbnails.lastOrNull()?.url ?: "",
                                         cache = YouTube.cookie,
-                                        isUsed = true
-                                    )
+                                        isUsed = true,
+                                    ),
                                 )
                                 delay(500)
                                 getAllGoogleAccount()
@@ -617,7 +640,7 @@ class SettingsViewModel @Inject constructor(
                     dataStoreManager.putString("AccountName", accountInfo.name)
                     dataStoreManager.putString(
                         "AccountThumbUrl",
-                        accountInfo.thumbnails.lastOrNull()?.url ?: ""
+                        accountInfo.thumbnails.lastOrNull()?.url ?: "",
                     )
                     mainRepository.insertGoogleAccount(
                         GoogleAccountEntity(
@@ -625,8 +648,8 @@ class SettingsViewModel @Inject constructor(
                             name = accountInfo.name,
                             thumbnailUrl = accountInfo.thumbnails.lastOrNull()?.url ?: "",
                             cache = YouTube.cookie,
-                            isUsed = true
-                        )
+                            isUsed = true,
+                        ),
                     )
                     dataStoreManager.setLoggedIn(true)
                     dataStoreManager.setCookie(YouTube.cookie ?: "")
@@ -636,7 +659,6 @@ class SettingsViewModel @Inject constructor(
                 }
             }
         }
-
     }
 
     fun setUsedAccount(acc: GoogleAccountEntity?) {
@@ -690,11 +712,12 @@ class SettingsViewModel @Inject constructor(
     fun clearThumbnailCache() {
         viewModelScope.launch {
             application.imageLoader.diskCache?.clear()
-            Toast.makeText(
-                getApplication(),
-                application.getString(R.string.clear_thumbnail_cache),
-                Toast.LENGTH_SHORT
-            ).show()
+            Toast
+                .makeText(
+                    getApplication(),
+                    application.getString(R.string.clear_thumbnail_cache),
+                    Toast.LENGTH_SHORT,
+                ).show()
             getThumbCacheSize()
         }
     }
@@ -712,7 +735,6 @@ class SettingsViewModel @Inject constructor(
                 }
             }
         }
-
     }
 
     fun setSpotifyLogIn(loggedIn: Boolean) {

@@ -5,7 +5,6 @@ import android.graphics.drawable.GradientDrawable
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.ui.graphics.Color
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
@@ -20,12 +19,11 @@ import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.SetVideoIdEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
-import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.extension.toListVideoId
 import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.utils.Resource
-import dagger.hilt.android.lifecycle.HiltViewModel
+import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -38,21 +36,22 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import org.koin.android.annotation.KoinViewModel
+import org.koin.core.component.inject
 import java.time.LocalDateTime
-import javax.inject.Inject
 
 @UnstableApi
-@HiltViewModel
-class LocalPlaylistViewModel
-@Inject
-constructor(
-    private val mainRepository: MainRepository,
-    private val application: Application,
-) : AndroidViewModel(application) {
-    @Inject
-    lateinit var downloadUtils: DownloadUtils
+@KoinViewModel
+class LocalPlaylistViewModel(
+        private val application: Application,
+    ) : BaseViewModel(application) {
 
-    val id: MutableLiveData<Long> = MutableLiveData()
+    override val tag: String
+        get() = "LocalPlaylistViewModel"
+
+        private val downloadUtils: DownloadUtils by inject()
+
+        val id: MutableLiveData<Long> = MutableLiveData()
 
     private var _localPlaylist: MutableStateFlow<LocalPlaylistEntity?> =
         MutableStateFlow(null)
@@ -108,32 +107,14 @@ constructor(
         _brush.value = brush
     }
 
-    fun resetBrush() {
-        Log.w("resetBrush", "resetBrush: ")
-        _brush.value =
-            listOf(
-                Color.Black,
-                Color(
-                    application.resources.getColor(R.color.md_theme_dark_background, null),
-                ),
-            )
-    }
-
-    init {
-        viewModelScope.launch {
-            val checkDownloadedJob =
-                launch {
-                    listTrack.collect {
-                        if (it != null) {
-                            mainRepository.getPlaylistPairSong(id.value!!).collect {
-                                Log.w("Pair LocalPlaylistViewModel", "init: ${it?.size}")
-                            }
-                            val temp: ArrayList<SongEntity> = arrayListOf()
-                            var count = 0
-                            it.forEach { track ->
-                                temp.add(track)
-                                if (track.downloadState == STATE_DOWNLOADED) {
-                                    count++
+        init {
+            viewModelScope.launch {
+                val checkDownloadedJob =
+                    launch {
+                        listTrack.collect {
+                            if (it != null) {
+                                mainRepository.getPlaylistPairSong(id.value!!).collect {
+                                    Log.w("Pair LocalPlaylistViewModel", "init: ${it?.size}")
                                 }
                             }
                             localPlaylist.value?.id?.let { id ->
@@ -155,6 +136,35 @@ constructor(
                                         STATE_NOT_DOWNLOADED,
                                     )
                                     getLocalPlaylist(id)
+                                }
+                                localPlaylist.value?.id?.let { id ->
+                                    if (count == it.size &&
+                                        localPlaylist.value?.downloadState != STATE_DOWNLOADED
+                                    ) {
+                                        updatePlaylistDownloadState(
+                                            id,
+                                            STATE_DOWNLOADED,
+                                        )
+                                        getLocalPlaylist(id)
+                                    } else if (
+                                        count != it.size &&
+                                        localPlaylist.value?.downloadState != STATE_NOT_DOWNLOADED &&
+                                        localPlaylist.value?.downloadState != STATE_DOWNLOADING
+                                    ) {
+                                        updatePlaylistDownloadState(
+                                            id,
+                                            STATE_NOT_DOWNLOADED,
+                                        )
+                                        getLocalPlaylist(id)
+                                    } else if (
+                                        count < it.size && localPlaylist.value?.downloadState == STATE_DOWNLOADED
+                                    ) {
+                                        updatePlaylistDownloadState(
+                                            id,
+                                            STATE_NOT_DOWNLOADED,
+                                        )
+                                        getLocalPlaylist(id)
+                                    }
                                 }
                             }
                         }

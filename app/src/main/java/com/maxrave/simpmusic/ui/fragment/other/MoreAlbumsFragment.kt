@@ -15,14 +15,12 @@ import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.adapter.artist.MoreAlbumAdapter
 import com.maxrave.simpmusic.databinding.FragmentMoreAlbumsBinding
 import com.maxrave.simpmusic.viewModel.MoreAlbumsViewModel
-import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.launch
 
-@AndroidEntryPoint
 class MoreAlbumsFragment : Fragment() {
     private var _binding: FragmentMoreAlbumsBinding? = null
-    private val binding get() = _binding!!
+    val binding get() = _binding!!
 
     private val viewModel by viewModels<MoreAlbumsViewModel>()
     private var id: String? = null

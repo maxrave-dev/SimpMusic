@@ -26,16 +26,14 @@ import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.viewModel.LogInViewModel
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 
-@AndroidEntryPoint
 class LogInFragment : Fragment() {
 
     private var _binding: FragmentLogInBinding? = null
-    private val binding get() = _binding!!
+    val binding get() = _binding!!
 
     private val viewModel by viewModels<LogInViewModel>()
     private val settingsViewModel by activityViewModels<SettingsViewModel>()

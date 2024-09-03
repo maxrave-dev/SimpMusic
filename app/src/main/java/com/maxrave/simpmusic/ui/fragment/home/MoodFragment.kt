@@ -12,10 +12,8 @@ import androidx.navigation.fragment.findNavController
 import com.maxrave.simpmusic.ui.screen.home.MoodScreen
 import com.maxrave.simpmusic.ui.theme.AppTheme
 import com.maxrave.simpmusic.viewModel.MoodViewModel
-import dagger.hilt.android.AndroidEntryPoint
 
-@AndroidEntryPoint
-class MoodFragment : Fragment() {
+class MoodFragment: Fragment() {
     private val viewModel by viewModels<MoodViewModel>()
 
     private lateinit var composeView: ComposeView

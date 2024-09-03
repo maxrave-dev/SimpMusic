@@ -65,7 +65,6 @@ import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.AlbumViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -76,14 +75,13 @@ import java.time.LocalDateTime
 import kotlin.math.abs
 import kotlin.random.Random
 
-@AndroidEntryPoint
 @UnstableApi
 class AlbumFragment : Fragment() {
     private val viewModel by activityViewModels<AlbumViewModel>()
     private val sharedViewModel by activityViewModels<SharedViewModel>()
 
     private var _binding: FragmentAlbumBinding? = null
-    private val binding get() = _binding!!
+    val binding get() = _binding!!
 
     private var gradientDrawable: GradientDrawable? = null
     private var toolbarBackground: Int? = null

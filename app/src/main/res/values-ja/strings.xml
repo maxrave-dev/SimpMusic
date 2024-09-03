@@ -187,7 +187,7 @@
     <string name="preview">プレビュー</string>
     <string name="music_off_topic">音楽 オフトピック</string>
     <string name="poi_highlight">POIハイライト</string>
-    <string name="filler">フィルター</string>
+    <string name="filter">フィルター</string>
     <string name="sponsorBlock">SponsorBlock</string>
     <string name="enable_sponsor_block">SponsorBlockを有効にする</string>
     <string name="categories_sponsor_block">スキップセグメントの動作を選択</string>

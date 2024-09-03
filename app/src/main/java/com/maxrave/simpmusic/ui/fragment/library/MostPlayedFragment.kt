@@ -47,17 +47,15 @@ import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.viewModel.MostPlayedViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 
-@AndroidEntryPoint
 class MostPlayedFragment: Fragment() {
     private var _binding: FragmentMostPlayedBinding? = null
-    private val binding get() = _binding!!
+    val binding get() = _binding!!
 
     private val viewModel by viewModels<MostPlayedViewModel>()
     private val sharedViewModel by activityViewModels<SharedViewModel>()

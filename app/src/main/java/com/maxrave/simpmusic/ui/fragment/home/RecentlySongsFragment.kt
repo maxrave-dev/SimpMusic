@@ -27,17 +27,15 @@ import com.maxrave.simpmusic.service.PlaylistType
 import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.viewModel.RecentlySongsViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-@AndroidEntryPoint
 class RecentlySongsFragment: Fragment() {
     private var _binding: FragmentRecentlySongsBinding? = null
-    private val binding get() = _binding!!
+    val binding get() = _binding!!
 
     private val viewModel by viewModels<RecentlySongsViewModel>()
     private val sharedViewModel by activityViewModels<SharedViewModel>()

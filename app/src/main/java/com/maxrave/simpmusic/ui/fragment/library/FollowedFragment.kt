@@ -14,13 +14,11 @@ import com.maxrave.simpmusic.data.db.entities.ArtistEntity
 import com.maxrave.simpmusic.databinding.FragmentFollowedBinding
 import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.viewModel.FollowedViewModel
-import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 
-@AndroidEntryPoint
 class FollowedFragment : Fragment() {
     private var _binding: FragmentFollowedBinding? = null
-    private val binding get() = _binding!!
+    val binding get() = _binding!!
 
     private val viewModel by viewModels<FollowedViewModel>()
 

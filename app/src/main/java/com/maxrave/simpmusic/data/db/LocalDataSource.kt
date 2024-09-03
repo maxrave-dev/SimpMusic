@@ -18,11 +18,8 @@ import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.db.entities.SongInfoEntity
 import com.maxrave.simpmusic.viewModel.FilterState
 import java.time.LocalDateTime
-import javax.inject.Inject
 
-class LocalDataSource
-    @Inject
-    constructor(private val databaseDao: DatabaseDao) {
+class LocalDataSource(private val databaseDao: DatabaseDao) {
         suspend fun getAllRecentData() = databaseDao.getAllRecentData()
 
         suspend fun getAllDownloadedPlaylist() = databaseDao.getAllDownloadedPlaylist()

@@ -3,7 +3,6 @@ package com.maxrave.simpmusic.viewModel
 import android.app.Application
 import android.util.Log
 import android.widget.Toast
-import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
@@ -14,27 +13,31 @@ import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.SongEntity
-import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
-import dagger.hilt.android.lifecycle.HiltViewModel
+import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import org.koin.android.annotation.KoinViewModel
+import org.koin.core.component.inject
 import java.time.LocalDateTime
-import javax.inject.Inject
 
-@HiltViewModel
-class FavoriteViewModel @Inject constructor(private val application: Application, private val mainRepository: MainRepository): AndroidViewModel(application) {
-    @Inject
-    lateinit var downloadUtils: DownloadUtils
+@KoinViewModel
+@UnstableApi
+class FavoriteViewModel(private val application: Application): BaseViewModel(application) {
+
+    override val tag: String
+        get() = "FavoriteViewModel"
+
+    private val downloadUtils: DownloadUtils by inject()
 
     private var _listLikedSong: MutableLiveData<ArrayList<SongEntity>> = MutableLiveData()
     val listLikedSong: LiveData<ArrayList<SongEntity>> get() = _listLikedSong
 
-    private var _listLocalPlaylist: MutableLiveData<List<LocalPlaylistEntity>> = MutableLiveData()
-    val localPlaylist: LiveData<List<LocalPlaylistEntity>> = _listLocalPlaylist
+    private var _localPlaylist: MutableLiveData<List<LocalPlaylistEntity>> = MutableLiveData()
+    val localPlaylist: LiveData<List<LocalPlaylistEntity>> = _localPlaylist
 
     private val _songEntity: MutableLiveData<SongEntity?> = MutableLiveData()
     val songEntity: LiveData<SongEntity?> = _songEntity
@@ -56,7 +59,7 @@ class FavoriteViewModel @Inject constructor(private val application: Application
     fun getAllLocalPlaylist() {
         viewModelScope.launch {
             mainRepository.getAllLocalPlaylists().collect { values ->
-                _listLocalPlaylist.postValue(values)
+                _localPlaylist.postValue(values)
             }
         }
     }

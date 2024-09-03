@@ -22,7 +22,6 @@ import com.maxrave.simpmusic.extension.isMyServiceRunning
 import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.viewModel.MusixmatchViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import dagger.hilt.android.AndroidEntryPoint
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -30,7 +29,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
-@AndroidEntryPoint
 class MusixmatchFragment : Fragment() {
 
     private var _binding: FragmentMusixmatchBinding? = null
@@ -62,7 +60,7 @@ class MusixmatchFragment : Fragment() {
         miniplayer.visibility = View.GONE
         binding.btLogIn.setOnClickListener {
             if (binding.etEmail.text.toString().isNotEmpty() && binding.etPassword.text.toString().isNotEmpty()) {
-                viewModel.loggin(binding.etEmail.text.toString(), binding.etPassword.text.toString())
+                viewModel.login(binding.etEmail.text.toString(), binding.etPassword.text.toString())
             }
             else {
                 Toast.makeText(requireContext(),
