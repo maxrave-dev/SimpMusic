@@ -37,7 +37,6 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -82,6 +81,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
+import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants.IterateForever
@@ -128,7 +130,8 @@ import java.time.format.DateTimeFormatter
 @UnstableApi
 @ExperimentalFoundationApi
 @OptIn(
-    ExperimentalMaterial3Api::class, ExperimentalCoroutinesApi::class,
+    ExperimentalMaterial3Api::class,
+    ExperimentalCoroutinesApi::class,
 )
 @Composable
 fun PlaylistScreen(
@@ -180,7 +183,9 @@ fun PlaylistScreen(
     }
     val lastItemVisible by remember {
         derivedStateOf {
-            lazyState.layoutInfo.visibleItemsInfo.lastOrNull()?.index == lazyState.layoutInfo.totalItemsCount - 1
+            lazyState.layoutInfo.visibleItemsInfo
+                .lastOrNull()
+                ?.index == lazyState.layoutInfo.totalItemsCount - 1
         }
     }
     val downloadState by viewModel.playlistDownloadState.collectAsState()
@@ -191,9 +196,10 @@ fun PlaylistScreen(
     val bg by viewModel.brush.collectAsState()
     val localPlaylist by viewModel.localPlaylist.collectAsState()
     val listTrack by viewModel.listTrack.collectAsState()
-    val playingTrack by sharedViewModel.nowPlayingState.mapLatest {
-        it?.mediaItem
-    }.collectAsState(initial = null)
+    val playingTrack by sharedViewModel.nowPlayingState
+        .mapLatest {
+            it?.mediaItem
+        }.collectAsState(initial = null)
     val isPlaying by sharedViewModel.controllerState.map { it.isPlaying }.collectAsState(initial = false)
     val suggestedTracks by viewModel.listSuggestions.collectAsState()
     val suggestionsLoading by viewModel.loading.collectAsState()
@@ -235,18 +241,22 @@ fun PlaylistScreen(
                     playlistId = LOCAL_PLAYLIST_ID + localPlaylist?.id,
                     playlistName = "Playlist \"${localPlaylist?.title}\"",
                     playlistType = PlaylistType.LOCAL_PLAYLIST,
-                    continuation = if (offset > 0) {
-                        if (filterState == FilterState.OlderFirst) {
-                            (ASC + offset.toString())
+                    continuation =
+                        if (offset > 0) {
+                            if (filterState == FilterState.OlderFirst) {
+                                (ASC + offset.toString())
+                            } else {
+                                (DESC + offset)
+                            }
                         } else {
-                            (DESC + offset)
-                        }
-                    } else null
-
-                )
+                            null
+                        },
+                ),
             )
             sharedViewModel.loadMediaItemFromTrack(
-                track = track.toTrack(), type = Config.PLAYLIST_CLICK, index = list.indexOf(track)
+                track = track.toTrack(),
+                type = Config.PLAYLIST_CLICK,
+                index = list.indexOf(track),
             )
         }
     }
@@ -265,6 +275,7 @@ fun PlaylistScreen(
             localPlaylist?.youtubePlaylistId?.let { viewModel.getSuggestions(it) }
         }
     }
+    val trackPagingItems: LazyPagingItems<SongEntity> = viewModel.tracksPagingState.collectAsLazyPagingItems()
     LaunchedEffect(key1 = id) {
         if (id != viewModel.id.value && id != null) {
             Log.w("PlaylistScreen", "new id: $id")
@@ -318,21 +329,22 @@ fun PlaylistScreen(
             viewModel.setBrush(brush)
         }
     }
+
 //    Box {
     LazyColumn(
         modifier =
-        Modifier
-            .fillMaxWidth()
-            .background(Color.Black),
+            Modifier
+                .fillMaxWidth()
+                .background(Color.Black),
         state = lazyState,
     ) {
         item(contentType = "header") {
             Box(
                 modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight()
-                    .background(Color.Transparent),
+                    Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                        .background(Color.Transparent),
             ) {
                 Box(
                     modifier =
@@ -345,30 +357,29 @@ fun PlaylistScreen(
                 ) {
                     Box(
                         modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .aspectRatio(1f)
-                            .clip(
-                                RoundedCornerShape(8.dp),
-                            )
-                            .angledGradientBackground(bg, 25f),
+                            Modifier
+                                .fillMaxWidth()
+                                .aspectRatio(1f)
+                                .clip(
+                                    RoundedCornerShape(8.dp),
+                                ).angledGradientBackground(bg, 25f),
                     )
                     Box(
                         modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .height(180.dp)
-                            .align(Alignment.BottomCenter)
-                            .background(
-                                brush =
-                                Brush.verticalGradient(
-                                    listOf(
-                                        Color.Transparent,
-                                        Color(0x75000000),
-                                        Color.Black,
-                                    ),
+                            Modifier
+                                .fillMaxWidth()
+                                .height(180.dp)
+                                .align(Alignment.BottomCenter)
+                                .background(
+                                    brush =
+                                        Brush.verticalGradient(
+                                            listOf(
+                                                Color.Transparent,
+                                                Color(0x75000000),
+                                                Color.Black,
+                                            ),
+                                        ),
                                 ),
-                            ),
                     )
                 }
                 Column(
@@ -378,10 +389,10 @@ fun PlaylistScreen(
                 ) {
                     Row(
                         modifier =
-                        Modifier
-                            .wrapContentWidth()
-                            .padding(16.dp)
-                            .windowInsetsPadding(WindowInsets.statusBars),
+                            Modifier
+                                .wrapContentWidth()
+                                .padding(16.dp)
+                                .windowInsetsPadding(WindowInsets.statusBars),
                     ) {
                         RippleIconButton(
                             resId = R.drawable.baseline_arrow_back_ios_new_24,
@@ -421,19 +432,19 @@ fun PlaylistScreen(
                                     +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder))
                                 },
                             modifier =
-                            Modifier
-                                .height(250.dp)
-                                .wrapContentWidth()
-                                .align(Alignment.CenterHorizontally)
-                                .clip(
-                                    RoundedCornerShape(8.dp),
-                                ),
+                                Modifier
+                                    .height(250.dp)
+                                    .wrapContentWidth()
+                                    .align(Alignment.CenterHorizontally)
+                                    .clip(
+                                        RoundedCornerShape(8.dp),
+                                    ),
                         )
                         Box(
                             modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .wrapContentHeight(),
+                                Modifier
+                                    .fillMaxWidth()
+                                    .wrapContentHeight(),
                         ) {
                             Column(Modifier.padding(horizontal = 32.dp)) {
                                 Spacer(modifier = Modifier.size(25.dp))
@@ -488,20 +499,22 @@ fun PlaylistScreen(
                                                     playlistId = LOCAL_PLAYLIST_ID + localPlaylist?.id,
                                                     playlistName = "Playlist \"${localPlaylist?.title}\"",
                                                     playlistType = PlaylistType.LOCAL_PLAYLIST,
-                                                    continuation = if (offset > 0) {
-                                                        if (filterState == FilterState.OlderFirst) {
-                                                            (ASC + offset.toString())
+                                                    continuation =
+                                                        if (offset > 0) {
+                                                            if (filterState == FilterState.OlderFirst) {
+                                                                (ASC + offset.toString())
+                                                            } else {
+                                                                (DESC + offset)
+                                                            }
                                                         } else {
-                                                            (DESC + offset)
-                                                        }
-                                                    } else null
-
-                                                )
+                                                            null
+                                                        },
+                                                ),
                                             )
                                             sharedViewModel.loadMediaItemFromTrack(
                                                 track = temp.first().toTrack(),
                                                 type = Config.PLAYLIST_CLICK,
-                                                index = 0
+                                                index = 0,
                                             )
                                         } else {
                                             Toast.makeText(context, context.getString(R.string.playlist_is_empty), Toast.LENGTH_SHORT).show()
@@ -513,29 +526,27 @@ fun PlaylistScreen(
                                             DownloadState.STATE_DOWNLOADED -> {
                                                 Box(
                                                     modifier =
-                                                    Modifier
-                                                        .size(36.dp)
-                                                        .clip(
-                                                            CircleShape,
-                                                        )
-                                                        .clickable{
-                                                            Toast
-                                                                .makeText(
-                                                                    context,
-                                                                    context.getString(R.string.downloaded),
-                                                                    Toast.LENGTH_SHORT,
-                                                                )
-                                                                .show()
-                                                        },
+                                                        Modifier
+                                                            .size(36.dp)
+                                                            .clip(
+                                                                CircleShape,
+                                                            ).clickable {
+                                                                Toast
+                                                                    .makeText(
+                                                                        context,
+                                                                        context.getString(R.string.downloaded),
+                                                                        Toast.LENGTH_SHORT,
+                                                                    ).show()
+                                                            },
                                                 ) {
                                                     Icon(
                                                         painter = painterResource(id = R.drawable.baseline_downloaded),
                                                         tint = Color(0xFF00A0CB),
                                                         contentDescription = "",
                                                         modifier =
-                                                        Modifier
-                                                            .size(36.dp)
-                                                            .padding(2.dp),
+                                                            Modifier
+                                                                .size(36.dp)
+                                                                .padding(2.dp),
                                                     )
                                                 }
                                             }
@@ -543,20 +554,18 @@ fun PlaylistScreen(
                                             DownloadState.STATE_DOWNLOADING -> {
                                                 Box(
                                                     modifier =
-                                                    Modifier
-                                                        .size(36.dp)
-                                                        .clip(
-                                                            CircleShape,
-                                                        )
-                                                        .clickable{
-                                                            Toast
-                                                                .makeText(
-                                                                    context,
-                                                                    context.getString(R.string.downloading),
-                                                                    Toast.LENGTH_SHORT,
-                                                                )
-                                                                .show()
-                                                        }
+                                                        Modifier
+                                                            .size(36.dp)
+                                                            .clip(
+                                                                CircleShape,
+                                                            ).clickable {
+                                                                Toast
+                                                                    .makeText(
+                                                                        context,
+                                                                        context.getString(R.string.downloading),
+                                                                        Toast.LENGTH_SHORT,
+                                                                    ).show()
+                                                            },
                                                 ) {
                                                     LottieAnimation(
                                                         composition,
@@ -589,11 +598,9 @@ fun PlaylistScreen(
                                                     .graphicsLayer {
                                                         compositingStrategy =
                                                             CompositingStrategy.Offscreen
-                                                    }
-                                                    .clickable{
+                                                    }.clickable {
                                                         shouldShowSuggestions = !shouldShowSuggestions
-                                                    }
-                                                    .drawWithCache {
+                                                    }.drawWithCache {
                                                         val width = size.width - 10
                                                         val height = size.height - 10
 
@@ -657,20 +664,22 @@ fun PlaylistScreen(
                                                     playlistId = LOCAL_PLAYLIST_ID + localPlaylist?.id,
                                                     playlistName = "Playlist \"${localPlaylist?.title}\"",
                                                     playlistType = PlaylistType.LOCAL_PLAYLIST,
-                                                    continuation = if (offset > 0) {
-                                                        if (filterState == FilterState.OlderFirst) {
-                                                            (ASC + offset.toString())
+                                                    continuation =
+                                                        if (offset > 0) {
+                                                            if (filterState == FilterState.OlderFirst) {
+                                                                (ASC + offset.toString())
+                                                            } else {
+                                                                (DESC + offset)
+                                                            }
                                                         } else {
-                                                            (DESC + offset)
-                                                        }
-                                                    } else null
-
-                                                )
+                                                            null
+                                                        },
+                                                ),
                                             )
                                             sharedViewModel.loadMediaItemFromTrack(
                                                 track = random.toTrack(),
                                                 type = Config.PLAYLIST_CLICK,
-                                                index = index
+                                                index = index,
                                             )
                                             if (!sharedViewModel.controllerState.value.isShuffle) {
                                                 sharedViewModel.onUIEvent(UIEvent.Shuffle)
@@ -763,14 +772,13 @@ fun PlaylistScreen(
                                                                             context.getString(R.string.suggest)
                                                                         }",
                                                                         playlistType = PlaylistType.RADIO,
-                                                                        continuation = null
-
-                                                                    )
+                                                                        continuation = null,
+                                                                    ),
                                                                 )
                                                                 sharedViewModel.loadMediaItemFromTrack(
                                                                     track = track,
                                                                     type = Config.SONG_CLICK,
-                                                                    index = 0
+                                                                    index = 0,
                                                                 )
                                                             },
                                                         )
@@ -785,51 +793,51 @@ fun PlaylistScreen(
                                                 Modifier
                                                     .padding(horizontal = 8.dp)
                                                     .drawWithContent {
-                                                    val strokeWidthPx = 2.dp.toPx()
-                                                    val width = size.width
-                                                    val height = size.height
+                                                        val strokeWidthPx = 2.dp.toPx()
+                                                        val width = size.width
+                                                        val height = size.height
 
-                                                    drawContent()
+                                                        drawContent()
 
-                                                    with(drawContext.canvas.nativeCanvas) {
-                                                        val checkPoint = saveLayer(null, null)
+                                                        with(drawContext.canvas.nativeCanvas) {
+                                                            val checkPoint = saveLayer(null, null)
 
-                                                        // Destination
-                                                        drawRoundRect(
-                                                            cornerRadius = CornerRadius(x = 60f, y = 60f),
-                                                            color = Color.Gray,
-                                                            topLeft = Offset(strokeWidthPx / 2, strokeWidthPx / 2),
-                                                            size = Size(width - strokeWidthPx, height - strokeWidthPx),
-                                                            style = Stroke(strokeWidthPx),
-                                                        )
-                                                        val gradientColors =
-                                                            listOf(
-                                                                Color(0xFF4C82EF),
-                                                                Color(0xFFD96570),
+                                                            // Destination
+                                                            drawRoundRect(
+                                                                cornerRadius = CornerRadius(x = 60f, y = 60f),
+                                                                color = Color.Gray,
+                                                                topLeft = Offset(strokeWidthPx / 2, strokeWidthPx / 2),
+                                                                size = Size(width - strokeWidthPx, height - strokeWidthPx),
+                                                                style = Stroke(strokeWidthPx),
                                                             )
-                                                        val brush =
-                                                            Brush.linearGradient(
-                                                                colors = gradientColors,
-                                                                start = Offset(2f, 0f),
-                                                                end =
-                                                                    Offset(
-                                                                        2 + width,
-                                                                        height,
-                                                                    ),
-                                                            )
+                                                            val gradientColors =
+                                                                listOf(
+                                                                    Color(0xFF4C82EF),
+                                                                    Color(0xFFD96570),
+                                                                )
+                                                            val brush =
+                                                                Brush.linearGradient(
+                                                                    colors = gradientColors,
+                                                                    start = Offset(2f, 0f),
+                                                                    end =
+                                                                        Offset(
+                                                                            2 + width,
+                                                                            height,
+                                                                        ),
+                                                                )
 
-                                                        // Source
-                                                        rotate(degrees = angle) {
-                                                            drawCircle(
-                                                                brush = brush,
-                                                                radius = size.width,
-                                                                blendMode = BlendMode.SrcIn,
-                                                            )
+                                                            // Source
+                                                            rotate(degrees = angle) {
+                                                                drawCircle(
+                                                                    brush = brush,
+                                                                    radius = size.width,
+                                                                    blendMode = BlendMode.SrcIn,
+                                                                )
+                                                            }
+
+                                                            restoreToCount(checkPoint)
                                                         }
-
-                                                        restoreToCount(checkPoint)
-                                                    }
-                                                },
+                                                    },
                                         ) {
                                             Text(
                                                 text = stringResource(id = R.string.reload),
@@ -881,25 +889,41 @@ fun PlaylistScreen(
                 }
             }
         }
-        items(listTrack ?: listOf(), contentType = { it.videoId }) { item ->
-            if (playingTrack?.mediaId == item.videoId && isPlaying) {
-                PlaylistItems(
-                    isPlaying = true,
-                    songEntity = item,
-                    onMoreClickListener = { onItemMoreClick(it) },
-                    onClickListener = {
-                        onPlaylistItemClick(it)
-                    },
-                    modifier = Modifier.animateItemPlacement()
-                )
-            } else {
-                PlaylistItems(
-                    isPlaying = false,
-                    songEntity = item,
-                    onMoreClickListener = { onItemMoreClick(it) },
-                    onClickListener = { onPlaylistItemClick(it) },
-                    modifier = Modifier.animateItemPlacement()
-                )
+        items(count = trackPagingItems.itemCount) { index ->
+            val item = trackPagingItems[index]
+            if (item != null) {
+                if (playingTrack?.mediaId == item.videoId && isPlaying) {
+                    PlaylistItems(
+                        isPlaying = true,
+                        songEntity = item,
+                        onMoreClickListener = { onItemMoreClick(it) },
+                        onClickListener = {
+                            onPlaylistItemClick(it)
+                        },
+                        modifier = Modifier.animateItemPlacement(),
+                    )
+                } else {
+                    PlaylistItems(
+                        isPlaying = false,
+                        songEntity = item,
+                        onMoreClickListener = { onItemMoreClick(it) },
+                        onClickListener = { onPlaylistItemClick(it) },
+                        modifier = Modifier.animateItemPlacement(),
+                    )
+                }
+            }
+        }
+        trackPagingItems.apply {
+            when {
+                loadState.refresh is LoadState.Loading || loadState.append is LoadState.Loading -> {
+                    item {
+                        Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
+                            Spacer(modifier = Modifier.height(15.dp))
+                            CenterLoadingBox(modifier = Modifier.size(32.dp))
+                            Spacer(modifier = Modifier.height(15.dp))
+                        }
+                    }
+                }
             }
         }
         item {
@@ -922,16 +946,9 @@ fun PlaylistScreen(
             NowPlayingBottomSheet(
                 isBottomSheetVisible = itemBottomSheetShow,
                 onDelete = {
-                    localPlaylist?.let {
+                    localPlaylist?.id?.let { id ->
                         Log.w("PlaylistScreen", "Delete: $track")
-                        viewModel.deleteItem(track, it.id)
-                        if (it.syncedWithYouTubePlaylist == 1 && it.youtubePlaylistId != null) {
-                            val videoId = track.videoId
-                            viewModel.removeYouTubePlaylistItem(
-                                it.youtubePlaylistId,
-                                videoId,
-                            )
-                        }
+                        viewModel.deleteItem(id, track)
                         itemBottomSheetShow = false
                     }
                 },
@@ -1012,11 +1029,12 @@ fun PlaylistScreen(
             confirmButton = {
                 TextButton(onClick = {
                     localPlaylist?.let {
-                        Toast.makeText(
-                            context,
-                            context.getString(R.string.syncing),
-                            Toast.LENGTH_SHORT,
-                        ).show()
+                        Toast
+                            .makeText(
+                                context,
+                                context.getString(R.string.syncing),
+                                Toast.LENGTH_SHORT,
+                            ).show()
                         viewModel.syncPlaylistWithYouTubePlaylist(it)
                         showSyncAlertDialog = false
                     }
@@ -1041,11 +1059,12 @@ fun PlaylistScreen(
             confirmButton = {
                 TextButton(onClick = {
                     localPlaylist?.let {
-                        Toast.makeText(
-                            context,
-                            context.getString(R.string.unsyncing),
-                            Toast.LENGTH_SHORT,
-                        ).show()
+                        Toast
+                            .makeText(
+                                context,
+                                context.getString(R.string.unsyncing),
+                                Toast.LENGTH_SHORT,
+                            ).show()
                         viewModel.unsyncPlaylistWithYouTubePlaylist(it)
                     }
                     showUnsyncAlertDialog = false

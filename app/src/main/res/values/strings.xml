@@ -353,4 +353,8 @@
     <string name="party">Party</string>
     <string name="commute">Commute</string>
     <string name="focus">Focus</string>
+    <string name="updated">Updated</string>
+    <string name="updated_to_youtube_playlist">Updated to YouTube Playlist</string>
+    <string name="can_t_add_to_youtube_playlist">Can\'t add to YouTube Playlist</string>
+    <string name="can_t_delete_from_youtube_playlist">Can\'t delete song from YouTube Playlist</string>
 </resources>

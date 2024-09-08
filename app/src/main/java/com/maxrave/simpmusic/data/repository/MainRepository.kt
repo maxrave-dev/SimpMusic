@@ -3042,7 +3042,7 @@ class MainRepository(
                                 }
                         }
                         Log.d("Repository", "playlist final data: ${listContent.size}")
-                        parseSetVideoId(listContent).let { playlist ->
+                        parseSetVideoId(youtubePlaylistId, listContent).let { playlist ->
                             Log.d("Repository", "playlist final data setVideoId: $playlist")
                             playlist.forEach { item ->
                                 insertSetVideoId(item)

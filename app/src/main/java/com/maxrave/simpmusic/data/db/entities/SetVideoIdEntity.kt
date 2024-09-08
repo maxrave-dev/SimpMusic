@@ -1,11 +1,10 @@
 package com.maxrave.simpmusic.data.db.entities
 
 import androidx.room.Entity
-import androidx.room.PrimaryKey
 
-@Entity(tableName = "set_video_id")
+@Entity(tableName = "set_video_id", primaryKeys = ["videoId", "youtubePlaylistId"])
 data class SetVideoIdEntity(
-    @PrimaryKey(autoGenerate = false)
     val videoId: String = "",
     val setVideoId: String? = null,
+    val youtubePlaylistId: String = "",
 )
