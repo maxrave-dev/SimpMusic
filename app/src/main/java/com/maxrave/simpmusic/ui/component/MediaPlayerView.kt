@@ -64,20 +64,23 @@ fun MediaPlayerView(
         mutableStateOf(false)
     }
 
-    val playerListener = remember {
-        object : Player.Listener {
-            override fun onVideoSizeChanged(videoSize: VideoSize) {
-                super.onVideoSizeChanged(videoSize)
-                Log.w("MediaPlayerView", "Video size changed: ${videoSize.width} / ${videoSize.height}")
-                if (videoSize.width != 0 && videoSize.height != 0) {
-                    val h = (videoSize.width.toFloat() / videoSize.height) * screenSize.hPX
-                    Log.w("MediaPlayerView", "Calculated width: $h")
-                    widthPx = h.roundToInt()
+    val playerListener =
+        remember {
+            object : Player.Listener {
+                override fun onVideoSizeChanged(videoSize: VideoSize) {
+                    super.onVideoSizeChanged(videoSize)
+                    Log.w("MediaPlayerView", "Video size changed: ${videoSize.width} / ${videoSize.height}")
+                    if (videoSize.width != 0 && videoSize.height != 0) {
+                        val h = (videoSize.width.toFloat() / videoSize.height) * screenSize.hPX
+                        Log.w("MediaPlayerView", "Calculated width: $h")
+                        widthPx = h.roundToInt()
+                    }
                 }
 
-            override fun onIsPlayingChanged(isPlaying: Boolean) {
-                super.onIsPlayingChanged(isPlaying)
-                keepScreenOn = isPlaying
+                override fun onIsPlayingChanged(isPlaying: Boolean) {
+                    super.onIsPlayingChanged(isPlaying)
+                    keepScreenOn = isPlaying
+                }
             }
         }
 
@@ -143,10 +146,10 @@ fun MediaPlayerView(
                 }
             },
             modifier =
-                Modifier
-                    .fillMaxHeight()
-                    .width(with(density) { widthPx.toDp() })
-                    .align(Alignment.Center),
+            Modifier
+                .fillMaxHeight()
+                .width(with(density) { widthPx.toDp() })
+                .align(Alignment.Center),
         )
     }
 }
@@ -176,9 +179,10 @@ fun MediaPlayerView(
                     }
                 }
 
-            override fun onIsPlayingChanged(isPlaying: Boolean) {
-                super.onIsPlayingChanged(isPlaying)
-                keepScreenOn = isPlaying
+                override fun onIsPlayingChanged(isPlaying: Boolean) {
+                    super.onIsPlayingChanged(isPlaying)
+                    keepScreenOn = isPlaying
+                }
             }
         }
 
@@ -205,10 +209,10 @@ fun MediaPlayerView(
                 }
             },
             modifier =
-                Modifier
-                    .wrapContentSize()
-                    .aspectRatio(if (videoRatio > 0f) videoRatio else 16f / 9)
-                    .align(Alignment.Center),
+            Modifier
+                .wrapContentSize()
+                .aspectRatio(if (videoRatio > 0f) videoRatio else 16f / 9)
+                .align(Alignment.Center),
         )
     }
 }

@@ -214,7 +214,6 @@ class LocalPlaylistViewModel(
                 }
             }
         }
-    }
 
     private fun onApplyActions(actions: PagingActions<SongEntity>) {
         modifications.value += actions
@@ -229,10 +228,6 @@ class LocalPlaylistViewModel(
                 withContext(Dispatchers.Main) {
                     loading.value = false
                 }
-            }
-            delay(200)
-            mainRepository.getSongById(song.videoId).collect {
-                if (it != null) _songEntity.emit(it)
             }
         }
     }
@@ -271,15 +266,6 @@ class LocalPlaylistViewModel(
                         application.getString(R.string.error),
                         Toast.LENGTH_SHORT,
                     ).show()
-                withContext(Dispatchers.Main) {
-                    loading.value = false
-                }
-            } else {
-                Toast.makeText(
-                    application,
-                    application.getString(R.string.error),
-                    Toast.LENGTH_SHORT,
-                ).show()
                 withContext(Dispatchers.Main) {
                     loading.value = false
                 }
@@ -361,8 +347,6 @@ class LocalPlaylistViewModel(
                             } else {
                                 setOffset(-1)
                             }
-                        } else {
-                            setOffset(-1)
                         }
                 }
             pairJob.join()
@@ -504,10 +488,10 @@ class LocalPlaylistViewModel(
 
                         Download.STATE_DOWNLOADING -> {
                             mainRepository.getSongById(videoId).collect { song ->
-                                if (song?.downloadState != DownloadState.STATE_DOWNLOADING) {
+                                if (song?.downloadState != STATE_DOWNLOADING) {
                                     mainRepository.updateDownloadState(
                                         videoId,
-                                        DownloadState.STATE_DOWNLOADING,
+                                        STATE_DOWNLOADING,
                                     )
                                 }
                             }
@@ -632,10 +616,10 @@ class LocalPlaylistViewModel(
                         }
                     ) {
                         mainRepository.updateLocalPlaylistDownloadState(
-                            DownloadState.STATE_DOWNLOADING,
+                            STATE_DOWNLOADING,
                             id,
                         )
-                        DownloadState.STATE_DOWNLOADING
+                        STATE_DOWNLOADING
                     } else {
                         mainRepository.updateLocalPlaylistDownloadState(
                             STATE_NOT_DOWNLOADED,
