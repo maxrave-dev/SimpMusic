@@ -306,17 +306,7 @@ class PlaylistFragment : Fragment() {
                     if (moreView.tvSync.text == context?.getString(R.string.save_to_local_playlist)) {
                         val playlist = viewModel.playlistBrowse.value
                         if (playlist != null) {
-                            val localPlaylistEntity =
-                                LocalPlaylistEntity(
-                                    title = playlist.title,
-                                    thumbnail = playlist.thumbnails.lastOrNull()?.url,
-                                    youtubePlaylistId = playlist.id,
-                                    syncedWithYouTubePlaylist = 1,
-                                    tracks = playlist.tracks.toListVideoId(),
-                                    downloadState = DownloadState.STATE_NOT_DOWNLOADED,
-                                    syncState = LocalPlaylistEntity.YouTubeSyncState.Synced,
-                                )
-                            viewModel.insertLocalPlaylist(localPlaylistEntity, playlist.tracks)
+                            viewModel.insertLocalPlaylist(playlist)
                             moreView.tvSync.text =
                                 context?.getString(R.string.saved_to_local_playlist)
                         }

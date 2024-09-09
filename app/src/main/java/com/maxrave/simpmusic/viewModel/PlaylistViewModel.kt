@@ -16,6 +16,7 @@ import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
+import com.maxrave.simpmusic.data.manager.LocalPlaylistManager
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.browse.playlist.PlaylistBrowse
 import com.maxrave.simpmusic.extension.toPlaylistEntity
@@ -23,10 +24,10 @@ import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.extension.toVideoIdList
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.utils.Resource
+import com.maxrave.simpmusic.utils.collectLatestResource
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -51,6 +52,7 @@ class PlaylistViewModel(
         get() = "PlaylistViewModel"
 
     val downloadUtils: DownloadUtils by inject()
+    private val localPlaylistManager: LocalPlaylistManager by inject()
 
     private var _gradientDrawable: MutableStateFlow<GradientDrawable?> = MutableStateFlow(null)
     var gradientDrawable: StateFlow<GradientDrawable?> = _gradientDrawable
@@ -528,34 +530,19 @@ class PlaylistViewModel(
         }
     }
 
-    fun insertLocalPlaylist(
-        localPlaylistEntity: LocalPlaylistEntity,
-        listTrack: List<Track>,
-    ) {
+    fun insertLocalPlaylist(playlistBrowse: PlaylistBrowse) {
         viewModelScope.launch {
-            mainRepository.insertLocalPlaylist(localPlaylistEntity)
-            delay(500)
-            mainRepository.getLocalPlaylistByYoutubePlaylistId(localPlaylistEntity.youtubePlaylistId!!).singleOrNull()?.let { playlist ->
-                if (playlist.youtubePlaylistId == localPlaylistEntity.youtubePlaylistId) {
-                    for (i in listTrack.indices) {
-                        mainRepository.insertSong(listTrack[i].toSongEntity()).first().let {
-                            println("Insert song $it")
-                        }
-                        mainRepository.insertPairSongLocalPlaylist(
-                            PairSongLocalPlaylist(
-                                playlistId = playlist.id,
-                                songId = listTrack[i].videoId,
-                                position = i,
-                                inPlaylist = LocalDateTime.now(),
-                            ),
-                        )
-                        if (i == 100) {
-                            delay(100)
-                        }
-                    }
-                }
-            }
-            Toast.makeText(application, application.getString(R.string.added_local_playlist), Toast.LENGTH_SHORT).show()
+            localPlaylistManager
+                .syncYouTubePlaylistToLocalPlaylist(
+                    playlistBrowse,
+                ).collectLatestResource(
+                    onSuccess = {
+                        makeToast(it)
+                    },
+                    onError = {
+                        makeToast(it)
+                    },
+                )
         }
     }
 

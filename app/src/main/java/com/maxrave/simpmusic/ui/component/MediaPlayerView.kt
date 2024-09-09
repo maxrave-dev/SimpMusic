@@ -28,16 +28,27 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.datasource.DefaultDataSource
+import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.datasource.FileDataSource
+import androidx.media3.datasource.cache.CacheDataSink
+import androidx.media3.datasource.cache.CacheDataSource
+import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.extension.KeepScreenOn
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
+import org.koin.compose.koinInject
+import org.koin.core.qualifier.named
 import kotlin.math.roundToInt
 
 @UnstableApi
 @Composable
 fun MediaPlayerView(
     modifier: Modifier = Modifier,
-    url: String
+    url: String,
+    canvasCache: SimpleCache = koinInject(named(Config.CANVAS_CACHE)),
 ) {
     // Get the current context
     val context = LocalContext.current
@@ -63,24 +74,44 @@ fun MediaPlayerView(
                     Log.w("MediaPlayerView", "Calculated width: $h")
                     widthPx = h.roundToInt()
                 }
-            }
 
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 super.onIsPlayingChanged(isPlaying)
                 keepScreenOn = isPlaying
             }
         }
-    }
+
+    val cacheSink =
+        CacheDataSink
+            .Factory()
+            .setCache(canvasCache)
+    val upstreamFactory = DefaultDataSource.Factory(context, DefaultHttpDataSource.Factory())
+    val downStreamFactory = FileDataSource.Factory()
+    val cacheDataSourceFactory =
+        CacheDataSource
+            .Factory()
+            .setCache(canvasCache)
+            .setCacheWriteDataSinkFactory(cacheSink)
+            .setCacheReadDataSourceFactory(downStreamFactory)
+            .setUpstreamDataSourceFactory(upstreamFactory)
+            .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)
 
     // Initialize ExoPlayer
-    val exoPlayer = ExoPlayer.Builder(context).build().apply {
-        addListener(playerListener)
-    }
+    val exoPlayer =
+        ExoPlayer
+            .Builder(context)
+            .setMediaSourceFactory(
+                DefaultMediaSourceFactory(cacheDataSourceFactory),
+            ).build()
+            .apply {
+                addListener(playerListener)
+            }
 
     // Create a MediaSource
-    val mediaSource = remember(url) {
-        MediaItem.fromUri(url)
-    }
+    val mediaSource =
+        remember(url) {
+            MediaItem.fromUri(url)
+        }
 
     // Set MediaSource to ExoPlayer
     LaunchedEffect(mediaSource) {
@@ -111,18 +142,21 @@ fun MediaPlayerView(
                     exoPlayer.videoScalingMode = C.VIDEO_SCALING_MODE_DEFAULT
                 }
             },
-            modifier = Modifier
-                .fillMaxHeight()
-                .width(with(density) { widthPx.toDp() })
-                .align(Alignment.Center)
+            modifier =
+                Modifier
+                    .fillMaxHeight()
+                    .width(with(density) { widthPx.toDp() })
+                    .align(Alignment.Center),
         )
     }
 }
 
 @Composable
 @UnstableApi
-fun MediaPlayerView(player: ExoPlayer, modifier: Modifier = Modifier) {
-
+fun MediaPlayerView(
+    player: ExoPlayer,
+    modifier: Modifier = Modifier,
+) {
     var videoRatio by rememberSaveable {
         mutableFloatStateOf(16f / 9)
     }
@@ -131,22 +165,22 @@ fun MediaPlayerView(player: ExoPlayer, modifier: Modifier = Modifier) {
         mutableStateOf(false)
     }
 
-    val playerListener = remember {
-        object : Player.Listener {
-            override fun onVideoSizeChanged(videoSize: VideoSize) {
-                super.onVideoSizeChanged(videoSize)
-                Log.w("MediaPlayerView", "Video size changed: ${videoSize.width} / ${videoSize.height}")
-                if (videoSize.width != 0 && videoSize.height != 0) {
-                    videoRatio = videoSize.width.toFloat() / videoSize.height.toFloat()
+    val playerListener =
+        remember {
+            object : Player.Listener {
+                override fun onVideoSizeChanged(videoSize: VideoSize) {
+                    super.onVideoSizeChanged(videoSize)
+                    Log.w("MediaPlayerView", "Video size changed: ${videoSize.width} / ${videoSize.height}")
+                    if (videoSize.width != 0 && videoSize.height != 0) {
+                        videoRatio = videoSize.width.toFloat() / videoSize.height.toFloat()
+                    }
                 }
-            }
 
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 super.onIsPlayingChanged(isPlaying)
                 keepScreenOn = isPlaying
             }
         }
-    }
 
     DisposableEffect(Unit) {
         onDispose {
@@ -170,10 +204,11 @@ fun MediaPlayerView(player: ExoPlayer, modifier: Modifier = Modifier) {
                     player.videoScalingMode = C.VIDEO_SCALING_MODE_DEFAULT
                 }
             },
-            modifier = Modifier
-                .wrapContentSize()
-                .aspectRatio(if (videoRatio > 0f) videoRatio else 16f / 9)
-                .align(Alignment.Center)
+            modifier =
+                Modifier
+                    .wrapContentSize()
+                    .aspectRatio(if (videoRatio > 0f) videoRatio else 16f / 9)
+                    .align(Alignment.Center),
         )
     }
 }

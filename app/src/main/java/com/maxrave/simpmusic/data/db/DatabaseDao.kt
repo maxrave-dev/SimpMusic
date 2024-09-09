@@ -352,6 +352,12 @@ interface DatabaseDao {
         state: Int,
     )
 
+    @Query("SELECT downloadState FROM local_playlist WHERE id = :id")
+    fun getDownloadStateFlowOfLocalPlaylist(id: Long): Flow<Int>
+
+    @Query("SELECT tracks FROM local_playlist WHERE id = :id")
+    fun getListTracksFlowOfLocalPlaylist(id: Long): Flow<List<String>?>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertLyrics(lyrics: LyricsEntity)
 

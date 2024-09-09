@@ -18,6 +18,8 @@ import com.maxrave.simpmusic.data.db.DatabaseDao
 import com.maxrave.simpmusic.data.db.LocalDataSource
 import com.maxrave.simpmusic.data.db.MusicDatabase
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
+import com.maxrave.simpmusic.data.db.entities.SetVideoIdEntity
+import com.maxrave.simpmusic.data.manager.LocalPlaylistManager
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.extension.dataStore
 import com.maxrave.simpmusic.extension.toSQLiteQuery
@@ -39,6 +41,7 @@ val databaseModule =
                     object : Migration(5, 6) {
                         override fun migrate(db: SupportSQLiteDatabase) {
                             val playlistSongMaps = mutableListOf<PairSongLocalPlaylist>()
+                            db
                             db.query("SELECT * FROM local_playlist".toSQLiteQuery()).use { cursor ->
                                 while (cursor.moveToNext()) {
                                     val input = cursor.getString(8)
@@ -90,6 +93,54 @@ val databaseModule =
                             }
                         }
                     },
+                    object : Migration(10, 11) {
+                        override fun migrate(db: SupportSQLiteDatabase) {
+                            val listYouTubeSyncedId = mutableListOf<Pair<String, List<String>>>() // Pair<youtubePlaylistId, listVideoId>
+                            db
+                                .query(
+                                    "SELECT youtubePlaylistId, tracks FROM local_playlist WHERE synced_with_youtube_playlist = 1 AND youtubePlaylistId NOT NULL"
+                                        .toSQLiteQuery(),
+                                ).use { cursor ->
+                                    while (cursor.moveToNext()) {
+                                        val youtubePlaylistId = cursor.getString(0)
+                                        val input = cursor.getString(1)
+                                        val listType: Type =
+                                            object : TypeToken<ArrayList<String?>?>() {}.type
+                                        val tracks = Gson().fromJson<ArrayList<String?>?>(input, listType)
+                                        listYouTubeSyncedId.add(Pair(youtubePlaylistId, tracks.toMutableList().filterNotNull()))
+                                    }
+                                }
+                            val setVideoIdList = mutableListOf<SetVideoIdEntity>()
+                            db.query("SELECT * FROM set_video_id".toSQLiteQuery()).use { cursor ->
+                                while (cursor.moveToNext()) {
+                                    val videoId = cursor.getString(0)
+                                    val setVideoId = cursor.getString(1)
+                                    for (pair in listYouTubeSyncedId) {
+                                        if (pair.second.contains(videoId)) {
+                                            setVideoIdList.add(SetVideoIdEntity(videoId, setVideoId, pair.first))
+                                            break
+                                        }
+                                    }
+                                }
+                            }
+                            db.execSQL("DROP TABLE set_video_id")
+                            db.execSQL(
+                                "CREATE TABLE IF NOT EXISTS `set_video_id` (`videoId` TEXT NOT NULL, `setVideoId` TEXT, `youtubePlaylistId` TEXT NOT NULL, PRIMARY KEY(`videoId`, `youtubePlaylistId`))",
+                            )
+                            setVideoIdList.forEach { setVideoIdEntity ->
+                                db.insert(
+                                    table = "set_video_id",
+                                    conflictAlgorithm = OnConflictStrategy.IGNORE,
+                                    values =
+                                        contentValuesOf(
+                                            "videoId" to setVideoIdEntity.videoId,
+                                            "setVideoId" to setVideoIdEntity.setVideoId,
+                                            "youtubePlaylistId" to setVideoIdEntity.youtubePlaylistId,
+                                        ),
+                                )
+                            }
+                        }
+                    },
                 ).addCallback(
                     object : RoomDatabase.Callback() {
                         override fun onOpen(db: SupportSQLiteDatabase) {
@@ -127,6 +178,12 @@ val databaseModule =
         single(createdAtStart = true) {
             MainRepository(get<LocalDataSource>(), get<DataStoreManager>(), androidContext())
         }
+        // List of managers
+
+        single(createdAtStart = true) {
+            LocalPlaylistManager(androidContext())
+        }
+
         // Notification Worker
         workerOf(::NotifyWork)
     }

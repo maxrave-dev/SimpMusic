@@ -114,6 +114,7 @@ shimmer = { group = "com.facebook.shimmer", name = "shimmer", version.ref = "shi
 lottie = { group = "com.airbnb.android", name = "lottie", version.ref = "lottie" }
 lottie-compose = { group = "com.airbnb.android", name = "lottie-compose", version.ref = "lottie" }
 paging-runtime-ktx = { group = "androidx.paging", name = "paging-runtime-ktx", version.ref = "paging" }
+paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "paging"}
 customactivityoncrash = { group = "cat.ereza", name = "customactivityoncrash", version.ref = "customactivityoncrash" }
 sdp-android = { group = "com.intuit.sdp", name = "sdp-android", version.ref = "sdp-android" }
 ssp-android = { group = "com.intuit.ssp", name = "ssp-android", version.ref = "ssp-android" }

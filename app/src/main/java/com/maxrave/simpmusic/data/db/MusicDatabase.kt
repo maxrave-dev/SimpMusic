@@ -21,21 +21,28 @@ import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.db.entities.SongInfoEntity
 
 @Database(
-    entities = [NewFormatEntity::class, SongInfoEntity::class, SearchHistory::class, SongEntity::class, ArtistEntity::class, AlbumEntity::class, PlaylistEntity::class, LocalPlaylistEntity::class, LyricsEntity::class, QueueEntity::class, SetVideoIdEntity::class, PairSongLocalPlaylist::class, GoogleAccountEntity::class, FollowedArtistSingleAndAlbum::class, NotificationEntity::class],
-    version = 10,
+    entities = [
+        NewFormatEntity::class, SongInfoEntity::class, SearchHistory::class, SongEntity::class, ArtistEntity::class,
+        AlbumEntity::class, PlaylistEntity::class, LocalPlaylistEntity::class, LyricsEntity::class, QueueEntity::class,
+        SetVideoIdEntity::class, PairSongLocalPlaylist::class, GoogleAccountEntity::class, FollowedArtistSingleAndAlbum::class,
+        NotificationEntity::class,
+    ],
+    version = 11,
     exportSchema = true,
-    autoMigrations = [AutoMigration(from = 2, to = 3), AutoMigration(
-        from = 1,
-        to = 3
-    ), AutoMigration(from = 3, to = 4), AutoMigration(from = 2, to = 4), AutoMigration(
-        from = 3,
-        to = 5
-    ), AutoMigration(4, 5), AutoMigration(6, 7), AutoMigration(
-        7,
-        8,
-        spec = AutoMigration7_8::class
-    ), AutoMigration(8, 9),
-    AutoMigration(9, 10)]
+    autoMigrations = [
+        AutoMigration(from = 2, to = 3), AutoMigration(
+            from = 1,
+            to = 3,
+        ), AutoMigration(from = 3, to = 4), AutoMigration(from = 2, to = 4), AutoMigration(
+            from = 3,
+            to = 5,
+        ), AutoMigration(4, 5), AutoMigration(6, 7), AutoMigration(
+            7,
+            8,
+            spec = AutoMigration7_8::class,
+        ), AutoMigration(8, 9),
+        AutoMigration(9, 10),
+    ],
 )
 @TypeConverters(Converters::class)
 abstract class MusicDatabase : RoomDatabase() {

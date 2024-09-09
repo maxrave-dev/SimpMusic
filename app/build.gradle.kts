@@ -45,7 +45,7 @@ android {
                 "ja",
                 "b+zh+Hant+TW",
                 "uk",
-                "iw"
+                "iw",
             )
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -275,6 +275,7 @@ dependencies {
 
     // Paging 3
     implementation(libs.paging.runtime.ktx)
+    implementation(libs.paging.compose)
 
     // Custom Activity On Crash
     implementation(libs.customactivityoncrash)
@@ -299,7 +300,7 @@ dependencies {
 
     coreLibraryDesugaring(libs.desugaring)
 
-    //Koin
+    // Koin
     implementation(platform(libs.koin.bom))
     implementation(libs.koin.core)
     implementation(libs.koin.android)
