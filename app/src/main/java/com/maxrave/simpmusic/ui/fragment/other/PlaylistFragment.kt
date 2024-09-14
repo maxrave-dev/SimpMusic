@@ -915,49 +915,50 @@ class PlaylistFragment : Fragment() {
             }
         }
         binding.btDownload.setOnClickListener {
-            if(id!=null){
-            if (viewModel.playlistDownloadState.value == DownloadState.STATE_NOT_DOWNLOADED) {
+            if (id != null) {
+                if (viewModel.playlistDownloadState.value == DownloadState.STATE_NOT_DOWNLOADED) {
 //                if (!viewModel.prevPlaylistDownloading.value){
 //                    viewModel.downloading()
-                if (viewModel.playlistBrowse.value
-                        ?.tracks
-                        ?.size != viewModel.listTrack.value.size &&
-                    viewModel.listTrack.value.isNotEmpty()
-                ) {
-                    for (i in viewModel.playlistBrowse.value?.tracks!!) {
-                        viewModel.insertSong(i.toSongEntity())
-                    }
-                    runBlocking {
-                        delay(1000)
-                        viewModel.listJob.emit(arrayListOf())
-                    }
-                    viewModel.getListTrack(
-                        viewModel.playlistBrowse.value
+                    if (viewModel.playlistBrowse.value
                             ?.tracks
-                            ?.toListVideoId(),
+                            ?.size != viewModel.listTrack.value.size &&
+                        viewModel.listTrack.value.isNotEmpty()
+                    ) {
+                        for (i in viewModel.playlistBrowse.value?.tracks!!) {
+                            viewModel.insertSong(i.toSongEntity())
+                        }
+                        runBlocking {
+                            delay(1000)
+                            viewModel.listJob.emit(arrayListOf())
+                        }
+                        viewModel.getListTrack(
+                            viewModel.playlistBrowse.value
+                                ?.tracks
+                                ?.toListVideoId(),
+                        )
+                    }
+                    viewModel.updatePlaylistDownloadState(
+                        id,
+                        DownloadState.STATE_PREPARING,
                     )
-                }
-                viewModel.updatePlaylistDownloadState(
-                    id,
-                    DownloadState.STATE_PREPARING,
-                )
 //                }
 //                else{
 //                    Toast.makeText(requireContext(), getString(R.string.please_wait_before_playlist_downloaded), Toast.LENGTH_SHORT).show()
 //                }
-            } else if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
-                Toast
-                    .makeText(requireContext(), getString(R.string.downloaded), Toast.LENGTH_SHORT)
-                    .show()
-            } else if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADING) {
-                Toast
-                    .makeText(
-                        requireContext(),
-                        getString(R.string.downloading),
-                        Toast.LENGTH_SHORT,
-                    ).show()
-            }}else{
-                Log.d("binding.btDownload.setOnClickListener","id was null")
+                } else if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
+                    Toast
+                        .makeText(requireContext(), getString(R.string.downloaded), Toast.LENGTH_SHORT)
+                        .show()
+                } else if (viewModel.playlistEntity.value?.downloadState == DownloadState.STATE_DOWNLOADING) {
+                    Toast
+                        .makeText(
+                            requireContext(),
+                            getString(R.string.downloading),
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                }
+            } else {
+                Log.d("binding.btDownload.setOnClickListener", "id was null")
             }
         }
         collectUIState()
@@ -1256,6 +1257,7 @@ class PlaylistFragment : Fragment() {
                             Log.w(tag, "Downloading and not download size: ${temp.size}")
                             Log.w(tag, "List size: ${list.size}")
                             playlistItemAdapter.setDownloadedList(downloadList)
+                            val viewModelId = viewModel.id.value.toString()
                             if (list.isNotEmpty()) {
                                 if (downloadList.containsAll(
                                         list.map {
@@ -1265,7 +1267,7 @@ class PlaylistFragment : Fragment() {
                                     downloadList.isNotEmpty()
                                 ) {
                                     viewModel.updatePlaylistDownloadState(
-                                        viewModel.id.value!!,
+                                        viewModelId,
                                         DownloadState.STATE_DOWNLOADED,
                                     )
                                     Log.w(tag, "All downloaded")
@@ -1274,25 +1276,26 @@ class PlaylistFragment : Fragment() {
                                     temp.isNotEmpty()
                                 ) {
                                     viewModel.updatePlaylistDownloadState(
-                                        viewModel.id.value!!,
+                                        viewModelId,
                                         DownloadState.STATE_DOWNLOADING,
                                     )
                                     Log.w(tag, "Downloading")
                                 } else {
                                     viewModel.updatePlaylistDownloadState(
-                                        viewModel.id.value!!,
+                                        viewModelId,
                                         DownloadState.STATE_NOT_DOWNLOADED,
                                     )
                                     Log.w(tag, "Not downloaded")
                                 }
                             } else {
                                 viewModel.updatePlaylistDownloadState(
-                                    viewModel.id.value!!,
+                                    viewModelId,
                                     DownloadState.STATE_NOT_DOWNLOADED,
                                 )
                                 Log.w(tag, "Not downloaded")
                             }
                         }
+
                     }
                 job1.join()
                 job2.join()
