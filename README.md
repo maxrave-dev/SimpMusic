@@ -1,6 +1,12 @@
 ## This is a fork of SimpMusic
 
-This was created to fix the shuffle behavior.
+This fork was created to fix a few issues that I encountered with the original application.
+
+#### Current issues that this fork solves :
+
+- Changed the shuffle behaviour of online playlists to fit with other music players.
+- Fixed the app update popup even when the latest version is installed.
+- Fixed a few app crashes.
 
 ### Latest release APK download
 
@@ -16,4 +22,4 @@ This was created to fix the shuffle behavior.
 
 <hr/>
 
-<a href="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/README.md">See original readme</a>
+<a href="https://github.com/maxrave-dev/SimpMusic/blob/jetpack_compose/README.md">See official SimpMusic readme</a>
