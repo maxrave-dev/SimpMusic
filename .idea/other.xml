@@ -26,6 +26,17 @@
           <option name="screenY" value="2160" />
         </PersistentDeviceSelectionData>
         <PersistentDeviceSelectionData>
+          <option name="api" value="34" />
+          <option name="brand" value="Lenovo" />
+          <option name="codename" value="TB370FU" />
+          <option name="id" value="TB370FU" />
+          <option name="manufacturer" value="Lenovo" />
+          <option name="name" value="Tab P12" />
+          <option name="screenDensity" value="340" />
+          <option name="screenX" value="1840" />
+          <option name="screenY" value="2944" />
+        </PersistentDeviceSelectionData>
+        <PersistentDeviceSelectionData>
           <option name="api" value="31" />
           <option name="brand" value="samsung" />
           <option name="codename" value="a51" />

@@ -619,8 +619,10 @@ class PlaylistFragment : Fragment() {
             object :
                 PlaylistItemAdapter.OnOptionClickListener {
                 override fun onOptionClick(position: Int) {
+                    val playListBrowseValue = viewModel.playlistBrowse.value
+                    if(playListBrowseValue != null){
                     val song =
-                        viewModel.playlistBrowse.value!!.tracks[position]
+                        playListBrowseValue.tracks[position]
                     viewModel.getSongEntity(song.toSongEntity())
                     val dialog = BottomSheetDialog(requireContext())
                     val bottomSheetView = BottomSheetNowPlayingBinding.inflate(layoutInflater)
@@ -811,6 +813,7 @@ class PlaylistFragment : Fragment() {
                         dialog.setCancelable(true)
                         dialog.setContentView(bottomSheetView.root)
                         dialog.show()
+                    }
                     }
                 }
             },
