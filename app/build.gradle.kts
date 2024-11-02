@@ -11,7 +11,7 @@ plugins {
 
 android {
     namespace = "com.maxrave.simpmusic"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.maxrave.simpmusic"
@@ -71,11 +71,11 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
     kotlin {
-        jvmToolchain(17)
+        jvmToolchain(21)
     }
     kotlinOptions {
         freeCompilerArgs = freeCompilerArgs + "-Xcontext-receivers"
-        jvmTarget = "17"
+        jvmTarget = "21"
     }
     // enable view binding
     buildFeatures {
@@ -171,7 +171,7 @@ android {
                 "META-INF/*.kotlin_module",
             )
     }
-    
+
 }
 
 dependencies {

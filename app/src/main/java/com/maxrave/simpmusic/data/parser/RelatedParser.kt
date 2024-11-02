@@ -35,7 +35,7 @@ fun parseRelated(data:  List<PlaylistPanelRenderer.Content>?): ArrayList<Track>?
                         }
                     }
                 }
-                if (artist.isEmpty()) {
+                if (artist.isEmpty) {
                     val artistName = longByTextRuns[0].text
                     val artistId = longByTextRuns[0].navigationEndpoint?.browseEndpoint?.browseId
                     artist.add(Artist(artistId ?: "", artistName))

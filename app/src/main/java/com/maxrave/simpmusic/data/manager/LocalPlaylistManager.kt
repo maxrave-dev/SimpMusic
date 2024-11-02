@@ -195,11 +195,11 @@ class LocalPlaylistManager(
                                         ?.continuation
                             }.onFailure { continueParam = null }
                     }
-                    if (listContent.isEmpty()) {
+                    if (listContent.isEmpty) {
                         emit(LocalResource.Error("Can't get setVideoId"))
                     }
                     val parsed = parseSetVideoId(ytPlaylistId, listContent)
-                    if (parsed.isEmpty()) {
+                    if (parsed.isEmpty) {
                         emit(LocalResource.Error("Can't get setVideoId"))
                     }
                     parsed.forEach { setVideoId ->

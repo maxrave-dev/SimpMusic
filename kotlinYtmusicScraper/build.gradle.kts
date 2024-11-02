@@ -9,7 +9,7 @@ plugins {
 
 android {
     namespace = "com.maxrave.kotlinytmusicscraper"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         minSdk = 26
@@ -28,7 +28,7 @@ android {
         }
     }
     kotlin {
-        jvmToolchain(17)
+        jvmToolchain(21)
     }
     packaging {
         jniLibs.useLegacyPackaging = true

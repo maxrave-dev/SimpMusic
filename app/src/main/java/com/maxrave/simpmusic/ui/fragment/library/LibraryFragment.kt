@@ -148,7 +148,7 @@ class LibraryFragment : Fragment() {
             listPlaylist.clear()
             listPlaylist.addAll(temp)
             adapterPlaylist.updateList(listPlaylist)
-            if (listPlaylist.isEmpty()) {
+            if (listPlaylist.isEmpty) {
                 binding.tvFavoritePlaylistsStatus.visibility = View.VISIBLE
             } else {
                 binding.tvFavoritePlaylistsStatus.visibility = View.GONE
@@ -163,7 +163,7 @@ class LibraryFragment : Fragment() {
             listRecentlyAdded.clear()
             listRecentlyAdded.addAll(temp)
             adapterItem.updateList(listRecentlyAdded)
-            if (listRecentlyAdded.isEmpty()) {
+            if (listRecentlyAdded.isEmpty) {
                 binding.tvRecentlyAdded.visibility = View.GONE
             } else {
                 binding.tvRecentlyAdded.visibility = View.VISIBLE
@@ -177,7 +177,7 @@ class LibraryFragment : Fragment() {
             listLocalPlaylist.clear()
             listLocalPlaylist.addAll(temp)
             adapterLocalPlaylist.updateList(listLocalPlaylist)
-            if (listLocalPlaylist.isEmpty()) {
+            if (listLocalPlaylist.isEmpty) {
                 binding.tvYourPlaylistsStatus.visibility = View.VISIBLE
             } else {
                 binding.tvYourPlaylistsStatus.visibility = View.GONE
@@ -191,7 +191,7 @@ class LibraryFragment : Fragment() {
             listDownloaded.clear()
             listDownloaded.addAll(temp)
             adapterDownloaded.updateList(listDownloaded)
-            if (listDownloaded.isEmpty()) {
+            if (listDownloaded.isEmpty) {
                 binding.tvDownloadedPlaylistsStatus.visibility = View.VISIBLE
             } else {
                 binding.tvDownloadedPlaylistsStatus.visibility = View.GONE
@@ -211,7 +211,7 @@ class LibraryFragment : Fragment() {
                 listYouTubePlaylist.clear()
                 listYouTubePlaylist.addAll(temp)
                 adapterYouTubePlaylist.updateList(listYouTubePlaylist)
-                if (listYouTubePlaylist.isEmpty()) {
+                if (listYouTubePlaylist.isEmpty) {
                     binding.tvYouTubePlaylistsStatus.visibility = View.VISIBLE
                     binding.tvYouTubePlaylistsStatus.text = getString(R.string.no_YouTube_playlists)
                 } else {
@@ -591,7 +591,7 @@ class LibraryFragment : Fragment() {
                         listLocalPlaylist.clear()
                         listLocalPlaylist.addAll(temp)
                         adapterLocalPlaylist.updateList(temp)
-                        if (listLocalPlaylist.isEmpty()) {
+                        if (listLocalPlaylist.isEmpty) {
                             binding.tvYourPlaylistsStatus.visibility = View.VISIBLE
                         } else {
                             binding.tvYourPlaylistsStatus.visibility = View.GONE

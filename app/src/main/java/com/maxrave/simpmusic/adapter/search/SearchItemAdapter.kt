@@ -200,7 +200,7 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
                     placeholder(R.drawable.holder_video)
                 }
                 tvVideoTitle.text = video.title
-                val tempArtist = mutableListOf<String>()
+                mutableListOf<String>()
                 if (video.artists != null) {
                     tvAuthor.text = video.artists.toListName().connectArtists()
                 } else {

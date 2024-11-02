@@ -120,7 +120,7 @@ fun parseGenreObject(data: BrowseResponse?): GenreObject? {
                                 val songName = content.musicResponsiveListItemRenderer?.flexColumns?.get(0)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.get(0)?.text
                                 val songArtist = content.musicResponsiveListItemRenderer?.flexColumns?.get(1)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.get(0)?.text
                                 val videoId  = content.musicResponsiveListItemRenderer?.flexColumns?.get(0)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.get(0)?.navigationEndpoint?.watchEndpoint?.videoId
-                                val thumbnails = content.musicResponsiveListItemRenderer?.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail()
+                                content.musicResponsiveListItemRenderer?.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.toListThumbnail()
                                 listItemsSong.add(
                                     ItemsSong(
                                         title = songName ?: "",

@@ -264,21 +264,21 @@ fun HomeScreen(
                         item {
                             androidx.compose.animation.AnimatedVisibility(
                                 visible =
+                                homeData.find {
+                                    it.title ==
+                                        context.getString(
+                                            R.string.quick_picks,
+                                        )
+                                } != null,
+                            ) {
+                                QuickPicks(
+                                    homeItem =
                                     homeData.find {
                                         it.title ==
                                             context.getString(
                                                 R.string.quick_picks,
                                             )
-                                    } != null,
-                            ) {
-                                QuickPicks(
-                                    homeItem =
-                                        homeData.find {
-                                            it.title ==
-                                                context.getString(
-                                                    R.string.quick_picks,
-                                                )
-                                        } ?: return@AnimatedVisibility,
+                                    } ?: return@AnimatedVisibility,
                                     sharedViewModel = sharedViewModel,
                                 )
                             }
@@ -407,23 +407,23 @@ fun HomeTopAppBar(navController: NavController) {
                 )
                 Text(
                     text =
-                        when (hour) {
-                            in 6..12 -> {
-                                stringResource(R.string.good_morning)
-                            }
+                    when (hour) {
+                        in 6..12 -> {
+                            stringResource(R.string.good_morning)
+                        }
 
-                            in 13..17 -> {
-                                stringResource(R.string.good_afternoon)
-                            }
+                        in 13..17 -> {
+                            stringResource(R.string.good_afternoon)
+                        }
 
-                            in 18..23 -> {
-                                stringResource(R.string.good_evening)
-                            }
+                        in 18..23 -> {
+                            stringResource(R.string.good_evening)
+                        }
 
-                            else -> {
-                                stringResource(R.string.good_night)
-                            }
-                        },
+                        else -> {
+                            stringResource(R.string.good_night)
+                        }
+                    },
                     style = typo.bodySmall,
                 )
             }
@@ -465,17 +465,17 @@ fun AccountLayout(
             CoilImage(
                 imageModel = { url },
                 imageOptions =
-                    ImageOptions(
-                        contentScale = ContentScale.Crop,
-                        alignment = Alignment.Center,
-                    ),
+                ImageOptions(
+                    contentScale = ContentScale.Crop,
+                    alignment = Alignment.Center,
+                ),
                 previewPlaceholder = painterResource(id = R.drawable.holder),
                 component =
-                    rememberImageComponent {
-                        CrossfadePlugin(
-                            duration = 550,
-                        )
-                    },
+                rememberImageComponent {
+                    CrossfadePlugin(
+                        duration = 550,
+                    )
+                },
                 modifier =
                 Modifier
                     .size(40.dp)
@@ -488,8 +488,8 @@ fun AccountLayout(
                 style = typo.headlineMedium,
                 color = Color.White,
                 modifier =
-                    Modifier
-                        .padding(start = 8.dp),
+                Modifier
+                    .padding(start = 8.dp),
             )
         }
     }
@@ -542,19 +542,19 @@ fun QuickPicks(
                         val firstQueue: Track = it.toTrack()
                         sharedViewModel.simpleMediaServiceHandler?.setQueueData(
                             QueueData(
-                                listTracks = arrayListOf(firstQueue),
-                                firstPlayedTrack = firstQueue,
-                                playlistId = "RDAMVM${it.videoId}",
-                                playlistName = "\"${it.title}\" Radio",
-                                playlistType = PlaylistType.RADIO,
-                                continuation = null
+                                    listTracks = arrayListOf(firstQueue),
+                                    firstPlayedTrack = firstQueue,
+                                    playlistId = "RDAMVM${it.videoId}",
+                                    playlistName = "\"${it.title}\" Radio",
+                                    playlistType = PlaylistType.RADIO,
+                                    continuation = null
+                                )
                             )
-                        )
-                        sharedViewModel.loadMediaItemFromTrack(
-                            firstQueue,
-                            type = Config.SONG_CLICK,
-                        )
-                    },
+                            sharedViewModel.loadMediaItemFromTrack(
+                                firstQueue,
+                                type = Config.SONG_CLICK,
+                            )
+                        },
                         data = it,
                         widthDp = widthDp,
                     )

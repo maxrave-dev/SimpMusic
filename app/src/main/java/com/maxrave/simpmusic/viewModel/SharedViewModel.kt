@@ -271,7 +271,7 @@ class SharedViewModel(
                     playlistName = simpleMediaServiceHandler?.queueData?.value?.playlistName ?: ""
                 )
                 _likeStatus.value = false
-                _liked.value = state.songEntity?.liked ?: false
+                _liked.value = state.songEntity?.liked == true
                 _format.value = null
                 _canvas.value = null
                 canvasJob?.cancel()

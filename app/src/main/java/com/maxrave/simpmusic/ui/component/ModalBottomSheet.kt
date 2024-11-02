@@ -382,7 +382,7 @@ fun NowPlayingBottomSheet(
                         }
                     }
                     CheckBoxActionButton(
-                        defaultChecked = songEntity.value?.liked ?: false,
+                        defaultChecked = songEntity.value?.liked == true,
                         onChangeListener = onToggleLike,
                     )
                     Crossfade(targetState = onDownload != null) {

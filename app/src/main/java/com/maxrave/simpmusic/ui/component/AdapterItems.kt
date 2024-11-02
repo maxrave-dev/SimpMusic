@@ -96,7 +96,7 @@ fun HomeItem(
     navController: NavController,
     data: HomeItem
 ) {
-    val coroutineScope = rememberCoroutineScope()
+    rememberCoroutineScope()
     var bottomSheetShow by remember { mutableStateOf(false) }
 
     val lazyListState = rememberLazyListState()

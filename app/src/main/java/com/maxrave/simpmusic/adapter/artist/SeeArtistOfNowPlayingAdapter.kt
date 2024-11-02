@@ -32,7 +32,7 @@ class SeeArtistOfNowPlayingAdapter(private val listArtist: List<Artist>): Recycl
 
     override fun getItemCount(): Int = listArtist.size
 
-    override fun onBindViewHolder(holder: SeeArtistOfNowPlayingAdapter.ViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val artist = listArtist[position]
         with(holder.binding) {
             tvSeeArtists.text = artist.name

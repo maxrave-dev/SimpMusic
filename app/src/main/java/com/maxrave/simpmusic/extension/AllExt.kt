@@ -130,7 +130,7 @@ fun SongsResult.toTrack(): Track {
         this.duration ?: "",
         this.durationSeconds ?: 0,
         true,
-        this.isExplicit ?: false,
+        this.isExplicit == true,
         "",
         this.thumbnails,
         this.title ?: "",
@@ -374,7 +374,7 @@ fun Track.toMediaItem(): MediaItem {
     if (thumbUrl.contains("w120")) {
         thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
     }
-    val artistName: String = this.artists.toListName().connectArtists()
+    this.artists.toListName().connectArtists()
     val isSong = (this.thumbnails?.last()?.height != 0 && this.thumbnails?.last()?.height == this.thumbnails?.last()?.width
         && this.thumbnails?.last()?.height != null) && (!thumbUrl.contains("hq720") && !thumbUrl.contains("maxresdefault"))
     return MediaItem.Builder()

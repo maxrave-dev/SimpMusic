@@ -106,7 +106,7 @@ fun LyricsView(
 ) {
     val TAG = "LyricsView"
 
-    val textMeasurer = rememberTextMeasurer()
+    rememberTextMeasurer()
     val localDensity = LocalDensity.current
 
     var columnHeightDp by remember {
@@ -153,8 +153,7 @@ fun LyricsView(
             ) {
                 currentLineIndex = -1
             }
-        }
-        else {
+        } else {
             currentLineIndex = -1
         }
     }
@@ -163,7 +162,7 @@ fun LyricsView(
             val boxEnd = listState.layoutInfo.viewportEndOffset
             val boxStart = listState.layoutInfo.viewportStartOffset
             val viewPort = boxEnd - boxStart
-            val offset = viewPort/2 - currentLineHeight/2
+            val offset = viewPort / 2 - currentLineHeight / 2
             Log.w(TAG, "Offset: $offset")
             listState.animateScrollAndCentralizeItem(
                 index = currentLineIndex,
@@ -282,7 +281,6 @@ fun FullscreenLyricsSheet(
         scrimColor = Color.Black.copy(alpha = .5f),
         sheetState = sheetState,
         modifier = Modifier.fillMaxHeight(),
-        windowInsets = WindowInsets(0,0,0,0),
         shape = RectangleShape,
     ) {
         Card(
@@ -302,7 +300,7 @@ fun FullscreenLyricsSheet(
                         windowInsets.getTop(localDensity).toDp()
                     }
                 )
-            ){
+            ) {
                 TopAppBar(
                     windowInsets = WindowInsets(0, 0, 0, 0),
                     colors = TopAppBarDefaults.topAppBarColors().copy(

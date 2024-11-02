@@ -95,62 +95,64 @@ fun LocalPlaylistHeader(
 //            )
 //        }
         LazyColumn(
-            modifier = Modifier.fillMaxWidth().align(Alignment.TopCenter),
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.TopCenter),
             state = lazyState,
         ) {
             item {
                 Box(
                     modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight()
-                            .background(Color.Transparent),
+                    Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight()
+                        .background(Color.Transparent),
                 ) {
                     Box(
                         modifier =
-                            Modifier
-                                .fillMaxWidth(),
+                        Modifier
+                            .fillMaxWidth(),
                     ) {
                         CoilImage(
                             imageModel = {
                                 localPlaylist?.thumbnail
                             },
                             imageOptions =
-                                ImageOptions(
-                                    contentScale = ContentScale.FillWidth,
-                                    alignment = Alignment.Center,
-                                ),
+                            ImageOptions(
+                                contentScale = ContentScale.FillWidth,
+                                alignment = Alignment.Center,
+                            ),
                             previewPlaceholder = painterResource(id = R.drawable.holder),
                             component =
-                                rememberImageComponent {
-                                    CrossfadePlugin(
-                                        duration = 550,
-                                    )
-                                },
+                            rememberImageComponent {
+                                CrossfadePlugin(
+                                    duration = 550,
+                                )
+                            },
                             modifier =
-                                Modifier
-                                    .wrapContentHeight()
-                                    .fillMaxWidth()
-                                    .clip(
-                                        RoundedCornerShape(8.dp),
-                                    ),
+                            Modifier
+                                .wrapContentHeight()
+                                .fillMaxWidth()
+                                .clip(
+                                    RoundedCornerShape(8.dp),
+                                ),
                         )
                         Box(
                             modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .height(180.dp)
-                                    .align(Alignment.BottomCenter)
-                                    .background(
-                                        brush =
-                                            Brush.verticalGradient(
-                                                listOf(
-                                                    Color.Transparent,
-                                                    Color(0x75000000),
-                                                    Color.Black,
-                                                ),
-                                            ),
+                            Modifier
+                                .fillMaxWidth()
+                                .height(180.dp)
+                                .align(Alignment.BottomCenter)
+                                .background(
+                                    brush =
+                                    Brush.verticalGradient(
+                                        listOf(
+                                            Color.Transparent,
+                                            Color(0x75000000),
+                                            Color.Black,
+                                        ),
                                     ),
+                                ),
                         )
                     }
                     Column(
@@ -160,9 +162,9 @@ fun LocalPlaylistHeader(
                     ) {
                         Row(
                             modifier =
-                                Modifier
-                                    .wrapContentWidth()
-                                    .padding(16.dp),
+                            Modifier
+                                .wrapContentWidth()
+                                .padding(16.dp),
                         ) {
                             RippleIconButton(
                                 resId = R.drawable.baseline_arrow_back_ios_new_24,
@@ -178,31 +180,31 @@ fun LocalPlaylistHeader(
                                     localPlaylist?.thumbnail
                                 },
                                 imageOptions =
-                                    ImageOptions(
-                                        contentScale = ContentScale.FillHeight,
-                                        alignment = Alignment.Center,
-                                    ),
+                                ImageOptions(
+                                    contentScale = ContentScale.FillHeight,
+                                    alignment = Alignment.Center,
+                                ),
                                 previewPlaceholder = painterResource(id = R.drawable.holder),
                                 component =
-                                    rememberImageComponent {
-                                        CrossfadePlugin(
-                                            duration = 550,
-                                        )
-                                    },
+                                rememberImageComponent {
+                                    CrossfadePlugin(
+                                        duration = 550,
+                                    )
+                                },
                                 modifier =
-                                    Modifier
-                                        .height(250.dp)
-                                        .wrapContentWidth()
-                                        .align(Alignment.CenterHorizontally)
-                                        .clip(
-                                            RoundedCornerShape(8.dp),
-                                        ),
+                                Modifier
+                                    .height(250.dp)
+                                    .wrapContentWidth()
+                                    .align(Alignment.CenterHorizontally)
+                                    .clip(
+                                        RoundedCornerShape(8.dp),
+                                    ),
                             )
                             Box(
                                 modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .wrapContentHeight(),
+                                Modifier
+                                    .fillMaxWidth()
+                                    .wrapContentHeight(),
                             ) {
                                 Column(Modifier.padding(horizontal = 32.dp)) {
                                     Spacer(modifier = Modifier.size(25.dp))
@@ -222,21 +224,21 @@ fun LocalPlaylistHeader(
                                         Spacer(modifier = Modifier.height(8.dp))
                                         Text(
                                             text =
-                                                stringResource(
-                                                    id = R.string.created_at,
-                                                    localPlaylist?.inLibrary?.format(
-                                                        DateTimeFormatter.ofPattern(
-                                                            "kk:mm - dd MMM uuuu",
-                                                        ),
-                                                    ) ?: "",
-                                                ),
+                                            stringResource(
+                                                id = R.string.created_at,
+                                                localPlaylist?.inLibrary?.format(
+                                                    DateTimeFormatter.ofPattern(
+                                                        "kk:mm - dd MMM uuuu",
+                                                    ),
+                                                ) ?: "",
+                                            ),
                                             style = typo.bodyLarge,
                                             color = Color(0xC4FFFFFF),
                                         )
                                     }
                                     Row(
                                         modifier =
-                                            Modifier.fillMaxWidth(),
+                                        Modifier.fillMaxWidth(),
                                         verticalAlignment = Alignment.CenterVertically,
                                     ) {
                                         RippleIconButton(
@@ -261,7 +263,7 @@ fun LocalPlaylistHeader(
                                         Spacer(Modifier.weight(1f))
                                         RippleIconButton(
                                             modifier =
-                                                Modifier.size(36.dp),
+                                            Modifier.size(36.dp),
                                             resId = R.drawable.baseline_shuffle_24,
                                             fillMaxSize = true,
                                         ) {
@@ -269,7 +271,7 @@ fun LocalPlaylistHeader(
                                         Spacer(Modifier.size(5.dp))
                                         RippleIconButton(
                                             modifier =
-                                                Modifier.size(36.dp),
+                                            Modifier.size(36.dp),
                                             resId = R.drawable.baseline_more_vert_24,
                                             fillMaxSize = true,
                                         ) {
@@ -288,11 +290,11 @@ fun LocalPlaylistHeader(
                                     //                                )
                                     Text(
                                         text =
-                                            stringResource(
-                                                id = R.string.album_length,
-                                                (localPlaylist?.tracks?.size ?: 0).toString(),
-                                                "",
-                                            ),
+                                        stringResource(
+                                            id = R.string.album_length,
+                                            (localPlaylist?.tracks?.size ?: 0).toString(),
+                                            "",
+                                        ),
                                         color = Color.White,
                                         modifier = Modifier.padding(vertical = 8.dp),
                                     )
@@ -308,7 +310,7 @@ fun LocalPlaylistHeader(
                     PlaylistItems(
                         isPlaying = false,
                         songEntity = item,
-                        modifier = Modifier.animateItemPlacement()
+                        modifier = Modifier.animateItem()
                     )
                 }
             }

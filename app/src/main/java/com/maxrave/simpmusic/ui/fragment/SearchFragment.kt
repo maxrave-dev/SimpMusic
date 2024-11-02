@@ -275,8 +275,8 @@ class SearchFragment : Fragment() {
 
         binding.suggestList.visibility = View.GONE
         binding.suggestListYtItem.visibility = View.GONE
-        if (viewModel.searchAllResult.value == null || viewModel.searchAllResult.value!!.isEmpty()){
-            if (searchHistory.isEmpty()) {
+        if (viewModel.searchAllResult.value == null || viewModel.searchAllResult.value!!.isEmpty){
+            if (searchHistory.isEmpty) {
                 binding.recentlyQueryView.visibility = View.GONE
                 binding.defaultLayout.visibility = View.VISIBLE
             }

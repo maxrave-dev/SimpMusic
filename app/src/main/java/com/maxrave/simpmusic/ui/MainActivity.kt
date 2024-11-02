@@ -682,7 +682,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun isNetworkAvailable(context: Context?): Boolean {
-        val connectivityManager = context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val connectivityManager = context?.getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
         // Returns a Network object corresponding to
         // the currently active default data network.
         val network = connectivityManager.activeNetwork ?: return false
