@@ -29,3 +29,12 @@
 -keep class com.maxrave.simpmusic.extension.AllExtKt { *; }
 -keep class com.maxrave.simpmusic.extension.AllExtKt$* { *; }
 -keep class com.maxrave.kotlinytmusicscraper.extension.MapExtKt$* { *; }
+
+# Removes all Logs as they cause perfomance issues in prod
+-assumenosideeffects class android.util.Log {
+    public static int w(...);
+    public static int e(...);
+    public static int i(...);
+    public static int d(...);
+    public static int v(...);
+}
