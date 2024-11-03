@@ -896,7 +896,10 @@ fun PlaylistScreen(
                 }
             }
         }
-        items(count = trackPagingItems.itemCount) { index ->
+        items(count = trackPagingItems.itemCount, key = { index ->
+            val item = trackPagingItems[index]
+            item?.videoId ?: "item_$index"
+        }) { index ->
             val item = trackPagingItems[index]
             if (item != null) {
                 if (playingTrack?.mediaId == item.videoId && isPlaying) {
