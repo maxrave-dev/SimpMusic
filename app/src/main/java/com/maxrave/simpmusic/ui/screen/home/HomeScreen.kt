@@ -139,7 +139,7 @@ fun HomeScreen(
             LinearOutSlowInEasing.transform(pullToRefreshState.progress).coerceIn(0f, 1f)
         }
     if (pullToRefreshState.isRefreshing) {
-        viewModel.getHomeItemList()
+        //  viewModel.getHomeItemList() // Why is this call here twice ?
         viewModel.getHomeItemList()
         if (!loading) {
             pullToRefreshState.endRefresh()
@@ -185,21 +185,24 @@ fun HomeScreen(
             enter = fadeIn() + expandVertically(),
             exit = fadeOut() + shrinkVertically()
         ) {
-            Spacer(modifier = Modifier
-                .fillMaxWidth()
-                .windowInsetsPadding(
-                    WindowInsets.statusBars
-                ))
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .windowInsetsPadding(
+                        WindowInsets.statusBars
+                    )
+            )
         }
-        Row (
+        Row(
             modifier = Modifier
                 .horizontalScroll(chipRowState)
                 .padding(vertical = 8.dp, horizontal = 15.dp),
         ) {
             Config.listOfHomeChip.forEach { id ->
                 Spacer(modifier = Modifier.width(4.dp))
-                Chip(isSelected =
-                    when(params) {
+                Chip(
+                    isSelected =
+                    when (params) {
                         Constants.HOME_PARAMS_RELAX -> id == R.string.relax
                         Constants.HOME_PARAMS_SLEEP -> id == R.string.sleep
                         Constants.HOME_PARAMS_ENERGIZE -> id == R.string.energize
@@ -211,8 +214,9 @@ fun HomeScreen(
                         Constants.HOME_PARAMS_COMMUTE -> id == R.string.commute
                         Constants.HOME_PARAMS_FOCUS -> id == R.string.focus
                         else -> id == R.string.all
-                }, text = stringResource(id = id)) {
-                    when(id) {
+                    }, text = stringResource(id = id)
+                ) {
+                    when (id) {
                         R.string.all -> viewModel.setParams(null)
                         R.string.relax -> viewModel.setParams(Constants.HOME_PARAMS_RELAX)
                         R.string.sleep -> viewModel.setParams(Constants.HOME_PARAMS_SLEEP)
@@ -264,21 +268,21 @@ fun HomeScreen(
                         item {
                             androidx.compose.animation.AnimatedVisibility(
                                 visible =
+                                homeData.find {
+                                    it.title ==
+                                        context.getString(
+                                            R.string.quick_picks,
+                                        )
+                                } != null,
+                            ) {
+                                QuickPicks(
+                                    homeItem =
                                     homeData.find {
                                         it.title ==
                                             context.getString(
                                                 R.string.quick_picks,
                                             )
-                                    } != null,
-                            ) {
-                                QuickPicks(
-                                    homeItem =
-                                        homeData.find {
-                                            it.title ==
-                                                context.getString(
-                                                    R.string.quick_picks,
-                                                )
-                                        } ?: return@AnimatedVisibility,
+                                    } ?: return@AnimatedVisibility,
                                     sharedViewModel = sharedViewModel,
                                 )
                             }
@@ -407,23 +411,23 @@ fun HomeTopAppBar(navController: NavController) {
                 )
                 Text(
                     text =
-                        when (hour) {
-                            in 6..12 -> {
-                                stringResource(R.string.good_morning)
-                            }
+                    when (hour) {
+                        in 6..12 -> {
+                            stringResource(R.string.good_morning)
+                        }
 
-                            in 13..17 -> {
-                                stringResource(R.string.good_afternoon)
-                            }
+                        in 13..17 -> {
+                            stringResource(R.string.good_afternoon)
+                        }
 
-                            in 18..23 -> {
-                                stringResource(R.string.good_evening)
-                            }
+                        in 18..23 -> {
+                            stringResource(R.string.good_evening)
+                        }
 
-                            else -> {
-                                stringResource(R.string.good_night)
-                            }
-                        },
+                        else -> {
+                            stringResource(R.string.good_night)
+                        }
+                    },
                     style = typo.bodySmall,
                 )
             }
@@ -465,17 +469,17 @@ fun AccountLayout(
             CoilImage(
                 imageModel = { url },
                 imageOptions =
-                    ImageOptions(
-                        contentScale = ContentScale.Crop,
-                        alignment = Alignment.Center,
-                    ),
+                ImageOptions(
+                    contentScale = ContentScale.Crop,
+                    alignment = Alignment.Center,
+                ),
                 previewPlaceholder = painterResource(id = R.drawable.holder),
                 component =
-                    rememberImageComponent {
-                        CrossfadePlugin(
-                            duration = 550,
-                        )
-                    },
+                rememberImageComponent {
+                    CrossfadePlugin(
+                        duration = 550,
+                    )
+                },
                 modifier =
                 Modifier
                     .size(40.dp)
@@ -488,8 +492,8 @@ fun AccountLayout(
                 style = typo.headlineMedium,
                 color = Color.White,
                 modifier =
-                    Modifier
-                        .padding(start = 8.dp),
+                Modifier
+                    .padding(start = 8.dp),
             )
         }
     }
@@ -538,23 +542,24 @@ fun QuickPicks(
         ) {
             items(homeItem.contents) {
                 if (it != null) {
-                    QuickPicksItem(onClick = {
-                        val firstQueue: Track = it.toTrack()
-                        sharedViewModel.simpleMediaServiceHandler?.setQueueData(
-                            QueueData(
-                                listTracks = arrayListOf(firstQueue),
-                                firstPlayedTrack = firstQueue,
-                                playlistId = "RDAMVM${it.videoId}",
-                                playlistName = "\"${it.title}\" Radio",
-                                playlistType = PlaylistType.RADIO,
-                                continuation = null
+                    QuickPicksItem(
+                        onClick = {
+                            val firstQueue: Track = it.toTrack()
+                            sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                                QueueData(
+                                    listTracks = arrayListOf(firstQueue),
+                                    firstPlayedTrack = firstQueue,
+                                    playlistId = "RDAMVM${it.videoId}",
+                                    playlistName = "\"${it.title}\" Radio",
+                                    playlistType = PlaylistType.RADIO,
+                                    continuation = null
+                                )
                             )
-                        )
-                        sharedViewModel.loadMediaItemFromTrack(
-                            firstQueue,
-                            type = Config.SONG_CLICK,
-                        )
-                    },
+                            sharedViewModel.loadMediaItemFromTrack(
+                                firstQueue,
+                                type = Config.SONG_CLICK,
+                            )
+                        },
                         data = it,
                         widthDp = widthDp,
                     )
