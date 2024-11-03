@@ -287,7 +287,7 @@ fun HomeScreen(
                                 )
                             }
                         }
-                        items(homeData) {
+                        items(homeData, key = { it.title + it.channelId }) {
                             if (it.title != context.getString(R.string.quick_picks)) {
                                 HomeItem(
                                     homeViewModel = viewModel,
@@ -297,7 +297,7 @@ fun HomeScreen(
                                 )
                             }
                         }
-                        items(newRelease) {
+                        items(newRelease, key = { it.title + it.channelId }) {
                             androidx.compose.animation.AnimatedVisibility(
                                 visible = newRelease.isNotEmpty(),
                             ) {
@@ -540,7 +540,7 @@ fun QuickPicks(
             state = lazyListState,
             flingBehavior = snapperFlingBehavior,
         ) {
-            items(homeItem.contents) {
+            items(homeItem.contents, key = { it?.videoId ?: "item_${it.hashCode()}" }) {
                 if (it != null) {
                     QuickPicksItem(
                         onClick = {
@@ -605,7 +605,7 @@ fun MoodMomentAndGenre(
             state = lazyListState1,
             flingBehavior = snapperFlingBehavior1,
         ) {
-            items(mood.moodsMoments) {
+            items(mood.moodsMoments, key = { it.title }) {
                 MoodMomentAndGenreHomeItem(title = it.title) {
                     navController.navigateSafe(
                         R.id.action_global_moodFragment,
@@ -630,7 +630,7 @@ fun MoodMomentAndGenre(
             state = lazyListState2,
             flingBehavior = snapperFlingBehavior2,
         ) {
-            items(mood.genres) {
+            items(mood.genres, key = { it.title }) {
                 MoodMomentAndGenreHomeItem(title = it.title) {
                     navController.navigateSafe(
                         R.id.action_global_moodFragment,
@@ -718,24 +718,23 @@ fun ChartData(
                         state = lazyListState1,
                         flingBehavior = snapperFlingBehavior1,
                     ) {
-                        items(chart.songs.size) {
-                            val data = chart.songs[it]
+                        items(chart.songs, key = { it.videoId }) {
                             ItemTrackChart(onClick = {
                                 sharedViewModel.simpleMediaServiceHandler?.setQueueData(
                                     QueueData(
-                                        listTracks = arrayListOf(data),
-                                        firstPlayedTrack = data,
-                                        playlistName = "\"${data.title}\" ${context.getString(R.string.in_charts)}",
+                                        listTracks = arrayListOf(it),
+                                        firstPlayedTrack = it,
+                                        playlistName = "\"${it.title}\" ${context.getString(R.string.in_charts)}",
                                         playlistType = PlaylistType.RADIO,
-                                        playlistId = "RDAMVM${data.videoId}",
+                                        playlistId = "RDAMVM${it.videoId}",
                                         continuation = null
                                     )
                                 )
                                 sharedViewModel.loadMediaItemFromTrack(
-                                    data,
+                                    it,
                                     type = Config.VIDEO_CLICK,
                                 )
-                            }, data = data, position = it + 1, widthDp = gridWidthDp)
+                            }, data = it, position = chart.songs.indexOf(it) + 1, widthDp = gridWidthDp)
                         }
                     }
                 }
@@ -754,7 +753,7 @@ fun ChartData(
             state = lazyListState,
             flingBehavior = snapperFlingBehavior
         ) {
-            items(chart.videos.items.size) {
+            items(chart.videos.items.size, key = { index -> chart.videos.items[index].videoId }) {
                 val data = chart.videos.items[it]
                 ItemVideoChart(
                     onClick = {
@@ -793,7 +792,10 @@ fun ChartData(
             state = lazyListState2,
             flingBehavior = snapperFlingBehavior2,
         ) {
-            items(chart.artists.itemArtists.size) {
+            items(chart.artists.itemArtists.size, key = { index ->
+                val item = chart.artists.itemArtists[index]
+                item.title + item.browseId
+            }) {
                 val data = chart.artists.itemArtists[it]
                 ItemArtistChart(onClick = {
                     val args = Bundle()
@@ -820,7 +822,10 @@ fun ChartData(
                         state = lazyListState3,
                         flingBehavior = snapperFlingBehavior3,
                     ) {
-                        items(chart.trending.size) {
+                        items(chart.trending.size, key = { index ->
+                            val item = chart.trending[index]
+                            item.videoId
+                        }) {
                             val data = chart.trending[it]
                             ItemTrackChart(onClick = {
                                 sharedViewModel.simpleMediaServiceHandler?.setQueueData(
