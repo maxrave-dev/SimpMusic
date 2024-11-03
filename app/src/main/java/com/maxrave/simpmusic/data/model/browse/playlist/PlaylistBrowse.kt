@@ -1,10 +1,12 @@
 package com.maxrave.simpmusic.data.model.browse.playlist
 
 
+import androidx.compose.runtime.Immutable
 import com.google.gson.annotations.SerializedName
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 
+@Immutable
 data class PlaylistBrowse(
     @SerializedName("author")
     val author: Author,

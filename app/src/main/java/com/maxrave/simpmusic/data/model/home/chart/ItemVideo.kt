@@ -1,11 +1,13 @@
 package com.maxrave.simpmusic.data.model.home.chart
 
 
+import androidx.compose.runtime.Immutable
 import com.google.gson.annotations.SerializedName
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 
+@Immutable
 data class ItemVideo(
     @SerializedName("artists")
     val artists: List<Artist>?,
@@ -20,6 +22,7 @@ data class ItemVideo(
     @SerializedName("views")
     val views: String
 )
+
 fun ItemVideo.toTrack(): Track {
     return Track(
         album = null,

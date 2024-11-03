@@ -1,8 +1,10 @@
 package com.maxrave.simpmusic.data.model.explore.mood
 
 
+import androidx.compose.runtime.Immutable
 import com.google.gson.annotations.SerializedName
 
+@Immutable
 data class Mood(
     @SerializedName(value = "Genres", alternate = ["Thể loại", "Gatunki", "Per te"])
     val genres: ArrayList<Genre>,
