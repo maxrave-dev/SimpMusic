@@ -139,6 +139,7 @@ fun HomeScreen(
             LinearOutSlowInEasing.transform(pullToRefreshState.progress).coerceIn(0f, 1f)
         }
     if (pullToRefreshState.isRefreshing) {
+        //  viewModel.getHomeItemList() // Why is this call here twice ?
         viewModel.getHomeItemList()
         if (!loading) {
             pullToRefreshState.endRefresh()
