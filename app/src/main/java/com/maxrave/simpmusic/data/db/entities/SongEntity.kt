@@ -6,7 +6,7 @@ import com.maxrave.simpmusic.common.DownloadState.STATE_NOT_DOWNLOADED
 import java.time.LocalDateTime
 
 @Entity(tableName = "song")
-data class SongEntity (
+data class SongEntity(
     @PrimaryKey(autoGenerate = false) val videoId: String = "",
     val albumId: String? = null,
     val albumName: String? = null,
@@ -26,8 +26,7 @@ data class SongEntity (
     val totalPlayTime: Long = 0, // in milliseconds
     val downloadState: Int = STATE_NOT_DOWNLOADED,
     val inLibrary: LocalDateTime = LocalDateTime.now(),
-    )
-{
+) {
     fun toggleLike() = copy(liked = !liked)
 
 }

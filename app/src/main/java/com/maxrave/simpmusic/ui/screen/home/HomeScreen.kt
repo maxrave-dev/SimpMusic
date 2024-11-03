@@ -286,7 +286,7 @@ fun HomeScreen(
                                 )
                             }
                         }
-                        items(homeData) {
+                        items(homeData, key = { it.title + it.channelId }) {
                             if (it.title != context.getString(R.string.quick_picks)) {
                                 HomeItem(
                                     homeViewModel = viewModel,
@@ -296,7 +296,7 @@ fun HomeScreen(
                                 )
                             }
                         }
-                        items(newRelease) {
+                        items(newRelease, key = { it.title + it.channelId }) {
                             androidx.compose.animation.AnimatedVisibility(
                                 visible = newRelease.isNotEmpty(),
                             ) {
