@@ -4,9 +4,10 @@ This fork was created to fix a few issues that I encountered with the original a
 
 #### Current issues that this fork solves :
 
-- Changed the shuffle behaviour of online playlists to fit with other music players.
-- Fixed the app update popup even when the latest version is installed.
-- Fixed a few app crashes.
+-   Added small performance optimizations.
+-   Changed the shuffle behaviour of online playlists to fit with other music players.
+-   Fixed the app update popup even when the latest version is installed.
+-   Fixed a few app crashes.
 
 ### Latest release APK download
 
