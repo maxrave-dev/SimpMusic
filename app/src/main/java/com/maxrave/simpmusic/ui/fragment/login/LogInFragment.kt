@@ -27,7 +27,6 @@ import com.maxrave.simpmusic.viewModel.LogInViewModel
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dev.chrisbanes.insetter.applyInsetter
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 
 class LogInFragment : Fragment() {
@@ -62,6 +61,7 @@ class LogInFragment : Fragment() {
         binding.webView.apply {
             webViewClient = object : WebViewClient() {
                 @SuppressLint("FragmentLiveDataObserve")
+                @UnstableApi
                 override fun onPageFinished(view: WebView?, url: String?) {
                     if (url == Config.YOUTUBE_MUSIC_MAIN_URL) {
                         CookieManager.getInstance().getCookie(url)?.let {
@@ -111,7 +111,7 @@ class LogInFragment : Fragment() {
         if (requireActivity().isMyServiceRunning(SimpleMediaService::class.java)) {
             miniplayer.animation =
                 AnimationUtils.loadAnimation(requireContext(), R.anim.bottom_to_top)
-            if (runBlocking { sharedViewModel.simpleMediaServiceHandler?.nowPlaying?.first() != null }) {
+            if (runBlocking { sharedViewModel.nowPlayingState.value?.mediaItem != null }) {
                 miniplayer.visibility = View.VISIBLE
             }
         }

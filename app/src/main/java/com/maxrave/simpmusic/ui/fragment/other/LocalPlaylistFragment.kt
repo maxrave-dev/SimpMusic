@@ -29,7 +29,6 @@ import coil.transform.Transformation
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.adapter.playlist.PlaylistItemAdapter
 import com.maxrave.simpmusic.adapter.playlist.SuggestItemAdapter
-import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.databinding.FragmentLocalPlaylistBinding
 import com.maxrave.simpmusic.extension.setStatusBarsColor
@@ -37,7 +36,6 @@ import com.maxrave.simpmusic.ui.screen.library.PlaylistScreen
 import com.maxrave.simpmusic.ui.theme.AppTheme
 import com.maxrave.simpmusic.viewModel.LocalPlaylistViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import java.time.format.DateTimeFormatter
 
 @UnstableApi
 @ExperimentalFoundationApi
@@ -83,12 +81,17 @@ class LocalPlaylistFragment : Fragment() {
             setContent {
                 AppTheme {
                     Scaffold {
-                        PlaylistScreen(
-                            id = playlistId,
-                            sharedViewModel = sharedViewModel,
-                            viewModel = viewModel,
-                            findNavController(),
-                        )
+                        val id = playlistId
+                        if (id != null) {
+                            PlaylistScreen(
+                                id = id,
+                                sharedViewModel = sharedViewModel,
+                                viewModel = viewModel,
+                                findNavController(),
+                            )
+                        } else {
+                            findNavController().navigateUp()
+                        }
                     }
                 }
             }
@@ -1013,141 +1016,6 @@ class LocalPlaylistFragment : Fragment() {
             requireActivity()
         )
         _binding = null
-    }
-
-    @UnstableApi
-//    private fun fetchDataFromDatabase() {
-//        viewModel.clearLocalPlaylist()
-//        viewModel.id.postValue(id)
-//        viewModel.getLocalPlaylist(id!!)
-//        viewModel.localPlaylist.observe(viewLifecycleOwner) { localPlaylist ->
-//            Log.d("Check", "fetchData: ${viewModel.localPlaylist.value}")
-//            if (localPlaylist != null) {
-//                if (!localPlaylist.tracks.isNullOrEmpty()) {
-//                    viewModel.getListTrack(localPlaylist.tracks)
-//                    viewModel.getPairSongLocalPlaylist(localPlaylist.id)
-//                }
-//                binding.collapsingToolbarLayout.title = localPlaylist.title
-//                binding.tvTitle.text = localPlaylist.title
-//                binding.tvTitle.isSelected = true
-//                if (localPlaylist.syncedWithYouTubePlaylist == 1 && localPlaylist.youtubePlaylistId != null) {
-//                    if (!localPlaylist.tracks.isNullOrEmpty()) {
-//                        viewModel.getSetVideoId(localPlaylist.youtubePlaylistId)
-//                    }
-//                }
-//                if (localPlaylist.syncedWithYouTubePlaylist == 0) {
-//                    binding.btSuggest.visibility = View.GONE
-//                } else if (localPlaylist.syncedWithYouTubePlaylist == 1) {
-//                    binding.btSuggest.visibility = View.VISIBLE
-//                    if (sharedViewModel.isFirstSuggestions) {
-//                        val balloon =
-//                            Balloon.Builder(requireContext())
-//                                .setWidthRatio(0.5f)
-//                                .setHeight(BalloonSizeSpec.WRAP)
-//                                .setText(getString(R.string.guide_suggest_content))
-//                                .setTextColorResource(R.color.md_theme_dark_onSurface)
-//                                .setTextSize(11f)
-//                                .setArrowPositionRules(ArrowPositionRules.ALIGN_ANCHOR)
-//                                .setArrowSize(10)
-//                                .setArrowPosition(0.5f)
-//                                .setPadding(12)
-//                                .setAutoDismissDuration(5000L)
-//                                .setCornerRadius(8f)
-//                                .setBackgroundColorResource(R.color.md_theme_dark_onSecondary)
-//                                .setBalloonAnimation(BalloonAnimation.ELASTIC)
-//                                .setLifecycleOwner(viewLifecycleOwner)
-//                                .build()
-//                        balloon.showAlignTop(binding.btSuggest)
-//                        sharedViewModel.putString("suggest_guide", STATUS_DONE)
-//                        sharedViewModel.isFirstSuggestions = false
-//                    }
-//                }
-//            }
-//            binding.tvTrackCountAndTimeCreated.text =
-//                getString(
-//                    R.string.album_length,
-//                    localPlaylist?.tracks?.size?.toString() ?: "0",
-//                    localPlaylist?.inLibrary?.format(
-//                        DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy"),
-//                    ),
-//                )
-//            loadImage(localPlaylist?.thumbnail)
-//            with(binding) {
-//                if (localPlaylist != null) {
-//                    when (localPlaylist.downloadState) {
-//                        DownloadState.STATE_DOWNLOADED -> {
-//                            btDownload.visibility = View.VISIBLE
-//                            animationDownloading.visibility = View.GONE
-//                            btDownload.setImageResource(R.drawable.baseline_downloaded)
-//                        }
-//
-//                        DownloadState.STATE_DOWNLOADING -> {
-//                            btDownload.visibility = View.GONE
-//                            animationDownloading.visibility = View.VISIBLE
-//                        }
-//
-//                        DownloadState.STATE_PREPARING -> {
-//                            btDownload.visibility = View.GONE
-//                            animationDownloading.visibility = View.VISIBLE
-//                        }
-//
-//                        DownloadState.STATE_NOT_DOWNLOADED -> {
-//                            btDownload.visibility = View.VISIBLE
-//                            animationDownloading.visibility = View.GONE
-//                            btDownload.setImageResource(R.drawable.download_button)
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
-
-    private fun fetchDataFromViewModel() {
-        Log.d("Check", "fetchDataFromViewModel: ${viewModel.localPlaylist.value}")
-        val localPlaylist = viewModel.localPlaylist.value!!
-        binding.collapsingToolbarLayout.title = localPlaylist.title
-        binding.tvTitle.text = localPlaylist.title
-        binding.tvTitle.isSelected = true
-        binding.tvTrackCountAndTimeCreated.text =
-            getString(
-                R.string.album_length,
-                localPlaylist.tracks?.size.toString(),
-                localPlaylist.inLibrary.format(
-                    DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy"),
-                ),
-            )
-        if (!viewModel.listTrack.value.isNullOrEmpty()) {
-            listTrack.clear()
-            listTrack.addAll(viewModel.listTrack.value!!)
-            Log.d("Check", "fetchData: ${viewModel.listTrack.value}")
-            playlistAdapter.updateList(listTrack)
-        }
-        loadImage(localPlaylist.thumbnail)
-        with(binding) {
-            when (localPlaylist.downloadState) {
-                DownloadState.STATE_DOWNLOADED -> {
-                    btDownload.visibility = View.VISIBLE
-                    animationDownloading.visibility = View.GONE
-                    btDownload.setImageResource(R.drawable.baseline_downloaded)
-                }
-
-                DownloadState.STATE_DOWNLOADING -> {
-                    btDownload.visibility = View.GONE
-                    animationDownloading.visibility = View.VISIBLE
-                }
-
-                DownloadState.STATE_PREPARING -> {
-                    btDownload.visibility = View.GONE
-                    animationDownloading.visibility = View.VISIBLE
-                }
-
-                DownloadState.STATE_NOT_DOWNLOADED -> {
-                    btDownload.visibility = View.VISIBLE
-                    animationDownloading.visibility = View.GONE
-                    btDownload.setImageResource(R.drawable.download_button)
-                }
-            }
-        }
     }
 
     private fun loadImage(url: String?) {

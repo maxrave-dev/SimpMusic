@@ -8,6 +8,7 @@ import androidx.media3.common.util.UnstableApi
 import cat.ereza.customactivityoncrash.config.CaocConfig
 import com.maxrave.simpmusic.di.databaseModule
 import com.maxrave.simpmusic.di.mediaServiceModule
+import com.maxrave.simpmusic.di.viewModelModule
 import com.maxrave.simpmusic.ui.MainActivity
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -29,6 +30,7 @@ class SimpMusicApplication :
             modules(
                 databaseModule,
                 mediaServiceModule,
+                viewModelModule
             )
             workManagerFactory()
         }

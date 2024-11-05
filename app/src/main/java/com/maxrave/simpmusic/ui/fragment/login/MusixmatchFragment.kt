@@ -25,7 +25,6 @@ import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
@@ -118,7 +117,7 @@ class MusixmatchFragment : Fragment() {
         if (requireActivity().isMyServiceRunning(SimpleMediaService::class.java)) {
             miniplayer.animation =
                 AnimationUtils.loadAnimation(requireContext(), R.anim.bottom_to_top)
-            if (runBlocking { sharedViewModel.simpleMediaServiceHandler?.nowPlaying?.first() != null }) {
+            if (runBlocking { sharedViewModel.nowPlayingState.value?.mediaItem != null }) {
                 miniplayer.visibility = View.VISIBLE
             }
         }

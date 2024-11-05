@@ -33,7 +33,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -85,17 +84,11 @@ class MainActivity : AppCompatActivity() {
             ) {
                 if (service is SimpleMediaService.MusicBinder) {
                     Log.w("MainActivity", "onServiceConnected: ")
-
-                    viewModel.setHandler(service.service.simpleMediaServiceHandler)
-
-                    Log.w("MainActivity", "Now PLaying: ${viewModel.simpleMediaServiceHandler?.player?.currentMediaItem?.mediaMetadata?.title}")
-                    Log.w("TEST", viewModel.simpleMediaServiceHandler?.player.toString())
                 }
             }
 
             override fun onServiceDisconnected(name: ComponentName?) {
                 Log.w("MainActivity", "onServiceDisconnected: ")
-                viewModel.simpleMediaServiceHandler = null
             }
         }
 
@@ -365,7 +358,9 @@ class MainActivity : AppCompatActivity() {
                 R.id.playlistFragment, R.id.artistFragment, R.id.albumFragment -> {
                     val currentBackStack = nav.previousBackStackEntry?.destination?.id
                     when (currentBackStack) {
-                        R.id.bottom_navigation_item_library, R.id.downloadedFragment, R.id.mostPlayedFragment, R.id.followedFragment, R.id.favoriteFragment, R.id.localPlaylistFragment -> {
+                        R.id.bottom_navigation_item_library, R.id.downloadedFragment,
+                        R.id.mostPlayedFragment, R.id.followedFragment,
+                        R.id.favoriteFragment, R.id.localPlaylistFragment -> {
                             binding.bottomNavigationView.menu
                                 .findItem(
                                     R.id.bottom_navigation_item_library,
@@ -726,24 +721,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun stopService() {
-        if (viewModel.recreateActivity.value != true) {
-            viewModel.isServiceRunning.value = false
-            viewModel.simpleMediaServiceHandler?.mayBeSaveRecentSong()
-            viewModel.simpleMediaServiceHandler?.mayBeSavePlaybackState()
-            viewModel.simpleMediaServiceHandler?.release()
-            viewModel.simpleMediaServiceHandler = null
-            unbindService(serviceConnection)
-            Log.d("Service", "Service stopped")
-            if (this.isMyServiceRunning(DownloadService::class.java)) {
-                stopService(Intent(this, DownloadService::class.java))
-                viewModel.changeAllDownloadingToError()
-                Log.d("Service", "DownloadService stopped")
-            }
-        }
-    }
-
-//    override fun onNowPlayingSongChange() {
+    //    override fun onNowPlayingSongChange() {
 //        viewModel.metadata.observe(this) {
 //            when(it){
 //                is Resource.Success -> {

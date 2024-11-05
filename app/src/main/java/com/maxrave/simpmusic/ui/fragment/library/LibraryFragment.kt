@@ -252,7 +252,7 @@ class LibraryFragment : Fragment() {
                         val songClicked = adapterItem.getCurrentList()[position] as SongEntity
                         val videoId = songClicked.videoId
                         val firstQueue: Track = songClicked.toTrack()
-                        sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                        viewModel.setQueueData(
                             QueueData(
                                 listTracks = arrayListOf(firstQueue),
                                 firstPlayedTrack = firstQueue,
@@ -262,7 +262,7 @@ class LibraryFragment : Fragment() {
                                 continuation = null,
                             ),
                         )
-                        sharedViewModel.loadMediaItemFromTrack(
+                        viewModel.loadMediaItem(
                             firstQueue,
                             Config.SONG_CLICK,
                             position,

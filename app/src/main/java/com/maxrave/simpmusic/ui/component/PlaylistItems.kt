@@ -2,7 +2,6 @@ package com.maxrave.simpmusic.ui.component
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
@@ -20,6 +19,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,6 +35,7 @@ import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
+import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.ui.theme.typo
@@ -42,8 +43,10 @@ import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.animation.crossfade.CrossfadePlugin
 import com.skydoves.landscapist.coil.CoilImage
 import com.skydoves.landscapist.components.rememberImageComponent
+import com.skydoves.landscapist.placeholder.placeholder.PlaceholderPlugin
+import kotlinx.coroutines.flow.mapNotNull
+import org.koin.compose.koinInject
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun PlaylistItems(
     track: Track? = null,
@@ -51,8 +54,12 @@ fun PlaylistItems(
     isPlaying: Boolean,
     onMoreClickListener: ((videoId: String) -> Unit)? = null,
     onClickListener: ((videoId: String) -> Unit)? = null,
-    modifier: Modifier
+    modifier: Modifier,
 ) {
+    val mainRepository: MainRepository = koinInject()
+    val downloadState by mainRepository.getSongAsFlow(songEntity?.videoId ?: track?.videoId ?: "")
+        .mapNotNull { it?.downloadState }
+        .collectAsState(initial = DownloadState.STATE_NOT_DOWNLOADED)
     val composition by rememberLottieComposition(
         LottieCompositionSpec.RawRes(R.raw.audio_playing_animation),
     )
@@ -85,9 +92,11 @@ fun PlaylistItems(
                             previewPlaceholder = painterResource(id = R.drawable.holder),
                             component =
                                 rememberImageComponent {
-                                    CrossfadePlugin(
+                                    +CrossfadePlugin(
                                         duration = 550,
                                     )
+                                    +PlaceholderPlugin.Loading(painterResource(R.drawable.holder))
+                                    +PlaceholderPlugin.Failure(painterResource(R.drawable.holder))
                                 },
                             modifier =
                                 Modifier
@@ -117,8 +126,8 @@ fun PlaylistItems(
                 Row {
                     AnimatedVisibility(
                         visible =
-                            if (songEntity != null) {
-                                songEntity.downloadState == DownloadState.STATE_DOWNLOADED
+                            if (songEntity != null || track != null) {
+                                downloadState == DownloadState.STATE_DOWNLOADED
                             } else {
                                 false
                             },
@@ -159,7 +168,6 @@ fun PlaylistItems(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SuggestItems(
     track: Track,
@@ -200,9 +208,11 @@ fun SuggestItems(
                             previewPlaceholder = painterResource(id = R.drawable.holder),
                             component =
                                 rememberImageComponent {
-                                    CrossfadePlugin(
+                                    +CrossfadePlugin(
                                         duration = 550,
                                     )
+                                    +PlaceholderPlugin.Loading(painterResource(R.drawable.holder))
+                                    +PlaceholderPlugin.Failure(painterResource(R.drawable.holder))
                                 },
                             modifier =
                                 Modifier

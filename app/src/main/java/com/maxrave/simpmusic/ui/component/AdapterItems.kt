@@ -40,14 +40,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -56,11 +55,10 @@ import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import coil.request.CachePolicy
 import coil.request.ImageRequest
-import coil.request.SuccessResult
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
-import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.explore.mood.genre.ItemsPlaylist
 import com.maxrave.simpmusic.data.model.explore.mood.moodmoments.Item
@@ -71,7 +69,6 @@ import com.maxrave.simpmusic.data.model.home.chart.ItemVideo
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.generateRandomColor
 import com.maxrave.simpmusic.extension.navigateSafe
-import com.maxrave.simpmusic.extension.removeConflicts
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.PlaylistType
@@ -79,13 +76,11 @@ import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.HomeViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import com.maxrave.simpmusic.viewModel.UIEvent
 import com.skydoves.landscapist.ImageOptions
 import com.skydoves.landscapist.animation.crossfade.CrossfadePlugin
 import com.skydoves.landscapist.coil.CoilImage
 import com.skydoves.landscapist.components.rememberImageComponent
 import com.skydoves.landscapist.placeholder.placeholder.PlaceholderPlugin
-import java.time.LocalDateTime
 
 @OptIn(ExperimentalFoundationApi::class)
 @UnstableApi
@@ -96,71 +91,19 @@ fun HomeItem(
     navController: NavController,
     data: HomeItem
 ) {
-    val coroutineScope = rememberCoroutineScope()
     var bottomSheetShow by remember { mutableStateOf(false) }
 
     val lazyListState = rememberLazyListState()
     val snapperFlingBehavior = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyListState = lazyListState))
 
+    val songEntity by homeViewModel.songEntity.collectAsState()
+
     if (bottomSheetShow) {
         NowPlayingBottomSheet(
             isBottomSheetVisible = bottomSheetShow,
             onDismiss = { bottomSheetShow = false },
-            sharedViewModel = sharedViewModel,
-            songEntity = homeViewModel.songEntity.collectAsState(),
+            songEntity = songEntity,
             navController = navController,
-            onToggleLike = { checked ->
-                val track = homeViewModel.songEntity.value
-                if (track != null && track.videoId != sharedViewModel.nowPlayingState.value?.mediaItem?.mediaId) {
-                    if (checked) {
-                        homeViewModel.updateLikeStatus(track.videoId, true)
-                    } else {
-                        homeViewModel.updateLikeStatus(track.videoId, false)
-                    }
-                }
-                else if (track != null && track.videoId == sharedViewModel.nowPlayingState.value?.mediaItem?.mediaId) {
-                    sharedViewModel.onUIEvent(UIEvent.ToggleLike)
-
-                }
-            },
-            getLocalPlaylist = {
-                homeViewModel.getAllLocalPlaylist()
-            },
-            onAddToLocalPlaylist = { playlist ->
-                val song = homeViewModel.songEntity.value ?: return@NowPlayingBottomSheet
-                val tempTrack = ArrayList<String>()
-                if (playlist.tracks != null) {
-                    tempTrack.addAll(playlist.tracks)
-                }
-                if (!tempTrack.contains(
-                        song.videoId,
-                    ) &&
-                    playlist.syncedWithYouTubePlaylist == 1 &&
-                    playlist.youtubePlaylistId != null
-                ) {
-                    sharedViewModel.addToYouTubePlaylist(
-                        playlist.id,
-                        playlist.youtubePlaylistId,
-                        song.videoId,
-                    )
-                }
-                if (!tempTrack.contains(song.videoId)) {
-                    sharedViewModel.insertPairSongLocalPlaylist(
-                        PairSongLocalPlaylist(
-                            playlistId = playlist.id,
-                            songId = song.videoId,
-                            position = playlist.tracks?.size ?: 0,
-                            inPlaylist = LocalDateTime.now(),
-                        ),
-                    )
-                    tempTrack.add(song.videoId)
-                }
-                sharedViewModel.updateLocalPlaylistTracks(
-                    tempTrack.removeConflicts(),
-                    playlist.id,
-                )
-            },
-            listLocalPlaylist = homeViewModel.localPlaylist.collectAsState(),
         )
     }
 
@@ -268,7 +211,7 @@ fun HomeItem(
                     } else if (temp.thumbnails.firstOrNull()?.width != temp.thumbnails.firstOrNull()?.height) {
                         HomeItemVideo(onClick = {
                             val firstQueue: Track = temp.toTrack()
-                            sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                            homeViewModel.setQueueData(
                                 QueueData(
                                     listTracks = arrayListOf(firstQueue),
                                     firstPlayedTrack = firstQueue,
@@ -278,12 +221,11 @@ fun HomeItem(
                                     continuation = null
                                 )
                             )
-                            sharedViewModel.loadMediaItemFromTrack(
+                            homeViewModel.loadMediaItem(
                                 firstQueue,
                                 Config.SONG_CLICK
                             )
                         }, onLongClick = {
-                            homeViewModel.getSongEntity(temp.toTrack())
                             bottomSheetShow = true
                         },
                             data = temp
@@ -292,7 +234,7 @@ fun HomeItem(
                         HomeItemSong(onClick = {
 
                             val firstQueue: Track = temp.toTrack()
-                            sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                            homeViewModel.setQueueData(
                                 QueueData(
                                     listTracks = arrayListOf(firstQueue),
                                     firstPlayedTrack = firstQueue,
@@ -302,12 +244,11 @@ fun HomeItem(
                                     continuation = null
                                 )
                             )
-                            sharedViewModel.loadMediaItemFromTrack(
+                            homeViewModel.loadMediaItem(
                                 firstQueue,
                                 Config.SONG_CLICK
                             )
                         }, onLongClick = {
-                            homeViewModel.getSongEntity(temp.toTrack())
                             bottomSheetShow = true
                         },
                             data = temp
@@ -399,7 +340,6 @@ fun HomeItemContentPlaylist(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun QuickPicksItem(
     onClick: () -> Unit,
@@ -407,11 +347,10 @@ fun QuickPicksItem(
     data: Content
 ) {
     val tag = "QuickPicksItem"
-    val configuration = LocalConfiguration.current
     Box(
         modifier = Modifier
             .wrapContentHeight()
-            .width(widthDp)
+            .width(widthDp - 30.dp)
             .focusable(true)
             .clickable {
                 onClick()
@@ -419,43 +358,25 @@ fun QuickPicksItem(
     ) {
         Row(
             modifier = Modifier
-                .width(configuration.screenWidthDp.dp)
+                .fillMaxWidth()
                 .padding(10.dp)
         ) {
-            CoilImage(
-                imageModel = {
-                    data.thumbnails.lastOrNull()?.url
-                }, // loading a network image or local resource using an URL.
-                imageOptions = ImageOptions(
-                    contentScale = ContentScale.Crop,
-                    alignment = Alignment.Center,
-                ),
-                requestListener = {
-                    object : ImageRequest.Listener {
-                        override fun onSuccess(request: ImageRequest, result: SuccessResult) {
-                            super.onSuccess(request, result)
-                            Log.w(tag, "onSuccess: ${data.title}")
-                        }
-
-                        override fun onStart(request: ImageRequest) {
-                            super.onStart(request)
-                            Log.w(tag, "onStart: ${data.thumbnails.lastOrNull()?.url}")
-                        }
-                    }
-                },
-                component = rememberImageComponent {
-                    +CrossfadePlugin(
-                        duration = 550
-                    )
-                    +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder))
-                    +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder))
-                },
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(data.thumbnails.lastOrNull()?.url)
+                    .crossfade(550)
+                    .diskCacheKey(data.thumbnails.lastOrNull()?.url)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .build(),
+                placeholder = painterResource(R.drawable.holder),
+                contentDescription = stringResource(R.string.description),
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
                     .size(50.dp)
                     .clip(
                         RoundedCornerShape(10)
-                    )
+                    ),
             )
             Column(
                 Modifier
@@ -1085,7 +1006,11 @@ fun MoodAndGenresContentItem(data: Any?, navController: NavController) {
                     navController.navigateSafe(R.id.action_global_playlistFragment, Bundle().apply {
                         putString(
                             "id",
-                            if (item is com.maxrave.simpmusic.data.model.explore.mood.genre.Content) item.playlistBrowseId else (item as com.maxrave.simpmusic.data.model.explore.mood.moodmoments.Content).playlistBrowseId
+                            if (item is com.maxrave.simpmusic.data.model.explore.mood.genre.Content) {
+                                item.playlistBrowseId
+                            } else {
+                                (item as com.maxrave.simpmusic.data.model.explore.mood.moodmoments.Content).playlistBrowseId
+                            }
                         )
                     })
                 }, data = item)

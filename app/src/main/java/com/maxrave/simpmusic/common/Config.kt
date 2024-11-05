@@ -23,6 +23,7 @@ object Config {
     const val PLAYER_CACHE = "playerCache"
     const val DOWNLOAD_CACHE = "downloadCache"
     const val CANVAS_CACHE = "canvasCache"
+    const val SERVICE_SCOPE = "serviceScope"
 
     val REMOVED_SONG_DATE_TIME = LocalDateTime.of(2003, Month.AUGUST, 26, 3, 0)
 

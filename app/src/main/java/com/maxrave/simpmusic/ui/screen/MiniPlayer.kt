@@ -415,6 +415,7 @@ fun MiniPlayer(
                     color = Color(0xB2FFFFFF),
                     trackColor = Color.Transparent,
                     strokeCap = StrokeCap.Round,
+                    drawStopIndicator = {}
                 )
             }
         }

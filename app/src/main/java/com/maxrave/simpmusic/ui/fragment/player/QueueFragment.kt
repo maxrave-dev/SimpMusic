@@ -100,9 +100,7 @@ class QueueFragment : BottomSheetDialogFragment() {
         touchHelper.attachToRecyclerView(binding.rvQueue)
         val queue =
             runBlocking {
-                viewModel.simpleMediaServiceHandler
-                    ?.queueData
-                    ?.first()
+                viewModel.getQueueData()
                     ?.listTracks
             }
         if (!queue.isNullOrEmpty()) {
@@ -112,7 +110,7 @@ class QueueFragment : BottomSheetDialogFragment() {
         lifecycleScope.launch {
             val job1 =
                 launch {
-                    viewModel.simpleMediaServiceHandler?.stateFlow?.collect { state ->
+                    viewModel.getHandlerStateFlow().collect { state ->
                         when (state) {
                             StateSource.STATE_INITIALIZING -> {
                                 binding.loadingQueue.visibility = View.VISIBLE
@@ -126,9 +124,7 @@ class QueueFragment : BottomSheetDialogFragment() {
                                 binding.loadingQueue.visibility = View.GONE
                                 binding.rvQueue.visibility = View.VISIBLE
                                 queueAdapter.updateList(
-                                    viewModel.simpleMediaServiceHandler
-                                        ?.queueData
-                                        ?.first()
+                                    viewModel.getQueueData()
                                         ?.listTracks ?: arrayListOf(),
                                 )
                             }
@@ -148,8 +144,8 @@ class QueueFragment : BottomSheetDialogFragment() {
                             binding.tvSongTitle.isSelected = true
                             binding.tvSongArtist.text = it.mediaItem.mediaMetadata.artist
                             binding.tvSongArtist.isSelected = true
-                            if (viewModel.simpleMediaServiceHandler?.stateFlow?.first() == StateSource.STATE_INITIALIZED ||
-                                viewModel.simpleMediaServiceHandler?.stateFlow?.first() == StateSource.STATE_INITIALIZING
+                            if (viewModel.getHandlerStateFlow().first() == StateSource.STATE_INITIALIZED ||
+                                viewModel.getHandlerStateFlow().first() == StateSource.STATE_INITIALIZING
                             ) {
                                 val index = it.songEntity?.videoId?.let { it1 -> queueAdapter.getIndexOf(it1) }
                                 if (index != null) {
@@ -162,7 +158,7 @@ class QueueFragment : BottomSheetDialogFragment() {
                 }
             val job3 =
                 launch {
-                    viewModel.simpleMediaServiceHandler?.currentSongIndex?.collect { index ->
+                    viewModel.getCurrentSongIndex().collect { index ->
                         Log.d("QueueFragment", "onViewCreated: $index")
                     }
                 }
@@ -203,11 +199,11 @@ class QueueFragment : BottomSheetDialogFragment() {
                     dy: Int,
                 ) {
                     val layoutManager = recyclerView.layoutManager as LinearLayoutManager?
-                    if (viewModel.simpleMediaServiceHandler?.stateFlow?.value != StateSource.STATE_INITIALIZING &&
+                    if (viewModel.getHandlerStateFlow().value != StateSource.STATE_INITIALIZING &&
                         layoutManager != null &&
                         layoutManager.findLastCompletelyVisibleItemPosition() == queueAdapter.itemCount - 1
                     ) {
-                        viewModel.simpleMediaServiceHandler?.loadMore()
+                        viewModel.startLoadMore()
                     }
                 }
             },
@@ -228,11 +224,9 @@ class QueueFragment : BottomSheetDialogFragment() {
                     to: Int,
                 ) {
                     lifecycleScope.launch {
-                        viewModel.simpleMediaServiceHandler?.swap(from, to)
+                        viewModel.swapQueue(from, to)
                         queueAdapter.updateList(
-                            viewModel.simpleMediaServiceHandler
-                                ?.queueData
-                                ?.first()
+                            viewModel.getQueueData()
                                 ?.listTracks ?: arrayListOf(),
                         )
                     }
@@ -244,73 +238,65 @@ class QueueFragment : BottomSheetDialogFragment() {
                 override fun onOptionClick(position: Int) {
                     val dialog = BottomSheetDialog(requireContext())
                     val dialogView = BottomSheetQueueTrackOptionBinding.inflate(layoutInflater)
-                    if (viewModel.simpleMediaServiceHandler != null) {
-                        lifecycleScope.launch {
-                            repeatOnLifecycle(Lifecycle.State.CREATED) {
-                                viewModel.simpleMediaServiceHandler?.queueData?.collect { queueData ->
-                                    val queueList = queueData?.listTracks ?: arrayListOf()
-                                    if (queueList.size > 1) {
-                                        when (position) {
-                                            0 -> {
-                                                setEnabledAll(dialogView.btMoveUp, false)
-                                                setEnabledAll(dialogView.btMoveDown, true)
-                                            }
-
-                                            queueList.size - 1 -> {
-                                                setEnabledAll(dialogView.btMoveUp, true)
-                                                setEnabledAll(dialogView.btMoveDown, false)
-                                            }
-
-                                            else -> {
-                                                setEnabledAll(dialogView.btMoveUp, true)
-                                                setEnabledAll(dialogView.btMoveDown, true)
-                                            }
+                    lifecycleScope.launch {
+                        repeatOnLifecycle(Lifecycle.State.CREATED) {
+                            viewModel.getQueueDataFlow().collect { queueData ->
+                                val queueList = queueData?.listTracks ?: arrayListOf()
+                                if (queueList.size > 1) {
+                                    when (position) {
+                                        0 -> {
+                                            setEnabledAll(dialogView.btMoveUp, false)
+                                            setEnabledAll(dialogView.btMoveDown, true)
                                         }
-                                    } else {
-                                        setEnabledAll(dialogView.btMoveUp, false)
-                                        setEnabledAll(dialogView.btMoveDown, false)
-                                        setEnabledAll(dialogView.btDelete, false)
+
+                                        queueList.size - 1 -> {
+                                            setEnabledAll(dialogView.btMoveUp, true)
+                                            setEnabledAll(dialogView.btMoveDown, false)
+                                        }
+
+                                        else -> {
+                                            setEnabledAll(dialogView.btMoveUp, true)
+                                            setEnabledAll(dialogView.btMoveDown, true)
+                                        }
                                     }
+                                } else {
+                                    setEnabledAll(dialogView.btMoveUp, false)
+                                    setEnabledAll(dialogView.btMoveDown, false)
+                                    setEnabledAll(dialogView.btDelete, false)
                                 }
                             }
                         }
-                        with(dialogView) {
-                            btMoveUp.setOnClickListener {
-                                lifecycleScope.launch {
-                                    viewModel.simpleMediaServiceHandler?.moveItemUp(position)
-                                    queueAdapter.updateList(
-                                        viewModel.simpleMediaServiceHandler
-                                            ?.queueData
-                                            ?.first()
-                                            ?.listTracks ?: arrayListOf(),
-                                    )
-                                }
-                                dialog.dismiss()
+                    }
+                    with(dialogView) {
+                        btMoveUp.setOnClickListener {
+                            lifecycleScope.launch {
+                                viewModel.moveItemUp(position)
+                                queueAdapter.updateList(
+                                    viewModel.getQueueData()
+                                        ?.listTracks ?: arrayListOf(),
+                                )
                             }
-                            btMoveDown.setOnClickListener {
-                                lifecycleScope.launch {
-                                    viewModel.simpleMediaServiceHandler?.moveItemDown(position)
-                                    queueAdapter.updateList(
-                                        viewModel.simpleMediaServiceHandler
-                                            ?.queueData
-                                            ?.first()
-                                            ?.listTracks ?: arrayListOf(),
-                                    )
-                                }
-                                dialog.dismiss()
+                            dialog.dismiss()
+                        }
+                        btMoveDown.setOnClickListener {
+                            lifecycleScope.launch {
+                                viewModel.moveItemDown(position)
+                                queueAdapter.updateList(
+                                    viewModel.getQueueData()
+                                        ?.listTracks ?: arrayListOf(),
+                                )
                             }
-                            btDelete.setOnClickListener {
-                                viewModel.simpleMediaServiceHandler?.removeMediaItem(position)
-                                lifecycleScope.launch {
-                                    queueAdapter.updateList(
-                                        viewModel.simpleMediaServiceHandler
-                                            ?.queueData
-                                            ?.first()
-                                            ?.listTracks ?: arrayListOf(),
-                                    )
-                                }
-                                dialog.dismiss()
+                            dialog.dismiss()
+                        }
+                        btDelete.setOnClickListener {
+                            viewModel.removeItem(position)
+                            lifecycleScope.launch {
+                                queueAdapter.updateList(
+                                    viewModel.getQueueData()
+                                        ?.listTracks ?: arrayListOf(),
+                                )
                             }
+                            dialog.dismiss()
                         }
                     }
                     dialog.setCancelable(true)

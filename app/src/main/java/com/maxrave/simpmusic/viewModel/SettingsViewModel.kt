@@ -107,6 +107,8 @@ class SettingsViewModel(
     private var _translucentBottomBar: MutableStateFlow<String?> = MutableStateFlow(null)
     val translucentBottomBar: StateFlow<String?> = _translucentBottomBar
 
+    fun getAudioSessionId() = simpleMediaServiceHandler.player.audioSessionId
+
     fun getTranslucentBottomBar() {
         viewModelScope.launch {
             dataStoreManager.translucentBottomBar.collect { translucentBottomBar ->

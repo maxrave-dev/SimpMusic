@@ -331,7 +331,7 @@ class SearchFragment : Fragment() {
                     val songClicked = suggestYTItemAdapter.getCurrentList()[position] as SongItem
                     val videoId = (suggestYTItemAdapter.getCurrentList()[position] as SongItem).id
                     val firstQueue: Track = songClicked.toTrack()
-                    sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                    viewModel.setQueueData(
                         QueueData(
                             listTracks = arrayListOf(firstQueue),
                             firstPlayedTrack = firstQueue,
@@ -341,7 +341,7 @@ class SearchFragment : Fragment() {
                             continuation = null
                         )
                     )
-                    sharedViewModel.loadMediaItemFromTrack(
+                    viewModel.loadMediaItem(
                         firstQueue,
                         type = Config.SONG_CLICK
                     )
@@ -350,7 +350,7 @@ class SearchFragment : Fragment() {
                     val videoClicked = suggestYTItemAdapter.getCurrentList()[position] as VideoItem
                     val videoId = videoClicked.id
                     val firstQueue = videoClicked.toTrack()
-                    sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                    viewModel.setQueueData(
                         QueueData(
                             listTracks = arrayListOf(firstQueue),
                             firstPlayedTrack = firstQueue,
@@ -360,7 +360,7 @@ class SearchFragment : Fragment() {
                             continuation = null
                         )
                     )
-                    sharedViewModel.loadMediaItemFromTrack(
+                    viewModel.loadMediaItem(
                         firstQueue,
                         type = Config.VIDEO_CLICK
                     )
@@ -398,7 +398,7 @@ class SearchFragment : Fragment() {
                 if (type == Config.SONG_CLICK){
                     val songClicked = resultAdapter.getCurrentList()[position] as SongsResult
                     val videoId = (resultAdapter.getCurrentList()[position] as SongsResult).videoId
-                    sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                    viewModel.setQueueData(
                         QueueData(
                             listTracks = arrayListOf(songClicked.toTrack()),
                             firstPlayedTrack = songClicked.toTrack(),
@@ -408,7 +408,7 @@ class SearchFragment : Fragment() {
                             continuation = null
                         )
                     )
-                    sharedViewModel.loadMediaItemFromTrack(
+                    viewModel.loadMediaItem(
                         songClicked.toTrack(),
                         type = Config.SONG_CLICK
                     )
@@ -417,7 +417,7 @@ class SearchFragment : Fragment() {
                     val videoClicked = resultAdapter.getCurrentList()[position] as VideosResult
                     val videoId = videoClicked.videoId
                     val firstQueue = videoClicked.toTrack()
-                    sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                    viewModel.setQueueData(
                         QueueData(
                             listTracks = arrayListOf(firstQueue),
                             firstPlayedTrack = firstQueue,
@@ -427,7 +427,7 @@ class SearchFragment : Fragment() {
                             continuation = null
                         )
                     )
-                    sharedViewModel.loadMediaItemFromTrack(
+                    viewModel.loadMediaItem(
                         firstQueue,
                         type = Config.VIDEO_CLICK
                     )

@@ -255,8 +255,15 @@ fun parsePlaylistData(
                             ?.get(
                                 0,
                             )?.text
-                            ?.split(":")
-                            ?.let { it[0].toInt() * 60 + it[1].toInt() } ?: 0,
+                            ?.let {
+                                if (it.contains(":")) {
+                                    it.split(":")
+                                } else if (it.contains(".")) {
+                                    it.split(".")
+                                } else {
+                                    listOf(it)
+                                }
+                            }?.let { it[0].toInt() * 60 + it[1].toInt() } ?: 0,
                     isAvailable = false,
                     isExplicit = false,
                     likeStatus = "INDIFFERENT",

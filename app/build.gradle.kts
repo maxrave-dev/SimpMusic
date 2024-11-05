@@ -11,19 +11,20 @@ plugins {
 
 android {
     namespace = "com.maxrave.simpmusic"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.maxrave.simpmusic"
         minSdk = 26
         targetSdk = 35
-        versionCode = 20
-        versionName = "0.2.3-hf2"
+        versionCode = 21
+        versionName = "0.2.4"
         vectorDrawables.useSupportLibrary = true
 
         ksp {
             arg("room.schemaLocation", "$projectDir/schemas")
             arg("KOIN_CONFIG_CHECK", "true")
+            arg("KOIN_USE_COMPOSE_VIEWMODEL","true")
         }
 
         resourceConfigurations +=
@@ -180,6 +181,7 @@ dependencies {
     implementation(composeBom)
     androidTestImplementation(composeBom)
     implementation(libs.compose.material3.lib)
+    implementation(libs.compose.material3.sizeclass)
     implementation(libs.compose.ui)
     implementation(libs.compose.material.ripple)
     implementation(libs.compose.material.icons.core)

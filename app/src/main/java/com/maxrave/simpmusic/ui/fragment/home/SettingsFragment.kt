@@ -624,7 +624,7 @@ class SettingsFragment : Fragment() {
         binding.btEqualizer.setOnClickListener {
             val eqIntent = Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL)
             eqIntent.putExtra(AudioEffect.EXTRA_PACKAGE_NAME, requireContext().packageName)
-            eqIntent.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, sharedViewModel.simpleMediaServiceHandler?.player?.audioSessionId)
+            eqIntent.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, viewModel.getAudioSessionId())
             eqIntent.putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MUSIC)
             val packageManager = requireContext().packageManager
             val resolveInfo: List<*> = packageManager.queryIntentActivities(eqIntent, 0)

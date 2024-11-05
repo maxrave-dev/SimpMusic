@@ -205,7 +205,7 @@ class AlbumFragment : Fragment() {
                 shuffleList.shuffle()
                 if (firstPlay != null) {
                     shuffleList.add(0, firstPlay)
-                    sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                    viewModel.setQueueData(
                         QueueData(
                             listTracks = shuffleList,
                             firstPlayedTrack = firstPlay,
@@ -218,7 +218,7 @@ class AlbumFragment : Fragment() {
                             continuation = null,
                         )
                     )
-                    sharedViewModel.loadMediaItemFromTrack(
+                    viewModel.loadMediaItem(
                         firstPlay,
                         Config.ALBUM_CLICK,
                         0,
@@ -240,7 +240,7 @@ class AlbumFragment : Fragment() {
                 )
                 shuffleList.shuffle()
                 if (firstPlay != null) {
-                    sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                    viewModel.setQueueData(
                         QueueData(
                             shuffleList,
                             firstPlay.toTrack(),
@@ -252,7 +252,7 @@ class AlbumFragment : Fragment() {
                             null
                         )
                     )
-                    sharedViewModel.loadMediaItemFromTrack(
+                    viewModel.loadMediaItem(
                         firstPlay.toTrack(),
                         Config.ALBUM_CLICK,
                         0,
@@ -271,7 +271,7 @@ class AlbumFragment : Fragment() {
             ) {
                 val firstPlay = songsAdapter.getList().firstOrNull()
                 if (firstPlay != null) {
-                    sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                    viewModel.setQueueData(
                         QueueData(
                             songsAdapter.getList(),
                             firstPlay,
@@ -284,7 +284,7 @@ class AlbumFragment : Fragment() {
                             null
                         )
                     )
-                    sharedViewModel.loadMediaItemFromTrack(
+                    viewModel.loadMediaItem(
                         firstPlay,
                         Config.ALBUM_CLICK,
                         0,
@@ -293,7 +293,7 @@ class AlbumFragment : Fragment() {
             } else if (viewModel.albumEntity.value != null && viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                 val firstPlay = songsAdapter.getList().firstOrNull()
                 if (firstPlay != null) {
-                    sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                    viewModel.setQueueData(
                         QueueData(
                             songsAdapter.getList(),
                             firstPlay,
@@ -305,7 +305,7 @@ class AlbumFragment : Fragment() {
                             null
                         )
                     )
-                    sharedViewModel.loadMediaItemFromTrack(
+                    viewModel.loadMediaItem(
                         firstPlay,
                         Config.ALBUM_CLICK,
                         0,
@@ -321,7 +321,7 @@ class AlbumFragment : Fragment() {
                     if (viewModel.albumBrowse.value is Resource.Success && viewModel.albumBrowse.value?.data != null) {
                         val firstPlay = songsAdapter.getList().getOrNull(position)
                         if (firstPlay != null) {
-                            sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                            viewModel.setQueueData(
                                 QueueData(
                                     songsAdapter.getList(),
                                     firstPlay,
@@ -334,7 +334,7 @@ class AlbumFragment : Fragment() {
                                     null
                                 )
                             )
-                            sharedViewModel.loadMediaItemFromTrack(
+                            viewModel.loadMediaItem(
                                 firstPlay,
                                 Config.ALBUM_CLICK,
                                 position,
@@ -343,7 +343,7 @@ class AlbumFragment : Fragment() {
                     } else if (viewModel.albumEntity.value != null && viewModel.albumEntity.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
                         val firstPlay = songsAdapter.getList().getOrNull(position)
                         if (firstPlay != null) {
-                            sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                            viewModel.setQueueData(
                                 QueueData(
                                     songsAdapter.getList(),
                                     firstPlay,
@@ -355,7 +355,7 @@ class AlbumFragment : Fragment() {
                                     null
                                 )
                             )
-                            sharedViewModel.loadMediaItemFromTrack(
+                            viewModel.loadMediaItem(
                                 firstPlay,
                                 Config.ALBUM_CLICK,
                                 position,

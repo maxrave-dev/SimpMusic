@@ -250,7 +250,7 @@ class ArtistFragment : Fragment() {
                     val songClicked = popularAdapter.getCurrentList()[position]
                     val videoId = songClicked.videoId
                     val firstQueue: Track = songClicked.toTrack()
-                    sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                    viewModel.setQueueData(
                         QueueData(
                             listTracks = arrayListOf(firstQueue),
                             firstPlayedTrack = firstQueue,
@@ -261,7 +261,7 @@ class ArtistFragment : Fragment() {
 
                         )
                     )
-                    sharedViewModel.loadMediaItemFromTrack(
+                    viewModel.loadMediaItem(
                         firstQueue,
                         Config.SONG_CLICK,
                         0,
@@ -291,7 +291,7 @@ class ArtistFragment : Fragment() {
                     val songClicked = videoAdapter.getCurrentList()[position]
                     val videoId = songClicked.videoId
                     val firstQueue: Track = songClicked.toTrack()
-                    sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                    viewModel.setQueueData(
                         QueueData(
                             listTracks = arrayListOf(firstQueue),
                             firstPlayedTrack = firstQueue,
@@ -301,7 +301,7 @@ class ArtistFragment : Fragment() {
                             continuation = null
                         )
                     )
-                    sharedViewModel.loadMediaItemFromTrack(
+                    viewModel.loadMediaItem(
                         firstQueue,
                         Config.VIDEO_CLICK,
                         0,

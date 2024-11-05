@@ -794,6 +794,23 @@ class Ytmusic {
             contentType(ContentType.Application.Json)
         }
 
+    suspend fun playlist(playlistId: String) =
+        httpClient.post("browse") {
+            ytClient(YouTubeClient.WEB_REMIX, !cookie.isNullOrEmpty())
+            setBody(
+                BrowseBody(
+                    context =
+                        YouTubeClient.WEB_REMIX.toContext(
+                            locale,
+                            visitorData,
+                        ),
+                    browseId = playlistId,
+                    params = "wAEB",
+                ),
+            )
+            parameter("alt", "json")
+        }
+
     suspend fun browse(
         client: YouTubeClient,
         browseId: String? = null,

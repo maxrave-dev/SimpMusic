@@ -113,21 +113,19 @@ class InfoFragment: BottomSheetDialogFragment(){
                     viewModel.nowPlayingState.collectLatest {
                         val nowPlaying = it?.track
                             if (nowPlaying != null) {
-                                if (viewModel.simpleMediaServiceHandler != null) {
-                                    with(binding){
-                                        toolbar.title = nowPlaying.title
-                                        artistsName.text = nowPlaying.artists.toListName().connectArtists()
-                                        "https://www.youtube.com/watch?v=${nowPlaying.videoId}".also { youtubeUrl.text = it }
-                                        title.text = nowPlaying.title
-                                        albumName.text = nowPlaying.album?.name
-                                        albumName.setOnClickListener {
-                                            if (!nowPlaying.album?.id.isNullOrEmpty()) {
-                                                findNavController().navigateSafe(
-                                                    R.id.action_global_albumFragment,
-                                                    Bundle().apply {
-                                                        putString("browseId", nowPlaying.album?.id)
-                                                    })
-                                            }
+                                with(binding){
+                                    toolbar.title = nowPlaying.title
+                                    artistsName.text = nowPlaying.artists.toListName().connectArtists()
+                                    "https://www.youtube.com/watch?v=${nowPlaying.videoId}".also { youtubeUrl.text = it }
+                                    title.text = nowPlaying.title
+                                    albumName.text = nowPlaying.album?.name
+                                    albumName.setOnClickListener {
+                                        if (!nowPlaying.album?.id.isNullOrEmpty()) {
+                                            findNavController().navigateSafe(
+                                                R.id.action_global_albumFragment,
+                                                Bundle().apply {
+                                                    putString("browseId", nowPlaying.album?.id)
+                                                })
                                         }
                                     }
                                 }

@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -13,10 +12,10 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider
+import androidx.compose.foundation.gestures.snapping.SnapPosition
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -41,7 +40,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -49,14 +49,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
@@ -113,6 +112,7 @@ fun HomeScreen(
     navController: NavController,
 ) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberLazyListState()
     val accountInfo by viewModel.accountInfo.collectAsState()
     val homeData by viewModel.homeItemList.collectAsState()
@@ -126,51 +126,39 @@ fun HomeScreen(
     }
     val regionChart by viewModel.regionCodeChart.collectAsState()
     val homeRefresh by sharedViewModel.homeRefresh.collectAsState()
-    val pullToRefreshState =
-        rememberPullToRefreshState(
-            20.dp,
-        )
+    val pullToRefreshState = rememberPullToRefreshState()
+    var isRefreshing by remember { mutableStateOf(false) }
     val chipRowState = rememberScrollState()
     val params by viewModel.params.collectAsState()
-    val scaleFraction =
-        if (pullToRefreshState.isRefreshing) {
-            1f
-        } else {
-            LinearOutSlowInEasing.transform(pullToRefreshState.progress).coerceIn(0f, 1f)
+
+    val onRefresh: () -> Unit = {
+        isRefreshing = true
+        viewModel.getHomeItemList()
+        Log.w("HomeScreen", "onRefresh")
+    }
+    LaunchedEffect(key1 = homeRefresh) {
+        if (homeRefresh) {
+            if (scrollState.firstVisibleItemIndex > 1) {
+                Log.w("HomeScreen", "scrollState.firstVisibleItemIndex: ${scrollState.firstVisibleItemIndex}")
+                scrollState.animateScrollToItem(0)
+                sharedViewModel.homeRefreshDone()
+            } else {
+                Log.w("HomeScreen", "scrollState.firstVisibleItemIndex: ${scrollState.firstVisibleItemIndex}")
+                onRefresh.invoke()
+            }
         }
-    if (pullToRefreshState.isRefreshing) {
-        viewModel.getHomeItemList()
-        viewModel.getHomeItemList()
+    }
+    LaunchedEffect(key1 = loading) {
         if (!loading) {
-            pullToRefreshState.endRefresh()
+            isRefreshing = false
             sharedViewModel.homeRefreshDone()
+            coroutineScope.launch {
+                pullToRefreshState.animateToHidden()
+            }
         }
     }
     LaunchedEffect(key1 = homeData) {
         accountShow = homeData.find { it.subtitle == accountInfo?.first } == null
-    }
-    LaunchedEffect(key1 = homeRefresh) {
-        Log.w("HomeScreen", "homeRefresh: $homeRefresh")
-        if (homeRefresh) {
-            Log.w(
-                "HomeScreen",
-                "scrollState.firstVisibleItemIndex: ${scrollState.firstVisibleItemIndex}",
-            )
-            if (scrollState.firstVisibleItemIndex == 1) {
-                Log.w(
-                    "HomeScreen",
-                    "scrollState.canScrollBackward: ${scrollState.canScrollBackward}",
-                )
-                pullToRefreshState.startRefresh()
-            } else {
-                Log.w(
-                    "HomeScreen",
-                    "scrollState.canScrollBackward: ${scrollState.canScrollBackward}",
-                )
-                launch { scrollState.scrollToItem(0, 0) }
-                sharedViewModel.homeRefreshDone()
-            }
-        }
     }
     Column {
         AnimatedVisibility(
@@ -229,21 +217,24 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.width(4.dp))
             }
         }
-        Box(
+        PullToRefreshBox(
             modifier =
             Modifier
-                .nestedScroll(pullToRefreshState.nestedScrollConnection)
                 .padding(vertical = 8.dp),
-            contentAlignment = Alignment.Center,
+            state = pullToRefreshState,
+            onRefresh = onRefresh,
+            isRefreshing = isRefreshing,
+            indicator = {
+                PullToRefreshDefaults.Indicator(
+                    state = pullToRefreshState,
+                    isRefreshing = isRefreshing,
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    containerColor = PullToRefreshDefaults.containerColor,
+                    color = PullToRefreshDefaults.indicatorColor,
+                    threshold = PullToRefreshDefaults.PositionalThreshold
+                )
+            }
         ) {
-            PullToRefreshContainer(
-                modifier =
-                Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = 15.dp)
-                    .graphicsLayer(scaleX = scaleFraction, scaleY = scaleFraction),
-                state = pullToRefreshState,
-            )
             Spacer(modifier = Modifier.height(8.dp))
             Crossfade(targetState = loading, label = "Home Shimmer") { loading ->
                 if (!loading) {
@@ -279,7 +270,7 @@ fun HomeScreen(
                                                     R.string.quick_picks,
                                                 )
                                         } ?: return@AnimatedVisibility,
-                                    sharedViewModel = sharedViewModel,
+                                    viewModel = viewModel,
                                 )
                             }
                         }
@@ -357,7 +348,7 @@ fun HomeScreen(
                                                 chart?.let {
                                                     ChartData(
                                                         chart = it,
-                                                        sharedViewModel = sharedViewModel,
+                                                        viewModel = viewModel,
                                                         navController = navController,
                                                         context = context,
                                                     )
@@ -500,10 +491,10 @@ fun AccountLayout(
 @Composable
 fun QuickPicks(
     homeItem: HomeItem,
-    sharedViewModel: SharedViewModel,
+    viewModel: HomeViewModel
 ) {
     val lazyListState = rememberLazyGridState()
-    val snapperFlingBehavior = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyGridState = lazyListState))
+    val snapperFlingBehavior = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyGridState = lazyListState, snapPosition = SnapPosition.Start))
     val density = LocalDensity.current
     var widthDp by remember {
         mutableStateOf(0.dp)
@@ -540,7 +531,7 @@ fun QuickPicks(
                 if (it != null) {
                     QuickPicksItem(onClick = {
                         val firstQueue: Track = it.toTrack()
-                        sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                        viewModel.setQueueData(
                             QueueData(
                                 listTracks = arrayListOf(firstQueue),
                                 firstPlayedTrack = firstQueue,
@@ -550,7 +541,7 @@ fun QuickPicks(
                                 continuation = null
                             )
                         )
-                        sharedViewModel.loadMediaItemFromTrack(
+                        viewModel.loadMediaItem(
                             firstQueue,
                             type = Config.SONG_CLICK,
                         )
@@ -663,7 +654,7 @@ fun ChartTitle() {
 @Composable
 fun ChartData(
     chart: Chart,
-    sharedViewModel: SharedViewModel,
+    viewModel: HomeViewModel,
     navController: NavController,
     context: Context,
 ) {
@@ -716,7 +707,7 @@ fun ChartData(
                         items(chart.songs.size) {
                             val data = chart.songs[it]
                             ItemTrackChart(onClick = {
-                                sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                                viewModel.setQueueData(
                                     QueueData(
                                         listTracks = arrayListOf(data),
                                         firstPlayedTrack = data,
@@ -726,7 +717,7 @@ fun ChartData(
                                         continuation = null
                                     )
                                 )
-                                sharedViewModel.loadMediaItemFromTrack(
+                                viewModel.loadMediaItem(
                                     data,
                                     type = Config.VIDEO_CLICK,
                                 )
@@ -754,7 +745,7 @@ fun ChartData(
                 ItemVideoChart(
                     onClick = {
                         val firstQueue: Track = data.toTrack()
-                        sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                        viewModel.setQueueData(
                             QueueData(
                                 listTracks = arrayListOf(firstQueue),
                                 firstPlayedTrack = firstQueue,
@@ -764,7 +755,7 @@ fun ChartData(
                                 continuation = null
                             )
                         )
-                        sharedViewModel.loadMediaItemFromTrack(
+                        viewModel.loadMediaItem(
                             firstQueue,
                             type = Config.VIDEO_CLICK,
                         )
@@ -818,7 +809,7 @@ fun ChartData(
                         items(chart.trending.size) {
                             val data = chart.trending[it]
                             ItemTrackChart(onClick = {
-                                sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                                viewModel.setQueueData(
                                     QueueData(
                                         listTracks = arrayListOf(data),
                                         firstPlayedTrack = data,
@@ -828,7 +819,7 @@ fun ChartData(
                                         continuation = null
                                     )
                                 )
-                                sharedViewModel.loadMediaItemFromTrack(
+                                viewModel.loadMediaItem(
                                     data,
                                     type = Config.VIDEO_CLICK,
                                 )

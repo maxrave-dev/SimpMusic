@@ -357,4 +357,6 @@
     <string name="updated_to_youtube_playlist">Updated to YouTube Playlist</string>
     <string name="can_t_add_to_youtube_playlist">Can\'t add to YouTube Playlist</string>
     <string name="can_t_delete_from_youtube_playlist">Can\'t delete song from YouTube Playlist</string>
+    <string name="loading">Loading</string>
+    <string name="updating">Updating</string>
 </resources>

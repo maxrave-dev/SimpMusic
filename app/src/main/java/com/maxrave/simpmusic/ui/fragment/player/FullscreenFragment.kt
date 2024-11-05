@@ -88,7 +88,7 @@ class FullscreenFragment : Fragment() {
             viewModel.isFullScreen = true
         }
         if (binding.playerView.player == null) {
-            binding.playerView.player = viewModel.simpleMediaServiceHandler?.player
+            binding.playerView.player = viewModel.getPlayer()
         }
 
         with(binding) {
@@ -244,7 +244,7 @@ class FullscreenFragment : Fragment() {
                     }
                 val job11 =
                     launch {
-                        viewModel.simpleMediaServiceHandler?.controlState?.collect { controlState ->
+                        viewModel.controllerState.collect { controlState ->
                             setEnabledAll(binding.btPrevious, controlState.isPreviousAvailable)
                             setEnabledAll(binding.btNext, controlState.isNextAvailable)
                             when (controlState.isShuffle) {
@@ -284,7 +284,7 @@ class FullscreenFragment : Fragment() {
         binding.toolbar.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.now_playing_dialog_menu_item_more -> {
-                    val queue = runBlocking { viewModel.simpleMediaServiceHandler?.queueData?.first()?.listTracks }
+                    val queue = viewModel.getQueueData()?.listTracks
                     if (!queue.isNullOrEmpty()) {
                         val dialog = BottomSheetDialog(requireContext())
                         dialog.apply {

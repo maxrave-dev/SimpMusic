@@ -352,6 +352,9 @@ interface DatabaseDao {
         state: Int,
     )
 
+    @Query("UPDATE local_playlist SET synced_with_youtube_playlist = 0, youtube_sync_state = 0, youtubePlaylistId = NULL WHERE id = :id")
+    suspend fun unsyncLocalPlaylist(id: Long)
+
     @Query("SELECT downloadState FROM local_playlist WHERE id = :id")
     fun getDownloadStateFlowOfLocalPlaylist(id: Long): Flow<Int>
 

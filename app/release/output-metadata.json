@@ -1,21 +1,21 @@
 {
-    "version": 3,
-    "artifactType": {
-        "type": "APK",
-        "kind": "Directory"
-    },
-    "applicationId": "com.maxrave.simpmusic",
-    "variantName": "release",
-    "elements": [
-        {
-            "type": "SINGLE",
-            "filters": [],
-            "attributes": [],
-            "versionCode": 20,
-            "versionName": "0.2.3-hf2",
-            "outputFile": "app-release.apk"
-        }
-    ],
-    "elementType": "File",
-    "minSdkVersionForDexing": 26
+  "version": 3,
+  "artifactType": {
+    "type": "APK",
+    "kind": "Directory"
+  },
+  "applicationId": "com.maxrave.simpmusic",
+  "variantName": "release",
+  "elements": [
+    {
+      "type": "SINGLE",
+      "filters": [],
+      "attributes": [],
+      "versionCode": 21,
+      "versionName": "0.2.4",
+      "outputFile": "app-release.apk"
+    }
+  ],
+  "elementType": "File",
+  "minSdkVersionForDexing": 26
 }
