@@ -7,7 +7,6 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.Download
-import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
@@ -87,7 +86,7 @@ class HomeViewModel(
     val showLogInAlert: StateFlow<Boolean> = _showLogInAlert
 
     init {
-        if (YouTube.cookie.isNullOrEmpty()) {
+        if (runBlocking{ dataStoreManager.cookie.first() }.isEmpty()) {
             _showLogInAlert.update { true }
         }
         homeJob = Job()

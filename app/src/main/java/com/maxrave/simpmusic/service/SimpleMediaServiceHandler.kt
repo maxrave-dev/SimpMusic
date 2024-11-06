@@ -1516,7 +1516,7 @@ class SimpleMediaServiceHandler(
                 listTracks = arrayListOf(),
             )
         }
-        val current = if (index != null) tempQueue[index] else null
+        val current = if (index != null) tempQueue.getOrNull(index) else null
         chunkedList.forEach { list ->
             val catalogMetadata: ArrayList<Track> = arrayListOf()
             Log.w("SimpleMediaServiceHandler", "Catalog size: ${tempQueue.size}")
