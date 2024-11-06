@@ -41,7 +41,6 @@ import com.maxrave.simpmusic.utils.collectResource
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import com.maxrave.simpmusic.viewModel.uiState.LocalPlaylistState
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -59,7 +58,6 @@ import org.koin.android.annotation.KoinViewModel
 import org.koin.core.component.inject
 import java.time.LocalDateTime
 
-@OptIn(FlowPreview::class)
 @UnstableApi
 @KoinViewModel
 class LocalPlaylistViewModel(
@@ -453,21 +451,21 @@ class LocalPlaylistViewModel(
     }
 
     @UnstableApi
-    fun downloadFullPlaylistState(id: Long) {
+    fun downloadFullPlaylistState(id: Long, listJob: List<String>) {
         viewModelScope.launch {
             downloadUtils.downloads.collect { download ->
                 _uiState.update { ui ->
                     ui.copy(downloadState =
-                        if (listJob.value.all { download[it.videoId]?.state == Download.STATE_COMPLETED }) {
+                        if (listJob.all { download[it]?.state == Download.STATE_COMPLETED }) {
                             mainRepository.updateLocalPlaylistDownloadState(
                                 STATE_DOWNLOADED,
                                 id,
                             )
                             STATE_DOWNLOADED
-                        } else if (listJob.value.all {
-                                download[it.videoId]?.state == Download.STATE_QUEUED ||
-                                    download[it.videoId]?.state == Download.STATE_DOWNLOADING ||
-                                    download[it.videoId]?.state == Download.STATE_COMPLETED
+                        } else if (listJob.all {
+                                download[it]?.state == Download.STATE_QUEUED ||
+                                    download[it]?.state == Download.STATE_DOWNLOADING ||
+                                    download[it]?.state == Download.STATE_COMPLETED
                             }
                         ) {
                             mainRepository.updateLocalPlaylistDownloadState(
@@ -885,7 +883,7 @@ class LocalPlaylistViewModel(
         }
     }
 
-    fun downloadTracks(listJob: List<String>) {
+    private fun downloadTracks(listJob: List<String>) {
         viewModelScope.launch {
             listJob.forEach { videoId ->
                 mainRepository.getSongById(videoId).singleOrNull()?.let { song ->
@@ -903,7 +901,7 @@ class LocalPlaylistViewModel(
             val listJob = fullTracks.filter { it.downloadState != STATE_DOWNLOADED }.map { it.videoId }
             if (listJob.isNotEmpty()) {
                 downloadTracks(listJob)
-                downloadFullPlaylistState(uiState.value.id)
+                downloadFullPlaylistState(uiState.value.id, listJob)
             } else {
                 makeToast(getString(R.string.playlist_is_empty))
             }

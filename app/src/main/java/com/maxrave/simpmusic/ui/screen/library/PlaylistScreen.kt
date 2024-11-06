@@ -793,14 +793,17 @@ fun PlaylistScreen(
             EndOfPage()
         }
     }
-    if (itemBottomSheetShow) {
+    if (itemBottomSheetShow && currentItem != null) {
         val track = currentItem ?: return
         NowPlayingBottomSheet(
-            isBottomSheetVisible = itemBottomSheetShow,
+            isBottomSheetVisible = true,
             onDelete = { viewModel.deleteItem(uiState.id, track) },
-            onDismiss = { itemBottomSheetShow = false },
+            onDismiss = {
+                itemBottomSheetShow = false
+                currentItem = null
+            },
             navController = navController,
-            songEntity = track,
+            song = track,
         )
     }
     if (playlistBottomSheetShow) {

@@ -200,6 +200,17 @@ object YouTube {
             ytMusic.proxy = value
         }
 
+    private val listPipedInstances = listOf(
+        "https://pipedapi.nosebs.ru",
+        "https://pipedapi.kavin.rocks",
+        "https://pipedapi.tokhmi.xyz",
+        "https://pipedapi.syncpundit.io",
+        "https://pipedapi.leptons.xyz",
+        "https://pipedapi.r4fo.com",
+        "https://yapi.vyper.me",
+        "https://pipedapi-libre.kavin.rocks"
+    )
+
     /**
      * Search for a song, album, artist, playlist, etc.
      * @param query the search query
@@ -1223,6 +1234,7 @@ object YouTube {
         playlistId: String? = null,
     ): Result<Triple<String?, PlayerResponse, MediaType>> =
         runCatching {
+            var error: String? = null
             val cpn =
                 (1..16)
                     .map {
@@ -1235,6 +1247,7 @@ object YouTube {
                     }.joinToString("")
             val playerResponse =
                 ytMusic.player(ANDROID_MUSIC, videoId, playlistId, cpn).body<PlayerResponse>()
+            println("Player Response " + playerResponse)
 //        val ytScrapeInitial: YouTubeInitialPage = ytMusic.player(WEB, videoId, playlistId, cpn).body<YouTubeInitialPage>()
             println("Thumbnails " + playerResponse.videoDetails?.thumbnail)
             val firstThumb =
@@ -1244,11 +1257,13 @@ object YouTube {
                     ?.firstOrNull()
             val thumbnails =
                 if (firstThumb?.height == firstThumb?.width && firstThumb != null) MediaType.Song else MediaType.Video
-            println("Player Response " + playerResponse.streamingData?.formats?.map { Pair(it.itag, it.isAudio) })
-            println("Player Response " + playerResponse.streamingData?.adaptiveFormats?.map { Pair(it.itag, it.isAudio) })
+            val formatList = playerResponse.streamingData?.formats?.map { Pair(it.itag, it.isAudio) }
+            println("Player Response " + formatList)
+            val adaptiveFormatsList = playerResponse.streamingData?.adaptiveFormats?.map { Pair(it.itag, it.isAudio) }
+            println("Player Response " + adaptiveFormatsList)
 
 //        println( playerResponse.streamingData?.adaptiveFormats?.findLast { it.itag == 251 }?.mimeType.toString())
-            if (playerResponse.playabilityStatus.status == "OK") {
+            if (playerResponse.playabilityStatus.status == "OK" && (formatList != null || adaptiveFormatsList != null)) {
                 return@runCatching Triple(
                     cpn,
                     playerResponse.copy(
@@ -1257,24 +1272,33 @@ object YouTube {
                     thumbnails,
                 )
             } else {
-                val piped = ytMusic.pipedStreams(videoId, "pipedapi.kavin.rocks").body<PipedResponse>()
-                val audioStreams = piped.audioStreams
-                val videoStreams = piped.videoStreams
-                val stream = audioStreams + videoStreams
-                return@runCatching Triple(
-                    null,
-                    playerResponse.copy(
-                        streamingData =
-                            PlayerResponse.StreamingData(
-                                formats = stream.toListFormat(),
-                                adaptiveFormats = stream.toListFormat(),
-                                expiresInSeconds = 0,
+                for (instance in listPipedInstances) {
+                    try {
+                        val piped = ytMusic.pipedStreams(videoId, instance).body<PipedResponse>()
+                        val audioStreams = piped.audioStreams
+                        val videoStreams = piped.videoStreams
+                        val stream = audioStreams + videoStreams
+                        return@runCatching Triple(
+                            null,
+                            playerResponse.copy(
+                                streamingData =
+                                PlayerResponse.StreamingData(
+                                    formats = stream.toListFormat(),
+                                    adaptiveFormats = stream.toListFormat(),
+                                    expiresInSeconds = 0,
+                                ),
+                                videoDetails = playerResponse.videoDetails?.copy(),
                             ),
-                        videoDetails = playerResponse.videoDetails?.copy(),
-                    ),
-                    thumbnails,
-                )
+                            thumbnails,
+                        )
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        error = e.message
+                        continue
+                    }
+                }
             }
+            throw Exception(error ?: "Unknown error")
         }
 
     suspend fun updateWatchTime(

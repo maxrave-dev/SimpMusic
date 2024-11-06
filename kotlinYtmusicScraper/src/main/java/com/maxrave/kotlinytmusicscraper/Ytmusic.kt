@@ -416,7 +416,7 @@ class Ytmusic {
     suspend fun pipedStreams(
         videoId: String,
         pipedInstance: String,
-    ) = httpClient.get("https://$pipedInstance/streams/$videoId") {
+    ) = httpClient.get("$pipedInstance/streams/$videoId") {
         contentType(ContentType.Application.Json)
     }
 

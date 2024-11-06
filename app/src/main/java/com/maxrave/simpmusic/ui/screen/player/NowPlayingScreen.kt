@@ -333,7 +333,7 @@ fun NowPlayingScreen(
                 showSheet = false
             },
             navController = navController,
-            songEntity = null, // Auto set now playing
+            song = null, // Auto set now playing
             setSleepTimerEnable = true,
             changeMainLyricsProviderEnable = true,
         )

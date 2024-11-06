@@ -102,7 +102,7 @@ fun HomeItem(
         NowPlayingBottomSheet(
             isBottomSheetVisible = bottomSheetShow,
             onDismiss = { bottomSheetShow = false },
-            songEntity = songEntity,
+            song = songEntity,
             navController = navController,
         )
     }

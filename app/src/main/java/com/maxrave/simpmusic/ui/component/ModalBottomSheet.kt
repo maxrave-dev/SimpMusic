@@ -100,7 +100,7 @@ fun NowPlayingBottomSheet(
     isBottomSheetVisible: Boolean,
     onDismiss: () -> Unit,
     navController: NavController,
-    songEntity: SongEntity?,
+    song: SongEntity?,
     viewModel: NowPlayingBottomSheetViewModel = koinViewModel(),
     setSleepTimerEnable: Boolean = false,
     changeMainLyricsProviderEnable: Boolean = false,
@@ -133,8 +133,8 @@ fun NowPlayingBottomSheet(
         mutableStateOf(false)
     }
 
-    LaunchedEffect(key1 = songEntity) {
-        viewModel.setSongEntity(songEntity)
+    LaunchedEffect(key1 = song) {
+        viewModel.setSongEntity(song)
     }
 
     if (addToAPlaylist) {
@@ -275,7 +275,6 @@ fun NowPlayingBottomSheet(
     }
 
     if (isBottomSheetVisible) {
-        val songEntity = uiState.songEntity ?: return
         ModalBottomSheet(
             onDismissRequest = onDismiss,
             sheetState = modelBottomSheetState,
@@ -317,7 +316,7 @@ fun NowPlayingBottomSheet(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         CoilImage(
-                            imageModel = { songEntity.thumbnails },
+                            imageModel = { uiState.songEntity?.thumbnails },
                             imageOptions =
                                 ImageOptions(
                                     contentScale = ContentScale.Inside,
@@ -340,7 +339,7 @@ fun NowPlayingBottomSheet(
                             verticalArrangement = Arrangement.Center,
                         ) {
                             Text(
-                                text = songEntity.title,
+                                text = uiState.songEntity?.title ?: "",
                                 style = typo.labelMedium,
                                 maxLines = 1,
                                 modifier =
@@ -352,7 +351,7 @@ fun NowPlayingBottomSheet(
                                     .focusable(),
                             )
                             Text(
-                                text = songEntity.artistName?.connectArtists() ?: "",
+                                text = uiState.songEntity?.artistName?.connectArtists() ?: "",
                                 style = typo.bodyMedium,
                                 maxLines = 1,
                                 modifier =
@@ -386,14 +385,14 @@ fun NowPlayingBottomSheet(
                         }
                     }
                     CheckBoxActionButton(
-                        defaultChecked = songEntity.liked,
+                        defaultChecked = uiState.songEntity?.liked ?: false,
                         onChangeListener = {
                             viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.ToggleLike)
                         },
                     )
                     ActionButton(
                         icon =
-                        when (songEntity.downloadState) {
+                        when (uiState.songEntity?.downloadState) {
                             DownloadState.STATE_NOT_DOWNLOADED ->
                                 painterResource(
                                     R.drawable.outline_download_for_offline_24,
@@ -420,7 +419,7 @@ fun NowPlayingBottomSheet(
                                 )
                         },
                         text =
-                        when (songEntity.downloadState) {
+                        when (uiState.songEntity?.downloadState) {
                             DownloadState.STATE_NOT_DOWNLOADED -> R.string.download
                             DownloadState.STATE_DOWNLOADING -> R.string.downloading
                             DownloadState.STATE_DOWNLOADED -> R.string.downloaded
@@ -456,14 +455,14 @@ fun NowPlayingBottomSheet(
                     }
                     ActionButton(
                         icon = painterResource(id = R.drawable.baseline_album_24),
-                        text = if (songEntity.albumName.isNullOrBlank()) R.string.no_album else null,
-                        textString = songEntity.albumName,
-                        enable = !songEntity.albumName.isNullOrBlank(),
+                        text = if (uiState.songEntity?.albumName.isNullOrBlank()) R.string.no_album else null,
+                        textString = uiState.songEntity?.albumName,
+                        enable = !uiState.songEntity?.albumName.isNullOrBlank(),
                     ) {
                         navController.navigateSafe(
                             R.id.action_global_albumFragment,
                             Bundle().apply {
-                                putString("browseId", songEntity.albumId)
+                                putString("browseId", uiState.songEntity?.albumId)
                             },
                         )
                     }
@@ -472,10 +471,10 @@ fun NowPlayingBottomSheet(
                         text = R.string.start_radio,
                     ) {
                         val args = Bundle()
-                        args.putString("radioId", "RDAMVM${songEntity.videoId}")
+                        args.putString("radioId", "RDAMVM${uiState.songEntity?.videoId}")
                         args.putString(
                             "videoId",
-                            songEntity.videoId,
+                            uiState.songEntity?.videoId,
                         )
                         hideModalBottomSheet()
                         navController.navigateSafe(

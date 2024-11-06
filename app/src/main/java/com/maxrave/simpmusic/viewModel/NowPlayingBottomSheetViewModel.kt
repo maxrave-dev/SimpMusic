@@ -18,6 +18,7 @@ import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.SleepTimerState
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -46,6 +47,8 @@ class NowPlayingBottomSheetViewModel(
         )
     )
     val uiState: StateFlow<NowPlayingBottomSheetUIState> get() = _uiState.asStateFlow()
+
+    private var getSongAsFlow: Job? = null
 
     init {
         viewModelScope.launch {
@@ -98,7 +101,8 @@ class NowPlayingBottomSheetViewModel(
     }
 
     private fun getSongEntityFlow(videoId: String) {
-        viewModelScope.launch {
+        getSongAsFlow?.cancel()
+        getSongAsFlow = viewModelScope.launch {
             mainRepository.getSongAsFlow(videoId).collectLatest {
                 _uiState.value = _uiState.value.copy(songEntity = it)
             }
@@ -209,7 +213,9 @@ class NowPlayingBottomSheetViewModel(
                     shareIntent.type = "text/plain"
                     val url = "https://music.youtube.com/watch?v=${songEntity.videoId}"
                     shareIntent.putExtra(Intent.EXTRA_TEXT, url)
-                    val chooserIntent = Intent.createChooser(shareIntent, getString(R.string.share_url))
+                    val chooserIntent = Intent.createChooser(shareIntent, getString(R.string.share_url)).apply {
+                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    }
                     application.startActivity(chooserIntent)
                 }
             }
