@@ -82,6 +82,7 @@ import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.greyScale
 import com.maxrave.simpmusic.extension.navigateSafe
+import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetUIEvent
@@ -97,7 +98,6 @@ import org.koin.androidx.compose.koinViewModel
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun NowPlayingBottomSheet(
-    isBottomSheetVisible: Boolean,
     onDismiss: () -> Unit,
     navController: NavController,
     song: SongEntity?,
@@ -132,6 +132,13 @@ fun NowPlayingBottomSheet(
     var sleepTimerWarning by remember {
         mutableStateOf(false)
     }
+    var isBottomSheetVisible by rememberSaveable { mutableStateOf(false) }
+
+    LaunchedEffect(uiState) {
+        if (uiState.songUIState.videoId.isNotEmpty() && !isBottomSheetVisible) {
+            isBottomSheetVisible = true
+        }
+    }
 
     LaunchedEffect(key1 = song) {
         viewModel.setSongEntity(song)
@@ -145,19 +152,13 @@ fun NowPlayingBottomSheet(
             onClick = {
                 viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.AddToPlaylist(it.id))
             },
-            videoId = uiState.songEntity?.videoId ?: return
+            videoId = uiState.songUIState.videoId
         )
     }
     if (artist) {
         ArtistModalBottomSheet(
             isBottomSheetVisible = artist,
-            artists =
-                uiState.songEntity?.artistName?.mapIndexed { index, name ->
-                    Artist(
-                        id = uiState.songEntity?.artistId?.get(index),
-                        name = name,
-                    )
-                } ?: arrayListOf(),
+            artists = uiState.songUIState.listArtists,
             navController = navController,
             onDismiss = { artist = false },
         )
@@ -316,7 +317,7 @@ fun NowPlayingBottomSheet(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         CoilImage(
-                            imageModel = { uiState.songEntity?.thumbnails },
+                            imageModel = { uiState.songUIState.thumbnails },
                             imageOptions =
                                 ImageOptions(
                                     contentScale = ContentScale.Inside,
@@ -339,7 +340,7 @@ fun NowPlayingBottomSheet(
                             verticalArrangement = Arrangement.Center,
                         ) {
                             Text(
-                                text = uiState.songEntity?.title ?: "",
+                                text = uiState.songUIState.title,
                                 style = typo.labelMedium,
                                 maxLines = 1,
                                 modifier =
@@ -351,7 +352,7 @@ fun NowPlayingBottomSheet(
                                     .focusable(),
                             )
                             Text(
-                                text = uiState.songEntity?.artistName?.connectArtists() ?: "",
+                                text = uiState.songUIState.listArtists.toListName().connectArtists(),
                                 style = typo.bodyMedium,
                                 maxLines = 1,
                                 modifier =
@@ -385,14 +386,14 @@ fun NowPlayingBottomSheet(
                         }
                     }
                     CheckBoxActionButton(
-                        defaultChecked = uiState.songEntity?.liked ?: false,
+                        defaultChecked = uiState.songUIState.liked,
                         onChangeListener = {
                             viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.ToggleLike)
                         },
                     )
                     ActionButton(
                         icon =
-                        when (uiState.songEntity?.downloadState) {
+                        when (uiState.songUIState.downloadState) {
                             DownloadState.STATE_NOT_DOWNLOADED ->
                                 painterResource(
                                     R.drawable.outline_download_for_offline_24,
@@ -419,7 +420,7 @@ fun NowPlayingBottomSheet(
                                 )
                         },
                         text =
-                        when (uiState.songEntity?.downloadState) {
+                        when (uiState.songUIState.downloadState) {
                             DownloadState.STATE_NOT_DOWNLOADED -> R.string.download
                             DownloadState.STATE_DOWNLOADING -> R.string.downloading
                             DownloadState.STATE_DOWNLOADED -> R.string.downloaded
@@ -455,14 +456,14 @@ fun NowPlayingBottomSheet(
                     }
                     ActionButton(
                         icon = painterResource(id = R.drawable.baseline_album_24),
-                        text = if (uiState.songEntity?.albumName.isNullOrBlank()) R.string.no_album else null,
-                        textString = uiState.songEntity?.albumName,
-                        enable = !uiState.songEntity?.albumName.isNullOrBlank(),
+                        text = if (uiState.songUIState.album == null) R.string.no_album else null,
+                        textString = uiState.songUIState.album?.name,
+                        enable = uiState.songUIState.album != null,
                     ) {
                         navController.navigateSafe(
                             R.id.action_global_albumFragment,
                             Bundle().apply {
-                                putString("browseId", uiState.songEntity?.albumId)
+                                putString("browseId", uiState.songUIState.album?.id)
                             },
                         )
                     }
@@ -471,10 +472,10 @@ fun NowPlayingBottomSheet(
                         text = R.string.start_radio,
                     ) {
                         val args = Bundle()
-                        args.putString("radioId", "RDAMVM${uiState.songEntity?.videoId}")
+                        args.putString("radioId", "RDAMVM${uiState.songUIState.videoId}")
                         args.putString(
                             "videoId",
-                            uiState.songEntity?.videoId,
+                            uiState.songUIState.videoId,
                         )
                         hideModalBottomSheet()
                         navController.navigateSafe(

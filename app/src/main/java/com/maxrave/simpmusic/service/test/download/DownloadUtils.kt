@@ -123,6 +123,15 @@ class DownloadUtils (
         )
     }
 
+    fun removeDownload(videoId: String) {
+        DownloadService.sendRemoveDownload(
+            context,
+            MusicDownloadService::class.java,
+            videoId,
+            false
+        )
+    }
+
     fun getDownload(songId: String): Flow<Download?> = downloads.map { it[songId] }
 
     init {

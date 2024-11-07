@@ -128,6 +128,21 @@ class LocalPlaylistViewModel(
                                     }
                                 }
                         }
+                        delay(500)
+                        val fullTracks = localPlaylistManager.getFullPlaylistTracks(id = id)
+                        val notDownloadedList = fullTracks.filter { it.downloadState != STATE_DOWNLOADED }.map { it.videoId }
+                        if (fullTracks.all { it.downloadState == STATE_DOWNLOADED } && uiState.value.downloadState != STATE_DOWNLOADED) {
+                            updatePlaylistDownloadState(uiState.value.id, STATE_DOWNLOADED)
+                        } else if (
+                            downloadUtils.downloads.value
+                                .filter { it.value.state != Download.STATE_COMPLETED }
+                                .map { it.key }.containsAll(notDownloadedList) && notDownloadedList.isNotEmpty()
+                            && uiState.value.downloadState != STATE_DOWNLOADING
+                            ) {
+                            updatePlaylistDownloadState(uiState.value.id, STATE_DOWNLOADING)
+                        } else if (uiState.value.downloadState != STATE_NOT_DOWNLOADED) {
+                            updatePlaylistDownloadState(uiState.value.id, STATE_NOT_DOWNLOADED)
+                        }
                     }
                 }
             listTrackStringJob.join()
@@ -902,7 +917,10 @@ class LocalPlaylistViewModel(
             if (listJob.isNotEmpty()) {
                 downloadTracks(listJob)
                 downloadFullPlaylistState(uiState.value.id, listJob)
-            } else {
+            } else if (fullTracks.isNotEmpty() && fullTracks.all { it.downloadState == STATE_DOWNLOADED}) {
+                updatePlaylistDownloadState(uiState.value.id, STATE_DOWNLOADED)
+            }
+            else {
                 makeToast(getString(R.string.playlist_is_empty))
             }
         }

@@ -328,7 +328,6 @@ fun NowPlayingScreen(
 
     if (showSheet) {
         NowPlayingBottomSheet(
-            isBottomSheetVisible = showSheet,
             onDismiss = {
                 showSheet = false
             },

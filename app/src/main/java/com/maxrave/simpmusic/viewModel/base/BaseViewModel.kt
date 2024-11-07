@@ -19,6 +19,7 @@ import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.extension.toMediaItem
+import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
@@ -106,6 +107,9 @@ abstract class BaseViewModel(
             else -> return
         }
         viewModelScope.launch {
+            mainRepository.insertSong(track.toSongEntity()).collect {
+                log("Inserted song: ${track.title}", Log.DEBUG)
+            }
             simpleMediaServiceHandler.clearMediaItems()
             track.durationSeconds?.let {
                 mainRepository.updateDurationSeconds(it, track.videoId)

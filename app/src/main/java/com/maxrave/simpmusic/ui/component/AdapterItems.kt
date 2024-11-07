@@ -100,7 +100,6 @@ fun HomeItem(
 
     if (bottomSheetShow) {
         NowPlayingBottomSheet(
-            isBottomSheetVisible = bottomSheetShow,
             onDismiss = { bottomSheetShow = false },
             song = songEntity,
             navController = navController,

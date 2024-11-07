@@ -1260,11 +1260,10 @@ class SimpleMediaServiceHandler(
                 val liked =
                     mainRepository
                         .getSongById(id)
-                        .first()
-                        ?.liked
-                if (liked != null) {
-                    _controlState.value = _controlState.value.copy(isLiked = liked)
-                }
+                        .singleOrNull()
+                        ?.liked ?: false
+                Log.w("Check liked", liked.toString())
+                _controlState.value = _controlState.value.copy(isLiked = liked)
                 setNotificationLayout?.invoke(
                     listOf(
                         CommandButton

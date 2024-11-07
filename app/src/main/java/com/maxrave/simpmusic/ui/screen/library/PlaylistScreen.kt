@@ -796,7 +796,6 @@ fun PlaylistScreen(
     if (itemBottomSheetShow && currentItem != null) {
         val track = currentItem ?: return
         NowPlayingBottomSheet(
-            isBottomSheetVisible = true,
             onDelete = { viewModel.deleteItem(uiState.id, track) },
             onDismiss = {
                 itemBottomSheetShow = false
