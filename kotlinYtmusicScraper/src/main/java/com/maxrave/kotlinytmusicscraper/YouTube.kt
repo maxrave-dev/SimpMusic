@@ -22,6 +22,7 @@ import com.maxrave.kotlinytmusicscraper.models.VideoItem
 import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
 import com.maxrave.kotlinytmusicscraper.models.YTItemType
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.ANDROID_MUSIC
+import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.IOS
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.WEB
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.WEB_REMIX
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
@@ -1246,7 +1247,7 @@ object YouTube {
                         ]
                     }.joinToString("")
             val playerResponse =
-                ytMusic.player(ANDROID_MUSIC, videoId, playlistId, cpn).body<PlayerResponse>()
+                ytMusic.player( if (cookie != null) ANDROID_MUSIC else IOS, videoId, playlistId, cpn).body<PlayerResponse>()
             println("Player Response " + playerResponse)
 //        val ytScrapeInitial: YouTubeInitialPage = ytMusic.player(WEB, videoId, playlistId, cpn).body<YouTubeInitialPage>()
             println("Thumbnails " + playerResponse.videoDetails?.thumbnail)
