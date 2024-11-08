@@ -386,8 +386,8 @@ object YouTube {
                     if (withSongs) {
                         albumSongs(
                             response.contents
-                                ?.twoColumnBrowseResultsRenderer
-                                ?.secondaryContents
+                                .twoColumnBrowseResultsRenderer
+                                .secondaryContents
                                 ?.sectionListRenderer
                                 ?.contents
                                 ?.firstOrNull()

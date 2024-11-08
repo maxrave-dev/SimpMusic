@@ -794,7 +794,7 @@ class SharedViewModel(
     }
 
     fun getCurrentMediaItemIndex(): Int {
-        return runBlocking { simpleMediaServiceHandler.currentSongIndex?.first() } ?: 0
+        return runBlocking { simpleMediaServiceHandler.currentSongIndex.first() } ?: 0
     }
 
     @UnstableApi
@@ -1255,7 +1255,7 @@ class SharedViewModel(
                         ) {
                             song.artistName.firstOrNull()
                         } else {
-                            simpleMediaServiceHandler.nowPlaying?.first()?.mediaMetadata?.artist
+                            simpleMediaServiceHandler.nowPlaying.first()?.mediaMetadata?.artist
                                 ?: ""
                         }
                     mainRepository.getLyricsData(
@@ -1349,7 +1349,7 @@ class SharedViewModel(
                                     song.toTrack().copy(
                                         durationSeconds = duration,
                                     ),
-                                    "${song.title} ${song.artistName?.firstOrNull() ?: simpleMediaServiceHandler.nowPlaying?.first()?.mediaMetadata?.artist ?: ""}",
+                                    "${song.title} ${song.artistName?.firstOrNull() ?: simpleMediaServiceHandler.nowPlaying.first()?.mediaMetadata?.artist ?: ""}",
                                     duration,
                                 )
                             }
@@ -1362,7 +1362,7 @@ class SharedViewModel(
                                         song.toTrack().copy(
                                             durationSeconds = duration,
                                         ),
-                                        "${song.title} ${song.artistName?.firstOrNull() ?: simpleMediaServiceHandler.nowPlaying?.first()?.mediaMetadata?.artist ?: ""}",
+                                        "${song.title} ${song.artistName?.firstOrNull() ?: simpleMediaServiceHandler.nowPlaying.first()?.mediaMetadata?.artist ?: ""}",
                                         duration,
                                     )
                                 } else {
@@ -1535,7 +1535,7 @@ class SharedViewModel(
                         }
                 } else {
                     mainRepository.removeFromYouTubeLiked(
-                        simpleMediaServiceHandler.nowPlaying?.first()?.mediaId,
+                        simpleMediaServiceHandler.nowPlaying.first()?.mediaId,
                     )
                         .collect {
                             if (it == 200) {

@@ -1,7 +1,6 @@
 package com.maxrave.simpmusic
 
 import android.app.Application
-import android.content.Context
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.media3.common.util.UnstableApi
@@ -48,24 +47,9 @@ class SimpMusicApplication :
             .apply()
     }
 
-    override fun onLowMemory() {
-        super.onLowMemory()
-        Log.w("Low Memory", "Checking")
-    }
-
     override fun onTerminate() {
         super.onTerminate()
 
         Log.w("Terminate", "Checking")
-    }
-
-    init {
-        instance = this
-    }
-
-    companion object {
-        private var instance: SimpMusicApplication? = null
-
-        fun applicationContext(): Context = instance!!.applicationContext
     }
 }

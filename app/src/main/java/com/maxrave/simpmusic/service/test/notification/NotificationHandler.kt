@@ -54,7 +54,7 @@ object NotificationHandler {
                         .build()
 
                 return@runBlocking when (val result = loader.execute(request)) {
-                    is SuccessResult -> ((result as SuccessResult).drawable as BitmapDrawable).bitmap
+                    is SuccessResult -> (result.drawable as BitmapDrawable).bitmap
                     else ->
                         AppCompatResources.getDrawable(context, R.drawable.holder)
                             ?.toBitmap(128, 128)
