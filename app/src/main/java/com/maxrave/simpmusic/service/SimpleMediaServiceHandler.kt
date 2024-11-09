@@ -147,7 +147,7 @@ class SimpleMediaServiceHandler(
 
     // SponsorBlock
     private var _skipSegments: MutableStateFlow<List<SkipSegments>?> = MutableStateFlow(null)
-    private val skipSegments: StateFlow<List<SkipSegments>?> = _skipSegments
+    val skipSegments: StateFlow<List<SkipSegments>?> = _skipSegments
 
     private var getSkipSegmentsJob: Job? = null
 
@@ -920,7 +920,7 @@ class SimpleMediaServiceHandler(
                         val theLastLoad = 50*(offset + 1) >= listPosition.size
                         mainRepository.getPlaylistPairSongByListPosition(
                             longId,
-                            listPosition.subList(50*offset, if (theLastLoad) listPosition.size - 1 else 50*(offset + 1)),
+                            listPosition.subList(50*offset, if (theLastLoad) listPosition.size else 50*(offset + 1)),
                         ).singleOrNull()?.let { pair ->
                             Log.w("Check loadMore response", pair.size.toString())
                             mainRepository.getSongsByListVideoId(pair.map { it.songId }).single().let { songs ->
