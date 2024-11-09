@@ -100,6 +100,11 @@ class LocalPlaylistManager(
         return tracks
     }
 
+    suspend fun getListTrackVideoId(id: Long): List<String> {
+        val playlist = localDataSource.getLocalPlaylist(id)
+        return playlist.tracks ?: emptyList()
+    }
+
     suspend fun insertLocalPlaylist(localPlaylist: LocalPlaylistEntity): Flow<LocalResource<String>> =
         wrapMessageResource(
             successMessage = getString(R.string.added_local_playlist),

@@ -128,5 +128,9 @@ abstract class BaseViewModel(
         }
     }
 
+    fun shufflePlaylist(firstPlayIndex: Int = 0) {
+        simpleMediaServiceHandler.shufflePlaylist(firstPlayIndex)
+    }
+
     fun getQueueData() = simpleMediaServiceHandler.queueData.value
 }

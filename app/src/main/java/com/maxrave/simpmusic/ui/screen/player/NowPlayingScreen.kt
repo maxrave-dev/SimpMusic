@@ -755,7 +755,13 @@ fun NowPlayingScreen(
                                                     .fillMaxWidth()
                                                     .wrapContentHeight(align = Alignment.CenterVertically)
                                                     .basicMarquee(animationMode = MarqueeAnimationMode.Immediately)
-                                                    .focusable(),
+                                                    .focusable()
+                                                    .clickable {
+                                                        navController.navigateSafe(
+                                                            R.id.action_global_artistFragment,
+                                                            bundleOf("channelId" to screenDataState.songInfoData?.authorId),
+                                                        )
+                                                    },
                                         )
                                     }
                                     Spacer(modifier = Modifier.size(10.dp))

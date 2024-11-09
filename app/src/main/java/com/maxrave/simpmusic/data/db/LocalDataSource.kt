@@ -245,6 +245,11 @@ class LocalDataSource(
 
     suspend fun getPlaylistPairSong(playlistId: Long) = databaseDao.getPlaylistPairSong(playlistId)
 
+    suspend fun getPlaylistPairSongByListPosition(
+        playlistId: Long,
+        listPosition: List<Int>,
+    ) = databaseDao.getPlaylistPairSongByListPosition(playlistId, listPosition)
+
     suspend fun getPlaylistPairSongByOffset(
         playlistId: Long,
         offset: Int,

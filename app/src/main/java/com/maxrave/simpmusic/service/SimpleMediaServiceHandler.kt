@@ -36,6 +36,7 @@ import com.maxrave.simpmusic.common.MEDIA_CUSTOM_COMMAND
 import com.maxrave.simpmusic.common.SPONSOR_BLOCK
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.TRUE
+import com.maxrave.simpmusic.data.db.Converters
 import com.maxrave.simpmusic.data.db.entities.NewFormatEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
@@ -91,6 +92,7 @@ class SimpleMediaServiceHandler(
 
     @Suppress("ktlint:standard:property-naming")
     private val TAG = "SimpleMediaServiceHandler"
+    private val converter = Converters()
 
     private var loudnessEnhancer: LoudnessEnhancer? = null
 
@@ -860,6 +862,42 @@ class SimpleMediaServiceHandler(
             }
     }
 
+    fun shufflePlaylist(randomTrackIndex: Int = 0) {
+        val playlistId = _queueData.value?.playlistId ?: return
+        val firstPlayedTrack = _queueData.value?.firstPlayedTrack ?: return
+        coroutineScope.launch {
+            if (playlistId.startsWith(LOCAL_PLAYLIST_ID)) {
+                _stateFlow.value = StateSource.STATE_INITIALIZING
+                mainRepository.insertSong(firstPlayedTrack.toSongEntity()).collect {
+                    Log.w(TAG, "Inserted song: ${firstPlayedTrack.title}")
+                }
+                clearMediaItems()
+                firstPlayedTrack.durationSeconds?.let {
+                    mainRepository.updateDurationSeconds(it, firstPlayedTrack.videoId)
+                }
+                addMediaItem(firstPlayedTrack.toMediaItem(), playWhenReady = true)
+                val longId = playlistId.replace(LOCAL_PLAYLIST_ID, "").toLong()
+                val localPlaylist = mainRepository.getLocalPlaylist(longId).singleOrNull()
+                if (localPlaylist != null) {
+                    Log.w(TAG, "shufflePlaylist: Local playlist track size ${localPlaylist.tracks?.size}")
+                    val trackCount = localPlaylist.tracks?.size ?: return@launch
+                    val listPosition = (0 until trackCount).toMutableList().apply {
+                        remove(randomTrackIndex)
+                    }
+                    if (listPosition.size <= 0) return@launch
+                    listPosition.shuffle()
+                    _queueData.update {
+                        it?.copy(
+                            //After shuffle prefix is offset and list position
+                            continuation = "SHUFFLE0_${converter.fromListIntToString(listPosition)}",
+                        )
+                    }
+                    loadMore()
+                }
+            }
+        }
+    }
+
     fun loadMore() {
         // Separate local and remote data
         // Local Add Prefix to PlaylistID to differentiate between local and remote
@@ -874,42 +912,69 @@ class SimpleMediaServiceHandler(
                     _stateFlow.value = StateSource.STATE_INITIALIZING
                     val longId = playlistId.replace(LOCAL_PLAYLIST_ID, "").toLong()
                     Log.w("Check loadMore", longId.toString())
-                    val filter = if (continuation.startsWith(ASC)) FilterState.OlderFirst else FilterState.NewerFirst
-                    val offset =
-                        if (filter == FilterState.OlderFirst) {
-                            continuation
-                                .removePrefix(
-                                    ASC,
-                                ).toInt()
-                        } else {
-                            continuation.removePrefix(DESC).toInt()
-                        }
-                    val total =
-                        mainRepository
-                            .getLocalPlaylist(longId)
-                            .firstOrNull()
-                            ?.tracks
-                            ?.size ?: 0
-                    mainRepository
-                        .getPlaylistPairSongByOffset(
+                    if (continuation.startsWith("SHUFFLE")) {
+                        val regex = Regex("(?<=SHUFFLE)\\d+(?=_)")
+                        var offset = regex.find(continuation)?.value?.toInt() ?: return@launch
+                        val posString = continuation.removePrefix("SHUFFLE${offset}_")
+                        val listPosition = converter.fromStringToListInt(posString) ?: return@launch
+                        val theLastLoad = 50*(offset + 1) >= listPosition.size
+                        mainRepository.getPlaylistPairSongByListPosition(
                             longId,
-                            offset,
-                            filter,
-                            total,
-                        ).singleOrNull()
-                        ?.let { pair ->
+                            listPosition.subList(50*offset, if (theLastLoad) listPosition.size - 1 else 50*(offset + 1)),
+                        ).singleOrNull()?.let { pair ->
                             Log.w("Check loadMore response", pair.size.toString())
                             mainRepository.getSongsByListVideoId(pair.map { it.songId }).single().let { songs ->
                                 if (songs.isNotEmpty()) {
                                     delay(300)
                                     loadMoreCatalog(songs.toArrayListTrack())
-//                                Queue.setContinuation(
-//                                    playlistId,
-//                                    if (filter == FilterState.OlderFirst) ASC + (offset + 1) else DESC + (offset + 1).toString(),
-//                                )
-                                    _queueData.value =
-                                        _queueData.value?.copy(
-                                            continuation =
+                                    offset++
+                                    _queueData.update {
+                                        if (!theLastLoad){
+                                            it?.copy(
+                                                continuation = "SHUFFLE${offset}_$posString",
+                                            )
+                                        } else {
+                                            it?.copy(
+                                                continuation = null
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        val filter = if (continuation.startsWith(ASC)) FilterState.OlderFirst else FilterState.NewerFirst
+                        val offset =
+                            if (filter == FilterState.OlderFirst) {
+                                continuation
+                                    .removePrefix(
+                                        ASC,
+                                    ).toInt()
+                            } else {
+                                continuation.removePrefix(DESC).toInt()
+                            }
+                        val total =
+                            mainRepository
+                                .getLocalPlaylist(longId)
+                                .firstOrNull()
+                                ?.tracks
+                                ?.size ?: 0
+                        mainRepository
+                            .getPlaylistPairSongByOffset(
+                                longId,
+                                offset,
+                                filter,
+                                total,
+                            ).singleOrNull()
+                            ?.let { pair ->
+                                Log.w("Check loadMore response", pair.size.toString())
+                                mainRepository.getSongsByListVideoId(pair.map { it.songId }).single().let { songs ->
+                                    if (songs.isNotEmpty()) {
+                                        delay(300)
+                                        loadMoreCatalog(songs.toArrayListTrack())
+                                        _queueData.value =
+                                            _queueData.value?.copy(
+                                                continuation =
                                                 if (filter ==
                                                     FilterState.OlderFirst
                                                 ) {
@@ -917,11 +982,13 @@ class SimpleMediaServiceHandler(
                                                 } else {
                                                     DESC + (offset + 1).toString()
                                                 },
-                                        )
+                                            )
+                                    } else {
+                                        _stateFlow.value = StateSource.STATE_INITIALIZED
+                                    }
                                 }
-//                            loadingMore.value = false
                             }
-                        }
+                    }
                 }
             } else {
                 coroutineScope.launch {

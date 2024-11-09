@@ -457,6 +457,14 @@ class MainRepository(
             emit(localDataSource.getPlaylistPairSong(playlistId))
         }.flowOn(Dispatchers.IO)
 
+    suspend fun getPlaylistPairSongByListPosition(
+        playlistId: Long,
+        listPosition: List<Int>,
+    ): Flow<List<PairSongLocalPlaylist>?> =
+        flow {
+            emit(localDataSource.getPlaylistPairSongByListPosition(playlistId, listPosition))
+        }.flowOn(Dispatchers.IO)
+
     suspend fun getPlaylistPairSongByOffset(
         playlistId: Long,
         offset: Int,
