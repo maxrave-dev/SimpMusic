@@ -20,7 +20,7 @@ data class CanvasResponse(
         @ProtoNumber(6)
         val artist: Artist,
         @ProtoNumber(9)
-        val other_id: String,
+        val other_id: String? = null,
         @ProtoNumber(11)
         val canvas_uri: String
     ) {

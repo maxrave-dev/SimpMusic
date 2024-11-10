@@ -504,19 +504,6 @@ class DataStoreManager(private val settingsDataStore: DataStore<Preferences>) {
             }
         }
 
-        val spotifyClientToken: Flow<String> =
-            settingsDataStore.data.map { preferences ->
-                preferences[SPOTIFY_CLIENT_TOKEN] ?: ""
-            }
-
-        suspend fun setSpotifyClientToken(token: String) {
-            withContext(Dispatchers.IO) {
-                settingsDataStore.edit { settings ->
-                    settings[SPOTIFY_CLIENT_TOKEN] = token
-                }
-            }
-        }
-
         val homeLimit: Flow<Int> =
             settingsDataStore.data.map { preferences ->
                 preferences[HOME_LIMIT] ?: 5
@@ -595,7 +582,6 @@ class DataStoreManager(private val settingsDataStore: DataStore<Preferences>) {
             val SPOTIFY_CANVAS = stringPreferencesKey("spotify_canvas")
             val SPOTIFY_PERSONAL_TOKEN = stringPreferencesKey("spotify_personal_token")
             val SPOTIFY_PERSONAL_TOKEN_EXPIRES = longPreferencesKey("spotify_personal_token_expires")
-            val SPOTIFY_CLIENT_TOKEN = stringPreferencesKey("spotify_client_token")
             val HOME_LIMIT = intPreferencesKey("home_limit")
             val CHART_KEY = stringPreferencesKey("chart_key")
             val TRANSLUCENT_BOTTOM_BAR = stringPreferencesKey("translucent_bottom_bar")

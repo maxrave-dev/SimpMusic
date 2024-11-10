@@ -732,6 +732,7 @@ fun NowPlayingScreen(
                                             .padding(horizontal = 40.dp),
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
+                                    
                                     Column(Modifier.weight(1f)) {
                                         Text(
                                             text = screenDataState.nowPlayingTitle,

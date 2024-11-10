@@ -2,7 +2,6 @@ package com.maxrave.kotlinytmusicscraper.test
 
 import com.google.gson.annotations.SerializedName
 import com.maxrave.kotlinytmusicscraper.YouTube
-import com.maxrave.kotlinytmusicscraper.YouTube.player
 import com.maxrave.kotlinytmusicscraper.Ytmusic
 import com.maxrave.kotlinytmusicscraper.models.GridRenderer
 import com.maxrave.kotlinytmusicscraper.models.MusicResponsiveListItemRenderer
@@ -12,47 +11,25 @@ import com.maxrave.kotlinytmusicscraper.models.SectionListRenderer
 import com.maxrave.kotlinytmusicscraper.models.Thumbnail
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
+import com.maxrave.kotlinytmusicscraper.models.response.spotify.SearchResponse
 import com.maxrave.kotlinytmusicscraper.models.response.spotify.TokenResponse
+import com.maxrave.kotlinytmusicscraper.models.response.spotify.search.SpotifySearchResponse
 import io.ktor.client.call.body
 import io.ktor.client.statement.bodyAsText
+import io.ktor.client.statement.request
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlin.random.Random
 
 fun main() {
     runBlocking {
-        YouTube.player("JqsfUyvBHck")
-            .onSuccess { res ->
-                println(res)
-            }.onFailure { e ->
-                e.printStackTrace()
-            }
+
     }
 }
 
 fun testLrc() {
     runBlocking {
         YouTube.customQuery("FEmusic_radio_builder").onSuccess {
-            println(it)
-        }.onFailure {
-            it.printStackTrace()
-        }
-    }
-}
-
-fun testSpotifyToken() {
-    runBlocking {
-        Ytmusic().getSpotifyToken().apply {
-            println(body<TokenResponse>())
-        }
-    }
-}
-
-fun testSpotifySearch() {
-    runBlocking {
-        YouTube.searchSpotifyTrack(
-            "MD Anniversary",
-            "BQDdkJU15Qu4R0RSZgZWTTo64Cn_dD1mBHCQVD2Z3zw4MLzRNAlgRUhLMCVVlGG-WYdbydQnwTu_vKzzV3fjw5S5zQuEvsEERNet1Hv-YMJV5P-xLEw",
-        ).onSuccess {
             println(it)
         }.onFailure {
             it.printStackTrace()

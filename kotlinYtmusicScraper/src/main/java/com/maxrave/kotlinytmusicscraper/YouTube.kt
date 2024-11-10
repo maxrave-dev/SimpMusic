@@ -50,6 +50,7 @@ import com.maxrave.kotlinytmusicscraper.models.response.spotify.CanvasResponse
 import com.maxrave.kotlinytmusicscraper.models.response.spotify.PersonalTokenResponse
 import com.maxrave.kotlinytmusicscraper.models.response.spotify.SpotifyLyricsResponse
 import com.maxrave.kotlinytmusicscraper.models.response.spotify.TokenResponse
+import com.maxrave.kotlinytmusicscraper.models.response.spotify.search.SpotifySearchResponse
 import com.maxrave.kotlinytmusicscraper.models.response.toLikeStatus
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
@@ -1707,10 +1708,6 @@ object YouTube {
     /***
      * Spotify Implementation
      */
-    suspend fun getClientToken() =
-        runCatching {
-            ytMusic.getSpotifyToken().body<TokenResponse>()
-        }
 
     suspend fun getPersonalToken(spdc: String) =
         runCatching {
@@ -1719,11 +1716,11 @@ object YouTube {
 
     suspend fun searchSpotifyTrack(
         query: String,
-        token: String,
+        authToken: String
     ) = runCatching {
         ytMusic
-            .searchSpotifyTrack(query, token)
-            .body<com.maxrave.kotlinytmusicscraper.models.response.spotify.SearchResponse>()
+            .searchSpotifyTrack(query, authToken)
+            .body<SpotifySearchResponse>()
     }
 
     suspend fun getSpotifyLyrics(

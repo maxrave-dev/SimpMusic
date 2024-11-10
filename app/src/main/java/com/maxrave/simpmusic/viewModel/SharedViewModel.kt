@@ -567,7 +567,7 @@ class SharedViewModel(
         videoId: String,
         duration: Int,
     ) {
-        Log.w("Start getCanvas", "$videoId $duration")
+        Log.w(tag, "Start getCanvas: $videoId $duration")
 //        canvasJob?.cancel()
         viewModelScope.launch {
             if (dataStoreManager.spotifyCanvas.first() == TRUE){

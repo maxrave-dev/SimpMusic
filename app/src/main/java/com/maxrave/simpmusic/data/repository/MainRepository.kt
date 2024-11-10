@@ -1927,7 +1927,7 @@ class MainRepository(
                         dataStoreManager.spotifyPersonalTokenExpires.first() != 0L
                     ) {
                         spotifyPersonalToken = dataStoreManager.spotifyPersonalToken.first()
-                        Log.d("Lyrics", "spotifyPersonalToken: $spotifyPersonalToken")
+                        Log.d("Canvas", "spotifyPersonalToken: $spotifyPersonalToken")
                     } else if (dataStoreManager.spdc.first().isNotEmpty()) {
                         YouTube
                             .getPersonalToken(dataStoreManager.spdc.first())
@@ -1937,36 +1937,36 @@ class MainRepository(
                                 dataStoreManager.setSpotifyPersonalTokenExpires(
                                     it.accessTokenExpirationTimestampMs,
                                 )
-                                Log.d("Lyrics", "spotifyPersonalToken: $spotifyPersonalToken")
+                                Log.d("Canvas", "spotifyPersonalToken: $spotifyPersonalToken")
                             }.onFailure {
                                 it.printStackTrace()
                                 emit(null)
                             }
                     }
                     if (spotifyPersonalToken.isNotEmpty()) {
-                        var clientToken = dataStoreManager.spotifyClientToken.first()
-                        Log.d("Lyrics", "clientToken: $clientToken")
+                        val authToken = spotifyPersonalToken
                         YouTube
-                            .searchSpotifyTrack(q, clientToken)
+                            .searchSpotifyTrack(q, authToken)
                             .onSuccess { searchResponse ->
+                                Log.w("Canvas", "searchSpotifyResponse: $searchResponse")
                                 val track =
                                     if (duration != 0) {
-                                        searchResponse.tracks.items.find {
+                                        searchResponse.data?.searchV2?.tracksV2?.items?.find {
                                             abs(
-                                                ((it.duration_ms / 1000) - duration),
+                                                (((it.item?.data?.duration?.totalMilliseconds ?: (0 / 1000)) - duration)),
                                             ) < 1
                                         }
-                                            ?: searchResponse.tracks.items.firstOrNull()
+                                            ?: searchResponse.data?.searchV2?.tracksV2?.items?.firstOrNull()
                                     } else {
-                                        searchResponse.tracks.items.firstOrNull()
+                                        searchResponse.data?.searchV2?.tracksV2?.items?.firstOrNull()
                                     }
                                 if (track != null) {
                                     YouTube
                                         .getSpotifyCanvas(
-                                            track.id,
+                                            track.item?.data?.id ?: "",
                                             spotifyPersonalToken,
                                         ).onSuccess {
-                                            Log.w("Spotify Canvas", "canvas: $it")
+                                            Log.w("Canvas", "canvas: $it")
                                             emit(it)
                                         }.onFailure {
                                             it.printStackTrace()
@@ -1977,47 +1977,10 @@ class MainRepository(
                                 }
                             }.onFailure { throwable ->
                                 throwable.printStackTrace()
-                                YouTube
-                                    .getClientToken()
-                                    .onSuccess { tokenResponse ->
-                                        clientToken = tokenResponse.accessToken
-                                        Log.w("Lyrics", "clientToken: $clientToken")
-                                        dataStoreManager.setSpotifyClientToken(clientToken)
-                                        YouTube
-                                            .searchSpotifyTrack(q, clientToken)
-                                            .onSuccess { searchResponse ->
-                                                val track =
-                                                    if (duration != 0) {
-                                                        searchResponse.tracks.items.find {
-                                                            abs(
-                                                                ((it.duration_ms / 1000) - duration),
-                                                            ) < 1
-                                                        }
-                                                            ?: searchResponse.tracks.items.firstOrNull()
-                                                    } else {
-                                                        searchResponse.tracks.items.firstOrNull()
-                                                    }
-                                                if (track != null) {
-                                                    YouTube
-                                                        .getSpotifyCanvas(
-                                                            track.id,
-                                                            spotifyPersonalToken,
-                                                        ).onSuccess {
-                                                            Log.w("Spotify Canvas", "canvas: $it")
-                                                            emit(it)
-                                                        }.onFailure {
-                                                            it.printStackTrace()
-                                                            emit(null)
-                                                        }
-                                                } else {
-                                                    emit(null)
-                                                }
-                                            }
-                                    }.onFailure {
-                                        it.printStackTrace()
-                                        emit(null)
-                                    }
+                                emit(null)
                             }
+                    } else {
+                        emit(null)
                     }
                 }
             }
@@ -2067,26 +2030,26 @@ class MainRepository(
                         }
                 }
                 if (spotifyPersonalToken.isNotEmpty()) {
-                    var clientToken = dataStoreManager.spotifyClientToken.first()
-                    Log.d("Lyrics", "clientToken: $clientToken")
+                    val authToken = spotifyPersonalToken
+                    Log.d("Lyrics", "authToken: $authToken")
                     YouTube
-                        .searchSpotifyTrack(q, clientToken)
+                        .searchSpotifyTrack(q, authToken)
                         .onSuccess { searchResponse ->
                             val track =
-                                if (duration != null && duration != 0) {
-                                    searchResponse.tracks.items.find {
+                                if (duration != 0 && duration != null) {
+                                    searchResponse.data?.searchV2?.tracksV2?.items?.find {
                                         abs(
-                                            ((it.duration_ms / 1000) - duration),
+                                            (((it.item?.data?.duration?.totalMilliseconds ?: (0 / 1000)) - duration)),
                                         ) < 1
                                     }
-                                        ?: searchResponse.tracks.items.firstOrNull()
+                                        ?: searchResponse.data?.searchV2?.tracksV2?.items?.firstOrNull()
                                 } else {
-                                    searchResponse.tracks.items.firstOrNull()
+                                    searchResponse.data?.searchV2?.tracksV2?.items?.firstOrNull()
                                 }
                             Log.d("Lyrics", "track: $track")
                             if (track != null) {
                                 YouTube
-                                    .getSpotifyLyrics(track.id, spotifyPersonalToken)
+                                    .getSpotifyLyrics(track.item?.data?.id ?: "", spotifyPersonalToken)
                                     .onSuccess {
                                         emit(Resource.Success<Lyrics>(it.toLyrics()))
                                     }.onFailure {
@@ -2098,42 +2061,7 @@ class MainRepository(
                             }
                         }.onFailure { throwable ->
                             throwable.printStackTrace()
-                            YouTube
-                                .getClientToken()
-                                .onSuccess {
-                                    clientToken = it.accessToken
-                                    Log.w("Lyrics", "clientToken: $clientToken")
-                                    dataStoreManager.setSpotifyClientToken(clientToken)
-                                    YouTube.searchSpotifyTrack(q, clientToken).onSuccess { searchResponse ->
-                                        val track =
-                                            if (duration != null && duration != 0) {
-                                                searchResponse.tracks.items.find {
-                                                    abs(
-                                                        ((it.duration_ms / 1000) - duration),
-                                                    ) < 1
-                                                }
-                                                    ?: searchResponse.tracks.items.firstOrNull()
-                                            } else {
-                                                searchResponse.tracks.items.firstOrNull()
-                                            }
-                                        Log.d("Lyrics", "track: $track")
-                                        if (track != null) {
-                                            YouTube
-                                                .getSpotifyLyrics(track.id, spotifyPersonalToken)
-                                                .onSuccess {
-                                                    emit(Resource.Success<Lyrics>(it.toLyrics()))
-                                                }.onFailure {
-                                                    it.printStackTrace()
-                                                    emit(Resource.Error<Lyrics>("Not found"))
-                                                }
-                                        } else {
-                                            emit(Resource.Error<Lyrics>("Not found"))
-                                        }
-                                    }
-                                }.onFailure {
-                                    it.printStackTrace()
-                                    emit(Resource.Error<Lyrics>("Not found"))
-                                }
+                            emit(Resource.Error<Lyrics>("Not found"))
                         }
                 }
             }
