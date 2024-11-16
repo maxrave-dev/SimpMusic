@@ -9,7 +9,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.google.common.reflect.TypeToken
+import com.google.gson.reflect.TypeToken
 import com.google.gson.Gson
 import com.maxrave.simpmusic.common.DB_NAME
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
