@@ -164,7 +164,12 @@ class SharedViewModel(
 
     private var _controllerState = MutableStateFlow<ControlState>(
         ControlState(
-            isPlaying = false, isShuffle = false, repeatState = RepeatState.None, isLiked = false, isNextAvailable = false, isPreviousAvailable = false
+            isPlaying = false,
+            isShuffle = false,
+            repeatState = RepeatState.None,
+            isLiked = false,
+            isNextAvailable = false,
+            isPreviousAvailable = false
         )
     )
     val controllerState: StateFlow<ControlState> = _controllerState
@@ -794,7 +799,7 @@ class SharedViewModel(
     }
 
     fun getCurrentMediaItemIndex(): Int {
-        return runBlocking { simpleMediaServiceHandler.currentSongIndex.first() } ?: 0
+        return runBlocking { simpleMediaServiceHandler.currentSongIndex.first() }
     }
 
     @UnstableApi

@@ -73,6 +73,10 @@ import androidx.compose.ui.unit.dp
 import androidx.core.text.isDigitsOnly
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
+import coil3.compose.AsyncImage
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
@@ -87,10 +91,6 @@ import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetUIEvent
 import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetViewModel
-import com.skydoves.landscapist.ImageOptions
-import com.skydoves.landscapist.animation.crossfade.CrossfadePlugin
-import com.skydoves.landscapist.coil.CoilImage
-import com.skydoves.landscapist.components.rememberImageComponent
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
@@ -316,23 +316,24 @@ fun NowPlayingBottomSheet(
                             .padding(10.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        CoilImage(
-                            imageModel = { uiState.songUIState.thumbnails },
-                            imageOptions =
-                                ImageOptions(
-                                    contentScale = ContentScale.Inside,
-                                    alignment = Alignment.Center,
-                                ),
-                            previewPlaceholder = painterResource(id = R.drawable.holder),
-                            component =
-                                rememberImageComponent {
-                                    CrossfadePlugin(
-                                        duration = 550,
-                                    )
-                                },
+                        val thumb = uiState.songUIState.thumbnails
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(thumb)
+                                .diskCachePolicy(CachePolicy.ENABLED)
+                                .diskCacheKey(thumb)
+                                .crossfade(550)
+                                .build(),
+                            placeholder = painterResource(R.drawable.holder),
+                            error = painterResource(R.drawable.holder),
+                            contentDescription = null,
+                            contentScale = ContentScale.Inside,
                             modifier =
                             Modifier
                                 .align(Alignment.CenterVertically)
+                                .clip(
+                                    RoundedCornerShape(10.dp)
+                                )
                                 .size(60.dp),
                         )
                         Spacer(modifier = Modifier.width(20.dp))

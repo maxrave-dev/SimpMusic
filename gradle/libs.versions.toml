@@ -25,11 +25,13 @@ androidx-junit = "1.2.1"
 espresso-core = "3.6.1"
 room = "2.6.1"
 legacy-support-v4 = "1.0.0"
-coroutines-android = "1.8.1"
-coroutines-guava = "1.8.1"
+coroutines-android = "1.9.0"
+coroutines-guava = "1.9.0"
 navigation = "2.8.3"
 gson = "2.10.1"
 coil = "2.6.0"
+coil3 = "3.0.2"
+kmpalette = "3.1.0"
 easypermissions = "3.0.0"
 preference-ktx = "1.2.1"
 fragment-ktx = "1.8.5"
@@ -45,7 +47,6 @@ ssp-android = "1.1.0"
 aboutlibraries = "10.10.0"
 flexbox = "3.0.0"
 balloon = "1.6.4"
-landscapist = "2.3.4"
 insetsx = "0.1.0-alpha10"
 ktor = "2.3.12"
 brotli = "0.1.2"
@@ -102,7 +103,6 @@ navigation-fragment-ktx = { group = "androidx.navigation", name = "navigation-fr
 navigation-ui-ktx = { group = "androidx.navigation", name = "navigation-ui-ktx", version.ref = "navigation" }
 gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 coil = { group = "io.coil-kt", name = "coil", version.ref = "coil" }
-coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
 easypermissions = { group = "pub.devrel", name = "easypermissions", version.ref = "easypermissions" }
 preference-ktx = { group = "androidx.preference", name = "preference-ktx", version.ref = "preference-ktx" }
 fragment-ktx = { group = "androidx.fragment", name = "fragment-ktx", version.ref = "fragment-ktx" }
@@ -122,12 +122,9 @@ ssp-android = { group = "com.intuit.ssp", name = "ssp-android", version.ref = "s
 aboutlibraries = { group = "com.mikepenz", name = "aboutlibraries", version.ref = "aboutlibraries" }
 flexbox = { group = "com.google.android.flexbox", name = "flexbox", version.ref = "flexbox" }
 balloon = { group = "com.github.skydoves", name = "balloon", version.ref = "balloon" }
-landscapist-bom = { group = "com.github.skydoves", name = "landscapist-bom", version.ref = "landscapist" }
-landscapist-coil = { group = "com.github.skydoves", name = "landscapist-coil" }
-landscapist-placeholder = { group = "com.github.skydoves", name = "landscapist-placeholder" }
-landscapist-animation = { group = "com.github.skydoves", name = "landscapist-animation" }
-landscapist-palette = { group = "com.github.skydoves", name = "landscapist-palette" }
-landscapist-transformation = { group = "com.github.skydoves", name = "landscapist-transformation" }
+coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil3" }
+coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil3" }
+kmpalette-core = { module = "com.kmpalette:kmpalette-core", version.ref = "kmpalette" }
 insetsx = { group = "com.moriatsushi.insetsx", name = "insetsx", version.ref = "insetsx" }
 ktor-client-core = { group = "io.ktor", name = "ktor-client-core", version.ref = "ktor" }
 ktor-client-cio = { group = "io.ktor", name = "ktor-client-cio", version.ref = "ktor" }

@@ -12,6 +12,7 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -78,6 +79,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -87,7 +89,10 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -99,15 +104,21 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import androidx.core.os.bundleOf
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
+import coil3.compose.AsyncImage
+import coil3.compose.SubcomposeAsyncImage
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import coil3.toBitmap
+import com.kmpalette.rememberPaletteState
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.extension.GradientAngle
 import com.maxrave.simpmusic.extension.GradientOffset
 import com.maxrave.simpmusic.extension.formatDuration
-import com.maxrave.simpmusic.extension.getBrushListColorFromPalette
+import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.parseTimestampToMilliseconds
@@ -128,12 +139,6 @@ import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LyricsProvider
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
-import com.skydoves.landscapist.animation.crossfade.CrossfadePlugin
-import com.skydoves.landscapist.coil.CoilImage
-import com.skydoves.landscapist.components.rememberImageComponent
-import com.skydoves.landscapist.palette.PalettePlugin
-import com.skydoves.landscapist.palette.rememberPaletteState
-import com.skydoves.landscapist.placeholder.placeholder.PlaceholderPlugin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -154,6 +159,7 @@ fun NowPlayingScreen(
     val context = LocalContext.current
     val localDensity = LocalDensity.current
     val uriHandler = LocalUriHandler.current
+    val coroutineScope = rememberCoroutineScope()
 
     // ViewModel State
     val controllerState by sharedViewModel.controllerState.collectAsState()
@@ -183,7 +189,8 @@ fun NowPlayingScreen(
     }
 
     // Palette state
-    var palette by rememberPaletteState(null)
+    val paletteState = rememberPaletteState()
+
     val startColor =
         remember {
             Animatable(md_theme_dark_background)
@@ -196,12 +203,24 @@ fun NowPlayingScreen(
         mutableStateOf(GradientOffset(GradientAngle.CW135))
     }
 
-    LaunchedEffect(key1 = palette) {
-        palette?.let {
-            val colorList = getBrushListColorFromPalette(it, context)
-            startColor.animateTo(colorList[0])
-            endColor.animateTo(colorList[1])
+    var bitmap by remember {
+        mutableStateOf<ImageBitmap?>(null)
+    }
+
+    LaunchedEffect(bitmap) {
+        val bm = bitmap
+        if (bm != null) {
+            paletteState.generate(bm)
         }
+    }
+
+    LaunchedEffect(Unit) {
+        snapshotFlow { paletteState.palette }
+            .distinctUntilChanged()
+            .collectLatest {
+                startColor.animateTo(it.getColorFromPalette())
+                endColor.animateTo(md_theme_dark_background)
+            }
     }
 
     // Height
@@ -395,10 +414,14 @@ fun NowPlayingScreen(
                             )
                         }
                     } else if (isVideo == false) {
-                        CoilImage(
-                            imageModel = {
-                                screenDataState.canvasData?.url
-                            },
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(screenDataState.canvasData?.url)
+                                .diskCachePolicy(CachePolicy.ENABLED)
+                                .diskCacheKey(screenDataState.canvasData?.url)
+                                .crossfade(550)
+                                .build(),
+                            contentDescription = null,
                             modifier = Modifier.fillMaxSize(),
                         )
                     }
@@ -537,38 +560,35 @@ fun NowPlayingScreen(
                                     ).aspectRatio(1f),
                         ) {
                             // IS SONG => Show Artwork
-                            CoilImage(
-                                imageModel =
-                                    {
-                                        screenDataState.thumbnailURL?.toUri()
-                                    },
-                                previewPlaceholder = painterResource(id = R.drawable.holder),
-                                modifier =
-                                    Modifier
-                                        .align(Alignment.Center)
-                                        .fillMaxWidth()
-                                        .aspectRatio(
-                                            if (!screenDataState.isVideo) 1f else 16f / 9,
-                                        ).clip(
-                                            RoundedCornerShape(8.dp),
-                                        ).alpha(
-                                            if (!screenDataState.isVideo || !shouldShowVideo) 1f else 0f,
-                                        ),
+                            SubcomposeAsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(screenDataState.thumbnailURL)
+                                    .diskCachePolicy(CachePolicy.ENABLED)
+                                    .diskCacheKey(screenDataState.thumbnailURL)
+                                    .crossfade(550)
+                                    .build(),
+                                error = {
+                                    Image(painterResource(R.drawable.holder), null)
+                                },
                                 loading = {
                                     CenterLoadingBox(modifier = Modifier.fillMaxSize())
                                 },
-                                component =
-                                    rememberImageComponent {
-                                        +CrossfadePlugin(duration = 200)
-                                        +PalettePlugin(
-                                            paletteLoadedListener = {
-                                                palette = it
-                                            },
-                                            useCache = true,
-                                        )
-                                        +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder))
-                                        +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder))
-                                    },
+                                onSuccess = {
+                                    bitmap = it.result.image.toBitmap().asImageBitmap()
+                                },
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier =
+                                Modifier
+                                    .align(Alignment.Center)
+                                    .fillMaxWidth()
+                                    .aspectRatio(
+                                        if (!screenDataState.isVideo) 1f else 16f / 9,
+                                    ).clip(
+                                        RoundedCornerShape(8.dp),
+                                    ).alpha(
+                                        if (!screenDataState.isVideo || !shouldShowVideo) 1f else 0f,
+                                    ),
                             )
 
                             // IS VIDEO => Show Video
@@ -1214,23 +1234,24 @@ fun NowPlayingScreen(
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
                                     ) {
-                                        CoilImage(
-                                            imageModel = {
-                                                screenDataState.songInfoData?.authorThumbnail?.toUri()
-                                            },
-                                            previewPlaceholder = painterResource(id = R.drawable.holder),
+                                        val thumb = screenDataState.songInfoData?.authorThumbnail
+                                        AsyncImage(
+                                            model = ImageRequest.Builder(LocalContext.current)
+                                                .data(thumb)
+                                                .diskCachePolicy(CachePolicy.ENABLED)
+                                                .diskCacheKey(thumb)
+                                                .crossfade(550)
+                                                .build(),
+                                            placeholder = painterResource(R.drawable.holder),
+                                            error = painterResource(R.drawable.holder),
+                                            contentDescription = null,
+                                            contentScale = ContentScale.Crop,
                                             modifier =
-                                                Modifier
-                                                    .size(42.dp)
-                                                    .clip(
-                                                        CircleShape,
-                                                    ),
-                                            component =
-                                                rememberImageComponent {
-                                                    +CrossfadePlugin(duration = 200)
-                                                    +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder))
-                                                    +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder))
-                                                },
+                                            Modifier
+                                                .size(42.dp)
+                                                .clip(
+                                                    CircleShape,
+                                                ),
                                         )
                                         Spacer(modifier = Modifier.size(12.dp))
                                         Text(
@@ -1392,11 +1413,18 @@ fun NowPlayingScreen(
                                         .fillMaxWidth()
                                         .height(250.dp),
                             ) {
-                                CoilImage(
-                                    imageModel = {
-                                        screenDataState.songInfoData?.authorThumbnail?.toUri()
-                                    },
-                                    previewPlaceholder = painterResource(id = R.drawable.holder_video),
+                                val thumb = screenDataState.songInfoData?.authorThumbnail
+                                AsyncImage(
+                                    model = ImageRequest.Builder(LocalContext.current)
+                                        .data(thumb)
+                                        .diskCachePolicy(CachePolicy.ENABLED)
+                                        .diskCacheKey(thumb)
+                                        .crossfade(550)
+                                        .build(),
+                                    placeholder = painterResource(R.drawable.holder_video),
+                                    error = painterResource(R.drawable.holder_video),
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
                                     modifier =
                                         Modifier
                                             .fillMaxSize()
@@ -1404,12 +1432,6 @@ fun NowPlayingScreen(
                                             .clip(
                                                 RoundedCornerShape(8.dp),
                                             ),
-                                    component =
-                                        rememberImageComponent {
-                                            +CrossfadePlugin(duration = 200)
-                                            +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder_video))
-                                            +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder_video))
-                                        },
                                 )
                                 Box(
                                     modifier =

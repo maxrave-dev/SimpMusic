@@ -56,6 +56,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -71,6 +72,8 @@ import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.graphicsLayer
@@ -85,16 +88,23 @@ import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
+import coil3.compose.AsyncImage
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import coil3.toBitmap
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants.IterateForever
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.kmpalette.rememberDominantColorState
+import com.kmpalette.rememberPaletteState
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.extension.angledGradientBackground
-import com.maxrave.simpmusic.extension.getBrushListColorFromPalette
+import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.LoadingDialog
@@ -103,23 +113,19 @@ import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.PlaylistItems
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SuggestItems
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.FilterState
 import com.maxrave.simpmusic.viewModel.LocalPlaylistUIEvent
 import com.maxrave.simpmusic.viewModel.LocalPlaylistViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import com.skydoves.landscapist.ImageOptions
-import com.skydoves.landscapist.animation.crossfade.CrossfadePlugin
-import com.skydoves.landscapist.coil.CoilImage
-import com.skydoves.landscapist.components.rememberImageComponent
-import com.skydoves.landscapist.palette.PalettePlugin
-import com.skydoves.landscapist.palette.rememberPaletteState
-import com.skydoves.landscapist.placeholder.placeholder.PlaceholderPlugin
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
+import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
 
 @UnstableApi
@@ -136,14 +142,13 @@ fun PlaylistScreen(
     navController: NavController,
 ) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
 
     val composition by rememberLottieComposition(
         LottieCompositionSpec.RawRes(R.raw.downloading_animation),
     )
 
     val uiState by viewModel.uiState.collectAsState()
-
-    val offset by viewModel.offset.collectAsState()
 
     val aiPainter = painterResource(id = R.drawable.baseline_tips_and_updates_24)
     val limit = 1.5f
@@ -176,20 +181,13 @@ fun PlaylistScreen(
             lazyState.firstVisibleItemIndex == 0
         }
     }
-    val lastItemVisible by remember {
-        derivedStateOf {
-            lazyState.layoutInfo.visibleItemsInfo
-                .lastOrNull()
-                ?.index == lazyState.layoutInfo.totalItemsCount - 1
-        }
-    }
     val downloadState by viewModel.uiState.map { it.downloadState }.collectAsState(
         initial = DownloadState.STATE_NOT_DOWNLOADED
     )
     var shouldHideTopBar by rememberSaveable { mutableStateOf(false) }
     var shouldShowSuggestions by rememberSaveable { mutableStateOf(false) }
     var shouldShowSuggestButton by rememberSaveable { mutableStateOf(false) }
-    var palette by rememberPaletteState(null)
+
     val playingTrack by sharedViewModel.nowPlayingState
         .mapLatest {
             it?.mediaItem
@@ -270,12 +268,24 @@ fun PlaylistScreen(
     LaunchedEffect(key1 = firstItemVisible) {
         shouldHideTopBar = !firstItemVisible
     }
-    LaunchedEffect(key1 = palette) {
-        val p = palette
-        if (p != null) {
-            val brush = getBrushListColorFromPalette(p, context)
-            viewModel.setBrush(brush)
+    val paletteState = rememberPaletteState()
+    var bitmap by remember {
+        mutableStateOf<ImageBitmap?>(null)
+    }
+
+    LaunchedEffect(bitmap) {
+        val bm = bitmap
+        if (bm != null) {
+            paletteState.generate(bm)
         }
+    }
+
+    LaunchedEffect(Unit) {
+        snapshotFlow { paletteState.palette }
+            .distinctUntilChanged()
+            .collectLatest {
+                viewModel.setBrush(listOf(it.getColorFromPalette(), md_theme_dark_background))
+            }
     }
 
     // Loading dialog
@@ -359,34 +369,20 @@ fun PlaylistScreen(
                     Column(
                         horizontalAlignment = Alignment.Start,
                     ) {
-                        CoilImage(
-                            imageModel = {
-                                uiState.thumbnail
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(uiState.thumbnail)
+                                .diskCachePolicy(CachePolicy.ENABLED)
+                                .diskCacheKey(uiState.thumbnail)
+                                .crossfade(true)
+                                .build(),
+                            placeholder = painterResource(R.drawable.holder),
+                            error = painterResource(R.drawable.holder),
+                            contentDescription = null,
+                            contentScale = ContentScale.FillHeight,
+                            onSuccess = {
+                                bitmap = it.result.image.toBitmap().asImageBitmap()
                             },
-                            imageOptions =
-                                ImageOptions(
-                                    contentScale = ContentScale.FillHeight,
-                                    alignment = Alignment.Center,
-                                ),
-                            previewPlaceholder = painterResource(id = R.drawable.holder),
-                            component =
-                                rememberImageComponent {
-                                    add(
-                                        CrossfadePlugin(
-                                            duration = 550,
-                                        ),
-                                    )
-                                    add(
-                                        PalettePlugin(
-                                            paletteLoadedListener = {
-                                                palette = it
-                                            },
-                                            useCache = true,
-                                        ),
-                                    )
-                                    +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder))
-                                    +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder))
-                                },
                             modifier =
                                 Modifier
                                     .height(250.dp)

@@ -13,7 +13,6 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -50,12 +49,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.PointerInputChange
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
@@ -65,25 +67,25 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
+import coil3.compose.AsyncImage
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import coil3.toBitmap
+import com.kmpalette.rememberPaletteState
 import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.extension.getBrushListColorFromPalette
+import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.ui.component.HeartCheckBox
 import com.maxrave.simpmusic.ui.component.PlayPauseButton
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
-import com.skydoves.landscapist.ImageOptions
-import com.skydoves.landscapist.animation.crossfade.CrossfadePlugin
-import com.skydoves.landscapist.coil.CoilImage
-import com.skydoves.landscapist.components.rememberImageComponent
-import com.skydoves.landscapist.palette.PalettePlugin
-import com.skydoves.landscapist.palette.rememberPaletteState
-import com.skydoves.landscapist.placeholder.placeholder.PlaceholderPlugin
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
-@OptIn(ExperimentalFoundationApi::class)
+
 @Composable
 @UnstableApi
 fun MiniPlayer(
@@ -91,8 +93,6 @@ fun MiniPlayer(
     onClose: () -> Unit,
     onClick: () -> Unit,
 ) {
-    val context = LocalContext.current
-
     val (mediaItem, setMediaItem) =
         remember {
             mutableStateOf(MediaItem.EMPTY)
@@ -118,7 +118,8 @@ fun MiniPlayer(
         label = "",
     )
 
-    var palette by rememberPaletteState(null)
+    // Palette state
+    val paletteState = rememberPaletteState()
     val background =
         remember {
             Animatable(Color.DarkGray)
@@ -129,6 +130,25 @@ fun MiniPlayer(
 
     var loading by rememberSaveable {
         mutableStateOf(true)
+    }
+
+    var bitmap by remember {
+        mutableStateOf<ImageBitmap?>(null)
+    }
+
+    LaunchedEffect(bitmap) {
+        val bm = bitmap
+        if (bm != null) {
+            paletteState.generate(bm)
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        snapshotFlow { paletteState.palette }
+            .distinctUntilChanged()
+            .collectLatest {
+                background.animateTo(it.getColorFromPalette())
+            }
     }
 
     LaunchedEffect(key1 = true) {
@@ -162,14 +182,6 @@ fun MiniPlayer(
         job1.join()
         job2.join()
         job4.join()
-    }
-
-    LaunchedEffect(key1 = palette) {
-        val p = palette
-        if (p != null) {
-            val list = getBrushListColorFromPalette(p, context)
-            background.animateTo(list[0])
-        }
     }
 
     ElevatedCard(
@@ -268,29 +280,20 @@ fun MiniPlayer(
                                 )
                             },
                     ) {
-                        CoilImage(
-                            imageModel = { mediaItem.mediaMetadata.artworkUri },
-                            imageOptions =
-                                ImageOptions(
-                                    contentScale = ContentScale.Crop,
-                                    alignment = Alignment.Center,
-                                ),
-                            previewPlaceholder = painterResource(id = R.drawable.holder),
-                            component =
-                                rememberImageComponent {
-                                    add(
-                                        CrossfadePlugin(
-                                            duration = 550,
-                                        ),
-                                    )
-                                    add(
-                                        PalettePlugin {
-                                            palette = it
-                                        },
-                                    )
-                                    +PlaceholderPlugin.Loading(painterResource(id = R.drawable.outline_album_24))
-                                    +PlaceholderPlugin.Failure(painterResource(id = R.drawable.outline_album_24))
-                                },
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(mediaItem.mediaMetadata.artworkUri)
+                                .diskCachePolicy(CachePolicy.ENABLED)
+                                .diskCacheKey(mediaItem.mediaMetadata.artworkUri.toString())
+                                .crossfade(550)
+                                .build(),
+                            placeholder = painterResource(R.drawable.holder),
+                            error = painterResource(R.drawable.holder),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            onSuccess = {
+                                bitmap = it.result.image.toBitmap().asImageBitmap()
+                            },
                             modifier =
                             Modifier
                                 .size(40.dp)

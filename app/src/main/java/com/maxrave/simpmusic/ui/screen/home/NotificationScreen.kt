@@ -3,7 +3,6 @@ package com.maxrave.simpmusic.ui.screen.home
 import android.content.Context
 import android.os.Bundle
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
@@ -42,6 +41,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
+import coil3.compose.AsyncImage
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.data.db.entities.NotificationEntity
 import com.maxrave.simpmusic.extension.formatTimeAgo
@@ -51,11 +54,6 @@ import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.NotificationViewModel
-import com.skydoves.landscapist.ImageOptions
-import com.skydoves.landscapist.animation.crossfade.CrossfadePlugin
-import com.skydoves.landscapist.coil.CoilImage
-import com.skydoves.landscapist.components.rememberImageComponent
-import com.skydoves.landscapist.placeholder.placeholder.PlaceholderPlugin
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -138,24 +136,18 @@ fun NotificationItem(
                     )
                 },
             ) {
-                CoilImage(
-                    imageModel = {
-                        notification.thumbnail
-                    }, // loading a network image or local resource using an URL.
-                    imageOptions =
-                        ImageOptions(
-                            contentScale = ContentScale.Crop,
-                            alignment = Alignment.Center,
-                        ),
-                    previewPlaceholder = painterResource(id = R.drawable.holder),
-                    component =
-                        rememberImageComponent {
-                            +CrossfadePlugin(
-                                duration = 550,
-                            )
-                            +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder))
-                            +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder))
-                        },
+                val thumb = notification.thumbnail
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(thumb)
+                        .diskCachePolicy(CachePolicy.ENABLED)
+                        .diskCacheKey(thumb)
+                        .crossfade(true)
+                        .build(),
+                    placeholder = painterResource(R.drawable.holder),
+                    error = painterResource(R.drawable.holder),
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
                     modifier =
                         Modifier
                             .align(Alignment.CenterVertically)
@@ -206,7 +198,6 @@ fun NotificationItem(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ItemAlbumNotification(
     isAlbum: Boolean,
@@ -230,24 +221,17 @@ fun ItemAlbumNotification(
         Column(
             Modifier.padding(5.dp),
         ) {
-            CoilImage(
-                imageModel = {
-                    thumbnail
-                }, // loading a network image or local resource using an URL.
-                imageOptions =
-                    ImageOptions(
-                        contentScale = ContentScale.Crop,
-                        alignment = Alignment.Center,
-                    ),
-                previewPlaceholder = painterResource(id = R.drawable.holder),
-                component =
-                    rememberImageComponent {
-                        +CrossfadePlugin(
-                            duration = 550,
-                        )
-                        +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder))
-                        +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder))
-                    },
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(thumbnail)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .diskCacheKey(thumbnail)
+                    .crossfade(true)
+                    .build(),
+                placeholder = painterResource(R.drawable.holder),
+                error = painterResource(R.drawable.holder),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
                 modifier =
                     Modifier
                         .align(Alignment.CenterHorizontally)

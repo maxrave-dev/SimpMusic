@@ -25,8 +25,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
@@ -39,11 +44,6 @@ import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.ui.theme.typo
-import com.skydoves.landscapist.ImageOptions
-import com.skydoves.landscapist.animation.crossfade.CrossfadePlugin
-import com.skydoves.landscapist.coil.CoilImage
-import com.skydoves.landscapist.components.rememberImageComponent
-import com.skydoves.landscapist.placeholder.placeholder.PlaceholderPlugin
 import kotlinx.coroutines.flow.mapNotNull
 import org.koin.compose.koinInject
 
@@ -80,24 +80,18 @@ fun PlaylistItems(
                     if (it) {
                         LottieAnimation(composition, iterations = LottieConstants.IterateForever)
                     } else {
-                        CoilImage(
-                            imageModel = {
-                                track?.thumbnails?.lastOrNull()?.url ?: songEntity?.thumbnails
-                            },
-                            imageOptions =
-                                ImageOptions(
-                                    contentScale = ContentScale.FillWidth,
-                                    alignment = Alignment.Center,
-                                ),
-                            previewPlaceholder = painterResource(id = R.drawable.holder),
-                            component =
-                                rememberImageComponent {
-                                    +CrossfadePlugin(
-                                        duration = 550,
-                                    )
-                                    +PlaceholderPlugin.Loading(painterResource(R.drawable.holder))
-                                    +PlaceholderPlugin.Failure(painterResource(R.drawable.holder))
-                                },
+                        val thumb = track?.thumbnails?.lastOrNull()?.url ?: songEntity?.thumbnails
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(thumb)
+                                .diskCachePolicy(CachePolicy.ENABLED)
+                                .diskCacheKey(thumb)
+                                .crossfade(true)
+                                .build(),
+                            placeholder = painterResource(R.drawable.holder),
+                            error = painterResource(R.drawable.holder),
+                            contentDescription = null,
+                            contentScale = ContentScale.FillWidth,
                             modifier =
                                 Modifier
                                     .fillMaxSize(),
@@ -196,24 +190,18 @@ fun SuggestItems(
                     if (it) {
                         LottieAnimation(composition, iterations = LottieConstants.IterateForever)
                     } else {
-                        CoilImage(
-                            imageModel = {
-                                track.thumbnails?.lastOrNull()?.url
-                            },
-                            imageOptions =
-                                ImageOptions(
-                                    contentScale = ContentScale.FillWidth,
-                                    alignment = Alignment.Center,
-                                ),
-                            previewPlaceholder = painterResource(id = R.drawable.holder),
-                            component =
-                                rememberImageComponent {
-                                    +CrossfadePlugin(
-                                        duration = 550,
-                                    )
-                                    +PlaceholderPlugin.Loading(painterResource(R.drawable.holder))
-                                    +PlaceholderPlugin.Failure(painterResource(R.drawable.holder))
-                                },
+                        val thumb = track.thumbnails?.lastOrNull()?.url
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(thumb)
+                                .diskCachePolicy(CachePolicy.ENABLED)
+                                .diskCacheKey(thumb)
+                                .crossfade(true)
+                                .build(),
+                            placeholder = painterResource(R.drawable.holder),
+                            error = painterResource(R.drawable.holder),
+                            contentDescription = null,
+                            contentScale = ContentScale.FillWidth,
                             modifier =
                                 Modifier
                                     .wrapContentHeight()

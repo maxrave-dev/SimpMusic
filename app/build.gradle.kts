@@ -248,6 +248,8 @@ dependencies {
     // Coil
     implementation(libs.coil)
     implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
+    implementation(libs.kmpalette.core)
     // Easy Permissions
     implementation(libs.easypermissions)
     // Palette Color
@@ -289,13 +291,6 @@ dependencies {
     implementation(libs.flexbox)
     implementation(libs.balloon)
 
-    // Landscapist
-    implementation(libs.landscapist.bom)
-    implementation(libs.landscapist.coil)
-    implementation(libs.landscapist.placeholder)
-    implementation(libs.landscapist.animation)
-    implementation(libs.landscapist.palette)
-    implementation(libs.landscapist.transformation)
     // InsetsX
     implementation(libs.insetsx)
 

@@ -46,7 +46,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.graphics.ColorUtils
 import com.kmpalette.palette.graphics.Palette
-import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.ui.theme.shimmerBackground
 import com.maxrave.simpmusic.ui.theme.shimmerLine
 import kotlinx.coroutines.CoroutineScope
@@ -307,42 +307,6 @@ data class ScreenSizeInfo(
     val wPX: Int
 )
 
-fun getBrushListColorFromPalette(p: Palette , context: Context): List<Color> {
-    val defaultColor = 0x000000
-    var startColor = p.getDarkVibrantColor(defaultColor)
-    if (startColor == defaultColor) {
-        startColor = p.getDarkMutedColor(defaultColor)
-        if (startColor == defaultColor) {
-            startColor = p.getVibrantColor(defaultColor)
-            if (startColor == defaultColor) {
-                startColor =
-                    p.getMutedColor(defaultColor)
-                if (startColor == defaultColor) {
-                    startColor =
-                        p.getLightVibrantColor(
-                            defaultColor,
-                        )
-                    if (startColor == defaultColor) {
-                        startColor =
-                            p.getLightMutedColor(
-                                defaultColor,
-                            )
-                    }
-                }
-            }
-        }
-    }
-    val endColor =
-        context.resources.getColor(R.color.md_theme_dark_background, null)
-    val colorAndroid = ColorUtils.setAlphaComponent(startColor, 255)
-    val brush =
-        listOf(
-            Color(colorAndroid),
-            Color(endColor),
-        )
-    return brush
-}
-
 fun LazyListState.animateScrollAndCentralizeItem(index: Int, scope: CoroutineScope) {
     val itemInfo = this.layoutInfo.visibleItemsInfo.firstOrNull { it.index == index }
     scope.launch {
@@ -373,7 +337,6 @@ fun LazyListState.isScrollingUp(): Boolean {
 
     return remember(this) {
         derivedStateOf {
-            Log.w("isScrollingUp", "offset: $firstVisibleItemScrollOffset")
             if (firstVisibleItemIndex > 0)  {
                 if (previousIndex != firstVisibleItemIndex) {
                     previousIndex > firstVisibleItemIndex
@@ -396,4 +359,34 @@ fun setStatusBarsColor(@ColorInt color: Int, activity: Activity) {
     if (Build.VERSION.SDK_INT < 35) {
         activity.window.statusBarColor = color
     }
+}
+
+
+fun Palette?.getColorFromPalette(): Color {
+    val p = this ?: return md_theme_dark_background
+    val defaultColor = 0x000000
+    var startColor = p.getDarkVibrantColor(defaultColor)
+    if (startColor == defaultColor) {
+        startColor = p.getDarkMutedColor(defaultColor)
+        if (startColor == defaultColor) {
+            startColor = p.getVibrantColor(defaultColor)
+            if (startColor == defaultColor) {
+                startColor =
+                    p.getMutedColor(defaultColor)
+                if (startColor == defaultColor) {
+                    startColor =
+                        p.getLightVibrantColor(
+                            defaultColor,
+                        )
+                    if (startColor == defaultColor) {
+                        startColor =
+                            p.getLightMutedColor(
+                                defaultColor,
+                            )
+                    }
+                }
+            }
+        }
+    }
+    return Color(ColorUtils.setAlphaComponent(startColor, 255))
 }

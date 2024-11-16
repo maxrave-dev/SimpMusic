@@ -67,6 +67,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
+import coil3.compose.AsyncImage
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.maxrave.kotlinytmusicscraper.config.Constants
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.CHART_SUPPORTED_COUNTRY
@@ -96,10 +100,6 @@ import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.HomeViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import com.skydoves.landscapist.ImageOptions
-import com.skydoves.landscapist.animation.crossfade.CrossfadePlugin
-import com.skydoves.landscapist.coil.CoilImage
-import com.skydoves.landscapist.components.rememberImageComponent
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -312,9 +312,8 @@ fun HomeScreen(
                             if (it.title != context.getString(R.string.quick_picks)) {
                                 HomeItem(
                                     homeViewModel = viewModel,
-                                    sharedViewModel = sharedViewModel,
-                                    data = it,
                                     navController = navController,
+                                    data = it,
                                 )
                             }
                         }
@@ -324,9 +323,8 @@ fun HomeScreen(
                             ) {
                                 HomeItem(
                                     homeViewModel = viewModel,
-                                    sharedViewModel = sharedViewModel,
-                                    data = it,
                                     navController = navController,
+                                    data = it,
                                 )
                             }
                         }
@@ -487,20 +485,17 @@ fun AccountLayout(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(horizontal = 5.dp, vertical = 5.dp),
         ) {
-            CoilImage(
-                imageModel = { url },
-                imageOptions =
-                    ImageOptions(
-                        contentScale = ContentScale.Crop,
-                        alignment = Alignment.Center,
-                    ),
-                previewPlaceholder = painterResource(id = R.drawable.holder),
-                component =
-                    rememberImageComponent {
-                        CrossfadePlugin(
-                            duration = 550,
-                        )
-                    },
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(url)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .diskCacheKey(url)
+                    .crossfade(true)
+                    .build(),
+                placeholder = painterResource(R.drawable.holder),
+                error = painterResource(R.drawable.holder),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
                 modifier =
                 Modifier
                     .size(40.dp)

@@ -54,9 +54,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
-import coil.compose.AsyncImage
-import coil.request.CachePolicy
-import coil.request.ImageRequest
+import coil3.compose.AsyncImage
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.data.model.browse.album.Track
@@ -75,19 +76,11 @@ import com.maxrave.simpmusic.service.PlaylistType
 import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.HomeViewModel
-import com.maxrave.simpmusic.viewModel.SharedViewModel
-import com.skydoves.landscapist.ImageOptions
-import com.skydoves.landscapist.animation.crossfade.CrossfadePlugin
-import com.skydoves.landscapist.coil.CoilImage
-import com.skydoves.landscapist.components.rememberImageComponent
-import com.skydoves.landscapist.placeholder.placeholder.PlaceholderPlugin
 
-@OptIn(ExperimentalFoundationApi::class)
 @UnstableApi
 @Composable
 fun HomeItem(
     homeViewModel: HomeViewModel,
-    sharedViewModel: SharedViewModel,
     navController: NavController,
     data: HomeItem
 ) {
@@ -122,20 +115,16 @@ fun HomeItem(
                 visible = (data.thumbnail?.lastOrNull() != null),
                 modifier = Modifier.align(Alignment.CenterVertically)
             ) {
-                CoilImage(
-                    imageModel = { data.thumbnail?.lastOrNull()?.url },
-                    imageOptions = ImageOptions(
-                        contentScale = ContentScale.Crop,
-                        alignment = Alignment.Center,
-                    ),
-                    previewPlaceholder = painterResource(id = R.drawable.holder),
-                    component = rememberImageComponent {
-                        +CrossfadePlugin(
-                            duration = 550
-                        )
-                        +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder))
-                        +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder))
-                    },
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(data.thumbnail?.lastOrNull()?.url)
+                        .diskCachePolicy(CachePolicy.ENABLED)
+                        .diskCacheKey(data.thumbnail?.lastOrNull()?.url)
+                        .crossfade(550)
+                        .build(),
+                    contentDescription = "",
+                    placeholder = painterResource(R.drawable.holder),
+                    error = painterResource(R.drawable.holder),
                     modifier = Modifier
                         .size(45.dp)
                         .clip(
@@ -278,15 +267,21 @@ fun HomeItemContentPlaylist(
                 .padding(10.dp)
 
         ) {
+            val thumb = when (data) {
+                is Content -> data.thumbnails.lastOrNull()?.url
+                is com.maxrave.simpmusic.data.model.explore.mood.genre.Content -> data.thumbnail?.lastOrNull()?.url
+                is com.maxrave.simpmusic.data.model.explore.mood.moodmoments.Content -> data.thumbnails?.lastOrNull()?.url
+                else -> null
+            }
             AsyncImage(
-                model =
-                when (data) {
-                    is Content -> data.thumbnails.lastOrNull()?.url
-                    is com.maxrave.simpmusic.data.model.explore.mood.genre.Content -> data.thumbnail?.lastOrNull()?.url
-                    is com.maxrave.simpmusic.data.model.explore.mood.moodmoments.Content -> data.thumbnails?.lastOrNull()?.url
-                    else -> null
-                },
-                placeholder = painterResource(id = R.drawable.holder),
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(thumb)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .diskCacheKey(thumb)
+                    .crossfade(550)
+                    .build(),
+                placeholder = painterResource(R.drawable.holder),
+                error = painterResource(R.drawable.holder),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -435,26 +430,23 @@ fun HomeItemSong(
             modifier = Modifier
                 .padding(10.dp)
         ) {
-            CoilImage(
-                imageModel = {
-                    var thumbUrl = data.thumbnails.lastOrNull()?.url
-                    if (thumbUrl?.contains("w120") == true) {
-                        thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
-                    }
-                    thumbUrl
-                },
-                imageOptions = ImageOptions(
-                    contentScale = ContentScale.Crop,
-                    alignment = Alignment.Center,
-                ),
-                previewPlaceholder = painterResource(id = R.drawable.holder),
-                component = rememberImageComponent {
-                    +CrossfadePlugin(
-                        duration = 550
-                    )
-                    +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder))
-                    +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder))
-                },
+            val thumb = data.thumbnails.lastOrNull()?.url?.let {
+                if (it.contains("w120")) {
+                    Regex("([wh])120").replace(it, "$1544")
+                } else it
+            }
+            Log.w("AsyncImage", "HomeItemSong: $thumb")
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(thumb)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .diskCacheKey(thumb)
+                    .crossfade(550)
+                    .build(),
+                placeholder = painterResource(R.drawable.holder),
+                error = painterResource(R.drawable.holder),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .size(180.dp)
@@ -522,20 +514,19 @@ fun HomeItemVideo(
             modifier = Modifier
                 .padding(10.dp)
         ) {
-            CoilImage(
-                imageModel = { data.thumbnails.lastOrNull()?.url },
-                imageOptions = ImageOptions(
-                    contentScale = ContentScale.Crop,
-                    alignment = Alignment.Center,
-                ),
-                previewPlaceholder = painterResource(id = R.drawable.holder_video),
-                component = rememberImageComponent {
-                    +CrossfadePlugin(
-                        duration = 550
-                    )
-                    +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder_video))
-                    +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder_video))
-                },
+            val thumb = data.thumbnails.lastOrNull()?.url
+            Log.w("AsyncImage", "HomeItemSong: $thumb")
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(thumb)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .diskCacheKey(thumb)
+                    .crossfade(550)
+                    .build(),
+                placeholder = painterResource(R.drawable.holder_video),
+                error = painterResource(R.drawable.holder_video),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .width(320.dp)
@@ -599,20 +590,19 @@ fun HomeItemArtist(
             modifier = Modifier
                 .padding(10.dp)
         ) {
-            CoilImage(
-                imageModel = { data.thumbnails.lastOrNull()?.url },
-                imageOptions = ImageOptions(
-                    contentScale = ContentScale.Crop,
-                    alignment = Alignment.Center,
-                ),
-                previewPlaceholder = painterResource(id = R.drawable.holder),
-                component = rememberImageComponent {
-                    +CrossfadePlugin(
-                        duration = 550
-                    )
-                    +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder))
-                    +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder))
-                },
+            val thumb = data.thumbnails.lastOrNull()?.url
+            Log.w("AsyncImage", "HomeItemSong: $thumb")
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(thumb)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .diskCacheKey(thumb)
+                    .crossfade(550)
+                    .build(),
+                placeholder = painterResource(R.drawable.holder),
+                error = painterResource(R.drawable.holder),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .size(180.dp)
@@ -697,7 +687,6 @@ fun MoodMomentAndGenreHomeItem(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ItemVideoChart(
     onClick: () -> Unit,
@@ -716,20 +705,19 @@ fun ItemVideoChart(
             modifier = Modifier
                 .padding(10.dp)
         ) {
-            CoilImage(
-                imageModel = { data.thumbnails.lastOrNull()?.url },
-                imageOptions = ImageOptions(
-                    contentScale = ContentScale.Crop,
-                    alignment = Alignment.Center,
-                ),
-                previewPlaceholder = painterResource(id = R.drawable.holder_video),
-                component = rememberImageComponent {
-                    +CrossfadePlugin(
-                        duration = 550
-                    )
-                    +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder_video))
-                    +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder_video))
-                },
+            val thumb = data.thumbnails.lastOrNull()?.url
+            Log.w("AsyncImage", "HomeItemSong: $thumb")
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(thumb)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .diskCacheKey(thumb)
+                    .crossfade(550)
+                    .build(),
+                placeholder = painterResource(R.drawable.holder_video),
+                error = painterResource(R.drawable.holder_video),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .align(Alignment.CenterHorizontally)
                     .width(280.dp)
@@ -790,7 +778,6 @@ fun ItemVideoChart(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ItemArtistChart(
     onClick: () -> Unit,
@@ -822,20 +809,19 @@ fun ItemArtistChart(
                     .align(Alignment.CenterVertically)
                     .padding(end = 20.dp)
             )
-            CoilImage(
-                imageModel = { data.thumbnails.lastOrNull()?.url },
-                imageOptions = ImageOptions(
-                    contentScale = ContentScale.Crop,
-                    alignment = Alignment.Center,
-                ),
-                previewPlaceholder = painterResource(id = R.drawable.holder),
-                component = rememberImageComponent {
-                    +CrossfadePlugin(
-                        duration = 550
-                    )
-                    +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder))
-                    +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder))
-                },
+            val thumb = data.thumbnails.lastOrNull()?.url
+            Log.w("AsyncImage", "HomeItemSong: $thumb")
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(thumb)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .diskCacheKey(thumb)
+                    .crossfade(550)
+                    .build(),
+                placeholder = painterResource(R.drawable.holder),
+                error = painterResource(R.drawable.holder),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
                     .size(60.dp)
@@ -871,7 +857,6 @@ fun ItemArtistChart(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ItemTrackChart(
     onClick: () -> Unit,
@@ -911,22 +896,19 @@ fun ItemTrackChart(
                     }
                 }
             }
-            CoilImage(
-                imageModel = {
-                    data.thumbnails?.lastOrNull()?.url
-                }, // loading a network image or local resource using an URL.
-                imageOptions = ImageOptions(
-                    contentScale = ContentScale.Crop,
-                    alignment = Alignment.Center,
-                ),
-                previewPlaceholder = painterResource(id = R.drawable.holder),
-                component = rememberImageComponent {
-                    +CrossfadePlugin(
-                        duration = 550
-                    )
-                    +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder))
-                    +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder))
-                },
+            val thumb = data.thumbnails?.lastOrNull()?.url
+            Log.w("AsyncImage", "HomeItemSong: $thumb")
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(thumb)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .diskCacheKey(thumb)
+                    .crossfade(550)
+                    .build(),
+                placeholder = painterResource(R.drawable.holder),
+                error = painterResource(R.drawable.holder),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
                     .size(50.dp)
