@@ -97,7 +97,6 @@ import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants.IterateForever
 import com.airbnb.lottie.compose.rememberLottieComposition
-import com.kmpalette.rememberDominantColorState
 import com.kmpalette.rememberPaletteState
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
@@ -110,7 +109,7 @@ import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.LoadingDialog
 import com.maxrave.simpmusic.ui.component.LocalPlaylistBottomSheet
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
-import com.maxrave.simpmusic.ui.component.PlaylistItems
+import com.maxrave.simpmusic.ui.component.SongFullWidthItems
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SuggestItems
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
@@ -125,7 +124,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.mapLatest
-import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
 
 @UnstableApi
@@ -748,7 +746,7 @@ fun PlaylistScreen(
             val item = trackPagingItems[index]
             if (item != null) {
                 if (playingTrack?.mediaId == item.videoId && isPlaying) {
-                    PlaylistItems(
+                    SongFullWidthItems(
                         isPlaying = true,
                         songEntity = item,
                         onMoreClickListener = { onItemMoreClick(it) },
@@ -759,7 +757,7 @@ fun PlaylistScreen(
                         modifier = Modifier.animateItem(),
                     )
                 } else {
-                    PlaylistItems(
+                    SongFullWidthItems(
                         isPlaying = false,
                         songEntity = item,
                         onMoreClickListener = { onItemMoreClick(it) },
@@ -910,5 +908,4 @@ fun PlaylistScreen(
             modifier = Modifier.angledGradientBackground(uiState.colors, 90f),
         )
     }
-//    }
 }

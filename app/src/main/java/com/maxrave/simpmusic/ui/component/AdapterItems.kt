@@ -60,6 +60,8 @@ import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
+import com.maxrave.simpmusic.common.DownloadState
+import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.explore.mood.genre.ItemsPlaylist
 import com.maxrave.simpmusic.data.model.explore.mood.moodmoments.Item
@@ -67,6 +69,8 @@ import com.maxrave.simpmusic.data.model.home.Content
 import com.maxrave.simpmusic.data.model.home.HomeItem
 import com.maxrave.simpmusic.data.model.home.chart.ItemArtist
 import com.maxrave.simpmusic.data.model.home.chart.ItemVideo
+import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
+import com.maxrave.simpmusic.data.type.HomeContentType
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.generateRandomColor
 import com.maxrave.simpmusic.extension.navigateSafe
@@ -248,11 +252,11 @@ fun HomeItem(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun HomeItemContentPlaylist(
     onClick: () -> Unit,
-    data: Any,
+    data: HomeContentType,
+    thumbSize: Dp = 180.dp
 ) {
     Box(
         Modifier
@@ -271,6 +275,8 @@ fun HomeItemContentPlaylist(
                 is Content -> data.thumbnails.lastOrNull()?.url
                 is com.maxrave.simpmusic.data.model.explore.mood.genre.Content -> data.thumbnail?.lastOrNull()?.url
                 is com.maxrave.simpmusic.data.model.explore.mood.moodmoments.Content -> data.thumbnails?.lastOrNull()?.url
+                is LocalPlaylistEntity -> data.thumbnail
+                is PlaylistsResult -> data.thumbnails.lastOrNull()?.url
                 else -> null
             }
             AsyncImage(
@@ -285,7 +291,7 @@ fun HomeItemContentPlaylist(
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
-                    .size(180.dp)
+                    .size(thumbSize)
                     .clip(
                         RoundedCornerShape(10.dp)
                     )
@@ -296,13 +302,15 @@ fun HomeItemContentPlaylist(
                     is Content -> data.title
                     is com.maxrave.simpmusic.data.model.explore.mood.genre.Content -> data.title.title
                     is com.maxrave.simpmusic.data.model.explore.mood.moodmoments.Content -> data.title
+                    is LocalPlaylistEntity -> data.title
+                    is PlaylistsResult -> data.title
                     else -> ""
                 },
                 style = typo.titleSmall,
                 color = Color.White,
                 maxLines = 1,
                 modifier = Modifier
-                    .width(180.dp)
+                    .width(thumbSize)
                     .wrapContentHeight(align = Alignment.CenterVertically)
                     .padding(top = 10.dp)
                     .basicMarquee(animationMode = MarqueeAnimationMode.Immediately)
@@ -319,17 +327,39 @@ fun HomeItemContentPlaylist(
 
                     is com.maxrave.simpmusic.data.model.explore.mood.genre.Content -> data.title.subtitle
                     is com.maxrave.simpmusic.data.model.explore.mood.moodmoments.Content -> data.subtitle
+                    is LocalPlaylistEntity -> stringResource(R.string.you)
+                    is PlaylistsResult -> data.author
                     else -> ""
                 },
                 style = typo.bodySmall,
                 maxLines = 1,
                 modifier = Modifier
-                    .width(180.dp)
+                    .width(thumbSize)
                     .wrapContentHeight(align = Alignment.CenterVertically)
                     .padding(top = 10.dp)
                     .basicMarquee(animationMode = MarqueeAnimationMode.Immediately)
                     .focusable()
             )
+            if (data is com.maxrave.simpmusic.data.type.PlaylistType) {
+                val subtitle = if (data is LocalPlaylistEntity) {
+                    if (data.downloadState != DownloadState.STATE_DOWNLOADED)
+                        stringResource(R.string.available_online)
+                    else stringResource(R.string.downloaded)
+                } else {
+                    stringResource(R.string.your_youtube_playlists)
+                }
+                Text(
+                    text = subtitle,
+                    style = typo.bodySmall,
+                    maxLines = 1,
+                    modifier = Modifier
+                        .width(thumbSize)
+                        .wrapContentHeight(align = Alignment.CenterVertically)
+                        .padding(top = 10.dp)
+                        .basicMarquee(animationMode = MarqueeAnimationMode.Immediately)
+                        .focusable()
+                )
+            }
         }
     }
 }

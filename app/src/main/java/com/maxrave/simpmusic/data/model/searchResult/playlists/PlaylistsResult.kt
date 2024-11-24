@@ -3,6 +3,7 @@ package com.maxrave.simpmusic.data.model.searchResult.playlists
 
 import com.google.gson.annotations.SerializedName
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
+import com.maxrave.simpmusic.data.type.PlaylistType
 
 data class PlaylistsResult(
     @SerializedName("author")
@@ -19,4 +20,4 @@ data class PlaylistsResult(
     val thumbnails: List<Thumbnail>,
     @SerializedName("title")
     val title: String
-)
+): PlaylistType

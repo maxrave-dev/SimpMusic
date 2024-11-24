@@ -47,8 +47,11 @@ import com.maxrave.simpmusic.ui.theme.typo
 import kotlinx.coroutines.flow.mapNotNull
 import org.koin.compose.koinInject
 
+/**
+ * This is the song item in the playlist or other places.
+ */
 @Composable
-fun PlaylistItems(
+fun SongFullWidthItems(
     track: Track? = null,
     songEntity: SongEntity? = null,
     isPlaying: Boolean,

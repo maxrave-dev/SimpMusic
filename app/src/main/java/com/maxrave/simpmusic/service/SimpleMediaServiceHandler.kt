@@ -320,7 +320,9 @@ class SimpleMediaServiceHandler(
                 mainRepository.getSongById(videoId).cancellable().singleOrNull().let { songEntity ->
                     if (songEntity != null) {
                         _controlState.update { it.copy(isLiked = songEntity.liked) }
-                        mainRepository.updateSongInLibrary(LocalDateTime.now(), songEntity.videoId)
+                        mainRepository.updateSongInLibrary(LocalDateTime.now(), songEntity.videoId).singleOrNull().let {
+                            Log.w(TAG, "getDataOfNowPlayingState: $it")
+                        }
                         mainRepository.updateListenCount(songEntity.videoId)
                     } else {
                         _controlState.update { it.copy(isLiked = false) }

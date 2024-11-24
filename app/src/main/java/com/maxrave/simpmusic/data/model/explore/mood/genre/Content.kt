@@ -3,6 +3,7 @@ package com.maxrave.simpmusic.data.model.explore.mood.genre
 
 import com.google.gson.annotations.SerializedName
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
+import com.maxrave.simpmusic.data.type.HomeContentType
 
 data class Content(
     @SerializedName("playlistBrowseId")
@@ -11,4 +12,4 @@ data class Content(
     val thumbnail: List<Thumbnail>?,
     @SerializedName("title")
     val title: Title
-)
+): HomeContentType
