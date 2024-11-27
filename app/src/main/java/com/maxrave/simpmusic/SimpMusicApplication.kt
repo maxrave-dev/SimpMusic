@@ -8,6 +8,7 @@ import cat.ereza.customactivityoncrash.config.CaocConfig
 import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
+import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.request.CachePolicy
 import coil3.request.crossfade
 import coil3.util.DebugLogger
@@ -16,6 +17,7 @@ import com.maxrave.simpmusic.di.mediaServiceModule
 import com.maxrave.simpmusic.di.viewModelModule
 import com.maxrave.simpmusic.ui.MainActivity
 import com.maxrave.simpmusic.ui.theme.newDiskCache
+import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.androidx.workmanager.koin.workManagerFactory
@@ -29,6 +31,15 @@ class SimpMusicApplication :
 
     override fun newImageLoader(context: PlatformContext): ImageLoader {
         return ImageLoader.Builder(context)
+            .components {
+                add(
+                    OkHttpNetworkFetcherFactory(
+                        callFactory = {
+                            OkHttpClient()
+                        }
+                    )
+                )
+            }
             .logger(DebugLogger())
             .diskCachePolicy(CachePolicy.ENABLED).networkCachePolicy(CachePolicy.ENABLED)
             .diskCache(newDiskCache())

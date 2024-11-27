@@ -27,4 +27,5 @@ data class AlbumEntity (
     val downloadState: Int = DownloadState.STATE_NOT_DOWNLOADED,
     ): PlaylistType, RecentlyType {
         override fun objectType(): RecentlyType.Type = RecentlyType.Type.ALBUM
+        override fun playlistType(): PlaylistType.Type = PlaylistType.Type.ALBUM
     }

@@ -6,10 +6,10 @@ import androidx.core.net.toUri
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.database.DatabaseProvider
 import androidx.media3.datasource.DataSpec
-import androidx.media3.datasource.DefaultHttpDataSource
 import androidx.media3.datasource.ResolvingDataSource
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.SimpleCache
+import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.offline.DownloadNotificationHelper
@@ -29,6 +29,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import okhttp3.OkHttpClient
 import java.util.concurrent.Executors
 
 @UnstableApi
@@ -46,10 +47,10 @@ class DownloadUtils (
             .setCache(playerCache)
             .setCacheWriteDataSinkFactory(null)
             .setUpstreamDataSourceFactory(
-                DefaultHttpDataSource.Factory()
-                    .setAllowCrossProtocolRedirects(true)
-                    .setUserAgent("Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36")
-                    .setConnectTimeoutMs(5000)
+                OkHttpDataSource.Factory(
+                    OkHttpClient.Builder()
+                        .build()
+                )
             )
     ) { dataSpec ->
         val mediaId = dataSpec.key ?: error("No media id")

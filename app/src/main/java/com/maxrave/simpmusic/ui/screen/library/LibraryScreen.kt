@@ -16,6 +16,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
+import androidx.navigation.NavController
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.LibraryItem
@@ -32,6 +33,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun LibraryScreen(
     viewModel: LibraryViewModel = koinViewModel(),
+    navController: NavController
 ) {
     val loggedIn by viewModel.youtubeLoggedIn.collectAsStateWithLifecycle(initialValue = false)
     val nowPlaying by viewModel.nowPlayingVideoId.collectAsState()
@@ -80,18 +82,20 @@ fun LibraryScreen(
                     },
                     data = youTubePlaylist.data ?: emptyList(),
                     isLoading = youTubePlaylist is LocalResource.Loading,
-                )
+                ),
+                navController = navController
             )
         }
         item {
             LibraryItem(
                 state = LibraryItemState(
-                    type = LibraryItemType.LocalPlaylist {
-
+                    type = LibraryItemType.LocalPlaylist { newTitle ->
+                        viewModel.createPlaylist(newTitle)
                     },
                     data = yourLocalPlaylist.data ?: emptyList(),
                     isLoading = yourLocalPlaylist is LocalResource.Loading,
-                )
+                ),
+                navController = navController
             )
         }
         item {
@@ -100,7 +104,8 @@ fun LibraryScreen(
                     type = LibraryItemType.FavoritePlaylist,
                     data = favoritePlaylist.data ?: emptyList(),
                     isLoading = favoritePlaylist is LocalResource.Loading,
-                )
+                ),
+                navController = navController
             )
         }
         item {
@@ -109,7 +114,8 @@ fun LibraryScreen(
                     type = LibraryItemType.DownloadedPlaylist,
                     data = downloadedPlaylist.data ?: emptyList(),
                     isLoading = downloadedPlaylist is LocalResource.Loading,
-                )
+                ),
+                navController = navController
             )
         }
         item {
@@ -118,7 +124,8 @@ fun LibraryScreen(
                     type = LibraryItemType.RecentlyAdded(
                         playingVideoId = nowPlaying
                     ), data = recentlyAdded.data ?: emptyList(), isLoading = recentlyAdded is LocalResource.Loading
-                )
+                ),
+                navController = navController
             )
         }
         item {

@@ -20,4 +20,9 @@ data class PlaylistsResult(
     val thumbnails: List<Thumbnail>,
     @SerializedName("title")
     val title: String
-): PlaylistType
+): PlaylistType {
+    override fun playlistType(): PlaylistType.Type =
+        if (browseId.startsWith("RDEM") || browseId.startsWith("RDAMVM") || browseId.startsWith("RDAT"))
+            PlaylistType.Type.RADIO
+        else PlaylistType.Type.YOUTUBE_PLAYLIST
+}

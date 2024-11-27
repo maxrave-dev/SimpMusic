@@ -24,8 +24,10 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.CommandButton
 import androidx.media3.session.SessionCommand
-import coil.ImageLoader
-import coil.request.ImageRequest
+import coil3.imageLoader
+import coil3.request.ImageRequest
+import coil3.request.placeholder
+import coil3.toBitmap
 import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.ASC
@@ -328,7 +330,9 @@ class SimpleMediaServiceHandler(
                         _controlState.update { it.copy(isLiked = false) }
                         mainRepository.insertSong(
                             track?.toSongEntity() ?: mediaItem.toSongEntity()!!,
-                        )
+                        ).singleOrNull()?.let {
+                            Log.w(TAG, "getDataOfNowPlayingState: $it")
+                        }
                     }
                     Log.w(TAG, "getDataOfNowPlayingState: $songEntity")
                     Log.w(TAG, "getDataOfNowPlayingState: $track")
@@ -1199,7 +1203,7 @@ class SimpleMediaServiceHandler(
                                     }
                             },
                         ).build()
-                ImageLoader(context).execute(imageRequest)
+                context.imageLoader.execute(imageRequest)
             }
     }
 

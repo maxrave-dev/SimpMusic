@@ -166,12 +166,26 @@ fun parsePlaylistData(
                                 ?.get(0)
                                 ?.navigationEndpoint
                                 ?.browseEndpoint
-                                ?.browseId ?: "",
+                                ?.browseId ?:
+                                header.facepile
+                                    ?.avatarStackViewModel
+                                    ?.rendererContext
+                                    ?.commandContext
+                                    ?.onTap
+                                    ?.innertubeCommand
+                                    ?.browseEndpoint
+                                    ?.browseId
+                            ?: "",
                         name =
                             header.straplineTextOne
                                 ?.runs
                                 ?.get(0)
-                                ?.text ?: "",
+                                ?.text ?:
+                                header.facepile
+                                    ?.avatarStackViewModel
+                                    ?.text
+                                    ?.content
+                                    ?: "",
                     )
                 listAuthor.add(author)
                 Log.d("PlaylistParser", "author: $author")

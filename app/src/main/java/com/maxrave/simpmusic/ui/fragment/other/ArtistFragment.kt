@@ -20,10 +20,13 @@ import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
 import androidx.palette.graphics.Palette
 import androidx.recyclerview.widget.LinearLayoutManager
-import coil.load
-import coil.request.CachePolicy
-import coil.size.Size
-import coil.transform.Transformation
+import coil3.load
+import coil3.request.CachePolicy
+import coil3.request.crossfade
+import coil3.request.placeholder
+import coil3.request.transformations
+import coil3.size.Size
+import coil3.transform.Transformation
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.snackbar.Snackbar
 import com.maxrave.simpmusic.R
@@ -718,7 +721,7 @@ class ArtistFragment : Fragment() {
             placeholder(R.drawable.holder_video)
             crossfade(true)
             transformations(
-                object : Transformation {
+                object : Transformation() {
                     override val cacheKey: String
                         get() = "paletteTransformer"
 

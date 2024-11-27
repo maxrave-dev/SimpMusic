@@ -138,7 +138,6 @@ class LibraryViewModel(
         }
 
         fun getPlaylistFavorite() {
-            _favoritePlaylist.value = LocalResource.Loading()
             viewModelScope.launch {
                 mainRepository.getLikedAlbums().collect { album ->
                     val temp: MutableList<PlaylistType> = mutableListOf()
@@ -183,13 +182,12 @@ class LibraryViewModel(
             viewModelScope.launch {
                 mainRepository.getAllLocalPlaylists().collect { values ->
 //                    _listLocalPlaylist.postValue(values)
-                    _yourLocalPlaylist.value = LocalResource.Success(values)
+                    _yourLocalPlaylist.value = LocalResource.Success(values.reversed())
                 }
             }
         }
 
         fun getDownloadedPlaylist() {
-            _downloadedPlaylist.value = LocalResource.Loading()
             viewModelScope.launch {
                 mainRepository.getAllDownloadedPlaylist().collect { values ->
                     _downloadedPlaylist.value = LocalResource.Success(values)

@@ -26,8 +26,13 @@ import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.fragment.findNavController
 import androidx.palette.graphics.Palette
 import androidx.recyclerview.widget.LinearLayoutManager
-import coil.load
-import coil.request.CachePolicy
+import coil3.load
+import coil3.request.crossfade
+import coil3.request.placeholder
+import coil3.asDrawable
+import coil3.request.CachePolicy
+import coil3.request.allowHardware
+import coil3.toBitmap
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.snackbar.Snackbar
 import com.maxrave.simpmusic.R
@@ -73,6 +78,7 @@ import java.time.LocalDateTime
 import kotlin.math.abs
 import kotlin.random.Random
 
+@UnstableApi
 class PlaylistFragment : Fragment() {
     private val tag = "PlaylistFragment"
 
@@ -1736,8 +1742,8 @@ class PlaylistFragment : Fragment() {
                         Log.w(tag, "Load Image Error ${er.throwable.message}")
                     },
                     onSuccess = { _, result ->
-                        binding.ivPlaylistArt.setImageDrawable(result.drawable)
-                        val p = Palette.from(result.drawable.toBitmap()).generate()
+                        binding.ivPlaylistArt.setImageDrawable(result.image.asDrawable(resources))
+                        val p = Palette.from(result.image.toBitmap()).generate()
                         val defaultColor = 0x000000
                         var startColor = p.getDarkVibrantColor(defaultColor)
                         if (startColor == defaultColor) {

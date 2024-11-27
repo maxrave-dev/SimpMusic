@@ -119,7 +119,7 @@ class LocalPlaylistManager(
             localDataSource.deleteLocalPlaylist(id)
         }
 
-    suspend fun updateTitleLocalPlaylist(
+    fun updateTitleLocalPlaylist(
         id: Long,
         newTitle: String,
     ): Flow<LocalResource<String>> =

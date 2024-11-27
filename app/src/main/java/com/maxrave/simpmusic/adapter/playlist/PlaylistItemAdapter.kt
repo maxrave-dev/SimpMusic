@@ -4,10 +4,11 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
-import coil.ImageLoader
-import coil.request.ImageRequest
+import coil3.load
+import coil3.request.CachePolicy
+import coil3.request.crossfade
+import coil3.request.placeholder
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
@@ -97,7 +98,12 @@ class PlaylistItemAdapter(private var playlistItemList: ArrayList<Any>): Recycle
         fun bind (track: Track) {
             binding.tvSongTitle.text = track.title
             binding.tvSongArtist.text = track.artists.toListName().connectArtists()
-            binding.ivThumbnail.load(track.thumbnails?.last()?.url)
+            binding.ivThumbnail.load(track.thumbnails?.last()?.url) {
+                placeholder(R.drawable.holder)
+                crossfade(true)
+                diskCachePolicy(CachePolicy.ENABLED)
+                diskCacheKey(track.thumbnails?.last()?.url)
+            }
             binding.tvSongTitle.isSelected = true
             binding.tvSongArtist.isSelected = true
             if (downloadedList.contains(track.videoId)) {
@@ -128,7 +134,12 @@ class PlaylistItemAdapter(private var playlistItemList: ArrayList<Any>): Recycle
             binding.tvSongArtist.text = song.artistName?.connectArtists()
             binding.tvSongTitle.isSelected = true
             binding.tvSongArtist.isSelected = true
-            binding.ivThumbnail.load(song.thumbnails)
+            binding.ivThumbnail.load(song.thumbnails) {
+                placeholder(R.drawable.holder)
+                crossfade(true)
+                diskCachePolicy(CachePolicy.ENABLED)
+                diskCacheKey(song.thumbnails)
+            }
             if (downloadedList.contains(song.videoId)) {
                 binding.ivDownloaded.visibility = View.VISIBLE
             } else {
@@ -187,20 +198,6 @@ class PlaylistItemAdapter(private var playlistItemList: ArrayList<Any>): Recycle
     companion object {
         private const val VIEW_TYPE_TRACK = 0
         private const val VIEW_TYPE_LOCAL_PLAYLIST_TRACK = 1
-    }
-
-    fun ImageView.load(url: String?) {
-        if (url != null) {
-            ImageLoader(context).enqueue(
-                ImageRequest.Builder(context)
-                    .placeholder(R.drawable.holder)
-                    .crossfade(true)
-                    .data(url)
-                    .diskCacheKey(url)
-                    .target(this)
-                    .build()
-            )
-        }
     }
 
     fun setLikedTrack(position: Int, like: Boolean) {

@@ -7,7 +7,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.graphics.drawable.BitmapDrawable
 import androidx.annotation.OptIn
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.app.ActivityCompat
@@ -16,9 +15,11 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.graphics.drawable.toBitmap
 import androidx.core.net.toUri
 import androidx.media3.common.util.UnstableApi
-import coil.ImageLoader
-import coil.request.ImageRequest
-import coil.request.SuccessResult
+import coil3.ImageLoader
+import coil3.request.ImageRequest
+import coil3.request.SuccessResult
+import coil3.request.allowHardware
+import coil3.toBitmap
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.ui.MainActivity
 import kotlinx.coroutines.runBlocking
@@ -35,7 +36,7 @@ object NotificationHandler {
         val action = Intent(context, MainActivity::class.java)
         action.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         action.data = "simpmusic://notification".toUri()
-        var pendingIntent =
+        val pendingIntent =
             PendingIntent.getActivity(
                 context, 0, action,
                 PendingIntent.FLAG_IMMUTABLE
@@ -54,7 +55,7 @@ object NotificationHandler {
                         .build()
 
                 return@runBlocking when (val result = loader.execute(request)) {
-                    is SuccessResult -> (result.drawable as BitmapDrawable).bitmap
+                    is SuccessResult -> result.image.toBitmap()
                     else ->
                         AppCompatResources.getDrawable(context, R.drawable.holder)
                             ?.toBitmap(128, 128)

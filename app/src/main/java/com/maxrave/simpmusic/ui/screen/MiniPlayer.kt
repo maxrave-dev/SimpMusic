@@ -65,15 +65,15 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
 import coil3.compose.AsyncImage
-import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.toBitmap
 import com.kmpalette.rememberPaletteState
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.data.db.entities.SongEntity
+import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.ui.component.HeartCheckBox
 import com.maxrave.simpmusic.ui.component.PlayPauseButton
@@ -93,9 +93,9 @@ fun MiniPlayer(
     onClose: () -> Unit,
     onClick: () -> Unit,
 ) {
-    val (mediaItem, setMediaItem) =
+    val (songEntity, setSongEntity) =
         remember {
-            mutableStateOf(MediaItem.EMPTY)
+            mutableStateOf<SongEntity?>(null)
         }
     val (liked, setLiked) =
         remember {
@@ -156,7 +156,7 @@ fun MiniPlayer(
             launch {
                 sharedViewModel.nowPlayingState.collect { item ->
                     if (item != null) {
-                        setMediaItem(item.mediaItem)
+                        setSongEntity(item.songEntity)
                     }
                 }
             }
@@ -282,9 +282,7 @@ fun MiniPlayer(
                     ) {
                         AsyncImage(
                             model = ImageRequest.Builder(LocalContext.current)
-                                .data(mediaItem.mediaMetadata.artworkUri)
-                                .diskCachePolicy(CachePolicy.ENABLED)
-                                .diskCacheKey(mediaItem.mediaMetadata.artworkUri.toString())
+                                .data(songEntity?.thumbnails)
                                 .crossfade(550)
                                 .build(),
                             placeholder = painterResource(R.drawable.holder),
@@ -303,7 +301,7 @@ fun MiniPlayer(
                         )
                         Spacer(modifier = Modifier.width(10.dp))
                         AnimatedContent(
-                            targetState = mediaItem,
+                            targetState = songEntity,
                             modifier = Modifier.weight(1F),
                             transitionSpec = {
                                 // Compare the incoming number with the previous number.
@@ -334,10 +332,10 @@ fun MiniPlayer(
                                 )
                             },
                         ) { target ->
-                            if (target != MediaItem.EMPTY) {
+                            if (target != null) {
                                 Column {
                                     Text(
-                                        text = (mediaItem.mediaMetadata.title ?: "").toString(),
+                                        text = (songEntity?.title ?: "").toString(),
                                         style = typo.labelMedium,
                                         color = Color.White,
                                         maxLines = 1,
@@ -353,7 +351,7 @@ fun MiniPlayer(
                                             .focusable(),
                                     )
                                     Text(
-                                        text = (mediaItem.mediaMetadata.artist ?: "").toString(),
+                                        text = (songEntity?.artistName?.connectArtists() ?: "").toString(),
                                         style = typo.bodySmall,
                                         color = Color.White,
                                         maxLines = 1,

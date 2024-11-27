@@ -25,12 +25,15 @@ import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.fragment.findNavController
 import androidx.palette.graphics.Palette
 import androidx.recyclerview.widget.LinearLayoutManager
-import coil.ImageLoader
-import coil.load
-import coil.request.CachePolicy
-import coil.request.ImageRequest
-import coil.size.Size
-import coil.transform.Transformation
+import coil3.asDrawable
+import coil3.imageLoader
+import coil3.load
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.request.placeholder
+import coil3.request.transformations
+import coil3.size.Size
+import coil3.transform.Transformation
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.snackbar.Snackbar
 import com.maxrave.simpmusic.R
@@ -1137,7 +1140,7 @@ class AlbumFragment : Fragment() {
                     onStart = {
                     },
                     onSuccess = { result ->
-                        binding.ivAlbumArt.setImageDrawable(result)
+                        binding.ivAlbumArt.setImageDrawable(result.asDrawable(requireContext().resources))
                         if (viewModel.gradientDrawable.value != null) {
                             viewModel.gradientDrawable.observe(viewLifecycleOwner) {
                                 binding.fullRootLayout.background =
@@ -1156,7 +1159,7 @@ class AlbumFragment : Fragment() {
                         binding.ivAlbumArt.load(R.drawable.holder)
                     },
                 ).transformations(
-                    object : Transformation {
+                    object : Transformation() {
                         override val cacheKey: String
                             get() = url
 
@@ -1199,7 +1202,7 @@ class AlbumFragment : Fragment() {
                         }
                     },
                 ).build()
-        ImageLoader(requireContext()).enqueue(request)
+        requireContext().imageLoader.enqueue(request)
 //        binding.ivAlbumArt.load(url) {
 //            diskCachePolicy(CachePolicy.ENABLED)
 //                .diskCacheKey(albumId)

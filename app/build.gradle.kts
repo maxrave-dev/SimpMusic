@@ -246,7 +246,6 @@ dependencies {
     implementation(libs.gson)
 
     // Coil
-    implementation(libs.coil)
     implementation(libs.coil.compose)
     implementation(libs.coil.network.okhttp)
     implementation(libs.kmpalette.core)

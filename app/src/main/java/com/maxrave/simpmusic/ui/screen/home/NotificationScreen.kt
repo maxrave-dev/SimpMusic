@@ -250,7 +250,10 @@ fun ItemAlbumNotification(
                         .width(150.dp)
                         .wrapContentHeight(align = Alignment.CenterVertically)
                         .padding(top = 10.dp)
-                        .basicMarquee(animationMode = MarqueeAnimationMode.Immediately)
+                        .basicMarquee(
+                            iterations = Int.MAX_VALUE,
+                            animationMode = MarqueeAnimationMode.Immediately
+                        )
                         .focusable(),
             )
             Text(
@@ -262,7 +265,10 @@ fun ItemAlbumNotification(
                         .width(150.dp)
                         .wrapContentHeight(align = Alignment.CenterVertically)
                         .padding(top = 10.dp)
-                        .basicMarquee(animationMode = MarqueeAnimationMode.Immediately)
+                        .basicMarquee(
+                            iterations = Int.MAX_VALUE,
+                            animationMode = MarqueeAnimationMode.Immediately
+                        )
                         .focusable(),
             )
         }

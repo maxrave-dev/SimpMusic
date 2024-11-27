@@ -25,7 +25,6 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import coil.annotation.ExperimentalCoilApi
 import com.google.android.flexbox.FlexboxLayout
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.slider.Slider
@@ -101,7 +100,6 @@ class SettingsFragment : Fragment() {
 
     private var resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {}
 
-    @OptIn(ExperimentalCoilApi::class)
     @UnstableApi
     override fun onViewCreated(
         view: View,

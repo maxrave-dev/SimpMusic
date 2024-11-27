@@ -341,59 +341,55 @@ fun HomeScreen(
                             }
                         }
                         item {
-                            Crossfade(targetState = chart == null && !chartLoading) { noData ->
-                                if (!noData) {
-                                    Column(
-                                        Modifier
-                                            .padding(vertical = 10.dp),
-                                        verticalArrangement = Arrangement.SpaceBetween,
-                                    ) {
-                                        ChartTitle()
-                                        Spacer(modifier = Modifier.height(5.dp))
-                                        Crossfade(targetState = regionChart) {
-                                            Log.w("HomeScreen", "regionChart: $it")
-                                            if (it != null) {
-                                                DropdownButton(
-                                                    items = CHART_SUPPORTED_COUNTRY.itemsData.toList(),
-                                                    defaultSelected =
-                                                    CHART_SUPPORTED_COUNTRY.itemsData.getOrNull(
-                                                        CHART_SUPPORTED_COUNTRY.items.indexOf(it),
-                                                    )
-                                                        ?: CHART_SUPPORTED_COUNTRY.itemsData[1],
-                                                ) {
-                                                    viewModel.exploreChart(
-                                                        CHART_SUPPORTED_COUNTRY.items[
-                                                            CHART_SUPPORTED_COUNTRY.itemsData.indexOf(
-                                                                it,
-                                                            ),
-                                                        ],
-                                                    )
-                                                }
-                                            }
+                            Column(
+                                Modifier
+                                    .padding(vertical = 10.dp),
+                                verticalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                ChartTitle()
+                                Spacer(modifier = Modifier.height(5.dp))
+                                Crossfade(targetState = regionChart) {
+                                    Log.w("HomeScreen", "regionChart: $it")
+                                    if (it != null) {
+                                        DropdownButton(
+                                            items = CHART_SUPPORTED_COUNTRY.itemsData.toList(),
+                                            defaultSelected =
+                                            CHART_SUPPORTED_COUNTRY.itemsData.getOrNull(
+                                                CHART_SUPPORTED_COUNTRY.items.indexOf(it),
+                                            )
+                                                ?: CHART_SUPPORTED_COUNTRY.itemsData[1],
+                                        ) {
+                                            viewModel.exploreChart(
+                                                CHART_SUPPORTED_COUNTRY.items[
+                                                    CHART_SUPPORTED_COUNTRY.itemsData.indexOf(
+                                                        it,
+                                                    ),
+                                                ],
+                                            )
                                         }
-                                        Spacer(modifier = Modifier.height(5.dp))
-                                        Crossfade(
-                                            targetState = chartLoading,
-                                            label = "Chart",
-                                        ) { loading ->
-                                            if (!loading) {
-                                                chart?.let {
-                                                    ChartData(
-                                                        chart = it,
-                                                        viewModel = viewModel,
-                                                        navController = navController,
-                                                        context = context,
-                                                    )
-                                                }
-                                            } else {
-                                                CenterLoadingBox(
-                                                    modifier =
-                                                    Modifier
-                                                        .fillMaxWidth()
-                                                        .height(400.dp),
-                                                )
-                                            }
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(5.dp))
+                                Crossfade(
+                                    targetState = chartLoading,
+                                    label = "Chart",
+                                ) { loading ->
+                                    if (!loading) {
+                                        chart?.let {
+                                            ChartData(
+                                                chart = it,
+                                                viewModel = viewModel,
+                                                navController = navController,
+                                                context = context,
+                                            )
                                         }
+                                    } else {
+                                        CenterLoadingBox(
+                                            modifier =
+                                            Modifier
+                                                .fillMaxWidth()
+                                                .height(400.dp),
+                                        )
                                     }
                                 }
                             }
@@ -584,7 +580,6 @@ fun QuickPicks(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MoodMomentAndGenre(
     mood: Mood,
@@ -678,7 +673,6 @@ fun ChartTitle() {
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @UnstableApi
 @Composable
 fun ChartData(

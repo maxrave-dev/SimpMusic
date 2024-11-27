@@ -344,7 +344,10 @@ fun FullscreenLyricsSheet(
                                     Modifier
                                         .fillMaxWidth()
                                         .wrapContentHeight(align = Alignment.CenterVertically)
-                                        .basicMarquee(animationMode = MarqueeAnimationMode.Immediately)
+                                        .basicMarquee(
+                                            iterations = Int.MAX_VALUE,
+                                            animationMode = MarqueeAnimationMode.Immediately
+                                        )
                                         .focusable(),
                             )
                         }

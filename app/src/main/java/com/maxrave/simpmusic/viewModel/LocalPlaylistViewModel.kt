@@ -131,7 +131,9 @@ class LocalPlaylistViewModel(
                         delay(500)
                         val fullTracks = localPlaylistManager.getFullPlaylistTracks(id = id)
                         val notDownloadedList = fullTracks.filter { it.downloadState != STATE_DOWNLOADED }.map { it.videoId }
-                        if (fullTracks.all { it.downloadState == STATE_DOWNLOADED } && uiState.value.downloadState != STATE_DOWNLOADED) {
+                        if (fullTracks.isEmpty()) {
+                            updatePlaylistDownloadState(uiState.value.id, STATE_NOT_DOWNLOADED)
+                        } else if (fullTracks.all { it.downloadState == STATE_DOWNLOADED } && uiState.value.downloadState != STATE_DOWNLOADED) {
                             updatePlaylistDownloadState(uiState.value.id, STATE_DOWNLOADED)
                         } else if (
                             downloadUtils.downloads.value

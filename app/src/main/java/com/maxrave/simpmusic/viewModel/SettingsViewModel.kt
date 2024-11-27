@@ -9,8 +9,8 @@ import android.widget.Toast
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.cache.SimpleCache
-import coil.annotation.ExperimentalCoilApi
-import coil.imageLoader
+import coil3.annotation.ExperimentalCoilApi
+import coil3.imageLoader
 import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
@@ -124,7 +124,6 @@ class SettingsViewModel(
         }
     }
 
-    @OptIn(ExperimentalCoilApi::class)
     fun getThumbCacheSize() {
         viewModelScope.launch {
             val diskCache = application.imageLoader.diskCache

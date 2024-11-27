@@ -12,7 +12,6 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -108,7 +107,6 @@ import androidx.core.os.bundleOf
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
-import coil3.compose.SubcomposeAsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
@@ -123,7 +121,6 @@ import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.parseTimestampToMilliseconds
 import com.maxrave.simpmusic.service.RepeatState
-import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.DescriptionView
 import com.maxrave.simpmusic.ui.component.FullscreenLyricsSheet
 import com.maxrave.simpmusic.ui.component.HeartCheckBox
@@ -492,7 +489,10 @@ fun NowPlayingScreen(
                                 Modifier
                                     .fillMaxWidth()
                                     .wrapContentHeight(align = Alignment.CenterVertically)
-                                    .basicMarquee(animationMode = MarqueeAnimationMode.Immediately)
+                                    .basicMarquee(
+                                        iterations = Int.MAX_VALUE,
+                                        animationMode = MarqueeAnimationMode.Immediately
+                                    )
                                     .focusable(),
                         )
                     }
@@ -560,24 +560,19 @@ fun NowPlayingScreen(
                                     ).aspectRatio(1f),
                         ) {
                             // IS SONG => Show Artwork
-                            SubcomposeAsyncImage(
+                            AsyncImage(
                                 model = ImageRequest.Builder(LocalContext.current)
                                     .data(screenDataState.thumbnailURL)
                                     .diskCachePolicy(CachePolicy.ENABLED)
-                                    .diskCacheKey(screenDataState.thumbnailURL)
+                                    .diskCacheKey(screenDataState.thumbnailURL + "BIGGER")
                                     .crossfade(550)
                                     .build(),
-                                error = {
-                                    Image(painterResource(R.drawable.holder), null)
-                                },
-                                loading = {
-                                    CenterLoadingBox(modifier = Modifier.fillMaxSize())
-                                },
+                                contentDescription = "",
                                 onSuccess = {
                                     bitmap = it.result.image.toBitmap().asImageBitmap()
                                 },
-                                contentDescription = null,
                                 contentScale = ContentScale.Crop,
+                                placeholder = painterResource(id = R.drawable.holder),
                                 modifier =
                                 Modifier
                                     .align(Alignment.Center)
@@ -763,7 +758,10 @@ fun NowPlayingScreen(
                                                 Modifier
                                                     .fillMaxWidth()
                                                     .wrapContentHeight(align = Alignment.CenterVertically)
-                                                    .basicMarquee(animationMode = MarqueeAnimationMode.Immediately)
+                                                    .basicMarquee(
+                                                        iterations = Int.MAX_VALUE,
+                                                        animationMode = MarqueeAnimationMode.Immediately
+                                                    )
                                                     .focusable(),
                                         )
                                         Spacer(modifier = Modifier.height(3.dp))
@@ -775,7 +773,10 @@ fun NowPlayingScreen(
                                                 Modifier
                                                     .fillMaxWidth()
                                                     .wrapContentHeight(align = Alignment.CenterVertically)
-                                                    .basicMarquee(animationMode = MarqueeAnimationMode.Immediately)
+                                                    .basicMarquee(
+                                                        iterations = Int.MAX_VALUE,
+                                                        animationMode = MarqueeAnimationMode.Immediately
+                                                    )
                                                     .focusable()
                                                     .clickable {
                                                         navController.navigateSafe(

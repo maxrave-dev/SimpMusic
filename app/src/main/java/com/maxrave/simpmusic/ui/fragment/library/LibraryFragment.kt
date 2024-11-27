@@ -8,42 +8,13 @@ import android.view.ViewGroup
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
-import androidx.fragment.app.viewModels
 import androidx.media3.common.util.UnstableApi
-import com.maxrave.simpmusic.adapter.library.FavoritePlaylistAdapter
-import com.maxrave.simpmusic.adapter.search.SearchItemAdapter
-import com.maxrave.simpmusic.databinding.FragmentLibraryBinding
+import androidx.navigation.findNavController
 import com.maxrave.simpmusic.ui.screen.library.LibraryScreen
 import com.maxrave.simpmusic.ui.theme.AppTheme
-import com.maxrave.simpmusic.viewModel.LibraryViewModel
-import com.maxrave.simpmusic.viewModel.SharedViewModel
 
 @UnstableApi
 class LibraryFragment : Fragment() {
-    private var _binding: FragmentLibraryBinding? = null
-    val binding get() = _binding!!
-
-    private val viewModel by viewModels<LibraryViewModel>()
-    private val sharedViewModel by activityViewModels<SharedViewModel>()
-
-    private lateinit var adapterItem: SearchItemAdapter
-    private lateinit var listRecentlyAdded: ArrayList<Any>
-
-    // private lateinit var pagingAdapter: RecentPagingAdapter
-
-    private lateinit var adapterPlaylist: FavoritePlaylistAdapter
-    private lateinit var listPlaylist: ArrayList<Any>
-
-    private lateinit var adapterDownloaded: FavoritePlaylistAdapter
-    private lateinit var listDownloaded: ArrayList<Any>
-
-    private lateinit var listLocalPlaylist: ArrayList<Any>
-    private lateinit var adapterLocalPlaylist: FavoritePlaylistAdapter
-
-    private lateinit var listYouTubePlaylist: ArrayList<Any>
-    private lateinit var adapterYouTubePlaylist: FavoritePlaylistAdapter
-
     private lateinit var composeView: ComposeView
 
     override fun onCreateView(
@@ -63,7 +34,7 @@ class LibraryFragment : Fragment() {
             setContent {
                 AppTheme {
                     Scaffold { paddingValue ->
-                        LibraryScreen()
+                        LibraryScreen(navController = findNavController())
                     }
                 }
             }

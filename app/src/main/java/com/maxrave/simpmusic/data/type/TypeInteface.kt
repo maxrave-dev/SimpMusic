@@ -20,7 +20,15 @@ interface LibraryType
  * HomeContentType is used in Home screen, btw PlaylistType also used in Home screen, but PlaylistType is specific type for Playlist only
  * In Library Screen, I reused Home Content Composable, so the PlaylistType is inherited from HomeContentType
  */
-interface PlaylistType: HomeContentType, LibraryType
+interface PlaylistType: HomeContentType, LibraryType {
+    enum class Type {
+        YOUTUBE_PLAYLIST,
+        RADIO,
+        LOCAL,
+        ALBUM
+    }
+    fun playlistType(): Type
+}
 interface RecentlyType: LibraryType {
     enum class Type {
         SONG,

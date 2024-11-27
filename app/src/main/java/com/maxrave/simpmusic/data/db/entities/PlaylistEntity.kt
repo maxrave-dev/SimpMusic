@@ -25,5 +25,9 @@ data class PlaylistEntity (
     val inLibrary: LocalDateTime = LocalDateTime.now(),
     val downloadState: Int = DownloadState.STATE_NOT_DOWNLOADED,
     ): PlaylistType, RecentlyType {
+        override fun playlistType(): PlaylistType.Type =
+            if (id.startsWith("RDEM") || id.startsWith("RDAMVM") || id.startsWith("RDAT"))
+                PlaylistType.Type.RADIO
+            else PlaylistType.Type.YOUTUBE_PLAYLIST
         override fun objectType(): RecentlyType.Type = RecentlyType.Type.PLAYLIST
     }

@@ -282,8 +282,14 @@ class SharedViewModel(
                     getFormat(now.mediaId)
                     _nowPlayingScreenData.update {
                         it.copy(
-                            thumbnailURL = now.mediaMetadata.artworkUri.toString(),
                             isVideo = now.isVideo(),
+                        )
+                    }
+                }
+                state.songEntity?.let { song ->
+                    _nowPlayingScreenData.update {
+                        it.copy(
+                            thumbnailURL = song.thumbnails,
                         )
                     }
                 }

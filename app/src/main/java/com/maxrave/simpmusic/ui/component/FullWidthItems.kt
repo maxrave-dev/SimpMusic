@@ -2,6 +2,7 @@ package com.maxrave.simpmusic.ui.component
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.MarqueeAnimationMode
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
@@ -27,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
@@ -38,9 +40,14 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
+import com.maxrave.simpmusic.data.db.entities.AlbumEntity
+import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
+import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
+import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
 import com.maxrave.simpmusic.data.repository.MainRepository
+import com.maxrave.simpmusic.data.type.PlaylistType
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.ui.theme.typo
@@ -70,7 +77,7 @@ fun SongFullWidthItems(
         modifier =
             modifier.clickable{
                 onClickListener?.invoke(track?.videoId ?: songEntity?.videoId ?: "")
-            }
+            }.animateContentSize()
     ) {
         Row(
             Modifier
@@ -117,7 +124,10 @@ fun SongFullWidthItems(
                         Modifier
                             .fillMaxWidth()
                             .wrapContentHeight(align = Alignment.CenterVertically)
-                            .basicMarquee(animationMode = MarqueeAnimationMode.Immediately)
+                            .basicMarquee(
+                                iterations = Int.MAX_VALUE,
+                                animationMode = MarqueeAnimationMode.Immediately
+                            )
                             .focusable(),
                 )
                 Row {
@@ -152,7 +162,10 @@ fun SongFullWidthItems(
                             Modifier
                                 .fillMaxWidth()
                                 .wrapContentHeight(align = Alignment.CenterVertically)
-                                .basicMarquee(animationMode = MarqueeAnimationMode.Immediately)
+                                .basicMarquee(
+                                    iterations = Int.MAX_VALUE,
+                                    animationMode = MarqueeAnimationMode.Immediately
+                                )
                                 .focusable(),
                     )
                 }
@@ -181,7 +194,7 @@ fun SuggestItems(
                 if (onClickListener != null) {
                     onClickListener()
                 }
-            }
+            }.animateContentSize()
     ) {
         Row(
             Modifier
@@ -228,7 +241,10 @@ fun SuggestItems(
                         Modifier
                             .fillMaxWidth()
                             .wrapContentHeight(align = Alignment.CenterVertically)
-                            .basicMarquee(animationMode = MarqueeAnimationMode.Immediately)
+                            .basicMarquee(
+                                iterations = Int.MAX_VALUE,
+                                animationMode = MarqueeAnimationMode.Immediately
+                            )
                             .focusable(),
                 )
                 Text(
@@ -243,7 +259,10 @@ fun SuggestItems(
                         Modifier
                             .fillMaxWidth()
                             .wrapContentHeight(align = Alignment.CenterVertically)
-                            .basicMarquee(animationMode = MarqueeAnimationMode.Immediately)
+                            .basicMarquee(
+                                iterations = Int.MAX_VALUE,
+                                animationMode = MarqueeAnimationMode.Immediately
+                            )
                             .focusable(),
                 )
             }
@@ -254,6 +273,136 @@ fun SuggestItems(
                     onAddClickListener ?: {
                     },
             )
+        }
+    }
+}
+
+@Composable
+fun PlaylistFullWidthItems(
+    data: PlaylistType,
+    onClickListener: (() -> Unit)? = null,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier =
+        modifier.clickable{
+            onClickListener?.invoke()
+        }.animateContentSize()
+    ) {
+        var title = ""
+        var thumb = ""
+        var firstSubtitle = ""
+        var secondSubtitle = ""
+        var thirdRowSubtitle: String? = null
+
+        when (data.playlistType()) {
+            PlaylistType.Type.YOUTUBE_PLAYLIST -> firstSubtitle = stringResource(id = R.string.playlist)
+            PlaylistType.Type.RADIO -> firstSubtitle = stringResource(id = R.string.radio)
+            PlaylistType.Type.LOCAL -> firstSubtitle = stringResource(id = R.string.playlist)
+            PlaylistType.Type.ALBUM -> firstSubtitle = stringResource(id = R.string.album)
+        }
+        when (data) {
+            is AlbumEntity -> {
+                title = data.title
+                thumb = data.thumbnails ?: ""
+                secondSubtitle = data.artistName?.connectArtists() ?: ""
+                thirdRowSubtitle = data.year
+            }
+            is PlaylistEntity -> {
+                title = data.title
+                thumb = data.thumbnails
+                secondSubtitle = data.author ?: ""
+            }
+            is LocalPlaylistEntity -> {
+                title = data.title
+                thumb = data.thumbnail ?: ""
+                secondSubtitle = stringResource(R.string.you)
+            }
+            is PlaylistsResult -> {
+                title = data.title
+                thumb = data.thumbnails.lastOrNull()?.url ?: ""
+                secondSubtitle = data.author
+            }
+        }
+        Row(
+            Modifier
+                .padding(vertical = 10.dp, horizontal = 15.dp)
+                .fillMaxWidth(),
+        ) {
+            Spacer(modifier = Modifier.width(10.dp))
+            Box(modifier = Modifier.size(50.dp)) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(thumb)
+                        .diskCachePolicy(CachePolicy.ENABLED)
+                        .diskCacheKey(thumb)
+                        .crossfade(true)
+                        .build(),
+                    placeholder = painterResource(R.drawable.holder),
+                    error = painterResource(R.drawable.holder),
+                    contentDescription = null,
+                    contentScale = ContentScale.FillWidth,
+                    modifier =
+                    Modifier
+                        .fillMaxSize(),
+                )
+            }
+            Column(
+                Modifier
+                    .weight(1f)
+                    .padding(start = 20.dp, end = 10.dp)
+                    .align(Alignment.CenterVertically),
+            ) {
+                Text(
+                    text = title,
+                    style = typo.labelMedium,
+                    maxLines = 1,
+                    color = Color.White,
+                    modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight(align = Alignment.CenterVertically)
+                        .basicMarquee(
+                            iterations = Int.MAX_VALUE,
+                            animationMode = MarqueeAnimationMode.Immediately
+                        )
+                        .focusable(),
+                )
+
+                Text(
+                    text = "$firstSubtitle ${if (secondSubtitle.isNotEmpty()) " • $secondSubtitle" else ""}",
+                    style = typo.bodyMedium,
+                    maxLines = 1,
+                    color = Color(0xC4FFFFFF),
+                    modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight(align = Alignment.CenterVertically)
+                        .basicMarquee(
+                            iterations = Int.MAX_VALUE,
+                            animationMode = MarqueeAnimationMode.Immediately
+                        )
+                        .focusable(),
+                )
+
+                if (thirdRowSubtitle != null) {
+                    Text(
+                        text = "$thirdRowSubtitle",
+                        style = typo.bodyMedium,
+                        maxLines = 1,
+                        color = Color(0xC4FFFFFF),
+                        modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .wrapContentHeight(align = Alignment.CenterVertically)
+                            .basicMarquee(
+                                iterations = Int.MAX_VALUE,
+                                animationMode = MarqueeAnimationMode.Immediately
+                            )
+                            .focusable(),
+                    )
+                }
+            }
         }
     }
 }
