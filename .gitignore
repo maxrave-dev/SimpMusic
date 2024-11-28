@@ -17,4 +17,4 @@ local.properties
 crowdin.yml
 # Kotlin 2.0
 .kotlin/
-.idea
+.idea/
