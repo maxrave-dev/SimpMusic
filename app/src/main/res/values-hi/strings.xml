@@ -170,7 +170,7 @@
     <string name="save_shuffle_and_repeat_mode">शफल और दोहराव मोड सहेजें</string>
     <string name="skip_silent">मौन को छोड़ें</string>
     <string name="skip_no_music_part">संगीत रहित भाग को छोड़ें</string>
-    <string name="time_out_check_internet_connection">टाइम आउट, इंटरनेट कनेक्शन जांचें</string>
+    <string name="time_out_check_internet_connection_or_change_piped_instance_in_settings">टाइम आउट, इंटरनेट कनेक्शन जांचें</string>
     <string name="save_last_played">अंतिम चलाया गया सहेजें</string>
     <string name="save_last_played_track_and_queue">अंतिम चलाया गया गाना और कतार सहेजें</string>
     <string name="update_available">नया अपडेट उपलब्ध है</string>
