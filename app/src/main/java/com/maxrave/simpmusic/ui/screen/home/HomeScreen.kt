@@ -75,6 +75,7 @@ import com.maxrave.kotlinytmusicscraper.config.Constants
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.CHART_SUPPORTED_COUNTRY
 import com.maxrave.simpmusic.common.Config
+import com.maxrave.simpmusic.common.LIMIT_CACHE_SIZE.data
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.explore.mood.Mood
 import com.maxrave.simpmusic.data.model.home.HomeItem
@@ -307,16 +308,7 @@ fun HomeScreen(
                                             context.getString(
                                                 R.string.quick_picks,
                                             )
-                                    } != null,
-                            ) {
-                                QuickPicks(
-                                    homeItem =
-                                        homeData.find {
-                                            it.title ==
-                                                context.getString(
-                                                    R.string.quick_picks,
-                                                )
-                                        } ?: return@AnimatedVisibility,
+                                    } ?: return@AnimatedVisibility,
                                     viewModel = viewModel,
                                 )
                             }
@@ -567,23 +559,24 @@ fun QuickPicks(
         ) {
             items(homeItem.contents, key = { it?.videoId ?: "item_${it.hashCode()}" }) {
                 if (it != null) {
-                    QuickPicksItem(onClick = {
-                        val firstQueue: Track = it.toTrack()
-                        viewModel.setQueueData(
-                            QueueData(
-                                listTracks = arrayListOf(firstQueue),
-                                firstPlayedTrack = firstQueue,
-                                playlistId = "RDAMVM${it.videoId}",
-                                playlistName = "\"${it.title}\" Radio",
-                                playlistType = PlaylistType.RADIO,
-                                continuation = null
+                    QuickPicksItem(
+                        onClick = {
+                            val firstQueue: Track = it.toTrack()
+                            viewModel.setQueueData(
+                                QueueData(
+                                    listTracks = arrayListOf(firstQueue),
+                                    firstPlayedTrack = firstQueue,
+                                    playlistId = "RDAMVM${it.videoId}",
+                                    playlistName = "\"${it.title}\" Radio",
+                                    playlistType = PlaylistType.RADIO,
+                                    continuation = null
+                                )
                             )
-                        )
-                        viewModel.loadMediaItem(
-                            firstQueue,
-                            type = Config.SONG_CLICK,
-                        )
-                    },
+                            viewModel.loadMediaItem(
+                                firstQueue,
+                                type = Config.SONG_CLICK,
+                            )
+                        },
                         data = it,
                         widthDp = widthDp,
                     )
