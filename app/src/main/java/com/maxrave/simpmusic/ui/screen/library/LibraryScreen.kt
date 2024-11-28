@@ -72,7 +72,7 @@ fun LibraryScreen(
             )
         }
         item {
-            LibraryTilingBox()
+            LibraryTilingBox(navController)
         }
         item {
             LibraryItem(
