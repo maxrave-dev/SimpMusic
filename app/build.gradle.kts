@@ -47,6 +47,7 @@ android {
                 "b+zh+Hant+TW",
                 "uk",
                 "iw",
+                "az"
             )
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
