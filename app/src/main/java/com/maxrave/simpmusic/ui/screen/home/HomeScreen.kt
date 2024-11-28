@@ -75,6 +75,7 @@ import com.maxrave.kotlinytmusicscraper.config.Constants
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.CHART_SUPPORTED_COUNTRY
 import com.maxrave.simpmusic.common.Config
+import com.maxrave.simpmusic.common.LIMIT_CACHE_SIZE.data
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.explore.mood.Mood
 import com.maxrave.simpmusic.data.model.home.HomeItem
@@ -207,21 +208,24 @@ fun HomeScreen(
             enter = fadeIn() + expandVertically(),
             exit = fadeOut() + shrinkVertically()
         ) {
-            Spacer(modifier = Modifier
-                .fillMaxWidth()
-                .windowInsetsPadding(
-                    WindowInsets.statusBars
-                ))
+            Spacer(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .windowInsetsPadding(
+                        WindowInsets.statusBars
+                    )
+            )
         }
-        Row (
+        Row(
             modifier = Modifier
                 .horizontalScroll(chipRowState)
                 .padding(vertical = 8.dp, horizontal = 15.dp),
         ) {
             Config.listOfHomeChip.forEach { id ->
                 Spacer(modifier = Modifier.width(4.dp))
-                Chip(isSelected =
-                    when(params) {
+                Chip(
+                    isSelected =
+                    when (params) {
                         Constants.HOME_PARAMS_RELAX -> id == R.string.relax
                         Constants.HOME_PARAMS_SLEEP -> id == R.string.sleep
                         Constants.HOME_PARAMS_ENERGIZE -> id == R.string.energize
@@ -233,8 +237,9 @@ fun HomeScreen(
                         Constants.HOME_PARAMS_COMMUTE -> id == R.string.commute
                         Constants.HOME_PARAMS_FOCUS -> id == R.string.focus
                         else -> id == R.string.all
-                }, text = stringResource(id = id)) {
-                    when(id) {
+                    }, text = stringResource(id = id)
+                ) {
+                    when (id) {
                         R.string.all -> viewModel.setParams(null)
                         R.string.relax -> viewModel.setParams(Constants.HOME_PARAMS_RELAX)
                         R.string.sleep -> viewModel.setParams(Constants.HOME_PARAMS_SLEEP)
@@ -289,26 +294,26 @@ fun HomeScreen(
                         item {
                             androidx.compose.animation.AnimatedVisibility(
                                 visible =
+                                homeData.find {
+                                    it.title ==
+                                        context.getString(
+                                            R.string.quick_picks,
+                                        )
+                                } != null,
+                            ) {
+                                QuickPicks(
+                                    homeItem =
                                     homeData.find {
                                         it.title ==
                                             context.getString(
                                                 R.string.quick_picks,
                                             )
-                                    } != null,
-                            ) {
-                                QuickPicks(
-                                    homeItem =
-                                        homeData.find {
-                                            it.title ==
-                                                context.getString(
-                                                    R.string.quick_picks,
-                                                )
-                                        } ?: return@AnimatedVisibility,
+                                    } ?: return@AnimatedVisibility,
                                     viewModel = viewModel,
                                 )
                             }
                         }
-                        items(homeData) {
+                        items(homeData, key = { it.title + it.channelId }) {
                             if (it.title != context.getString(R.string.quick_picks)) {
                                 HomeItem(
                                     homeViewModel = viewModel,
@@ -317,7 +322,7 @@ fun HomeScreen(
                                 )
                             }
                         }
-                        items(newRelease) {
+                        items(newRelease, key = { it.title + it.channelId }) {
                             androidx.compose.animation.AnimatedVisibility(
                                 visible = newRelease.isNotEmpty(),
                             ) {
@@ -426,23 +431,23 @@ fun HomeTopAppBar(navController: NavController) {
                 )
                 Text(
                     text =
-                        when (hour) {
-                            in 6..12 -> {
-                                stringResource(R.string.good_morning)
-                            }
+                    when (hour) {
+                        in 6..12 -> {
+                            stringResource(R.string.good_morning)
+                        }
 
-                            in 13..17 -> {
-                                stringResource(R.string.good_afternoon)
-                            }
+                        in 13..17 -> {
+                            stringResource(R.string.good_afternoon)
+                        }
 
-                            in 18..23 -> {
-                                stringResource(R.string.good_evening)
-                            }
+                        in 18..23 -> {
+                            stringResource(R.string.good_evening)
+                        }
 
-                            else -> {
-                                stringResource(R.string.good_night)
-                            }
-                        },
+                        else -> {
+                            stringResource(R.string.good_night)
+                        }
+                    },
                     style = typo.bodySmall,
                 )
             }
@@ -504,8 +509,8 @@ fun AccountLayout(
                 style = typo.headlineMedium,
                 color = Color.White,
                 modifier =
-                    Modifier
-                        .padding(start = 8.dp),
+                Modifier
+                    .padding(start = 8.dp),
             )
         }
     }
@@ -552,25 +557,26 @@ fun QuickPicks(
             state = lazyListState,
             flingBehavior = snapperFlingBehavior,
         ) {
-            items(homeItem.contents) {
+            items(homeItem.contents, key = { it?.videoId ?: "item_${it.hashCode()}" }) {
                 if (it != null) {
-                    QuickPicksItem(onClick = {
-                        val firstQueue: Track = it.toTrack()
-                        viewModel.setQueueData(
-                            QueueData(
-                                listTracks = arrayListOf(firstQueue),
-                                firstPlayedTrack = firstQueue,
-                                playlistId = "RDAMVM${it.videoId}",
-                                playlistName = "\"${it.title}\" Radio",
-                                playlistType = PlaylistType.RADIO,
-                                continuation = null
+                    QuickPicksItem(
+                        onClick = {
+                            val firstQueue: Track = it.toTrack()
+                            viewModel.setQueueData(
+                                QueueData(
+                                    listTracks = arrayListOf(firstQueue),
+                                    firstPlayedTrack = firstQueue,
+                                    playlistId = "RDAMVM${it.videoId}",
+                                    playlistName = "\"${it.title}\" Radio",
+                                    playlistType = PlaylistType.RADIO,
+                                    continuation = null
+                                )
                             )
-                        )
-                        viewModel.loadMediaItem(
-                            firstQueue,
-                            type = Config.SONG_CLICK,
-                        )
-                    },
+                            viewModel.loadMediaItem(
+                                firstQueue,
+                                type = Config.SONG_CLICK,
+                            )
+                        },
                         data = it,
                         widthDp = widthDp,
                     )
@@ -615,7 +621,7 @@ fun MoodMomentAndGenre(
             state = lazyListState1,
             flingBehavior = snapperFlingBehavior1,
         ) {
-            items(mood.moodsMoments) {
+            items(mood.moodsMoments, key = { it.title }) {
                 MoodMomentAndGenreHomeItem(title = it.title) {
                     navController.navigateSafe(
                         R.id.action_global_moodFragment,
@@ -640,7 +646,7 @@ fun MoodMomentAndGenre(
             state = lazyListState2,
             flingBehavior = snapperFlingBehavior2,
         ) {
-            items(mood.genres) {
+            items(mood.genres, key = { it.title }) {
                 MoodMomentAndGenreHomeItem(title = it.title) {
                     navController.navigateSafe(
                         R.id.action_global_moodFragment,
@@ -727,16 +733,15 @@ fun ChartData(
                         state = lazyListState1,
                         flingBehavior = snapperFlingBehavior1,
                     ) {
-                        items(chart.songs.size) {
-                            val data = chart.songs[it]
+                        items(chart.songs, key = { it.videoId }) {
                             ItemTrackChart(onClick = {
                                 viewModel.setQueueData(
                                     QueueData(
-                                        listTracks = arrayListOf(data),
-                                        firstPlayedTrack = data,
-                                        playlistName = "\"${data.title}\" ${context.getString(R.string.in_charts)}",
+                                        listTracks = arrayListOf(it),
+                                        firstPlayedTrack = it,
+                                        playlistName = "\"${it.title}\" ${context.getString(R.string.in_charts)}",
                                         playlistType = PlaylistType.RADIO,
-                                        playlistId = "RDAMVM${data.videoId}",
+                                        playlistId = "RDAMVM${it.videoId}",
                                         continuation = null
                                     )
                                 )
@@ -744,7 +749,7 @@ fun ChartData(
                                     data,
                                     type = Config.VIDEO_CLICK,
                                 )
-                            }, data = data, position = it + 1, widthDp = gridWidthDp)
+                            }, data = it, position = chart.songs.indexOf(it) + 1, widthDp = gridWidthDp)
                         }
                     }
                 }
@@ -763,7 +768,7 @@ fun ChartData(
             state = lazyListState,
             flingBehavior = snapperFlingBehavior
         ) {
-            items(chart.videos.items.size) {
+            items(chart.videos.items.size, key = { index -> chart.videos.items[index].videoId }) {
                 val data = chart.videos.items[it]
                 ItemVideoChart(
                     onClick = {
@@ -802,7 +807,10 @@ fun ChartData(
             state = lazyListState2,
             flingBehavior = snapperFlingBehavior2,
         ) {
-            items(chart.artists.itemArtists.size) {
+            items(chart.artists.itemArtists.size, key = { index ->
+                val item = chart.artists.itemArtists[index]
+                item.title + item.browseId
+            }) {
                 val data = chart.artists.itemArtists[it]
                 ItemArtistChart(onClick = {
                     val args = Bundle()
@@ -829,7 +837,10 @@ fun ChartData(
                         state = lazyListState3,
                         flingBehavior = snapperFlingBehavior3,
                     ) {
-                        items(chart.trending.size) {
+                        items(chart.trending.size, key = { index ->
+                            val item = chart.trending[index]
+                            item.videoId
+                        }) {
                             val data = chart.trending[it]
                             ItemTrackChart(onClick = {
                                 viewModel.setQueueData(

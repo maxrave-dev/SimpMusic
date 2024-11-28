@@ -155,10 +155,10 @@ fun PlaylistScreen(
         initialValue = -limit,
         targetValue = limit,
         animationSpec =
-            infiniteRepeatable(
-                animation = tween(5000, easing = LinearEasing),
-                repeatMode = RepeatMode.Reverse,
-            ),
+        infiniteRepeatable(
+            animation = tween(5000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse,
+        ),
         label = "shimmer",
     )
     val infiniteTransition = rememberInfiniteTransition(label = "rotation")
@@ -166,10 +166,10 @@ fun PlaylistScreen(
         initialValue = 0f,
         targetValue = 360f,
         animationSpec =
-            infiniteRepeatable(
-                animation = tween(5000, easing = LinearEasing),
-                repeatMode = RepeatMode.Restart,
-            ),
+        infiniteRepeatable(
+            animation = tween(5000, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart,
+        ),
         label = "rotation",
     )
 
@@ -297,23 +297,23 @@ fun PlaylistScreen(
 //    Box {
     LazyColumn(
         modifier =
-            Modifier
-                .fillMaxWidth()
-                .background(Color.Black),
+        Modifier
+            .fillMaxWidth()
+            .background(Color.Black),
         state = lazyState,
     ) {
         item(contentType = "header") {
             Box(
                 modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .wrapContentHeight()
-                        .background(Color.Transparent),
+                Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight()
+                    .background(Color.Transparent),
             ) {
                 Box(
                     modifier =
-                        Modifier
-                            .fillMaxWidth(),
+                    Modifier
+                        .fillMaxWidth(),
 //                                .haze(
 //                                    hazeState,
 //                                    style = HazeMaterials.regular(),
@@ -330,20 +330,20 @@ fun PlaylistScreen(
                     )
                     Box(
                         modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .height(180.dp)
-                                .align(Alignment.BottomCenter)
-                                .background(
-                                    brush =
-                                        Brush.verticalGradient(
-                                            listOf(
-                                                Color.Transparent,
-                                                Color(0x75000000),
-                                                Color.Black,
-                                            ),
-                                        ),
+                        Modifier
+                            .fillMaxWidth()
+                            .height(180.dp)
+                            .align(Alignment.BottomCenter)
+                            .background(
+                                brush =
+                                Brush.verticalGradient(
+                                    listOf(
+                                        Color.Transparent,
+                                        Color(0x75000000),
+                                        Color.Black,
+                                    ),
                                 ),
+                            ),
                     )
                 }
                 Column(
@@ -353,10 +353,10 @@ fun PlaylistScreen(
                 ) {
                     Row(
                         modifier =
-                            Modifier
-                                .wrapContentWidth()
-                                .padding(16.dp)
-                                .windowInsetsPadding(WindowInsets.statusBars),
+                        Modifier
+                            .wrapContentWidth()
+                            .padding(16.dp)
+                            .windowInsetsPadding(WindowInsets.statusBars),
                     ) {
                         RippleIconButton(
                             resId = R.drawable.baseline_arrow_back_ios_new_24,
@@ -382,19 +382,19 @@ fun PlaylistScreen(
                                 bitmap = it.result.image.toBitmap().asImageBitmap()
                             },
                             modifier =
-                                Modifier
-                                    .height(250.dp)
-                                    .wrapContentWidth()
-                                    .align(Alignment.CenterHorizontally)
-                                    .clip(
-                                        RoundedCornerShape(8.dp),
-                                    ),
+                            Modifier
+                                .height(250.dp)
+                                .wrapContentWidth()
+                                .align(Alignment.CenterHorizontally)
+                                .clip(
+                                    RoundedCornerShape(8.dp),
+                                ),
                         )
                         Box(
                             modifier =
-                                Modifier
-                                    .fillMaxWidth()
-                                    .wrapContentHeight(),
+                            Modifier
+                                .fillMaxWidth()
+                                .wrapContentHeight(),
                         ) {
                             Column(Modifier.padding(horizontal = 32.dp)) {
                                 Spacer(modifier = Modifier.size(25.dp))
@@ -428,7 +428,7 @@ fun PlaylistScreen(
                                 }
                                 Row(
                                     modifier =
-                                        Modifier.fillMaxWidth(),
+                                    Modifier.fillMaxWidth(),
                                     verticalAlignment = Alignment.CenterVertically,
                                 ) {
                                     RippleIconButton(
@@ -444,27 +444,29 @@ fun PlaylistScreen(
                                             DownloadState.STATE_DOWNLOADED -> {
                                                 Box(
                                                     modifier =
-                                                        Modifier
-                                                            .size(36.dp)
-                                                            .clip(
-                                                                CircleShape,
-                                                            ).clickable {
-                                                                Toast
-                                                                    .makeText(
-                                                                        context,
-                                                                        context.getString(R.string.downloaded),
-                                                                        Toast.LENGTH_SHORT,
-                                                                    ).show()
-                                                            },
+                                                    Modifier
+                                                        .size(36.dp)
+                                                        .clip(
+                                                            CircleShape,
+                                                        )
+                                                        .clickable {
+                                                            Toast
+                                                                .makeText(
+                                                                    context,
+                                                                    context.getString(R.string.downloaded),
+                                                                    Toast.LENGTH_SHORT,
+                                                                )
+                                                                .show()
+                                                        },
                                                 ) {
                                                     Icon(
                                                         painter = painterResource(id = R.drawable.baseline_downloaded),
                                                         tint = Color(0xFF00A0CB),
                                                         contentDescription = "",
                                                         modifier =
-                                                            Modifier
-                                                                .size(36.dp)
-                                                                .padding(2.dp),
+                                                        Modifier
+                                                            .size(36.dp)
+                                                            .padding(2.dp),
                                                     )
                                                 }
                                             }
@@ -472,18 +474,20 @@ fun PlaylistScreen(
                                             DownloadState.STATE_DOWNLOADING -> {
                                                 Box(
                                                     modifier =
-                                                        Modifier
-                                                            .size(36.dp)
-                                                            .clip(
-                                                                CircleShape,
-                                                            ).clickable {
-                                                                Toast
-                                                                    .makeText(
-                                                                        context,
-                                                                        context.getString(R.string.downloading),
-                                                                        Toast.LENGTH_SHORT,
-                                                                    ).show()
-                                                            },
+                                                    Modifier
+                                                        .size(36.dp)
+                                                        .clip(
+                                                            CircleShape,
+                                                        )
+                                                        .clickable {
+                                                            Toast
+                                                                .makeText(
+                                                                    context,
+                                                                    context.getString(R.string.downloading),
+                                                                    Toast.LENGTH_SHORT,
+                                                                )
+                                                                .show()
+                                                        },
                                                 ) {
                                                     LottieAnimation(
                                                         composition,
@@ -510,55 +514,57 @@ fun PlaylistScreen(
                                     AnimatedVisibility(visible = shouldShowSuggestButton) {
                                         Box(
                                             modifier =
-                                                Modifier
-                                                    .size(36.dp)
-                                                    .clip(CircleShape)
-                                                    .graphicsLayer {
-                                                        compositingStrategy =
-                                                            CompositingStrategy.Offscreen
-                                                    }.clickable {
-                                                        shouldShowSuggestions = !shouldShowSuggestions
-                                                    }.drawWithCache {
-                                                        val width = size.width - 10
-                                                        val height = size.height - 10
+                                            Modifier
+                                                .size(36.dp)
+                                                .clip(CircleShape)
+                                                .graphicsLayer {
+                                                    compositingStrategy =
+                                                        CompositingStrategy.Offscreen
+                                                }
+                                                .clickable {
+                                                    shouldShowSuggestions = !shouldShowSuggestions
+                                                }
+                                                .drawWithCache {
+                                                    val width = size.width - 10
+                                                    val height = size.height - 10
 
-                                                        val offsetDraw = width * progressAnimated
-                                                        val gradientColors =
-                                                            listOf(
-                                                                Color(0xFF4C82EF),
-                                                                Color(0xFFD96570),
-                                                            )
-                                                        val brush =
-                                                            Brush.linearGradient(
-                                                                colors = gradientColors,
-                                                                start = Offset(offsetDraw, 0f),
-                                                                end =
-                                                                    Offset(
-                                                                        offsetDraw + width,
-                                                                        height,
-                                                                    ),
-                                                            )
+                                                    val offsetDraw = width * progressAnimated
+                                                    val gradientColors =
+                                                        listOf(
+                                                            Color(0xFF4C82EF),
+                                                            Color(0xFFD96570),
+                                                        )
+                                                    val brush =
+                                                        Brush.linearGradient(
+                                                            colors = gradientColors,
+                                                            start = Offset(offsetDraw, 0f),
+                                                            end =
+                                                            Offset(
+                                                                offsetDraw + width,
+                                                                height,
+                                                            ),
+                                                        )
 
-                                                        onDrawBehind {
-                                                            // Destination
-                                                            with(aiPainter) {
-                                                                draw(
-                                                                    size = Size(width, width),
-                                                                )
-                                                            }
-
-                                                            // Source
-                                                            drawRect(
-                                                                brush = brush,
-                                                                blendMode = BlendMode.SrcIn,
+                                                    onDrawBehind {
+                                                        // Destination
+                                                        with(aiPainter) {
+                                                            draw(
+                                                                size = Size(width, width),
                                                             )
                                                         }
-                                                    },
+
+                                                        // Source
+                                                        drawRect(
+                                                            brush = brush,
+                                                            blendMode = BlendMode.SrcIn,
+                                                        )
+                                                    }
+                                                },
                                         )
                                     }
                                     RippleIconButton(
                                         modifier =
-                                            Modifier.size(36.dp),
+                                        Modifier.size(36.dp),
                                         resId = R.drawable.baseline_shuffle_24,
                                         fillMaxSize = true,
                                     ) {
@@ -567,7 +573,7 @@ fun PlaylistScreen(
                                     Spacer(Modifier.size(5.dp))
                                     RippleIconButton(
                                         modifier =
-                                            Modifier.size(36.dp),
+                                        Modifier.size(36.dp),
                                         resId = R.drawable.baseline_more_vert_24,
                                         fillMaxSize = true,
                                     ) {
@@ -603,9 +609,9 @@ fun PlaylistScreen(
                                         Spacer(modifier = Modifier.size(8.dp))
                                         Text(
                                             text =
-                                                stringResource(
-                                                    id = R.string.suggest,
-                                                ),
+                                            stringResource(
+                                                id = R.string.suggest,
+                                            ),
                                             color = Color.White,
                                             modifier = Modifier.padding(vertical = 8.dp),
                                         )
@@ -614,10 +620,10 @@ fun PlaylistScreen(
                                             if (it) {
                                                 CenterLoadingBox(
                                                     modifier =
-                                                        Modifier
-                                                            .fillMaxWidth()
-                                                            .height(200.dp)
-                                                            .align(Alignment.CenterHorizontally),
+                                                    Modifier
+                                                        .fillMaxWidth()
+                                                        .height(200.dp)
+                                                        .align(Alignment.CenterHorizontally),
                                                 )
                                             } else {
                                                 Column {
@@ -642,62 +648,62 @@ fun PlaylistScreen(
                                         TextButton(
                                             onClick = { viewModel.reloadSuggestion() },
                                             modifier =
-                                                Modifier
-                                                    .padding(horizontal = 8.dp)
-                                                    .drawWithContent {
-                                                        val strokeWidthPx = 2.dp.toPx()
-                                                        val width = size.width
-                                                        val height = size.height
+                                            Modifier
+                                                .padding(horizontal = 8.dp)
+                                                .drawWithContent {
+                                                    val strokeWidthPx = 2.dp.toPx()
+                                                    val width = size.width
+                                                    val height = size.height
 
-                                                        drawContent()
+                                                    drawContent()
 
-                                                        with(drawContext.canvas.nativeCanvas) {
-                                                            val checkPoint = saveLayer(null, null)
+                                                    with(drawContext.canvas.nativeCanvas) {
+                                                        val checkPoint = saveLayer(null, null)
 
-                                                            // Destination
-                                                            drawRoundRect(
-                                                                cornerRadius = CornerRadius(x = 60f, y = 60f),
-                                                                color = Color.Gray,
-                                                                topLeft = Offset(strokeWidthPx / 2, strokeWidthPx / 2),
-                                                                size = Size(width - strokeWidthPx, height - strokeWidthPx),
-                                                                style = Stroke(strokeWidthPx),
+                                                        // Destination
+                                                        drawRoundRect(
+                                                            cornerRadius = CornerRadius(x = 60f, y = 60f),
+                                                            color = Color.Gray,
+                                                            topLeft = Offset(strokeWidthPx / 2, strokeWidthPx / 2),
+                                                            size = Size(width - strokeWidthPx, height - strokeWidthPx),
+                                                            style = Stroke(strokeWidthPx),
+                                                        )
+                                                        val gradientColors =
+                                                            listOf(
+                                                                Color(0xFF4C82EF),
+                                                                Color(0xFFD96570),
                                                             )
-                                                            val gradientColors =
-                                                                listOf(
-                                                                    Color(0xFF4C82EF),
-                                                                    Color(0xFFD96570),
-                                                                )
-                                                            val brush =
-                                                                Brush.linearGradient(
-                                                                    colors = gradientColors,
-                                                                    start = Offset(2f, 0f),
-                                                                    end =
-                                                                        Offset(
-                                                                            2 + width,
-                                                                            height,
-                                                                        ),
-                                                                )
+                                                        val brush =
+                                                            Brush.linearGradient(
+                                                                colors = gradientColors,
+                                                                start = Offset(2f, 0f),
+                                                                end =
+                                                                Offset(
+                                                                    2 + width,
+                                                                    height,
+                                                                ),
+                                                            )
 
-                                                            // Source
-                                                            rotate(degrees = angle) {
-                                                                drawCircle(
-                                                                    brush = brush,
-                                                                    radius = size.width,
-                                                                    blendMode = BlendMode.SrcIn,
-                                                                )
-                                                            }
-
-                                                            restoreToCount(checkPoint)
+                                                        // Source
+                                                        rotate(degrees = angle) {
+                                                            drawCircle(
+                                                                brush = brush,
+                                                                radius = size.width,
+                                                                blendMode = BlendMode.SrcIn,
+                                                            )
                                                         }
-                                                    },
+
+                                                        restoreToCount(checkPoint)
+                                                    }
+                                                },
                                         ) {
                                             Text(
                                                 text = stringResource(id = R.string.reload),
                                                 color = Color.White,
                                                 modifier =
-                                                    Modifier.align(
-                                                        Alignment.CenterVertically,
-                                                    ),
+                                                Modifier.align(
+                                                    Alignment.CenterVertically,
+                                                ),
                                             )
                                         }
                                         Spacer(modifier = Modifier.size(12.dp))
@@ -711,8 +717,8 @@ fun PlaylistScreen(
                                 ElevatedButton(
                                     contentPadding = PaddingValues(0.dp),
                                     modifier =
-                                        Modifier
-                                            .defaultMinSize(minWidth = 1.dp, minHeight = 1.dp),
+                                    Modifier
+                                        .defaultMinSize(minWidth = 1.dp, minHeight = 1.dp),
                                     onClick = {
                                         viewModel.onUIEvent(LocalPlaylistUIEvent.ChangeFilter)
                                     },
@@ -742,7 +748,10 @@ fun PlaylistScreen(
                 }
             }
         }
-        items(count = trackPagingItems.itemCount) { index ->
+        items(count = trackPagingItems.itemCount, key = { index ->
+            val item = trackPagingItems[index]
+            item?.videoId ?: "item_$index"
+        }) { index ->
             val item = trackPagingItems[index]
             if (item != null) {
                 if (playingTrack?.mediaId == item.videoId && isPlaying) {
