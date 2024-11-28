@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.screen
 
-// or just
 import android.util.Log
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.AnimatedContent
