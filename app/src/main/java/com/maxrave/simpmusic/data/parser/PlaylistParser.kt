@@ -166,12 +166,26 @@ fun parsePlaylistData(
                                 ?.get(0)
                                 ?.navigationEndpoint
                                 ?.browseEndpoint
-                                ?.browseId ?: "",
+                                ?.browseId ?:
+                                header.facepile
+                                    ?.avatarStackViewModel
+                                    ?.rendererContext
+                                    ?.commandContext
+                                    ?.onTap
+                                    ?.innertubeCommand
+                                    ?.browseEndpoint
+                                    ?.browseId
+                            ?: "",
                         name =
                             header.straplineTextOne
                                 ?.runs
                                 ?.get(0)
-                                ?.text ?: "",
+                                ?.text ?:
+                                header.facepile
+                                    ?.avatarStackViewModel
+                                    ?.text
+                                    ?.content
+                                    ?: "",
                     )
                 listAuthor.add(author)
                 Log.d("PlaylistParser", "author: $author")
@@ -255,8 +269,15 @@ fun parsePlaylistData(
                             ?.get(
                                 0,
                             )?.text
-                            ?.split(":")
-                            ?.let { it[0].toInt() * 60 + it[1].toInt() } ?: 0,
+                            ?.let {
+                                if (it.contains(":")) {
+                                    it.split(":")
+                                } else if (it.contains(".")) {
+                                    it.split(".")
+                                } else {
+                                    listOf(it)
+                                }
+                            }?.let { it[0].toInt() * 60 + it[1].toInt() } ?: 0,
                     isAvailable = false,
                     isExplicit = false,
                     likeStatus = "INDIFFERENT",

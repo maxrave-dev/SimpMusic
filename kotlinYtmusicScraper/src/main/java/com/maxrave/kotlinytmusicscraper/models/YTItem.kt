@@ -1,5 +1,7 @@
 package com.maxrave.kotlinytmusicscraper.models
 
+import com.maxrave.kotlinytmusicscraper.models.response.LikeStatus
+
 sealed class YTItem {
     abstract val id: String
     abstract val title: String
@@ -29,12 +31,21 @@ data class SongItem(
     override val explicit: Boolean = false,
     val endpoint: WatchEndpoint? = null,
     val thumbnails: Thumbnails? = null,
+    val badges: List<SongBadges>? = null,
+    val likeStatus: LikeStatus = LikeStatus.INDIFFERENT,
 ) : YTItem() {
     override val shareLink: String
         get() = "https://music.youtube.com/watch?v=$id"
     override val type: YTItemType
         get() = YTItemType.SONG
+
+    sealed class SongBadges {
+        data object Explicit : SongBadges()
+
+        data object Remix : SongBadges()
+    }
 }
+
 data class VideoItem(
     override val id: String,
     override val title: String,
@@ -45,9 +56,9 @@ data class VideoItem(
     val artists: List<Artist>,
     val album: Album? = null,
     val duration: Int? = null,
-    val view: String? = null
-
-    ): YTItem() {
+    val view: String? = null,
+    val likeStatus: LikeStatus = LikeStatus.INDIFFERENT,
+) : YTItem() {
     override val shareLink: String
         get() = "https://music.youtube.com/watch?v=$id"
     override val type: YTItemType
@@ -110,5 +121,5 @@ enum class YTItemType {
     VIDEO,
     ALBUM,
     PLAYLIST,
-    ARTIST
+    ARTIST,
 }

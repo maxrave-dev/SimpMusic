@@ -14,6 +14,10 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.animateScrollBy
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
@@ -46,7 +50,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.graphics.ColorUtils
 import com.kmpalette.palette.graphics.Palette
-import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.ui.theme.shimmerBackground
 import com.maxrave.simpmusic.ui.theme.shimmerLine
 import kotlinx.coroutines.CoroutineScope
@@ -307,40 +311,38 @@ data class ScreenSizeInfo(
     val wPX: Int
 )
 
-fun getBrushListColorFromPalette(p: Palette , context: Context): List<Color> {
-    val defaultColor = 0x000000
-    var startColor = p.getDarkVibrantColor(defaultColor)
-    if (startColor == defaultColor) {
-        startColor = p.getDarkMutedColor(defaultColor)
-        if (startColor == defaultColor) {
-            startColor = p.getVibrantColor(defaultColor)
-            if (startColor == defaultColor) {
-                startColor =
-                    p.getMutedColor(defaultColor)
-                if (startColor == defaultColor) {
-                    startColor =
-                        p.getLightVibrantColor(
-                            defaultColor,
-                        )
-                    if (startColor == defaultColor) {
-                        startColor =
-                            p.getLightMutedColor(
-                                defaultColor,
-                            )
+@Composable
+fun NonLazyGrid(
+    columns: Int,
+    itemCount: Int,
+    modifier: Modifier = Modifier,
+    content: @Composable() (Int) -> Unit
+) {
+    Column(modifier = modifier) {
+        var rows = (itemCount / columns)
+        if (itemCount.mod(columns) > 0) {
+            rows += 1
+        }
+
+        for (rowId in 0 until rows) {
+            val firstIndex = rowId * columns
+
+            Row {
+                for (columnId in 0 until columns) {
+                    val index = firstIndex + columnId
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                    ) {
+                        if (index < itemCount) {
+                            content(index)
+                        }
                     }
                 }
             }
         }
     }
-    val endColor =
-        context.resources.getColor(R.color.md_theme_dark_background, null)
-    val colorAndroid = ColorUtils.setAlphaComponent(startColor, 255)
-    val brush =
-        listOf(
-            Color(colorAndroid),
-            Color(endColor),
-        )
-    return brush
 }
 
 fun LazyListState.animateScrollAndCentralizeItem(index: Int, scope: CoroutineScope) {
@@ -373,7 +375,6 @@ fun LazyListState.isScrollingUp(): Boolean {
 
     return remember(this) {
         derivedStateOf {
-            Log.w("isScrollingUp", "offset: $firstVisibleItemScrollOffset")
             if (firstVisibleItemIndex > 0)  {
                 if (previousIndex != firstVisibleItemIndex) {
                     previousIndex > firstVisibleItemIndex
@@ -396,4 +397,34 @@ fun setStatusBarsColor(@ColorInt color: Int, activity: Activity) {
     if (Build.VERSION.SDK_INT < 35) {
         activity.window.statusBarColor = color
     }
+}
+
+
+fun Palette?.getColorFromPalette(): Color {
+    val p = this ?: return md_theme_dark_background
+    val defaultColor = 0x000000
+    var startColor = p.getDarkVibrantColor(defaultColor)
+    if (startColor == defaultColor) {
+        startColor = p.getDarkMutedColor(defaultColor)
+        if (startColor == defaultColor) {
+            startColor = p.getVibrantColor(defaultColor)
+            if (startColor == defaultColor) {
+                startColor =
+                    p.getMutedColor(defaultColor)
+                if (startColor == defaultColor) {
+                    startColor =
+                        p.getLightVibrantColor(
+                            defaultColor,
+                        )
+                    if (startColor == defaultColor) {
+                        startColor =
+                            p.getLightMutedColor(
+                                defaultColor,
+                            )
+                    }
+                }
+            }
+        }
+    }
+    return Color(ColorUtils.setAlphaComponent(startColor, 255))
 }

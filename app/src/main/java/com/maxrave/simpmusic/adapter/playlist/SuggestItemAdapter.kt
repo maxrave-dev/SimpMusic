@@ -4,7 +4,9 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView.Adapter
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
-import coil.load
+import coil3.load
+import coil3.request.crossfade
+import coil3.request.placeholder
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.databinding.ItemSuggestItemYoutubePlaylistBinding

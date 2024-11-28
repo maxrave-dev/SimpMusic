@@ -1,13 +1,7 @@
 package com.maxrave.simpmusic.ui.fragment.other
 
 import android.annotation.SuppressLint
-import android.graphics.Bitmap
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
-import android.graphics.drawable.GradientDrawable
-import android.graphics.drawable.TransitionDrawable
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,44 +9,22 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.content.ContextCompat
-import androidx.core.graphics.ColorUtils
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.findNavController
-import androidx.palette.graphics.Palette
-import coil.ImageLoader
-import coil.request.CachePolicy
-import coil.request.ImageRequest
-import coil.size.Size
-import coil.transform.Transformation
 import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.adapter.playlist.PlaylistItemAdapter
-import com.maxrave.simpmusic.adapter.playlist.SuggestItemAdapter
-import com.maxrave.simpmusic.common.DownloadState
-import com.maxrave.simpmusic.data.model.browse.album.Track
-import com.maxrave.simpmusic.databinding.FragmentLocalPlaylistBinding
 import com.maxrave.simpmusic.extension.setStatusBarsColor
 import com.maxrave.simpmusic.ui.screen.library.PlaylistScreen
 import com.maxrave.simpmusic.ui.theme.AppTheme
 import com.maxrave.simpmusic.viewModel.LocalPlaylistViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import java.time.format.DateTimeFormatter
 
 @UnstableApi
 @ExperimentalFoundationApi
 class LocalPlaylistFragment : Fragment() {
-    private var _binding: FragmentLocalPlaylistBinding? = null
-    val binding get() = _binding!!
-
     private val viewModel by activityViewModels<LocalPlaylistViewModel>()
     private val sharedViewModel by activityViewModels<SharedViewModel>()
-
-    lateinit var listTrack: ArrayList<Any>
-    private lateinit var playlistAdapter: PlaylistItemAdapter
-
-    lateinit var listSuggestTrack: ArrayList<Track>
-    private lateinit var suggestAdapter: SuggestItemAdapter
 
     private var playlistId: Long? = null
     private lateinit var composeView: ComposeView
@@ -63,8 +35,6 @@ class LocalPlaylistFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
-//        _binding = FragmentLocalPlaylistBinding.inflate(inflater, container, false)
-//        return binding.root
         return ComposeView(requireContext()).also {
             composeView = it
         }
@@ -83,12 +53,17 @@ class LocalPlaylistFragment : Fragment() {
             setContent {
                 AppTheme {
                     Scaffold {
-                        PlaylistScreen(
-                            id = playlistId,
-                            sharedViewModel = sharedViewModel,
-                            viewModel = viewModel,
-                            findNavController(),
-                        )
+                        val id = playlistId
+                        if (id != null) {
+                            PlaylistScreen(
+                                id = id,
+                                sharedViewModel = sharedViewModel,
+                                viewModel = viewModel,
+                                findNavController(),
+                            )
+                        } else {
+                            findNavController().navigateUp()
+                        }
                     }
                 }
             }
@@ -1012,225 +987,5 @@ class LocalPlaylistFragment : Fragment() {
             ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark),
             requireActivity()
         )
-        _binding = null
-    }
-
-    @UnstableApi
-//    private fun fetchDataFromDatabase() {
-//        viewModel.clearLocalPlaylist()
-//        viewModel.id.postValue(id)
-//        viewModel.getLocalPlaylist(id!!)
-//        viewModel.localPlaylist.observe(viewLifecycleOwner) { localPlaylist ->
-//            Log.d("Check", "fetchData: ${viewModel.localPlaylist.value}")
-//            if (localPlaylist != null) {
-//                if (!localPlaylist.tracks.isNullOrEmpty()) {
-//                    viewModel.getListTrack(localPlaylist.tracks)
-//                    viewModel.getPairSongLocalPlaylist(localPlaylist.id)
-//                }
-//                binding.collapsingToolbarLayout.title = localPlaylist.title
-//                binding.tvTitle.text = localPlaylist.title
-//                binding.tvTitle.isSelected = true
-//                if (localPlaylist.syncedWithYouTubePlaylist == 1 && localPlaylist.youtubePlaylistId != null) {
-//                    if (!localPlaylist.tracks.isNullOrEmpty()) {
-//                        viewModel.getSetVideoId(localPlaylist.youtubePlaylistId)
-//                    }
-//                }
-//                if (localPlaylist.syncedWithYouTubePlaylist == 0) {
-//                    binding.btSuggest.visibility = View.GONE
-//                } else if (localPlaylist.syncedWithYouTubePlaylist == 1) {
-//                    binding.btSuggest.visibility = View.VISIBLE
-//                    if (sharedViewModel.isFirstSuggestions) {
-//                        val balloon =
-//                            Balloon.Builder(requireContext())
-//                                .setWidthRatio(0.5f)
-//                                .setHeight(BalloonSizeSpec.WRAP)
-//                                .setText(getString(R.string.guide_suggest_content))
-//                                .setTextColorResource(R.color.md_theme_dark_onSurface)
-//                                .setTextSize(11f)
-//                                .setArrowPositionRules(ArrowPositionRules.ALIGN_ANCHOR)
-//                                .setArrowSize(10)
-//                                .setArrowPosition(0.5f)
-//                                .setPadding(12)
-//                                .setAutoDismissDuration(5000L)
-//                                .setCornerRadius(8f)
-//                                .setBackgroundColorResource(R.color.md_theme_dark_onSecondary)
-//                                .setBalloonAnimation(BalloonAnimation.ELASTIC)
-//                                .setLifecycleOwner(viewLifecycleOwner)
-//                                .build()
-//                        balloon.showAlignTop(binding.btSuggest)
-//                        sharedViewModel.putString("suggest_guide", STATUS_DONE)
-//                        sharedViewModel.isFirstSuggestions = false
-//                    }
-//                }
-//            }
-//            binding.tvTrackCountAndTimeCreated.text =
-//                getString(
-//                    R.string.album_length,
-//                    localPlaylist?.tracks?.size?.toString() ?: "0",
-//                    localPlaylist?.inLibrary?.format(
-//                        DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy"),
-//                    ),
-//                )
-//            loadImage(localPlaylist?.thumbnail)
-//            with(binding) {
-//                if (localPlaylist != null) {
-//                    when (localPlaylist.downloadState) {
-//                        DownloadState.STATE_DOWNLOADED -> {
-//                            btDownload.visibility = View.VISIBLE
-//                            animationDownloading.visibility = View.GONE
-//                            btDownload.setImageResource(R.drawable.baseline_downloaded)
-//                        }
-//
-//                        DownloadState.STATE_DOWNLOADING -> {
-//                            btDownload.visibility = View.GONE
-//                            animationDownloading.visibility = View.VISIBLE
-//                        }
-//
-//                        DownloadState.STATE_PREPARING -> {
-//                            btDownload.visibility = View.GONE
-//                            animationDownloading.visibility = View.VISIBLE
-//                        }
-//
-//                        DownloadState.STATE_NOT_DOWNLOADED -> {
-//                            btDownload.visibility = View.VISIBLE
-//                            animationDownloading.visibility = View.GONE
-//                            btDownload.setImageResource(R.drawable.download_button)
-//                        }
-//                    }
-//                }
-//            }
-//        }
-//    }
-
-    private fun fetchDataFromViewModel() {
-        Log.d("Check", "fetchDataFromViewModel: ${viewModel.localPlaylist.value}")
-        val localPlaylist = viewModel.localPlaylist.value!!
-        binding.collapsingToolbarLayout.title = localPlaylist.title
-        binding.tvTitle.text = localPlaylist.title
-        binding.tvTitle.isSelected = true
-        binding.tvTrackCountAndTimeCreated.text =
-            getString(
-                R.string.album_length,
-                localPlaylist.tracks?.size.toString(),
-                localPlaylist.inLibrary.format(
-                    DateTimeFormatter.ofPattern("HH:mm:ss dd/MM/yyyy"),
-                ),
-            )
-        if (!viewModel.listTrack.value.isNullOrEmpty()) {
-            listTrack.clear()
-            listTrack.addAll(viewModel.listTrack.value!!)
-            Log.d("Check", "fetchData: ${viewModel.listTrack.value}")
-            playlistAdapter.updateList(listTrack)
-        }
-        loadImage(localPlaylist.thumbnail)
-        with(binding) {
-            when (localPlaylist.downloadState) {
-                DownloadState.STATE_DOWNLOADED -> {
-                    btDownload.visibility = View.VISIBLE
-                    animationDownloading.visibility = View.GONE
-                    btDownload.setImageResource(R.drawable.baseline_downloaded)
-                }
-
-                DownloadState.STATE_DOWNLOADING -> {
-                    btDownload.visibility = View.GONE
-                    animationDownloading.visibility = View.VISIBLE
-                }
-
-                DownloadState.STATE_PREPARING -> {
-                    btDownload.visibility = View.GONE
-                    animationDownloading.visibility = View.VISIBLE
-                }
-
-                DownloadState.STATE_NOT_DOWNLOADED -> {
-                    btDownload.visibility = View.VISIBLE
-                    animationDownloading.visibility = View.GONE
-                    btDownload.setImageResource(R.drawable.download_button)
-                }
-            }
-        }
-    }
-
-    private fun loadImage(url: String?) {
-        Log.d("Check", "loadImage: $url")
-        val request =
-            ImageRequest.Builder(requireContext())
-                .data(url)
-                .diskCachePolicy(CachePolicy.ENABLED)
-                .diskCacheKey(id.toString())
-                .placeholder(R.drawable.holder)
-                .target(
-                    onStart = {
-                        binding.ivPlaylistArt.setImageResource(R.drawable.holder)
-                    },
-                    onError = {
-                        binding.ivPlaylistArt.setImageResource(R.drawable.holder)
-                    },
-                    onSuccess = { result ->
-                        binding.ivPlaylistArt.setImageDrawable(result)
-                        if (viewModel.gradientDrawable.value != null) {
-                            viewModel.gradientDrawable.observe(viewLifecycleOwner) {
-                                if (it != null) {
-                                    val start =
-                                        binding.topAppBarLayout.background ?: ColorDrawable(
-                                            Color.TRANSPARENT,
-                                        )
-                                    val transition = TransitionDrawable(arrayOf(start, it))
-                                    binding.topAppBarLayout.background = transition
-                                    transition.isCrossFadeEnabled = true
-                                    transition.startTransition(500)
-                                }
-                            }
-                        }
-                    },
-                )
-                .transformations(
-                    object : Transformation {
-                        override val cacheKey: String
-                            get() = id.toString()
-
-                        override suspend fun transform(
-                            input: Bitmap,
-                            size: Size,
-                        ): Bitmap {
-                            val p = Palette.from(input).generate()
-                            val defaultColor = 0x000000
-                            var startColor = p.getDarkVibrantColor(defaultColor)
-                            if (startColor == defaultColor) {
-                                startColor = p.getDarkMutedColor(defaultColor)
-                                if (startColor == defaultColor) {
-                                    startColor = p.getVibrantColor(defaultColor)
-                                    if (startColor == defaultColor) {
-                                        startColor = p.getMutedColor(defaultColor)
-                                        if (startColor == defaultColor) {
-                                            startColor = p.getLightVibrantColor(defaultColor)
-                                            if (startColor == defaultColor) {
-                                                startColor = p.getLightMutedColor(defaultColor)
-                                            }
-                                        }
-                                    }
-                                }
-                                Log.d("Check Start Color", "transform: $startColor")
-                            }
-                            startColor = ColorUtils.setAlphaComponent(startColor, 150)
-                            val endColor =
-                                resources.getColor(R.color.md_theme_dark_background, null)
-                            val gd =
-                                GradientDrawable(
-                                    GradientDrawable.Orientation.TOP_BOTTOM,
-                                    intArrayOf(startColor, endColor),
-                                )
-                            gd.cornerRadius = 0f
-                            gd.gradientType = GradientDrawable.LINEAR_GRADIENT
-                            gd.gradientRadius = 0.5f
-                            viewModel.gradientDrawable.postValue(gd)
-                            return input
-                        }
-                    },
-                ).build()
-        ImageLoader(requireContext()).enqueue(request)
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
     }
 }

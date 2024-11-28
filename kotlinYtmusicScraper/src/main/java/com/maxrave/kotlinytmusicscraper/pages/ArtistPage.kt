@@ -57,7 +57,11 @@ data class ArtistPage(
                         fromMusicTwoRowItemRenderer(renderer)
                     }
                 },
-                moreEndpoint = renderer.header.musicCarouselShelfBasicHeaderRenderer.moreContentButton?.buttonRenderer?.navigationEndpoint?.browseEndpoint
+                moreEndpoint = renderer.header.musicCarouselShelfBasicHeaderRenderer
+                    .moreContentButton
+                    ?.buttonRenderer
+                    ?.navigationEndpoint
+                    ?.browseEndpoint
             )
         }
 
@@ -125,8 +129,7 @@ data class ArtistPage(
                         playlistId = renderer.thumbnailOverlay?.musicItemThumbnailOverlayRenderer?.content
                             ?.musicPlayButtonRenderer?.playNavigationEndpoint
                             ?.watchPlaylistEndpoint?.playlistId
-                            ?: renderer.navigationEndpoint.browseEndpoint.browseId.removePrefix("VL")
-                            ?: return null,
+                            ?: renderer.navigationEndpoint.browseEndpoint.browseId.removePrefix("VL"),
                         title = renderer.title.runs?.firstOrNull()?.text ?: return null,
                         artists = null,
                         year = renderer.subtitle?.runs?.lastOrNull()?.text?.toIntOrNull(),

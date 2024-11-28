@@ -3,7 +3,9 @@ package com.maxrave.simpmusic.adapter.moodandgenre.mood
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import coil.load
+import coil3.load
+import coil3.request.crossfade
+import coil3.request.placeholder
 import com.maxrave.simpmusic.data.model.explore.mood.moodmoments.Content
 import com.maxrave.simpmusic.databinding.ItemHomeContentPlaylistBinding
 

@@ -6,6 +6,7 @@ import com.google.gson.annotations.SerializedName
 import com.maxrave.simpmusic.data.model.searchResult.songs.Album
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
+import com.maxrave.simpmusic.data.type.HomeContentType
 
 @Immutable
 data class Content(
@@ -32,4 +33,4 @@ data class Content(
     @SerializedName("durationSeconds")
     val durationSeconds: Int? = null,
     val radio: String? = null,
-)
+): HomeContentType

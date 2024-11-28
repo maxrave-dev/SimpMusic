@@ -19,9 +19,10 @@ import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
 import androidx.palette.graphics.Palette
 import androidx.recyclerview.widget.LinearLayoutManager
-import coil.load
-import coil.size.Size
-import coil.transform.Transformation
+import coil3.load
+import coil3.request.transformations
+import coil3.size.Size
+import coil3.transform.Transformation
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.snackbar.Snackbar
 import com.maxrave.simpmusic.R
@@ -121,7 +122,7 @@ class PodcastFragment : Fragment() {
         binding.btPlayPause.setOnClickListener {
             if (viewModel.podcastBrowse.value is Resource.Success && viewModel.podcastBrowse.value?.data != null) {
                 val firstQueue = viewModel.podcastBrowse.value?.data?.listEpisode?.firstOrNull()?.toTrack()
-                sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                viewModel.setQueueData(
                     QueueData(
                         listTracks = viewModel.podcastBrowse.value?.data?.listEpisode?.toListTrack() ?: arrayListOf(),
                         firstPlayedTrack = firstQueue,
@@ -133,7 +134,7 @@ class PodcastFragment : Fragment() {
                     )
                 )
                 if (firstQueue != null) {
-                    sharedViewModel.loadMediaItemFromTrack(
+                    viewModel.loadMediaItem(
                         firstQueue,
                         Config.PLAYLIST_CLICK,
                         0
@@ -154,7 +155,7 @@ class PodcastFragment : Fragment() {
                 shuffleList.shuffle()
                 if (firstPlay != null) {
                     shuffleList.add(0, firstPlay)
-                    sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                    viewModel.setQueueData(
                         QueueData(
                             listTracks = shuffleList,
                             firstPlayedTrack = firstPlay,
@@ -164,7 +165,7 @@ class PodcastFragment : Fragment() {
                             continuation = null
                         )
                     )
-                    sharedViewModel.loadMediaItemFromTrack(
+                    viewModel.loadMediaItem(
                         firstPlay,
                         Config.PLAYLIST_CLICK,
                         0
@@ -197,7 +198,7 @@ class PodcastFragment : Fragment() {
             override fun onItemClick(position: Int) {
                 if (viewModel.podcastBrowse.value is Resource.Success && viewModel.podcastBrowse.value?.data != null) {
                     val firstQueue = viewModel.podcastBrowse.value?.data?.listEpisode?.getOrNull(position)?.toTrack()
-                    sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                    viewModel.setQueueData(
                         QueueData(
                             listTracks = viewModel.podcastBrowse.value?.data?.listEpisode?.toListTrack() ?: arrayListOf(),
                             firstPlayedTrack = firstQueue,
@@ -209,7 +210,7 @@ class PodcastFragment : Fragment() {
                         )
                     )
                     if (firstQueue != null) {
-                        sharedViewModel.loadMediaItemFromTrack(
+                        viewModel.loadMediaItem(
                             firstQueue,
                             Config.PLAYLIST_CLICK,
                             position
@@ -324,7 +325,7 @@ class PodcastFragment : Fragment() {
     private fun loadImage(url: String?) {
         if (url != null) {
             binding.ivPlaylistArt.load(url) {
-                transformations(object : Transformation {
+                transformations(object : Transformation() {
                     override val cacheKey: String
                         get() = url
 

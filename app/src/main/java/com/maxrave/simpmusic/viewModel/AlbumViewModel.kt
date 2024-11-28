@@ -105,7 +105,7 @@ class AlbumViewModel(
                     updateAlbumDownloadState(albumEntity.browseId, DownloadState.STATE_NOT_DOWNLOADED)
                 }
                 mainRepository.getAlbum(albumEntity.browseId).collect { album ->
-                    _albumEntity.value = values
+                    _albumEntity.value = album
                 }
             }
         }

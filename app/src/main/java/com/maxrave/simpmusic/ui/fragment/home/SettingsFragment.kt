@@ -25,7 +25,6 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import coil.annotation.ExperimentalCoilApi
 import com.google.android.flexbox.FlexboxLayout
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.slider.Slider
@@ -101,7 +100,6 @@ class SettingsFragment : Fragment() {
 
     private var resultLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {}
 
-    @OptIn(ExperimentalCoilApi::class)
     @UnstableApi
     override fun onViewCreated(
         view: View,
@@ -624,7 +622,7 @@ class SettingsFragment : Fragment() {
         binding.btEqualizer.setOnClickListener {
             val eqIntent = Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL)
             eqIntent.putExtra(AudioEffect.EXTRA_PACKAGE_NAME, requireContext().packageName)
-            eqIntent.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, sharedViewModel.simpleMediaServiceHandler?.player?.audioSessionId)
+            eqIntent.putExtra(AudioEffect.EXTRA_AUDIO_SESSION, viewModel.getAudioSessionId())
             eqIntent.putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MUSIC)
             val packageManager = requireContext().packageManager
             val resolveInfo: List<*> = packageManager.queryIntentActivities(eqIntent, 0)

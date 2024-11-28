@@ -10,12 +10,14 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
-import coil.ImageLoader
-import coil.request.CachePolicy
-import com.maxrave.simpmusic.R
-import com.skydoves.landscapist.coil.LocalCoilImageLoader
+import coil3.ImageLoader
+import coil3.compose.setSingletonImageLoaderFactory
+import coil3.disk.DiskCache
+import coil3.request.CachePolicy
+import coil3.request.crossfade
+import coil3.util.DebugLogger
+import okio.FileSystem
 
 private val DarkColors =
     darkColorScheme(
@@ -62,15 +64,16 @@ fun AppTheme(
 //    } else {
 //        DarkColors
 //    }
-    val context = LocalContext.current
-    val imageLoader =
-        ImageLoader
-            .Builder(context)
-            .diskCachePolicy(CachePolicy.ENABLED)
-            .placeholder(R.drawable.holder)
-            .build()
     val contentWithImageLoader: @Composable () -> Unit = {
-        CompositionLocalProvider(LocalCoilImageLoader provides imageLoader, content)
+        setSingletonImageLoaderFactory { context ->
+            ImageLoader.Builder(context)
+                .logger(DebugLogger())
+                .diskCachePolicy(CachePolicy.ENABLED).networkCachePolicy(CachePolicy.ENABLED)
+                .diskCache(newDiskCache())
+                .crossfade(true)
+                .build()
+        }
+        content()
     }
 
     MaterialTheme(
@@ -86,6 +89,12 @@ fun AppTheme(
 }
 
 fun supportsDynamic(): Boolean = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) true else false
+
+fun newDiskCache(): DiskCache {
+    return DiskCache.Builder().directory(FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "image_cache")
+        .maxSizeBytes(512L * 1024 * 1024)
+        .build()
+}
 
 @Composable
 @Preview(

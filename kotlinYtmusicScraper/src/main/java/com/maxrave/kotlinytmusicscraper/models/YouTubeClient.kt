@@ -13,6 +13,7 @@ data class YouTubeClient(
     val api_key: String,
     val userAgent: String,
     val referer: String? = null,
+    val osVersion: String? = null,
 ) {
     fun toContext(locale: YouTubeLocale, visitorData: String?) = Context(
         client = Context.Client(
@@ -20,8 +21,9 @@ data class YouTubeClient(
             clientVersion = clientVersion,
             gl = locale.gl,
             hl = locale.hl,
-            visitorData = visitorData
-        )
+            visitorData = visitorData,
+            osVersion = osVersion,
+            )
     )
 
     companion object {
@@ -30,6 +32,7 @@ data class YouTubeClient(
 
         private const val USER_AGENT_WEB = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/115.0.0.0 Safari/537.36"
         private const val USER_AGENT_ANDROID = "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Mobile Safari/537.36"
+        private const val USER_AGENT_IOS = "com.google.ios.youtube/19.29.1 (iPhone16,2; U; CPU iOS 17_5_1 like Mac OS X;)"
 
         val ANDROID_MUSIC = YouTubeClient(
             clientName = "ANDROID_MUSIC",
@@ -88,7 +91,14 @@ data class YouTubeClient(
             api_key = "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8",
             userAgent = USER_AGENT_WEB,
             referer = REFERER_YOUTUBE
+        )
 
+        val IOS = YouTubeClient(
+            clientName = "IOS",
+            clientVersion = "19.29.1",
+            api_key = "AIzaSyB-63vPrdThhKuerbB2N_l7Kwwcxj6yUAc",
+            userAgent = USER_AGENT_IOS,
+            osVersion = "17.5.1.21F90",
         )
     }
 }

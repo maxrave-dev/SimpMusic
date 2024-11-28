@@ -4,7 +4,9 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import coil.load
+import coil3.load
+import coil3.request.crossfade
+import coil3.request.placeholder
 import com.maxrave.kotlinytmusicscraper.models.AlbumItem
 import com.maxrave.kotlinytmusicscraper.models.YTItem
 import com.maxrave.simpmusic.R

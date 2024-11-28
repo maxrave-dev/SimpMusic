@@ -3,6 +3,7 @@ package com.maxrave.kotlinytmusicscraper
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.maxrave.kotlinytmusicscraper.encoder.brotli
+import com.maxrave.kotlinytmusicscraper.extension.sha256
 import com.maxrave.kotlinytmusicscraper.models.Context
 import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient
@@ -21,6 +22,7 @@ import com.maxrave.kotlinytmusicscraper.models.body.NotificationBody
 import com.maxrave.kotlinytmusicscraper.models.body.PlayerBody
 import com.maxrave.kotlinytmusicscraper.models.body.SearchBody
 import com.maxrave.kotlinytmusicscraper.models.body.spotify.CanvasBody
+import com.maxrave.kotlinytmusicscraper.models.body.spotify.SpotifyClientBody
 import com.maxrave.kotlinytmusicscraper.models.musixmatch.SearchMusixmatchResponse
 import com.maxrave.kotlinytmusicscraper.utils.CustomRedirectConfig
 import com.maxrave.kotlinytmusicscraper.utils.parseCookieString
@@ -35,7 +37,6 @@ import io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
 import io.ktor.client.plugins.cookies.HttpCookies
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.HttpRequestBuilder
-import io.ktor.client.request.forms.FormDataContent
 import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.headers
@@ -44,7 +45,7 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
-import io.ktor.http.Parameters
+import io.ktor.http.contentLength
 import io.ktor.http.contentType
 import io.ktor.http.parameters
 import io.ktor.http.userAgent
@@ -54,6 +55,7 @@ import io.ktor.serialization.kotlinx.protobuf.protobuf
 import io.ktor.serialization.kotlinx.xml.xml
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonNamingStrategy
 import kotlinx.serialization.protobuf.ProtoBuf
 import nl.adaptivity.xmlutil.XmlDeclMode
 import nl.adaptivity.xmlutil.serialization.XML
@@ -61,6 +63,7 @@ import okhttp3.Interceptor
 import java.io.File
 import java.lang.reflect.Type
 import java.net.Proxy
+import java.time.LocalDateTime
 import java.util.Locale
 
 class Ytmusic {
@@ -416,7 +419,7 @@ class Ytmusic {
     suspend fun pipedStreams(
         videoId: String,
         pipedInstance: String,
-    ) = httpClient.get("https://$pipedInstance/streams/$videoId") {
+    ) = httpClient.get("$pipedInstance/streams/$videoId") {
         contentType(ContentType.Application.Json)
     }
 
@@ -794,6 +797,23 @@ class Ytmusic {
             contentType(ContentType.Application.Json)
         }
 
+    suspend fun playlist(playlistId: String) =
+        httpClient.post("browse") {
+            ytClient(YouTubeClient.WEB_REMIX, !cookie.isNullOrEmpty())
+            setBody(
+                BrowseBody(
+                    context =
+                        YouTubeClient.WEB_REMIX.toContext(
+                            locale,
+                            visitorData,
+                        ),
+                    browseId = playlistId,
+                    params = "wAEB",
+                ),
+            )
+            parameter("alt", "json")
+        }
+
     suspend fun browse(
         client: YouTubeClient,
         browseId: String? = null,
@@ -996,23 +1016,23 @@ class Ytmusic {
      * Please don't use my client id and client secret for your project. Create your own client id and client secret in Spotify Web API page.
      */
 
-    private val spotify_client_id = "721d6f670f074b1497e74fc59125a6f3"
-    private val spotify_client_secret = "efddc083fa974d39bc6369a892c07ced"
-
-    suspend fun getSpotifyToken() =
-        httpClient.post("https://accounts.spotify.com/api/token") {
-            userAgent(YouTubeClient.WEB.userAgent)
-            contentType(ContentType.Application.FormUrlEncoded)
-            setBody(
-                FormDataContent(
-                    Parameters.build {
-                        append("grant_type", "client_credentials")
-                        append("client_id", spotify_client_id)
-                        append("client_secret", spotify_client_secret)
-                    },
-                ),
-            )
-        }
+//    private val spotify_client_id = "721d6f670f074b1497e74fc59125a6f3"
+//    private val spotify_client_secret = "efddc083fa974d39bc6369a892c07ced"
+//
+//    suspend fun getSpotifyToken() =
+//        httpClient.post("https://accounts.spotify.com/api/token") {
+//            userAgent(YouTubeClient.WEB.userAgent)
+//            contentType(ContentType.Application.FormUrlEncoded)
+//            setBody(
+//                FormDataContent(
+//                    Parameters.build {
+//                        append("grant_type", "client_credentials")
+//                        append("client_id", spotify_client_id)
+//                        append("client_secret", spotify_client_secret)
+//                    },
+//                ),
+//            )
+//        }
 
     suspend fun getSpotifyLyricsToken(spdc: String) =
         spotifyClient.get("https://open.spotify.com/get_access_token?reason=transport&productType=web_player") {
@@ -1033,15 +1053,31 @@ class Ytmusic {
 
     suspend fun searchSpotifyTrack(
         q: String,
-        token: String,
-    ) = spotifyClient.get("https://api.spotify.com/v1/search") {
+        authToken: String
+    ) = spotifyClient.get("https://api-partner.spotify.com/pathfinder/v1/query?operationName=searchTracks") {
         userAgent(YouTubeClient.WEB.userAgent)
         contentType(ContentType.Application.Json)
-        header("Authorization", "Bearer $token")
-        parameter("q", q)
-        parameter("type", "track")
-        parameter("limit", "3")
+        header("Authorization", "Bearer $authToken")
+        header(
+            HttpHeaders
+                .AcceptEncoding,
+            "gzip, deflate, br",
+        )
+        val variable =
+            "{\"searchTerm\":\"${q}\",\"offset\":0,\"limit\":3,\"numberOfTopResults\":3,\"includeAudiobooks\":true,\"includePreReleases\":false}"
+        val sha = "220d098228a4eaf216b39e8c147865244959c4cc6fd82d394d88afda0b710929"
+        parameter(
+            "variables",
+            variable
+        )
+        parameter(
+            "extensions",
+            "{\"persistedQuery\":{\"version\":1,\"sha256Hash\":\"${sha}\"}}"
+        )
     }
+    // {"searchTerm":"trình+hieuthuhai","offset":0,"limit":20,"numberOfTopResults":20,"includeAudiobooks":true,"includePreReleases":false}
+    // {"persistedQuery":{"version":1,"sha256Hash":"e4ed1f91a2cc5415befedb85acf8671dc1a4bf3ca1a5b945a6386101a22e28a6"}}
+
 
     suspend fun getSpotifyCanvas(
         trackId: String,

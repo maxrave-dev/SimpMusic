@@ -11,19 +11,20 @@ plugins {
 
 android {
     namespace = "com.maxrave.simpmusic"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.maxrave.simpmusic"
         minSdk = 26
         targetSdk = 35
-        versionCode = 20
-        versionName = "0.2.3-hf2"
+        versionCode = 21
+        versionName = "0.2.4"
         vectorDrawables.useSupportLibrary = true
 
         ksp {
             arg("room.schemaLocation", "$projectDir/schemas")
             arg("KOIN_CONFIG_CHECK", "true")
+            arg("KOIN_USE_COMPOSE_VIEWMODEL","true")
         }
 
         resourceConfigurations +=
@@ -180,6 +181,7 @@ dependencies {
     implementation(composeBom)
     androidTestImplementation(composeBom)
     implementation(libs.compose.material3.lib)
+    implementation(libs.compose.material3.sizeclass)
     implementation(libs.compose.ui)
     implementation(libs.compose.material.ripple)
     implementation(libs.compose.material.icons.core)
@@ -244,8 +246,9 @@ dependencies {
     implementation(libs.gson)
 
     // Coil
-    implementation(libs.coil)
     implementation(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
+    implementation(libs.kmpalette.core)
     // Easy Permissions
     implementation(libs.easypermissions)
     // Palette Color
@@ -287,13 +290,6 @@ dependencies {
     implementation(libs.flexbox)
     implementation(libs.balloon)
 
-    // Landscapist
-    implementation(libs.landscapist.bom)
-    implementation(libs.landscapist.coil)
-    implementation(libs.landscapist.placeholder)
-    implementation(libs.landscapist.animation)
-    implementation(libs.landscapist.palette)
-    implementation(libs.landscapist.transformation)
     // InsetsX
     implementation(libs.insetsx)
 

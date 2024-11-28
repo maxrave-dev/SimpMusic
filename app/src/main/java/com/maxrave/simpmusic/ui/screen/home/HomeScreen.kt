@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.util.Log
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.LinearOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -13,10 +12,10 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider
+import androidx.compose.foundation.gestures.snapping.SnapPosition
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -38,10 +37,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -49,14 +51,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
@@ -66,6 +67,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
+import coil3.compose.AsyncImage
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.maxrave.kotlinytmusicscraper.config.Constants
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.CHART_SUPPORTED_COUNTRY
@@ -95,10 +100,6 @@ import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.HomeViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
-import com.skydoves.landscapist.ImageOptions
-import com.skydoves.landscapist.animation.crossfade.CrossfadePlugin
-import com.skydoves.landscapist.coil.CoilImage
-import com.skydoves.landscapist.components.rememberImageComponent
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -113,6 +114,7 @@ fun HomeScreen(
     navController: NavController,
 ) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberLazyListState()
     val accountInfo by viewModel.accountInfo.collectAsState()
     val homeData by viewModel.homeItemList.collectAsState()
@@ -126,52 +128,72 @@ fun HomeScreen(
     }
     val regionChart by viewModel.regionCodeChart.collectAsState()
     val homeRefresh by sharedViewModel.homeRefresh.collectAsState()
-    val pullToRefreshState =
-        rememberPullToRefreshState(
-            20.dp,
-        )
+    val pullToRefreshState = rememberPullToRefreshState()
+    var isRefreshing by remember { mutableStateOf(false) }
     val chipRowState = rememberScrollState()
     val params by viewModel.params.collectAsState()
-    val scaleFraction =
-        if (pullToRefreshState.isRefreshing) {
-            1f
-        } else {
-            LinearOutSlowInEasing.transform(pullToRefreshState.progress).coerceIn(0f, 1f)
-        }
-    if (pullToRefreshState.isRefreshing) {
-        //  viewModel.getHomeItemList() // Why is this call here twice ?
+
+    val shouldShowLogInAlert by viewModel.showLogInAlert.collectAsState()
+
+    val onRefresh: () -> Unit = {
+        isRefreshing = true
         viewModel.getHomeItemList()
+        Log.w("HomeScreen", "onRefresh")
+    }
+    LaunchedEffect(key1 = homeRefresh) {
+        if (homeRefresh) {
+            if (scrollState.firstVisibleItemIndex > 1) {
+                Log.w("HomeScreen", "scrollState.firstVisibleItemIndex: ${scrollState.firstVisibleItemIndex}")
+                scrollState.animateScrollToItem(0)
+                sharedViewModel.homeRefreshDone()
+            } else {
+                Log.w("HomeScreen", "scrollState.firstVisibleItemIndex: ${scrollState.firstVisibleItemIndex}")
+                onRefresh.invoke()
+            }
+        }
+    }
+    LaunchedEffect(key1 = loading) {
         if (!loading) {
-            pullToRefreshState.endRefresh()
+            isRefreshing = false
             sharedViewModel.homeRefreshDone()
+            coroutineScope.launch {
+                pullToRefreshState.animateToHidden()
+            }
         }
     }
     LaunchedEffect(key1 = homeData) {
         accountShow = homeData.find { it.subtitle == accountInfo?.first } == null
     }
-    LaunchedEffect(key1 = homeRefresh) {
-        Log.w("HomeScreen", "homeRefresh: $homeRefresh")
-        if (homeRefresh) {
-            Log.w(
-                "HomeScreen",
-                "scrollState.firstVisibleItemIndex: ${scrollState.firstVisibleItemIndex}",
-            )
-            if (scrollState.firstVisibleItemIndex == 1) {
-                Log.w(
-                    "HomeScreen",
-                    "scrollState.canScrollBackward: ${scrollState.canScrollBackward}",
-                )
-                pullToRefreshState.startRefresh()
-            } else {
-                Log.w(
-                    "HomeScreen",
-                    "scrollState.canScrollBackward: ${scrollState.canScrollBackward}",
-                )
-                launch { scrollState.scrollToItem(0, 0) }
-                sharedViewModel.homeRefreshDone()
+
+    if (shouldShowLogInAlert) {
+        AlertDialog(
+            title = {
+                Text(stringResource(R.string.warning))
+            },
+            text = {
+                Text(text = stringResource(R.string.log_in_warning))
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    viewModel.doneShowLogInAlert()
+                    navController.navigateSafe(R.id.action_global_logInFragment)
+                }) {
+                    Text(stringResource(R.string.go_to_log_in_page))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    viewModel.doneShowLogInAlert()
+                }) {
+                    Text(stringResource(R.string.cancel))
+                }
+            },
+            onDismissRequest = {
+                viewModel.doneShowLogInAlert()
             }
-        }
+        )
     }
+
     Column {
         AnimatedVisibility(
             visible = scrollState.isScrollingUp(),
@@ -233,21 +255,24 @@ fun HomeScreen(
                 Spacer(modifier = Modifier.width(4.dp))
             }
         }
-        Box(
+        PullToRefreshBox(
             modifier =
             Modifier
-                .nestedScroll(pullToRefreshState.nestedScrollConnection)
                 .padding(vertical = 8.dp),
-            contentAlignment = Alignment.Center,
+            state = pullToRefreshState,
+            onRefresh = onRefresh,
+            isRefreshing = isRefreshing,
+            indicator = {
+                PullToRefreshDefaults.Indicator(
+                    state = pullToRefreshState,
+                    isRefreshing = isRefreshing,
+                    modifier = Modifier.align(Alignment.TopCenter),
+                    containerColor = PullToRefreshDefaults.containerColor,
+                    color = PullToRefreshDefaults.indicatorColor,
+                    threshold = PullToRefreshDefaults.PositionalThreshold
+                )
+            }
         ) {
-            PullToRefreshContainer(
-                modifier =
-                Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = 15.dp)
-                    .graphicsLayer(scaleX = scaleFraction, scaleY = scaleFraction),
-                state = pullToRefreshState,
-            )
             Spacer(modifier = Modifier.height(8.dp))
             Crossfade(targetState = loading, label = "Home Shimmer") { loading ->
                 if (!loading) {
@@ -282,8 +307,17 @@ fun HomeScreen(
                                             context.getString(
                                                 R.string.quick_picks,
                                             )
-                                    } ?: return@AnimatedVisibility,
-                                    sharedViewModel = sharedViewModel,
+                                    } != null,
+                            ) {
+                                QuickPicks(
+                                    homeItem =
+                                        homeData.find {
+                                            it.title ==
+                                                context.getString(
+                                                    R.string.quick_picks,
+                                                )
+                                        } ?: return@AnimatedVisibility,
+                                    viewModel = viewModel,
                                 )
                             }
                         }
@@ -291,9 +325,8 @@ fun HomeScreen(
                             if (it.title != context.getString(R.string.quick_picks)) {
                                 HomeItem(
                                     homeViewModel = viewModel,
-                                    sharedViewModel = sharedViewModel,
-                                    data = it,
                                     navController = navController,
+                                    data = it,
                                 )
                             }
                         }
@@ -303,9 +336,8 @@ fun HomeScreen(
                             ) {
                                 HomeItem(
                                     homeViewModel = viewModel,
-                                    sharedViewModel = sharedViewModel,
-                                    data = it,
                                     navController = navController,
+                                    data = it,
                                 )
                             }
                         }
@@ -322,59 +354,55 @@ fun HomeScreen(
                             }
                         }
                         item {
-                            Crossfade(targetState = chart == null && !chartLoading) { noData ->
-                                if (!noData) {
-                                    Column(
-                                        Modifier
-                                            .padding(vertical = 10.dp),
-                                        verticalArrangement = Arrangement.SpaceBetween,
-                                    ) {
-                                        ChartTitle()
-                                        Spacer(modifier = Modifier.height(5.dp))
-                                        Crossfade(targetState = regionChart) {
-                                            Log.w("HomeScreen", "regionChart: $it")
-                                            if (it != null) {
-                                                DropdownButton(
-                                                    items = CHART_SUPPORTED_COUNTRY.itemsData.toList(),
-                                                    defaultSelected =
-                                                    CHART_SUPPORTED_COUNTRY.itemsData.getOrNull(
-                                                        CHART_SUPPORTED_COUNTRY.items.indexOf(it),
-                                                    )
-                                                        ?: CHART_SUPPORTED_COUNTRY.itemsData[1],
-                                                ) {
-                                                    viewModel.exploreChart(
-                                                        CHART_SUPPORTED_COUNTRY.items[
-                                                            CHART_SUPPORTED_COUNTRY.itemsData.indexOf(
-                                                                it,
-                                                            ),
-                                                        ],
-                                                    )
-                                                }
-                                            }
+                            Column(
+                                Modifier
+                                    .padding(vertical = 10.dp),
+                                verticalArrangement = Arrangement.SpaceBetween,
+                            ) {
+                                ChartTitle()
+                                Spacer(modifier = Modifier.height(5.dp))
+                                Crossfade(targetState = regionChart) {
+                                    Log.w("HomeScreen", "regionChart: $it")
+                                    if (it != null) {
+                                        DropdownButton(
+                                            items = CHART_SUPPORTED_COUNTRY.itemsData.toList(),
+                                            defaultSelected =
+                                            CHART_SUPPORTED_COUNTRY.itemsData.getOrNull(
+                                                CHART_SUPPORTED_COUNTRY.items.indexOf(it),
+                                            )
+                                                ?: CHART_SUPPORTED_COUNTRY.itemsData[1],
+                                        ) {
+                                            viewModel.exploreChart(
+                                                CHART_SUPPORTED_COUNTRY.items[
+                                                    CHART_SUPPORTED_COUNTRY.itemsData.indexOf(
+                                                        it,
+                                                    ),
+                                                ],
+                                            )
                                         }
-                                        Spacer(modifier = Modifier.height(5.dp))
-                                        Crossfade(
-                                            targetState = chartLoading,
-                                            label = "Chart",
-                                        ) { loading ->
-                                            if (!loading) {
-                                                chart?.let {
-                                                    ChartData(
-                                                        chart = it,
-                                                        sharedViewModel = sharedViewModel,
-                                                        navController = navController,
-                                                        context = context,
-                                                    )
-                                                }
-                                            } else {
-                                                CenterLoadingBox(
-                                                    modifier =
-                                                    Modifier
-                                                        .fillMaxWidth()
-                                                        .height(400.dp),
-                                                )
-                                            }
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(5.dp))
+                                Crossfade(
+                                    targetState = chartLoading,
+                                    label = "Chart",
+                                ) { loading ->
+                                    if (!loading) {
+                                        chart?.let {
+                                            ChartData(
+                                                chart = it,
+                                                viewModel = viewModel,
+                                                navController = navController,
+                                                context = context,
+                                            )
                                         }
+                                    } else {
+                                        CenterLoadingBox(
+                                            modifier =
+                                            Modifier
+                                                .fillMaxWidth()
+                                                .height(400.dp),
+                                        )
                                     }
                                 }
                             }
@@ -466,20 +494,17 @@ fun AccountLayout(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(horizontal = 5.dp, vertical = 5.dp),
         ) {
-            CoilImage(
-                imageModel = { url },
-                imageOptions =
-                ImageOptions(
-                    contentScale = ContentScale.Crop,
-                    alignment = Alignment.Center,
-                ),
-                previewPlaceholder = painterResource(id = R.drawable.holder),
-                component =
-                rememberImageComponent {
-                    CrossfadePlugin(
-                        duration = 550,
-                    )
-                },
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(url)
+                    .diskCachePolicy(CachePolicy.ENABLED)
+                    .diskCacheKey(url)
+                    .crossfade(true)
+                    .build(),
+                placeholder = painterResource(R.drawable.holder),
+                error = painterResource(R.drawable.holder),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
                 modifier =
                 Modifier
                     .size(40.dp)
@@ -504,10 +529,10 @@ fun AccountLayout(
 @Composable
 fun QuickPicks(
     homeItem: HomeItem,
-    sharedViewModel: SharedViewModel,
+    viewModel: HomeViewModel
 ) {
     val lazyListState = rememberLazyGridState()
-    val snapperFlingBehavior = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyGridState = lazyListState))
+    val snapperFlingBehavior = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyGridState = lazyListState, snapPosition = SnapPosition.Start))
     val density = LocalDensity.current
     var widthDp by remember {
         mutableStateOf(0.dp)
@@ -542,24 +567,23 @@ fun QuickPicks(
         ) {
             items(homeItem.contents, key = { it?.videoId ?: "item_${it.hashCode()}" }) {
                 if (it != null) {
-                    QuickPicksItem(
-                        onClick = {
-                            val firstQueue: Track = it.toTrack()
-                            sharedViewModel.simpleMediaServiceHandler?.setQueueData(
-                                QueueData(
-                                    listTracks = arrayListOf(firstQueue),
-                                    firstPlayedTrack = firstQueue,
-                                    playlistId = "RDAMVM${it.videoId}",
-                                    playlistName = "\"${it.title}\" Radio",
-                                    playlistType = PlaylistType.RADIO,
-                                    continuation = null
-                                )
+                    QuickPicksItem(onClick = {
+                        val firstQueue: Track = it.toTrack()
+                        viewModel.setQueueData(
+                            QueueData(
+                                listTracks = arrayListOf(firstQueue),
+                                firstPlayedTrack = firstQueue,
+                                playlistId = "RDAMVM${it.videoId}",
+                                playlistName = "\"${it.title}\" Radio",
+                                playlistType = PlaylistType.RADIO,
+                                continuation = null
                             )
-                            sharedViewModel.loadMediaItemFromTrack(
-                                firstQueue,
-                                type = Config.SONG_CLICK,
-                            )
-                        },
+                        )
+                        viewModel.loadMediaItem(
+                            firstQueue,
+                            type = Config.SONG_CLICK,
+                        )
+                    },
                         data = it,
                         widthDp = widthDp,
                     )
@@ -569,7 +593,6 @@ fun QuickPicks(
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MoodMomentAndGenre(
     mood: Mood,
@@ -663,12 +686,11 @@ fun ChartTitle() {
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @UnstableApi
 @Composable
 fun ChartData(
     chart: Chart,
-    sharedViewModel: SharedViewModel,
+    viewModel: HomeViewModel,
     navController: NavController,
     context: Context,
 ) {
@@ -720,7 +742,7 @@ fun ChartData(
                     ) {
                         items(chart.songs, key = { it.videoId }) {
                             ItemTrackChart(onClick = {
-                                sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                                viewModel.setQueueData(
                                     QueueData(
                                         listTracks = arrayListOf(it),
                                         firstPlayedTrack = it,
@@ -730,8 +752,8 @@ fun ChartData(
                                         continuation = null
                                     )
                                 )
-                                sharedViewModel.loadMediaItemFromTrack(
-                                    it,
+                                viewModel.loadMediaItem(
+                                    data,
                                     type = Config.VIDEO_CLICK,
                                 )
                             }, data = it, position = chart.songs.indexOf(it) + 1, widthDp = gridWidthDp)
@@ -758,7 +780,7 @@ fun ChartData(
                 ItemVideoChart(
                     onClick = {
                         val firstQueue: Track = data.toTrack()
-                        sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                        viewModel.setQueueData(
                             QueueData(
                                 listTracks = arrayListOf(firstQueue),
                                 firstPlayedTrack = firstQueue,
@@ -768,7 +790,7 @@ fun ChartData(
                                 continuation = null
                             )
                         )
-                        sharedViewModel.loadMediaItemFromTrack(
+                        viewModel.loadMediaItem(
                             firstQueue,
                             type = Config.VIDEO_CLICK,
                         )
@@ -828,7 +850,7 @@ fun ChartData(
                         }) {
                             val data = chart.trending[it]
                             ItemTrackChart(onClick = {
-                                sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                                viewModel.setQueueData(
                                     QueueData(
                                         listTracks = arrayListOf(data),
                                         firstPlayedTrack = data,
@@ -838,7 +860,7 @@ fun ChartData(
                                         continuation = null
                                     )
                                 )
-                                sharedViewModel.loadMediaItemFromTrack(
+                                viewModel.loadMediaItem(
                                     data,
                                     type = Config.VIDEO_CLICK,
                                 )

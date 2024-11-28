@@ -23,10 +23,11 @@ import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.CommandButton
-import androidx.media3.session.MediaSession
 import androidx.media3.session.SessionCommand
-import coil.ImageLoader
-import coil.request.ImageRequest
+import coil3.imageLoader
+import coil3.request.ImageRequest
+import coil3.request.placeholder
+import coil3.toBitmap
 import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.ASC
@@ -37,6 +38,7 @@ import com.maxrave.simpmusic.common.MEDIA_CUSTOM_COMMAND
 import com.maxrave.simpmusic.common.SPONSOR_BLOCK
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.TRUE
+import com.maxrave.simpmusic.data.db.Converters
 import com.maxrave.simpmusic.data.db.entities.NewFormatEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.model.browse.album.Track
@@ -82,14 +84,17 @@ import java.time.LocalDateTime
 @UnstableApi
 class SimpleMediaServiceHandler(
     val player: ExoPlayer,
-    private val mediaSession: MediaSession,
     mediaSessionCallback: SimpleMediaSessionCallback,
     private val dataStoreManager: DataStoreManager,
     private val mainRepository: MainRepository,
-    var coroutineScope: CoroutineScope,
+    private val coroutineScope: CoroutineScope,
     private val context: Context,
 ) : Player.Listener {
+    var setNotificationLayout: ((List<CommandButton>) -> Unit)? = null
+
+    @Suppress("ktlint:standard:property-naming")
     private val TAG = "SimpleMediaServiceHandler"
+    private val converter = Converters()
 
     private var loudnessEnhancer: LoudnessEnhancer? = null
 
@@ -110,22 +115,25 @@ class SimpleMediaServiceHandler(
     private var _queueData = MutableStateFlow<QueueData?>(null)
     val queueData = _queueData.asStateFlow()
 
-    private var _controlState = MutableStateFlow(ControlState(
-        isPlaying = player.isPlaying,
-        isShuffle = player.shuffleModeEnabled,
-        repeatState = when (player.repeatMode) {
-            Player.REPEAT_MODE_ONE -> RepeatState.One
-            Player.REPEAT_MODE_ALL -> RepeatState.All
-            Player.REPEAT_MODE_OFF -> RepeatState.None
-            else -> {
-                RepeatState.None
-            }
-        },
-        isLiked = false,
-        isNextAvailable = player.hasNextMediaItem(),
-        isPreviousAvailable = player.hasPreviousMediaItem(),
-
-    ))
+    private var _controlState =
+        MutableStateFlow(
+            ControlState(
+                isPlaying = player.isPlaying,
+                isShuffle = player.shuffleModeEnabled,
+                repeatState =
+                    when (player.repeatMode) {
+                        Player.REPEAT_MODE_ONE -> RepeatState.One
+                        Player.REPEAT_MODE_ALL -> RepeatState.All
+                        Player.REPEAT_MODE_OFF -> RepeatState.None
+                        else -> {
+                            RepeatState.None
+                        }
+                    },
+                isLiked = false,
+                isNextAvailable = player.hasNextMediaItem(),
+                isPreviousAvailable = player.hasPreviousMediaItem(),
+            ),
+        )
     val controlState = _controlState.asStateFlow()
 
     private var _stateFlow = MutableStateFlow<StateSource>(StateSource.STATE_CREATED)
@@ -143,12 +151,12 @@ class SimpleMediaServiceHandler(
     private var _skipSegments: MutableStateFlow<List<SkipSegments>?> = MutableStateFlow(null)
     val skipSegments: StateFlow<List<SkipSegments>?> = _skipSegments
 
-    private var getSkipSegmentsJob : Job? = null
+    private var getSkipSegmentsJob: Job? = null
 
     private var _format: MutableStateFlow<NewFormatEntity?> = MutableStateFlow(null)
     val format: StateFlow<NewFormatEntity?> = _format
 
-    private var getFormatJob : Job? = null
+    private var getFormatJob: Job? = null
 
     private var skipSilent = false
 
@@ -156,7 +164,7 @@ class SimpleMediaServiceHandler(
 
     private var progressJob: Job? = null
 
-    private var bufferedJob : Job? = null
+    private var bufferedJob: Job? = null
 
     private var updateNotificationJob: Job? = null
 
@@ -169,7 +177,6 @@ class SimpleMediaServiceHandler(
     private var watchTimeList: ArrayList<Float> = arrayListOf()
 
     private var jobWatchtime: Job? = null
-
 
     init {
         player.addListener(this)
@@ -211,48 +218,53 @@ class SimpleMediaServiceHandler(
         }
         mayBeRestoreQueue()
         coroutineScope.launch {
-            val skipSegmentsJob = launch {
-                simpleMediaState.filter { it is SimpleMediaState.Progress }.map {
-                    val current = (it as SimpleMediaState.Progress).progress
-                    val duration = player.duration
-                    if (duration > 0L) {
-                        (current.toFloat() / player.duration)*100
-                    }
-                    else {
-                        -1f
-                    }
-                }.filter { it >= 0f }
-                    .distinctUntilChanged()
-                    .collect { current ->
-                        if (dataStoreManager.sponsorBlockEnabled.first() == TRUE) {
-                            if (player.duration > 0L) {
-                                val skipSegments = skipSegments.value
-                                val listCategory = dataStoreManager.getSponsorBlockCategories()
-                                if (skipSegments != null) {
-                                    for (skip in skipSegments) {
-                                        if (listCategory.contains(skip.category)) {
-                                            val firstPart = ((skip.segment[0] / skip.videoDuration)*100).toFloat()
-                                            val secondPart =
-                                                ((skip.segment[1] / skip.videoDuration)*100).toFloat()
-                                            if (current in firstPart..secondPart) {
-                                                Log.w(
-                                                    "Seek to",
-                                                    secondPart.toString(),
-                                                )
-                                                Log.d("Seek to", "Cr: $current, First: $firstPart, Second: $secondPart")
-                                                skipSegment((secondPart * player.duration).toLong()/100)
-                                                Toast.makeText(
-                                                    context,
-                                                    context.getString(
-                                                        R.string.sponsorblock_skip_segment,
-                                                        context.getString(
-                                                            SPONSOR_BLOCK.listName.get(
-                                                                SPONSOR_BLOCK.list.indexOf(skip.category),
+            val skipSegmentsJob =
+                launch {
+                    simpleMediaState
+                        .filter { it is SimpleMediaState.Progress }
+                        .map {
+                            val current = (it as SimpleMediaState.Progress).progress
+                            val duration = player.duration
+                            if (duration > 0L) {
+                                (current.toFloat() / player.duration) * 100
+                            } else {
+                                -1f
+                            }
+                        }.filter { it >= 0f }
+                        .distinctUntilChanged()
+                        .collect { current ->
+                            if (dataStoreManager.sponsorBlockEnabled.first() == TRUE) {
+                                if (player.duration > 0L) {
+                                    val skipSegments = skipSegments.value
+                                    val listCategory = dataStoreManager.getSponsorBlockCategories()
+                                    if (skipSegments != null) {
+                                        for (skip in skipSegments) {
+                                            if (listCategory.contains(skip.category)) {
+                                                val firstPart = ((skip.segment[0] / skip.videoDuration) * 100).toFloat()
+                                                val secondPart =
+                                                    ((skip.segment[1] / skip.videoDuration) * 100).toFloat()
+                                                if (current in firstPart..secondPart) {
+                                                    Log.w(
+                                                        "Seek to",
+                                                        secondPart.toString(),
+                                                    )
+                                                    Log.d("Seek to", "Cr: $current, First: $firstPart, Second: $secondPart")
+                                                    skipSegment((secondPart * player.duration).toLong() / 100)
+                                                    Toast
+                                                        .makeText(
+                                                            context,
+                                                            context.getString(
+                                                                R.string.sponsorblock_skip_segment,
+                                                                context
+                                                                    .getString(
+                                                                        SPONSOR_BLOCK.listName.get(
+                                                                            SPONSOR_BLOCK.list.indexOf(skip.category),
+                                                                        ),
+                                                                    ).lowercase(),
                                                             ),
-                                                        ).lowercase(),
-                                                    ),
-                                                    Toast.LENGTH_SHORT,
-                                                ).show()
+                                                            Toast.LENGTH_SHORT,
+                                                        ).show()
+                                                }
                                             }
                                         }
                                     }
@@ -260,38 +272,39 @@ class SimpleMediaServiceHandler(
                             }
                         }
                 }
-            }
             val playbackJob =
-                    launch {
-                        format.collectLatest { formatTemp ->
-                            if (dataStoreManager.sendBackToGoogle.first() == TRUE) {
-                                if (formatTemp != null) {
-                                    println("format in viewModel: $formatTemp")
-                                    Log.d(TAG, "Collect format ${formatTemp.videoId}")
-                                    Log.w(TAG, "Format expire at ${formatTemp.expiredTime}")
-                                    Log.i(TAG, "AtrUrl ${formatTemp.playbackTrackingAtrUrl}")
-                                    initPlayback(
-                                        formatTemp.playbackTrackingVideostatsPlaybackUrl,
-                                        formatTemp.playbackTrackingAtrUrl,
-                                        formatTemp.playbackTrackingVideostatsWatchtimeUrl,
-                                        formatTemp.cpn,
-                                    )
-                                }
+                launch {
+                    format.collectLatest { formatTemp ->
+                        if (dataStoreManager.sendBackToGoogle.first() == TRUE) {
+                            if (formatTemp != null) {
+                                println("format in viewModel: $formatTemp")
+                                Log.d(TAG, "Collect format ${formatTemp.videoId}")
+                                Log.w(TAG, "Format expire at ${formatTemp.expiredTime}")
+                                Log.i(TAG, "AtrUrl ${formatTemp.playbackTrackingAtrUrl}")
+                                initPlayback(
+                                    formatTemp.playbackTrackingVideostatsPlaybackUrl,
+                                    formatTemp.playbackTrackingAtrUrl,
+                                    formatTemp.playbackTrackingVideostatsWatchtimeUrl,
+                                    formatTemp.cpn,
+                                )
                             }
                         }
-            }
+                    }
+                }
             skipSegmentsJob.join()
             playbackJob.join()
         }
     }
 
     private var getDataOfNowPlayingTrackStateJob: Job? = null
+
     private fun getDataOfNowPlayingState(mediaItem: MediaItem) {
-        val videoId = if (mediaItem.isVideo()) {
-            mediaItem.mediaId.removePrefix(MergingMediaSourceFactory.isVideo)
-        } else {
-            mediaItem.mediaId
-        }
+        val videoId =
+            if (mediaItem.isVideo()) {
+                mediaItem.mediaId.removePrefix(MergingMediaSourceFactory.isVideo)
+            } else {
+                mediaItem.mediaId
+            }
         val track = queueData.value?.listTracks?.find { it.videoId == videoId }
         _nowPlayingState.update {
             it.copy(
@@ -303,46 +316,56 @@ class SimpleMediaServiceHandler(
         _format.value = null
         _skipSegments.value = null
         getDataOfNowPlayingTrackStateJob?.cancel()
-        getDataOfNowPlayingTrackStateJob = coroutineScope.launch {
-            Log.w(TAG, "getDataOfNowPlayingState: $videoId")
-            mainRepository.getSongById(videoId).cancellable().singleOrNull().let { songEntity ->
-                if (songEntity != null) {
-                    _controlState.update { it.copy(isLiked = songEntity.liked) }
-                    mainRepository.updateSongInLibrary(LocalDateTime.now(), songEntity.videoId)
-                    mainRepository.updateListenCount(songEntity.videoId)
-                } else {
-                    _controlState.update { it.copy(isLiked = false) }
-                    mainRepository.insertSong(
-                        track?.toSongEntity() ?: mediaItem.toSongEntity()!!
-                    )
-                }
-                Log.w(TAG, "getDataOfNowPlayingState: $songEntity")
-                Log.w(TAG, "getDataOfNowPlayingState: $track")
-                _nowPlayingState.update {
-                    it.copy(
-                        songEntity = songEntity ?: track?.toSongEntity() ?: mediaItem.toSongEntity()
-                    )
-                }
-                Log.w(TAG, "getDataOfNowPlayingState: ${nowPlayingState.value}")
-            }
-            songEntityJob?.cancel()
-            songEntityJob = coroutineScope.launch {
-                mainRepository.getSongAsFlow(videoId).cancellable().filterNotNull().collectLatest { songEntity ->
+        getDataOfNowPlayingTrackStateJob =
+            coroutineScope.launch {
+                Log.w(TAG, "getDataOfNowPlayingState: $videoId")
+                mainRepository.getSongById(videoId).cancellable().singleOrNull().let { songEntity ->
+                    if (songEntity != null) {
+                        _controlState.update { it.copy(isLiked = songEntity.liked) }
+                        mainRepository.updateSongInLibrary(LocalDateTime.now(), songEntity.videoId).singleOrNull().let {
+                            Log.w(TAG, "getDataOfNowPlayingState: $it")
+                        }
+                        mainRepository.updateListenCount(songEntity.videoId)
+                    } else {
+                        _controlState.update { it.copy(isLiked = false) }
+                        mainRepository.insertSong(
+                            track?.toSongEntity() ?: mediaItem.toSongEntity()!!,
+                        ).singleOrNull()?.let {
+                            Log.w(TAG, "getDataOfNowPlayingState: $it")
+                        }
+                    }
+                    Log.w(TAG, "getDataOfNowPlayingState: $songEntity")
+                    Log.w(TAG, "getDataOfNowPlayingState: $track")
                     _nowPlayingState.update {
                         it.copy(
-                            songEntity = songEntity
+                            songEntity = songEntity ?: track?.toSongEntity() ?: mediaItem.toSongEntity(),
                         )
                     }
-                    _controlState.update {
-                        it.copy(
-                            isLiked = songEntity.liked
-                        )
+                    Log.w(TAG, "getDataOfNowPlayingState: ${nowPlayingState.value}")
+                }
+                songEntityJob?.cancel()
+                songEntityJob =
+                    coroutineScope.launch {
+                        mainRepository.getSongAsFlow(videoId).cancellable().filterNotNull().collectLatest { songEntity ->
+                            _nowPlayingState.update {
+                                it.copy(
+                                    songEntity = songEntity,
+                                )
+                            }
+                            _controlState.update {
+                                it.copy(
+                                    isLiked = songEntity.liked,
+                                )
+                            }
+                        }
                     }
+                if (dataStoreManager.sponsorBlockEnabled.first() == TRUE) {
+                    getSkipSegments(videoId)
+                }
+                if (dataStoreManager.sendBackToGoogle.first() == TRUE) {
+                    getFormat(videoId)
                 }
             }
-            if (dataStoreManager.sponsorBlockEnabled.first() == TRUE){ getSkipSegments(videoId) }
-            if (dataStoreManager.sendBackToGoogle.first() == TRUE){ getFormat(videoId) }
-        }
     }
 
     private fun getSkipSegments(videoId: String) {
@@ -361,18 +384,19 @@ class SimpleMediaServiceHandler(
 
     private fun getFormat(mediaId: String?) {
         getFormatJob?.cancel()
-        getFormatJob = coroutineScope.launch {
-            if (mediaId != null) {
-                mainRepository.getFormatFlow(mediaId).cancellable().collectLatest { f ->
-                    Log.w(TAG, "Get format for "+ mediaId.toString() + ": " +f.toString())
-                    if (f != null) {
-                        _format.emit(f)
-                    } else {
-                        _format.emit(null)
+        getFormatJob =
+            coroutineScope.launch {
+                if (mediaId != null) {
+                    mainRepository.getFormatFlow(mediaId).cancellable().collectLatest { f ->
+                        Log.w(TAG, "Get format for " + mediaId.toString() + ": " + f.toString())
+                        if (f != null) {
+                            _format.emit(f)
+                        } else {
+                            _format.emit(null)
+                        }
                     }
                 }
             }
-        }
     }
 
     private fun initPlayback(
@@ -385,7 +409,8 @@ class SimpleMediaServiceHandler(
         coroutineScope.launch {
             if (playback != null && atr != null && watchTime != null && cpn != null) {
                 watchTimeList.clear()
-                mainRepository.initPlayback(playback, atr, watchTime, cpn, queueData.value?.playlistId)
+                mainRepository
+                    .initPlayback(playback, atr, watchTime, cpn, queueData.value?.playlistId)
                     .collect {
                         if (it.first == 204) {
                             Log.d("Check initPlayback", "Success")
@@ -404,46 +429,49 @@ class SimpleMediaServiceHandler(
             jobWatchtime =
                 launch {
                     simpleMediaState.collect { state ->
-                        if (state is SimpleMediaState.Progress){
-                            val value = state.progress
-                            if (value > 0 && watchTimeList.isNotEmpty()) {
-                                val second = (value / 1000).toFloat()
-                                if (second in watchTimeList.last()..watchTimeList.last() + 1.2f) {
-                                    val watchTimeUrl =
-                                        _format.value?.playbackTrackingVideostatsWatchtimeUrl
-                                    val cpn = _format.value?.cpn
-                                    if (second + 20.23f < (player.duration / 1000).toFloat()) {
-                                        watchTimeList.add(second + 20.23f)
-                                        if (watchTimeUrl != null && cpn != null) {
-                                            mainRepository.updateWatchTime(
-                                                watchTimeUrl,
-                                                watchTimeList,
-                                                cpn,
-                                                queueData.value?.playlistId
-                                            ).collect { response ->
-                                                if (response == 204) {
-                                                    Log.d("Check updateWatchTime", "Success")
-                                                }
+                        if (state is SimpleMediaState.Progress)
+                            {
+                                val value = state.progress
+                                if (value > 0 && watchTimeList.isNotEmpty()) {
+                                    val second = (value / 1000).toFloat()
+                                    if (second in watchTimeList.last()..watchTimeList.last() + 1.2f) {
+                                        val watchTimeUrl =
+                                            _format.value?.playbackTrackingVideostatsWatchtimeUrl
+                                        val cpn = _format.value?.cpn
+                                        if (second + 20.23f < (player.duration / 1000).toFloat()) {
+                                            watchTimeList.add(second + 20.23f)
+                                            if (watchTimeUrl != null && cpn != null) {
+                                                mainRepository
+                                                    .updateWatchTime(
+                                                        watchTimeUrl,
+                                                        watchTimeList,
+                                                        cpn,
+                                                        queueData.value?.playlistId,
+                                                    ).collect { response ->
+                                                        if (response == 204) {
+                                                            Log.d("Check updateWatchTime", "Success")
+                                                        }
+                                                    }
+                                            }
+                                        } else {
+                                            watchTimeList.clear()
+                                            if (watchTimeUrl != null && cpn != null) {
+                                                mainRepository
+                                                    .updateWatchTimeFull(
+                                                        watchTimeUrl,
+                                                        cpn,
+                                                        queueData.value?.playlistId,
+                                                    ).collect { response ->
+                                                        if (response == 204) {
+                                                            Log.d("Check updateWatchTimeFull", "Success")
+                                                        }
+                                                    }
                                             }
                                         }
-                                    } else {
-                                        watchTimeList.clear()
-                                        if (watchTimeUrl != null && cpn != null) {
-                                            mainRepository.updateWatchTimeFull(
-                                                watchTimeUrl,
-                                                cpn,
-                                                queueData.value?.playlistId
-                                            ).collect { response ->
-                                                if (response == 204) {
-                                                    Log.d("Check updateWatchTimeFull", "Success")
-                                                }
-                                            }
-                                        }
+                                        Log.w("Check updateWatchTime", watchTimeList.toString())
                                     }
-                                    Log.w("Check updateWatchTime", watchTimeList.toString())
                                 }
                             }
-                        }
                     }
                 }
             jobWatchtime?.join()
@@ -455,7 +483,7 @@ class SimpleMediaServiceHandler(
         toggleLikeJob?.cancel()
         toggleLikeJob =
             coroutineScope.launch {
-                var id = (player.currentMediaItem?.mediaId ?: "" )
+                var id = (player.currentMediaItem?.mediaId ?: "")
                 if (id.contains("Video")) {
                     id = id.removePrefix("Video")
                 }
@@ -502,23 +530,23 @@ class SimpleMediaServiceHandler(
     }
 
     private fun updateNextPreviousTrackAvailability() {
-        _controlState.value = _controlState.value.copy(
-            isNextAvailable = player.hasNextMediaItem(),
-            isPreviousAvailable = player.hasPreviousMediaItem(),
-        )
+        _controlState.value =
+            _controlState.value.copy(
+                isNextAvailable = player.hasNextMediaItem(),
+                isPreviousAvailable = player.hasPreviousMediaItem(),
+            )
     }
 
-    private fun getMediaItemWithIndex(index: Int): MediaItem {
-        return player.getMediaItemAt(index)
-    }
+    private fun getMediaItemWithIndex(index: Int): MediaItem = player.getMediaItemAt(index)
 
     fun removeMediaItem(position: Int) {
         player.removeMediaItem(position)
         val temp = _queueData.value?.listTracks
         temp?.removeAt(position)
-        _queueData.value = _queueData.value?.copy(
-            listTracks = temp ?: arrayListOf(),
-        )
+        _queueData.value =
+            _queueData.value?.copy(
+                listTracks = temp ?: arrayListOf(),
+            )
         _currentSongIndex.value = player.currentMediaItemIndex
     }
 
@@ -699,21 +727,23 @@ class SimpleMediaServiceHandler(
         when (error.errorCode) {
             PlaybackException.ERROR_CODE_TIMEOUT -> {
                 Log.e("Player Error", "onPlayerError: ${error.message}")
-                Toast.makeText(
-                    context,
-                    context.getString(R.string.time_out_check_internet_connection_or_change_piped_instance_in_settings),
-                    Toast.LENGTH_LONG,
-                ).show()
+                Toast
+                    .makeText(
+                        context,
+                        context.getString(R.string.time_out_check_internet_connection_or_change_piped_instance_in_settings),
+                        Toast.LENGTH_LONG,
+                    ).show()
                 player.pause()
             }
 
             else -> {
                 Log.e("Player Error", "onPlayerError: ${error.message}")
-                Toast.makeText(
-                    context,
-                    context.getString(R.string.time_out_check_internet_connection_or_change_piped_instance_in_settings),
-                    Toast.LENGTH_LONG,
-                ).show()
+                Toast
+                    .makeText(
+                        context,
+                        context.getString(R.string.time_out_check_internet_connection_or_change_piped_instance_in_settings),
+                        Toast.LENGTH_LONG,
+                    ).show()
                 player.pause()
             }
         }
@@ -727,23 +757,23 @@ class SimpleMediaServiceHandler(
         mayBeNormalizeVolume()
         Log.w("REASON", "onMediaItemTransition: $reason")
         Log.d("Media Item Transition", "Media Item: ${mediaItem?.mediaMetadata?.title}")
-        if (mediaItem?.mediaId != _nowPlaying.value?.mediaId ) {
+        if (mediaItem?.mediaId != _nowPlaying.value?.mediaId) {
             _nowPlaying.value = mediaItem
         }
         if (mediaItem?.mediaId != nowPlayingState.value.mediaItem.mediaId) {
             Log.w(TAG, "onMediaItemTransition: ${mediaItem?.mediaId}")
             if (mediaItem != null) {
                 getDataOfNowPlayingState(mediaItem)
-            }
-            else {
+            } else {
                 _nowPlayingState.update { NowPlayingTrackState.initial() }
             }
         }
         _queueData.value?.listTracks?.let { list ->
-            if (list.size > 3 && list.size - player.currentMediaItemIndex < 3
-                && list.size - player.currentMediaItemIndex >= 0
-                && _stateFlow.value == StateSource.STATE_INITIALIZED
-                ) {
+            if (list.size > 3 &&
+                list.size - player.currentMediaItemIndex < 3 &&
+                list.size - player.currentMediaItemIndex >= 0 &&
+                _stateFlow.value == StateSource.STATE_INITIALIZED
+            ) {
                 Log.d("Check loadMore", "loadMore")
                 loadMore()
             }
@@ -770,7 +800,6 @@ class SimpleMediaServiceHandler(
             Player.STATE_READY -> {
                 Log.d(TAG, "onPlaybackStateChanged: Ready")
                 _simpleMediaState.value = SimpleMediaState.Ready(player.duration)
-
             }
             else -> {
                 Log.d(TAG, "onPlaybackStateChanged: $playbackState")
@@ -819,20 +848,58 @@ class SimpleMediaServiceHandler(
     }
 
     private fun startProgressUpdate() {
-        progressJob = coroutineScope.launch {
-            while (true) {
-                delay(100)
-                _simpleMediaState.value = SimpleMediaState.Progress(player.currentPosition)
+        progressJob =
+            coroutineScope.launch {
+                while (true) {
+                    delay(100)
+                    _simpleMediaState.value = SimpleMediaState.Progress(player.currentPosition)
+                }
             }
-        }
     }
 
     private fun startBufferedUpdate() {
-        bufferedJob = coroutineScope.launch {
-            while (true) {
-                delay(500)
-                _simpleMediaState.value =
-                    SimpleMediaState.Loading(player.bufferedPercentage, player.duration)
+        bufferedJob =
+            coroutineScope.launch {
+                while (true) {
+                    delay(500)
+                    _simpleMediaState.value =
+                        SimpleMediaState.Loading(player.bufferedPercentage, player.duration)
+                }
+            }
+    }
+
+    fun shufflePlaylist(randomTrackIndex: Int = 0) {
+        val playlistId = _queueData.value?.playlistId ?: return
+        val firstPlayedTrack = _queueData.value?.firstPlayedTrack ?: return
+        coroutineScope.launch {
+            if (playlistId.startsWith(LOCAL_PLAYLIST_ID)) {
+                _stateFlow.value = StateSource.STATE_INITIALIZING
+                mainRepository.insertSong(firstPlayedTrack.toSongEntity()).collect {
+                    Log.w(TAG, "Inserted song: ${firstPlayedTrack.title}")
+                }
+                clearMediaItems()
+                firstPlayedTrack.durationSeconds?.let {
+                    mainRepository.updateDurationSeconds(it, firstPlayedTrack.videoId)
+                }
+                addMediaItem(firstPlayedTrack.toMediaItem(), playWhenReady = true)
+                val longId = playlistId.replace(LOCAL_PLAYLIST_ID, "").toLong()
+                val localPlaylist = mainRepository.getLocalPlaylist(longId).singleOrNull()
+                if (localPlaylist != null) {
+                    Log.w(TAG, "shufflePlaylist: Local playlist track size ${localPlaylist.tracks?.size}")
+                    val trackCount = localPlaylist.tracks?.size ?: return@launch
+                    val listPosition = (0 until trackCount).toMutableList().apply {
+                        remove(randomTrackIndex)
+                    }
+                    if (listPosition.size <= 0) return@launch
+                    listPosition.shuffle()
+                    _queueData.update {
+                        it?.copy(
+                            //After shuffle prefix is offset and list position
+                            continuation = "SHUFFLE0_${converter.fromListIntToString(listPosition)}",
+                        )
+                    }
+                    loadMore()
+                }
             }
         }
     }
@@ -851,53 +918,101 @@ class SimpleMediaServiceHandler(
                     _stateFlow.value = StateSource.STATE_INITIALIZING
                     val longId = playlistId.replace(LOCAL_PLAYLIST_ID, "").toLong()
                     Log.w("Check loadMore", longId.toString())
-                    val filter = if (continuation.startsWith(ASC)) FilterState.OlderFirst else FilterState.NewerFirst
-                    val offset =
-                        if (filter == FilterState.OlderFirst) {
-                            continuation.removePrefix(
-                                ASC,
-                            ).toInt()
-                        } else {
-                            continuation.removePrefix(DESC).toInt()
-                        }
-                    val total = mainRepository.getLocalPlaylist(longId).firstOrNull()?.tracks?.size ?: 0
-                    mainRepository.getPlaylistPairSongByOffset(
-                        longId,
-                        offset,
-                        filter,
-                        total
-                    ).singleOrNull()?.let { pair ->
-                        Log.w("Check loadMore response", pair.size.toString())
-                        mainRepository.getSongsByListVideoId(pair.map { it.songId }).single().let { songs ->
-                            if (songs.isNotEmpty()) {
-                                delay(300)
-                                loadMoreCatalog(songs.toArrayListTrack())
-//                                Queue.setContinuation(
-//                                    playlistId,
-//                                    if (filter == FilterState.OlderFirst) ASC + (offset + 1) else DESC + (offset + 1).toString(),
-//                                )
-                                _queueData.value = _queueData.value?.copy(
-                                    continuation = if (filter == FilterState.OlderFirst) ASC + (offset + 1) else DESC + (offset + 1).toString(),
-                                )
+                    if (continuation.startsWith("SHUFFLE")) {
+                        val regex = Regex("(?<=SHUFFLE)\\d+(?=_)")
+                        var offset = regex.find(continuation)?.value?.toInt() ?: return@launch
+                        val posString = continuation.removePrefix("SHUFFLE${offset}_")
+                        val listPosition = converter.fromStringToListInt(posString) ?: return@launch
+                        val theLastLoad = 50*(offset + 1) >= listPosition.size
+                        mainRepository.getPlaylistPairSongByListPosition(
+                            longId,
+                            listPosition.subList(50*offset, if (theLastLoad) listPosition.size else 50*(offset + 1)),
+                        ).singleOrNull()?.let { pair ->
+                            Log.w("Check loadMore response", pair.size.toString())
+                            mainRepository.getSongsByListVideoId(pair.map { it.songId }).single().let { songs ->
+                                if (songs.isNotEmpty()) {
+                                    delay(300)
+                                    loadMoreCatalog(songs.toArrayListTrack())
+                                    offset++
+                                    _queueData.update {
+                                        if (!theLastLoad){
+                                            it?.copy(
+                                                continuation = "SHUFFLE${offset}_$posString",
+                                            )
+                                        } else {
+                                            it?.copy(
+                                                continuation = null
+                                            )
+                                        }
+                                    }
+                                }
                             }
-//                            loadingMore.value = false
                         }
+                    } else {
+                        val filter = if (continuation.startsWith(ASC)) FilterState.OlderFirst else FilterState.NewerFirst
+                        val offset =
+                            if (filter == FilterState.OlderFirst) {
+                                continuation
+                                    .removePrefix(
+                                        ASC,
+                                    ).toInt()
+                            } else {
+                                continuation.removePrefix(DESC).toInt()
+                            }
+                        val total =
+                            mainRepository
+                                .getLocalPlaylist(longId)
+                                .firstOrNull()
+                                ?.tracks
+                                ?.size ?: 0
+                        mainRepository
+                            .getPlaylistPairSongByOffset(
+                                longId,
+                                offset,
+                                filter,
+                                total,
+                            ).singleOrNull()
+                            ?.let { pair ->
+                                Log.w("Check loadMore response", pair.size.toString())
+                                mainRepository.getSongsByListVideoId(pair.map { it.songId }).single().let { songs ->
+                                    if (songs.isNotEmpty()) {
+                                        delay(300)
+                                        loadMoreCatalog(songs.toArrayListTrack())
+                                        _queueData.value =
+                                            _queueData.value?.copy(
+                                                continuation =
+                                                if (filter ==
+                                                    FilterState.OlderFirst
+                                                ) {
+                                                    ASC + (offset + 1)
+                                                } else {
+                                                    DESC + (offset + 1).toString()
+                                                },
+                                            )
+                                    } else {
+                                        _stateFlow.value = StateSource.STATE_INITIALIZED
+                                    }
+                                }
+                            }
                     }
                 }
             } else {
                 coroutineScope.launch {
                     _stateFlow.value = StateSource.STATE_INITIALIZING
                     Log.w("Check loadMore continuation", continuation.toString())
-                    mainRepository.getContinueTrack(playlistId, continuation)
-                        .singleOrNull().let { response ->
+                    mainRepository
+                        .getContinueTrack(playlistId, continuation)
+                        .singleOrNull()
+                        .let { response ->
                             val list = response?.first
                             if (list != null) {
                                 Log.w("Check loadMore response", response.toString())
                                 loadMoreCatalog(list)
                             }
-                            _queueData.value = _queueData.value?.copy(
-                                continuation = response?.second,
-                            )
+                            _queueData.value =
+                                _queueData.value?.copy(
+                                    continuation = response?.second,
+                                )
 //                            loadingMore.value = false
                         }
                 }
@@ -912,34 +1027,30 @@ class SimpleMediaServiceHandler(
                 when (response) {
                     is Resource.Success -> {
                         loadMoreCatalog(response.data?.first ?: arrayListOf())
-                        _queueData.value = _queueData.value?.copy(
-                            continuation = response.data?.second,
-                        )
+                        _queueData.value =
+                            _queueData.value?.copy(
+                                continuation = response.data?.second,
+                            )
                     }
                     is Resource.Error -> {
                         Log.d("Check Related", "getRelated: ${response.message}")
-                        _queueData.value = _queueData.value?.copy(
-                            continuation = null,
-                        )
+                        _queueData.value =
+                            _queueData.value?.copy(
+                                continuation = null,
+                            )
                     }
                 }
             }
         }
     }
 
-    fun setQueueData(
-        queueData: QueueData
-    ) {
+    fun setQueueData(queueData: QueueData) {
         _queueData.value = queueData
     }
 
-    fun mediaListSize(): Int {
-        return player.mediaItemCount
-    }
+    fun mediaListSize(): Int = player.mediaItemCount
 
-    fun getCurrentMediaItem(): MediaItem? {
-        return player.currentMediaItem
-    }
+    fun getCurrentMediaItem(): MediaItem? = player.currentMediaItem
 
     private fun stopProgressUpdate() {
         progressJob?.cancel()
@@ -1022,12 +1133,13 @@ class SimpleMediaServiceHandler(
                             playlistId = LOCAL_PLAYLIST_ID_SAVED_QUEUE,
                             playlistName = dataStoreManager.playlistFromSaved.first(),
                             playlistType = PlaylistType.PLAYLIST,
-                            continuation = null
+                            continuation = null,
+                        ),
+                    )
+                    var index =
+                        queue?.firstOrNull()?.listTrack?.map { it.videoId }?.indexOf(
+                            currentPlayingTrack.videoId,
                         )
-                    )
-                    var index = queue?.firstOrNull()?.listTrack?.map { it.videoId }?.indexOf(
-                        currentPlayingTrack.videoId
-                    )
                     if (index == null || index == -1) index = 0
                     addMediaItem(currentPlayingTrack.toMediaItem(), playWhenReady = false)
                     seekTo(dataStoreManager.recentPosition.first())
@@ -1049,7 +1161,8 @@ class SimpleMediaServiceHandler(
                 val p = getScreenSize(context)
                 val widgetImageSize = p.x.coerceAtMost(p.y)
                 val imageRequest =
-                    ImageRequest.Builder(context)
+                    ImageRequest
+                        .Builder(context)
                         .data(nowPlaying.mediaMetadata.artworkUri)
                         .size(widgetImageSize)
                         .placeholder(R.drawable.holder_video)
@@ -1075,11 +1188,11 @@ class SimpleMediaServiceHandler(
                                 }
                             },
                             onError = {
-                                AppCompatResources.getDrawable(
-                                    context,
-                                    R.drawable.holder_video,
-                                )
-                                    ?.let { it1 ->
+                                AppCompatResources
+                                    .getDrawable(
+                                        context,
+                                        R.drawable.holder_video,
+                                    )?.let { it1 ->
                                         basicWidget.updateImage(
                                             context,
                                             it1.toBitmap(
@@ -1090,10 +1203,9 @@ class SimpleMediaServiceHandler(
                                     }
                             },
                         ).build()
-                ImageLoader(context).execute(imageRequest)
+                context.imageLoader.execute(imageRequest)
             }
     }
-
 
     fun mayBeSaveRecentSong() {
         coroutineScope.launch {
@@ -1103,7 +1215,13 @@ class SimpleMediaServiceHandler(
                     player.contentPosition,
                 )
                 dataStoreManager.setPlaylistFromSaved(queueData.value?.playlistName ?: "")
-                Log.d("Check saved", player.currentMediaItem?.mediaMetadata?.title.toString())
+                Log.d(
+                    "Check saved",
+                    player.currentMediaItem
+                        ?.mediaMetadata
+                        ?.title
+                        .toString(),
+                )
                 val temp: ArrayList<Track> = ArrayList()
                 temp.clear()
                 temp.addAll(_queueData.value?.listTracks ?: arrayListOf())
@@ -1208,19 +1326,21 @@ class SimpleMediaServiceHandler(
         updateNotificationJob?.cancel()
         updateNotificationJob =
             coroutineScope.launch {
-                var id = (player.currentMediaItem?.mediaId ?: "" )
+                var id = (player.currentMediaItem?.mediaId ?: "")
                 if (id.contains("Video")) {
                     id = id.removePrefix("Video")
                 }
                 val liked =
-                    mainRepository.getSongById(id)
-                        .first()?.liked
-                if (liked != null) {
-                    _controlState.value = _controlState.value.copy(isLiked = liked)
-                }
-                mediaSession.setCustomLayout(
+                    mainRepository
+                        .getSongById(id)
+                        .singleOrNull()
+                        ?.liked ?: false
+                Log.w("Check liked", liked.toString())
+                _controlState.value = _controlState.value.copy(isLiked = liked)
+                setNotificationLayout?.invoke(
                     listOf(
-                        CommandButton.Builder()
+                        CommandButton
+                            .Builder()
                             .setDisplayName(
                                 if (liked == true) {
                                     context.getString(R.string.liked)
@@ -1229,11 +1349,11 @@ class SimpleMediaServiceHandler(
                                         R.string.like,
                                     )
                                 },
-                            )
-                            .setIconResId(if (liked == true) R.drawable.baseline_favorite_24 else R.drawable.baseline_favorite_border_24)
+                            ).setIconResId(if (liked == true) R.drawable.baseline_favorite_24 else R.drawable.baseline_favorite_border_24)
                             .setSessionCommand(SessionCommand(MEDIA_CUSTOM_COMMAND.LIKE, Bundle()))
                             .build(),
-                        CommandButton.Builder()
+                        CommandButton
+                            .Builder()
                             .setDisplayName(
                                 when (player.repeatMode) {
                                     Player.REPEAT_MODE_ONE -> context.getString(R.string.repeat_one)
@@ -1241,34 +1361,27 @@ class SimpleMediaServiceHandler(
                                     Player.REPEAT_MODE_ALL -> context.getString(R.string.repeat_all)
 
                                     else -> context.getString(R.string.repeat_off)
-                                 },
-                            )
-                            .setSessionCommand(
+                                },
+                            ).setSessionCommand(
                                 SessionCommand(
                                     MEDIA_CUSTOM_COMMAND.REPEAT,
                                     Bundle(),
                                 ),
-                            )
-                            .setIconResId(
+                            ).setIconResId(
                                 when (player.repeatMode) {
                                     Player.REPEAT_MODE_ONE -> R.drawable.baseline_repeat_one_24
                                     Player.REPEAT_MODE_ALL -> R.drawable.repeat_on
                                     else -> R.drawable.baseline_repeat_24_enable
                                 },
-                            )
-                            .build(),
+                            ).build(),
                     ),
                 )
             }
     }
 
-    fun getPlayerDuration(): Long {
-        return player.duration
-    }
+    fun getPlayerDuration(): Long = player.duration
 
-    fun getProgress(): Long {
-        return player.currentPosition
-    }
+    fun getProgress(): Long = player.currentPosition
 
 //    fun changeAddedState() {
 //        added.value = false
@@ -1287,9 +1400,10 @@ class SimpleMediaServiceHandler(
             val temp = list[position]
             list[position] = list[position - 1]
             list[position - 1] = temp
-            _queueData.value = queueData.first()?.copy(
-                listTracks = list,
-            )
+            _queueData.value =
+                queueData.first()?.copy(
+                    listTracks = list,
+                )
         }
         _currentSongIndex.value = player.currentMediaItemIndex
     }
@@ -1301,9 +1415,10 @@ class SimpleMediaServiceHandler(
             val temp = list[position]
             list[position] = list[position + 1]
             list[position + 1] = temp
-            _queueData.value = queueData.first()?.copy(
-                listTracks = list,
-            )
+            _queueData.value =
+                queueData.first()?.copy(
+                    listTracks = list,
+                )
         }
         _currentSongIndex.value = player.currentMediaItemIndex
     }
@@ -1337,7 +1452,7 @@ class SimpleMediaServiceHandler(
         }
     }
 
-    suspend fun loadMoreCatalog(listTrack: ArrayList<Track>) {
+    suspend fun loadMoreCatalog(listTrack: ArrayList<Track>, isAddToQueue: Boolean = false) {
         Log.d("Queue", listTrack.map { it.title }.toString())
         _stateFlow.value = StateSource.STATE_INITIALIZING
         val catalogMetadata: ArrayList<Track> = arrayListOf()
@@ -1350,11 +1465,26 @@ class SimpleMediaServiceHandler(
                 thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
             }
             val artistName: String = track.artists.toListName().connectArtists()
-            val isSong = (track.thumbnails?.last()?.height != 0 && track.thumbnails?.last()?.height == track.thumbnails?.last()?.width
-                && track.thumbnails?.last()?.height != null) && (track.thumbnails.lastOrNull()?.url?.contains("hq720") == false
-                && track.thumbnails.lastOrNull()?.url?.contains("maxresdefault") == false)
+            val isSong =
+                (
+                    track.thumbnails?.last()?.height != 0 &&
+                        track.thumbnails?.last()?.height == track.thumbnails?.last()?.width &&
+                        track.thumbnails?.last()?.height != null
+                ) &&
+                    (
+                        track.thumbnails
+                            .lastOrNull()
+                            ?.url
+                            ?.contains("hq720") == false &&
+                            track.thumbnails
+                                .lastOrNull()
+                                ?.url
+                                ?.contains("maxresdefault") == false
+                    )
             if (track.artists.isNullOrEmpty()) {
-                mainRepository.getSongInfo(track.videoId).singleOrNull()
+                mainRepository
+                    .getSongInfo(track.videoId)
+                    .singleOrNull()
                     .let { songInfo ->
                         if (songInfo != null) {
                             catalogMetadata.add(
@@ -1369,36 +1499,39 @@ class SimpleMediaServiceHandler(
                                 ),
                             )
                             addMediaItemNotSet(
-                                MediaItem.Builder().setUri(track.videoId)
+                                MediaItem
+                                    .Builder()
+                                    .setUri(track.videoId)
                                     .setMediaId(track.videoId)
                                     .setCustomCacheKey(track.videoId)
                                     .setMediaMetadata(
-                                        MediaMetadata.Builder()
+                                        MediaMetadata
+                                            .Builder()
                                             .setTitle(track.title)
                                             .setArtist(songInfo.author)
                                             .setArtworkUri(thumbUrl.toUri())
                                             .setAlbumTitle(track.album?.name)
                                             .setDescription(if (isSong) "Song" else "Video")
                                             .build(),
-                                    )
-                                    .build(),
+                                    ).build(),
                             )
                         } else {
                             val mediaItem =
-                                MediaItem.Builder()
+                                MediaItem
+                                    .Builder()
                                     .setMediaId(track.videoId)
                                     .setUri(track.videoId)
                                     .setCustomCacheKey(track.videoId)
                                     .setMediaMetadata(
-                                        MediaMetadata.Builder()
+                                        MediaMetadata
+                                            .Builder()
                                             .setArtworkUri(thumbUrl.toUri())
                                             .setAlbumTitle(track.album?.name)
                                             .setTitle(track.title)
                                             .setArtist("Various Artists")
                                             .setDescription(if (isSong) "Song" else "Video")
                                             .build(),
-                                    )
-                                    .build()
+                                    ).build()
                             addMediaItemNotSet(mediaItem)
                             catalogMetadata.add(
                                 track.copy(
@@ -1409,19 +1542,21 @@ class SimpleMediaServiceHandler(
                     }
             } else {
                 addMediaItemNotSet(
-                    MediaItem.Builder().setUri(track.videoId)
+                    MediaItem
+                        .Builder()
+                        .setUri(track.videoId)
                         .setMediaId(track.videoId)
                         .setCustomCacheKey(track.videoId)
                         .setMediaMetadata(
-                            MediaMetadata.Builder()
+                            MediaMetadata
+                                .Builder()
                                 .setTitle(track.title)
                                 .setArtist(artistName)
                                 .setArtworkUri(thumbUrl.toUri())
                                 .setAlbumTitle(track.album?.name)
                                 .setDescription(if (isSong) "Song" else "Video")
                                 .build(),
-                        )
-                        .build(),
+                        ).build(),
                 )
                 catalogMetadata.add(track)
             }
@@ -1431,7 +1566,7 @@ class SimpleMediaServiceHandler(
             )
             Log.d("MusicSource", "updateCatalog: ${track.title}")
         }
-        if (!player.isPlaying) {
+        if (!player.isPlaying && isAddToQueue) {
             player.playWhenReady = false
         }
         _queueData.value = _queueData.value?.addTrackList(catalogMetadata)
@@ -1439,18 +1574,21 @@ class SimpleMediaServiceHandler(
     }
 
     @UnstableApi
-    suspend fun updateCatalog(downloaded: Int = 0, index: Int? = null): Boolean {
+    suspend fun updateCatalog(
+        downloaded: Int = 0,
+        index: Int? = null,
+    ): Boolean {
         _stateFlow.value = StateSource.STATE_INITIALIZING
         val tempQueue: ArrayList<Track> = arrayListOf()
         tempQueue.addAll(_queueData.value?.listTracks ?: arrayListOf())
         val chunkedList = tempQueue.chunked(100)
-        //Reset queue
+        // Reset queue
         _queueData.update {
             it?.copy(
-                listTracks = arrayListOf()
+                listTracks = arrayListOf(),
             )
         }
-        val current = if (index != null) tempQueue[index] else null
+        val current = if (index != null) tempQueue.getOrNull(index) else null
         chunkedList.forEach { list ->
             val catalogMetadata: ArrayList<Track> = arrayListOf()
             Log.w("SimpleMediaServiceHandler", "Catalog size: ${tempQueue.size}")
@@ -1464,56 +1602,71 @@ class SimpleMediaServiceHandler(
                 if (thumbUrl.contains("w120")) {
                     thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
                 }
-                val isSong = (track.thumbnails?.last()?.height != 0 && track.thumbnails?.last()?.height == track.thumbnails?.last()?.width
-                    && track.thumbnails?.last()?.height != null) && (track.thumbnails.lastOrNull()?.url?.contains("hq720") == false
-                    && track.thumbnails.lastOrNull()?.url?.contains("maxresdefault") == false)
+                val isSong =
+                    (
+                        track.thumbnails?.last()?.height != 0 &&
+                            track.thumbnails?.last()?.height == track.thumbnails?.last()?.width &&
+                            track.thumbnails?.last()?.height != null
+                    ) &&
+                        (
+                            track.thumbnails
+                                .lastOrNull()
+                                ?.url
+                                ?.contains("hq720") == false &&
+                                track.thumbnails
+                                    .lastOrNull()
+                                    ?.url
+                                    ?.contains("maxresdefault") == false
+                        )
                 if (downloaded == 1) {
                     if (track.artists.isNullOrEmpty()) {
                         mainRepository.getSongInfo(track.videoId).singleOrNull().let { songInfo ->
                             if (songInfo != null) {
                                 val mediaItem =
-                                    MediaItem.Builder()
+                                    MediaItem
+                                        .Builder()
                                         .setMediaId(track.videoId)
                                         .setUri(track.videoId)
                                         .setCustomCacheKey(track.videoId)
                                         .setMediaMetadata(
-                                            MediaMetadata.Builder()
+                                            MediaMetadata
+                                                .Builder()
                                                 .setArtworkUri(thumbUrl.toUri())
                                                 .setAlbumTitle(track.album?.name)
                                                 .setTitle(track.title)
                                                 .setArtist(songInfo.author)
                                                 .setDescription(if (isSong) "Song" else "Video")
                                                 .build(),
-                                        )
-                                        .build()
+                                        ).build()
                                 addMediaItemNotSet(mediaItem)
                                 catalogMetadata.add(
                                     track.copy(
                                         artists =
-                                        listOf(
-                                            Artist(
-                                                songInfo.authorId,
-                                                songInfo.author ?: "",
+                                            listOf(
+                                                Artist(
+                                                    songInfo.authorId,
+                                                    songInfo.author ?: "",
+                                                ),
                                             ),
-                                        ),
                                     ),
                                 )
                             } else {
                                 val mediaItem =
-                                    MediaItem.Builder()
+                                    MediaItem
+                                        .Builder()
                                         .setMediaId(track.videoId)
                                         .setUri(track.videoId)
                                         .setCustomCacheKey(track.videoId)
                                         .setMediaMetadata(
-                                            MediaMetadata.Builder()
+                                            MediaMetadata
+                                                .Builder()
                                                 .setArtworkUri(thumbUrl.toUri())
                                                 .setAlbumTitle(track.album?.name)
                                                 .setTitle(track.title)
                                                 .setArtist("Various Artists")
                                                 .setDescription(if (isSong) "Song" else "Video")
                                                 .build(),
-                                        )
-                                        .build()
+                                        ).build()
                                 addMediaItemNotSet(mediaItem)
                                 catalogMetadata.add(
                                     track.copy(
@@ -1524,20 +1677,21 @@ class SimpleMediaServiceHandler(
                         }
                     } else {
                         val mediaItem =
-                            MediaItem.Builder()
+                            MediaItem
+                                .Builder()
                                 .setMediaId(track.videoId)
                                 .setUri(track.videoId)
                                 .setCustomCacheKey(track.videoId)
                                 .setMediaMetadata(
-                                    MediaMetadata.Builder()
+                                    MediaMetadata
+                                        .Builder()
                                         .setArtworkUri(thumbUrl.toUri())
                                         .setAlbumTitle(track.album?.name)
                                         .setTitle(track.title)
                                         .setArtist(track.artists.toListName().connectArtists())
                                         .setDescription(if (isSong) "Song" else "Video")
                                         .build(),
-                                )
-                                .build()
+                                ).build()
                         addMediaItemNotSet(mediaItem)
                         catalogMetadata.add(track)
                     }
@@ -1545,51 +1699,57 @@ class SimpleMediaServiceHandler(
                 } else {
                     val artistName: String = track.artists.toListName().connectArtists()
                     if (track.artists.isNullOrEmpty()) {
-                        mainRepository.getSongInfo(track.videoId).cancellable().first()
+                        mainRepository
+                            .getSongInfo(track.videoId)
+                            .cancellable()
+                            .first()
                             .let { songInfo ->
                                 if (songInfo != null) {
                                     catalogMetadata.add(
                                         track.copy(
                                             artists =
-                                            listOf(
-                                                Artist(
-                                                    songInfo.authorId,
-                                                    songInfo.author ?: "",
+                                                listOf(
+                                                    Artist(
+                                                        songInfo.authorId,
+                                                        songInfo.author ?: "",
+                                                    ),
                                                 ),
-                                            ),
                                         ),
                                     )
                                     addMediaItemNotSet(
-                                        MediaItem.Builder().setUri(track.videoId)
+                                        MediaItem
+                                            .Builder()
+                                            .setUri(track.videoId)
                                             .setMediaId(track.videoId)
                                             .setCustomCacheKey(track.videoId)
                                             .setMediaMetadata(
-                                                MediaMetadata.Builder()
+                                                MediaMetadata
+                                                    .Builder()
                                                     .setTitle(track.title)
                                                     .setArtist(songInfo.author)
                                                     .setArtworkUri(thumbUrl.toUri())
                                                     .setDescription(if (isSong) "Song" else "Video")
                                                     .setAlbumTitle(track.album?.name)
                                                     .build(),
-                                            )
-                                            .build(),
+                                            ).build(),
                                     )
                                 } else {
                                     val mediaItem =
-                                        MediaItem.Builder()
+                                        MediaItem
+                                            .Builder()
                                             .setMediaId(track.videoId)
                                             .setUri(track.videoId)
                                             .setCustomCacheKey(track.videoId)
                                             .setMediaMetadata(
-                                                MediaMetadata.Builder()
+                                                MediaMetadata
+                                                    .Builder()
                                                     .setArtworkUri(thumbUrl.toUri())
                                                     .setAlbumTitle(track.album?.name)
                                                     .setTitle(track.title)
                                                     .setDescription(if (isSong) "Song" else "Video")
                                                     .setArtist("Various Artists")
                                                     .build(),
-                                            )
-                                            .build()
+                                            ).build()
                                     addMediaItemNotSet(mediaItem)
                                     catalogMetadata.add(
                                         track.copy(
@@ -1600,19 +1760,21 @@ class SimpleMediaServiceHandler(
                             }
                     } else {
                         addMediaItemNotSet(
-                            MediaItem.Builder().setUri(track.videoId)
+                            MediaItem
+                                .Builder()
+                                .setUri(track.videoId)
                                 .setMediaId(track.videoId)
                                 .setCustomCacheKey(track.videoId)
                                 .setMediaMetadata(
-                                    MediaMetadata.Builder()
+                                    MediaMetadata
+                                        .Builder()
                                         .setTitle(track.title)
                                         .setArtist(artistName)
                                         .setArtworkUri(thumbUrl.toUri())
                                         .setAlbumTitle(track.album?.name)
                                         .setDescription(if (isSong) "Song" else "Video")
                                         .build(),
-                                )
-                                .build(),
+                                ).build(),
                         )
                         catalogMetadata.add(track)
                     }
@@ -1662,7 +1824,8 @@ class SimpleMediaServiceHandler(
         val mediaItem = player.currentMediaItem
         Log.w("Subtitle", "updateSubtitle: $url")
         val subtitle =
-            SubtitleConfiguration.Builder(url.plus("&fmt=ttml").toUri())
+            SubtitleConfiguration
+                .Builder(url.plus("&fmt=ttml").toUri())
                 .setId(mediaItem?.mediaId)
                 .setMimeType(MimeTypes.APPLICATION_TTML)
                 .setLanguage("en")
@@ -1674,7 +1837,15 @@ class SimpleMediaServiceHandler(
                 index,
                 new,
             )
-            println("update subtitle" + player.currentMediaItem?.localConfiguration?.subtitleConfigurations?.firstOrNull()?.uri.toString())
+            println(
+                "update subtitle" +
+                    player.currentMediaItem
+                        ?.localConfiguration
+                        ?.subtitleConfigurations
+                        ?.firstOrNull()
+                        ?.uri
+                        .toString(),
+            )
         }
     }
 
@@ -1688,9 +1859,22 @@ class SimpleMediaServiceHandler(
             thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
         }
         val artistName: String = track.artists.toListName().connectArtists()
-        val isSong = (track.thumbnails?.last()?.height != 0 && track.thumbnails?.last()?.height == track.thumbnails?.last()?.width
-            && track.thumbnails?.last()?.height != null) && (track.thumbnails.lastOrNull()?.url?.contains("hq720") == false
-            && track.thumbnails.lastOrNull()?.url?.contains("maxresdefault") == false)
+        val isSong =
+            (
+                track.thumbnails?.last()?.height != 0 &&
+                    track.thumbnails?.last()?.height == track.thumbnails?.last()?.width &&
+                    track.thumbnails?.last()?.height != null
+            ) &&
+                (
+                    track.thumbnails
+                        .lastOrNull()
+                        ?.url
+                        ?.contains("hq720") == false &&
+                        track.thumbnails
+                            .lastOrNull()
+                            ?.url
+                            ?.contains("maxresdefault") == false
+                )
         if ((player.currentMediaItemIndex + 1 in 0..(queueData.first()?.listTracks?.size ?: 0))) {
             if (track.artists.isNullOrEmpty()) {
                 mainRepository.getSongInfo(track.videoId).cancellable().first().let { songInfo ->
@@ -1708,37 +1892,40 @@ class SimpleMediaServiceHandler(
                             ),
                         )
                         addMediaItemNotSet(
-                            MediaItem.Builder().setUri(track.videoId)
+                            MediaItem
+                                .Builder()
+                                .setUri(track.videoId)
                                 .setMediaId(track.videoId)
                                 .setCustomCacheKey(track.videoId)
                                 .setMediaMetadata(
-                                    MediaMetadata.Builder()
+                                    MediaMetadata
+                                        .Builder()
                                         .setTitle(track.title)
                                         .setArtist(songInfo.author)
                                         .setArtworkUri(thumbUrl.toUri())
                                         .setAlbumTitle(track.album?.name)
                                         .setDescription(if (isSong) "Song" else "Video")
                                         .build(),
-                                )
-                                .build(),
+                                ).build(),
                             player.currentMediaItemIndex + 1,
                         )
                     } else {
                         val mediaItem =
-                            MediaItem.Builder()
+                            MediaItem
+                                .Builder()
                                 .setMediaId(track.videoId)
                                 .setUri(track.videoId)
                                 .setCustomCacheKey(track.videoId)
                                 .setMediaMetadata(
-                                    MediaMetadata.Builder()
+                                    MediaMetadata
+                                        .Builder()
                                         .setArtworkUri(thumbUrl.toUri())
                                         .setAlbumTitle(track.album?.name)
                                         .setTitle(track.title)
                                         .setArtist("Various Artists")
                                         .setDescription(if (isSong) "Song" else "Video")
                                         .build(),
-                                )
-                                .build()
+                                ).build()
                         addMediaItemNotSet(mediaItem, player.currentMediaItemIndex + 1)
                         catalogMetadata.add(
                             player.currentMediaItemIndex + 1,
@@ -1750,19 +1937,21 @@ class SimpleMediaServiceHandler(
                 }
             } else {
                 addMediaItemNotSet(
-                    MediaItem.Builder().setUri(track.videoId)
+                    MediaItem
+                        .Builder()
+                        .setUri(track.videoId)
                         .setMediaId(track.videoId)
                         .setCustomCacheKey(track.videoId)
                         .setMediaMetadata(
-                            MediaMetadata.Builder()
+                            MediaMetadata
+                                .Builder()
                                 .setTitle(track.title)
                                 .setArtist(artistName)
                                 .setArtworkUri(thumbUrl.toUri())
                                 .setAlbumTitle(track.album?.name)
                                 .setDescription(if (isSong) "Song" else "Video")
                                 .build(),
-                        )
-                        .build(),
+                        ).build(),
                     player.currentMediaItemIndex + 1,
                 )
                 catalogMetadata.add(player.currentMediaItemIndex + 1, track)
@@ -1772,9 +1961,10 @@ class SimpleMediaServiceHandler(
                 "updateCatalog: ${track.title}, ${catalogMetadata.size}",
             )
             Log.d("MusicSource", "updateCatalog: ${track.title}")
-            _queueData.value = queueData.first()?.copy(
-                listTracks = catalogMetadata,
-            )
+            _queueData.value =
+                queueData.first()?.copy(
+                    listTracks = catalogMetadata,
+                )
         }
         _stateFlow.value = StateSource.STATE_INITIALIZED
     }
@@ -1805,7 +1995,9 @@ sealed class PlayerEvent {
 
     data object Repeat : PlayerEvent()
 
-    data class UpdateProgress(val newProgress: Float) : PlayerEvent()
+    data class UpdateProgress(
+        val newProgress: Float,
+    ) : PlayerEvent()
 
     data object ToggleLike : PlayerEvent()
 }
@@ -1815,30 +2007,38 @@ sealed class SimpleMediaState {
 
     data object Ended : SimpleMediaState()
 
-    data class Ready(val duration: Long) : SimpleMediaState()
+    data class Ready(
+        val duration: Long,
+    ) : SimpleMediaState()
 
-    data class Loading(val bufferedPercentage: Int, val duration: Long) : SimpleMediaState()
+    data class Loading(
+        val bufferedPercentage: Int,
+        val duration: Long,
+    ) : SimpleMediaState()
 
-    data class Progress(val progress: Long) : SimpleMediaState()
+    data class Progress(
+        val progress: Long,
+    ) : SimpleMediaState()
 
-    data class Buffering(val position: Long) : SimpleMediaState()
+    data class Buffering(
+        val position: Long,
+    ) : SimpleMediaState()
 }
 
 data class NowPlayingTrackState(
     val mediaItem: MediaItem,
     val track: Track?,
-    val songEntity: SongEntity?
+    val songEntity: SongEntity?,
 ) {
-    fun isNotEmpty(): Boolean {
-        return this != initial()
-    }
+    fun isNotEmpty(): Boolean = this != initial()
 
     companion object {
-        fun initial(): NowPlayingTrackState {
-            return NowPlayingTrackState(
-                mediaItem = EMPTY, track = null, songEntity = null
+        fun initial(): NowPlayingTrackState =
+            NowPlayingTrackState(
+                mediaItem = EMPTY,
+                track = null,
+                songEntity = null,
             )
-        }
     }
 }
 
@@ -1855,7 +2055,7 @@ data class ControlState(
     val repeatState: RepeatState,
     val isLiked: Boolean,
     val isNextAvailable: Boolean,
-    val isPreviousAvailable: Boolean
+    val isPreviousAvailable: Boolean,
 )
 
 data class QueueData(
@@ -1864,21 +2064,24 @@ data class QueueData(
     val playlistId: String? = null,
     val playlistName: String? = null,
     val playlistType: PlaylistType? = null,
-    val continuation: String? = null
+    val continuation: String? = null,
 ) {
     fun addTrackList(tracks: Collection<Track>): QueueData {
         val temp = listTracks
         temp.addAll(tracks)
         return this.copy(
-            listTracks = temp
+            listTracks = temp,
         )
     }
 
-    fun addToIndex(track: Track, index: Int): QueueData {
+    fun addToIndex(
+        track: Track,
+        index: Int,
+    ): QueueData {
         val temp = listTracks
         temp.add(index, track)
         return this.copy(
-            listTracks = temp
+            listTracks = temp,
         )
     }
 
@@ -1886,30 +2089,28 @@ data class QueueData(
         val temp = listTracks
         temp.removeAt(0)
         return this.copy(
-            listTracks = temp
+            listTracks = temp,
         )
     }
+
     fun removeTrackWithIndex(index: Int): QueueData {
         val temp = listTracks
         temp.removeAt(index)
         return this.copy(
-            listTracks = temp
+            listTracks = temp,
         )
     }
-    fun setContinuation(continuation: String): QueueData {
-        return this.copy(
-            continuation = continuation
+
+    fun setContinuation(continuation: String): QueueData =
+        this.copy(
+            continuation = continuation,
         )
-    }
-    fun isLocalPlaylist(): Boolean {
-        return playlistType == PlaylistType.LOCAL_PLAYLIST
-    }
-    fun isRadio(): Boolean {
-        return playlistType == PlaylistType.RADIO
-    }
-    fun isPlaylist(): Boolean {
-        return playlistType == PlaylistType.PLAYLIST
-    }
+
+    fun isLocalPlaylist(): Boolean = playlistType == PlaylistType.LOCAL_PLAYLIST
+
+    fun isRadio(): Boolean = playlistType == PlaylistType.RADIO
+
+    fun isPlaylist(): Boolean = playlistType == PlaylistType.PLAYLIST
 }
 
 /**
@@ -1918,7 +2119,7 @@ data class QueueData(
  */
 
 data class SleepTimerState(
-    val isDone : Boolean,
+    val isDone: Boolean,
     val timeRemaining: Int,
 )
 

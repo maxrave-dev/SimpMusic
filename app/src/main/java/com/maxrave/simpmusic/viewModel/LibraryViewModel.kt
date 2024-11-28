@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
+import androidx.media3.common.util.UnstableApi
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.DownloadState
@@ -14,21 +15,54 @@ import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
+import com.maxrave.simpmusic.data.model.searchResult.playlists.PlaylistsResult
+import com.maxrave.simpmusic.data.type.PlaylistType
+import com.maxrave.simpmusic.data.type.RecentlyType
+import com.maxrave.simpmusic.utils.LocalResource
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.koin.android.annotation.KoinViewModel
 import java.time.LocalDateTime
 
 @KoinViewModel
+@UnstableApi
 class LibraryViewModel(
         private val application: Application
     ) : BaseViewModel(application) {
 
     override val tag: String
         get() = "LibraryViewModel"
+
+        private val _nowPlayingVideoId: MutableStateFlow<String> = MutableStateFlow("")
+        val nowPlayingVideoId: StateFlow<String> get() = _nowPlayingVideoId
+
+        private val _recentlyAdded: MutableStateFlow<LocalResource<List<RecentlyType>>> =
+            MutableStateFlow(LocalResource.Loading())
+        val recentlyAdded: StateFlow<LocalResource<List<RecentlyType>>> get() = _recentlyAdded
+
+        private val _yourLocalPlaylist: MutableStateFlow<LocalResource<List<LocalPlaylistEntity>>> =
+            MutableStateFlow(LocalResource.Loading())
+        val yourLocalPlaylist: StateFlow<LocalResource<List<LocalPlaylistEntity>>> get() = _yourLocalPlaylist
+
+        private val _youTubePlaylist: MutableStateFlow<LocalResource<List<PlaylistsResult>>> =
+            MutableStateFlow(LocalResource.Loading())
+        val youTubePlaylist: StateFlow<LocalResource<List<PlaylistsResult>>> get() = _youTubePlaylist
+
+        private val _favoritePlaylist: MutableStateFlow<LocalResource<List<PlaylistType>>> =
+            MutableStateFlow(LocalResource.Loading())
+        val favoritePlaylist: StateFlow<LocalResource<List<PlaylistType>>> get() = _favoritePlaylist
+
+        private val _downloadedPlaylist: MutableStateFlow<LocalResource<List<PlaylistType>>> =
+            MutableStateFlow(LocalResource.Loading())
+        val downloadedPlaylist: StateFlow<LocalResource<List<PlaylistType>>> get() = _downloadedPlaylist
 
         private var _listRecentlyAdded: MutableLiveData<List<Any>> = MutableLiveData()
         val listRecentlyAdded: LiveData<List<Any>> = _listRecentlyAdded
@@ -48,12 +82,33 @@ class LibraryViewModel(
         private var _songEntity: MutableLiveData<SongEntity?> = MutableLiveData()
         val songEntity: LiveData<SongEntity?> = _songEntity
 
+        @OptIn(ExperimentalCoroutinesApi::class)
+        val youtubeLoggedIn = dataStoreManager.loggedIn.mapLatest { it == DataStoreManager.TRUE }
+
         //    val recentlyAdded = mainRepository.getAllRecentData().map { pagingData ->
 //        pagingData.map { it }
 //    }.cachedIn(viewModelScope)
+        init {
+            getNowPlayingVideoId()
+        }
+        private fun getNowPlayingVideoId() {
+            viewModelScope.launch {
+                combine(simpleMediaServiceHandler.nowPlayingState, simpleMediaServiceHandler.controlState) { nowPlayingState, controlState ->
+                    Pair(nowPlayingState, controlState)
+                }.collect { (nowPlayingState, controlState) ->
+                    if (controlState.isPlaying) {
+                        _nowPlayingVideoId.value = nowPlayingState.songEntity?.videoId ?: ""
+                    } else {
+                        _nowPlayingVideoId.value = ""
+                    }
+                }
+
+            }
+        }
+
         fun getRecentlyAdded() {
             viewModelScope.launch {
-                val temp: MutableList<Any> = mutableListOf<Any>()
+                val temp: MutableList<RecentlyType> = mutableListOf()
                 mainRepository.getAllRecentData().collect { data ->
                     temp.addAll(data)
                     temp.find {
@@ -62,15 +117,18 @@ class LibraryViewModel(
                         temp.remove(it)
                     }
                     temp.removeIf { it is SongEntity && it.inLibrary == Config.REMOVED_SONG_DATE_TIME }
-                    _listRecentlyAdded.postValue(temp)
+                    temp.reverse()
+                    _recentlyAdded.value = LocalResource.Success(temp)
                 }
             }
         }
 
         fun getYouTubePlaylist() {
+            _youTubePlaylist.value = LocalResource.Loading()
             viewModelScope.launch {
                 mainRepository.getLibraryPlaylist().collect { data ->
-                    _listYouTubePlaylist.postValue(data?.reversed())
+//                    _listYouTubePlaylist.postValue(data?.reversed())
+                    _youTubePlaylist.value = LocalResource.Success(data ?: emptyList())
                 }
             }
         }
@@ -82,12 +140,12 @@ class LibraryViewModel(
         fun getPlaylistFavorite() {
             viewModelScope.launch {
                 mainRepository.getLikedAlbums().collect { album ->
-                    val temp: MutableList<Any> = mutableListOf<Any>()
+                    val temp: MutableList<PlaylistType> = mutableListOf()
                     temp.addAll(album)
                     mainRepository.getLikedPlaylists().collect { playlist ->
                         temp.addAll(playlist)
                         val sortedList =
-                            temp.sortedWith<Any>(
+                            temp.sortedWith<PlaylistType>(
                                 Comparator { p0, p1 ->
                                     val timeP0: LocalDateTime? =
                                         when (p0) {
@@ -113,26 +171,26 @@ class LibraryViewModel(
                                     timeP0.compareTo(timeP1) // Sort in descending order by inLibrary time
                                 },
                             )
-                        _listPlaylistFavorite.postValue(sortedList)
+                        _favoritePlaylist.value = LocalResource.Success(sortedList)
                     }
                 }
             }
         }
 
         fun getLocalPlaylist() {
+            _yourLocalPlaylist.value = LocalResource.Loading()
             viewModelScope.launch {
                 mainRepository.getAllLocalPlaylists().collect { values ->
-                    _listLocalPlaylist.postValue(values)
+//                    _listLocalPlaylist.postValue(values)
+                    _yourLocalPlaylist.value = LocalResource.Success(values.reversed())
                 }
             }
         }
 
         fun getDownloadedPlaylist() {
             viewModelScope.launch {
-                val temp: MutableList<Any> = mutableListOf<Any>()
                 mainRepository.getAllDownloadedPlaylist().collect { values ->
-                    temp.addAll(values)
-                    _listDownloadedPlaylist.postValue(temp)
+                    _downloadedPlaylist.value = LocalResource.Success(values)
                 }
             }
         }

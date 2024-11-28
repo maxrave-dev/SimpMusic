@@ -62,7 +62,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.LocalMinimumInteractiveComponentEnforcement
+import androidx.compose.material3.LocalMinimumInteractiveComponentSize
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
@@ -78,6 +78,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -87,6 +88,10 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -95,28 +100,27 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import androidx.core.os.bundleOf
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.offline.DownloadRequest
-import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
+import coil3.compose.AsyncImage
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import coil3.toBitmap
+import com.kmpalette.rememberPaletteState
 import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.common.DownloadState
-import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.extension.GradientAngle
 import com.maxrave.simpmusic.extension.GradientOffset
 import com.maxrave.simpmusic.extension.formatDuration
-import com.maxrave.simpmusic.extension.getBrushListColorFromPalette
+import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
 import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.parseTimestampToMilliseconds
-import com.maxrave.simpmusic.extension.removeConflicts
 import com.maxrave.simpmusic.service.RepeatState
-import com.maxrave.simpmusic.service.test.download.MusicDownloadService
-import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.DescriptionView
 import com.maxrave.simpmusic.ui.component.FullscreenLyricsSheet
 import com.maxrave.simpmusic.ui.component.HeartCheckBox
@@ -132,18 +136,10 @@ import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LyricsProvider
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
-import com.skydoves.landscapist.animation.crossfade.CrossfadePlugin
-import com.skydoves.landscapist.coil.CoilImage
-import com.skydoves.landscapist.components.rememberImageComponent
-import com.skydoves.landscapist.palette.PalettePlugin
-import com.skydoves.landscapist.palette.rememberPaletteState
-import com.skydoves.landscapist.placeholder.placeholder.PlaceholderPlugin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
-import kotlinx.coroutines.flow.mapNotNull
-import java.time.LocalDateTime
 
 @OptIn(ExperimentalFoundationApi::class)
 @UnstableApi
@@ -151,22 +147,22 @@ import java.time.LocalDateTime
 @Composable
 fun NowPlayingScreen(
     sharedViewModel: SharedViewModel,
-    navController: NavController
+    navController: NavController,
 ) {
     val screenInfo = getScreenSizeInfo()
 
+    @Suppress("ktlint:standard:property-naming")
     val TAG = "NowPlayingScreen"
     val context = LocalContext.current
     val localDensity = LocalDensity.current
     val uriHandler = LocalUriHandler.current
+    val coroutineScope = rememberCoroutineScope()
 
-    //ViewModel State
+    // ViewModel State
     val controllerState by sharedViewModel.controllerState.collectAsState()
     val screenDataState by sharedViewModel.nowPlayingScreenData.collectAsState()
     val timelineState by sharedViewModel.timeline.collectAsState()
     val likeStatus by sharedViewModel.likeStatus.collectAsState()
-
-    val songEntity = sharedViewModel.simpleMediaServiceHandler?.nowPlayingState?.mapNotNull { it.songEntity }?.collectAsState(initial = null)
 
     val shouldShowVideo by sharedViewModel.getVideo.collectAsState()
 
@@ -174,7 +170,7 @@ fun NowPlayingScreen(
         Log.w(TAG, "Loading: ${timelineState.loading}")
     }
 
-    //State
+    // State
     val mainScrollState = rememberScrollState()
 
     var showHideMiddleLayout by rememberSaveable {
@@ -189,27 +185,42 @@ fun NowPlayingScreen(
         mutableStateOf(false)
     }
 
-    //Palette state
-    var palette by rememberPaletteState(null)
-    val startColor = remember {
-        Animatable(md_theme_dark_background)
-    }
-    val endColor = remember {
-        Animatable(md_theme_dark_background)
-    }
+    // Palette state
+    val paletteState = rememberPaletteState()
+
+    val startColor =
+        remember {
+            Animatable(md_theme_dark_background)
+        }
+    val endColor =
+        remember {
+            Animatable(md_theme_dark_background)
+        }
     val gradientOffset by remember {
         mutableStateOf(GradientOffset(GradientAngle.CW135))
     }
 
-    LaunchedEffect(key1 = palette) {
-        palette?.let {
-            val colorList = getBrushListColorFromPalette(it, context)
-            startColor.animateTo(colorList[0])
-            endColor.animateTo(colorList[1])
+    var bitmap by remember {
+        mutableStateOf<ImageBitmap?>(null)
+    }
+
+    LaunchedEffect(bitmap) {
+        val bm = bitmap
+        if (bm != null) {
+            paletteState.generate(bm)
         }
     }
 
-    //Height
+    LaunchedEffect(Unit) {
+        snapshotFlow { paletteState.palette }
+            .distinctUntilChanged()
+            .collectLatest {
+                startColor.animateTo(it.getColorFromPalette())
+                endColor.animateTo(md_theme_dark_background)
+            }
+    }
+
+    // Height
     var topAppBarHeightDp by rememberSaveable {
         mutableIntStateOf(0)
     }
@@ -224,19 +235,23 @@ fun NowPlayingScreen(
     }
     val minimumPaddingDp by rememberSaveable {
         mutableIntStateOf(
-            30
+            30,
         )
     }
     LaunchedEffect(
-        topAppBarHeightDp, screenInfo, infoLayoutHeightDp, minimumPaddingDp
+        topAppBarHeightDp,
+        screenInfo,
+        infoLayoutHeightDp,
+        minimumPaddingDp,
     ) {
         if (topAppBarHeightDp > 0 && middleLayoutHeightDp > 0 && infoLayoutHeightDp > 0 && screenInfo.hDP > 0) {
             val result = (screenInfo.hDP - topAppBarHeightDp - middleLayoutHeightDp - infoLayoutHeightDp - minimumPaddingDp) / 2
-            middleLayoutPaddingDp = if (result > minimumPaddingDp) {
-                result
-            } else {
-                minimumPaddingDp
-            }
+            middleLayoutPaddingDp =
+                if (result > minimumPaddingDp) {
+                    result
+                } else {
+                    minimumPaddingDp
+                }
         }
     }
 
@@ -244,26 +259,29 @@ fun NowPlayingScreen(
         mutableFloatStateOf(0f)
     }
     LaunchedEffect(key1 = timelineState) {
-        sliderValue = if (timelineState.total > 0L) {
-            timelineState.current.toFloat() * 100 / timelineState.total.toFloat()
-        } else {
-            0f
-        }
+        sliderValue =
+            if (timelineState.total > 0L) {
+                timelineState.current.toFloat() * 100 / timelineState.total.toFloat()
+            } else {
+                0f
+            }
     }
     LaunchedEffect(key1 = screenDataState) {
         showHideMiddleLayout = screenDataState.canvasData == null
     }
 
-    //Show ControlLayout Or Show Artist Badge
+    // Show ControlLayout Or Show Artist Badge
     var showHideControlLayout by rememberSaveable {
         mutableStateOf(true)
     }
     val controlLayoutAlpha: Float by animateFloatAsState(
         targetValue = if (showHideControlLayout) 1f else 0f,
-        animationSpec = tween(
-            durationMillis = 500,
-            easing = LinearEasing,
-        ), label = "ControlLayoutAlpha"
+        animationSpec =
+            tween(
+                durationMillis = 500,
+                easing = LinearEasing,
+            ),
+        label = "ControlLayoutAlpha",
     )
 
     var showHideJob by remember {
@@ -273,7 +291,7 @@ fun NowPlayingScreen(
     LaunchedEffect(key1 = showHideJob) {
         if (!showHideJob) {
             delay(5000)
-            if (mainScrollState.value == 0){ showHideControlLayout = false }
+            if (mainScrollState.value == 0) showHideControlLayout = false
             showHideJob = true
         }
     }
@@ -292,7 +310,6 @@ fun NowPlayingScreen(
             }
         }
     }
-
 
     LaunchedEffect(key1 = showHideControlLayout) {
         if (showHideControlLayout && screenDataState.canvasData != null && mainScrollState.value == 0) {
@@ -313,7 +330,7 @@ fun NowPlayingScreen(
             }
     }
 
-    //Fullscreen overlay
+    // Fullscreen overlay
     var showHideFullscreenOverlay by rememberSaveable {
         mutableStateOf(false)
     }
@@ -325,80 +342,15 @@ fun NowPlayingScreen(
         }
     }
 
-    if (showSheet && songEntity != null) {
+    if (showSheet) {
         NowPlayingBottomSheet(
-            isBottomSheetVisible = showSheet,
             onDismiss = {
                 showSheet = false
             },
             navController = navController,
-            sharedViewModel = sharedViewModel,
-            songEntity = songEntity,
-            onToggleLike = { sharedViewModel.onUIEvent(UIEvent.ToggleLike) },
-            getLocalPlaylist = { sharedViewModel.getAllLocalPlaylist() },
-            listLocalPlaylist = sharedViewModel.localPlaylist.collectAsState(),
-            onDownload = {
-                songEntity.value?.let { song ->
-                    sharedViewModel.updateDownloadState(
-                        song.videoId,
-                        DownloadState.STATE_PREPARING,
-                    )
-                    val downloadRequest =
-                        DownloadRequest
-                            .Builder(
-                                song.videoId,
-                                song.videoId.toUri(),
-                            ).setData(song.title.toByteArray())
-                            .setCustomCacheKey(song.videoId)
-                            .build()
-                    DownloadService.sendAddDownload(
-                        context,
-                        MusicDownloadService::class.java,
-                        downloadRequest,
-                        false,
-                    )
-                }
-            },
-            onSleepTimer = {
-                sharedViewModel.setSleepTimer(it)
-            },
-            onMainLyricsProvider = { provider ->
-                sharedViewModel.setLyricsProvider(provider)
-            },
-            onAddToLocalPlaylist = { playlist ->
-                val song = songEntity.value ?: return@NowPlayingBottomSheet
-                val tempTrack = ArrayList<String>()
-                if (playlist.tracks != null) {
-                    tempTrack.addAll(playlist.tracks)
-                }
-                if (!tempTrack.contains(
-                        song.videoId,
-                    ) &&
-                    playlist.syncedWithYouTubePlaylist == 1 &&
-                    playlist.youtubePlaylistId != null
-                ) {
-                    sharedViewModel.addToYouTubePlaylist(
-                        playlist.id,
-                        playlist.youtubePlaylistId,
-                        song.videoId,
-                    )
-                }
-                if (!tempTrack.contains(song.videoId)) {
-                    sharedViewModel.insertPairSongLocalPlaylist(
-                        PairSongLocalPlaylist(
-                            playlistId = playlist.id,
-                            songId = song.videoId,
-                            position = playlist.tracks?.size ?: 0,
-                            inPlaylist = LocalDateTime.now(),
-                        ),
-                    )
-                    tempTrack.add(song.videoId)
-                }
-                sharedViewModel.updateLocalPlaylistTracks(
-                    tempTrack.removeConflicts(),
-                    playlist.id,
-                )
-            }
+            song = null, // Auto set now playing
+            setSleepTimerEnable = true,
+            changeMainLyricsProviderEnable = true,
         )
     }
 
@@ -406,7 +358,7 @@ fun NowPlayingScreen(
         FullscreenLyricsSheet(
             sharedViewModel = sharedViewModel,
             color = startColor.value,
-            navController = navController
+            navController = navController,
         ) {
             showFullscreenLyrics = false
         }
@@ -415,101 +367,117 @@ fun NowPlayingScreen(
     Column(
         Modifier
             .verticalScroll(
-                mainScrollState
-            )
-            .then(
+                mainScrollState,
+            ).then(
                 if (showHideMiddleLayout) {
                     Modifier.background(
                         Brush.linearGradient(
-                            colors = listOf(
-                                startColor.value, endColor
-                                    .value
-                            ),
+                            colors =
+                                listOf(
+                                    startColor.value,
+                                    endColor
+                                        .value,
+                                ),
                             start = gradientOffset.start,
-                            end = gradientOffset.end
-                        )
+                            end = gradientOffset.end,
+                        ),
                     )
                 } else {
                     Modifier.background(md_theme_dark_background)
-                }
-            )
+                },
+            ),
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
-            //Canvas Layout
-            //TODO: Canvas Layout
+            // Canvas Layout
             Box(
-                modifier = Modifier
-                    .height(screenInfo.hDP.dp)
-                    .fillMaxWidth()
-                    .alpha(
-                        if (!showHideMiddleLayout) 1f else 0f
-                    )
+                modifier =
+                    Modifier
+                        .height(screenInfo.hDP.dp)
+                        .fillMaxWidth()
+                        .alpha(
+                            if (!showHideMiddleLayout) 1f else 0f,
+                        ),
             ) {
-                //Canvas Layout
-                //TODO: Canvas Layout
+                // Canvas Layout
                 Crossfade(targetState = screenDataState.canvasData?.isVideo) { isVideo ->
                     if (isVideo == true) {
                         screenDataState.canvasData?.url?.let {
                             MediaPlayerView(
-                                url = it, modifier = Modifier
-                                    .fillMaxHeight()
-                                    .wrapContentWidth(unbounded = true, align = Alignment.CenterHorizontally)
+                                url = it,
+                                modifier =
+                                    Modifier
+                                        .fillMaxHeight()
+                                        .wrapContentWidth(unbounded = true, align = Alignment.CenterHorizontally),
                             )
                         }
                     } else if (isVideo == false) {
-                        CoilImage(
-                            imageModel = {
-                                screenDataState.canvasData?.url
-                            },
-                            modifier = Modifier.fillMaxSize()
+                        AsyncImage(
+                            model = ImageRequest.Builder(LocalContext.current)
+                                .data(screenDataState.canvasData?.url)
+                                .diskCachePolicy(CachePolicy.ENABLED)
+                                .diskCacheKey(screenDataState.canvasData?.url)
+                                .crossfade(550)
+                                .build(),
+                            contentDescription = null,
+                            modifier = Modifier.fillMaxSize(),
                         )
                     }
                 }
                 Crossfade(
                     targetState = (screenDataState.canvasData != null && showHideControlLayout),
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .align(
-                            Alignment.BottomCenter
-                        )
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .align(
+                                Alignment.BottomCenter,
+                            ),
                 ) {
                     if (it) {
                         Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(
-                                    Brush.verticalGradient(
-                                        colorStops = arrayOf(
-                                            0.8f to overlay,
-                                            1f to Color.Black
+                            modifier =
+                                Modifier
+                                    .fillMaxSize()
+                                    .background(
+                                        Brush.verticalGradient(
+                                            colorStops =
+                                                arrayOf(
+                                                    0.8f to overlay,
+                                                    1f to Color.Black,
+                                                ),
                                         ),
-                                    )
-                                )
+                                    ),
                         )
                     }
-
                 }
             }
 
-            TopAppBar (
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .onGloballyPositioned {
-                        topAppBarHeightDp = with(localDensity) { it.size.height.toDp().value.toInt() }
-                    },
-                colors = TopAppBarDefaults.topAppBarColors().copy(
-                    containerColor = Color.Transparent
-                ),
+            TopAppBar(
+                modifier =
+                    Modifier
+                        .align(Alignment.TopCenter)
+                        .onGloballyPositioned {
+                            topAppBarHeightDp =
+                                with(localDensity) {
+                                    it.size.height
+                                        .toDp()
+                                        .value
+                                        .toInt()
+                                }
+                        },
+                colors =
+                    TopAppBarDefaults.topAppBarColors().copy(
+                        containerColor = Color.Transparent,
+                    ),
                 title = {
                     Column(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
+                        verticalArrangement = Arrangement.Center,
                     ) {
                         Text(
                             text = stringResource(id = R.string.now_playing_upper),
                             style = typo.bodyMedium,
-                            color = Color.White
+                            color = Color.White,
                         )
                         Text(
                             text = screenDataState.playlistName,
@@ -517,11 +485,15 @@ fun NowPlayingScreen(
                             color = Color.White,
                             textAlign = TextAlign.Center,
                             maxLines = 1,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .wrapContentHeight(align = Alignment.CenterVertically)
-                                .basicMarquee(animationMode = MarqueeAnimationMode.Immediately)
-                                .focusable()
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .wrapContentHeight(align = Alignment.CenterVertically)
+                                    .basicMarquee(
+                                        iterations = Int.MAX_VALUE,
+                                        animationMode = MarqueeAnimationMode.Immediately
+                                    )
+                                    .focusable(),
                         )
                     }
                 },
@@ -532,7 +504,7 @@ fun NowPlayingScreen(
                         Icon(
                             painter = painterResource(id = R.drawable.baseline_keyboard_arrow_down_24),
                             contentDescription = "",
-                            tint = Color.White
+                            tint = Color.White,
                         )
                     }
                 },
@@ -543,189 +515,196 @@ fun NowPlayingScreen(
                         Icon(
                             painter = painterResource(id = R.drawable.baseline_more_vert_24),
                             contentDescription = "",
-                            tint = Color.White
+                            tint = Color.White,
                         )
                     }
                 },
             )
             Column {
-                Spacer(modifier = Modifier.height(
-                    topAppBarHeightDp.dp
-                )
+                Spacer(
+                    modifier =
+                        Modifier.height(
+                            topAppBarHeightDp.dp,
+                        ),
                 )
                 Box {
                     Column(
                         Modifier
-                            .fillMaxWidth()
+                            .fillMaxWidth(),
                     ) {
-                        Spacer(modifier = Modifier
-                            .animateContentSize()
-                            .height(
-                                middleLayoutPaddingDp.dp
-                            )
-                            .fillMaxWidth()
+                        Spacer(
+                            modifier =
+                                Modifier
+                                    .animateContentSize()
+                                    .height(
+                                        middleLayoutPaddingDp.dp,
+                                    ).fillMaxWidth(),
                         )
 
-                        //Middle Layout
-                        Box(modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 40.dp)
-                            .onGloballyPositioned {
-                                middleLayoutHeightDp = with(localDensity) { it.size.height.toDp().value.toInt() }
-                            }
-                            .alpha(
-                                if (showHideMiddleLayout) 1f else 0f
-                            )
-                            .aspectRatio(1f)) {
-
-                            //IS SONG => Show Artwork
-                            CoilImage(
-                                imageModel =
-                                {
-                                    screenDataState.thumbnailURL?.toUri()
+                        // Middle Layout
+                        Box(
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 40.dp)
+                                    .onGloballyPositioned {
+                                        middleLayoutHeightDp =
+                                            with(localDensity) {
+                                                it.size.height
+                                                    .toDp()
+                                                    .value
+                                                    .toInt()
+                                            }
+                                    }.alpha(
+                                        if (showHideMiddleLayout) 1f else 0f,
+                                    ).aspectRatio(1f),
+                        ) {
+                            // IS SONG => Show Artwork
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(screenDataState.thumbnailURL)
+                                    .diskCachePolicy(CachePolicy.ENABLED)
+                                    .diskCacheKey(screenDataState.thumbnailURL + "BIGGER")
+                                    .crossfade(550)
+                                    .build(),
+                                contentDescription = "",
+                                onSuccess = {
+                                    bitmap = it.result.image.toBitmap().asImageBitmap()
                                 },
-                                previewPlaceholder = painterResource(id = R.drawable.holder),
-                                modifier = Modifier
+                                contentScale = ContentScale.Crop,
+                                placeholder = painterResource(id = R.drawable.holder),
+                                modifier =
+                                Modifier
                                     .align(Alignment.Center)
                                     .fillMaxWidth()
                                     .aspectRatio(
-                                        if (!screenDataState.isVideo) 1f else 16f / 9
-                                    )
-                                    .clip(
-                                        RoundedCornerShape(8.dp)
-                                    )
-                                    .alpha(
-                                        if (!screenDataState.isVideo || !shouldShowVideo) 1f else 0f
+                                        if (!screenDataState.isVideo) 1f else 16f / 9,
+                                    ).clip(
+                                        RoundedCornerShape(8.dp),
+                                    ).alpha(
+                                        if (!screenDataState.isVideo || !shouldShowVideo) 1f else 0f,
                                     ),
-                                loading = {
-                                    CenterLoadingBox(modifier = Modifier.fillMaxSize())
-                                },
-                                component = rememberImageComponent {
-                                    +CrossfadePlugin(duration = 200)
-                                    +PalettePlugin(
-                                        paletteLoadedListener = {
-                                            palette = it
-                                        },
-                                        useCache = true,
-                                    )
-                                    +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder))
-                                    +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder))
-                                }
                             )
 
-                            //IS VIDEO => Show Video
+                            // IS VIDEO => Show Video
                             androidx.compose.animation.AnimatedVisibility(
                                 visible = screenDataState.isVideo && shouldShowVideo,
-                                modifier = Modifier.align(Alignment.Center)
+                                modifier = Modifier.align(Alignment.Center),
                             ) {
                                 Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .aspectRatio(16f / 9)
-                                        .clip(
-                                            RoundedCornerShape(8.dp)
-                                        )
-                                        .background(
-                                            md_theme_dark_background
-                                        )
+                                    modifier =
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .aspectRatio(16f / 9)
+                                            .clip(
+                                                RoundedCornerShape(8.dp),
+                                            ).background(
+                                                md_theme_dark_background,
+                                            ),
                                 ) {
-                                    //Player
-                                    //TODO: Player
+                                    // Player
                                     Box(Modifier.fillMaxSize()) {
-                                        sharedViewModel.simpleMediaServiceHandler?.player?.let {
-                                            MediaPlayerView(player = it, modifier = Modifier.align(Alignment.Center))
-                                        }
+                                        MediaPlayerView(player = sharedViewModel.getPlayer(), modifier = Modifier.align(Alignment.Center))
                                     }
                                     Box(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .clickable(
-                                                onClick = { showHideFullscreenOverlay = !showHideFullscreenOverlay },
-                                                indication = null,
-                                                interactionSource = remember {
-                                                    MutableInteractionSource()
-                                                }
-                                            )
+                                        modifier =
+                                            Modifier
+                                                .fillMaxSize()
+                                                .clickable(
+                                                    onClick = { showHideFullscreenOverlay = !showHideFullscreenOverlay },
+                                                    indication = null,
+                                                    interactionSource =
+                                                        remember {
+                                                            MutableInteractionSource()
+                                                        },
+                                                ),
                                     ) {
                                         Crossfade(
                                             targetState = showHideFullscreenOverlay,
                                         ) {
                                             if (it) {
                                                 Box(
-                                                    modifier = Modifier
-                                                        .fillMaxSize()
-                                                        .background(
-                                                            Brush.verticalGradient(
-                                                                colorStops = arrayOf(
-                                                                    0.03f to blackMoreOverlay,
-                                                                    0.15f to overlay,
-                                                                    0.8f to Color.Transparent,
-                                                                )
-                                                            )
-                                                        )
-                                                )
-                                                {
+                                                    modifier =
+                                                        Modifier
+                                                            .fillMaxSize()
+                                                            .background(
+                                                                Brush.verticalGradient(
+                                                                    colorStops =
+                                                                        arrayOf(
+                                                                            0.03f to blackMoreOverlay,
+                                                                            0.15f to overlay,
+                                                                            0.8f to Color.Transparent,
+                                                                        ),
+                                                                ),
+                                                            ),
+                                                ) {
                                                     IconButton(onClick = {
                                                         navController.navigateSafe(
-                                                            R.id.action_global_fullscreenFragment
+                                                            R.id.action_global_fullscreenFragment,
                                                         )
                                                     }, Modifier.align(Alignment.TopEnd)) {
                                                         Icon(
                                                             painter = painterResource(id = R.drawable.baseline_fullscreen_24),
                                                             contentDescription = "",
-                                                            tint = Color.White
+                                                            tint = Color.White,
                                                         )
                                                     }
                                                     Row(
                                                         Modifier
                                                             .align(Alignment.Center)
                                                             .fillMaxWidth(),
-                                                        horizontalArrangement = Arrangement.SpaceEvenly
+                                                        horizontalArrangement = Arrangement.SpaceEvenly,
                                                     ) {
                                                         FilledTonalIconButton(
-                                                            colors = IconButtonDefaults.iconButtonColors().copy(
-                                                                containerColor = Color.Transparent
-                                                            ),
-                                                            modifier = Modifier
-                                                                .size(48.dp)
-                                                                .aspectRatio(1f)
-                                                                .clip(
-                                                                    CircleShape
+                                                            colors =
+                                                                IconButtonDefaults.iconButtonColors().copy(
+                                                                    containerColor = Color.Transparent,
                                                                 ),
+                                                            modifier =
+                                                                Modifier
+                                                                    .size(48.dp)
+                                                                    .aspectRatio(1f)
+                                                                    .clip(
+                                                                        CircleShape,
+                                                                    ),
                                                             onClick = {
                                                                 sharedViewModel.onUIEvent(UIEvent.Backward)
-                                                            }
+                                                            },
                                                         ) {
                                                             Icon(
                                                                 imageVector = Icons.Filled.Replay5,
                                                                 tint = Color.White,
                                                                 contentDescription = "",
-                                                                modifier = Modifier
-                                                                    .size(36.dp)
-                                                                    .alpha(0.8f)
+                                                                modifier =
+                                                                    Modifier
+                                                                        .size(36.dp)
+                                                                        .alpha(0.8f),
                                                             )
                                                         }
                                                         FilledTonalIconButton(
-                                                            colors = IconButtonDefaults.iconButtonColors().copy(
-                                                                containerColor = Color.Transparent
-                                                            ),
-                                                            modifier = Modifier
-                                                                .size(48.dp)
-                                                                .aspectRatio(1f)
-                                                                .clip(
-                                                                    CircleShape
+                                                            colors =
+                                                                IconButtonDefaults.iconButtonColors().copy(
+                                                                    containerColor = Color.Transparent,
                                                                 ),
+                                                            modifier =
+                                                                Modifier
+                                                                    .size(48.dp)
+                                                                    .aspectRatio(1f)
+                                                                    .clip(
+                                                                        CircleShape,
+                                                                    ),
                                                             onClick = {
                                                                 sharedViewModel.onUIEvent(UIEvent.Forward)
-                                                            }
+                                                            },
                                                         ) {
                                                             Icon(
                                                                 imageVector = Icons.Filled.Forward5,
                                                                 tint = Color.White,
                                                                 contentDescription = "",
-                                                                modifier = Modifier
-                                                                    .size(36.dp)
-                                                                    .alpha(0.8f)
+                                                                modifier =
+                                                                    Modifier
+                                                                        .size(36.dp)
+                                                                        .alpha(0.8f),
                                                             )
                                                         }
                                                     }
@@ -737,223 +716,293 @@ fun NowPlayingScreen(
                             }
                         }
 
-                        Spacer(modifier = Modifier
-                            .animateContentSize()
-                            .height(
-                                middleLayoutPaddingDp.dp
-                            )
-                            .fillMaxWidth()
+                        Spacer(
+                            modifier =
+                                Modifier
+                                    .animateContentSize()
+                                    .height(
+                                        middleLayoutPaddingDp.dp,
+                                    ).fillMaxWidth(),
                         )
 
-                        //Info Layout
+                        // Info Layout
                         Box {
                             Column(
                                 Modifier
                                     .alpha(controlLayoutAlpha)
                                     .onGloballyPositioned {
-                                        infoLayoutHeightDp = with(localDensity) { it.size.height.toDp().value.toInt() }
-                                    }
-                            )
-                            {
+                                        infoLayoutHeightDp =
+                                            with(localDensity) {
+                                                it.size.height
+                                                    .toDp()
+                                                    .value
+                                                    .toInt()
+                                            }
+                                    },
+                            ) {
                                 Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 40.dp),
-                                    verticalAlignment = Alignment.CenterVertically
+                                    modifier =
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 40.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
                                 ) {
+                                    
                                     Column(Modifier.weight(1f)) {
                                         Text(
                                             text = screenDataState.nowPlayingTitle,
                                             style = typo.headlineMedium,
                                             maxLines = 1,
                                             color = Color.White,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .wrapContentHeight(align = Alignment.CenterVertically)
-                                                .basicMarquee(animationMode = MarqueeAnimationMode.Immediately)
-                                                .focusable()
+                                            modifier =
+                                                Modifier
+                                                    .fillMaxWidth()
+                                                    .wrapContentHeight(align = Alignment.CenterVertically)
+                                                    .basicMarquee(
+                                                        iterations = Int.MAX_VALUE,
+                                                        animationMode = MarqueeAnimationMode.Immediately
+                                                    )
+                                                    .focusable(),
                                         )
                                         Spacer(modifier = Modifier.height(3.dp))
                                         Text(
                                             text = screenDataState.artistName,
                                             style = typo.bodyMedium,
                                             maxLines = 1,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .wrapContentHeight(align = Alignment.CenterVertically)
-                                                .basicMarquee(animationMode = MarqueeAnimationMode.Immediately)
-                                                .focusable()
+                                            modifier =
+                                                Modifier
+                                                    .fillMaxWidth()
+                                                    .wrapContentHeight(align = Alignment.CenterVertically)
+                                                    .basicMarquee(
+                                                        iterations = Int.MAX_VALUE,
+                                                        animationMode = MarqueeAnimationMode.Immediately
+                                                    )
+                                                    .focusable()
+                                                    .clickable {
+                                                        navController.navigateSafe(
+                                                            R.id.action_global_artistFragment,
+                                                            bundleOf("channelId" to screenDataState.songInfoData?.authorId),
+                                                        )
+                                                    },
                                         )
                                     }
                                     Spacer(modifier = Modifier.size(10.dp))
-                                    //TODO: Like Button
                                     HeartCheckBox(checked = controllerState.isLiked, size = 32) {
                                         sharedViewModel.onUIEvent(UIEvent.ToggleLike)
                                     }
                                 }
-                                //Real Slider
+                                // Real Slider
                                 Box(
                                     Modifier
                                         .padding(
-                                            top = 15.dp
-                                        )
-                                        .padding(horizontal = 40.dp)
+                                            top = 15.dp,
+                                        ).padding(horizontal = 40.dp),
                                 ) {
                                     Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(24.dp),
-                                        contentAlignment = Alignment.Center
+                                        modifier =
+                                            Modifier
+                                                .fillMaxWidth()
+                                                .height(24.dp),
+                                        contentAlignment = Alignment.Center,
                                     ) {
                                         Crossfade(timelineState.loading) {
                                             if (it) {
-                                                LinearProgressIndicator(
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .height(5.dp)
-                                                        .padding(
-                                                            horizontal = 10.dp
-                                                        )
-                                                        .clip(
-                                                            RoundedCornerShape(8.dp)
-                                                        ),
-                                                    color = Color.Gray,
-                                                    trackColor = Color.DarkGray,
-                                                )
-                                            } else {
-                                                LinearProgressIndicator(
-                                                    progress = { timelineState.bufferedPercent.toFloat() / 100 },
-                                                    modifier = Modifier
-                                                        .fillMaxWidth()
-                                                        .height(5.dp)
-                                                        .padding(
-                                                            horizontal = 10.dp
-                                                        )
-                                                        .clip(
-                                                            RoundedCornerShape(8.dp)
-                                                        ),
-                                                    color = Color.Gray,
-                                                    trackColor = Color.DarkGray,
-                                                )
+                                                CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
+                                                    LinearProgressIndicator(
+                                                        modifier =
+                                                        Modifier
+                                                            .fillMaxWidth()
+                                                            .height(4.dp)
+                                                            .padding(
+                                                                horizontal = 3.dp
+                                                            )
+                                                            .clip(
+                                                                RoundedCornerShape(8.dp),
+                                                            ),
+                                                        color = Color.Gray,
+                                                        trackColor = Color.DarkGray,
+                                                        strokeCap = StrokeCap.Round,
+                                                    )
+                                                }
+                                            }
+                                            else {
+                                                CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
+                                                    LinearProgressIndicator(
+                                                        progress = { timelineState.bufferedPercent.toFloat() / 100 },
+                                                        modifier =
+                                                        Modifier
+                                                            .fillMaxWidth()
+                                                            .height(4.dp)
+                                                            .padding(
+                                                                horizontal = 3.dp
+                                                            )
+                                                            .clip(
+                                                                RoundedCornerShape(8.dp),
+                                                            ),
+                                                        color = Color.Gray,
+                                                        trackColor = Color.DarkGray,
+                                                        strokeCap = StrokeCap.Round,
+                                                        drawStopIndicator = {}
+                                                    )
+                                                }
                                             }
                                         }
                                     }
-                                    CompositionLocalProvider(LocalMinimumInteractiveComponentEnforcement provides false) {
+                                    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
                                         Slider(
                                             value = sliderValue,
                                             onValueChange = {
                                                 sharedViewModel.onUIEvent(
-                                                    UIEvent.UpdateProgress(it)
+                                                    UIEvent.UpdateProgress(it),
                                                 )
                                             },
                                             valueRange = 0f..100f,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .align(
-                                                    Alignment.TopCenter
-                                                ),
-                                            colors = SliderDefaults.colors().copy(
-                                                thumbColor = Color.White,
-                                                activeTrackColor = Color.White,
-                                                inactiveTrackColor = Color.Transparent
-                                            ),
-                                            thumb = {
-                                                SliderDefaults.Thumb(
+                                            modifier =
+                                                Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(top = 3.dp)
+                                                    .align(
+                                                        Alignment.TopCenter,
+                                                    ),
+                                            track = { sliderState ->
+                                                SliderDefaults.Track(
                                                     modifier = Modifier
-                                                        .size(24.dp)
-                                                        .padding(6.dp),
-                                                    thumbSize = DpSize(8.dp, 8.dp),
-                                                    interactionSource = remember {
-                                                        MutableInteractionSource()
-                                                    },
+                                                        .height(5.dp),
+                                                    enabled = true,
+                                                    sliderState = sliderState,
                                                     colors = SliderDefaults.colors().copy(
                                                         thumbColor = Color.White,
                                                         activeTrackColor = Color.White,
-                                                        inactiveTrackColor = Color.Transparent
+                                                        inactiveTrackColor = Color.Transparent,
                                                     ),
-                                                    enabled = true
+                                                    thumbTrackGapSize = 0.dp,
+                                                    drawTick = { _, _ -> },
+                                                    drawStopIndicator = null
+                                                )
+                                            },
+                                            thumb = {
+                                                SliderDefaults.Thumb(
+                                                    modifier =
+                                                        Modifier
+                                                            .height(18.dp)
+                                                            .width(8.dp)
+                                                            .padding(
+                                                                vertical = 4.dp
+                                                            ),
+                                                    thumbSize = DpSize(8.dp, 8.dp),
+                                                    interactionSource =
+                                                        remember {
+                                                            MutableInteractionSource()
+                                                        },
+                                                    colors =
+                                                        SliderDefaults.colors().copy(
+                                                            thumbColor = Color.White,
+                                                            activeTrackColor = Color.White,
+                                                            inactiveTrackColor = Color.Transparent,
+                                                        ),
+                                                    enabled = true,
                                                 )
                                             },
                                         )
                                     }
                                 }
-                                //Time Layout
+                                // Time Layout
                                 Row(
                                     Modifier
                                         .fillMaxWidth()
-                                        .padding(horizontal = 40.dp)
+                                        .padding(horizontal = 40.dp),
                                 ) {
                                     Text(
-                                        text = if (timelineState.current >= 0L) formatDuration(timelineState.current) else stringResource(id = R.string.na_na),
+                                        text =
+                                            if (timelineState.current >= 0L) {
+                                                formatDuration(timelineState.current)
+                                            } else {
+                                                stringResource(id = R.string.na_na)
+                                            },
                                         style = typo.bodyMedium,
                                         modifier = Modifier.weight(1f),
-                                        textAlign = TextAlign.Left
+                                        textAlign = TextAlign.Left,
                                     )
                                     Text(
-                                        text = if (timelineState.total >= 0L) formatDuration(timelineState.total) else stringResource(id = R.string.na_na),
-                                        style = typo.bodyMedium, modifier = Modifier.weight(1f), textAlign = TextAlign.Right
+                                        text =
+                                            if (timelineState.total >= 0L) {
+                                                formatDuration(timelineState.total)
+                                            } else {
+                                                stringResource(id = R.string.na_na)
+                                            },
+                                        style = typo.bodyMedium,
+                                        modifier = Modifier.weight(1f),
+                                        textAlign = TextAlign.Right,
                                     )
                                 }
 
                                 Spacer(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(5.dp)
+                                    modifier =
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .height(5.dp),
                                 )
-                                //Control Button Layout
+                                // Control Button Layout
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.SpaceEvenly,
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(96.dp)
-                                        .padding(horizontal = 40.dp)
+                                    modifier =
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .height(96.dp)
+                                            .padding(horizontal = 40.dp),
                                 ) {
                                     FilledTonalIconButton(
-                                        colors = IconButtonDefaults.iconButtonColors().copy(
-                                            containerColor = Color.Transparent
-                                        ),
-                                        modifier = Modifier
-                                            .size(48.dp)
-                                            .aspectRatio(1f)
-                                            .clip(
-                                                CircleShape
-                                            )
-                                            .weight(1f),
+                                        colors =
+                                            IconButtonDefaults.iconButtonColors().copy(
+                                                containerColor = Color.Transparent,
+                                            ),
+                                        modifier =
+                                            Modifier
+                                                .size(48.dp)
+                                                .aspectRatio(1f)
+                                                .clip(
+                                                    CircleShape,
+                                                ).weight(1f),
                                         onClick = {
                                             sharedViewModel.onUIEvent(UIEvent.Shuffle)
-                                        }
+                                        },
                                     ) {
                                         Crossfade(targetState = controllerState.isShuffle, label = "Shuffle Button") { isShuffle ->
                                             if (!isShuffle) {
                                                 Icon(
-                                                    imageVector = Icons.Filled.Shuffle, tint = Color.White, contentDescription = "",
-                                                    modifier = Modifier.size(32.dp)
+                                                    imageVector = Icons.Filled.Shuffle,
+                                                    tint = Color.White,
+                                                    contentDescription = "",
+                                                    modifier = Modifier.size(32.dp),
                                                 )
                                             } else {
                                                 Icon(
-                                                    imageVector = Icons.Filled.Shuffle, tint = seed, contentDescription = "",
-                                                    modifier = Modifier.size(32.dp)
+                                                    imageVector = Icons.Filled.Shuffle,
+                                                    tint = seed,
+                                                    contentDescription = "",
+                                                    modifier = Modifier.size(32.dp),
                                                 )
                                             }
                                         }
                                     }
                                     FilledTonalIconButton(
-                                        colors = IconButtonDefaults.iconButtonColors().copy(
-                                            containerColor = Color.Transparent
-                                        ),
-                                        modifier = Modifier
-                                            .size(72.dp)
-                                            .aspectRatio(1f)
-                                            .clip(
-                                                CircleShape
-                                            )
-                                            .weight(1f),
+                                        colors =
+                                            IconButtonDefaults.iconButtonColors().copy(
+                                                containerColor = Color.Transparent,
+                                            ),
+                                        modifier =
+                                            Modifier
+                                                .size(72.dp)
+                                                .aspectRatio(1f)
+                                                .clip(
+                                                    CircleShape,
+                                                ).weight(1f),
                                         onClick = {
                                             if (controllerState.isPreviousAvailable) {
                                                 sharedViewModel.onUIEvent(UIEvent.Previous)
                                             }
-                                        }
+                                        },
                                     ) {
                                         Icon(
                                             imageVector = Icons.Filled.SkipPrevious,
@@ -963,19 +1012,20 @@ fun NowPlayingScreen(
                                         )
                                     }
                                     FilledTonalIconButton(
-                                        colors = IconButtonDefaults.iconButtonColors().copy(
-                                            containerColor = Color.Transparent
-                                        ),
-                                        modifier = Modifier
-                                            .size(96.dp)
-                                            .aspectRatio(1f)
-                                            .clip(
-                                                CircleShape
-                                            )
-                                            .weight(1f),
+                                        colors =
+                                            IconButtonDefaults.iconButtonColors().copy(
+                                                containerColor = Color.Transparent,
+                                            ),
+                                        modifier =
+                                            Modifier
+                                                .size(96.dp)
+                                                .aspectRatio(1f)
+                                                .clip(
+                                                    CircleShape,
+                                                ).weight(1f),
                                         onClick = {
                                             sharedViewModel.onUIEvent(UIEvent.PlayPause)
-                                        }
+                                        },
                                     ) {
                                         Crossfade(targetState = controllerState.isPlaying) { isPlaying ->
                                             if (!isPlaying) {
@@ -983,139 +1033,151 @@ fun NowPlayingScreen(
                                                     imageVector = Icons.Filled.PlayCircle,
                                                     tint = Color.White,
                                                     contentDescription = "",
-                                                    modifier = Modifier.size(72.dp)
+                                                    modifier = Modifier.size(72.dp),
                                                 )
                                             } else {
                                                 Icon(
                                                     imageVector = Icons.Filled.PauseCircle,
                                                     tint = Color.White,
                                                     contentDescription = "",
-                                                    modifier = Modifier.size(72.dp)
+                                                    modifier = Modifier.size(72.dp),
                                                 )
                                             }
                                         }
                                     }
                                     FilledTonalIconButton(
-                                        colors = IconButtonDefaults.iconButtonColors().copy(
-                                            containerColor = Color.Transparent
-                                        ),
-                                        modifier = Modifier
-                                            .size(72.dp)
-                                            .aspectRatio(1f)
-                                            .clip(
-                                                CircleShape
-                                            )
-                                            .weight(1f),
+                                        colors =
+                                            IconButtonDefaults.iconButtonColors().copy(
+                                                containerColor = Color.Transparent,
+                                            ),
+                                        modifier =
+                                            Modifier
+                                                .size(72.dp)
+                                                .aspectRatio(1f)
+                                                .clip(
+                                                    CircleShape,
+                                                ).weight(1f),
                                         onClick = {
                                             if (controllerState.isNextAvailable) {
                                                 sharedViewModel.onUIEvent(UIEvent.Next)
                                             }
-                                        }
+                                        },
                                     ) {
                                         Icon(
                                             imageVector = Icons.Filled.SkipNext,
                                             tint = if (controllerState.isNextAvailable) Color.White else Color.Gray,
                                             contentDescription = "",
-                                            modifier = Modifier.size(52.dp)
+                                            modifier = Modifier.size(52.dp),
                                         )
                                     }
                                     FilledTonalIconButton(
-                                        colors = IconButtonDefaults.iconButtonColors().copy(
-                                            containerColor = Color.Transparent
-                                        ),
-                                        modifier = Modifier
-                                            .size(48.dp)
-                                            .aspectRatio(1f)
-                                            .clip(
-                                                CircleShape
-                                            )
-                                            .weight(1f),
+                                        colors =
+                                            IconButtonDefaults.iconButtonColors().copy(
+                                                containerColor = Color.Transparent,
+                                            ),
+                                        modifier =
+                                            Modifier
+                                                .size(48.dp)
+                                                .aspectRatio(1f)
+                                                .clip(
+                                                    CircleShape,
+                                                ).weight(1f),
                                         onClick = {
                                             sharedViewModel.onUIEvent(UIEvent.Repeat)
-                                        }
+                                        },
                                     ) {
                                         Crossfade(targetState = controllerState.repeatState) { rs ->
                                             when (rs) {
                                                 is RepeatState.None -> {
                                                     Icon(
-                                                        imageVector = Icons.Filled.Repeat, tint = Color.White, contentDescription = "",
-                                                        modifier = Modifier.size(32.dp)
+                                                        imageVector = Icons.Filled.Repeat,
+                                                        tint = Color.White,
+                                                        contentDescription = "",
+                                                        modifier = Modifier.size(32.dp),
                                                     )
                                                 }
 
                                                 RepeatState.All -> {
                                                     Icon(
-                                                        imageVector = Icons.Filled.Repeat, tint = seed, contentDescription = "",
-                                                        modifier = Modifier.size(32.dp)
+                                                        imageVector = Icons.Filled.Repeat,
+                                                        tint = seed,
+                                                        contentDescription = "",
+                                                        modifier = Modifier.size(32.dp),
                                                     )
                                                 }
 
                                                 RepeatState.One -> {
                                                     Icon(
-                                                        imageVector = Icons.Filled.RepeatOne, tint = seed, contentDescription = "",
-                                                        modifier = Modifier.size(32.dp)
+                                                        imageVector = Icons.Filled.RepeatOne,
+                                                        tint = seed,
+                                                        contentDescription = "",
+                                                        modifier = Modifier.size(32.dp),
                                                     )
                                                 }
                                             }
                                         }
                                     }
                                 }
-                                //List Bottom Buttons
-                                //24.dp
+                                // List Bottom Buttons
+                                // 24.dp
                                 Box(
-                                    modifier = Modifier
-                                        .height(32.dp)
-                                        .fillMaxWidth()
-                                        .padding(horizontal = 40.dp),
+                                    modifier =
+                                        Modifier
+                                            .height(32.dp)
+                                            .fillMaxWidth()
+                                            .padding(horizontal = 40.dp),
                                 ) {
                                     IconButton(
-                                        modifier = Modifier
-                                            .size(24.dp)
-                                            .aspectRatio(1f)
-                                            .align(Alignment.CenterStart)
-                                            .clip(
-                                                CircleShape
-                                            ),
+                                        modifier =
+                                            Modifier
+                                                .size(24.dp)
+                                                .aspectRatio(1f)
+                                                .align(Alignment.CenterStart)
+                                                .clip(
+                                                    CircleShape,
+                                                ),
                                         onClick = {
                                             navController.navigateSafe(
-                                                R.id.action_global_infoFragment
+                                                R.id.action_global_infoFragment,
                                             )
-                                        }
+                                        },
                                     ) {
                                         Icon(imageVector = Icons.Outlined.Info, tint = Color.White, contentDescription = "")
                                     }
                                     Row(
-                                        Modifier.align(Alignment.CenterEnd)
+                                        Modifier.align(Alignment.CenterEnd),
                                     ) {
                                         Crossfade(
-                                            targetState = likeStatus == true
+                                            targetState = likeStatus == true,
                                         ) {
-                                            if (it){
+                                            if (it)
+                                                {
+                                                    IconButton(
+                                                        modifier =
+                                                            Modifier
+                                                                .size(24.dp)
+                                                                .aspectRatio(1f)
+                                                                .clip(
+                                                                    CircleShape,
+                                                                ),
+                                                        onClick = {
+                                                            sharedViewModel.addToYouTubeLiked()
+                                                        },
+                                                    ) {
+                                                        Icon(imageVector = Icons.Filled.Done, tint = Color.White, contentDescription = "")
+                                                    }
+                                                } else {
                                                 IconButton(
-                                                    modifier = Modifier
-                                                        .size(24.dp)
-                                                        .aspectRatio(1f)
-                                                        .clip(
-                                                            CircleShape
-                                                        ),
+                                                    modifier =
+                                                        Modifier
+                                                            .size(24.dp)
+                                                            .aspectRatio(1f)
+                                                            .clip(
+                                                                CircleShape,
+                                                            ),
                                                     onClick = {
                                                         sharedViewModel.addToYouTubeLiked()
-                                                    }
-                                                ) {
-                                                    Icon(imageVector = Icons.Filled.Done, tint = Color.White, contentDescription = "")
-                                                }
-                                            }
-                                            else {
-                                                IconButton(
-                                                    modifier = Modifier
-                                                        .size(24.dp)
-                                                        .aspectRatio(1f)
-                                                        .clip(
-                                                            CircleShape
-                                                        ),
-                                                    onClick = {
-                                                        sharedViewModel.addToYouTubeLiked()
-                                                    }
+                                                    },
                                                 ) {
                                                     Icon(imageVector = Icons.Filled.Add, tint = Color.White, contentDescription = "")
                                                 }
@@ -1123,22 +1185,23 @@ fun NowPlayingScreen(
                                         }
                                         Spacer(modifier = Modifier.size(8.dp))
                                         IconButton(
-                                            modifier = Modifier
-                                                .size(24.dp)
-                                                .aspectRatio(1f)
-                                                .clip(
-                                                    CircleShape
-                                                ),
+                                            modifier =
+                                                Modifier
+                                                    .size(24.dp)
+                                                    .aspectRatio(1f)
+                                                    .clip(
+                                                        CircleShape,
+                                                    ),
                                             onClick = {
                                                 navController.navigateSafe(
-                                                    R.id.action_global_queueFragment
+                                                    R.id.action_global_queueFragment,
                                                 )
-                                            }
+                                            },
                                         ) {
                                             Icon(
                                                 imageVector = Icons.AutoMirrored.Outlined.QueueMusic,
                                                 tint = Color.White,
-                                                contentDescription = ""
+                                                contentDescription = "",
                                             )
                                         }
                                     }
@@ -1146,94 +1209,99 @@ fun NowPlayingScreen(
                             }
                             androidx.compose.animation.AnimatedVisibility(visible = !showHideControlLayout) {
                                 Box(
-                                    modifier = Modifier
-                                        .height(
-                                            infoLayoutHeightDp.dp
-                                        )
-                                        .fillMaxWidth()
-                                        .padding(
-                                            vertical = 20.dp,
-                                            horizontal = 40.dp
-                                        )
-                                        .clickable(
-                                            onClick = {
-                                                if (mainScrollState.value == 0) {
-                                                    showHideJob = true
-                                                    showHideControlLayout = !showHideControlLayout
-                                                }
-                                            },
-                                            indication = null,
-                                            interactionSource = remember {
-                                                MutableInteractionSource()
-                                            }
-                                        ),
+                                    modifier =
+                                        Modifier
+                                            .height(
+                                                infoLayoutHeightDp.dp,
+                                            ).fillMaxWidth()
+                                            .padding(
+                                                vertical = 20.dp,
+                                                horizontal = 40.dp,
+                                            ).clickable(
+                                                onClick = {
+                                                    if (mainScrollState.value == 0) {
+                                                        showHideJob = true
+                                                        showHideControlLayout = !showHideControlLayout
+                                                    }
+                                                },
+                                                indication = null,
+                                                interactionSource =
+                                                    remember {
+                                                        MutableInteractionSource()
+                                                    },
+                                            ),
                                     contentAlignment = Alignment.BottomStart,
                                 ) {
                                     Row(
-                                        verticalAlignment = Alignment.CenterVertically
+                                        verticalAlignment = Alignment.CenterVertically,
                                     ) {
-                                        CoilImage(
-                                            imageModel = {
-                                                screenDataState.songInfoData?.authorThumbnail?.toUri()
-                                            },
-                                            previewPlaceholder = painterResource(id = R.drawable.holder),
-                                            modifier = Modifier
+                                        val thumb = screenDataState.songInfoData?.authorThumbnail
+                                        AsyncImage(
+                                            model = ImageRequest.Builder(LocalContext.current)
+                                                .data(thumb)
+                                                .diskCachePolicy(CachePolicy.ENABLED)
+                                                .diskCacheKey(thumb)
+                                                .crossfade(550)
+                                                .build(),
+                                            placeholder = painterResource(R.drawable.holder),
+                                            error = painterResource(R.drawable.holder),
+                                            contentDescription = null,
+                                            contentScale = ContentScale.Crop,
+                                            modifier =
+                                            Modifier
                                                 .size(42.dp)
                                                 .clip(
-                                                    CircleShape
+                                                    CircleShape,
                                                 ),
-                                            component = rememberImageComponent {
-                                                +CrossfadePlugin(duration = 200)
-                                                +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder))
-                                                +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder))
-                                            }
                                         )
                                         Spacer(modifier = Modifier.size(12.dp))
                                         Text(
                                             text = screenDataState.songInfoData?.author ?: "",
                                             style = typo.labelMedium,
-                                            color = Color.White
+                                            color = Color.White,
                                         )
                                     }
                                 }
                             }
                         }
                     }
-                    //Touch Area
+                    // Touch Area
                     androidx.compose.animation.AnimatedVisibility(visible = screenDataState.canvasData != null) {
                         Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(
-                                    (middleLayoutPaddingDp * 2 + middleLayoutHeightDp).dp
-                                )
-                                .clickable(
-                                    onClick = {
-                                        if (mainScrollState.value == 0) {
-                                            showHideJob = true
-                                            showHideControlLayout = !showHideControlLayout
-                                        }
-                                    },
-                                    indication = null,
-                                    interactionSource = remember {
-                                        MutableInteractionSource()
-                                    }
-                                )
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .height(
+                                        (middleLayoutPaddingDp * 2 + middleLayoutHeightDp).dp,
+                                    ).clickable(
+                                        onClick = {
+                                            if (mainScrollState.value == 0) {
+                                                showHideJob = true
+                                                showHideControlLayout = !showHideControlLayout
+                                            }
+                                        },
+                                        indication = null,
+                                        interactionSource =
+                                            remember {
+                                                MutableInteractionSource()
+                                            },
+                                    ),
                         )
                     }
                 }
                 Column(Modifier.padding(horizontal = 40.dp)) {
-                    //Lyrics Layout
+                    // Lyrics Layout
                     AnimatedVisibility(
                         visible = screenDataState.lyricsData != null,
-                        modifier = Modifier.padding(top = 10.dp)
+                        modifier = Modifier.padding(top = 10.dp),
                     ) {
                         ElevatedCard(
                             onClick = {},
                             shape = RoundedCornerShape(8.dp),
-                            colors = CardDefaults.elevatedCardColors().copy(
-                                containerColor = startColor.value
-                            )
+                            colors =
+                                CardDefaults.elevatedCardColors().copy(
+                                    containerColor = startColor.value,
+                                ),
                         ) {
                             Column(modifier = Modifier.padding(15.dp)) {
                                 Spacer(modifier = Modifier.height(5.dp))
@@ -1242,64 +1310,72 @@ fun NowPlayingScreen(
                                         text = stringResource(id = R.string.lyrics),
                                         style = typo.labelMedium,
                                         color = Color.White,
-                                        modifier = Modifier.weight(1f)
+                                        modifier = Modifier.weight(1f),
                                     )
-                                    CompositionLocalProvider(LocalMinimumInteractiveComponentEnforcement provides false) {
+                                    CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides Dp.Unspecified) {
                                         TextButton(
                                             onClick = {
                                                 showFullscreenLyrics = true
-                                            }, contentPadding = PaddingValues(0.dp),
-                                            modifier = Modifier
-                                                .height(20.dp)
-                                                .width(40.dp)
+                                            },
+                                            contentPadding = PaddingValues(0.dp),
+                                            modifier =
+                                                Modifier
+                                                    .height(20.dp)
+                                                    .width(40.dp),
                                         ) {
                                             Text(text = stringResource(id = R.string.show))
                                         }
                                     }
                                 }
-                                //TODO:Lyrics
-                                //Lyrics Layout
+                                // Lyrics Layout
                                 Spacer(modifier = Modifier.height(18.dp))
                                 Box(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(300.dp)
+                                    modifier =
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .height(300.dp),
                                 ) {
                                     screenDataState.lyricsData?.let {
-                                        LyricsView(lyricsData = it, timeLine = sharedViewModel.timeline,
+                                        LyricsView(
+                                            lyricsData = it,
+                                            timeLine = sharedViewModel.timeline,
                                             onLineClick = { f ->
                                                 sharedViewModel.onUIEvent(UIEvent.UpdateProgress(f))
-                                            }
+                                            },
                                         )
                                     }
                                 }
 
                                 Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.End) {
                                     Text(
-                                        text = when (screenDataState.lyricsData?.lyrics?.syncType) {
-                                            "LINE_SYNCED" -> stringResource(id = R.string.line_synced)
-                                            else -> stringResource(id = R.string.unsynced)
-                                        },
+                                        text =
+                                            when (screenDataState.lyricsData?.lyrics?.syncType) {
+                                                "LINE_SYNCED" -> stringResource(id = R.string.line_synced)
+                                                else -> stringResource(id = R.string.unsynced)
+                                            },
                                         style = typo.bodySmall,
                                         textAlign = TextAlign.End,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(top = 10.dp)
+                                        modifier =
+                                            Modifier
+                                                .fillMaxWidth()
+                                                .padding(top = 10.dp),
                                     )
                                     Text(
-                                        text = when (screenDataState.lyricsData?.lyricsProvider) {
-                                            LyricsProvider.MUSIXMATCH -> stringResource(id = R.string.lyrics_provider)
-                                            LyricsProvider.YOUTUBE -> stringResource(id = R.string.lyrics_provider_youtube)
-                                            LyricsProvider.SPOTIFY -> stringResource(id = R.string.spotify_lyrics_provider)
-                                            LyricsProvider.OFFLINE -> stringResource(id = R.string.offline_mode)
-                                            else -> {
-                                                ""
-                                            }
-                                        },
+                                        text =
+                                            when (screenDataState.lyricsData?.lyricsProvider) {
+                                                LyricsProvider.MUSIXMATCH -> stringResource(id = R.string.lyrics_provider)
+                                                LyricsProvider.YOUTUBE -> stringResource(id = R.string.lyrics_provider_youtube)
+                                                LyricsProvider.SPOTIFY -> stringResource(id = R.string.spotify_lyrics_provider)
+                                                LyricsProvider.OFFLINE -> stringResource(id = R.string.offline_mode)
+                                                else -> {
+                                                    ""
+                                                }
+                                            },
                                         style = typo.bodySmall,
                                         textAlign = TextAlign.End,
-                                        modifier = Modifier
-                                            .fillMaxWidth()
+                                        modifier =
+                                            Modifier
+                                                .fillMaxWidth(),
                                     )
                                 }
                             }
@@ -1309,55 +1385,60 @@ fun NowPlayingScreen(
                     AnimatedVisibility(visible = screenDataState.songInfoData != null) {
                         ElevatedCard(
                             onClick = {
-                                val song = songEntity?.value
+                                val song = sharedViewModel.nowPlayingState.value?.songEntity
                                 if (song != null && song.artistId?.firstOrNull() != null) {
                                     navController.navigateSafe(
                                         R.id.action_global_artistFragment,
                                         bundleOf(
-                                            "channelId" to song.artistId.firstOrNull()
-                                        )
+                                            "channelId" to song.artistId.firstOrNull(),
+                                        ),
                                     )
-                                }
-                                else {
+                                } else {
                                     navController.navigateSafe(
                                         R.id.action_global_artistFragment,
                                         bundleOf(
-                                            "channelId" to screenDataState.songInfoData?.authorId
-                                        )
+                                            "channelId" to screenDataState.songInfoData?.authorId,
+                                        ),
                                     )
                                 }
                             },
                             shape = RoundedCornerShape(8.dp),
-                            colors = CardDefaults.elevatedCardColors().copy(
-                                containerColor = startColor.value
-                            )
+                            colors =
+                                CardDefaults.elevatedCardColors().copy(
+                                    containerColor = startColor.value,
+                                ),
                         ) {
                             Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(250.dp)
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .height(250.dp),
                             ) {
-                                CoilImage(
-                                    imageModel = {
-                                        screenDataState.songInfoData?.authorThumbnail?.toUri()
-                                    },
-                                    previewPlaceholder = painterResource(id = R.drawable.holder_video),
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .alpha(0.8f)
-                                        .clip(
-                                            RoundedCornerShape(8.dp)
-                                        ),
-                                    component = rememberImageComponent {
-                                        +CrossfadePlugin(duration = 200)
-                                        +PlaceholderPlugin.Loading(painterResource(id = R.drawable.holder_video))
-                                        +PlaceholderPlugin.Failure(painterResource(id = R.drawable.holder_video))
-                                    }
+                                val thumb = screenDataState.songInfoData?.authorThumbnail
+                                AsyncImage(
+                                    model = ImageRequest.Builder(LocalContext.current)
+                                        .data(thumb)
+                                        .diskCachePolicy(CachePolicy.ENABLED)
+                                        .diskCacheKey(thumb)
+                                        .crossfade(550)
+                                        .build(),
+                                    placeholder = painterResource(R.drawable.holder_video),
+                                    error = painterResource(R.drawable.holder_video),
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier =
+                                        Modifier
+                                            .fillMaxSize()
+                                            .alpha(0.8f)
+                                            .clip(
+                                                RoundedCornerShape(8.dp),
+                                            ),
                                 )
                                 Box(
-                                    modifier = Modifier
-                                        .padding(15.dp)
-                                        .fillMaxSize()
+                                    modifier =
+                                        Modifier
+                                            .padding(15.dp)
+                                            .fillMaxSize(),
                                 ) {
                                     Column(Modifier.align(Alignment.TopStart)) {
                                         Spacer(modifier = Modifier.height(5.dp))
@@ -1377,7 +1458,7 @@ fun NowPlayingScreen(
                                         Text(
                                             text = screenDataState.songInfoData?.subscribers ?: "",
                                             style = typo.bodySmall,
-                                            textAlign = TextAlign.End
+                                            textAlign = TextAlign.End,
                                         )
                                         Spacer(modifier = Modifier.height(5.dp))
                                     }
@@ -1390,14 +1471,15 @@ fun NowPlayingScreen(
                         ElevatedCard(
                             onClick = {},
                             shape = RoundedCornerShape(8.dp),
-                            colors = CardDefaults.elevatedCardColors().copy(
-                                containerColor = startColor.value
-                            )
+                            colors =
+                                CardDefaults.elevatedCardColors().copy(
+                                    containerColor = startColor.value,
+                                ),
                         ) {
                             Column(
                                 Modifier
                                     .padding(15.dp)
-                                    .fillMaxWidth()
+                                    .fillMaxWidth(),
                             ) {
                                 Spacer(modifier = Modifier.height(5.dp))
                                 Text(
@@ -1407,20 +1489,22 @@ fun NowPlayingScreen(
                                 )
                                 Spacer(modifier = Modifier.height(10.dp))
                                 Text(
-                                    text = stringResource(
-                                        id = R.string.view_count,
-                                        "%,d".format(screenDataState.songInfoData?.viewCount)
-                                    ),
+                                    text =
+                                        stringResource(
+                                            id = R.string.view_count,
+                                            "%,d".format(screenDataState.songInfoData?.viewCount),
+                                        ),
                                     style = typo.labelMedium,
                                     color = Color.White,
                                 )
                                 Spacer(modifier = Modifier.height(10.dp))
                                 Text(
-                                    text = stringResource(
-                                        id = R.string.like_and_dislike,
-                                        screenDataState.songInfoData?.like ?: 0,
-                                        screenDataState.songInfoData?.dislike ?: 0
-                                    ),
+                                    text =
+                                        stringResource(
+                                            id = R.string.like_and_dislike,
+                                            screenDataState.songInfoData?.like ?: 0,
+                                            screenDataState.songInfoData?.dislike ?: 0,
+                                        ),
                                     style = typo.bodyMedium,
                                 )
                                 Spacer(modifier = Modifier.height(10.dp))
@@ -1444,18 +1528,21 @@ fun NowPlayingScreen(
                                     },
                                     onURLClicked = { url ->
                                         uriHandler.openUri(
-                                            url
+                                            url,
                                         )
-                                    }
+                                    },
                                 )
                             }
                         }
                         Spacer(modifier = Modifier.height(5.dp))
                     }
                     Spacer(modifier = Modifier.height(10.dp))
-                    Spacer(modifier = Modifier.height(
-                        with(localDensity) { WindowInsets.systemBars.getBottom(localDensity).toDp() }
-                    ))
+                    Spacer(
+                        modifier =
+                            Modifier.height(
+                                with(localDensity) { WindowInsets.systemBars.getBottom(localDensity).toDp() },
+                            ),
+                    )
                 }
             }
         }

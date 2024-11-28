@@ -5,7 +5,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import coil.load
+import coil3.load
+import coil3.request.crossfade
+import coil3.request.placeholder
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config.ALBUM_CLICK
 import com.maxrave.simpmusic.common.Config.PLAYLIST_CLICK

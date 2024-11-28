@@ -1,5 +1,6 @@
 package com.maxrave.kotlinytmusicscraper.models
 
+import com.maxrave.kotlinytmusicscraper.models.response.LikeStatus
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -34,7 +35,25 @@ data class Menu(
         @Serializable
         data class TopLevelButton(
             val buttonRenderer: ButtonRenderer?,
+            val likeButtonRenderer: LikeButtonRenderer? = null,
         ) {
+            @Serializable
+            data class LikeButtonRenderer(
+                val likeStatus: String,
+                val likesAllowed: Boolean,
+            ) {
+                fun toLikeStatus(): LikeStatus =
+                    if (likesAllowed) {
+                        when (likeStatus) {
+                            "LIKE" -> LikeStatus.LIKE
+                            "DISLIKE" -> LikeStatus.DISLIKE
+                            else -> LikeStatus.INDIFFERENT
+                        }
+                    } else {
+                        LikeStatus.INDIFFERENT
+                    }
+            }
+
             @Serializable
             data class ButtonRenderer(
                 val icon: Icon,

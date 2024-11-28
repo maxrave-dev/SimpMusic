@@ -23,6 +23,8 @@ import com.maxrave.simpmusic.data.db.entities.SearchHistory
 import com.maxrave.simpmusic.data.db.entities.SetVideoIdEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.data.db.entities.SongInfoEntity
+import com.maxrave.simpmusic.data.type.PlaylistType
+import com.maxrave.simpmusic.data.type.RecentlyType
 import com.maxrave.simpmusic.extension.toSQLiteQuery
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDateTime
@@ -31,14 +33,14 @@ import java.time.LocalDateTime
 interface DatabaseDao {
     // Transaction request with multiple queries
     @Transaction
-    suspend fun getAllRecentData(): List<Any> {
-        val a = mutableListOf<Any>()
+    suspend fun getAllRecentData(): List<RecentlyType> {
+        val a = mutableListOf<RecentlyType>()
         a.addAll(getAllSongs())
         a.addAll(getAllArtists())
         a.addAll(getAllAlbums())
         a.addAll(getAllPlaylists())
         val sortedList =
-            a.sortedWith<Any>(
+            a.sortedWith<RecentlyType>(
                 Comparator { p0, p1 ->
                     val timeP0: LocalDateTime? =
                         when (p0) {
@@ -72,12 +74,12 @@ interface DatabaseDao {
     }
 
     @Transaction
-    suspend fun getAllDownloadedPlaylist(): List<Any> {
-        val a = mutableListOf<Any>()
+    suspend fun getAllDownloadedPlaylist(): List<PlaylistType> {
+        val a = mutableListOf<PlaylistType>()
         a.addAll(getDownloadedAlbums())
         a.addAll(getDownloadedPlaylists())
         val sortedList =
-            a.sortedWith<Any>(
+            a.sortedWith<PlaylistType>(
                 Comparator { p0, p1 ->
                     val timeP0: LocalDateTime? =
                         when (p0) {
@@ -145,7 +147,7 @@ interface DatabaseDao {
     suspend fun updateSongInLibrary(
         inLibrary: LocalDateTime,
         videoId: String,
-    )
+    ): Int
 
     @Query("UPDATE song SET liked = :liked WHERE videoId = :videoId")
     suspend fun updateLiked(
@@ -352,6 +354,9 @@ interface DatabaseDao {
         state: Int,
     )
 
+    @Query("UPDATE local_playlist SET synced_with_youtube_playlist = 0, youtube_sync_state = 0, youtubePlaylistId = NULL WHERE id = :id")
+    suspend fun unsyncLocalPlaylist(id: Long)
+
     @Query("SELECT downloadState FROM local_playlist WHERE id = :id")
     fun getDownloadStateFlowOfLocalPlaylist(id: Long): Flow<Int>
 
@@ -416,6 +421,9 @@ interface DatabaseDao {
 
     @Query("SELECT * FROM pair_song_local_playlist WHERE playlistId = :playlistId")
     suspend fun getPlaylistPairSong(playlistId: Long): List<PairSongLocalPlaylist>?
+
+    @Query("SELECT * FROM pair_song_local_playlist WHERE playlistId = :playlistId AND position in (:positionList)")
+    suspend fun getPlaylistPairSongByListPosition(playlistId: Long, positionList: List<Int>): List<PairSongLocalPlaylist>?
 
     @Query(
         "SELECT * FROM pair_song_local_playlist WHERE playlistId = :playlistId ORDER BY position " +

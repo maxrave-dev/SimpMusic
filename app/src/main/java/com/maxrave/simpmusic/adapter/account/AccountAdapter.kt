@@ -3,7 +3,9 @@ package com.maxrave.simpmusic.adapter.account
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
-import coil.load
+import coil3.load
+import coil3.request.crossfade
+import coil3.request.placeholder
 import com.maxrave.simpmusic.data.db.entities.GoogleAccountEntity
 import com.maxrave.simpmusic.databinding.ItemAccountBinding
 

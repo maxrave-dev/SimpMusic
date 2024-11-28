@@ -17,7 +17,9 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
-import coil.load
+import coil3.load
+import coil3.request.crossfade
+import coil3.request.placeholder
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.adapter.artist.SeeArtistOfNowPlayingAdapter
@@ -99,7 +101,7 @@ class DownloadedFragment : Fragment() {
             override fun onItemClick(position: Int, type: String) {
                 val song = downloadedAdapter.getCurrentList()[position] as SongEntity
                 val firstQueue = song.toTrack()
-                sharedViewModel.simpleMediaServiceHandler?.setQueueData(
+                viewModel.setQueueData(
                     QueueData(
                         listTracks = downloadedAdapter.getCurrentList().map { (it as SongEntity).toTrack()} as ArrayList<Track>,
                         firstPlayedTrack = firstQueue,
@@ -109,7 +111,7 @@ class DownloadedFragment : Fragment() {
                         continuation = null
                     )
                 )
-                sharedViewModel.loadMediaItemFromTrack(
+                viewModel.loadMediaItem(
                     firstQueue,
                     Config.PLAYLIST_CLICK,
                     position

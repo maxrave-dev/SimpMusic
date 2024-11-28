@@ -1,14 +1,23 @@
 package com.maxrave.simpmusic
 
 import android.app.Application
-import android.content.Context
 import android.util.Log
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.media3.common.util.UnstableApi
 import cat.ereza.customactivityoncrash.config.CaocConfig
+import coil3.ImageLoader
+import coil3.PlatformContext
+import coil3.SingletonImageLoader
+import coil3.network.okhttp.OkHttpNetworkFetcherFactory
+import coil3.request.CachePolicy
+import coil3.request.crossfade
+import coil3.util.DebugLogger
 import com.maxrave.simpmusic.di.databaseModule
 import com.maxrave.simpmusic.di.mediaServiceModule
+import com.maxrave.simpmusic.di.viewModelModule
 import com.maxrave.simpmusic.ui.MainActivity
+import com.maxrave.simpmusic.ui.theme.newDiskCache
+import okhttp3.OkHttpClient
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.androidx.workmanager.koin.workManagerFactory
@@ -18,7 +27,25 @@ import org.koin.core.logger.Level
 
 class SimpMusicApplication :
     Application(),
-    KoinComponent {
+    KoinComponent, SingletonImageLoader.Factory {
+
+    override fun newImageLoader(context: PlatformContext): ImageLoader {
+        return ImageLoader.Builder(context)
+            .components {
+                add(
+                    OkHttpNetworkFetcherFactory(
+                        callFactory = {
+                            OkHttpClient()
+                        }
+                    )
+                )
+            }
+            .logger(DebugLogger())
+            .diskCachePolicy(CachePolicy.ENABLED).networkCachePolicy(CachePolicy.ENABLED)
+            .diskCache(newDiskCache())
+            .crossfade(true)
+            .build()
+    }
     @UnstableApi
     override fun onCreate() {
         super.onCreate()
@@ -29,6 +56,7 @@ class SimpMusicApplication :
             modules(
                 databaseModule,
                 mediaServiceModule,
+                viewModelModule
             )
             workManagerFactory()
         }
@@ -46,24 +74,9 @@ class SimpMusicApplication :
             .apply()
     }
 
-    override fun onLowMemory() {
-        super.onLowMemory()
-        Log.w("Low Memory", "Checking")
-    }
-
     override fun onTerminate() {
         super.onTerminate()
 
         Log.w("Terminate", "Checking")
-    }
-
-    init {
-        instance = this
-    }
-
-    companion object {
-        private var instance: SimpMusicApplication? = null
-
-        fun applicationContext(): Context = instance!!.applicationContext
     }
 }

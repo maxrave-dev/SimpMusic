@@ -14,6 +14,7 @@ data class Context(
         val gl: String,
         val hl: String,
         val visitorData: String?,
+        val osVersion: String?,
     )
 
     @Serializable

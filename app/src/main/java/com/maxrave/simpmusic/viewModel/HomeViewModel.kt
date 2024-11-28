@@ -33,6 +33,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.koin.android.annotation.KoinViewModel
@@ -80,7 +81,14 @@ class HomeViewModel(
     private var _params: MutableStateFlow<String?> = MutableStateFlow(null)
     val params: StateFlow<String?> = _params
 
+    // For showing alert that should log in to YouTube
+    private val _showLogInAlert: MutableStateFlow<Boolean> = MutableStateFlow(false)
+    val showLogInAlert: StateFlow<Boolean> = _showLogInAlert
+
     init {
+        if (runBlocking{ dataStoreManager.cookie.first() }.isEmpty()) {
+            _showLogInAlert.update { true }
+        }
         homeJob = Job()
         viewModelScope.launch {
             regionCodeChart.value = dataStoreManager.chartKey.first()
@@ -124,6 +132,10 @@ class HomeViewModel(
             job3.join()
             job4.join()
         }
+    }
+
+    fun doneShowLogInAlert() {
+        _showLogInAlert.update { false }
     }
 
     fun getHomeItemList(params: String? = null) {

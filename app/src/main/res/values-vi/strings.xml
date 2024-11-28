@@ -349,4 +349,12 @@
     <string name="party">Tiệc tùng</string>
     <string name="commute">Trên đường đi làm</string>
     <string name="focus">Tập trung</string>
+    <string name="updated">Đã cập nhật</string>
+    <string name="updated_to_youtube_playlist">Đã cập nhật danh sách phát YouTube</string>
+    <string name="can_t_add_to_youtube_playlist">Không thể thêm vào danh sách phát YouTube</string>
+    <string name="can_t_delete_from_youtube_playlist">Không thể xóa bài hát từ danh sách phát YouTube</string>
+    <string name="loading">Đang tải</string>
+    <string name="updating">Đang cập nhật</string>
+    <string name="go_to_log_in_page">Đi tới trang đăng nhập</string>
+    <string name="log_in_warning">YouTube Music hiện tại đang yêu cầu đăng nhập để nghe nhạc trực tuyến, cũng như các thực thể Piped đôi khi không hoạt động. Bạn nên đăng nhập vào YouTube để có trải nghiệm nghe nhạc tốt nhất với SimpMusic.</string>
 </resources>
