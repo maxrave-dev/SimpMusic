@@ -322,6 +322,17 @@ class SimpleMediaServiceHandler(
                 mainRepository.getSongById(videoId).cancellable().singleOrNull().let { songEntity ->
                     if (songEntity != null) {
                         _controlState.update { it.copy(isLiked = songEntity.liked) }
+                        var thumbUrl =
+                            track?.thumbnails?.last()?.url
+                                ?: "http://i.ytimg.com/vi/${songEntity.videoId}/maxresdefault.jpg"
+                        if (thumbUrl.contains("w120")) {
+                            thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
+                        }
+                        if (songEntity.thumbnails != thumbUrl) {
+                            mainRepository.updateThumbnailsSongEntity(thumbUrl, songEntity.videoId).singleOrNull()?.let {
+                                Log.w(TAG, "getDataOfNowPlayingState: Updated thumbs $it")
+                            }
+                        }
                         mainRepository.updateSongInLibrary(LocalDateTime.now(), songEntity.videoId).singleOrNull().let {
                             Log.w(TAG, "getDataOfNowPlayingState: $it")
                         }

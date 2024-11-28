@@ -158,6 +158,12 @@ interface DatabaseDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertSong(song: SongEntity): Long
 
+    @Query("UPDATE song SET thumbnails = :thumbnails WHERE videoId = :videoId")
+    suspend fun updateThumbnailsSongEntity(
+        thumbnails: String,
+        videoId: String,
+    ): Int
+
     @Query("SELECT * FROM song WHERE totalPlayTime > 1 ORDER BY totalPlayTime DESC LIMIT 20")
     suspend fun getMostPlayedSongs(): List<SongEntity>
 

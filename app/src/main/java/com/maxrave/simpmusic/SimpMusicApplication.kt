@@ -10,6 +10,7 @@ import coil3.PlatformContext
 import coil3.SingletonImageLoader
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.request.CachePolicy
+import coil3.request.allowHardware
 import coil3.request.crossfade
 import coil3.util.DebugLogger
 import com.maxrave.simpmusic.di.databaseModule
@@ -41,6 +42,7 @@ class SimpMusicApplication :
                 )
             }
             .logger(DebugLogger())
+            .allowHardware(false)
             .diskCachePolicy(CachePolicy.ENABLED).networkCachePolicy(CachePolicy.ENABLED)
             .diskCache(newDiskCache())
             .crossfade(true)

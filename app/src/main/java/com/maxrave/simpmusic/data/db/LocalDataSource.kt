@@ -64,6 +64,11 @@ class LocalDataSource(
 
     suspend fun insertSong(song: SongEntity) = databaseDao.insertSong(song)
 
+    suspend fun updateThumbnailsSongEntity(
+        thumbnail: String,
+        videoId: String,
+    ) = databaseDao.updateThumbnailsSongEntity(thumbnail, videoId)
+
     suspend fun updateListenCount(videoId: String) = databaseDao.updateTotalPlayTime(videoId)
 
     suspend fun updateLiked(

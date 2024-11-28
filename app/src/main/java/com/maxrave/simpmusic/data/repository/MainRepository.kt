@@ -179,6 +179,11 @@ class MainRepository(
 
     fun insertSong(songEntity: SongEntity): Flow<Long> = flow<Long> { emit(localDataSource.insertSong(songEntity)) }.flowOn(Dispatchers.IO)
 
+    fun updateThumbnailsSongEntity(
+        thumbnail: String,
+        videoId: String,
+    ): Flow<Int> = flow { emit(localDataSource.updateThumbnailsSongEntity(thumbnail, videoId)) }.flowOn(Dispatchers.IO)
+
     suspend fun updateListenCount(videoId: String) =
         withContext(Dispatchers.IO) {
             localDataSource.updateListenCount(videoId)
