@@ -426,7 +426,7 @@ class MainRepository(
             localDataSource.insertSongInfo(songInfo)
         }
 
-    suspend fun getSongInfoEntiy(videoId: String): Flow<SongInfoEntity?> =
+    suspend fun getSongInfoEntity(videoId: String): Flow<SongInfoEntity?> =
         flow { emit(localDataSource.getSongInfo(videoId)) }.flowOn(Dispatchers.Main)
 
     suspend fun recoverQueue(temp: List<Track>) {
@@ -2617,7 +2617,7 @@ class MainRepository(
                         )
                     }.onFailure {
                         it.printStackTrace()
-                        emit(getSongInfoEntiy(videoId).firstOrNull())
+                        emit(getSongInfoEntity(videoId).firstOrNull())
                     }
             }
         }.flowOn(Dispatchers.IO)

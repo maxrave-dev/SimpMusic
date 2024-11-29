@@ -109,8 +109,8 @@ import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.LoadingDialog
 import com.maxrave.simpmusic.ui.component.LocalPlaylistBottomSheet
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
-import com.maxrave.simpmusic.ui.component.SongFullWidthItems
 import com.maxrave.simpmusic.ui.component.RippleIconButton
+import com.maxrave.simpmusic.ui.component.SongFullWidthItems
 import com.maxrave.simpmusic.ui.component.SuggestItems
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.ui.theme.typo
@@ -188,7 +188,7 @@ fun PlaylistScreen(
 
     val playingTrack by sharedViewModel.nowPlayingState
         .mapLatest {
-            it?.mediaItem
+            it?.songEntity
         }.collectAsState(initial = null)
     val isPlaying by sharedViewModel.controllerState.map { it.isPlaying }.collectAsState(initial = false)
     val suggestedTracks by viewModel.uiState.map { it.suggestions?.songs ?: emptyList() }.collectAsState(initial = emptyList())
@@ -630,7 +630,7 @@ fun PlaylistScreen(
                                                     suggestedTracks.forEachIndexed { index, track ->
                                                         SuggestItems(
                                                             track = track,
-                                                            isPlaying = playingTrack?.mediaId == track.videoId,
+                                                            isPlaying = playingTrack?.videoId == track.videoId,
                                                             onAddClickListener = {
                                                                 viewModel.addSuggestTrackToListTrack(
                                                                     track,
@@ -754,7 +754,7 @@ fun PlaylistScreen(
         }) { index ->
             val item = trackPagingItems[index]
             if (item != null) {
-                if (playingTrack?.mediaId == item.videoId && isPlaying) {
+                if (playingTrack?.videoId == item.videoId && isPlaying) {
                     SongFullWidthItems(
                         isPlaying = true,
                         songEntity = item,

@@ -61,7 +61,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -547,12 +546,9 @@ fun ActionButton(
         Modifier
             .fillMaxWidth()
             .wrapContentHeight(Alignment.CenterVertically)
-            .clickable {
-                if (enable) onClick()
-            }
-            .apply {
-                if (!enable) greyScale()
-            },
+            .then(
+                if (enable) Modifier.clickable { onClick.invoke() } else Modifier.greyScale()
+            ),
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -571,20 +567,14 @@ fun ActionButton(
                     if (enable) {
                         ColorFilter.tint(iconColor)
                     } else {
-                        ColorFilter.colorMatrix(
-                            ColorMatrix().apply {
-                                setToSaturation(
-                                    0f,
-                                )
-                            },
-                        )
+                        ColorFilter.tint(Color.Gray)
                     },
             )
 
             Text(
                 text = if (text != null) stringResource(text) else textString ?: "",
                 style = typo.labelSmall,
-                color = textColor ?: Color.Unspecified,
+                color = if (enable) textColor ?: Color.Unspecified else Color.Gray,
                 modifier =
                 Modifier
                     .padding(start = 10.dp)
