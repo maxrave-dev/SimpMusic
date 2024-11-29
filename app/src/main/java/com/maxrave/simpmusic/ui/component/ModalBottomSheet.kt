@@ -720,6 +720,7 @@ fun AddToPlaylistModalBottomSheet(
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(horizontal = 10.dp),
                 ) {
                     Spacer(modifier = Modifier.height(5.dp))
                     Card(

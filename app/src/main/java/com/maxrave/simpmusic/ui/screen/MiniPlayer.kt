@@ -345,6 +345,7 @@ fun MiniPlayer(
                                                 align = Alignment.CenterVertically,
                                             )
                                             .basicMarquee(
+                                                iterations = Int.MAX_VALUE,
                                                 animationMode = MarqueeAnimationMode.Immediately,
                                             )
                                             .focusable(),
@@ -361,6 +362,7 @@ fun MiniPlayer(
                                                 align = Alignment.CenterVertically,
                                             )
                                             .basicMarquee(
+                                                iterations = Int.MAX_VALUE,
                                                 animationMode = MarqueeAnimationMode.Immediately,
                                             )
                                             .focusable(),

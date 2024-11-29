@@ -373,11 +373,13 @@ class LocalPlaylistManager(
                     position = nextPosition,
                     inPlaylist = LocalDateTime.now(),
                 )
-            localDataSource.updateLocalPlaylistTracks(
-                localPlaylist.tracks?.plus(song.videoId) ?: mutableListOf(song.videoId),
-                id,
-            )
-            localDataSource.insertPairSongLocalPlaylist(nextPair)
+            runBlocking {
+                localDataSource.insertPairSongLocalPlaylist(nextPair)
+                localDataSource.updateLocalPlaylistTracks(
+                    localPlaylist.tracks?.plus(song.videoId) ?: mutableListOf(song.videoId),
+                    id,
+                )
+            }
             // Emit success message
             emit(LocalResource.Success(getString(R.string.added_to_playlist)))
 

@@ -41,6 +41,7 @@ import androidx.navigation.NavController
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
+import com.maxrave.simpmusic.data.db.entities.ArtistEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
@@ -175,7 +176,19 @@ fun LibraryItem(
                                                     }
                                                 )
                                             }
-
+                                            RecentlyType.Type.ARTIST -> {
+                                                ArtistFullWidthItems(
+                                                    data = item as? ArtistEntity ?: return@forEach,
+                                                    onClickListener = {
+                                                        navController.navigateSafe(
+                                                            R.id.action_global_artistFragment,
+                                                            Bundle().apply {
+                                                                putString("channelId", item.channelId)
+                                                            }
+                                                        )
+                                                    }
+                                                )
+                                            }
                                             else -> {
                                                 if (item is PlaylistType) {
                                                     PlaylistFullWidthItems(

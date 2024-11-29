@@ -53,6 +53,7 @@ ksoup = "0.3.1"
 desugaring = "2.1.3"
 koin-bom = "4.0.0-RC1"
 koin-annotations = "1.4.0-RC4"
+store = "5.1.0-alpha05"
 
 [libraries]
 desugaring = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugaring"}
@@ -136,6 +137,8 @@ brotli-dec = { group = "org.brotli", name = "dec", version.ref = "brotli" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
 ksoup-html = { group = "com.mohamedrejeb.ksoup", name = "ksoup-html", version.ref = "ksoup" }
 ksoup-entities = { group = "com.mohamedrejeb.ksoup", name = "ksoup-entities", version.ref = "ksoup" }
+store = { module = "org.mobilenativefoundation.store:store5", version.ref = "store" }
+
 #Koin
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }
 koin-core = { module = "io.insert-koin:koin-core" }

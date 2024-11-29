@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,6 +25,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -41,6 +43,7 @@ import com.airbnb.lottie.compose.rememberLottieComposition
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
+import com.maxrave.simpmusic.data.db.entities.ArtistEntity
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
@@ -402,6 +405,84 @@ fun PlaylistFullWidthItems(
                             .focusable(),
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun ArtistFullWidthItems(
+    data: ArtistEntity,
+    onClickListener: (() -> Unit)? = null,
+    modifier: Modifier = Modifier,
+) {
+    Box(
+        modifier
+            .clickable {
+                onClickListener?.invoke()
+            }
+    ) {
+        Row(
+            Modifier
+                .padding(vertical = 10.dp, horizontal = 15.dp)
+                .fillMaxWidth(),
+        ) {
+            Spacer(modifier = Modifier.width(10.dp))
+            Box(modifier = Modifier.size(50.dp)) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(data.thumbnails)
+                        .diskCachePolicy(CachePolicy.ENABLED)
+                        .diskCacheKey(data.thumbnails)
+                        .crossfade(true)
+                        .build(),
+                    placeholder = painterResource(R.drawable.holder),
+                    error = painterResource(R.drawable.holder),
+                    contentDescription = null,
+                    contentScale = ContentScale.FillHeight,
+                    modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .clip(CircleShape),
+                )
+            }
+            Column(
+                Modifier
+                    .weight(1f)
+                    .padding(start = 20.dp, end = 10.dp)
+                    .align(Alignment.CenterVertically),
+            ) {
+                Text(
+                    text = data.name,
+                    style = typo.labelMedium,
+                    maxLines = 1,
+                    color = Color.White,
+                    modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight(align = Alignment.CenterVertically)
+                        .basicMarquee(
+                            iterations = Int.MAX_VALUE,
+                            animationMode = MarqueeAnimationMode.Immediately
+                        )
+                        .focusable(),
+                )
+
+                Text(
+                    text = stringResource(R.string.artists),
+                    style = typo.bodyMedium,
+                    maxLines = 1,
+                    color = Color(0xC4FFFFFF),
+                    modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight(align = Alignment.CenterVertically)
+                        .basicMarquee(
+                            iterations = Int.MAX_VALUE,
+                            animationMode = MarqueeAnimationMode.Immediately
+                        )
+                        .focusable(),
+                )
             }
         }
     }

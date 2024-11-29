@@ -11,11 +11,13 @@ import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.MUSIXMATCH
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.YOUTUBE
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.SongEntity
+import com.maxrave.simpmusic.data.manager.LocalPlaylistManager
 import com.maxrave.simpmusic.data.model.searchResult.songs.Album
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.SleepTimerState
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
+import com.maxrave.simpmusic.utils.collectLatestResource
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -37,6 +39,7 @@ class NowPlayingBottomSheetViewModel(
         get() = "NowPlayingBottomSheetViewModel"
 
     private val downloadUtils: DownloadUtils by inject()
+    private val localPlaylistManager: LocalPlaylistManager by inject()
 
     private val _uiState: MutableStateFlow<NowPlayingBottomSheetUIState> = MutableStateFlow(
         NowPlayingBottomSheetUIState(
@@ -180,13 +183,15 @@ class NowPlayingBottomSheetViewModel(
                         return@launch
                     }
                     else {
-                        mainRepository.updateLocalPlaylistTracks(
-                            tracks = newList.apply {
-                                add(songUIState.videoId)
+                        val songEntity = mainRepository.getSongById(songUIState.videoId).singleOrNull() ?: return@launch
+                        localPlaylistManager.addTrackToLocalPlaylist(id = ev.playlistId, song = songEntity).collectLatestResource(
+                            onSuccess = {
+                                makeToast(getString(R.string.added_to_playlist))
                             },
-                            id = ev.playlistId
+                            onError = {
+                                makeToast(getString(R.string.error))
+                            }
                         )
-                        makeToast(getString(R.string.added_to_playlist))
                     }
 
                 }
