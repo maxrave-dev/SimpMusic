@@ -262,7 +262,7 @@ fun LibraryItem(
                                                         }
                                                     },
                                                     data = item as? PlaylistType ?: return@items,
-                                                    thumbSize = 100.dp
+                                                    thumbSize = 125.dp
                                                 )
                                             }
                                         }
@@ -271,7 +271,7 @@ fun LibraryItem(
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .height(120.dp), contentAlignment = Alignment.Center
+                                            .height(130.dp), contentAlignment = Alignment.Center
                                     ) {
                                         Text(noPlaylistTitle, style = typo.bodyMedium)
                                     }
@@ -281,7 +281,7 @@ fun LibraryItem(
                             Box(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(120.dp), contentAlignment = Alignment.Center
+                                    .height(130.dp), contentAlignment = Alignment.Center
                             ) {
                                 CircularProgressIndicator()
                             }

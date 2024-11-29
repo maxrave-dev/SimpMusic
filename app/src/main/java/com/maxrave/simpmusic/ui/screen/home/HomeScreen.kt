@@ -313,7 +313,7 @@ fun HomeScreen(
                                 )
                             }
                         }
-                        items(homeData, key = { it.title + it.channelId }) {
+                        items(homeData, key = { it.hashCode() }) {
                             if (it.title != context.getString(R.string.quick_picks)) {
                                 HomeItem(
                                     homeViewModel = viewModel,
@@ -322,7 +322,7 @@ fun HomeScreen(
                                 )
                             }
                         }
-                        items(newRelease, key = { it.title + it.channelId }) {
+                        items(newRelease, key = { it.hashCode() }) {
                             androidx.compose.animation.AnimatedVisibility(
                                 visible = newRelease.isNotEmpty(),
                             ) {
@@ -557,7 +557,7 @@ fun QuickPicks(
             state = lazyListState,
             flingBehavior = snapperFlingBehavior,
         ) {
-            items(homeItem.contents, key = { it?.videoId ?: "item_${it.hashCode()}" }) {
+            items(homeItem.contents, key = { it.hashCode() }) {
                 if (it != null) {
                     QuickPicksItem(
                         onClick = {
