@@ -305,7 +305,7 @@ class MostPlayedFragment: Fragment() {
                                 if (playlist.tracks != null) {
                                     tempTrack.addAll(playlist.tracks)
                                 }
-                                if (!tempTrack.contains(song.videoId) && playlist.syncedWithYouTubePlaylist == 1 && playlist.youtubePlaylistId != null) {
+                                if (!tempTrack.contains(song.videoId) && playlist.syncState == LocalPlaylistEntity.YouTubeSyncState.Synced && playlist.youtubePlaylistId != null) {
                                     viewModel.addToYouTubePlaylist(playlist.id, playlist.youtubePlaylistId, song.videoId)
                                 }
                                 if (!tempTrack.contains(song.videoId)) {

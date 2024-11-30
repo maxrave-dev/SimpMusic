@@ -348,19 +348,13 @@ interface DatabaseDao {
         youtubePlaylistId: String?,
     )
 
-    @Query("UPDATE local_playlist SET synced_with_youtube_playlist = :synced WHERE id = :id")
-    suspend fun updateLocalPlaylistYouTubePlaylistSynced(
-        id: Long,
-        synced: Int,
-    )
-
     @Query("UPDATE local_playlist SET youtube_sync_state = :state WHERE id = :id")
     suspend fun updateLocalPlaylistYouTubePlaylistSyncState(
         id: Long,
         state: Int,
     )
 
-    @Query("UPDATE local_playlist SET synced_with_youtube_playlist = 0, youtube_sync_state = 0, youtubePlaylistId = NULL WHERE id = :id")
+    @Query("UPDATE local_playlist SET youtube_sync_state = 0, youtubePlaylistId = NULL WHERE id = :id")
     suspend fun unsyncLocalPlaylist(id: Long)
 
     @Query("SELECT downloadState FROM local_playlist WHERE id = :id")

@@ -480,7 +480,7 @@ class FullscreenFragment : Fragment() {
                                                 }
                                                 if (!tempTrack.contains(
                                                         song.videoId,
-                                                    ) && playlist.syncedWithYouTubePlaylist == 1 && playlist.youtubePlaylistId != null
+                                                    ) && playlist.syncState == LocalPlaylistEntity.YouTubeSyncState.Synced && playlist.youtubePlaylistId != null
                                                 ) {
                                                     viewModel.addToYouTubePlaylist(
                                                         playlist.id,

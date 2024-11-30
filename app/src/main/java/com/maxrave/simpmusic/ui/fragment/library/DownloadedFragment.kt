@@ -18,8 +18,6 @@ import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import coil3.load
-import coil3.request.crossfade
-import coil3.request.placeholder
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.adapter.artist.SeeArtistOfNowPlayingAdapter
@@ -263,7 +261,9 @@ class DownloadedFragment : Fragment() {
                                 if (playlist.tracks != null) {
                                     tempTrack.addAll(playlist.tracks)
                                 }
-                                if (!tempTrack.contains(song.videoId) && playlist.syncedWithYouTubePlaylist == 1 && playlist.youtubePlaylistId != null) {
+                                if (!tempTrack.contains(song.videoId) &&
+                                    playlist.syncState == LocalPlaylistEntity.YouTubeSyncState.Synced &&
+                                    playlist.youtubePlaylistId != null) {
                                     viewModel.addToYouTubePlaylist(playlist.id, playlist.youtubePlaylistId, song.videoId)
                                 }
                                 if (!tempTrack.contains(song.videoId)) {

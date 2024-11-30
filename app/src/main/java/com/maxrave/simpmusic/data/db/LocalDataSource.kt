@@ -199,11 +199,6 @@ class LocalDataSource(
         ytId: String?,
     ) = databaseDao.updateLocalPlaylistYouTubePlaylistId(id, ytId)
 
-    suspend fun updateLocalPlaylistYouTubePlaylistSynced(
-        id: Long,
-        synced: Int,
-    ) = databaseDao.updateLocalPlaylistYouTubePlaylistSynced(id, synced)
-
     suspend fun updateLocalPlaylistYouTubePlaylistSyncState(
         id: Long,
         syncState: Int,

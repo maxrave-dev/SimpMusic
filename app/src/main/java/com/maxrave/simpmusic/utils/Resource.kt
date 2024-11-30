@@ -60,6 +60,18 @@ sealed class LocalResource<T>(
     class Loading<T> : LocalResource<T>()
 }
 
+sealed class NoResponseResource(
+    val message: String? = null,
+) {
+    class Success() : NoResponseResource()
+
+    class Error(
+        message: String,
+    ) : NoResponseResource(message)
+
+    class Loading : NoResponseResource()
+}
+
 suspend fun <T> Flow<LocalResource<T>>.collectResource(
     distinct: Boolean = true,
     onSuccess: (T?) -> Unit,
@@ -73,6 +85,19 @@ suspend fun <T> Flow<LocalResource<T>>.collectResource(
     }
 }
 
+suspend fun Flow<NoResponseResource>.collectNoResponseResource(
+    distinct: Boolean = true,
+    onSuccess: () -> Unit,
+    onError: (String) -> Unit = {},
+    onLoading: () -> Unit = {},
+) = this.apply { if (distinct) distinctUntilChanged() }.collect { resource ->
+    when (resource) {
+        is NoResponseResource.Success -> onSuccess()
+        is NoResponseResource.Error -> onError(resource.message ?: "Error in collectNoResponseResource")
+        is NoResponseResource.Loading -> onLoading()
+    }
+}
+
 suspend fun <T> Flow<LocalResource<T>>.collectLatestResource(
     distinct: Boolean = true,
     onSuccess: (T?) -> Unit,
@@ -83,5 +108,18 @@ suspend fun <T> Flow<LocalResource<T>>.collectLatestResource(
         is LocalResource.Success -> onSuccess(resource.data)
         is LocalResource.Error -> onError(resource.message ?: "Error in collectLatestResource")
         is LocalResource.Loading -> onLoading()
+    }
+}
+
+suspend fun Flow<NoResponseResource>.collectLatestNoResponseResource(
+    distinct: Boolean = true,
+    onSuccess: () -> Unit,
+    onError: (String) -> Unit = {},
+    onLoading: () -> Unit = {},
+) = this.apply { if (distinct) distinctUntilChanged() }.collectLatest { resource ->
+    when (resource) {
+        is NoResponseResource.Success -> onSuccess()
+        is NoResponseResource.Error -> onError(resource.message ?: "Error in collectLatestNoResponseResource")
+        is NoResponseResource.Loading -> onLoading()
     }
 }

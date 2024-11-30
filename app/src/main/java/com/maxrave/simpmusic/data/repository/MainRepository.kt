@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import androidx.media3.common.util.UnstableApi
 import com.maxrave.kotlinytmusicscraper.YouTube
+import com.maxrave.kotlinytmusicscraper.extension.verifyYouTubePlaylistId
 import com.maxrave.kotlinytmusicscraper.models.AccountInfo
 import com.maxrave.kotlinytmusicscraper.models.MediaType
 import com.maxrave.kotlinytmusicscraper.models.MusicShelfRenderer
@@ -492,13 +493,6 @@ class MainRepository(
         ytId: String?,
     ) = withContext(Dispatchers.IO) {
         localDataSource.updateLocalPlaylistYouTubePlaylistId(id, ytId)
-    }
-
-    suspend fun updateLocalPlaylistYouTubePlaylistSynced(
-        id: Long,
-        synced: Int,
-    ) = withContext(Dispatchers.IO) {
-        localDataSource.updateLocalPlaylistYouTubePlaylistSynced(id, synced)
     }
 
     suspend fun updateLocalPlaylistYouTubePlaylistSyncState(
@@ -3058,7 +3052,7 @@ class MainRepository(
     ) = flow {
         runCatching {
             YouTube
-                .addPlaylistItem(youtubePlaylistId, videoId)
+                .addPlaylistItem(youtubePlaylistId.verifyYouTubePlaylistId(), videoId)
                 .onSuccess {
                     if (it.playlistEditResults.isNotEmpty()) {
                         for (playlistEditResult in it.playlistEditResults) {
