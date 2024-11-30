@@ -191,6 +191,7 @@ object SUPPORTED_LANGUAGE {
             "עברית",
             "Azerbaijani",
             "हिन्दी"
+            "ภาษาไทย"
             "ગુજરાતી"
             "বাংলা"
             "తెలుగు"
@@ -218,6 +219,7 @@ object SUPPORTED_LANGUAGE {
             "iw-IL",
             "az-AZ",
             "hi-IN",
+            "th-TH",
             "gu-IN",
             "bn-IN",
             "te-IN",

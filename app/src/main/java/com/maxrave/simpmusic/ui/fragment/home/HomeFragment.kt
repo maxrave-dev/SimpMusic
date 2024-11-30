@@ -207,7 +207,7 @@ class HomeFragment : Fragment() {
 //                                    if (playlist.tracks != null) {
 //                                        tempTrack.addAll(playlist.tracks)
 //                                    }
-//                                    if (!tempTrack.contains(track.videoId) && playlist.syncedWithYouTubePlaylist == 1 && playlist.youtubePlaylistId != null) {
+//                                    if (!tempTrack.contains(track.videoId) && playlist.syncState == LocalPlaylistEntity.YouTubeSyncState.Synced && playlist.youtubePlaylistId != null) {
 //                                        viewModel.addToYouTubePlaylist(
 //                                            playlist.id,
 //                                            playlist.youtubePlaylistId,

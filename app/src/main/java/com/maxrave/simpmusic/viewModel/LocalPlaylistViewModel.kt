@@ -126,24 +126,24 @@ class LocalPlaylistViewModel(
                                     if (newList > currentList) {
                                         updatePlaylistState(uiState.value.id, refresh = true)
                                     }
+                                    delay(500)
+                                    val fullTracks = localPlaylistManager.getFullPlaylistTracks(id = id)
+                                    val notDownloadedList = fullTracks.filter { it.downloadState != STATE_DOWNLOADED }.map { it.videoId }
+                                    if (fullTracks.isEmpty()) {
+                                        updatePlaylistDownloadState(uiState.value.id, STATE_NOT_DOWNLOADED)
+                                    } else if (fullTracks.all { it.downloadState == STATE_DOWNLOADED } && uiState.value.downloadState != STATE_DOWNLOADED) {
+                                        updatePlaylistDownloadState(uiState.value.id, STATE_DOWNLOADED)
+                                    } else if (
+                                        downloadUtils.downloads.value
+                                            .filter { it.value.state != Download.STATE_COMPLETED }
+                                            .map { it.key }.containsAll(notDownloadedList) && notDownloadedList.isNotEmpty()
+                                        && uiState.value.downloadState != STATE_DOWNLOADING
+                                    ) {
+                                        updatePlaylistDownloadState(uiState.value.id, STATE_DOWNLOADING)
+                                    } else if (uiState.value.downloadState != STATE_NOT_DOWNLOADED) {
+                                        updatePlaylistDownloadState(uiState.value.id, STATE_NOT_DOWNLOADED)
+                                    }
                                 }
-                        }
-                        delay(500)
-                        val fullTracks = localPlaylistManager.getFullPlaylistTracks(id = id)
-                        val notDownloadedList = fullTracks.filter { it.downloadState != STATE_DOWNLOADED }.map { it.videoId }
-                        if (fullTracks.isEmpty()) {
-                            updatePlaylistDownloadState(uiState.value.id, STATE_NOT_DOWNLOADED)
-                        } else if (fullTracks.all { it.downloadState == STATE_DOWNLOADED } && uiState.value.downloadState != STATE_DOWNLOADED) {
-                            updatePlaylistDownloadState(uiState.value.id, STATE_DOWNLOADED)
-                        } else if (
-                            downloadUtils.downloads.value
-                                .filter { it.value.state != Download.STATE_COMPLETED }
-                                .map { it.key }.containsAll(notDownloadedList) && notDownloadedList.isNotEmpty()
-                            && uiState.value.downloadState != STATE_DOWNLOADING
-                            ) {
-                            updatePlaylistDownloadState(uiState.value.id, STATE_DOWNLOADING)
-                        } else if (uiState.value.downloadState != STATE_NOT_DOWNLOADED) {
-                            updatePlaylistDownloadState(uiState.value.id, STATE_NOT_DOWNLOADED)
                         }
                     }
                 }
@@ -523,7 +523,12 @@ class LocalPlaylistViewModel(
                 .syncLocalPlaylistToYouTubePlaylist(id)
                 .collectLatestResource(
                     onSuccess = { ytId ->
-                        updateLocalPlaylistSyncState(id, LocalPlaylistEntity.YouTubeSyncState.Synced, ytId)
+                        _uiState.update {
+                            it.copy(
+                                syncState = LocalPlaylistEntity.YouTubeSyncState.Synced,
+                                ytPlaylistId = ytId
+                            )
+                        }
                         makeToast(getString(R.string.synced))
                         hideLoadingDialog()
                     },

@@ -49,7 +49,6 @@ import com.maxrave.kotlinytmusicscraper.models.response.SearchResponse
 import com.maxrave.kotlinytmusicscraper.models.response.spotify.CanvasResponse
 import com.maxrave.kotlinytmusicscraper.models.response.spotify.PersonalTokenResponse
 import com.maxrave.kotlinytmusicscraper.models.response.spotify.SpotifyLyricsResponse
-import com.maxrave.kotlinytmusicscraper.models.response.spotify.TokenResponse
 import com.maxrave.kotlinytmusicscraper.models.response.spotify.search.SpotifySearchResponse
 import com.maxrave.kotlinytmusicscraper.models.response.toLikeStatus
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
@@ -586,9 +585,10 @@ object YouTube {
 
     suspend fun getYouTubePlaylistFullTracksWithSetVideoId(playlistId: String): Result<List<Pair<SongItem, String>>> =
         runCatching {
+            val plId = if (playlistId.startsWith("VL")) playlistId else "VL$playlistId"
             // SongItem / SetVideoId
             val listPair = mutableListOf<Pair<SongItem, String>>()
-            val response = ytMusic.playlist(playlistId).body<BrowseResponse>()
+            val response = ytMusic.playlist(plId).body<BrowseResponse>()
             listPair.addAll(
                 response.fromPlaylistToTrackWithSetVideoId()
             )

@@ -15,3 +15,7 @@ fun randomString(length: Int): String {
         .map { chars[Random.nextInt(chars.length)] }
         .joinToString("")
 }
+
+fun String.verifyYouTubePlaylistId(): String {
+    return if (startsWith("VL")) this else "VL$this"
+}

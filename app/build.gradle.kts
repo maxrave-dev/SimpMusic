@@ -49,6 +49,7 @@ android {
                 "iw",
                 "az",
                 "hi"
+                "th"
                 "gu"
                 "bn"
                 "te"

@@ -6,6 +6,7 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import com.maxrave.kotlinytmusicscraper.YouTube
+import com.maxrave.kotlinytmusicscraper.extension.verifyYouTubePlaylistId
 import com.maxrave.kotlinytmusicscraper.models.MusicShelfRenderer
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
@@ -170,7 +171,6 @@ class LocalPlaylistManager(
                     title = playlist.title,
                     thumbnail = playlist.thumbnails.lastOrNull()?.url,
                     youtubePlaylistId = playlist.id,
-                    syncedWithYouTubePlaylist = 1,
                     tracks = playlist.tracks.toListVideoId(),
                     downloadState = DownloadState.STATE_NOT_DOWNLOADED,
                     syncState = Syncing,
@@ -195,7 +195,7 @@ class LocalPlaylistManager(
                 }
             }
             val ytPlaylistId = playlist.id
-            val id = if (ytPlaylistId.startsWith("VL")) ytPlaylistId else "VL$ytPlaylistId"
+            val id = ytPlaylistId.verifyYouTubePlaylistId()
             YouTube
                 .customQuery(browseId = id, setLogin = true)
                 .onSuccess { res ->
@@ -255,15 +255,14 @@ class LocalPlaylistManager(
                     parsed.forEach { setVideoId ->
                         localDataSource.insertSetVideoId(setVideoId)
                     }
+                    localDataSource.updateLocalPlaylistYouTubePlaylistSyncState(
+                        localPlaylistId,
+                        Synced,
+                    )
                     emit(LocalResource.Success(getString(R.string.synced)))
                 }.onFailure {
                     emit(LocalResource.Error("Can't get setVideoId"))
                 }
-            localDataSource.updateLocalPlaylistYouTubePlaylistSyncState(
-                localPlaylistId,
-                Synced,
-            )
-            emit(LocalResource.Success(getString(R.string.synced)))
         }.flowOn(
             Dispatchers.IO,
         )
@@ -274,15 +273,43 @@ class LocalPlaylistManager(
      * @param playlistId
      * @return Flow<LocalResource<String>>
      */
-    suspend fun syncLocalPlaylistToYouTubePlaylist(playlistId: Long) =
-        wrapResultResource {
+    fun syncLocalPlaylistToYouTubePlaylist(playlistId: Long) =
+        flow<LocalResource<String>> {
+            emit(LocalResource.Loading())
             val playlist = localDataSource.getLocalPlaylist(playlistId)
-            YouTube
-                .createPlaylist(
+            val res = YouTube.createPlaylist(
                     playlist.title,
                     playlist.tracks,
-                ).map {
-                    it.playlistId
+                )
+            val value = res.getOrNull()
+            if (res.isSuccess && value != null) {
+                    val ytId = value.playlistId
+                    Log.d(tag, "syncLocalPlaylistToYouTubePlaylist: $ytId")
+                    YouTube.getYouTubePlaylistFullTracksWithSetVideoId(ytId).onSuccess { list ->
+                        Log.d(tag, "syncLocalPlaylistToYouTubePlaylist: onSuccess song ${list.map { it.first.title }}")
+                        Log.d(tag, "syncLocalPlaylistToYouTubePlaylist: onSuccess setVideoId ${list.map { it.second }}")
+                        list.forEach { new ->
+                            localDataSource.insertSong(new.first.toTrack().toSongEntity())
+                            localDataSource.insertSetVideoId(
+                                SetVideoIdEntity(
+                                    videoId = new.first.id,
+                                    setVideoId = new.second,
+                                    youtubePlaylistId = ytId
+                                )
+                            )
+                        }
+                        if (list.isEmpty()) Log.w(tag, "syncLocalPlaylistToYouTubePlaylist: SetVideoIds Empty list")
+                        localDataSource.updateLocalPlaylistYouTubePlaylistId(playlistId, ytId)
+                        localDataSource.updateLocalPlaylistYouTubePlaylistSyncState(playlistId, Synced)
+                        Log.d(tag, "syncLocalPlaylistToYouTubePlaylist: $ytId")
+                        emit(LocalResource.Success(ytId))
+                    }.onFailure {
+                        emit(LocalResource.Error(it.message ?: getString(R.string.error)))
+                    }
+                } else {
+                    val e = res.exceptionOrNull()
+                    e?.printStackTrace()
+                    emit(LocalResource.Error(e?.message ?: getString(R.string.error)))
                 }
         }
 

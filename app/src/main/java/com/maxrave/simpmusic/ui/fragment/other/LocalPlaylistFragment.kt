@@ -300,7 +300,7 @@ class LocalPlaylistFragment : Fragment() {
 //                                        }
 //                                        if (!tempTrack.contains(
 //                                                song.videoId,
-//                                            ) && playlist.syncedWithYouTubePlaylist == 1 && playlist.youtubePlaylistId != null
+//                                            ) && playlist.syncState == LocalPlaylistEntity.YouTubeSyncState.Synced && playlist.youtubePlaylistId != null
 //                                        ) {
 //                                            viewModel.addToYouTubePlaylist(
 //                                                playlist.id,
@@ -346,7 +346,7 @@ class LocalPlaylistFragment : Fragment() {
 //                            val temp =
 //                                playlistAdapter.getListTrack().getOrNull(position) as SongEntity
 //                            viewModel.deleteItem(temp, id!!)
-//                            if (viewModel.localPlaylist.value?.syncedWithYouTubePlaylist == 1 && viewModel.localPlaylist.value?.youtubePlaylistId != null) {
+//                            if (viewModel.localPlaylist.value?.syncState == LocalPlaylistEntity.YouTubeSyncState.Synced && viewModel.localPlaylist.value?.youtubePlaylistId != null) {
 //                                val videoId = viewModel.listTrack.value?.get(position)?.videoId
 //                                viewModel.removeYouTubePlaylistItem(
 //                                    viewModel.localPlaylist.value?.youtubePlaylistId!!,
@@ -427,7 +427,7 @@ class LocalPlaylistFragment : Fragment() {
 //                        }
 //                        if (!tempTrack.contains(
 //                                song.videoId,
-//                            ) && viewModel.localPlaylist.value?.syncedWithYouTubePlaylist == 1 && viewModel.localPlaylist.value?.youtubePlaylistId != null
+//                            ) && viewModel.localPlaylist.value?.syncState == LocalPlaylistEntity.YouTubeSyncState.Synced && viewModel.localPlaylist.value?.youtubePlaylistId != null
 //                        ) {
 //                            viewModel.addToYouTubePlaylist(
 //                                viewModel.localPlaylist.value?.id!!,
@@ -496,7 +496,7 @@ class LocalPlaylistFragment : Fragment() {
 //                if (viewModel.localPlaylist.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
 //                    args.putInt("downloaded", 1)
 //                }
-//                if (viewModel.localPlaylist.value?.syncedWithYouTubePlaylist == 1) {
+//                if (viewModel.localPlaylist.value?.syncState == LocalPlaylistEntity.YouTubeSyncState.Synced) {
 //                    args.putString(
 //                        "playlistId",
 //                        viewModel.localPlaylist.value?.youtubePlaylistId?.replaceFirst("VL", ""),
@@ -535,7 +535,7 @@ class LocalPlaylistFragment : Fragment() {
 //                if (viewModel.localPlaylist.value?.downloadState == DownloadState.STATE_DOWNLOADED) {
 //                    args.putInt("downloaded", 1)
 //                }
-//                if (viewModel.localPlaylist.value?.syncedWithYouTubePlaylist == 1) {
+//                if (viewModel.localPlaylist.value?.syncState == LocalPlaylistEntity.YouTubeSyncState.Synced) {
 //                    args.putString(
 //                        "playlistId",
 //                        viewModel.localPlaylist.value?.youtubePlaylistId?.replaceFirst("VL", ""),
@@ -609,7 +609,7 @@ class LocalPlaylistFragment : Fragment() {
 //        }
 //        binding.btSuggest.setOnClickListener {
 //            if (binding.suggestLayout.visibility == View.GONE) {
-//                if (viewModel.localPlaylist.value?.syncedWithYouTubePlaylist == 1) {
+//                if (viewModel.localPlaylist.value?.syncState == LocalPlaylistEntity.YouTubeSyncState.Synced) {
 //                    if (viewModel.localPlaylist.value?.youtubePlaylistId != null) {
 //                        binding.suggestLayout.visibility = View.VISIBLE
 //                        viewModel.getSuggestions(viewModel.localPlaylist.value?.youtubePlaylistId!!)
@@ -643,7 +643,7 @@ class LocalPlaylistFragment : Fragment() {
 //                            editDialogView.etPlaylistName.editText?.text.toString(),
 //                            id!!,
 //                        )
-//                        if (viewModel.localPlaylist.value?.syncedWithYouTubePlaylist == 1) {
+//                        if (viewModel.localPlaylist.value?.syncState == LocalPlaylistEntity.YouTubeSyncState.Synced) {
 //                            viewModel.updateYouTubePlaylistTitle(
 //                                editDialogView.etPlaylistName.editText?.text.toString(),
 //                                viewModel.localPlaylist.value?.youtubePlaylistId!!,
@@ -663,7 +663,7 @@ class LocalPlaylistFragment : Fragment() {
 //                moreDialogView.tvSync.text = getString(R.string.sync)
 //                moreDialogView.ivSync.setImageResource(R.drawable.baseline_sync_24)
 //                moreDialogView.btUpdate.visibility = View.GONE
-//            } else if (viewModel.localPlaylist.value?.syncedWithYouTubePlaylist == 1) {
+//            } else if (viewModel.localPlaylist.value?.syncState == LocalPlaylistEntity.YouTubeSyncState.Synced) {
 //                moreDialogView.tvSync.text = getString(R.string.synced)
 //                moreDialogView.ivSync.setImageResource(R.drawable.baseline_sync_disabled_24)
 //                moreDialogView.btUpdate.visibility = View.VISIBLE
@@ -686,7 +686,7 @@ class LocalPlaylistFragment : Fragment() {
 // //                            binding.collapsingToolbarLayout.title = localPlaylist.title
 // //                            binding.tvTitle.text = localPlaylist.title
 // //                            binding.tvTitle.isSelected = true
-// //                            if (localPlaylist.syncedWithYouTubePlaylist == 1 && localPlaylist.youtubePlaylistId != null) {
+// //                            if (localPlaylist.syncState == LocalPlaylistEntity.YouTubeSyncState.Synced && localPlaylist.youtubePlaylistId != null) {
 // //                                if (!localPlaylist.tracks.isNullOrEmpty()) {
 // //                                    viewModel.getSetVideoId(localPlaylist.youtubePlaylistId)
 // //                                }
@@ -755,14 +755,14 @@ class LocalPlaylistFragment : Fragment() {
 //                    alertDialog.setCancelable(true)
 //                    alertDialog.show()
 // //                    viewModel.localPlaylist.observe(viewLifecycleOwner) { localPlaylist ->
-// //                        if (localPlaylist?.syncedWithYouTubePlaylist == 1) {
+// //                        if (localPlaylist?.syncState == LocalPlaylistEntity.YouTubeSyncState.Synced) {
 // //                            moreDialogView.tvSync.text = getString(R.string.synced)
 // //                            moreDialogView.ivSync.setImageResource(
 // //                                R.drawable.baseline_sync_disabled_24,
 // //                            )
 // //                        }
 // //                    }
-//                } else if (viewModel.localPlaylist.value?.syncedWithYouTubePlaylist == 1) {
+//                } else if (viewModel.localPlaylist.value?.syncState == LocalPlaylistEntity.YouTubeSyncState.Synced) {
 //                    val alertDialog =
 //                        MaterialAlertDialogBuilder(requireContext())
 //                            .setTitle(getString(R.string.warning))

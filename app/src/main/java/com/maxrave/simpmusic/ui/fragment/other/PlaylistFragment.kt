@@ -13,7 +13,6 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
-import androidx.core.graphics.drawable.toBitmap
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -26,12 +25,12 @@ import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.fragment.findNavController
 import androidx.palette.graphics.Palette
 import androidx.recyclerview.widget.LinearLayoutManager
-import coil3.load
-import coil3.request.crossfade
-import coil3.request.placeholder
 import coil3.asDrawable
+import coil3.load
 import coil3.request.CachePolicy
 import coil3.request.allowHardware
+import coil3.request.crossfade
+import coil3.request.placeholder
 import coil3.toBitmap
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.snackbar.Snackbar
@@ -772,7 +771,7 @@ class PlaylistFragment : Fragment() {
                                         if (!tempTrack.contains(
                                                 song.videoId,
                                             ) &&
-                                            playlist.syncedWithYouTubePlaylist == 1 &&
+                                            playlist.syncState == LocalPlaylistEntity.YouTubeSyncState.Synced &&
                                             playlist.youtubePlaylistId != null
                                         ) {
                                             viewModel.addToYouTubePlaylist(
