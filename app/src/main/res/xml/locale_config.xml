@@ -20,4 +20,5 @@
     <locale android:name="iw" />
     <locale android:name="az" />
     <locale android:name="hi" />
+    <locale android:name="th" />
 </locale-config>
