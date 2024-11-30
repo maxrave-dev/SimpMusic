@@ -50,6 +50,9 @@ android {
                 "az",
                 "hi"
                 "gu"
+                "bn"
+                "te"
+                "ta"
             )
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
