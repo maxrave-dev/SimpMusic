@@ -49,6 +49,7 @@ android {
                 "iw",
                 "az",
                 "hi"
+                "gu"
             )
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

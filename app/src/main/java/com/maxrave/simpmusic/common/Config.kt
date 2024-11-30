@@ -191,6 +191,7 @@ object SUPPORTED_LANGUAGE {
             "עברית",
             "Azerbaijani",
             "हिन्दी"
+            "ગુજરાતી"
         )
     val codes: Array<String> =
         arrayOf(
@@ -214,6 +215,7 @@ object SUPPORTED_LANGUAGE {
             "iw-IL",
             "az-AZ",
             "hi-IN",
+            "gu-IN",
         )
 }
 
