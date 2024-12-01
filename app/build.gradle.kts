@@ -48,12 +48,13 @@ android {
                 "uk",
                 "iw",
                 "az",
-                "hi"
-                "th"
-                "gu"
-                "bn"
-                "te"
-                "ta"
+                "hi",
+                "th",
+                "gu",
+                "bn",
+                "te",
+                "ta",
+                "pa",
             )
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -66,6 +67,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
         debug {
             isMinifyEnabled = false

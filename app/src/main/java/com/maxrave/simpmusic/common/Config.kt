@@ -196,6 +196,7 @@ object SUPPORTED_LANGUAGE {
             "বাংলা"
             "తెలుగు"
             "தமிழ்"
+            "ਪੰਜਾਬੀ"
         )
     val codes: Array<String> =
         arrayOf(
@@ -223,7 +224,8 @@ object SUPPORTED_LANGUAGE {
             "gu-IN",
             "bn-IN",
             "te-IN",
-            "ta-IN",                                
+            "ta-IN", 
+            "pa-IN",                               
         )
 }
 

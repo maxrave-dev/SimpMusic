@@ -25,4 +25,5 @@
     <locale android:name="bn" />
     <locale android:name="te" />
     <locale android:name="ta" />
+    <locale android:name="pa" />
 </locale-config>
