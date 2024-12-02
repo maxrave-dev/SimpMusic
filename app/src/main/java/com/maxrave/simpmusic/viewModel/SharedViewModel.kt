@@ -81,7 +81,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.singleOrNull
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -625,54 +624,6 @@ class SharedViewModel(
     var downloadState: StateFlow<Download?> = _downloadState.asStateFlow()
 
     fun getDownloadStateFromService(videoId: String) {
-        viewModelScope.launch {
-            downloadState = downloadUtils.getDownload(videoId).stateIn(viewModelScope)
-            downloadState.collect { down ->
-                if (down != null) {
-                    when (down.state) {
-                        Download.STATE_COMPLETED -> {
-                            mainRepository.getSongById(videoId).collect { song ->
-                                if (song?.downloadState != DownloadState.STATE_DOWNLOADED) {
-                                    mainRepository.updateDownloadState(
-                                        videoId,
-                                        DownloadState.STATE_DOWNLOADED,
-                                    )
-                                }
-                            }
-                            Log.d("Check Downloaded", "Downloaded")
-                        }
-
-                        Download.STATE_FAILED -> {
-                            mainRepository.getSongById(videoId).collect { song ->
-                                if (song?.downloadState != DownloadState.STATE_NOT_DOWNLOADED) {
-                                    mainRepository.updateDownloadState(
-                                        videoId,
-                                        DownloadState.STATE_NOT_DOWNLOADED,
-                                    )
-                                }
-                            }
-                            Log.d("Check Downloaded", "Failed")
-                        }
-
-                        Download.STATE_DOWNLOADING -> {
-                            mainRepository.getSongById(videoId).collect { song ->
-                                if (song?.downloadState != DownloadState.STATE_DOWNLOADING) {
-                                    mainRepository.updateDownloadState(
-                                        videoId,
-                                        DownloadState.STATE_DOWNLOADING,
-                                    )
-                                }
-                            }
-                            Log.d("Check Downloaded", "Downloading ${down.percentDownloaded}")
-                        }
-
-                        else -> {
-                            Log.d("Check Downloaded", "${down.state}")
-                        }
-                    }
-                }
-            }
-        }
     }
 
     fun checkIsRestoring() {

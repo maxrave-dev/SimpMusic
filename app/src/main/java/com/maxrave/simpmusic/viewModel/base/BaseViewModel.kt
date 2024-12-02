@@ -27,6 +27,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
@@ -107,7 +108,7 @@ abstract class BaseViewModel(
             else -> return
         }
         viewModelScope.launch {
-            mainRepository.insertSong(track.toSongEntity()).collect {
+            mainRepository.insertSong(track.toSongEntity()).singleOrNull()?.let {
                 log("Inserted song: ${track.title}", Log.DEBUG)
             }
             simpleMediaServiceHandler.clearMediaItems()

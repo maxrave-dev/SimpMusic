@@ -854,6 +854,7 @@ class SimpleMediaServiceHandler(
         } else {
             stopProgressUpdate()
             mayBeSaveRecentSong()
+            mayBeSavePlaybackState()
         }
         updateNextPreviousTrackAvailability()
     }
@@ -1222,7 +1223,7 @@ class SimpleMediaServiceHandler(
         coroutineScope.launch {
             if (dataStoreManager.saveRecentSongAndQueue.first() == TRUE) {
                 dataStoreManager.saveRecentSong(
-                    player.currentMediaItem?.mediaId ?: "",
+                    nowPlayingState.value.songEntity?.videoId ?: "",
                     player.contentPosition,
                 )
                 dataStoreManager.setPlaylistFromSaved(queueData.value?.playlistName ?: "")
@@ -1353,14 +1354,14 @@ class SimpleMediaServiceHandler(
                         CommandButton
                             .Builder()
                             .setDisplayName(
-                                if (liked == true) {
+                                if (liked) {
                                     context.getString(R.string.liked)
                                 } else {
                                     context.getString(
                                         R.string.like,
                                     )
                                 },
-                            ).setIconResId(if (liked == true) R.drawable.baseline_favorite_24 else R.drawable.baseline_favorite_border_24)
+                            ).setIconResId(if (liked) R.drawable.baseline_favorite_24 else R.drawable.baseline_favorite_border_24)
                             .setSessionCommand(SessionCommand(MEDIA_CUSTOM_COMMAND.LIKE, Bundle()))
                             .build(),
                         CommandButton

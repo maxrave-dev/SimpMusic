@@ -2776,9 +2776,9 @@ class MainRepository(
                         )
                     }
                     if (data.first != null) {
-                        emit(format?.url?.plus("&cpn=${data.first}"))
+                        emit(format?.url?.plus("&cpn=${data.first}&range=0-${format.contentLength ?: 10000000}"))
                     } else {
-                        emit(format?.url)
+                        emit(format?.url?.plus("&range=0-${format.contentLength ?: 10000000}"))
                     }
 //                insertFormat(
 //                    FormatEntity(

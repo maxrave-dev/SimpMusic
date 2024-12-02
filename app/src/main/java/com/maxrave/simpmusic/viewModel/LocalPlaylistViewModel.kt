@@ -8,7 +8,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.offline.Download
 import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
@@ -117,11 +116,11 @@ class LocalPlaylistViewModel(
                         newUpdateJob = launch {
                             localPlaylistManager.listTrackFlow(id)
                                 .distinctUntilChanged()
-                                .collectLatest {
+                                .collectLatest { list ->
                                     delay(500)
                                     val currentList = uiState.value.trackCount
-                                    val newList = it.size
-                                    log("newList: $it", Log.DEBUG)
+                                    val newList = list.size
+                                    log("newList: $list", Log.DEBUG)
                                     log("currentList: $currentList, newList: $newList", Log.DEBUG)
                                     if (newList > currentList) {
                                         updatePlaylistState(uiState.value.id, refresh = true)
@@ -134,8 +133,8 @@ class LocalPlaylistViewModel(
                                     } else if (fullTracks.all { it.downloadState == STATE_DOWNLOADED } && uiState.value.downloadState != STATE_DOWNLOADED) {
                                         updatePlaylistDownloadState(uiState.value.id, STATE_DOWNLOADED)
                                     } else if (
-                                        downloadUtils.downloads.value
-                                            .filter { it.value.state != Download.STATE_COMPLETED }
+                                        downloadUtils.downloadTask.value
+                                            .filter { it.value != STATE_DOWNLOADED }
                                             .map { it.key }.containsAll(notDownloadedList) && notDownloadedList.isNotEmpty()
                                         && uiState.value.downloadState != STATE_DOWNLOADING
                                     ) {
@@ -470,20 +469,16 @@ class LocalPlaylistViewModel(
     @UnstableApi
     fun downloadFullPlaylistState(id: Long, listJob: List<String>) {
         viewModelScope.launch {
-            downloadUtils.downloads.collect { download ->
+            downloadUtils.downloadTask.collect { download ->
                 _uiState.update { ui ->
                     ui.copy(downloadState =
-                        if (listJob.all { download[it]?.state == Download.STATE_COMPLETED }) {
+                        if (listJob.all { download[it] == STATE_DOWNLOADED }) {
                             mainRepository.updateLocalPlaylistDownloadState(
                                 STATE_DOWNLOADED,
                                 id,
                             )
                             STATE_DOWNLOADED
-                        } else if (listJob.all {
-                                download[it]?.state == Download.STATE_QUEUED ||
-                                    download[it]?.state == Download.STATE_DOWNLOADING ||
-                                    download[it]?.state == Download.STATE_COMPLETED
-                            }
+                        } else if (listJob.any { download[it] == STATE_DOWNLOADING}
                         ) {
                             mainRepository.updateLocalPlaylistDownloadState(
                                 STATE_DOWNLOADING,
@@ -899,7 +894,7 @@ class LocalPlaylistViewModel(
             listJob.forEach { videoId ->
                 mainRepository.getSongById(videoId).singleOrNull()?.let { song ->
                     if (song.downloadState != STATE_DOWNLOADED) {
-                        downloadUtils.downloadTrack(videoId, song.title)
+                        downloadUtils.downloadTrack(videoId, song.title, song.thumbnails ?: "")
                     }
                 }
             }

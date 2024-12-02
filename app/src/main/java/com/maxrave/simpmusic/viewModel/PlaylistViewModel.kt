@@ -8,7 +8,6 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.exoplayer.offline.Download
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
@@ -28,6 +27,7 @@ import com.maxrave.simpmusic.utils.collectLatestResource
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -501,19 +501,17 @@ class PlaylistViewModel(
     @UnstableApi
     fun downloadFullPlaylistState(id: String) {
         viewModelScope.launch {
-            downloadUtils.downloads.collect { download ->
+            downloadUtils.downloadTask.collect { download ->
+                delay(1000)
                 playlistDownloadState.value =
-                    if (listJob.value.all { download[it.videoId]?.state == Download.STATE_COMPLETED }) {
+                    if (listJob.value.all { download[it.videoId] == DownloadState.STATE_DOWNLOADED }) {
                         mainRepository.updatePlaylistDownloadState(
                             id,
                             DownloadState.STATE_DOWNLOADED,
                         )
                         DownloadState.STATE_DOWNLOADED
-                    } else if (listJob.value.all {
-                            download[it.videoId]?.state == Download.STATE_QUEUED ||
-                                download[it.videoId]?.state == Download.STATE_DOWNLOADING ||
-                                download[it.videoId]?.state == Download.STATE_COMPLETED
-                        }
+                    } else if (
+                        listJob.value.any { download[it.videoId] == DownloadState.STATE_DOWNLOADING }
                     ) {
                         mainRepository.updatePlaylistDownloadState(
                             id,

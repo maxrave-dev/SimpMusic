@@ -884,7 +884,6 @@ class AlbumFragment : Fragment() {
                                     )
                                     viewModel.getDownloadStateFromService(job.videoId)
                                 }
-                                viewModel.downloadFullAlbumState(browseId)
                             }
                         }
                     }

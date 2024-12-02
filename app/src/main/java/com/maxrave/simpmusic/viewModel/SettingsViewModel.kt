@@ -30,6 +30,7 @@ import com.maxrave.simpmusic.extension.div
 import com.maxrave.simpmusic.extension.zipInputStream
 import com.maxrave.simpmusic.extension.zipOutputStream
 import com.maxrave.simpmusic.service.SimpleMediaService
+import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.ui.MainActivity
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
@@ -37,6 +38,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.koin.android.annotation.KoinViewModel
@@ -58,6 +60,7 @@ class SettingsViewModel(
     private val databaseDao: DatabaseDao by inject()
     val playerCache: SimpleCache by inject(named(Config.PLAYER_CACHE))
     val downloadCache: SimpleCache by inject(named(Config.DOWNLOAD_CACHE))
+    val downloadUtils: DownloadUtils by inject()
 
     private var _location: MutableStateFlow<String?> = MutableStateFlow(null)
     val location: StateFlow<String?> = _location
@@ -366,13 +369,14 @@ class SettingsViewModel(
             downloadCache.keys.forEach { key ->
                 downloadCache.removeResource(key)
             }
-            mainRepository.getDownloadedSongs().collect { songs ->
-                songs?.forEach { song ->
+            mainRepository.getDownloadedSongs().singleOrNull()?.let { songs ->
+                songs.forEach { song ->
                     mainRepository.updateDownloadState(song.videoId, DownloadState.STATE_NOT_DOWNLOADED)
                 }
             }
             Toast.makeText(getApplication(), "Download cache cleared", Toast.LENGTH_SHORT).show()
             _cacheSize.value = playerCache.cacheSpace
+            downloadUtils.removeAllDownloads()
         }
     }
 
