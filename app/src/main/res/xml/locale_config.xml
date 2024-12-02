@@ -21,4 +21,10 @@
     <locale android:name="az" />
     <locale android:name="hi" />
     <locale android:name="th" />
+    <locale android:name="gu" />
+    <locale android:name="bn" />
+    <locale android:name="te" />
+    <locale android:name="ta" />
+    <locale android:name="pa" />
+    <locale android:name="ka" />
 </locale-config>
