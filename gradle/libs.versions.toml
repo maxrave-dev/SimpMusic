@@ -11,7 +11,7 @@ lifecycle-runtime-ktx = "2.8.7"
 core-ktx = "1.15.0"
 appcompat = "1.7.0"
 work = "2.10.0"
-material = "1.12.0" #Version 1.12.0 caused bug
+material = "1.12.0"
 startup-runtime = "1.2.0"
 lifecycle-livedata-ktx = "2.8.7"
 lifecycle-viewmodel-ktx = "2.8.7"
@@ -56,7 +56,7 @@ koin-annotations = "1.4.0-RC4"
 store = "5.1.0-alpha05"
 
 [libraries]
-desugaring = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugaring"}
+desugaring = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugaring" }
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "compose-bom" }
 compose-material3-lib = { group = "androidx.compose.material3", name = "material3" }
 compose-material3-sizeclass = { group = "androidx.compose.material3", name = "material3-window-size-class" }
@@ -114,7 +114,7 @@ shimmer = { group = "com.facebook.shimmer", name = "shimmer", version.ref = "shi
 lottie = { group = "com.airbnb.android", name = "lottie", version.ref = "lottie" }
 lottie-compose = { group = "com.airbnb.android", name = "lottie-compose", version.ref = "lottie" }
 paging-runtime-ktx = { group = "androidx.paging", name = "paging-runtime-ktx", version.ref = "paging" }
-paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "paging"}
+paging-compose = { group = "androidx.paging", name = "paging-compose", version.ref = "paging" }
 customactivityoncrash = { group = "cat.ereza", name = "customactivityoncrash", version.ref = "customactivityoncrash" }
 sdp-android = { group = "com.intuit.sdp", name = "sdp-android", version.ref = "sdp-android" }
 ssp-android = { group = "com.intuit.ssp", name = "ssp-android", version.ref = "ssp-android" }
@@ -143,10 +143,10 @@ store = { module = "org.mobilenativefoundation.store:store5", version.ref = "sto
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }
 koin-core = { module = "io.insert-koin:koin-core" }
 koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose" }
-koin-android = { module = "io.insert-koin:koin-android"}
+koin-android = { module = "io.insert-koin:koin-android" }
 koin-workmanager = { module = "io.insert-koin:koin-androidx-workmanager" }
 koin-annotations = { module = "io.insert-koin:koin-annotations", version.ref = "koin-annotations" }
-koin-ksp = { module = "io.insert-koin:koin-ksp-compiler", version.ref = "koin-annotations"}
+koin-ksp = { module = "io.insert-koin:koin-ksp-compiler", version.ref = "koin-annotations" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "android" }

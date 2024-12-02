@@ -28,7 +28,7 @@ android {
         }
     }
     kotlin {
-        jvmToolchain(17)
+        jvmToolchain(21)
     }
     packaging {
         jniLibs.useLegacyPackaging = true
@@ -144,6 +144,6 @@ dependencies {
     implementation(libs.ksoup.html)
     implementation(libs.ksoup.entities)
 }
-tasks.withType<CompileArtProfileTask>() {
+tasks.withType<CompileArtProfileTask> {
     enabled = false
 }
