@@ -161,10 +161,7 @@ class MainRepository(
     fun getDownloadedVideoIdListFromListVideoIdAsFlow(listVideoId: List<String>) =
         localDataSource.getDownloadedVideoIdListFromListVideoIdAsFlow(listVideoId)
 
-    fun getLikedSongs(): Flow<List<SongEntity>> =
-        flow {
-            emit(localDataSource.getLikedSongs())
-        }.flowOn(Dispatchers.IO)
+    fun getLikedSongs(): Flow<List<SongEntity>> = localDataSource.getLikedSongs()
 
     fun getLibrarySongs(): Flow<List<SongEntity>> =
         flow {
@@ -210,7 +207,7 @@ class MainRepository(
         )
     }
 
-    fun getMostPlayedSongs(): Flow<List<SongEntity>> = flow { emit(localDataSource.getMostPlayedSongs()) }.flowOn(Dispatchers.IO)
+    fun getMostPlayedSongs(): Flow<List<SongEntity>> = localDataSource.getMostPlayedSongs()
 
     suspend fun updateDownloadState(
         videoId: String,
@@ -244,7 +241,7 @@ class MainRepository(
         Dispatchers.Main,
     ) { localDataSource.updateFollowed(followedStatus, channelId) }
 
-    fun getFollowedArtists(): Flow<List<ArtistEntity>> = flow { emit(localDataSource.getFollowedArtists()) }.flowOn(Dispatchers.IO)
+    fun getFollowedArtists(): Flow<List<ArtistEntity>> = localDataSource.getFollowedArtists()
 
     suspend fun updateArtistInLibrary(
         inLibrary: LocalDateTime,
@@ -2776,9 +2773,9 @@ class MainRepository(
                         )
                     }
                     if (data.first != null) {
-                        emit(format?.url?.plus("&cpn=${data.first}"))
+                        emit(format?.url?.plus("&cpn=${data.first}&range=0-${format.contentLength ?: 10000000}"))
                     } else {
-                        emit(format?.url)
+                        emit(format?.url?.plus("&range=0-${format.contentLength ?: 10000000}"))
                     }
 //                insertFormat(
 //                    FormatEntity(

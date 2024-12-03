@@ -22,32 +22,10 @@
     <fragment
         android:id="@+id/bottom_navigation_item_library"
         android:name="com.maxrave.simpmusic.ui.fragment.library.LibraryFragment"
-        android:label="fragment_library"
-        tools:layout="@layout/fragment_library">
+        android:label="fragment_library">
         <action
             android:id="@+id/action_bottom_navigation_item_library_to_favoriteFragment"
             app:destination="@id/favoriteFragment"
-            app:enterAnim="@anim/bottom_to_top"
-            app:exitAnim="@anim/top_to_bottom"
-            app:popEnterAnim="@anim/bottom_to_top"
-            app:popExitAnim="@anim/top_to_bottom" />
-        <action
-            android:id="@+id/action_bottom_navigation_item_library_to_followedFragment"
-            app:destination="@id/followedFragment"
-            app:enterAnim="@anim/bottom_to_top"
-            app:exitAnim="@anim/top_to_bottom"
-            app:popEnterAnim="@anim/bottom_to_top"
-            app:popExitAnim="@anim/top_to_bottom" />
-        <action
-            android:id="@+id/action_bottom_navigation_item_library_to_mostPlayedFragment"
-            app:destination="@id/mostPlayedFragment"
-            app:enterAnim="@anim/bottom_to_top"
-            app:exitAnim="@anim/top_to_bottom"
-            app:popEnterAnim="@anim/bottom_to_top"
-            app:popExitAnim="@anim/top_to_bottom" />
-        <action
-            android:id="@+id/action_bottom_navigation_item_library_to_downloadedFragment"
-            app:destination="@id/downloadedFragment"
             app:enterAnim="@anim/bottom_to_top"
             app:exitAnim="@anim/top_to_bottom"
             app:popEnterAnim="@anim/bottom_to_top"
@@ -139,27 +117,12 @@
     <fragment
         android:id="@+id/favoriteFragment"
         android:name="com.maxrave.simpmusic.ui.fragment.library.FavoriteFragment"
-        android:label="fragment_favorite"
-        tools:layout="@layout/fragment_favorite" />
-    <fragment
-        android:id="@+id/followedFragment"
-        android:name="com.maxrave.simpmusic.ui.fragment.library.FollowedFragment"
-        android:label="fragment_followed"
-        tools:layout="@layout/fragment_followed" />
-    <fragment
-        android:id="@+id/mostPlayedFragment"
-        android:name="com.maxrave.simpmusic.ui.fragment.library.MostPlayedFragment"
-        android:label="MostPlayedFragment" />
+        android:label="fragment_favorite" />
     <fragment
         android:id="@+id/recentlySongsFragment"
         android:name="com.maxrave.simpmusic.ui.fragment.home.RecentlySongsFragment"
         android:label="fragment_recently_songs"
         tools:layout="@layout/fragment_recently_songs" />
-    <fragment
-        android:id="@+id/downloadedFragment"
-        android:name="com.maxrave.simpmusic.ui.fragment.library.DownloadedFragment"
-        android:label="fragment_downloaded"
-        tools:layout="@layout/fragment_downloaded" />
     <fragment
         android:id="@+id/localPlaylistFragment"
         android:name="com.maxrave.simpmusic.ui.fragment.other.LocalPlaylistFragment"

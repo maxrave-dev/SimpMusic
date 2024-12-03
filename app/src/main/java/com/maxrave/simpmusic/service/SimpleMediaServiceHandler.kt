@@ -323,7 +323,7 @@ class SimpleMediaServiceHandler(
                     if (songEntity != null) {
                         _controlState.update { it.copy(isLiked = songEntity.liked) }
                         var thumbUrl =
-                            track?.thumbnails?.last()?.url
+                            track?.thumbnails?.lastOrNull()?.url
                                 ?: "http://i.ytimg.com/vi/${songEntity.videoId}/maxresdefault.jpg"
                         if (thumbUrl.contains("w120")) {
                             thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
@@ -795,6 +795,20 @@ class SimpleMediaServiceHandler(
 
     override fun onPlaybackStateChanged(playbackState: Int) {
         super.onPlaybackStateChanged(playbackState)
+        val loaded = player.bufferedPosition.let {
+            if (it > 0) {
+                it
+            } else {
+                0
+            }
+        }
+        val current = player.currentPosition.let {
+            if (it > 0) {
+                it
+            } else {
+                0
+            }
+        }
         when (playbackState) {
             Player.STATE_IDLE -> {
                 _simpleMediaState.value = SimpleMediaState.Initial
@@ -804,18 +818,15 @@ class SimpleMediaServiceHandler(
                 _simpleMediaState.value = SimpleMediaState.Ended
                 Log.d(TAG, "onPlaybackStateChanged: Ended")
             }
-            Player.STATE_BUFFERING -> {
-                _simpleMediaState.value = SimpleMediaState.Buffering(player.currentPosition)
-                Log.d(TAG, "onPlaybackStateChanged: Buffering")
-            }
             Player.STATE_READY -> {
                 Log.d(TAG, "onPlaybackStateChanged: Ready")
                 _simpleMediaState.value = SimpleMediaState.Ready(player.duration)
             }
             else -> {
-                Log.d(TAG, "onPlaybackStateChanged: $playbackState")
-                _simpleMediaState.value =
-                    SimpleMediaState.Buffering(player.currentPosition)
+                if (current >= loaded) {
+                    _simpleMediaState.value = SimpleMediaState.Buffering(player.currentPosition)
+                    Log.d(TAG, "onPlaybackStateChanged: Buffering")
+                }
             }
         }
     }
@@ -854,6 +865,7 @@ class SimpleMediaServiceHandler(
         } else {
             stopProgressUpdate()
             mayBeSaveRecentSong()
+            mayBeSavePlaybackState()
         }
         updateNextPreviousTrackAvailability()
     }
@@ -1222,7 +1234,7 @@ class SimpleMediaServiceHandler(
         coroutineScope.launch {
             if (dataStoreManager.saveRecentSongAndQueue.first() == TRUE) {
                 dataStoreManager.saveRecentSong(
-                    player.currentMediaItem?.mediaId ?: "",
+                    nowPlayingState.value.songEntity?.videoId ?: "",
                     player.contentPosition,
                 )
                 dataStoreManager.setPlaylistFromSaved(queueData.value?.playlistName ?: "")
@@ -1353,14 +1365,14 @@ class SimpleMediaServiceHandler(
                         CommandButton
                             .Builder()
                             .setDisplayName(
-                                if (liked == true) {
+                                if (liked) {
                                     context.getString(R.string.liked)
                                 } else {
                                     context.getString(
                                         R.string.like,
                                     )
                                 },
-                            ).setIconResId(if (liked == true) R.drawable.baseline_favorite_24 else R.drawable.baseline_favorite_border_24)
+                            ).setIconResId(if (liked) R.drawable.baseline_favorite_24 else R.drawable.baseline_favorite_border_24)
                             .setSessionCommand(SessionCommand(MEDIA_CUSTOM_COMMAND.LIKE, Bundle()))
                             .build(),
                         CommandButton
@@ -1470,28 +1482,18 @@ class SimpleMediaServiceHandler(
         for (i in 0 until listTrack.size) {
             val track = listTrack[i]
             var thumbUrl =
-                track.thumbnails?.last()?.url
+                track.thumbnails?.lastOrNull()?.url
                     ?: "http://i.ytimg.com/vi/${track.videoId}/maxresdefault.jpg"
             if (thumbUrl.contains("w120")) {
                 thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
             }
             val artistName: String = track.artists.toListName().connectArtists()
             val isSong =
-                (
-                    track.thumbnails?.last()?.height != 0 &&
-                        track.thumbnails?.last()?.height == track.thumbnails?.last()?.width &&
-                        track.thumbnails?.last()?.height != null
-                ) &&
-                    (
-                        track.thumbnails
-                            .lastOrNull()
-                            ?.url
-                            ?.contains("hq720") == false &&
-                            track.thumbnails
-                                .lastOrNull()
-                                ?.url
-                                ?.contains("maxresdefault") == false
-                    )
+                (track.thumbnails?.lastOrNull()?.height != 0 &&
+                    track.thumbnails?.lastOrNull()?.height == track.thumbnails?.lastOrNull()?.width &&
+                    track.thumbnails?.lastOrNull()?.height != null) && (!thumbUrl
+                    .contains("hq720") && !thumbUrl
+                    .contains("maxresdefault") && !thumbUrl.contains("sddefault"))
             if (track.artists.isNullOrEmpty()) {
                 mainRepository
                     .getSongInfo(track.videoId)
@@ -1608,27 +1610,17 @@ class SimpleMediaServiceHandler(
                 val track = list[i]
                 if (track == current) continue
                 var thumbUrl =
-                    track.thumbnails?.last()?.url
+                    track.thumbnails?.lastOrNull()?.url
                         ?: "http://i.ytimg.com/vi/${track.videoId}/maxresdefault.jpg"
                 if (thumbUrl.contains("w120")) {
                     thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
                 }
                 val isSong =
-                    (
-                        track.thumbnails?.last()?.height != 0 &&
-                            track.thumbnails?.last()?.height == track.thumbnails?.last()?.width &&
-                            track.thumbnails?.last()?.height != null
-                    ) &&
-                        (
-                            track.thumbnails
-                                .lastOrNull()
-                                ?.url
-                                ?.contains("hq720") == false &&
-                                track.thumbnails
-                                    .lastOrNull()
-                                    ?.url
-                                    ?.contains("maxresdefault") == false
-                        )
+                    (track.thumbnails?.lastOrNull()?.height != 0 &&
+                        track.thumbnails?.lastOrNull()?.height == track.thumbnails?.lastOrNull()?.width &&
+                        track.thumbnails?.lastOrNull()?.height != null) && (!thumbUrl
+                        .contains("hq720") && !thumbUrl
+                        .contains("maxresdefault") && !thumbUrl.contains("sddefault"))
                 if (downloaded == 1) {
                     if (track.artists.isNullOrEmpty()) {
                         mainRepository.getSongInfo(track.videoId).singleOrNull().let { songInfo ->
@@ -1864,28 +1856,18 @@ class SimpleMediaServiceHandler(
         _stateFlow.value = StateSource.STATE_INITIALIZING
         val catalogMetadata: ArrayList<Track> = queueData.first()?.listTracks ?: arrayListOf()
         var thumbUrl =
-            track.thumbnails?.last()?.url
+            track.thumbnails?.lastOrNull()?.url
                 ?: "http://i.ytimg.com/vi/${track.videoId}/maxresdefault.jpg"
         if (thumbUrl.contains("w120")) {
             thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
         }
         val artistName: String = track.artists.toListName().connectArtists()
         val isSong =
-            (
-                track.thumbnails?.last()?.height != 0 &&
-                    track.thumbnails?.last()?.height == track.thumbnails?.last()?.width &&
-                    track.thumbnails?.last()?.height != null
-            ) &&
-                (
-                    track.thumbnails
-                        .lastOrNull()
-                        ?.url
-                        ?.contains("hq720") == false &&
-                        track.thumbnails
-                            .lastOrNull()
-                            ?.url
-                            ?.contains("maxresdefault") == false
-                )
+            (track.thumbnails?.lastOrNull()?.height != 0 &&
+                track.thumbnails?.lastOrNull()?.height == track.thumbnails?.lastOrNull()?.width &&
+                track.thumbnails?.lastOrNull()?.height != null) && (!thumbUrl
+                .contains("hq720") && !thumbUrl
+                .contains("maxresdefault") && !thumbUrl.contains("sddefault"))
         if ((player.currentMediaItemIndex + 1 in 0..(queueData.first()?.listTracks?.size ?: 0))) {
             if (track.artists.isNullOrEmpty()) {
                 mainRepository.getSongInfo(track.videoId).cancellable().first().let { songInfo ->

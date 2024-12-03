@@ -24,7 +24,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
@@ -40,9 +39,6 @@ class LibraryViewModel(
 
     override val tag: String
         get() = "LibraryViewModel"
-
-        private val _nowPlayingVideoId: MutableStateFlow<String> = MutableStateFlow("")
-        val nowPlayingVideoId: StateFlow<String> get() = _nowPlayingVideoId
 
         private val _recentlyAdded: MutableStateFlow<LocalResource<List<RecentlyType>>> =
             MutableStateFlow(LocalResource.Loading())
@@ -88,23 +84,6 @@ class LibraryViewModel(
         //    val recentlyAdded = mainRepository.getAllRecentData().map { pagingData ->
 //        pagingData.map { it }
 //    }.cachedIn(viewModelScope)
-        init {
-            getNowPlayingVideoId()
-        }
-        private fun getNowPlayingVideoId() {
-            viewModelScope.launch {
-                combine(simpleMediaServiceHandler.nowPlayingState, simpleMediaServiceHandler.controlState) { nowPlayingState, controlState ->
-                    Pair(nowPlayingState, controlState)
-                }.collect { (nowPlayingState, controlState) ->
-                    if (controlState.isPlaying) {
-                        _nowPlayingVideoId.value = nowPlayingState.songEntity?.videoId ?: ""
-                    } else {
-                        _nowPlayingVideoId.value = ""
-                    }
-                }
-
-            }
-        }
 
         fun getRecentlyAdded() {
             viewModelScope.launch {

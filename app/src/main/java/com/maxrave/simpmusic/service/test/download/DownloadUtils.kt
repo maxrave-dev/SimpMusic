@@ -15,22 +15,25 @@ import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.offline.DownloadNotificationHelper
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
+import coil3.ImageLoader
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.service.test.download.MusicDownloadService.Companion.CHANNEL_ID
 import com.maxrave.simpmusic.service.test.source.MergingMediaSourceFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Runnable
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.cancellable
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
-import java.util.concurrent.Executors
+import java.util.concurrent.Executor
 
 @UnstableApi
 class DownloadUtils (
@@ -45,7 +48,6 @@ class DownloadUtils (
     private val dataSourceFactory = ResolvingDataSource.Factory(
         CacheDataSource.Factory()
             .setCache(playerCache)
-            .setCacheWriteDataSinkFactory(null)
             .setUpstreamDataSourceFactory(
                 OkHttpDataSource.Factory(
                     OkHttpClient.Builder()
@@ -56,12 +58,8 @@ class DownloadUtils (
         val mediaId = dataSpec.key ?: error("No media id")
         Log.w("Stream", mediaId)
         Log.w("Stream", mediaId.startsWith(MergingMediaSourceFactory.isVideo).toString())
-        val chunkLength = 512 * 1024L
-        if (downloadCache.isCached(
-                mediaId,
-                dataSpec.position,
-                if (dataSpec.length >= 0) dataSpec.length else 1
-            ) || playerCache.isCached(mediaId, dataSpec.position, chunkLength)
+        val length = if (dataSpec.length >= 0) dataSpec.length else 1
+        if (downloadCache.isCached(mediaId, dataSpec.position, length) || playerCache.isCached(mediaId, dataSpec.position, length)
         ) {
             return@Factory dataSpec
         }
@@ -71,19 +69,15 @@ class DownloadUtils (
                 val id = mediaId.removePrefix(MergingMediaSourceFactory.isVideo)
                 mainRepository.getStream(
                     id, true
-                ).cancellable().collect {
-                    if (it != null) {
-                        dataSpecReturn = dataSpec.withUri(it.toUri())
-                    }
+                ).singleOrNull()?.let {
+                    dataSpecReturn = dataSpec.withUri(it.toUri())
                 }
             }
             else {
                 mainRepository.getStream(
                     mediaId, isVideo = false
-                ).cancellable().collect {
-                    if (it != null) {
-                        dataSpecReturn = dataSpec.withUri(it.toUri())
-                    }
+                ).singleOrNull()?.let {
+                    dataSpecReturn = dataSpec.withUri(it.toUri())
                 }
             }
         }
@@ -95,7 +89,7 @@ class DownloadUtils (
         databaseProvider,
         downloadCache,
         dataSourceFactory,
-        Executors.newFixedThreadPool(10)
+        Executor(Runnable::run),
     ).apply {
         maxParallelDownloads = 20
         minRetryCount = 3
@@ -107,10 +101,24 @@ class DownloadUtils (
             )
         )
     }
-    val downloads = MutableStateFlow<Map<String, Download>>(emptyMap())
+    private val downloads = MutableStateFlow<Map<String, Pair<Download?, Download?>>>(emptyMap())
+    private val _downloadTask = MutableStateFlow<Map<String, Int>>(emptyMap())
+    val downloadTask: StateFlow<Map<String, Int>> get() = _downloadTask
     val downloadingVideoIds = MutableStateFlow<MutableSet<String>>(mutableSetOf())
 
-    fun downloadTrack(videoId: String, title: String) {
+    /**
+     * Use thumbnail to check video or audio
+     */
+    suspend fun downloadTrack(videoId: String, title: String, thumbnail: String) {
+        var isVideo = false
+        val request = ImageRequest.Builder(context)
+            .data(thumbnail)
+            .diskCachePolicy(CachePolicy.ENABLED)
+            .build()
+        val imageResult = ImageLoader(context).execute(request)
+        if (imageResult.image?.height != imageResult.image?.width && imageResult.image != null) {
+            isVideo = true
+        }
         val downloadRequest =
             DownloadRequest.Builder(videoId, videoId.toUri())
                 .setData(title.toByteArray())
@@ -122,6 +130,20 @@ class DownloadUtils (
             downloadRequest,
             false,
         )
+        if (isVideo) {
+            val id = MergingMediaSourceFactory.isVideo + videoId
+            val downloadRequestVideo =
+                DownloadRequest.Builder(id, id.toUri())
+                    .setData("Video $title".toByteArray())
+                    .setCustomCacheKey(id)
+                    .build()
+            DownloadService.sendAddDownload(
+                context,
+                MusicDownloadService::class.java,
+                downloadRequestVideo,
+                false,
+            )
+        }
     }
 
     fun removeDownload(videoId: String) {
@@ -131,15 +153,90 @@ class DownloadUtils (
             videoId,
             false
         )
+        val id = MergingMediaSourceFactory.isVideo + videoId
+        DownloadService.sendRemoveDownload(
+            context,
+            MusicDownloadService::class.java,
+            id,
+            false
+        )
     }
 
-    fun getDownload(songId: String): Flow<Download?> = downloads.map { it[songId] }
+    fun removeAllDownloads() {
+        downloads.value = emptyMap()
+        _downloadTask.value = emptyMap()
+        downloadingVideoIds.value = mutableSetOf()
+        downloadManager.removeAllDownloads()
+    }
 
     init {
-        val result = mutableMapOf<String, Download>()
+        coroutineScope.launch {
+            downloads.collect { download ->
+                download.forEach {
+                    val videoId = it.key
+                    val audio = it.value.first?.state
+                    val video = it.value.second?.state
+                    val combineState = when (audio to video) {
+                        Download.STATE_COMPLETED to Download.STATE_COMPLETED -> DownloadState.STATE_DOWNLOADED
+                        Download.STATE_FAILED to Download.STATE_FAILED -> DownloadState.STATE_NOT_DOWNLOADED
+                        Download.STATE_QUEUED to Download.STATE_QUEUED -> DownloadState.STATE_PREPARING
+                        Download.STATE_COMPLETED to null -> DownloadState.STATE_DOWNLOADED
+                        Download.STATE_FAILED to null -> DownloadState.STATE_NOT_DOWNLOADED
+                        Download.STATE_QUEUED to null -> DownloadState.STATE_PREPARING
+                        null to Download.STATE_COMPLETED -> DownloadState.STATE_DOWNLOADING
+                        null to Download.STATE_QUEUED -> DownloadState.STATE_PREPARING
+                        null to Download.STATE_FAILED -> DownloadState.STATE_NOT_DOWNLOADED
+                        else -> DownloadState.STATE_DOWNLOADING
+                    }
+                    _downloadTask.update {
+                        it.toMutableMap().apply {
+                            set(videoId, combineState)
+                        }
+                    }
+                    when (combineState) {
+                        DownloadState.STATE_DOWNLOADED -> {
+                            downloadingVideoIds.update {
+                                it.apply {
+                                    remove(videoId)
+                                }
+                            }
+                            mainRepository.updateDownloadState(videoId, DownloadState.STATE_DOWNLOADED)
+                        }
+                        DownloadState.STATE_DOWNLOADING -> {
+                            mainRepository.updateDownloadState(videoId, DownloadState.STATE_DOWNLOADING)
+                        }
+                        DownloadState.STATE_NOT_DOWNLOADED -> {
+                            downloadingVideoIds.update {
+                                it.apply {
+                                    remove(videoId)
+                                }
+                            }
+                            mainRepository.updateDownloadState(videoId, DownloadState.STATE_NOT_DOWNLOADED)
+                        }
+                        DownloadState.STATE_PREPARING -> {
+                            mainRepository.updateDownloadState(videoId, DownloadState.STATE_PREPARING)
+                        }
+                    }
+                }
+            }
+        }
+
+        // Pair Audio and Video
+        val result = mutableMapOf<String, Pair<Download?, Download?>>()
         val cursor = downloadManager.downloadIndex.getDownloads()
         while (cursor.moveToNext()) {
-            result[cursor.download.request.id] = cursor.download
+            val id = cursor.download.request.id
+            val isVideo = id.contains(MergingMediaSourceFactory.isVideo)
+            val songId = if (id.contains(MergingMediaSourceFactory.isVideo)) {
+                id.removePrefix(MergingMediaSourceFactory.isVideo)
+            } else {
+                id
+            }
+            result[songId] = if (isVideo) {
+                result[songId]?.copy(second = cursor.download) ?: Pair(null, cursor.download)
+            } else {
+                result[songId]?.copy(first = cursor.download) ?: Pair(cursor.download, null)
+            }
         }
         downloads.value = result
         downloadManager.addListener(
@@ -150,21 +247,25 @@ class DownloadUtils (
                     finalException: Exception?
                 ) {
                     download.request.id.let { id ->
+                        var isVideo = false
                         val songId = if (id.contains(MergingMediaSourceFactory.isVideo)) {
+                            isVideo = true
                             id.removePrefix(MergingMediaSourceFactory.isVideo)
                         } else {
                             id
                         }
+                        downloads.update { map ->
+                            map.toMutableMap().apply {
+                                val current = map.getOrDefault(songId, null)
+                                if (isVideo) {
+                                    set(songId, current?.copy(second = download) ?: Pair(null, download))
+                                } else {
+                                    set(songId, current?.copy(first = download) ?: Pair(download, null))
+                                }
+                            }
+                        }
                         when(download.state) {
                             Download.STATE_COMPLETED -> {
-                                coroutineScope.launch {
-                                    downloadingVideoIds.update {
-                                        it.apply {
-                                            remove(songId)
-                                        }
-                                    }
-                                    mainRepository.updateDownloadState(songId, DownloadState.STATE_DOWNLOADED)
-                                }
                                 playerCache.removeResource(id)
                             }
 
@@ -178,78 +279,11 @@ class DownloadUtils (
                                     mainRepository.updateDownloadState(songId, DownloadState.STATE_DOWNLOADING)
                                 }
                             }
-
-                            Download.STATE_FAILED -> {
-                                coroutineScope.launch {
-                                    downloadingVideoIds.update {
-                                        it.apply {
-                                            remove(songId)
-                                        }
-                                    }
-                                    mainRepository.updateDownloadState(songId, DownloadState.STATE_NOT_DOWNLOADED)
-                                }
-                            }
-
-                            Download.STATE_QUEUED -> {
-                                coroutineScope.launch {
-                                    downloadingVideoIds.update {
-                                        it.apply {
-                                            add(songId)
-                                        }
-                                    }
-                                    mainRepository.updateDownloadState(songId, DownloadState.STATE_PREPARING)
-                                }
-                            }
-
-                            Download.STATE_REMOVING -> {
-                                coroutineScope.launch {
-                                    downloadingVideoIds.update {
-                                        it.apply {
-                                            remove(songId)
-                                        }
-                                    }
-                                    mainRepository.updateDownloadState(songId, DownloadState.STATE_NOT_DOWNLOADED)
-                                }
-                            }
-
-                            Download.STATE_RESTARTING -> {
-                                coroutineScope.launch {
-                                    downloadingVideoIds.update {
-                                        it.apply {
-                                            add(songId)
-                                        }
-                                    }
-                                    mainRepository.updateDownloadState(songId, DownloadState.STATE_DOWNLOADING)
-                                }
-                            }
-
-                            Download.STATE_STOPPED -> {
-                                coroutineScope.launch {
-                                    downloadingVideoIds.update {
-                                        it.apply {
-                                            remove(songId)
-                                        }
-                                    }
-                                    mainRepository.updateDownloadState(songId, DownloadState.STATE_NOT_DOWNLOADED)
-                                }
-                            }
                             else -> {
 
                             }
                         }
                     }
-                    downloads.update { map ->
-                        map.toMutableMap().apply {
-                            val id = download.request.id
-                            if (id.contains(MergingMediaSourceFactory.isVideo)) {
-                                set(id.removePrefix(MergingMediaSourceFactory.isVideo), download)
-                            }
-                            else {
-                                set(download.request.id, download)
-                            }
-                        }
-                    }
-
                 }
             }
         )

@@ -155,7 +155,9 @@ class NowPlayingBottomSheetViewModel(
                                     videoId = songUIState.videoId,
                                     downloadState = DownloadState.STATE_PREPARING
                                 )
-                            downloadUtils.downloadTrack(videoId = songUIState.videoId, title = songUIState.title)
+                            downloadUtils.downloadTrack(
+                                videoId = songUIState.videoId,
+                                title = songUIState.title, thumbnail = songUIState.thumbnails ?: "")
                             makeToast(getString(R.string.downloading))
                         }
                         DownloadState.STATE_PREPARING, DownloadState.STATE_DOWNLOADING -> {
