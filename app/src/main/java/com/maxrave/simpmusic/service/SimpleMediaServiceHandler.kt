@@ -795,6 +795,20 @@ class SimpleMediaServiceHandler(
 
     override fun onPlaybackStateChanged(playbackState: Int) {
         super.onPlaybackStateChanged(playbackState)
+        val loaded = player.bufferedPosition.let {
+            if (it > 0) {
+                it
+            } else {
+                0
+            }
+        }
+        val current = player.currentPosition.let {
+            if (it > 0) {
+                it
+            } else {
+                0
+            }
+        }
         when (playbackState) {
             Player.STATE_IDLE -> {
                 _simpleMediaState.value = SimpleMediaState.Initial
@@ -804,18 +818,15 @@ class SimpleMediaServiceHandler(
                 _simpleMediaState.value = SimpleMediaState.Ended
                 Log.d(TAG, "onPlaybackStateChanged: Ended")
             }
-            Player.STATE_BUFFERING -> {
-                _simpleMediaState.value = SimpleMediaState.Buffering(player.currentPosition)
-                Log.d(TAG, "onPlaybackStateChanged: Buffering")
-            }
             Player.STATE_READY -> {
                 Log.d(TAG, "onPlaybackStateChanged: Ready")
                 _simpleMediaState.value = SimpleMediaState.Ready(player.duration)
             }
             else -> {
-                Log.d(TAG, "onPlaybackStateChanged: $playbackState")
-                _simpleMediaState.value =
-                    SimpleMediaState.Buffering(player.currentPosition)
+                if (current >= loaded) {
+                    _simpleMediaState.value = SimpleMediaState.Buffering(player.currentPosition)
+                    Log.d(TAG, "onPlaybackStateChanged: Buffering")
+                }
             }
         }
     }
