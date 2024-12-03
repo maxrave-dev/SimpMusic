@@ -344,8 +344,7 @@ class MainActivity : AppCompatActivity() {
                         true
                 }
 
-                R.id.bottom_navigation_item_library, R.id.downloadedFragment,
-                R.id.mostPlayedFragment, R.id.followedFragment,
+                R.id.bottom_navigation_item_library,
                 R.id.favoriteFragment, R.id.localPlaylistFragment,
                 -> {
                     binding.bottomNavigationView.menu
@@ -358,8 +357,7 @@ class MainActivity : AppCompatActivity() {
                 R.id.playlistFragment, R.id.artistFragment, R.id.albumFragment -> {
                     val currentBackStack = nav.previousBackStackEntry?.destination?.id
                     when (currentBackStack) {
-                        R.id.bottom_navigation_item_library, R.id.downloadedFragment,
-                        R.id.mostPlayedFragment, R.id.followedFragment,
+                        R.id.bottom_navigation_item_library,
                         R.id.favoriteFragment, R.id.localPlaylistFragment -> {
                             binding.bottomNavigationView.menu
                                 .findItem(

@@ -2,18 +2,21 @@ package com.maxrave.simpmusic.ui.screen.library
 
 import android.content.res.Configuration
 import android.util.Log
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
@@ -32,6 +35,7 @@ import org.koin.androidx.compose.koinViewModel
 @UnstableApi
 @Composable
 fun LibraryScreen(
+    innerPadding: PaddingValues,
     viewModel: LibraryViewModel = koinViewModel(),
     navController: NavController
 ) {
@@ -57,19 +61,11 @@ fun LibraryScreen(
         viewModel.getRecentlyAdded()
     }
 
-    LazyColumn {
+    LazyColumn(
+        contentPadding = innerPadding,
+    ) {
         item {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.app_name),
-                        style = typo.titleMedium,
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
-                ),
-            )
+            Spacer(Modifier.height(64.dp))
         }
         item {
             LibraryTilingBox(navController)
@@ -132,6 +128,14 @@ fun LibraryScreen(
             EndOfPage()
         }
     }
+    TopAppBar(
+        title = {
+            Text(
+                text = stringResource(R.string.library),
+                style = typo.titleMedium,
+            )
+        }
+    )
 }
 
 @Preview(showSystemUi = true, uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL)

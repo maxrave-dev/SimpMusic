@@ -161,10 +161,7 @@ class MainRepository(
     fun getDownloadedVideoIdListFromListVideoIdAsFlow(listVideoId: List<String>) =
         localDataSource.getDownloadedVideoIdListFromListVideoIdAsFlow(listVideoId)
 
-    fun getLikedSongs(): Flow<List<SongEntity>> =
-        flow {
-            emit(localDataSource.getLikedSongs())
-        }.flowOn(Dispatchers.IO)
+    fun getLikedSongs(): Flow<List<SongEntity>> = localDataSource.getLikedSongs()
 
     fun getLibrarySongs(): Flow<List<SongEntity>> =
         flow {
@@ -210,7 +207,7 @@ class MainRepository(
         )
     }
 
-    fun getMostPlayedSongs(): Flow<List<SongEntity>> = flow { emit(localDataSource.getMostPlayedSongs()) }.flowOn(Dispatchers.IO)
+    fun getMostPlayedSongs(): Flow<List<SongEntity>> = localDataSource.getMostPlayedSongs()
 
     suspend fun updateDownloadState(
         videoId: String,
@@ -244,7 +241,7 @@ class MainRepository(
         Dispatchers.Main,
     ) { localDataSource.updateFollowed(followedStatus, channelId) }
 
-    fun getFollowedArtists(): Flow<List<ArtistEntity>> = flow { emit(localDataSource.getFollowedArtists()) }.flowOn(Dispatchers.IO)
+    fun getFollowedArtists(): Flow<List<ArtistEntity>> = localDataSource.getFollowedArtists()
 
     suspend fun updateArtistInLibrary(
         inLibrary: LocalDateTime,

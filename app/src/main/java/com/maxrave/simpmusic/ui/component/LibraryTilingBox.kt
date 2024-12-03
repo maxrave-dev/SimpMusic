@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.ui.component
 
+import android.os.Bundle
 import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -57,13 +58,19 @@ fun LibraryTilingBox(
                             navController.navigateSafe(R.id.action_bottom_navigation_item_library_to_favoriteFragment)
                         }
                         LibraryTilingState.Followed -> {
-                            navController.navigateSafe(R.id.action_bottom_navigation_item_library_to_followedFragment)
+                            navController.navigateSafe(R.id.action_bottom_navigation_item_library_to_favoriteFragment, Bundle().apply {
+                                putString("type", "followed")
+                            })
                         }
                         LibraryTilingState.MostPlayed -> {
-                            navController.navigateSafe(R.id.action_bottom_navigation_item_library_to_mostPlayedFragment)
+                            navController.navigateSafe(R.id.action_bottom_navigation_item_library_to_favoriteFragment, Bundle().apply {
+                                putString("type", "most_played")
+                            })
                         }
                         LibraryTilingState.Downloaded -> {
-                            navController.navigateSafe(R.id.action_bottom_navigation_item_library_to_downloadedFragment)
+                            navController.navigateSafe(R.id.action_bottom_navigation_item_library_to_favoriteFragment, Bundle().apply {
+                                putString("type", "downloaded")
+                            })
                         }
                     }
                 }

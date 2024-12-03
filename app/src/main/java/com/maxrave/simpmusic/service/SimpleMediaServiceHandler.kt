@@ -323,7 +323,7 @@ class SimpleMediaServiceHandler(
                     if (songEntity != null) {
                         _controlState.update { it.copy(isLiked = songEntity.liked) }
                         var thumbUrl =
-                            track?.thumbnails?.last()?.url
+                            track?.thumbnails?.lastOrNull()?.url
                                 ?: "http://i.ytimg.com/vi/${songEntity.videoId}/maxresdefault.jpg"
                         if (thumbUrl.contains("w120")) {
                             thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
@@ -1471,28 +1471,18 @@ class SimpleMediaServiceHandler(
         for (i in 0 until listTrack.size) {
             val track = listTrack[i]
             var thumbUrl =
-                track.thumbnails?.last()?.url
+                track.thumbnails?.lastOrNull()?.url
                     ?: "http://i.ytimg.com/vi/${track.videoId}/maxresdefault.jpg"
             if (thumbUrl.contains("w120")) {
                 thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
             }
             val artistName: String = track.artists.toListName().connectArtists()
             val isSong =
-                (
-                    track.thumbnails?.last()?.height != 0 &&
-                        track.thumbnails?.last()?.height == track.thumbnails?.last()?.width &&
-                        track.thumbnails?.last()?.height != null
-                ) &&
-                    (
-                        track.thumbnails
-                            .lastOrNull()
-                            ?.url
-                            ?.contains("hq720") == false &&
-                            track.thumbnails
-                                .lastOrNull()
-                                ?.url
-                                ?.contains("maxresdefault") == false
-                    )
+                (track.thumbnails?.lastOrNull()?.height != 0 &&
+                    track.thumbnails?.lastOrNull()?.height == track.thumbnails?.lastOrNull()?.width &&
+                    track.thumbnails?.lastOrNull()?.height != null) && (!thumbUrl
+                    .contains("hq720") && !thumbUrl
+                    .contains("maxresdefault") && !thumbUrl.contains("sddefault"))
             if (track.artists.isNullOrEmpty()) {
                 mainRepository
                     .getSongInfo(track.videoId)
@@ -1609,27 +1599,17 @@ class SimpleMediaServiceHandler(
                 val track = list[i]
                 if (track == current) continue
                 var thumbUrl =
-                    track.thumbnails?.last()?.url
+                    track.thumbnails?.lastOrNull()?.url
                         ?: "http://i.ytimg.com/vi/${track.videoId}/maxresdefault.jpg"
                 if (thumbUrl.contains("w120")) {
                     thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
                 }
                 val isSong =
-                    (
-                        track.thumbnails?.last()?.height != 0 &&
-                            track.thumbnails?.last()?.height == track.thumbnails?.last()?.width &&
-                            track.thumbnails?.last()?.height != null
-                    ) &&
-                        (
-                            track.thumbnails
-                                .lastOrNull()
-                                ?.url
-                                ?.contains("hq720") == false &&
-                                track.thumbnails
-                                    .lastOrNull()
-                                    ?.url
-                                    ?.contains("maxresdefault") == false
-                        )
+                    (track.thumbnails?.lastOrNull()?.height != 0 &&
+                        track.thumbnails?.lastOrNull()?.height == track.thumbnails?.lastOrNull()?.width &&
+                        track.thumbnails?.lastOrNull()?.height != null) && (!thumbUrl
+                        .contains("hq720") && !thumbUrl
+                        .contains("maxresdefault") && !thumbUrl.contains("sddefault"))
                 if (downloaded == 1) {
                     if (track.artists.isNullOrEmpty()) {
                         mainRepository.getSongInfo(track.videoId).singleOrNull().let { songInfo ->
@@ -1865,28 +1845,18 @@ class SimpleMediaServiceHandler(
         _stateFlow.value = StateSource.STATE_INITIALIZING
         val catalogMetadata: ArrayList<Track> = queueData.first()?.listTracks ?: arrayListOf()
         var thumbUrl =
-            track.thumbnails?.last()?.url
+            track.thumbnails?.lastOrNull()?.url
                 ?: "http://i.ytimg.com/vi/${track.videoId}/maxresdefault.jpg"
         if (thumbUrl.contains("w120")) {
             thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
         }
         val artistName: String = track.artists.toListName().connectArtists()
         val isSong =
-            (
-                track.thumbnails?.last()?.height != 0 &&
-                    track.thumbnails?.last()?.height == track.thumbnails?.last()?.width &&
-                    track.thumbnails?.last()?.height != null
-            ) &&
-                (
-                    track.thumbnails
-                        .lastOrNull()
-                        ?.url
-                        ?.contains("hq720") == false &&
-                        track.thumbnails
-                            .lastOrNull()
-                            ?.url
-                            ?.contains("maxresdefault") == false
-                )
+            (track.thumbnails?.lastOrNull()?.height != 0 &&
+                track.thumbnails?.lastOrNull()?.height == track.thumbnails?.lastOrNull()?.width &&
+                track.thumbnails?.lastOrNull()?.height != null) && (!thumbUrl
+                .contains("hq720") && !thumbUrl
+                .contains("maxresdefault") && !thumbUrl.contains("sddefault"))
         if ((player.currentMediaItemIndex + 1 in 0..(queueData.first()?.listTracks?.size ?: 0))) {
             if (track.artists.isNullOrEmpty()) {
                 mainRepository.getSongInfo(track.videoId).cancellable().first().let { songInfo ->

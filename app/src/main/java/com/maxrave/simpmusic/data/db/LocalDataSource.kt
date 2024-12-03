@@ -54,7 +54,7 @@ class LocalDataSource(
 
     suspend fun getDownloadingSongs() = databaseDao.getDownloadingSongs()
 
-    suspend fun getLikedSongs() = databaseDao.getLikedSongs()
+    fun getLikedSongs() = databaseDao.getLikedSongs()
 
     suspend fun getLibrarySongs() = databaseDao.getLibrarySongs()
 
@@ -86,7 +86,7 @@ class LocalDataSource(
         videoId: String,
     ) = databaseDao.updateSongInLibrary(inLibrary, videoId)
 
-    suspend fun getMostPlayedSongs() = databaseDao.getMostPlayedSongs()
+    fun getMostPlayedSongs() = databaseDao.getMostPlayedSongs()
 
     suspend fun updateDownloadState(
         downloadState: Int,
@@ -104,7 +104,7 @@ class LocalDataSource(
 
     suspend fun getArtist(channelId: String) = databaseDao.getArtist(channelId)
 
-    suspend fun getFollowedArtists() = databaseDao.getFollowedArtists()
+    fun getFollowedArtists() = databaseDao.getFollowedArtists()
 
     suspend fun updateArtistInLibrary(
         inLibrary: LocalDateTime,

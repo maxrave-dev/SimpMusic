@@ -34,7 +34,7 @@ class LibraryFragment : Fragment() {
             setContent {
                 AppTheme {
                     Scaffold { paddingValue ->
-                        LibraryScreen(navController = findNavController())
+                        LibraryScreen(paddingValue, navController = findNavController())
                     }
                 }
             }

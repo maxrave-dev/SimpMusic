@@ -27,6 +27,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -43,6 +44,13 @@ abstract class BaseViewModel(
 
     // I want I can play track from any viewModel instead of calling from UI to sharedViewModel
     protected val simpleMediaServiceHandler: SimpleMediaServiceHandler by inject()
+
+    private val _nowPlayingVideoId: MutableStateFlow<String> = MutableStateFlow("")
+    /**
+     * Get now playing video id
+     * If empty, no video is playing
+     */
+    val nowPlayingVideoId: StateFlow<String> get() = _nowPlayingVideoId
 
     /**
      * Tag for logging
@@ -72,6 +80,10 @@ abstract class BaseViewModel(
         viewModelScope.cancel()
     }
 
+    init {
+        getNowPlayingVideoId()
+    }
+
     protected fun makeToast(message: String?) {
         Toast.makeText(application, message ?: "NO MESSAGE", Toast.LENGTH_SHORT).show()
     }
@@ -87,6 +99,21 @@ abstract class BaseViewModel(
     }
     fun hideLoadingDialog() {
         _showLoadingDialog.value = false to getString(R.string.loading)
+    }
+
+    private fun getNowPlayingVideoId() {
+        viewModelScope.launch {
+            combine(simpleMediaServiceHandler.nowPlayingState, simpleMediaServiceHandler.controlState) { nowPlayingState, controlState ->
+                Pair(nowPlayingState, controlState)
+            }.collect { (nowPlayingState, controlState) ->
+                if (controlState.isPlaying) {
+                    _nowPlayingVideoId.value = nowPlayingState.songEntity?.videoId ?: ""
+                } else {
+                    _nowPlayingVideoId.value = ""
+                }
+            }
+
+        }
     }
 
     /**

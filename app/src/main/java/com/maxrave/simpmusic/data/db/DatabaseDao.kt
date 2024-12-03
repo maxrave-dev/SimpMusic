@@ -129,7 +129,7 @@ interface DatabaseDao {
     suspend fun getAllSongs(): List<SongEntity>
 
     @Query("SELECT * FROM song WHERE liked = 1")
-    suspend fun getLikedSongs(): List<SongEntity>
+    fun getLikedSongs(): Flow<List<SongEntity>>
 
     @Query("SELECT * FROM song WHERE inLibrary IS NOT NULL")
     suspend fun getLibrarySongs(): List<SongEntity>
@@ -164,8 +164,8 @@ interface DatabaseDao {
         videoId: String,
     ): Int
 
-    @Query("SELECT * FROM song WHERE totalPlayTime > 1 ORDER BY totalPlayTime DESC LIMIT 20")
-    suspend fun getMostPlayedSongs(): List<SongEntity>
+    @Query("SELECT * FROM song WHERE totalPlayTime > 1 ORDER BY totalPlayTime DESC LIMIT 50")
+    fun getMostPlayedSongs(): Flow<List<SongEntity>>
 
     @Query("UPDATE song SET downloadState = :downloadState WHERE videoId = :videoId")
     suspend fun updateDownloadState(
@@ -208,7 +208,7 @@ interface DatabaseDao {
     suspend fun getArtist(channelId: String): ArtistEntity
 
     @Query("SELECT * FROM artist WHERE followed = 1")
-    suspend fun getFollowedArtists(): List<ArtistEntity>
+    fun getFollowedArtists(): Flow<List<ArtistEntity>>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertArtist(artist: ArtistEntity)
