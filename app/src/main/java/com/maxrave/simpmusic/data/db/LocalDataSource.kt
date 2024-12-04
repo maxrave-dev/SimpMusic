@@ -122,6 +122,8 @@ class LocalDataSource(
 
     suspend fun getAlbum(albumId: String) = databaseDao.getAlbum(albumId)
 
+    fun getAlbumAsFlow(albumId: String) = databaseDao.getAlbumAsFlow(albumId)
+
     suspend fun getLikedAlbums() = databaseDao.getLikedAlbums()
 
     suspend fun updateAlbumInLibrary(

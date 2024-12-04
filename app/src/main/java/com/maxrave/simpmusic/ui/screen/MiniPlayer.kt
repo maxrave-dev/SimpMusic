@@ -287,7 +287,7 @@ fun MiniPlayer(
                             placeholder = painterResource(R.drawable.holder),
                             error = painterResource(R.drawable.holder),
                             contentDescription = null,
-                            contentScale = ContentScale.Crop,
+                            contentScale = ContentScale.FillWidth,
                             onSuccess = {
                                 bitmap = it.result.image.toBitmap().asImageBitmap()
                             },

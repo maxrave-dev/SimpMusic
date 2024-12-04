@@ -263,15 +263,16 @@ class MainRepository(
             emit(localDataSource.getAlbum(id))
         }.flowOn(Dispatchers.IO)
 
+    fun getAlbumAsFlow(id: String) = localDataSource.getAlbumAsFlow(id)
+
     fun getLikedAlbums(): Flow<List<AlbumEntity>> =
         flow {
             emit(localDataSource.getLikedAlbums())
         }.flowOn(Dispatchers.IO)
 
-    suspend fun insertAlbum(albumEntity: AlbumEntity) =
-        withContext(Dispatchers.IO) {
-            localDataSource.insertAlbum(albumEntity)
-        }
+    fun insertAlbum(albumEntity: AlbumEntity) = flow {
+        emit(localDataSource.insertAlbum(albumEntity))
+    }.flowOn(Dispatchers.IO)
 
     suspend fun updateAlbumLiked(
         albumId: String,
