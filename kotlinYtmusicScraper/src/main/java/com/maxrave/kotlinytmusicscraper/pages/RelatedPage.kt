@@ -101,15 +101,23 @@ data class RelatedPage(
                                 ?.musicItemThumbnailOverlayRenderer?.content
                                 ?.musicPlayButtonRenderer?.playNavigationEndpoint
                                 ?.watchPlaylistEndpoint ?: return null,
+                        // If the playlist is radio, shuffle is not available
                         shuffleEndpoint =
-                            renderer.menu?.menuRenderer?.items?.find {
-                                it.menuNavigationItemRenderer?.icon?.iconType == "MUSIC_SHUFFLE"
-                            }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint
-                                ?: return null,
+                        renderer.menu?.menuRenderer?.items?.find {
+                            it.menuNavigationItemRenderer?.icon?.iconType == "MUSIC_SHUFFLE"
+                        }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint
+                            ?: renderer.thumbnailOverlay
+                                .musicItemThumbnailOverlayRenderer.content
+                                .musicPlayButtonRenderer.playNavigationEndpoint
+                                .watchPlaylistEndpoint,
                         radioEndpoint =
-                            renderer.menu.menuRenderer.items.find {
+                            renderer.menu?.menuRenderer?.items?.find {
                                 it.menuNavigationItemRenderer?.icon?.iconType == "MIX"
-                            }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint,
+                            }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint
+                                ?: renderer.thumbnailOverlay
+                                    .musicItemThumbnailOverlayRenderer.content
+                                    .musicPlayButtonRenderer.playNavigationEndpoint
+                                    .watchPlaylistEndpoint,
                     )
 
                 renderer.isArtist -> {

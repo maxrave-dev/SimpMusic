@@ -25,6 +25,7 @@ import androidx.media3.exoplayer.audio.AudioSink
 import androidx.media3.exoplayer.audio.DefaultAudioSink
 import androidx.media3.exoplayer.audio.SilenceSkippingAudioProcessor
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.exoplayer.util.EventLogger
 import androidx.media3.extractor.ExtractorsFactory
 import androidx.media3.extractor.mkv.MatroskaExtractor
 import androidx.media3.extractor.mp4.FragmentedMp4Extractor
@@ -135,7 +136,9 @@ val mediaServiceModule =
                         get(),
                     ),
                 ).setRenderersFactory(provideRendererFactory(androidContext()))
-                .build()
+                .build().also {
+                    it.addAnalyticsListener(EventLogger())
+                }
         }
         // CoilBitmapLoader
         single<CoilBitmapLoader>(createdAtStart = true) {

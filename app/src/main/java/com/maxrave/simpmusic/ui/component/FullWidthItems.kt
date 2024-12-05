@@ -63,6 +63,7 @@ import org.koin.compose.koinInject
 @Composable
 fun SongFullWidthItems(
     track: Track? = null,
+    index: Int? = null,
     songEntity: SongEntity? = null,
     isPlaying: Boolean,
     onMoreClickListener: ((videoId: String) -> Unit)? = null,
@@ -88,11 +89,14 @@ fun SongFullWidthItems(
                 .fillMaxWidth(),
         ) {
             Spacer(modifier = Modifier.width(10.dp))
-            Box(modifier = Modifier.size(50.dp)) {
+            Box(
+                modifier = Modifier.size(50.dp),
+                contentAlignment = Alignment.Center
+            ) {
                 Crossfade(isPlaying) {
                     if (it) {
                         LottieAnimation(composition, iterations = LottieConstants.IterateForever)
-                    } else {
+                    } else if (index == null) {
                         val thumb = track?.thumbnails?.lastOrNull()?.url ?: songEntity?.thumbnails
                         AsyncImage(
                             model = ImageRequest.Builder(LocalContext.current)
@@ -108,6 +112,11 @@ fun SongFullWidthItems(
                             modifier =
                                 Modifier
                                     .fillMaxSize(),
+                        )
+                    } else {
+                        Text(
+                            text = ((index ?: 0) + 1).toString(), color = Color.White, style = typo.titleMedium,
+                            modifier = Modifier.align(Alignment.Center)
                         )
                     }
                 }

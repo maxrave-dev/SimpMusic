@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,10 +42,20 @@ fun DescriptionView(
     var expanded by rememberSaveable {
         mutableStateOf(false)
     }
+    var shouldHideExpandButton by rememberSaveable {
+        mutableStateOf(false)
+    }
     val maxLineAnimated by animateIntAsState(
         targetValue = if (expanded) 1000 else limitLine
     )
     var layoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
+
+    LaunchedEffect(layoutResult) {
+        val lineCount = layoutResult?.lineCount ?: 0
+        if (lineCount < limitLine ) {
+            shouldHideExpandButton = true
+        }
+    }
 
 
     val timeRegex = Regex("""(\d+):(\d+)(?::(\d+))?""")
@@ -126,14 +137,16 @@ fun DescriptionView(
             onTextLayout = { layoutResult = it },
             style = typo.bodyMedium
         )
-        Spacer(modifier = Modifier.height(5.dp))
-        Text(
-            text = if (expanded) stringResource(id = R.string.less) else stringResource(id = R.string.more),
-            color = Color.LightGray,
-            modifier = Modifier.clickable {
-                expanded = !expanded
-            },
-            style = typo.labelSmall
-        )
+        Spacer(modifier = Modifier.height(8.dp))
+        androidx.compose.animation.AnimatedVisibility(!shouldHideExpandButton) {
+            Text(
+                text = if (expanded) stringResource(id = R.string.less) else stringResource(id = R.string.more),
+                color = Color.LightGray,
+                modifier = Modifier.clickable {
+                    expanded = !expanded
+                },
+                style = typo.labelSmall
+            )
+        }
     }
 }

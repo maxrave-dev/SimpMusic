@@ -240,6 +240,7 @@ fun LibraryItem(
                                                                     R.id.action_global_playlistFragment,
                                                                     Bundle().apply {
                                                                         putString("id", item.browseId)
+                                                                        putBoolean("youtube", true)
                                                                     }
                                                                 )
                                                             }

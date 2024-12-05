@@ -2,7 +2,6 @@
 
 package com.maxrave.simpmusic.ui.screen.player
 
-import android.content.res.Configuration
 import android.util.Log
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.AnimatedVisibility
@@ -99,7 +98,6 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -127,7 +125,6 @@ import com.maxrave.simpmusic.ui.component.HeartCheckBox
 import com.maxrave.simpmusic.ui.component.LyricsView
 import com.maxrave.simpmusic.ui.component.MediaPlayerView
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
-import com.maxrave.simpmusic.ui.theme.AppTheme
 import com.maxrave.simpmusic.ui.theme.blackMoreOverlay
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.ui.theme.overlay
@@ -1546,14 +1543,5 @@ fun NowPlayingScreen(
                 }
             }
         }
-    }
-}
-
-@UnstableApi
-@Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, device = "spec:width=1080px,height=5000px,dpi=440")
-@Composable
-fun NowPlayingScreenPreview() {
-    AppTheme {
-//        NowPlayingScreen()
     }
 }

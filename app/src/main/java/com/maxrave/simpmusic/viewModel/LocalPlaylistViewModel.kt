@@ -1,11 +1,9 @@
 package com.maxrave.simpmusic.viewModel
 
 import android.app.Application
-import android.graphics.drawable.GradientDrawable
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.ui.graphics.Color
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import androidx.paging.LoadState
@@ -75,8 +73,6 @@ class LocalPlaylistViewModel(
     fun setOffset(offset: Int) {
         _offset.value = offset
     }
-
-    var gradientDrawable: MutableLiveData<GradientDrawable> = MutableLiveData()
 
     var loading: MutableStateFlow<Boolean> = MutableStateFlow(false)
 

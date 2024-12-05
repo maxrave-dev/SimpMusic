@@ -232,11 +232,14 @@ interface DatabaseDao {
     @Query("SELECT * FROM album WHERE browseId = :browseId")
     suspend fun getAlbum(browseId: String): AlbumEntity
 
+    @Query("SELECT * FROM album WHERE browseId = :browseId")
+    fun getAlbumAsFlow(browseId: String): Flow<AlbumEntity?>
+
     @Query("SELECT * FROM album WHERE liked = 1")
     suspend fun getLikedAlbums(): List<AlbumEntity>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertAlbum(album: AlbumEntity)
+    suspend fun insertAlbum(album: AlbumEntity): Long
 
     @Query("UPDATE album SET liked = :liked WHERE browseId = :browseId")
     suspend fun updateAlbumLiked(
