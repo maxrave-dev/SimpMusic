@@ -41,7 +41,6 @@ val databaseModule =
                     object : Migration(5, 6) {
                         override fun migrate(db: SupportSQLiteDatabase) {
                             val playlistSongMaps = mutableListOf<PairSongLocalPlaylist>()
-                            db
                             db.query("SELECT * FROM local_playlist".toSQLiteQuery()).use { cursor ->
                                 while (cursor.moveToNext()) {
                                     val input = cursor.getString(8)
@@ -176,7 +175,7 @@ val databaseModule =
         }
         // MainRepository
         single(createdAtStart = true) {
-            MainRepository(get<LocalDataSource>(), get<DataStoreManager>(), androidContext())
+            MainRepository(get<LocalDataSource>(), get<DataStoreManager>(), get<MusicDatabase>(), androidContext())
         }
         // List of managers
 
