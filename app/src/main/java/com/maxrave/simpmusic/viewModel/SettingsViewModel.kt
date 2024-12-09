@@ -4,9 +4,12 @@ import android.app.Application
 import android.app.usage.StorageStatsManager
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.storage.StorageManager
 import android.util.Log
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.cache.SimpleCache
@@ -110,6 +113,12 @@ class SettingsViewModel(
     private var _translucentBottomBar: MutableStateFlow<String?> = MutableStateFlow(null)
     val translucentBottomBar: StateFlow<String?> = _translucentBottomBar
 
+    private var _alertData: MutableStateFlow<SettingAlertState?> = MutableStateFlow(null)
+    val alertData: StateFlow<SettingAlertState?> = _alertData
+
+    private var _basicAlertData: MutableStateFlow<SettingBasicAlertState?> = MutableStateFlow(null)
+    val basicAlertData: StateFlow<SettingBasicAlertState?> = _basicAlertData
+
     // Fraction of storage
     private var _fraction: MutableStateFlow<SettingsStorageSectionFraction> = MutableStateFlow(
         SettingsStorageSectionFraction()
@@ -152,6 +161,14 @@ class SettingsViewModel(
 
     private fun getCanvasCache() {
         _canvasCacheSize.value = canvasCache.cacheSpace
+    }
+
+    fun setAlertData(alertData: SettingAlertState?) {
+        _alertData.value = alertData
+    }
+
+    fun setBasicAlertData(alertData: SettingBasicAlertState?) {
+        _basicAlertData.value = alertData
     }
 
     private fun calculateDataFraction() {
@@ -288,6 +305,9 @@ class SettingsViewModel(
                     "CheckForUpdateAt",
                     System.currentTimeMillis().toString(),
                 )
+                if (response?.tagName == getString(R.string.version_name)) {
+                    makeToast(getString(R.string.no_update))
+                }
                 _githubResponse.emit(response)
             }
         }
@@ -328,6 +348,7 @@ class SettingsViewModel(
     fun getLastCheckForUpdate() {
         viewModelScope.launch {
             dataStoreManager.getString("CheckForUpdateAt").first().let { lastCheckForUpdate ->
+                _githubResponse.emit(null)
                 _lastCheckForUpdate.emit(lastCheckForUpdate)
             }
         }
@@ -366,14 +387,18 @@ class SettingsViewModel(
     fun getSponsorBlockCategories() {
         viewModelScope.launch {
             dataStoreManager.getSponsorBlockCategories().let {
+                log("getSponsorBlockCategories: $it", Log.WARN)
                 _sponsorBlockCategories.emit(it)
             }
         }
     }
 
     fun setSponsorBlockCategories(list: ArrayList<String>) {
+        log("setSponsorBlockCategories: $list", Log.WARN)
         viewModelScope.launch {
-            dataStoreManager.setSponsorBlockCategories(list)
+            runBlocking(Dispatchers.IO) {
+                dataStoreManager.setSponsorBlockCategories(list)
+            }
             getSponsorBlockCategories()
         }
     }
@@ -402,12 +427,9 @@ class SettingsViewModel(
         }
     }
 
-    fun changeQuality(checkedIndex: Int) {
+    fun changeQuality(qualityItem: String?) {
         viewModelScope.launch {
-            when (checkedIndex) {
-                0 -> dataStoreManager.setQuality(QUALITY.items[0].toString())
-                1 -> dataStoreManager.setQuality(QUALITY.items[1].toString())
-            }
+            dataStoreManager.setQuality(qualityItem ?: QUALITY.items.first().toString())
             getQuality()
         }
     }
@@ -426,7 +448,7 @@ class SettingsViewModel(
             playerCache.keys.forEach { key ->
                 playerCache.removeResource(key)
             }
-            Toast.makeText(getApplication(), "Player cache cleared", Toast.LENGTH_SHORT).show()
+            makeToast(getString(R.string.clear_player_cache))
             _cacheSize.value = playerCache.cacheSpace
         }
     }
@@ -450,9 +472,20 @@ class SettingsViewModel(
                     mainRepository.updateDownloadState(song.videoId, DownloadState.STATE_NOT_DOWNLOADED)
                 }
             }
-            Toast.makeText(getApplication(), "Download cache cleared", Toast.LENGTH_SHORT).show()
+            makeToast(getString(R.string.clear_downloaded_cache))
             _cacheSize.value = playerCache.cacheSpace
             downloadUtils.removeAllDownloads()
+        }
+    }
+
+    @UnstableApi
+    fun clearCanvasCache() {
+        viewModelScope.launch {
+            canvasCache.keys.forEach { key ->
+                canvasCache.removeResource(key)
+            }
+            makeToast(getString(R.string.clear_canvas_cache))
+            _canvasCacheSize.value = canvasCache.cacheSpace
         }
     }
 
@@ -540,6 +573,20 @@ class SettingsViewModel(
             Log.w("SettingsViewModel", "changeLanguage: $code")
             YouTube.locale = YouTubeLocale(location.value!!, code.substring(0..1))
             getLanguage()
+            val localeList =
+                LocaleListCompat.forLanguageTags(
+                    if (code == "id-ID") {
+                        if (Build.VERSION.SDK_INT >= 35) {
+                            "id-ID"
+                        } else {
+                            "in-ID"
+                        }
+                    } else {
+                        code
+                    },
+                )
+            Log.d("Language", localeList.toString())
+            AppCompatDelegate.setApplicationLocales(localeList)
         }
     }
 
@@ -625,6 +672,7 @@ class SettingsViewModel(
             dataStoreManager.setMusixmatchCookie("")
             YouTube.musixMatchCookie = null
             dataStoreManager.setMusixmatchLoggedIn(false)
+            makeToast(getString(R.string.logged_out))
         }
     }
 
@@ -885,3 +933,39 @@ data class SettingsStorageSectionFraction(
         return otherApp + downloadCache + playerCache + canvasCache + thumbCache + appDatabase + freeSpace
     }
 }
+
+
+data class SettingAlertState(
+    val title: String,
+    val message: String? = null,
+    val textField: TextFieldData? = null,
+    val selectOne: SelectData? = null,
+    val multipleSelect: SelectData? = null,
+    val confirm: Pair<String, (SettingAlertState) -> Unit>,
+    val dismiss: String = "Cancel",
+) {
+    data class TextFieldData(
+        val label: String,
+        val value: String = "",
+        // User typing string -> (true or false, If false, show error message)
+        val verifyCodeBlock: ((String) -> Pair<Boolean, String?>)? = null,
+    )
+    data class SelectData(
+        // Selected / Data
+        val listSelect: List<Pair<Boolean, String>>
+    ) {
+        fun getSelected(): String {
+            return listSelect.firstOrNull { it.first }?.second ?: ""
+        }
+        fun getListSelected(): List<String> {
+            return listSelect.filter { it.first }.map { it.second }
+        }
+    }
+}
+
+data class SettingBasicAlertState(
+    val title: String,
+    val message: String? = null,
+    val confirm: Pair<String, () -> Unit>,
+    val dismiss: String = "Cancel",
+)
