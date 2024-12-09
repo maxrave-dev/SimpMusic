@@ -360,5 +360,7 @@
     <string name="loading">Loading</string>
     <string name="updating">Updating</string>
     <string name="go_to_log_in_page">Go to log in page</string>
-    <string name="log_in_warning">YouTube Music now requires you to log in to stream music, Piped Instance sometime can\'t work too. You should log in to YouTube to get better experience with FilmUmusic.</string>
+    <string name="log_in_warning">YouTube Music now requires you to log in to stream music, Piped Instance sometime can\'t work too. You should log in to YouTube to get better experience with SimpMusic.</string>
+    <string name="spotify_canvas_cache">Spotify Canvas Cache</string>
+    <string name="clear_canvas_cache">Clear canvas cache</string>
 </resources>

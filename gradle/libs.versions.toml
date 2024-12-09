@@ -1,5 +1,5 @@
 [versions]
-android = "8.7.2"
+android = "8.7.3"
 kotlin = "2.0.0"
 serialization = "2.0.0"
 ksp = "2.0.0-1.0.22"
@@ -11,7 +11,7 @@ lifecycle-runtime-ktx = "2.8.7"
 core-ktx = "1.15.0"
 appcompat = "1.7.0"
 work = "2.10.0"
-material = "1.12.0" #Version 1.12.0 caused bug
+material = "1.12.0"
 startup-runtime = "1.2.0"
 lifecycle-livedata-ktx = "2.8.7"
 lifecycle-viewmodel-ktx = "2.8.7"
@@ -119,6 +119,7 @@ customactivityoncrash = { group = "cat.ereza", name = "customactivityoncrash", v
 sdp-android = { group = "com.intuit.sdp", name = "sdp-android", version.ref = "sdp-android" }
 ssp-android = { group = "com.intuit.ssp", name = "ssp-android", version.ref = "ssp-android" }
 aboutlibraries = { group = "com.mikepenz", name = "aboutlibraries", version.ref = "aboutlibraries" }
+aboutlibraries-compose-m3 = { group = "com.mikepenz", name = "aboutlibraries-compose-m3", version.ref = "aboutlibraries" }
 flexbox = { group = "com.google.android.flexbox", name = "flexbox", version.ref = "flexbox" }
 balloon = { group = "com.github.skydoves", name = "balloon", version.ref = "balloon" }
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil3" }

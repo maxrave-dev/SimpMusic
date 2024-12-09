@@ -922,3 +922,21 @@ fun String.toSQLiteQuery(): SimpleSQLiteQuery = SimpleSQLiteQuery(this)
 fun InputStream.zipInputStream(): ZipInputStream = ZipInputStream(this)
 
 fun OutputStream.zipOutputStream(): ZipOutputStream = ZipOutputStream(this)
+
+fun Long?.bytesToMB(): Long {
+    val mbInBytes = 1024 * 1024
+    return this?.div(mbInBytes) ?: 0L
+}
+
+fun getSizeOfFile(dir: File): Long {
+    var dirSize: Long = 0
+    if (!dir.listFiles().isNullOrEmpty()) {
+        for (f in dir.listFiles()!!) {
+            dirSize += f.length()
+            if (f.isDirectory) {
+                dirSize += getSizeOfFile(f)
+            }
+        }
+    }
+    return dirSize
+}

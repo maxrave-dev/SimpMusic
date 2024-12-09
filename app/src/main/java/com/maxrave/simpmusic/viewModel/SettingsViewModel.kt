@@ -1,11 +1,15 @@
 package com.maxrave.simpmusic.viewModel
 
 import android.app.Application
-import android.content.Context
+import android.app.usage.StorageStatsManager
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
+import android.os.storage.StorageManager
 import android.util.Log
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.cache.SimpleCache
@@ -23,10 +27,10 @@ import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.common.SETTINGS_FILENAME
 import com.maxrave.simpmusic.common.VIDEO_QUALITY
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
-import com.maxrave.simpmusic.data.db.DatabaseDao
-import com.maxrave.simpmusic.data.db.MusicDatabase
 import com.maxrave.simpmusic.data.db.entities.GoogleAccountEntity
+import com.maxrave.simpmusic.extension.bytesToMB
 import com.maxrave.simpmusic.extension.div
+import com.maxrave.simpmusic.extension.getSizeOfFile
 import com.maxrave.simpmusic.extension.zipInputStream
 import com.maxrave.simpmusic.extension.zipOutputStream
 import com.maxrave.simpmusic.service.SimpleMediaService
@@ -39,9 +43,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.singleOrNull
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.koin.android.annotation.KoinViewModel
 import org.koin.core.component.inject
 import org.koin.core.qualifier.named
 import java.io.FileInputStream
@@ -50,17 +54,16 @@ import java.util.zip.ZipEntry
 import kotlin.system.exitProcess
 
 @UnstableApi
-@KoinViewModel
 class SettingsViewModel(
     private val application: Application,
 ) : BaseViewModel(application) {
     override val tag: String = "SettingsViewModel"
 
-    private val database: MusicDatabase by inject()
-    private val databaseDao: DatabaseDao by inject()
-    val playerCache: SimpleCache by inject(named(Config.PLAYER_CACHE))
-    val downloadCache: SimpleCache by inject(named(Config.DOWNLOAD_CACHE))
-    val downloadUtils: DownloadUtils by inject()
+    private val databasePath: String? = mainRepository.getDatabasePath()
+    private val playerCache: SimpleCache by inject(qualifier = named(Config.PLAYER_CACHE))
+    private val downloadCache: SimpleCache by inject(qualifier = named(Config.DOWNLOAD_CACHE))
+    private val canvasCache: SimpleCache by inject(qualifier = named(Config.CANVAS_CACHE))
+    private val downloadUtils: DownloadUtils by inject()
 
     private var _location: MutableStateFlow<String?> = MutableStateFlow(null)
     val location: StateFlow<String?> = _location
@@ -72,8 +75,6 @@ class SettingsViewModel(
     val normalizeVolume: StateFlow<String?> = _normalizeVolume
     private var _skipSilent: MutableStateFlow<String?> = MutableStateFlow(null)
     val skipSilent: StateFlow<String?> = _skipSilent
-    private var _pipedInstance: MutableStateFlow<String?> = MutableStateFlow(null)
-    val pipedInstance: StateFlow<String?> = _pipedInstance
     private var _savedPlaybackState: MutableStateFlow<String?> = MutableStateFlow(null)
     val savedPlaybackState: StateFlow<String?> = _savedPlaybackState
     private var _saveRecentSongAndQueue: MutableStateFlow<String?> = MutableStateFlow(null)
@@ -105,12 +106,104 @@ class SettingsViewModel(
     val videoQuality: StateFlow<String?> = _videoQuality
     private var _thumbCacheSize = MutableStateFlow<Long?>(null)
     val thumbCacheSize: StateFlow<Long?> = _thumbCacheSize
+    private var _canvasCacheSize: MutableStateFlow<Long?> = MutableStateFlow(null)
+    val canvasCacheSize: StateFlow<Long?> = _canvasCacheSize
     private var _homeLimit = MutableStateFlow<Int?>(null)
     val homeLimit: StateFlow<Int?> = _homeLimit
     private var _translucentBottomBar: MutableStateFlow<String?> = MutableStateFlow(null)
     val translucentBottomBar: StateFlow<String?> = _translucentBottomBar
 
+    private var _alertData: MutableStateFlow<SettingAlertState?> = MutableStateFlow(null)
+    val alertData: StateFlow<SettingAlertState?> = _alertData
+
+    private var _basicAlertData: MutableStateFlow<SettingBasicAlertState?> = MutableStateFlow(null)
+    val basicAlertData: StateFlow<SettingBasicAlertState?> = _basicAlertData
+
+    // Fraction of storage
+    private var _fraction: MutableStateFlow<SettingsStorageSectionFraction> = MutableStateFlow(
+        SettingsStorageSectionFraction()
+    )
+    val fraction: StateFlow<SettingsStorageSectionFraction> = _fraction
+
     fun getAudioSessionId() = simpleMediaServiceHandler.player.audioSessionId
+
+    fun getData() {
+        getLocation()
+        getLanguage()
+        getQuality()
+        getPlayerCacheSize()
+        getDownloadedCacheSize()
+        getPlayerCacheLimit()
+        getLoggedIn()
+        getNormalizeVolume()
+        getSkipSilent()
+        getSavedPlaybackState()
+        getSendBackToGoogle()
+        getSaveRecentSongAndQueue()
+        getLastCheckForUpdate()
+        getSponsorBlockEnabled()
+        getSponsorBlockCategories()
+        getTranslationLanguage()
+        getLyricsProvider()
+        getUseTranslation()
+        getMusixmatchLoggedIn()
+        getHomeLimit()
+        getPlayVideoInsteadOfAudio()
+        getVideoQuality()
+        getThumbCacheSize()
+        getSpotifyLogIn()
+        getSpotifyLyrics()
+        getSpotifyCanvas()
+        getCanvasCache()
+        getTranslucentBottomBar()
+        calculateDataFraction()
+    }
+
+    private fun getCanvasCache() {
+        _canvasCacheSize.value = canvasCache.cacheSpace
+    }
+
+    fun setAlertData(alertData: SettingAlertState?) {
+        _alertData.value = alertData
+    }
+
+    fun setBasicAlertData(alertData: SettingBasicAlertState?) {
+        _basicAlertData.value = alertData
+    }
+
+    private fun calculateDataFraction() {
+        val mStorageStatsManager =
+            application.getSystemService(StorageStatsManager::class.java)
+        if (mStorageStatsManager != null) {
+            val totalByte =
+                mStorageStatsManager.getTotalBytes(StorageManager.UUID_DEFAULT).bytesToMB()
+            val freeSpace =
+                mStorageStatsManager.getFreeBytes(StorageManager.UUID_DEFAULT).bytesToMB()
+            val usedSpace = totalByte - freeSpace
+            val simpMusicSize = getSizeOfFile(application.filesDir).bytesToMB()
+            val thumbSize = (application.imageLoader.diskCache?.size ?: 0L).bytesToMB()
+            val otherApp = simpMusicSize.let { usedSpace.minus(it) - thumbSize }
+            val databaseSize = simpMusicSize - playerCache.cacheSpace.bytesToMB() - downloadCache.cacheSpace.bytesToMB() - canvasCache.cacheSpace.bytesToMB()
+            if (totalByte ==
+                freeSpace + otherApp + simpMusicSize + thumbSize
+            ) {
+                _fraction.update {
+                    it.copy(
+                        otherApp = otherApp.toFloat().div(totalByte.toFloat()),
+                        downloadCache = downloadCache.cacheSpace.bytesToMB().toFloat().div(totalByte.toFloat()),
+                        playerCache = playerCache.cacheSpace.bytesToMB().toFloat().div(totalByte.toFloat()),
+                        canvasCache = canvasCache.cacheSpace.bytesToMB().toFloat().div(totalByte.toFloat()),
+                        thumbCache = thumbSize.toFloat().div(totalByte.toFloat()),
+                        freeSpace = freeSpace.toFloat().div(totalByte.toFloat()),
+                        appDatabase = databaseSize.toFloat().div(totalByte.toFloat())
+                    )
+                }
+                log("calculateDataFraction: $totalByte, $freeSpace, $usedSpace, $simpMusicSize, $otherApp, $databaseSize", Log.WARN)
+                log("calculateDataFraction: ${_fraction.value}", Log.WARN)
+                log("calculateDataFraction: ${_fraction.value.combine()}", Log.WARN)
+            }
+        }
+    }
 
     fun getTranslucentBottomBar() {
         viewModelScope.launch {
@@ -212,6 +305,9 @@ class SettingsViewModel(
                     "CheckForUpdateAt",
                     System.currentTimeMillis().toString(),
                 )
+                if (response?.tagName == getString(R.string.version_name)) {
+                    makeToast(getString(R.string.no_update))
+                }
                 _githubResponse.emit(response)
             }
         }
@@ -252,6 +348,7 @@ class SettingsViewModel(
     fun getLastCheckForUpdate() {
         viewModelScope.launch {
             dataStoreManager.getString("CheckForUpdateAt").first().let { lastCheckForUpdate ->
+                _githubResponse.emit(null)
                 _lastCheckForUpdate.emit(lastCheckForUpdate)
             }
         }
@@ -290,14 +387,18 @@ class SettingsViewModel(
     fun getSponsorBlockCategories() {
         viewModelScope.launch {
             dataStoreManager.getSponsorBlockCategories().let {
+                log("getSponsorBlockCategories: $it", Log.WARN)
                 _sponsorBlockCategories.emit(it)
             }
         }
     }
 
     fun setSponsorBlockCategories(list: ArrayList<String>) {
+        log("setSponsorBlockCategories: $list", Log.WARN)
         viewModelScope.launch {
-            dataStoreManager.setSponsorBlockCategories(list)
+            runBlocking(Dispatchers.IO) {
+                dataStoreManager.setSponsorBlockCategories(list)
+            }
             getSponsorBlockCategories()
         }
     }
@@ -326,12 +427,9 @@ class SettingsViewModel(
         }
     }
 
-    fun changeQuality(checkedIndex: Int) {
+    fun changeQuality(qualityItem: String?) {
         viewModelScope.launch {
-            when (checkedIndex) {
-                0 -> dataStoreManager.setQuality(QUALITY.items[0].toString())
-                1 -> dataStoreManager.setQuality(QUALITY.items[1].toString())
-            }
+            dataStoreManager.setQuality(qualityItem ?: QUALITY.items.first().toString())
             getQuality()
         }
     }
@@ -350,7 +448,7 @@ class SettingsViewModel(
             playerCache.keys.forEach { key ->
                 playerCache.removeResource(key)
             }
-            Toast.makeText(getApplication(), "Player cache cleared", Toast.LENGTH_SHORT).show()
+            makeToast(getString(R.string.clear_player_cache))
             _cacheSize.value = playerCache.cacheSpace
         }
     }
@@ -374,74 +472,73 @@ class SettingsViewModel(
                     mainRepository.updateDownloadState(song.videoId, DownloadState.STATE_NOT_DOWNLOADED)
                 }
             }
-            Toast.makeText(getApplication(), "Download cache cleared", Toast.LENGTH_SHORT).show()
+            makeToast(getString(R.string.clear_downloaded_cache))
             _cacheSize.value = playerCache.cacheSpace
             downloadUtils.removeAllDownloads()
         }
     }
 
+    @UnstableApi
+    fun clearCanvasCache() {
+        viewModelScope.launch {
+            canvasCache.keys.forEach { key ->
+                canvasCache.removeResource(key)
+            }
+            makeToast(getString(R.string.clear_canvas_cache))
+            _canvasCacheSize.value = canvasCache.cacheSpace
+        }
+    }
+
     fun backup(
-        context: Context,
-        uri: Uri,
+        uri: Uri
     ) {
         runCatching {
-            context.applicationContext.contentResolver.openOutputStream(uri)?.use {
+            application.applicationContext.contentResolver.openOutputStream(uri)?.use {
                 it.buffered().zipOutputStream().use { outputStream ->
-                    (context.filesDir / "datastore" / "$SETTINGS_FILENAME.preferences_pb").inputStream().buffered().use { inputStream ->
+                    (application.filesDir / "datastore" / "$SETTINGS_FILENAME.preferences_pb").inputStream().buffered().use { inputStream ->
                         outputStream.putNextEntry(ZipEntry("$SETTINGS_FILENAME.preferences_pb"))
                         inputStream.copyTo(outputStream)
                     }
                     runBlocking(Dispatchers.IO) {
-                        databaseDao.checkpoint()
+                        mainRepository.databaseDaoCheckpoint()
                     }
-                    FileInputStream(database.openHelper.writableDatabase.path).use { inputStream ->
+                    FileInputStream(databasePath).use { inputStream ->
                         outputStream.putNextEntry(ZipEntry(DB_NAME))
                         inputStream.copyTo(outputStream)
                     }
                 }
             }
         }.onSuccess {
-            Toast
-                .makeText(
-                    context,
-                    context.getString(R.string.backup_create_success),
-                    Toast.LENGTH_SHORT,
-                ).show()
+            makeToast(getString(R.string.backup_create_success))
         }.onFailure {
             it.printStackTrace()
-            Toast
-                .makeText(
-                    context,
-                    context.getString(R.string.backup_create_failed),
-                    Toast.LENGTH_SHORT,
-                ).show()
+            makeToast(getString(R.string.backup_create_failed))
         }
     }
 
     @UnstableApi
     fun restore(
-        context: Context,
-        uri: Uri,
+        uri: Uri
     ) {
         runCatching {
-            context.applicationContext.contentResolver.openInputStream(uri)?.use {
+            application.applicationContext.contentResolver.openInputStream(uri)?.use {
                 it.zipInputStream().use { inputStream ->
                     var entry = inputStream.nextEntry
                     var count = 0
                     while (entry != null && count < 2) {
                         when (entry.name) {
                             "$SETTINGS_FILENAME.preferences_pb" -> {
-                                (context.filesDir / "datastore" / "$SETTINGS_FILENAME.preferences_pb").outputStream().use { outputStream ->
+                                (application.filesDir / "datastore" / "$SETTINGS_FILENAME.preferences_pb").outputStream().use { outputStream ->
                                     inputStream.copyTo(outputStream)
                                 }
                             }
 
                             DB_NAME -> {
                                 runBlocking(Dispatchers.IO) {
-                                    databaseDao.checkpoint()
+                                    mainRepository.databaseDaoCheckpoint()
                                 }
-                                database.close()
-                                FileOutputStream(database.openHelper.writableDatabase.path).use { outputStream ->
+                                mainRepository.closeDatabase()
+                                FileOutputStream(databasePath).use { outputStream ->
                                     inputStream.copyTo(outputStream)
                                 }
                             }
@@ -451,18 +548,13 @@ class SettingsViewModel(
                     }
                 }
             }
-            Toast
-                .makeText(
-                    context,
-                    context.getString(R.string.restore_success),
-                    Toast.LENGTH_SHORT,
-                ).show()
-            context.stopService(Intent(context, SimpleMediaService::class.java))
-            context.startActivity(Intent(context, MainActivity::class.java))
+            makeToast(getString(R.string.restore_success))
+            application.stopService(Intent(application, SimpleMediaService::class.java))
+            application.startActivity(Intent(application, MainActivity::class.java))
             exitProcess(0)
         }.onFailure {
             it.printStackTrace()
-            Toast.makeText(context, context.getString(R.string.restore_failed), Toast.LENGTH_SHORT).show()
+            makeToast(getString(R.string.restore_failed))
         }
     }
 
@@ -481,6 +573,20 @@ class SettingsViewModel(
             Log.w("SettingsViewModel", "changeLanguage: $code")
             YouTube.locale = YouTubeLocale(location.value!!, code.substring(0..1))
             getLanguage()
+            val localeList =
+                LocaleListCompat.forLanguageTags(
+                    if (code == "id-ID") {
+                        if (Build.VERSION.SDK_INT >= 35) {
+                            "id-ID"
+                        } else {
+                            "in-ID"
+                        }
+                    } else {
+                        code
+                    },
+                )
+            Log.d("Language", localeList.toString())
+            AppCompatDelegate.setApplicationLocales(localeList)
         }
     }
 
@@ -566,6 +672,7 @@ class SettingsViewModel(
             dataStoreManager.setMusixmatchCookie("")
             YouTube.musixMatchCookie = null
             dataStoreManager.setMusixmatchLoggedIn(false)
+            makeToast(getString(R.string.logged_out))
         }
     }
 
@@ -812,3 +919,53 @@ class SettingsViewModel(
         }
     }
 }
+
+data class SettingsStorageSectionFraction(
+    val otherApp: Float = 0f,
+    val downloadCache: Float = 0f,
+    val playerCache: Float = 0f,
+    val canvasCache: Float = 0f,
+    val thumbCache: Float = 0f,
+    val appDatabase: Float = 0f,
+    val freeSpace: Float = 0f,
+) {
+    fun combine(): Float {
+        return otherApp + downloadCache + playerCache + canvasCache + thumbCache + appDatabase + freeSpace
+    }
+}
+
+
+data class SettingAlertState(
+    val title: String,
+    val message: String? = null,
+    val textField: TextFieldData? = null,
+    val selectOne: SelectData? = null,
+    val multipleSelect: SelectData? = null,
+    val confirm: Pair<String, (SettingAlertState) -> Unit>,
+    val dismiss: String = "Cancel",
+) {
+    data class TextFieldData(
+        val label: String,
+        val value: String = "",
+        // User typing string -> (true or false, If false, show error message)
+        val verifyCodeBlock: ((String) -> Pair<Boolean, String?>)? = null,
+    )
+    data class SelectData(
+        // Selected / Data
+        val listSelect: List<Pair<Boolean, String>>
+    ) {
+        fun getSelected(): String {
+            return listSelect.firstOrNull { it.first }?.second ?: ""
+        }
+        fun getListSelected(): List<String> {
+            return listSelect.filter { it.first }.map { it.second }
+        }
+    }
+}
+
+data class SettingBasicAlertState(
+    val title: String,
+    val message: String? = null,
+    val confirm: Pair<String, () -> Unit>,
+    val dismiss: String = "Cancel",
+)
