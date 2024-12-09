@@ -81,8 +81,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.foundation.background
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import com.maxrave.simpmusic.R
