@@ -17,21 +17,31 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Error
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -50,29 +60,51 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
+import coil3.annotation.ExperimentalCoilApi
+import com.maxrave.kotlinytmusicscraper.extension.isTwoLetterCode
 import com.maxrave.simpmusic.R
+import com.maxrave.simpmusic.common.LIMIT_CACHE_SIZE
+import com.maxrave.simpmusic.common.QUALITY
+import com.maxrave.simpmusic.common.SPONSOR_BLOCK
+import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
+import com.maxrave.simpmusic.common.SUPPORTED_LOCATION
+import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.TRUE
 import com.maxrave.simpmusic.extension.bytesToMB
+import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SettingItem
+import com.maxrave.simpmusic.ui.theme.DarkColors
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_primary
 import com.maxrave.simpmusic.ui.theme.typo
+import com.maxrave.simpmusic.viewModel.SettingAlertState
+import com.maxrave.simpmusic.viewModel.SettingBasicAlertState
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
+import com.maxrave.simpmusic.viewModel.SharedViewModel
+import com.mikepenz.aboutlibraries.Libs
+import com.mikepenz.aboutlibraries.LibsBuilder
 import kotlinx.coroutines.flow.map
 import org.koin.androidx.compose.koinViewModel
+import java.text.SimpleDateFormat
+import java.time.Instant
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Locale
+import java.util.Scanner
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class, ExperimentalCoilApi::class)
 @UnstableApi
 @Composable
 fun SettingScreen(
     innerPadding: PaddingValues,
     navController: NavController,
-    viewModel: SettingsViewModel = koinViewModel()
+    viewModel: SettingsViewModel = koinViewModel(),
+    sharedViewModel: SharedViewModel = viewModel()
 ) {
     val context = LocalContext.current
     val localDensity = LocalDensity.current
@@ -124,6 +156,60 @@ fun SettingScreen(
     val canvasCache by viewModel.canvasCacheSize.collectAsStateWithLifecycle()
     val limitPlayerCache by viewModel.playerCacheLimit.collectAsStateWithLifecycle()
     val fraction by viewModel.fraction.collectAsStateWithLifecycle()
+    val githubResponse by viewModel.githubResponse.collectAsStateWithLifecycle()
+    val lastCheckUpdate by viewModel.lastCheckForUpdate.collectAsStateWithLifecycle()
+    var checkForUpdateSubtitle by rememberSaveable {
+        mutableStateOf("")
+    }
+    var showLibrary by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    LaunchedEffect(lastCheckUpdate) {
+        val lastCheckLong = lastCheckUpdate?.toLong() ?: 0L
+        if (lastCheckLong > 0L) {
+            checkForUpdateSubtitle = context.getString(
+                R.string.last_checked_at,
+                DateTimeFormatter
+                    .ofPattern("yyyy-MM-dd HH:mm:ss")
+                    .withZone(ZoneId.systemDefault())
+                    .format(Instant.ofEpochMilli(lastCheckLong))
+            )
+        }
+    }
+
+    LaunchedEffect(githubResponse) {
+        val res = githubResponse
+        if (res != null && res.tagName != context.getString(R.string.version_name)) {
+            val inputFormat =
+                SimpleDateFormat(
+                    "yyyy-MM-dd'T'HH:mm:ss'Z'",
+                    Locale.getDefault(),
+                )
+            val outputFormat =
+                SimpleDateFormat("dd MMM yyyy HH:mm:ss", Locale.getDefault())
+            val formatted =
+                res.publishedAt?.let { input ->
+                    inputFormat
+                        .parse(input)
+                        ?.let { outputFormat.format(it) }
+                }
+            viewModel.setBasicAlertData(
+                SettingBasicAlertState(
+                    title = context.getString(R.string.update_available),
+                    message = context.getString(R.string.update_message, res.tagName, formatted, res.body),
+                    confirm = context.getString(R.string.download) to {
+                        uriHandler.openUri(
+                            res.assets?.firstOrNull()?.browserDownloadUrl
+                                ?: "https://github.com/maxrave-dev/SimpMusic/releases"
+                        )
+                    },
+                    dismiss = context.getString(R.string.cancel)
+                )
+            )
+        }
+        viewModel.getLastCheckForUpdate()
+    }
 
     LaunchedEffect(true) {
         viewModel.getData()
@@ -157,19 +243,77 @@ fun SettingScreen(
                 )
                 SettingItem(
                     title = stringResource(R.string.language),
-                    subtitle = language ?: "",
-                    onClick = {}
+                    subtitle = SUPPORTED_LANGUAGE.getLanguageFromCode(language ?: "en-US"),
+                    onClick = {
+                        viewModel.setAlertData(
+                            SettingAlertState(
+                                title = context.getString(R.string.language),
+                                selectOne = SettingAlertState.SelectData(
+                                    listSelect = SUPPORTED_LANGUAGE.items.map {
+                                        (it.toString() == SUPPORTED_LANGUAGE.getLanguageFromCode(language ?: "en-US")) to it.toString()
+                                    }
+                                ),
+                                confirm = context.getString(R.string.change) to { state ->
+                                    val code = SUPPORTED_LANGUAGE.getCodeFromLanguage(state.selectOne?.getSelected() ?: "English")
+                                    viewModel.setBasicAlertData(
+                                        SettingBasicAlertState(
+                                            title = context.getString(R.string.warning),
+                                            message = context.getString(R.string.change_language_warning),
+                                            confirm = context.getString(R.string.change) to {
+                                                sharedViewModel.activityRecreate()
+                                                viewModel.setBasicAlertData(null)
+                                                viewModel.changeLanguage(code)
+                                            },
+                                            dismiss = context.getString(R.string.cancel)
+                                        )
+                                    )
+                                },
+                                dismiss = context.getString(R.string.cancel)
+                            )
+                        )
+                    }
                 )
                 SettingItem(
                     title = stringResource(R.string.content_country),
                     subtitle = location ?: "",
-                    onClick = {}
+                    onClick = {
+                        viewModel.setAlertData(
+                            SettingAlertState(
+                                title = context.getString(R.string.content_country),
+                                selectOne = SettingAlertState.SelectData(
+                                    listSelect = SUPPORTED_LOCATION.items.map { item ->
+                                        (item.toString() == location) to item.toString()
+                                    }
+                                ),
+                                confirm = context.getString(R.string.change) to { state ->
+                                    viewModel.changeLocation(
+                                        state.selectOne?.getSelected() ?: "US"
+                                    )
+                                }
+                            )
+                        )
+                    }
                 )
                 SettingItem(
                     title = stringResource(R.string.quality),
                     subtitle = quality ?: "",
                     smallSubtitle = true,
-                    onClick = {}
+                    onClick = {
+                        viewModel.setAlertData(
+                            SettingAlertState(
+                                title = context.getString(R.string.quality),
+                                selectOne = SettingAlertState.SelectData(
+                                    listSelect = QUALITY.items.map { item ->
+                                        (item.toString() == quality) to item.toString()
+                                    }
+                                ),
+                                confirm = context.getString(R.string.change) to { state ->
+                                    viewModel.changeQuality(state.selectOne?.getSelected())
+                                },
+                                dismiss = context.getString(R.string.cancel)
+                            )
+                        )
+                    }
                 )
                 SettingItem(
                     title = stringResource(R.string.home_limit),
@@ -261,9 +405,32 @@ fun SettingScreen(
                 Text(text = stringResource(R.string.lyrics), style = typo.labelMedium, modifier = Modifier.padding(vertical = 8.dp))
                 SettingItem(
                     title = stringResource(R.string.main_lyrics_provider),
-                    subtitle = mainLyricsProvider ?: "",
+                    subtitle = when (mainLyricsProvider) {
+                        DataStoreManager.MUSIXMATCH -> stringResource(R.string.musixmatch)
+                        DataStoreManager.YOUTUBE -> stringResource(R.string.youtube_transcript)
+                        else -> stringResource(R.string.unknown)
+                    },
                     onClick = {
-
+                        viewModel.setAlertData(
+                            SettingAlertState(
+                                title = context.getString(R.string.main_lyrics_provider),
+                                selectOne = SettingAlertState.SelectData(
+                                    listSelect = listOf(
+                                        (mainLyricsProvider == DataStoreManager.MUSIXMATCH) to context.getString(R.string.musixmatch),
+                                        (mainLyricsProvider == DataStoreManager.YOUTUBE) to context.getString(R.string.youtube_transcript)
+                                    )
+                                ),
+                                confirm = context.getString(R.string.change) to { state ->
+                                    viewModel.setLyricsProvider(
+                                        when (state.selectOne?.getSelected()) {
+                                            context.getString(R.string.musixmatch) -> DataStoreManager.MUSIXMATCH
+                                            context.getString(R.string.youtube_transcript) -> DataStoreManager.YOUTUBE
+                                            else -> DataStoreManager.MUSIXMATCH
+                                        }
+                                    )
+                                },
+                            )
+                        )
                     }
                 )
                 SettingItem(
@@ -275,7 +442,7 @@ fun SettingScreen(
                         if (musixmatchLoggedIn) {
                             viewModel.clearMusixmatchCookie()
                         } else {
-                            //TODO: Open musixmatch login page
+                            navController.navigateSafe(R.id.action_global_musixmatchFragment)
                         }
                     }
                 )
@@ -288,7 +455,24 @@ fun SettingScreen(
                 SettingItem(
                     title = stringResource(R.string.translation_language),
                     subtitle = musixmatchTranslationLanguage ?: "",
-                    onClick = {},
+                    onClick = {
+                        viewModel.setAlertData(
+                            SettingAlertState(
+                                title = context.getString(R.string.translation_language),
+                                textField = SettingAlertState.TextFieldData(
+                                    label = context.getString(R.string.translation_language),
+                                    value = musixmatchTranslationLanguage ?: "",
+                                    verifyCodeBlock = {
+                                        (it.length == 2 && it.isTwoLetterCode()) to context.getString(R.string.invalid_language_code)
+                                    }
+                                ),
+                                message = context.getString(R.string.translation_language_message),
+                                confirm = context.getString(R.string.change) to { state ->
+                                    viewModel.setTranslationLanguage(state.textField?.value ?: "")
+                                },
+                            )
+                        )
+                    },
                     isEnable = useMusixmatchTranslation
                 )
             }
@@ -301,7 +485,11 @@ fun SettingScreen(
                     subtitle = if (spotifyLoggedIn) stringResource(R.string.logged_in)
                     else stringResource(R.string.intro_login_to_spotify),
                     onClick = {
-
+                        if (spotifyLoggedIn) {
+                            viewModel.setSpotifyLogIn(false)
+                        } else {
+                            navController.navigateSafe(R.id.action_global_spotifyLogInFragment)
+                        }
                     }
                 )
                 SettingItem(
@@ -329,7 +517,38 @@ fun SettingScreen(
                 SettingItem(
                     title = stringResource(R.string.categories_sponsor_block),
                     subtitle = stringResource(R.string.what_segments_will_be_skipped),
-                    onClick = {},
+                    onClick = {
+                        val listName = SPONSOR_BLOCK.listName.map {
+                            context.getString(it)
+                        }
+                        viewModel.setAlertData(
+                            SettingAlertState(
+                                title = context.getString(R.string.categories_sponsor_block),
+                                multipleSelect = SettingAlertState.SelectData(
+                                    listSelect = listName.mapIndexed { index, item ->
+                                        (skipSegments?.contains(
+                                            SPONSOR_BLOCK.list.getOrNull(index)
+                                        ) == true) to item
+                                    }.also {
+                                        Log.w("SettingScreen", "SettingAlertState: $skipSegments")
+                                        Log.w("SettingScreen", "SettingAlertState: $it")
+                                    }
+                                ),
+                                confirm = context.getString(R.string.save) to { state ->
+                                    viewModel.setSponsorBlockCategories(
+                                        state.multipleSelect?.getListSelected()?.map { selected ->
+                                            listName.indexOf(selected)
+                                        }?.mapNotNull { s ->
+                                            SPONSOR_BLOCK.list.getOrNull(s).let {
+                                                it?.toString()
+                                            }
+                                        }?.toCollection(ArrayList()) ?: arrayListOf()
+                                    )
+                                },
+                                dismiss = context.getString(R.string.cancel)
+                            )
+                        )
+                    },
                     isEnable = enableSponsorBlock
                 )
                 val beforeUrl = stringResource(R.string.sponsor_block_intro).substringBefore("https://sponsor.ajay.app/")
@@ -359,36 +578,86 @@ fun SettingScreen(
                     title = stringResource(R.string.player_cache),
                     subtitle = "${playerCache.bytesToMB()} MB",
                     onClick = {
-
+                        viewModel.setBasicAlertData(
+                            SettingBasicAlertState(
+                                title = context.getString(R.string.clear_player_cache),
+                                message = null,
+                                confirm = context.getString(R.string.clear) to {
+                                    viewModel.clearPlayerCache()
+                                },
+                                dismiss = context.getString(R.string.cancel)
+                            )
+                        )
                     }
                 )
                 SettingItem(
                     title = stringResource(R.string.downloaded_cache),
                     subtitle = "${downloadedCache.bytesToMB()} MB",
                     onClick = {
-
+                        viewModel.setBasicAlertData(
+                            SettingBasicAlertState(
+                                title = context.getString(R.string.clear_downloaded_cache),
+                                message = null,
+                                confirm = context.getString(R.string.clear) to {
+                                    viewModel.clearDownloadedCache()
+                                },
+                                dismiss = context.getString(R.string.cancel)
+                            )
+                        )
                     }
                 )
                 SettingItem(
                     title = stringResource(R.string.thumbnail_cache),
                     subtitle = "${thumbnailCache.bytesToMB()} MB",
                     onClick = {
-
+                        viewModel.setBasicAlertData(
+                            SettingBasicAlertState(
+                                title = context.getString(R.string.clear_thumbnail_cache),
+                                message = null,
+                                confirm = context.getString(R.string.clear) to {
+                                    viewModel.clearThumbnailCache()
+                                },
+                                dismiss = context.getString(R.string.cancel)
+                            )
+                        )
                     }
                 )
                 SettingItem(
                     title = stringResource(R.string.spotify_canvas_cache),
                     subtitle = "${canvasCache.bytesToMB()} MB",
                     onClick = {
-
+                        viewModel.setBasicAlertData(
+                            SettingBasicAlertState(
+                                title = context.getString(R.string.clear_canvas_cache),
+                                message = null,
+                                confirm = context.getString(R.string.clear) to {
+                                    viewModel.clearCanvasCache()
+                                },
+                                dismiss = context.getString(R.string.cancel)
+                            )
+                        )
                     }
                 )
                 SettingItem(
                     title = stringResource(R.string.limit_player_cache),
-                    subtitle = if (limitPlayerCache != -1) "${limitPlayerCache} MB"
-                    else stringResource(R.string.unlimited),
+                    subtitle = LIMIT_CACHE_SIZE.getItemFromData(limitPlayerCache).toString(),
                     onClick = {
-
+                        viewModel.setAlertData(
+                            SettingAlertState(
+                                title = context.getString(R.string.limit_player_cache),
+                                selectOne = SettingAlertState.SelectData(
+                                    listSelect = LIMIT_CACHE_SIZE.items.map { item ->
+                                        (item == LIMIT_CACHE_SIZE.getItemFromData(limitPlayerCache)) to item.toString()
+                                    }
+                                ),
+                                confirm = context.getString(R.string.change) to { state ->
+                                    viewModel.setPlayerCacheLimit(
+                                        LIMIT_CACHE_SIZE.getDataFromItem(state.selectOne?.getSelected())
+                                    )
+                                },
+                                dismiss = context.getString(R.string.cancel)
+                            )
+                        )
                     }
                 )
                 Box(
@@ -593,14 +862,15 @@ fun SettingScreen(
                     title = stringResource(R.string.version),
                     subtitle = stringResource(R.string.version_name),
                     onClick = {
-
+                        navController.navigateSafe(R.id.action_global_creditFragment)
                     }
                 )
                 SettingItem(
                     title = stringResource(R.string.check_for_update),
-
+                    subtitle = checkForUpdateSubtitle,
                     onClick = {
-
+                        checkForUpdateSubtitle = context.getString(R.string.checking)
+                        viewModel.checkForUpdate()
                     }
                 )
                 SettingItem(
@@ -621,7 +891,25 @@ fun SettingScreen(
                     title = stringResource(R.string.third_party_libraries),
                     subtitle = stringResource(R.string.description_and_licenses),
                     onClick = {
-
+                        val inputStream = context.resources.openRawResource(R.raw.aboutlibraries)
+                        val scanner = Scanner(inputStream).useDelimiter("\\A")
+                        val stringBuilder = StringBuilder()
+                        while (scanner.hasNextLine()) {
+                            stringBuilder.append(scanner.nextLine())
+                        }
+                        Log.w("AboutLibraries", stringBuilder.toString())
+                        val localLib = Libs.Builder().withJson(stringBuilder.toString()).build()
+                        val intent =
+                            LibsBuilder()
+                                .withLicenseShown(true)
+                                .withVersionShown(true)
+                                .withActivityTitle(context.getString(R.string.third_party_libraries))
+                                .withSearchEnabled(true)
+                                .withEdgeToEdge(true)
+                                .withLibs(
+                                    localLib,
+                                ).intent(context)
+                        context.startActivity(intent)
                     }
                 )
             }
@@ -630,6 +918,178 @@ fun SettingScreen(
             EndOfPage()
         }
     }
+    val basisAlertData by viewModel.basicAlertData.collectAsStateWithLifecycle()
+    if (basisAlertData != null) {
+        val alertBasicState = basisAlertData ?: return
+        AlertDialog(
+            onDismissRequest = { viewModel.setBasicAlertData(null) },
+            title = {
+                Text(text = alertBasicState.title)
+            },
+            text = {
+                if (alertBasicState.message != null) {
+                    Text(text = alertBasicState.message)
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        alertBasicState.confirm.second.invoke()
+                        viewModel.setBasicAlertData(null)
+                    }
+                ) {
+                    Text(text = alertBasicState.confirm.first)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.setBasicAlertData(null)
+                    }
+                ) {
+                    Text(text = alertBasicState.dismiss)
+                }
+            }
+        )
+    }
+    val alertData by viewModel.alertData.collectAsStateWithLifecycle()
+    if (alertData != null) {
+        val alertState = alertData ?: return
+        //AlertDialog
+        AlertDialog(
+            onDismissRequest = { viewModel.setAlertData(null) },
+            title = {
+                Text(text = alertState.title)
+            },
+            text = {
+                if (alertState.message != null) {
+                    Column {
+                        Text(text = alertState.message)
+                        if (alertState.textField != null) {
+                            val verify = alertState.textField.verifyCodeBlock?.invoke(
+                                alertState.textField.value
+                            ) ?: (true to null)
+                            TextField(
+                                value = alertState.textField.value,
+                                onValueChange = {
+                                    viewModel.setAlertData(
+                                        alertState.copy(
+                                            textField = alertState.textField.copy(
+                                                value = it
+                                            )
+                                        )
+                                    )
+                                },
+                                isError = !verify.first,
+                                label = { Text(text = alertState.textField.label) },
+                                supportingText = {
+                                    if (!verify.first) {
+                                        Text(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            text = stringResource(R.string.invalid_language_code),
+                                            color = DarkColors.error
+                                        )
+                                    }
+                                },
+                                trailingIcon = {
+                                    if (!verify.first) {
+                                        Icons.Outlined.Error
+                                    }
+                                },
+                                modifier = Modifier.fillMaxWidth().padding(
+                                    vertical = 6.dp
+                                )
+                            )
+                        }
+                    }
+                } else if (alertState.selectOne != null) {
+                    LazyColumn(
+                        Modifier.padding(vertical = 6.dp)
+                            .heightIn(0.dp, 500.dp)
+                    ) {
+                        items(alertState.selectOne.listSelect) { item ->
+                            Row(Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                                RadioButton(
+                                    selected = item.first,
+                                    onClick = {
+                                        viewModel.setAlertData(
+                                            alertState.copy(
+                                                selectOne = alertState.selectOne.copy(
+                                                    listSelect = alertState.selectOne.listSelect.toMutableList().map {
+                                                        if (it == item) {
+                                                            true to it.second
+                                                        } else {
+                                                            false to it.second
+                                                        }
+                                                    }
+                                                )
+                                            )
+                                        )
+                                    }
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Text(text = item.second, style = typo.bodyMedium, maxLines = 1)
+                            }
+                        }
+                    }
+                } else if (alertState.multipleSelect != null) {
+                    LazyColumn(
+                        Modifier.padding(vertical = 6.dp)
+                    ) {
+                        items(alertState.multipleSelect.listSelect) { item ->
+                            Row(Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                                Checkbox(
+                                    checked = item.first,
+                                    onCheckedChange = {
+                                        viewModel.setAlertData(
+                                            alertState.copy(
+                                                multipleSelect = alertState.multipleSelect.copy(
+                                                    listSelect = alertState.multipleSelect.listSelect.toMutableList().map {
+                                                        if (it == item) {
+                                                            !it.first to it.second
+                                                        } else {
+                                                            it
+                                                        }
+                                                    }
+                                                )
+                                            )
+                                        )
+                                    }
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Text(text = item.second, style = typo.bodyMedium, maxLines = 1)
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        alertState.confirm.second.invoke(alertState)
+                        viewModel.setAlertData(null)
+                    },
+                    enabled = if (alertState.textField?.verifyCodeBlock != null) {
+                        alertState.textField.verifyCodeBlock.invoke(
+                            alertState.textField.value
+                        ).first
+                    } else true
+                ) {
+                    Text(text = alertState.confirm.first)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.setAlertData(null)
+                    }
+                ) {
+                    Text(text = alertState.dismiss)
+                }
+            }
+        )
+    }
+
     TopAppBar(
         title = {
             Text(

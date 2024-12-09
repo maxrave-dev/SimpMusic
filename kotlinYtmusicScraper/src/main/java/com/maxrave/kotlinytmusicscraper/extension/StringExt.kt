@@ -19,3 +19,8 @@ fun randomString(length: Int): String {
 fun String.verifyYouTubePlaylistId(): String {
     return if (startsWith("VL")) this else "VL$this"
 }
+
+fun String.isTwoLetterCode(): Boolean {
+    val regex = "^[A-Za-z]{2}$".toRegex()
+    return regex.matches(this)
+}
