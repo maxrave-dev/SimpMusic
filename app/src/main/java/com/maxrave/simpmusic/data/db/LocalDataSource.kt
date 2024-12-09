@@ -22,6 +22,8 @@ import java.time.LocalDateTime
 class LocalDataSource(
     private val databaseDao: DatabaseDao,
 ) {
+    fun checkpoint() = databaseDao.checkpoint()
+
     suspend fun getAllRecentData() = databaseDao.getAllRecentData()
 
     suspend fun getAllDownloadedPlaylist() = databaseDao.getAllDownloadedPlaylist()

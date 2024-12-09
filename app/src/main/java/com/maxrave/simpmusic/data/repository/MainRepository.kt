@@ -28,6 +28,7 @@ import com.maxrave.simpmusic.common.QUALITY
 import com.maxrave.simpmusic.common.VIDEO_QUALITY
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.LocalDataSource
+import com.maxrave.simpmusic.data.db.MusicDatabase
 import com.maxrave.simpmusic.data.db.entities.AlbumEntity
 import com.maxrave.simpmusic.data.db.entities.ArtistEntity
 import com.maxrave.simpmusic.data.db.entities.FollowedArtistSingleAndAlbum
@@ -107,9 +108,20 @@ import kotlin.math.abs
 class MainRepository(
     private val localDataSource: LocalDataSource,
     private val dataStoreManager: DataStoreManager,
+    private val database: MusicDatabase,
     private val context: Context,
 ) {
     // Database
+    fun closeDatabase() {
+        if (database.isOpen) {
+            database.close()
+        }
+    }
+
+    fun getDatabasePath() = database.openHelper.writableDatabase.path
+
+    fun databaseDaoCheckpoint() = localDataSource.checkpoint()
+
     fun getSearchHistory(): Flow<List<SearchHistory>> =
         flow {
             emit(localDataSource.getSearchHistory())
