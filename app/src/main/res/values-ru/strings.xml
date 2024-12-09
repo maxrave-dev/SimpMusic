@@ -118,7 +118,7 @@
     <string name="about_us">О нас</string>
     <string name="version">Версия</string>
     <string name="github">Github</string>
-    <string name="maxrave_dev">maxrave-dev</string>
+    <string name="maxrave_dev">FilmUteam</string>
     <string name="buy_me_a_coffee">Купите мне кофе</string>
     <string name="paypal">PayPal</string>
     <string name="title">Название</string>
@@ -136,7 +136,7 @@
     <string name="albums_inArtist">Альбомы</string>
     <string name="singles_inArtist">Синглы</string>
     <string name="fans_might_also_like_inArtist">Похожие исполнители</string>
-    <string name="crash_log">В программе SimpMusic произошел сбой. Приносим извинения за эту проблему.\nОтправить журнал сбоя разработчику</string>
+    <string name="crash_log">В программе FilmUmusic произошел сбой. Приносим извинения за эту проблему.\nОтправить журнал сбоя разработчику</string>
     <string name="crash">Сбой</string>
     <string name="send">Отправить</string>
     <string name="mail_subject">Сообщить о сбое</string>
@@ -194,7 +194,7 @@
     <string name="what_segments_will_be_skipped">Какие сегменты будут пропущены</string>
     <string name="save">Сохранить</string>
     <string name="saved">Сохранено</string>
-    <string name="sponsor_block_intro">SponsorBlock - это система пропуска раздражающих фрагментов видеороликов на YouTube.\nПодробнее: https://sponsor.ajay.app/\nВ SimpMusic SponsorBlock доступен, только когда устройство находится в сети</string>
+    <string name="sponsor_block_intro">SponsorBlock - это система пропуска раздражающих фрагментов видеороликов на YouTube.\nПодробнее: https://sponsor.ajay.app/\nВ FilmUmusic SponsorBlock доступен, только когда устройство находится в сети</string>
     <string name="skip_sponsor_part_of_video">Пропустить спонсорскую часть видео</string>
     <string name="customactivityoncrash_error_activity_error_occurred_explanation">Неизвестная ошибка. Извините за неудобства.</string>
     <string name="customactivityoncrash_error_activity_restart_app">Перезапустить приложение</string>
@@ -232,7 +232,7 @@
     <string name="saved_to_local_playlist">Сохранено в локальном плейлисте</string>
     <string name="if_you_want_to_unsync_this_playlist_please_go_to_local_playlist">если вы хотите отменить синхронизацию этого плейлиста, перейдите в локальный плейлист</string>
     <string name="log_in_to_get_YouTube_playlist">Войдите, чтобы получить плейлист YouTube</string>
-    <string name="sync_playlist_warning">SimpMusic автоматически создаст плейлист YouTube Music. Вы уверены?</string>
+    <string name="sync_playlist_warning">FilmUmusic автоматически создаст плейлист YouTube Music. Вы уверены?</string>
     <string name="syncing">Синхронизация</string>
     <string name="unsync_playlist_warning">"Отменить синхронизацию этого плейлиста? Этот плейлист не будет удален из YouTube Music "</string>
     <string name="unsyncing">Отмена синхронизации</string>
@@ -245,7 +245,7 @@
     <string name="main_lyrics_provider">Главный поставщик текстов</string>
     <string name="log_in_to_Musixmatch">Войдите в Musixmatch</string>
     <string name="only_support_email_and_password_type">Поддерживается только тип электронной почты и пароля</string>
-    <string name="musixmatch_login_description">API перевода Musixmatch работает только с авторизованным пользователем. SimpMusic использовал API разработчика Musixmatch. Дополнительную информацию можно найти на https://github.com/maxrave-dev/SimpMusic или https://developer.musixmatch.com/</string>
+    <string name="musixmatch_login_description">API перевода Musixmatch работает только с авторизованным пользователем. FilmUmusic использовал API разработчика Musixmatch. Дополнительную информацию можно найти на https://https://github.com/FilmU-Entertainment/Nexas или https://developer.musixmatch.com/</string>
     <string name="use_musixmatch_translation">Используйте перевод Musixmatch</string>
     <string name="use_musixmatch_translation_description">Включите перевод текста с помощью Musixmatch. Требовать вход в Musixmatch</string>
     <string name="translation_language">Язык перевода</string>
@@ -254,7 +254,7 @@
     <string name="password">Пароль</string>
     <string name="please_enter_your_email_and_password">Пожалуйста, введите свой адрес электронной почты и пароль</string>
     <string name="log_out_from_musixmatch">Выйти из Musixmatch</string>
-    <string name="translation_language_message">Введите код языка (например: en) (2 буквы). Если вы хотите установить то же самое для языка SimpMusic, оставьте поле редактирования пустым.</string>
+    <string name="translation_language_message">Введите код языка (например: en) (2 буквы). Если вы хотите установить то же самое для языка FilmUmusic, оставьте поле редактирования пустым.</string>
     <string name="invalid_language_code">Неверный код языка</string>
     <string name="lyrics_provider_youtube">Текст предоставлен YouTube</string>
     <string name="limit_player_cache">Ограничить кэш игрока</string>
@@ -268,7 +268,7 @@
     <string name="suggest">Предположение</string>
     <string name="reload">Перезагрузить</string>
     <string name="added_date">Дата добавления</string>
-    <string name="credit_app">Простое музыкальное приложение, использующее YouTube Music в качестве серверной части. \n\nSimpMusic — это проект с открытым исходным кодом для потоковой передачи музыки с YouTube и YouTube Music без рекламы и отслеживания. SimpMusic предоставляет множество функций:\n\n - Потоковое воспроизведение музыки \n - Синхронизированные тексты песен\n - Персонализация данных\n - и т. д. \n\nSimpMusic всегда бесплатен и без рекламы\n\nСоздавайте с ❤️ от Туан Минь Нгуен Дык (maxrave-dev)</string>
+    <string name="credit_app">Простое музыкальное приложение, использующее YouTube Music в качестве серверной части. \n\nFilmUmusic — это проект с открытым исходным кодом для потоковой передачи музыки с YouTube и YouTube Music без рекламы и отслеживания. FilmUmusic предоставляет множество функций:\n\n - Потоковое воспроизведение музыки \n - Синхронизированные тексты песен\n - Персонализация данных\n - и т. д. \n\nFilmUmusic всегда бесплатен и без рекламы\n\nСоздавайте с ❤️ от Туан Минь Нгуен Дык (FilmUteam)</string>
     <string name="issue_tracker">Трекер проблем</string>
     <string name="featured_playlists">Избранные плейлисты</string>
     <string name="featured_inArtist">Где встречается</string>
@@ -310,7 +310,7 @@
     <string name="enable_spotify_lyrics">Включить тексты песен Spotify</string>
     <string name="spotify_lyrícs_info">Больше текстов песен без перевода</string>
     <string name="enable_canvas">Включить Canvas</string>
-    <string name="canvas_info">Показывать Canvas Spotify в SimpMusic</string>
+    <string name="canvas_info">Показывать Canvas Spotify в FilmUmusic</string>
     <string name="spotify_lyrics_provider">Текст предоставлен Spotify</string>
     <string name="offline_mode">Офлайн режим</string>
     <string name="added_to_youtube_liked">Добавлено в лайки YouTube</string>

@@ -117,7 +117,7 @@
     <string name="about_us">మన గురించి</string>
     <string name="version">వర్షన్</string>
     <string name="github">గిట్‌హబ్</string>
-    <string name="maxrave_dev">maxrave-dev</string>
+    <string name="maxrave_dev">FilmUteam</string>
     <string name="buy_me_a_coffee">నాకు ఒక కాఫీ కొనండి</string>
     <string name="paypal">PayPal</string>
     <string name="title">శీర్షిక</string>
@@ -135,7 +135,7 @@
     <string name="albums_inArtist">ఆల్బమ్‌లు</string>
     <string name="singles_inArtist">సింగిల్స్</string>
     <string name="fans_might_also_like_inArtist">కోసం అభిమానులు కూడా ఇష్టపడే</string>
-    <string name="crash_log">SimpMusic క్రాష్ అయింది. ఈ సమస్యకు క్షమించండి.\nడెవలపర్‌కు క్రాష్-లాగ్ పంపండి</string>
+    <string name="crash_log">FilmUmusic క్రాష్ అయింది. ఈ సమస్యకు క్షమించండి.\nడెవలపర్‌కు క్రాష్-లాగ్ పంపండి</string>
     <string name="crash">క్రాష్</string>
     <string name="send">పంపండి</string>
     <string name="mail_subject">క్రాష్ నివేదిక</string>
@@ -155,7 +155,7 @@
 <string name="no_equalizer">మీ పరికరం సమీకర్త కలిగి లేదు</string>
 <string name="open_system_equalizer">సిస్టమ్ సమీకర్తను తెరవండి</string>
 <string name="use_your_system_equalizer">మీ సిస్టమ్ సమీకర్తను ఉపయోగించండి</string>
-<string name="version_name" translatable="false">v0.2.4</string>
+<string name="version_name" translatable="false">v2.0.0</string>
 <string name="streaming_data_provider_piped">స్ట్రీమింగ్ డేటా ప్రొవైడర్ (పైప్డ్)</string>
 <string name="itag">ఇటాగ్</string>
 <string name="mime_type">మైమ్ రకం</string>
@@ -194,7 +194,7 @@
 <string name="what_segments_will_be_skipped">ఏ భాగాలు దాటబడతాయి</string>
 <string name="save">నిల్వ చేయండి</string>
 <string name="saved">నిల్వ చేయబడింది</string>
-<string name="sponsor_block_intro">SponsorBlock అనేది YouTube వీడియోల ఇబ్బందిగా మారే భాగాలను దాటడానికి ఉపయోగించే ప్రజల ద్వారా స్వాధీనమైన వ్యవస్థ.\nమరిన్ని సమాచారం: https://sponsor.ajay.app/\nSimpMusic లో, SponsorBlock మీ పరికరం ఆన్‌లైన్‌లో ఉన్నప్పుడు మాత్రమే అందుబాటులో ఉంటుంది</string>
+<string name="sponsor_block_intro">SponsorBlock అనేది YouTube వీడియోల ఇబ్బందిగా మారే భాగాలను దాటడానికి ఉపయోగించే ప్రజల ద్వారా స్వాధీనమైన వ్యవస్థ.\nమరిన్ని సమాచారం: https://sponsor.ajay.app/\nFilmUmusic లో, SponsorBlock మీ పరికరం ఆన్‌లైన్‌లో ఉన్నప్పుడు మాత్రమే అందుబాటులో ఉంటుంది</string>
 <string name="skip_sponsor_part_of_video">వీడియో యొక్క ప్రొత్సాహక భాగాన్ని దాటండి</string>
 <string name="customactivityoncrash_error_activity_error_occurred_explanation">ఓ అప్రత్యాశితమైన లోపం చోటుచేసుకుంది. అసౌకర్యానికి క్షమించండి.</string>
 <string name="customactivityoncrash_error_activity_restart_app">యాప్‌ను పునఃప్రారంభించండి</string>
@@ -214,7 +214,7 @@
 <string name="sleep_timer_set_error">సరైన సమయం ఫార్మాట్‌ను సెటప్ చేయండి</string>
 <string name="sleep_timer_warning">నిద్ర టైమర్‌ను తొలగించాలా?</string>
 <string name="yes">అవును</string>
-<string name="notification_channel_name" translatable="false">SimpMusic ప్లేబ్యాక్ నోటిఫికేషన్</string>
+<string name="notification_channel_name" translatable="false">FilmUmusic ప్లేబ్యాక్ నోటిఫికేషన్</string>
 <string name="welcome_back">మళ్ళీ స్వాగతం,</string>
 <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">మీ వినే చరిత్రను YouTube Music సర్వర్‌కు అప్‌లోడ్ చేయండి, ఇది YT Music సిఫార్సు వ్యవస్థను మెరుగుపరుస్తుంది. లాగిన్ అయినప్పుడు మాత్రమే పని చేస్తుంది</string>
 <string name="send_back_listening_data_to_google">గూగుల్‌కు వినే డేటాను తిరిగి పంపండి</string>
@@ -233,7 +233,7 @@
 <string name="saved_to_local_playlist">స్థానిక ప్లేలిస్ట్‌కు సేవ్ చేయబడింది</string>
 <string name="if_you_want_to_unsync_this_playlist_please_go_to_local_playlist">ఈ ప్లేలిస్ట్‌ను అన్-సింక్ చేయాలంటే, దయచేసి స్థానిక ప్లేలిస్ట్‌కు వెళ్ళండి</string>
 <string name="log_in_to_get_YouTube_playlist">YouTube ప్లేలిస్ట్‌ను పొందేందుకు లాగిన్ అవ్వండి</string>
-<string name="sync_playlist_warning">SimpMusic ఆటోమేటిక్‌గా YouTube Music ప్లేలిస్ట్‌ను క్రియేట్ చేస్తుంది. మీరు ఖచ్చితంగా చేయాలనుకుంటున్నారు?</string>
+<string name="sync_playlist_warning">FilmUmusic ఆటోమేటిక్‌గా YouTube Music ప్లేలిస్ట్‌ను క్రియేట్ చేస్తుంది. మీరు ఖచ్చితంగా చేయాలనుకుంటున్నారు?</string>
 <string name="syncing">సింక్ చేస్తున్నారు</string>
 <string name="unsync_playlist_warning">"ఈ ప్లేలిస్ట్‌ను అన్-సింక్ చేయాలా? ఈ ప్లేలిస్ట్ YouTube Music నుండి తొలగించబడదు "</string>
 <string name="unsyncing">అన్-సింక్ అవుతోంది</string>
@@ -246,7 +246,7 @@
 <string name="main_lyrics_provider">ప్రధాన లిరిక్స్ ప్రొవైడర్</string>
 <string name="log_in_to_Musixmatch">Musixmatchలో లాగిన్ అవ్వండి</string>
 <string name="only_support_email_and_password_type">ఇమెయిల్ మరియు పాస్వర్డ్ రకం మాత్రమే మద్దతు ఇస్తుంది</string>
-<string name="musixmatch_login_description">Musixmatch అనువాద API లాగిన్ అయిన వినియోగదారితో మాత్రమే పని చేస్తుంది. SimpMusic Musixmatch డెవలపర్ APIను ఉపయోగిస్తుంది. మరిన్ని సమాచారం కోసం, https://github.com/maxrave-dev/SimpMusic లేదా https://developer.musixmatch.com/ కు వెళ్ళండి</string>
+<string name="musixmatch_login_description">Musixmatch అనువాద API లాగిన్ అయిన వినియోగదారితో మాత్రమే పని చేస్తుంది. FilmUmusic Musixmatch డెవలపర్ APIను ఉపయోగిస్తుంది. మరిన్ని సమాచారం కోసం, https://https://github.com/FilmU-Entertainment/Nexas లేదా https://developer.musixmatch.com/ కు వెళ్ళండి</string>
 <string name="use_musixmatch_translation">Musixmatch అనువాదాన్ని ఉపయోగించండి</string>
 <string name="use_musixmatch_translation_description">మ్యూసిక్‌మెట్‌తో పాటల అనువాదాన్ని ప్రారంభించండి. మ్యూసిక్‌మెట్ లాగిన్ అవసరం</string>
 <string name="translation_language">అనువాద భాష</string>
@@ -255,7 +255,7 @@
 <string name="password">పాస్‌వర్డ్</string>
 <string name="please_enter_your_email_and_password">మీ ఇమెయిల్ మరియు పాస్‌వర్డ్‌ను నమోదు చేయండి</string>
 <string name="log_out_from_musixmatch">మ్యూసిక్‌మెట్ నుండి లాగ్ అవుట్</string>
-<string name="translation_language_message">భాష కోడ్‌ను టైప్ చేయండి (ఉదా: en) (2 అక్షరాలు). SimpMusic యొక్క భాషతో అదే ఉండాలంటే, ఎడిట్ బాక్స్‌ను ఖాళీగా ఉంచండి.</string>
+<string name="translation_language_message">భాష కోడ్‌ను టైప్ చేయండి (ఉదా: en) (2 అక్షరాలు). FilmUmusic యొక్క భాషతో అదే ఉండాలంటే, ఎడిట్ బాక్స్‌ను ఖాళీగా ఉంచండి.</string>
 <string name="invalid_language_code">చెల్లని భాష కోడ్</string>
 <string name="lyrics_provider_youtube">యూట్యూబ్ ద్వారా అందించిన పాటల లిరిక్స్</string>
 <string name="limit_player_cache">ప్లేయర్ కాష్‌ను పరిమితి చేయండి</string>
@@ -269,9 +269,9 @@
 <string name="suggest">సూచన</string>
 <string name="reload">పునః లోడ్</string>
 <string name="added_date">చేర్చిన తేదీ</string>
-<string name="credit_app">యూట్యూబ్ మ్యూజిక్ కోసం బ్యాక్‌ఎండ్‌గా ఉపయోగించే సరళమైన మ్యూజిక్ యాప్\n\nSimpMusic యూట్యూబ్ మరియు యూట్యూబ్ మ్యూజిక్ నుండి ప్రకటనలు మరియు ట్రాకింగ్ లేకుండా సంగీతాన్ని స్ట్రీమ్ చేయడానికి ఓపెన్ సోర్స్ ప్రాజెక్ట్. SimpMusic అనేక ఫీచర్లను అందిస్తుంది:\n\n - సంగీతం స్ట్రీమింగ్\n - సమకాలీకరించిన లిరిక్స్\n - వ్యక్తిగతీకరించబడిన డేటా\n - ఇంకా...\n\nSimpMusic ఎప్పుడూ ఉచితంగా ఉంటుంది మరియు ఏదైనా ప్రకటనలు లేవు\n\n❤️తో రూపొందించినది: Tuan Minh Nguyen Duc (maxrave-dev)</string>
+<string name="credit_app">యూట్యూబ్ మ్యూజిక్ కోసం బ్యాక్‌ఎండ్‌గా ఉపయోగించే సరళమైన మ్యూజిక్ యాప్\n\nFilmUmusic యూట్యూబ్ మరియు యూట్యూబ్ మ్యూజిక్ నుండి ప్రకటనలు మరియు ట్రాకింగ్ లేకుండా సంగీతాన్ని స్ట్రీమ్ చేయడానికి ఓపెన్ సోర్స్ ప్రాజెక్ట్. FilmUmusic అనేక ఫీచర్లను అందిస్తుంది:\n\n - సంగీతం స్ట్రీమింగ్\n - సమకాలీకరించిన లిరిక్స్\n - వ్యక్తిగతీకరించబడిన డేటా\n - ఇంకా...\n\nFilmUmusic ఎప్పుడూ ఉచితంగా ఉంటుంది మరియు ఏదైనా ప్రకటనలు లేవు\n\n❤️తో రూపొందించినది: FilmUentertainment (FilmUteam)</string>
 <string name="issue_tracker">ఇష్యూ ట్రాకర్</string>
-<string name="copyright" translatable="false">©2023 Tuan Minh Nguyen Duc (maxrave-dev)</string>
+<string name="copyright" translatable="false">©2023 FilmUentertainment (FilmUteam)</string>
 <string name="featured_playlists">ప్రత్యేకంగా చూపించిన ప్లేలిస్టులు</string>
 <string name="podcasts" translatable="false">పాడ్‌కాస్ట్‌లు</string>
 <string name="featured_inArtist">ప్రత్యేకంగా చూపించబడింది</string>
@@ -311,7 +311,7 @@
 <string name="enable_spotify_lyrics">స్పాటిఫై లిరిక్స్‌ను ప్రారంభించండి</string>
 <string name="spotify_lyrícs_info">అనువాదం లేకుండా మరిన్ని లిరిక్స్</string>
 <string name="enable_canvas">కేన్వాస్‌ను ప్రారంభించండి</string>
-<string name="canvas_info">SimpMusicలో స్పాటిఫై కేన్వాస్ చూపించు</string>
+<string name="canvas_info">FilmUmusicలో స్పాటిఫై కేన్వాస్ చూపించు</string>
 <string name="spotify_lyrics_provider">స్పాటిఫై ద్వారా అందించిన లిరిక్స్</string>
 <string name="offline_mode">ఆఫ్‌లైన్ మోడ్</string>
 <string name="added_to_youtube_liked">యూట్యూబ్ లైక్డ్‌లో చేర్చబడింది</string>

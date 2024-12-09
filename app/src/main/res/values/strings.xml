@@ -117,7 +117,7 @@
     <string name="about_us">About us</string>
     <string name="version">Version</string>
     <string name="github">Github</string>
-    <string name="maxrave_dev">maxrave-dev</string>
+    <string name="maxrave_dev">FilmUteam</string>
     <string name="buy_me_a_coffee">Buy me a coffee</string>
     <string name="paypal">PayPal</string>
     <string name="title">Title</string>
@@ -135,7 +135,7 @@
     <string name="albums_inArtist">Albums</string>
     <string name="singles_inArtist">Singles</string>
     <string name="fans_might_also_like_inArtist">Fans might also like</string>
-    <string name="crash_log">SimpMusic crashed. Sorry for this problem.\nSend crash-log to developer</string>
+    <string name="crash_log">FilmUmusic crashed. Sorry for this problem.\nSend crash-log to developer</string>
     <string name="crash">Crash</string>
     <string name="send">Send</string>
     <string name="mail_subject">Report Crash</string>
@@ -155,7 +155,7 @@
     <string name="no_equalizer">Your device doesn\'t have equalizer</string>
     <string name="open_system_equalizer">Open system equalizer</string>
     <string name="use_your_system_equalizer">Use your system equalizer</string>
-    <string name="version_name" translatable="false">v0.2.4</string>
+    <string name="version_name" translatable="false">v2.0.0</string>
     <string name="streaming_data_provider_piped">Streaming data provider (Piped)</string>
     <string name="itag">Itag</string>
     <string name="mime_type">Mime Type</string>
@@ -194,7 +194,7 @@
     <string name="what_segments_will_be_skipped">What segments will be skipped</string>
     <string name="save">Save</string>
     <string name="saved">Saved</string>
-    <string name="sponsor_block_intro">SponsorBlock is a crowd-sourced system for skipping annoying parts of YouTube videos.\nMore information: https://sponsor.ajay.app/\nIn SimpMusic, SponsorBlock is only available when the device is online</string>
+    <string name="sponsor_block_intro">SponsorBlock is a crowd-sourced system for skipping annoying parts of YouTube videos.\nMore information: https://sponsor.ajay.app/\nIn FilmUmusic, SponsorBlock is only available when the device is online</string>
     <string name="skip_sponsor_part_of_video">Skip sponsor part of video</string>
     <string name="customactivityoncrash_error_activity_error_occurred_explanation">An unexpected error occurred. Sorry for the inconvenience.</string>
     <string name="customactivityoncrash_error_activity_restart_app">Restart app</string>
@@ -214,7 +214,7 @@
     <string name="sleep_timer_set_error">Please set the correct format time</string>
     <string name="sleep_timer_warning">Remove sleep timer?</string>
     <string name="yes">Yes</string>
-    <string name="notification_channel_name" translatable="false">SimpMusic Playback Notification</string>
+    <string name="notification_channel_name" translatable="false">FilmUmusic Playback Notification</string>
     <string name="welcome_back">Welcome back,</string>
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">Upload your listening history to YouTube Music server, it will make YT Music recommendation system better. Working only if logged in</string>
     <string name="send_back_listening_data_to_google">Send back listening data to Google</string>
@@ -233,7 +233,7 @@
     <string name="saved_to_local_playlist">Saved to local playlist</string>
     <string name="if_you_want_to_unsync_this_playlist_please_go_to_local_playlist">if you want to unsync this playlist, please go to local playlist</string>
     <string name="log_in_to_get_YouTube_playlist">Log in to get YouTube Playlist</string>
-    <string name="sync_playlist_warning">SimpMusic will create a YouTube Music Playlist automatically. Are you sure?</string>
+    <string name="sync_playlist_warning">FilmUmusic will create a YouTube Music Playlist automatically. Are you sure?</string>
     <string name="syncing">Syncing</string>
     <string name="unsync_playlist_warning">"Unsync this playlist? This playlist will not be removed from YouTube Music "</string>
     <string name="unsyncing">Unsyncing</string>
@@ -246,7 +246,7 @@
     <string name="main_lyrics_provider">Main Lyrics Provider</string>
     <string name="log_in_to_Musixmatch">Log in to Musixmatch</string>
     <string name="only_support_email_and_password_type">Only support email and password type</string>
-    <string name="musixmatch_login_description">Musixmatch Translation API works only with logged-in user. SimpMusic used Musixmatch Developer API. More information, go to https://github.com/maxrave-dev/SimpMusic or https://developer.musixmatch.com/</string>
+    <string name="musixmatch_login_description">Musixmatch Translation API works only with logged-in user. FilmUmusic used Musixmatch Developer API. More information, go to https://https://github.com/FilmU-Entertainment/Nexas or https://developer.musixmatch.com/</string>
     <string name="use_musixmatch_translation">Use Musixmatch Translation</string>
     <string name="use_musixmatch_translation_description">Enable lyrics translation using Musixmatch. Require Musixmatch Login</string>
     <string name="translation_language">Translation Language</string>
@@ -255,7 +255,7 @@
     <string name="password">Password</string>
     <string name="please_enter_your_email_and_password">Please enter your email and password</string>
     <string name="log_out_from_musixmatch">Log out from Musixmatch</string>
-    <string name="translation_language_message">Type language code (Eg: en) (2 letters). If you want to set same with SimpMusic\'s language, please make edit box empty.</string>
+    <string name="translation_language_message">Type language code (Eg: en) (2 letters). If you want to set same with FilmUmusic\'s language, please make edit box empty.</string>
     <string name="invalid_language_code">Invalid language code</string>
     <string name="lyrics_provider_youtube">Lyrics provided by YouTube</string>
     <string name="limit_player_cache">Limit Player Cache</string>
@@ -269,9 +269,9 @@
     <string name="suggest">Suggestion</string>
     <string name="reload">Reload</string>
     <string name="added_date">Added date</string>
-    <string name="credit_app">A simple music app using YouTube Music for backend \n\nSimpMusic is an open source project to stream music from YouTube and YouTube Music without ads and tracking. SimpMusic provides many features:\n\n - Streaming music \n - Synced lyrics\n - Personalize data\n - etc… \n\nSimpMusic is always free and no ads\n\nBuild with ❤️ from Tuan Minh Nguyen Duc (maxrave-dev)</string>
+    <string name="credit_app">A simple music app using YouTube Music for backend \n\nFilmUmusic is an open source project to stream music from YouTube and YouTube Music without ads and tracking. FilmUmusic provides many features:\n\n - Streaming music \n - Synced lyrics\n - Personalize data\n - etc… \n\nFilmUmusic is always free and no ads\n\nBuild with ❤️ from FilmUentertainment (FilmUteam)</string>
     <string name="issue_tracker">Issue Tracker</string>
-    <string name="copyright" translatable="false">©2023 Tuan Minh Nguyen Duc (maxrave-dev)</string>
+    <string name="copyright" translatable="false">©2023 FilmUentertainment (FilmUteam)</string>
     <string name="featured_playlists">Featured Playlists</string>
     <string name="podcasts" translatable="false">Podcasts</string>
     <string name="featured_inArtist">Featured on</string>
@@ -311,7 +311,7 @@
     <string name="enable_spotify_lyrics">Enable Spotify Lyrics</string>
     <string name="spotify_lyrícs_info">More lyrics without translation</string>
     <string name="enable_canvas">Enable Canvas</string>
-    <string name="canvas_info">Show Spotify Canvas in SimpMusic</string>
+    <string name="canvas_info">Show Spotify Canvas in FilmUmusic</string>
     <string name="spotify_lyrics_provider">Lyrics provided by Spotify</string>
     <string name="offline_mode">Offline mode</string>
     <string name="added_to_youtube_liked">Added to YouTube Liked</string>
@@ -360,5 +360,5 @@
     <string name="loading">Loading</string>
     <string name="updating">Updating</string>
     <string name="go_to_log_in_page">Go to log in page</string>
-    <string name="log_in_warning">YouTube Music now requires you to log in to stream music, Piped Instance sometime can\'t work too. You should log in to YouTube to get better experience with SimpMusic.</string>
+    <string name="log_in_warning">YouTube Music now requires you to log in to stream music, Piped Instance sometime can\'t work too. You should log in to YouTube to get better experience with FilmUmusic.</string>
 </resources>

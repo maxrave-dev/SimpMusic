@@ -117,7 +117,7 @@
     <string name="about_us">અમારા વિશે</string>
     <string name="version">આવૃત્તિ</string>
     <string name="github">ગિથબ</string>
-    <string name="maxrave_dev">મૅક્સરેવ-ડેવ</string>
+    <string name="maxrave_dev">FIlmUteam</string>
     <string name="buy_me_a_coffee">મને કોફી ખરીદો</string>
     <string name="paypal">પેપાલ</string>
     <string name="title">શીર્ષક</string>
@@ -135,7 +135,7 @@
     <string name="albums_inArtist">આલ્બમ્સ</string>
     <string name="singles_inArtist">સિંગલ્સ</string>
     <string name="fans_might_also_like_inArtist">પ્રશંસકોને પણ આ ગમશે</string>
-    <string name="crash_log">SimpMusic ક્રેશ થયું. આ સમસ્યામાં માફ કરશો.\nક્રેશ-લોગ ડેવલોપરને મોકલો</string>
+    <string name="crash_log">FilmUmusic ક્રેશ થયું. આ સમસ્યામાં માફ કરશો.\nક્રેશ-લોગ ડેવલોપરને મોકલો</string>
     <string name="crash">ક્રેશ</string>
     <string name="send">મોકલો</string>
     <string name="mail_subject">ક્રેશ રિપોર્ટ કરો</string>
@@ -155,7 +155,7 @@
     <string name="no_equalizer">તમારા ઉપકરણમાં ઇક્વલાઇઝર નથી</string>
     <string name="open_system_equalizer">સિસ્ટમ ઇક્વલાઇઝર ખોલો</string>
     <string name="use_your_system_equalizer">તમારા સિસ્ટમ ઇક્વલાઇઝરનો ઉપયોગ કરો</string>
-    <string name="version_name" translatable="false">v0.2.4</string>
+    <string name="version_name" translatable="false">v2.0.0</string>
     <string name="streaming_data_provider_piped">સ્ટ્રીમિંગ ડેટા પ્રોવાઇડર (Piped)</string>
     <string name="itag">Itag</string>
     <string name="mime_type">માઇમ પ્રકાર</string>
@@ -194,7 +194,7 @@
     <string name="what_segments_will_be_skipped">કયા વિભાગો છોડવામાં આવશે</string>
     <string name="save">સાચવો</string>
     <string name="saved">સાચવી લેવાયું</string>
-    <string name="sponsor_block_intro">SponsorBlock એ YouTube વિડીયોના બોરિંગ ભાગોને છોડવા માટેનું ક્રાઉડ-સોર્સ્ડ સિસ્ટમ છે.\nવધુ માહિતી માટે: https://sponsor.ajay.app/\nSimpMusic માં SponsorBlock ફક્ત ડિવાઇસ ઑનલાઇન હોય ત્યારે ઉપલબ્ધ છે</string>
+    <string name="sponsor_block_intro">SponsorBlock એ YouTube વિડીયોના બોરિંગ ભાગોને છોડવા માટેનું ક્રાઉડ-સોર્સ્ડ સિસ્ટમ છે.\nવધુ માહિતી માટે: https://sponsor.ajay.app/\nFilmUmusic માં SponsorBlock ફક્ત ડિવાઇસ ઑનલાઇન હોય ત્યારે ઉપલબ્ધ છે</string>
     <string name="skip_sponsor_part_of_video">વિડીયોના પ્રાયોજક ભાગ છોડો</string>
     <string name="customactivityoncrash_error_activity_error_occurred_explanation">અનપેક્ષિત ભૂલ આવી. આ માટે માફ કરશો.</string>
     <string name="customactivityoncrash_error_activity_restart_app">એપ ફરીથી શરૂ કરો</string>
@@ -214,7 +214,7 @@
 <string name="sleep_timer_set_error">કૃપા કરીને સાચો સમય ફોર્મેટ સેટ કરો</string>
 <string name="sleep_timer_warning">સ્લીપ ટાઈમર દૂર કરવો છે?</string>
 <string name="yes">હા</string>
-<string name="notification_channel_name" translatable="false">SimpMusic પ્લેબેક સૂચના</string>
+<string name="notification_channel_name" translatable="false">FilmUmusic પ્લેબેક સૂચના</string>
 <string name="welcome_back">ફરી આવકારો,</string>
 <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">તમારા સાંભળવાના ઇતિહાસને YouTube મ્યુઝિક સર્વર પર અપલોડ કરો, તે YT મ્યુઝિકની ભલામણ પ્રણાલી સુધારશે. ફક્ત લૉગિન થયા પછી કામ કરે છે</string>
 <string name="send_back_listening_data_to_google">ગૂગલને સાંભળવાના ડેટા મોકલો</string>
@@ -233,7 +233,7 @@
 <string name="saved_to_local_playlist">લોકલ પ્લેલિસ્ટમાં સાચવવામાં આવ્યું</string>
 <string name="if_you_want_to_unsync_this_playlist_please_go_to_local_playlist">જો તમે આ પ્લેલિસ્ટ Unsync કરવા માંગો છો, તો કૃપા કરીને લોકલ પ્લેલિસ્ટમાં જાઓ</string>
 <string name="log_in_to_get_YouTube_playlist">YouTube પ્લેલિસ્ટ મેળવવા માટે લૉગિન કરો</string>
-<string name="sync_playlist_warning">SimpMusic આપમેળે YouTube મ્યુઝિક પ્લેલિસ્ટ બનાવશે. શું તમે ખાતરીપૂર્વક આગળ વધવા માંગો છો?</string>
+<string name="sync_playlist_warning">FilmUmusic આપમેળે YouTube મ્યુઝિક પ્લેલિસ્ટ બનાવશે. શું તમે ખાતરીપૂર્વક આગળ વધવા માંગો છો?</string>
 <string name="syncing">સમન્વયિત કરી રહ્યું છે</string>
 <string name="unsync_playlist_warning">આ પ્લેલિસ્ટ Unsync કરવું છે? આ પ્લેલિસ્ટ YouTube મ્યુઝિકમાંથી દૂર થશે નહીં</string>
 <string name="unsyncing">Unsync કરી રહ્યું છે</string>
@@ -246,7 +246,7 @@
 <string name="main_lyrics_provider">મુખ્ય ગીતો પ્રદાતા</string>
 <string name="log_in_to_Musixmatch">Musixmatch માં લૉગિન કરો</string>
 <string name="only_support_email_and_password_type">ફક્ત ઇમેઇલ અને પાસવર્ડ પ્રકારને સપોર્ટ કરે છે</string>
-<string name="musixmatch_login_description">Musixmatch અનુવાદ API ફક્ત લૉગિન કરેલા યુઝર માટે કામ કરે છે. SimpMusic એ Musixmatch Developer API નો ઉપયોગ કર્યો છે. વધુ માહિતી માટે, https://github.com/maxrave-dev/SimpMusic અથવા https://developer.musixmatch.com/ પર જાઓ</string>
+<string name="musixmatch_login_description">Musixmatch અનુવાદ API ફક્ત લૉગિન કરેલા યુઝર માટે કામ કરે છે. FilmUmusic એ Musixmatch Developer API નો ઉપયોગ કર્યો છે. વધુ માહિતી માટે, https://https://github.com/FilmU-Entertainment/Nexas અથવા https://developer.musixmatch.com/ પર જાઓ</string>
 <string name="use_musixmatch_translation">Musixmatch અનુવાદનો ઉપયોગ કરો</string>
   <string name="use_musixmatch_translation_description">Musixmatch ઉપયોગ કરીને ગીતોના અનુવાદને સક્રિય કરો. Musixmatch લૉગિન જરૂરી છે</string>
 <string name="translation_language">અનુવાદ ભાષા</string>
@@ -255,7 +255,7 @@
 <string name="password">પાસવર્ડ</string>
 <string name="please_enter_your_email_and_password">તમારું ઇમેઇલ અને પાસવર્ડ દાખલ કરો</string>
 <string name="log_out_from_musixmatch">Musixmatchમાંથી લૉગ આઉટ કરો</string>
-<string name="translation_language_message">ભાષા કોડ દાખલ કરો (ઉદાહરણ: en) (2 અક્ષરો). જો SimpMusicની ભાષા સાથે સમાન સેટ કરવા માંગો છો, તો એડિટ બોક્સ ખાલી રાખો.</string>
+<string name="translation_language_message">ભાષા કોડ દાખલ કરો (ઉદાહરણ: en) (2 અક્ષરો). જો FilmUmusicની ભાષા સાથે સમાન સેટ કરવા માંગો છો, તો એડિટ બોક્સ ખાલી રાખો.</string>
 <string name="invalid_language_code">અમાન્ય ભાષા કોડ</string>
 <string name="lyrics_provider_youtube">ગીતો YouTube દ્વારા પ્રદાન કરવામાં આવ્યા છે</string>
 <string name="limit_player_cache">પ્લેયર કૅશ મર્યાદિત કરો</string>
@@ -269,9 +269,9 @@
 <string name="suggest">સૂચન</string>
 <string name="reload">ફરીથી લોડ કરો</string>
 <string name="added_date">ઉમેરેલી તારીખ</string>
-<string name="credit_app">YouTube Music માટે બેકએન્ડનો ઉપયોગ કરીને એક સરળ મ્યુઝિક એપ\n\nSimpMusic એ YouTube અને YouTube Musicથી એડ્સ અને ટ્રેકિંગ વિના મ્યુઝિક સ્ટ્રીમ કરવા માટેની ઓપન સોર્સ પ્રોજેક્ટ છે. SimpMusic ઘણા ફીચર્સ પ્રદાન કરે છે:\n\n- મ્યુઝિક સ્ટ્રીમિંગ\n- સમન્વયિત ગીતો\n- વ્યક્તિગત ડેટા\n- વગેરે… \n\nSimpMusic હંમેશા મફત છે અને તેમાં કોઈ એડ નથી\n\n❤️ સાથે બનાવેલ - Tuan Minh Nguyen Duc (maxrave-dev)</string>
+<string name="credit_app">YouTube Music માટે બેકએન્ડનો ઉપયોગ કરીને એક સરળ મ્યુઝિક એપ\n\nFilmUmusic એ YouTube અને YouTube Musicથી એડ્સ અને ટ્રેકિંગ વિના મ્યુઝિક સ્ટ્રીમ કરવા માટેની ઓપન સોર્સ પ્રોજેક્ટ છે. FilmUmusic ઘણા ફીચર્સ પ્રદાન કરે છે:\n\n- મ્યુઝિક સ્ટ્રીમિંગ\n- સમન્વયિત ગીતો\n- વ્યક્તિગત ડેટા\n- વગેરે… \n\nFilmUmusic હંમેશા મફત છે અને તેમાં કોઈ એડ નથી\n\n❤️ સાથે બનાવેલ - FilmUentertainment (FilmUteam)</string>
 <string name="issue_tracker">ઇશ્યુ ટ્રેકર</string>
-<string name="copyright" translatable="false">©2023 Tuan Minh Nguyen Duc (maxrave-dev)</string>
+<string name="copyright" translatable="false">©2023 FilmUentertainment (FilmUteam)</string>
 <string name="featured_playlists">ફીચર્ડ પ્લેલિસ્ટ્સ</string>
 <string name="podcasts" translatable="false">પોડકાસ્ટ્સ</string>
 <string name="featured_inArtist">ફીચર્ડ ઓન</string>
@@ -311,7 +311,7 @@
 <string name="enable_spotify_lyrics">Spotify ગીતો સક્રિય કરો</string>
 <string name="spotify_lyrícs_info">અનુવાદ વિના વધુ ગીતો</string>
 <string name="enable_canvas">કેનવાસ સક્રિય કરો</string>
-<string name="canvas_info">SimpMusic માં Spotify કેનવાસ બતાવો</string>
+<string name="canvas_info">FilmUmusic માં Spotify કેનવાસ બતાવો</string>
 <string name="spotify_lyrics_provider">ગીતો Spotify દ્વારા પ્રદાન કરવામાં આવ્યા છે</string>
 <string name="offline_mode">ઓફલાઇન સ્થિતિ</string>
 <string name="added_to_youtube_liked">YouTube પસંદગીમાં ઉમેરાયું</string>

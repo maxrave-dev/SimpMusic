@@ -9,4 +9,4 @@
 - Cải thiện dữ liệu cá nhân hóa cho người dùng "Gửi lại cho Google"
 - Giao diện người dùng và hiệu ứng tốt hơn
 - Thêm các ngôn ngữ Phần Lan, Tây Ban Nha, Pháp, Ba Lan, Bồ Đào Nha, Thổ Nhĩ Kỳ
-- Sửa một số lỗi (Kiểm tra https://github.com/maxrave-dev/SimpMusic/commit/233a7245ce912d95d50913248f6d4d8ae315cfda)
+- Sửa một số lỗi (Kiểm tra https://https://github.com/FilmU-Entertainment/Nexas/commit/233a7245ce912d95d50913248f6d4d8ae315cfda)

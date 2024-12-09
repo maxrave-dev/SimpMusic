@@ -118,7 +118,7 @@
     <string name="about_us">Про нас</string>
     <string name="version">Версія</string>
     <string name="github">Github</string>
-    <string name="maxrave_dev">maxrave-dev</string>
+    <string name="maxrave_dev">FilmUteam</string>
     <string name="buy_me_a_coffee">Купіть мені каву</string>
     <string name="paypal">PayPal</string>
     <string name="title">Назва</string>
@@ -136,7 +136,7 @@
     <string name="albums_inArtist">Альбоми</string>
     <string name="singles_inArtist">Сингли</string>
     <string name="fans_might_also_like_inArtist">Фанатам може також сподобатися</string>
-    <string name="crash_log">В SimpMusic стався збій. Вибачте за цю проблему.\nНадішліть журнал збою розробнику</string>
+    <string name="crash_log">В FilmUmusic стався збій. Вибачте за цю проблему.\nНадішліть журнал збою розробнику</string>
     <string name="crash">Збій</string>
     <string name="send">Відправити</string>
     <string name="mail_subject">Повідомити про збій</string>
@@ -194,7 +194,7 @@
     <string name="what_segments_will_be_skipped">Які сегменти будуть пропущені</string>
     <string name="save">Зберегти</string>
     <string name="saved">Збережено</string>
-    <string name="sponsor_block_intro">SponsorBlock — це система краудсорсингу, яка дозволяє пропускати дратівливі фрагменти відео на YouTube.\nДетальніше: https://sponsor.ajay.app/\nУ SimpMusic функція SponsorBlock доступна лише в режимі онлайн</string>
+    <string name="sponsor_block_intro">SponsorBlock — це система краудсорсингу, яка дозволяє пропускати дратівливі фрагменти відео на YouTube.\nДетальніше: https://sponsor.ajay.app/\nУ FilmUmusic функція SponsorBlock доступна лише в режимі онлайн</string>
     <string name="skip_sponsor_part_of_video">Пропустити частину відео зі спонсором</string>
     <string name="customactivityoncrash_error_activity_error_occurred_explanation">Виникла неочікувана помилка. Вибачте за незручності.</string>
     <string name="customactivityoncrash_error_activity_restart_app">Перезапустити додаток</string>

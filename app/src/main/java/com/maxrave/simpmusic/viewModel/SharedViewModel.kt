@@ -1050,6 +1050,41 @@ class SharedViewModel(
         }
     }
 
+
+    fun shareSong() {
+        viewModelScope.launch {
+            val nowPlaying = nowPlayingState.value?.songEntity
+            if (nowPlaying != null) {
+                // Generate the deep link
+                val shareLink = "http://share.filmu.site/watch?id=${nowPlaying.videoId}"
+
+                // Create an intent for sharing the link
+                val shareIntent = Intent().apply {
+                    action = Intent.ACTION_SEND
+                    putExtra(Intent.EXTRA_TEXT, "Check out this song: $shareLink")
+                    type = "text/plain"
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) // This ensures the intent can be launched
+                }
+
+                // Safely start the activity with the application context
+                try {
+                    getApplication<Application>().startActivity(
+                        Intent.createChooser(shareIntent, "Share via").apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) // Ensure chooser also has this flag
+                        }
+                    )
+                } catch (e: Exception) {
+                    Log.e("SharedViewModel", "Failed to share song", e)
+                    Toast.makeText(getApplication(), "Unable to share song", Toast.LENGTH_SHORT).show()
+                }
+            } else {
+                Toast.makeText(getApplication(), "No song is currently playing!", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+
+
     fun checkAuth() {
         viewModelScope.launch {
             dataStoreManager.cookie.first().let { cookie ->

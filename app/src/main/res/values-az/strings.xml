@@ -120,7 +120,7 @@
 <string name="about_us">Haqqımızda</string>
 <string name="version">Versiya</string>
 <string name="github">Github</string>
-<string name="maxrave_dev">maxrave-dev</string>
+<string name="maxrave_dev">FilmUteam</string>
 <string name="buy_me_a_coffee">Mənə qəhvə al</string>
 <string name="paypal">PayPal</string>
 <string name="title">Başlıq</string>
@@ -138,7 +138,7 @@
 <string name="albums_inArtist">Albomlar</string>
 <string name="singles_inArtist">Seçmələr</string>
 <string name="fans_might_also_like_inArtist">Pərəstişkarlar bəyənə bilər</string>
-<string name="crash_log">SimpMusic çökdü. Bu problemə görə üzr istəyirik.\nXəta qeydin tərtibatçıya göndərin</string>
+<string name="crash_log">FilmUmusic çökdü. Bu problemə görə üzr istəyirik.\nXəta qeydin tərtibatçıya göndərin</string>
 <string name="crash">Qəza</string>
 <string name="send">Göndər</string>
 <string name="mail_subject">Qəzanı Bildir</string>
@@ -196,7 +196,7 @@
 <string name="what_segments_will_be_skipped">Hansı bölümlər ötürüləcək</string>
 <string name="save">Saxla</string>
 <string name="saved">Saxlanıldı</string>
-<string name="sponsor_block_intro">SponsorBlock YouTube videolarının yorucu hissələrini ötürmək üçün toplu mənbə sistemidir.\nƏtraflı məlumat: https://sponsor.ajay.app/\nSimpMusic-də SponsorBlock ancaq cihaz onlayndısa əlçatandır</string>
+<string name="sponsor_block_intro">SponsorBlock YouTube videolarının yorucu hissələrini ötürmək üçün toplu mənbə sistemidir.\nƏtraflı məlumat: https://sponsor.ajay.app/\nFilmUmusic-də SponsorBlock ancaq cihaz onlayndısa əlçatandır</string>
 <string name="skip_sponsor_part_of_video">Videonun sponsor hissəsini ötür</string>
 <string name="customactivityoncrash_error_activity_error_occurred_explanation">Gözlənilməz xəta baş verdi. Narahatçılıq üçün üzr istəyirik.</string>
 <string name="customactivityoncrash_error_activity_restart_app">Tətbiqi yenidən başlat</string>
@@ -234,7 +234,7 @@
 <string name="saved_to_local_playlist">Yerli pleylistə köçürüldü</string>
 <string name="if_you_want_to_unsync_this_playlist_please_go_to_local_playlist">bu pleylist sinxronizasiyasını ləğv etmək istəyirsinizsə, yerli pleylistə keçin</string>
 <string name="log_in_to_get_YouTube_playlist">YouTube Pleylisti əldə etmək üçün daxil ol</string>
-<string name="sync_playlist_warning">SimpMusic birbaşa YouTube Musiqi Pleylistini yaradacaq. Əminsiniz?</string>
+<string name="sync_playlist_warning">FilmUmusic birbaşa YouTube Musiqi Pleylistini yaradacaq. Əminsiniz?</string>
 <string name="syncing">Sinxronlaşdırılır</string>
 <string name="unsync_playlist_warning">"Bu pleylist sinxronizasiya edilsin? Bu pleylist YouTube Music-dən silinməyəcək "</string>
 <string name="unsyncing">Sinxronizasiyasız</string>
@@ -247,7 +247,7 @@
 <string name="main_lyrics_provider">Əsas Lirika Təminatçısı</string>
 <string name="log_in_to_Musixmatch">Musixmatch-ə daxil olun</string>
 <string name="only_support_email_and_password_type">Yalnız e-poçt və parol üsulun dəstəkləyir</string>
-<string name="musixmatch_login_description">Musixmatch Translation API yalnız daxil olan istifadəçi ilə işləyir. SimpMusic Musixmatch Developer API istifadə etdi. Ətraflı məlumat üçün https://github.com/maxrave-dev/SimpMusic və ya https://developer.musixmatch.com/ ünvanına keçin</string>
+<string name="musixmatch_login_description">Musixmatch Translation API yalnız daxil olan istifadəçi ilə işləyir. FilmUmusic Musixmatch Developer API istifadə etdi. Ətraflı məlumat üçün https://https://github.com/FilmU-Entertainment/Nexas və ya https://developer.musixmatch.com/ ünvanına keçin</string>
 <string name="use_musixmatch_translation">Musixmatch Tərcüməsin İstifadə Et</string>
 <string name="use_musixmatch_translation_description">Musixmatch işlədərək lirika tərcüməsini aktivləşdir. Musixmatch Girişi Tələb Olunur</string>
 <string name="translation_language">Tərcümə Dili</string>
@@ -256,7 +256,7 @@
 <string name="password">Parol</string>
 <string name="please_enter_your_email_and_password">E-poçt və parolunuzu qeyd edin</string>
 <string name="log_out_from_musixmatch">Musixmatch-dən Çıx</string>
-<string name="translation_language_message">Dil kodun yaz (Məsələn: en) (2 hərf). SimpMusic dili ilə eynisini qurmaq istəyirsinizsə, düzəliş qutusun boş saxlayın.</string>
+<string name="translation_language_message">Dil kodun yaz (Məsələn: en) (2 hərf). FilmUmusic dili ilə eynisini qurmaq istəyirsinizsə, düzəliş qutusun boş saxlayın.</string>
 <string name="invalid_language_code">Yanlış dil kodu</string>
 <string name="lyrics_provider_youtube">Lirika YouTube tərəfindən təmin edilib</string>
 <string name="limit_player_cache">Oynadıcı Keşkəsinə Hədd Qoy</string>
@@ -270,7 +270,7 @@
 <string name="suggest">Tövsiyə</string>
 <string name="reload">Təkrar yüklə</string>
 <string name="added_date">Əlavə edilmə tarixi</string>
-<string name="credit_app">Geri çıxış üçün YouTube Music işlədən sadə musiqi tətbiqi \n\nSimpMusic reklam və izləmə olmadan YouTube və YouTube Music-dən musiqi yayımlamaq üçün açıq mənbə layihədir. SimpMusic bir çox xüsusiyyətləri təmin edir:\n\n - Musiqi yayımı\n - Sinxronlaşdırılan lirika\n - Məlumatları fərdiləşdir\n - və s... \n\nSimpMusic həmişə pulsuzdur və reklam yoxdur\n\nTuan Minh Nguyen Duc (maxrave-dev) ❤️- ilə qurur</string>
+<string name="credit_app">Geri çıxış üçün YouTube Music işlədən sadə musiqi tətbiqi \n\nFilmUmusic reklam və izləmə olmadan YouTube və YouTube Music-dən musiqi yayımlamaq üçün açıq mənbə layihədir. FilmUmusic bir çox xüsusiyyətləri təmin edir:\n\n - Musiqi yayımı\n - Sinxronlaşdırılan lirika\n - Məlumatları fərdiləşdir\n - və s... \n\nFilmUmusic həmişə pulsuzdur və reklam yoxdur\n\nFilmUentertainment (FilmUteam) qurur</string>
 <string name="issue_tracker">Problem İzləyici</string>
 <string name="featured_playlists">Xüsusi Pleylistlər</string>
 <string name="featured_inArtist">Seçilənlər</string>
@@ -310,7 +310,7 @@
 <string name="enable_spotify_lyrics">Spotify Lirikasını Aktivləşdir</string>
 <string name="spotify_lyrícs_info">Tərcüməsiz daha çox lirika</string>
 <string name="enable_canvas">Canvas-ı Aktivləşdir</string>
-<string name="canvas_info">SimpMusic-də Spotify Canvas-ı Göstər</string>
+<string name="canvas_info">FilmUmusic-də Spotify Canvas-ı Göstər</string>
 <string name="spotify_lyrics_provider">Lirika Spotify tərəfindən təmin edilib</string>
 <string name="offline_mode">Oflayn rejim</string>
 <string name="added_to_youtube_liked">YouTube Bəyənməyə Əlavə Edildi</string>
@@ -359,5 +359,5 @@
 <string name="loading">Yüklənilir</string>
 <string name="updating">Yenilənir</string>
 <string name="go_to_log_in_page">Giriş səhifəsinə keç</string>
-<string name="log_in_warning">YouTube Music indi musiqi yayımı üçün daxil olmanızı tələb edir, Piped Serveri də hərdən işləyə bilməz. SimpMusic ilə daha yaxşı təcrübə əldə etmək üçün YouTube-a daxil olmalısınız.</string>
+<string name="log_in_warning">YouTube Music indi musiqi yayımı üçün daxil olmanızı tələb edir, Piped Serveri də hərdən işləyə bilməz. FilmUmusic ilə daha yaxşı təcrübə əldə etmək üçün YouTube-a daxil olmalısınız.</string>
 </resources>

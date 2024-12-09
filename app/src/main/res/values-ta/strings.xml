@@ -117,7 +117,7 @@
     <string name="about_us">எங்களைப் பற்றிய</string>
     <string name="version">பிரதியை</string>
     <string name="github">கிட்ஹப்</string>
-    <string name="maxrave_dev">maxrave-dev</string>
+    <string name="maxrave_dev">FilmUteam</string>
     <string name="buy_me_a_coffee">எனக்கு ஒரு காப்பி வாங்கவும்</string>
     <string name="paypal">பேபால்</string>
     <string name="title">தலைப்பு</string>
@@ -135,7 +135,7 @@
     <string name="albums_inArtist">ஆல்பங்கள்</string>
     <string name="singles_inArtist">ஒற்றை பாடல்கள்</string>
     <string name="fans_might_also_like_inArtist">அவர்களின் ரசிகர்கள் இது போன்றவற்றையும் விரும்பலாம்</string>
-    <string name="crash_log">SimpMusic தவறானது. இந்த பிரச்சனைக்காக மன்னிக்கவும்.\nதவறுகளை உருவாக்கியவருக்கு அனுப்பவும்</string>
+    <string name="crash_log">FilmUmusic தவறானது. இந்த பிரச்சனைக்காக மன்னிக்கவும்.\nதவறுகளை உருவாக்கியவருக்கு அனுப்பவும்</string>
     <string name="crash">தவறு</string>
     <string name="send">அனுப்பு</string>
     <string name="mail_subject">தவறுகளை புகாரளிக்கவும்</string>
@@ -155,7 +155,7 @@
 <string name="no_equalizer">உங்கள் சாதனத்தில் சமநிலைப்படுத்தி இல்லை</string>
 <string name="open_system_equalizer">தற்போதைய சமநிலைப்படுத்தியை திறக்கவும்</string>
 <string name="use_your_system_equalizer">உங்கள் சாதனத்தின் சமநிலைப்படுத்தியை பயன்படுத்தவும்</string>
-<string name="version_name" translatable="false">v0.2.4</string>
+<string name="version_name" translatable="false">v2.0.0</string>
 <string name="streaming_data_provider_piped">ஸ்ட்ரீமிங் தரவுப் பயனர் (Piped)</string>
 <string name="itag">இடாக்</string>
 <string name="mime_type">மைம் வகை</string>
@@ -194,7 +194,7 @@
 <string name="what_segments_will_be_skipped">எந்த பகுதிகள் தவிர்க்கப்படும்</string>
 <string name="save">சேமிக்கவும்</string>
 <string name="saved">சேமிக்கப்பட்டது</string>
-<string name="sponsor_block_intro">ஸ்பான்சர்பிளாக் என்பது YouTube வீடியோக்களின் தொந்தரவு பகுதிகளை தவிர்க்கும் பொதுவான அமைப்பு.\nமூல தகவல்: https://sponsor.ajay.app/\nSimpMusic இல், ஸ்பான்சர்பிளாக் ஆன்லைனில் இருக்கும்போது மட்டுமே கிடைக்கும்</string>
+<string name="sponsor_block_intro">ஸ்பான்சர்பிளாக் என்பது YouTube வீடியோக்களின் தொந்தரவு பகுதிகளை தவிர்க்கும் பொதுவான அமைப்பு.\nமூல தகவல்: https://sponsor.ajay.app/\nFilmUmusic இல், ஸ்பான்சர்பிளாக் ஆன்லைனில் இருக்கும்போது மட்டுமே கிடைக்கும்</string>
 <string name="skip_sponsor_part_of_video">வீடியோவில் ஸ்பான்சர் பகுதியை தவிர்க்கவும்</string>
 <string name="customactivityoncrash_error_activity_error_occurred_explanation">எதிர்பாராத பிழை ஏற்பட்டது. உள்நோக்கம் கண்ணி!</string>
 <string name="customactivityoncrash_error_activity_restart_app">செயலியை மறுதொடக்கம் செய்யவும்</string>
@@ -214,7 +214,7 @@
 <string name="sleep_timer_set_error">சரியான நேர அமைப்பை அமைக்கவும்</string>
 <string name="sleep_timer_warning">நிதானக் காலத்தை அகற்ற விரும்புகிறீர்களா?</string>
 <string name="yes">ஆம்</string>
-<string name="notification_channel_name" translatable="false">SimpMusic இசை நிகழ்வு அறிவிப்பு</string>
+<string name="notification_channel_name" translatable="false">FilmUmusic இசை நிகழ்வு அறிவிப்பு</string>
 <string name="welcome_back">மீண்டும் வரவேற்கின்றேன்,</string>
 <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">உங்கள் இசை கேட்கும் வரலாறை YouTube Music சேவையகம் uploads செய்யவும். இது YT Music பரிந்துரை அமைப்பை மேம்படுத்தும். இது உள்நுழைந்திருப்பதால் மட்டுமே செயல்படும்</string>
 <string name="send_back_listening_data_to_google">கேட்கும் தரவுகளை Google க்கு அனுப்பு</string>
@@ -233,7 +233,7 @@
 <string name="saved_to_local_playlist">உள்ளூர் பட்டியலுக்கு சேமிக்கப்பட்டது</string>
 <string name="if_you_want_to_unsync_this_playlist_please_go_to_local_playlist">இந்த பட்டியலை ஒத்திகை செய்ய வேண்டுமெனில், உள்ளூர் பட்டியலுக்கு செல்லவும்</string>
 <string name="log_in_to_get_YouTube_playlist">YouTube பட்டியலை பெற உள்நுழைக</string>
-<string name="sync_playlist_warning">SimpMusic தானாகவே YouTube Music பட்டியலை உருவாக்கும். நீங்கள் உறுதியாக இருக்கிறீர்களா?</string>
+<string name="sync_playlist_warning">FilmUmusic தானாகவே YouTube Music பட்டியலை உருவாக்கும். நீங்கள் உறுதியாக இருக்கிறீர்களா?</string>
 <string name="syncing">ஒத்திகை செய்யப்படுகிறது</string>
 <string name="unsync_playlist_warning">"இந்த பட்டியலை ஒத்திகை செய்யாது விட விரும்புகிறீர்களா? இந்த பட்டியல் YouTube Music இருந்து நீக்கப்படாது"</string>
 <string name="unsyncing">ஒத்திகை செய்யாமல் விடப்படுகிறது</string>
@@ -246,7 +246,7 @@
 <string name="main_lyrics_provider">முதன்மை பாடல் சொற்றொடர் வழங்குநர்</string>
 <string name="log_in_to_Musixmatch">Musixmatch க்கு உள்நுழைக</string>
 <string name="only_support_email_and_password_type">மெயிலும் பாஸ்வேர்டும் மட்டுமே ஆதரிக்கப்படுகின்றன</string>
-<string name="musixmatch_login_description">Musixmatch மொழிபெயர்ப்பு API உள்நுழைந்த பயனருடன் மட்டுமே செயல்படுகிறது. SimpMusic, Musixmatch Developer API ஐப் பயன்படுத்துகிறது. மேலும் தகவலுக்கு, https://github.com/maxrave-dev/SimpMusic அல்லது https://developer.musixmatch.com/ என செல்லவும்</string>
+<string name="musixmatch_login_description">Musixmatch மொழிபெயர்ப்பு API உள்நுழைந்த பயனருடன் மட்டுமே செயல்படுகிறது. FilmUmusic, Musixmatch Developer API ஐப் பயன்படுத்துகிறது. மேலும் தகவலுக்கு, https://https://github.com/FilmU-Entertainment/Nexas அல்லது https://developer.musixmatch.com/ என செல்லவும்</string>
 <string name="use_musixmatch_translation">Musixmatch மொழிபெயர்ப்பைப் பயன்படுத்தவும்</string>
 <string name="use_musixmatch_translation_description">முசிக்ஸ்‌மேட்ச் மூலம் பாடல்களின் மொழிபெயர்ப்பை இயக்கவும். முசிக்ஸ்‌மேட்ச் லாகின் தேவை</string>
 <string name="translation_language">மொழிபெயர்ப்பு மொழி</string>
@@ -255,7 +255,7 @@
 <string name="password">முதல்நிலைச் சொல்</string>
 <string name="please_enter_your_email_and_password">உங்கள் எமெயிலை மற்றும் முதல்நிலைச் சொல்லை உள்ளிடவும்</string>
 <string name="log_out_from_musixmatch">முசிக்ஸ்‌மேட்ச் உடனான லாக்அவுட்</string>
-<string name="translation_language_message">மொழி குறியீட்டை டைப் செய்யவும் (உதாரணம்: en) (2 எழுத்துகள்). SimpMusic இன் மொழியுடன் ஒரே மாதிரியானதாக அமைக்க விரும்பினால், எடிட் பெட்டியை காலியாக வைக்கவும்.</string>
+<string name="translation_language_message">மொழி குறியீட்டை டைப் செய்யவும் (உதாரணம்: en) (2 எழுத்துகள்). FilmUmusic இன் மொழியுடன் ஒரே மாதிரியானதாக அமைக்க விரும்பினால், எடிட் பெட்டியை காலியாக வைக்கவும்.</string>
 <string name="invalid_language_code">தவறான மொழி குறியீடு</string>
 <string name="lyrics_provider_youtube">பாடல்களை YouTube வழங்குகிறது</string>
 <string name="limit_player_cache">பிளேயர் கெஷை வரையறுக்கவும்</string>
@@ -269,9 +269,9 @@
 <string name="suggest">பரிந்துரை</string>
 <string name="reload">மீண்டும் முறைமை</string>
 <string name="added_date">சேர்க்கை தேதி</string>
-<string name="credit_app">YouTube Music ஐ பின்வைக்கும் எளிய இசை செயலி\n\nSimpMusic, YouTube மற்றும் YouTube Music இல் இருந்து விளம்பரம் மற்றும் கணினி கண்காணிப்பு இல்லாமல் இசையை ஸ்ட்ரீமிங் செய்ய திறந்த மூலத் திட்டமாகும். SimpMusic பல அம்சங்களை வழங்குகிறது:\n\n - இசையை ஸ்ட்ரீமிங் செய்யும்\n - ஒத்திசைப்பு பாடல் வரிகள்\n - தனிப்பயனாக்கப்பட்ட தரவுகள்\n - மற்றும் பல…\n\nSimpMusic எப்போதும் இலவசமாகவும், விளம்பரம் இல்லாமல் இருக்கும்\n\n❤️ கொண்டு உருவாக்கப்பட்டது: Tuan Minh Nguyen Duc (maxrave-dev)</string>
+<string name="credit_app">YouTube Music ஐ பின்வைக்கும் எளிய இசை செயலி\n\nFilmUmusic, YouTube மற்றும் YouTube Music இல் இருந்து விளம்பரம் மற்றும் கணினி கண்காணிப்பு இல்லாமல் இசையை ஸ்ட்ரீமிங் செய்ய திறந்த மூலத் திட்டமாகும். FilmUmusic பல அம்சங்களை வழங்குகிறது:\n\n - இசையை ஸ்ட்ரீமிங் செய்யும்\n - ஒத்திசைப்பு பாடல் வரிகள்\n - தனிப்பயனாக்கப்பட்ட தரவுகள்\n - மற்றும் பல…\n\nFilmUmusic எப்போதும் இலவசமாகவும், விளம்பரம் இல்லாமல் இருக்கும்\n\n❤️ கொண்டு உருவாக்கப்பட்டது: FilmUentertainment (FilmUteam)</string>
 <string name="issue_tracker">சிக்கல் கண்காணிப்பாளர்</string>
-<string name="copyright" translatable="false">©2023 Tuan Minh Nguyen Duc (maxrave-dev)</string>
+<string name="copyright" translatable="false">©2023 FilmUentertainment (FilmUteam)</string>
 <string name="featured_playlists">முக்கியப் பட்டியல்கள்</string>
 <string name="podcasts" translatable="false">பாட்காஸ்ட்கள்</string>
 <string name="featured_inArtist">இதில் முன்னிறுத்தப்பட்டுள்ளது</string>
@@ -311,7 +311,7 @@
 <string name="enable_spotify_lyrics">ஸ்பாட்டிஃபை பாடல் வரிகளை இயக்கவும்</string>
 <string name="spotify_lyrícs_info">மொழிபெயர்ப்பில்லாத மேலும் பாடல் வரிகள்</string>
 <string name="enable_canvas">கான்வாஸ் இயக்கவும்</string>
-<string name="canvas_info">SimpMusic இல் ஸ்பாட்டிஃபை கான்வாஸை காட்டவும்</string>
+<string name="canvas_info">FilmUmusic இல் ஸ்பாட்டிஃபை கான்வாஸை காட்டவும்</string>
 <string name="spotify_lyrics_provider">பாடல் வரிகள் ஸ்பாட்டிஃபை மூலம் வழங்கப்படுகின்றன</string>
 <string name="offline_mode">ஆஃப்லைன் முறை</string>
 <string name="added_to_youtube_liked">YouTube விருப்பமானவை பட்டியலில் சேர்க்கப்பட்டது</string>
@@ -360,6 +360,6 @@
 <string name="loading">ஏற்றுகிறது</string>
 <string name="updating">புதுப்பிக்கிறது</string>
 <string name="go_to_log_in_page">உள்நுழைவுப் பக்கத்திற்கு செல்லவும்</string>
-<string name="log_in_warning">YouTube Music இப்போது இசையைப் பட்டிக்க உள்நுழைவது அவசியமாகியுள்ளது, Piped Instance சில சமயங்களில் வேலை செய்ய முடியாது. SimpMusic உடன் சிறந்த அனுபவத்தை பெற YouTubeல் உள்நுழைய வேண்டும்.</string>
+<string name="log_in_warning">YouTube Music இப்போது இசையைப் பட்டிக்க உள்நுழைவது அவசியமாகியுள்ளது, Piped Instance சில சமயங்களில் வேலை செய்ய முடியாது. FilmUmusic உடன் சிறந்த அனுபவத்தை பெற YouTubeல் உள்நுழைய வேண்டும்.</string>
 </resources>
 

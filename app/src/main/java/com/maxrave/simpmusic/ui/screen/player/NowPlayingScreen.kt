@@ -1144,34 +1144,53 @@ fun NowPlayingScreen(
                                     Row(
                                         Modifier.align(Alignment.CenterEnd),
                                     ) {
+                                        IconButton(
+                                            modifier =
+                                            Modifier
+                                                .size(24.dp)
+                                                .aspectRatio(1f)
+                                                .clip(
+                                                    CircleShape,
+                                                ),
+                                            onClick = {
+                                                sharedViewModel.shareSong() // Call the share function from the ViewModel
+                                            },
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(id = R.drawable.ic_share), // Replace with your share icon resource
+                                                tint = Color.White,
+                                                contentDescription = "Share this song",
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.size(8.dp)) // Optional spacing between buttons
+
                                         Crossfade(
                                             targetState = likeStatus == true,
                                         ) {
-                                            if (it)
-                                                {
-                                                    IconButton(
-                                                        modifier =
-                                                            Modifier
-                                                                .size(24.dp)
-                                                                .aspectRatio(1f)
-                                                                .clip(
-                                                                    CircleShape,
-                                                                ),
-                                                        onClick = {
-                                                            sharedViewModel.addToYouTubeLiked()
-                                                        },
-                                                    ) {
-                                                        Icon(imageVector = Icons.Filled.Done, tint = Color.White, contentDescription = "")
-                                                    }
-                                                } else {
+                                            if (it) {
                                                 IconButton(
                                                     modifier =
-                                                        Modifier
-                                                            .size(24.dp)
-                                                            .aspectRatio(1f)
-                                                            .clip(
-                                                                CircleShape,
-                                                            ),
+                                                    Modifier
+                                                        .size(24.dp)
+                                                        .aspectRatio(1f)
+                                                        .clip(
+                                                            CircleShape,
+                                                        ),
+                                                    onClick = {
+                                                        sharedViewModel.addToYouTubeLiked()
+                                                    },
+                                                ) {
+                                                    Icon(imageVector = Icons.Filled.Done, tint = Color.White, contentDescription = "")
+                                                }
+                                            } else {
+                                                IconButton(
+                                                    modifier =
+                                                    Modifier
+                                                        .size(24.dp)
+                                                        .aspectRatio(1f)
+                                                        .clip(
+                                                            CircleShape,
+                                                        ),
                                                     onClick = {
                                                         sharedViewModel.addToYouTubeLiked()
                                                     },
@@ -1181,14 +1200,15 @@ fun NowPlayingScreen(
                                             }
                                         }
                                         Spacer(modifier = Modifier.size(8.dp))
+
                                         IconButton(
                                             modifier =
-                                                Modifier
-                                                    .size(24.dp)
-                                                    .aspectRatio(1f)
-                                                    .clip(
-                                                        CircleShape,
-                                                    ),
+                                            Modifier
+                                                .size(24.dp)
+                                                .aspectRatio(1f)
+                                                .clip(
+                                                    CircleShape,
+                                                ),
                                             onClick = {
                                                 navController.navigateSafe(
                                                     R.id.action_global_queueFragment,
@@ -1202,6 +1222,7 @@ fun NowPlayingScreen(
                                             )
                                         }
                                     }
+
                                 }
                             }
                             androidx.compose.animation.AnimatedVisibility(visible = !showHideControlLayout) {

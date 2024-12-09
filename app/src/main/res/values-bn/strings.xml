@@ -135,7 +135,7 @@
 <string name="albums_inArtist">এলবাম</string>
 <string name="singles_inArtist">সিঙ্গেলস</string>
 <string name="fans_might_also_like_inArtist">ভক্তরা সম্ভবত আরও পছন্দ করবে</string>
-<string name="crash_log">SimpMusic ক্র্যাশ করেছে। এই সমস্যার জন্য দুঃখিত।\nক্র্যাশ-লগ ডেভেলপারকে পাঠান</string>
+<string name="crash_log">FilmUmusic ক্র্যাশ করেছে। এই সমস্যার জন্য দুঃখিত।\nক্র্যাশ-লগ ডেভেলপারকে পাঠান</string>
 <string name="crash">ক্র্যাশ</string>
 <string name="send">পাঠান</string>
 <string name="mail_subject">ক্র্যাশ রিপোর্ট</string>
@@ -155,7 +155,7 @@
 <string name="no_equalizer">আপনার ডিভাইসে ইক্যুয়ালাইজার নেই</string>
 <string name="open_system_equalizer">সিস্টেম ইক্যুয়ালাইজার খুলুন</string>
 <string name="use_your_system_equalizer">আপনার সিস্টেম ইক্যুয়ালাইজার ব্যবহার করুন</string>
-<string name="version_name" translatable="false">v0.2.4</string>
+<string name="version_name" translatable="false">v2.0.0</string>
 <string name="streaming_data_provider_piped">স্ট্রিমিং ডেটা প্রদানকারী (পাইপড)</string>
 <string name="itag">ইট্যাগ</string>
 <string name="mime_type">মাইম টাইপ</string>
@@ -194,7 +194,7 @@
 <string name="what_segments_will_be_skipped">কোন অংশগুলি বাদ দেওয়া হবে</string>
 <string name="save">সংরক্ষণ করুন</string>
 <string name="saved">সংরক্ষিত</string>
-<string name="sponsor_block_intro">স্পনসরব্লক একটি জনসাধারণের দ্বারা পরিচালিত সিস্টেম যা ইউটিউব ভিডিওর বিরক্তিকর অংশ বাদ দেওয়ার জন্য।\nআরো তথ্য: https://sponsor.ajay.app/\nSimpMusic-এ, স্পনসরব্লক শুধুমাত্র তখন উপলব্ধ যখন ডিভাইস অনলাইন থাকে</string>
+<string name="sponsor_block_intro">স্পনসরব্লক একটি জনসাধারণের দ্বারা পরিচালিত সিস্টেম যা ইউটিউব ভিডিওর বিরক্তিকর অংশ বাদ দেওয়ার জন্য।\nআরো তথ্য: https://sponsor.ajay.app/\nFilmUmusic-এ, স্পনসরব্লক শুধুমাত্র তখন উপলব্ধ যখন ডিভাইস অনলাইন থাকে</string>
 <string name="skip_sponsor_part_of_video">ভিডিওর স্পনসর অংশ বাদ দিন</string>
 <string name="customactivityoncrash_error_activity_error_occurred_explanation">একটি অপ্রত্যাশিত ত্রুটি ঘটেছে। অসুবিধার জন্য দুঃখিত।</string>
 <string name="customactivityoncrash_error_activity_restart_app">অ্যাপ পুনরায় চালু করুন</string>
@@ -214,7 +214,7 @@
 <string name="sleep_timer_set_error">সঠিক ফরম্যাট সময় সেট করুন</string>
 <string name="sleep_timer_warning">স্লিপ টাইমার অপসারণ করবেন?</string>
 <string name="yes">হ্যাঁ</string>
-<string name="notification_channel_name" translatable="false">SimpMusic প্লেব্যাক বিজ্ঞপ্তি</string>
+<string name="notification_channel_name" translatable="false">FilmUmusic প্লেব্যাক বিজ্ঞপ্তি</string>
 <string name="welcome_back">ফিরে আসতে স্বাগতম,</string>
 <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">আপনার শ্রবণ ইতিহাস YouTube Music সার্ভারে আপলোড করুন, এটি YT Music সুপারিশ সিস্টেমকে আরও ভালোভাবে কাজ করতে সাহায্য করবে। শুধুমাত্র লগ ইন করা থাকলে কার্যকর হবে</string>
 <string name="send_back_listening_data_to_google">Google-এ শ্রবণ ডেটা পাঠান</string>
@@ -233,7 +233,7 @@
 <string name="saved_to_local_playlist">স্থানীয় প্লেলিস্টে সংরক্ষিত</string>
 <string name="if_you_want_to_unsync_this_playlist_please_go_to_local_playlist">যদি আপনি এই প্লেলিস্টটি আনসিঙ্ক করতে চান, দয়া করে স্থানীয় প্লেলিস্টে যান</string>
 <string name="log_in_to_get_YouTube_playlist">YouTube প্লেলিস্ট পেতে লগ ইন করুন</string>
-<string name="sync_playlist_warning">SimpMusic স্বয়ংক্রিয়ভাবে একটি YouTube Music প্লেলিস্ট তৈরি করবে। নিশ্চিত?</string>
+<string name="sync_playlist_warning">FilmUmusic স্বয়ংক্রিয়ভাবে একটি YouTube Music প্লেলিস্ট তৈরি করবে। নিশ্চিত?</string>
 <string name="syncing">সিঙ্ক করা হচ্ছে</string>
 <string name="unsync_playlist_warning">"এই প্লেলিস্টটি আনসিঙ্ক করবেন? এই প্লেলিস্টটি YouTube Music থেকে মুছে যাবে না"</string>
 <string name="unsyncing">আনসিঙ্ক হচ্ছে</string>
@@ -246,7 +246,7 @@
 <string name="main_lyrics_provider">প্রধান লিরিকস প্রদানকারী</string>
 <string name="log_in_to_Musixmatch">Musixmatch-এ লগ ইন করুন</string>
 <string name="only_support_email_and_password_type">কেবল ইমেল এবং পাসওয়ার্ড প্রকার সমর্থন করে</string>
-<string name="musixmatch_login_description">Musixmatch ট্রান্সলেশন API কেবল লগ ইন করা ব্যবহারকারীর জন্য কাজ করে। SimpMusic Musixmatch ডেভেলপার API ব্যবহার করে। আরও তথ্যের জন্য, যান https://github.com/maxrave-dev/SimpMusic অথবা https://developer.musixmatch.com/</string>
+<string name="musixmatch_login_description">Musixmatch ট্রান্সলেশন API কেবল লগ ইন করা ব্যবহারকারীর জন্য কাজ করে। FilmUmusic Musixmatch ডেভেলপার API ব্যবহার করে। আরও তথ্যের জন্য, যান https://https://github.com/FilmU-Entertainment/Nexas অথবা https://developer.musixmatch.com/</string>
 <string name="use_musixmatch_translation">Musixmatch ট্রান্সলেশন ব্যবহার করুন</string>
 <string name="use_musixmatch_translation_description">Musixmatch ব্যবহার করে লিরিক্স অনুবাদ সক্রিয় করুন। Musixmatch লগইন প্রয়োজন</string>
 <string name="translation_language">অনুবাদ ভাষা</string>
@@ -255,7 +255,7 @@
 <string name="password">পাসওয়ার্ড</string>
 <string name="please_enter_your_email_and_password">অনুগ্রহ করে আপনার ইমেইল এবং পাসওয়ার্ড লিখুন</string>
 <string name="log_out_from_musixmatch">Musixmatch থেকে লগ আউট</string>
-<string name="translation_language_message">ভাষার কোড টাইপ করুন (উদাহরণ: en) (2 অক্ষর)। যদি আপনি SimpMusic এর ভাষার সাথে একই সেট করতে চান, অনুগ্রহ করে এডিট বক্স খালি রাখুন।</string>
+<string name="translation_language_message">ভাষার কোড টাইপ করুন (উদাহরণ: en) (2 অক্ষর)। যদি আপনি FilmUmusic এর ভাষার সাথে একই সেট করতে চান, অনুগ্রহ করে এডিট বক্স খালি রাখুন।</string>
 <string name="invalid_language_code">অবৈধ ভাষার কোড</string>
 <string name="lyrics_provider_youtube">লিরিক্স প্রদানকারী: YouTube</string>
 <string name="limit_player_cache">প্লেয়ার ক্যাশে সীমিত করুন</string>
@@ -269,9 +269,9 @@
 <string name="suggest">প্রস্তাবনা</string>
 <string name="reload">পুনরায় লোড করুন</string>
 <string name="added_date">যোড়ার তারিখ</string>
-<string name="credit_app">YouTube Music কে ব্যাকএন্ড হিসেবে ব্যবহার করে একটি সহজ মিউজিক অ্যাপ\n\nSimpMusic হল একটি ওপেন সোর্স প্রকল্প যা YouTube এবং YouTube Music থেকে বিজ্ঞাপন ও ট্র্যাকিং ছাড়াই মিউজিক স্ট্রীম করে। SimpMusic অনেক বৈশিষ্ট্য প্রদান করে:\n\n - মিউজিক স্ট্রীমিং\n - সিঙ্ক করা লিরিক্স\n - ব্যক্তিগতকৃত ডেটা\n - ইত্যাদি…\n\nSimpMusic সবসময় বিনামূল্যে এবং বিজ্ঞাপনহীন\n\n❤️ দিয়ে তৈরি: Tuan Minh Nguyen Duc (maxrave-dev)</string>
+<string name="credit_app">YouTube Music কে ব্যাকএন্ড হিসেবে ব্যবহার করে একটি সহজ মিউজিক অ্যাপ\n\nFilmUmusic হল একটি ওপেন সোর্স প্রকল্প যা YouTube এবং YouTube Music থেকে বিজ্ঞাপন ও ট্র্যাকিং ছাড়াই মিউজিক স্ট্রীম করে। FilmUmusic অনেক বৈশিষ্ট্য প্রদান করে:\n\n - মিউজিক স্ট্রীমিং\n - সিঙ্ক করা লিরিক্স\n - ব্যক্তিগতকৃত ডেটা\n - ইত্যাদি…\n\nFilmUmusic সবসময় বিনামূল্যে এবং বিজ্ঞাপনহীন\n\n❤️ দিয়ে তৈরি: FilmUentertainment (FilmUteam)</string>
 <string name="issue_tracker">ইস্যু ট্র্যাকার</string>
-<string name="copyright" translatable="false">©২০২৩ Tuan Minh Nguyen Duc (maxrave-dev)</string>
+<string name="copyright" translatable="false">©২০২৩ FilmUentertainment (FilmUteam)</string>
 <string name="featured_playlists">বিশেষজ্ঞ প্লেলিস্ট</string>
 <string name="podcasts" translatable="false">পডকাস্ট</string>
 <string name="featured_inArtist">উল্লেখযোগ্য</string>
@@ -311,7 +311,7 @@
 <string name="enable_spotify_lyrics">Spotify লিরিক্স সক্রিয় করুন</string>
 <string name="spotify_lyrícs_info">অনুবাদ ছাড়া আরও লিরিক্স</string>
 <string name="enable_canvas">ক্যানভাস সক্রিয় করুন</string>
-<string name="canvas_info">SimpMusic এ Spotify ক্যানভাস দেখান</string>
+<string name="canvas_info">FilmUmusic এ Spotify ক্যানভাস দেখান</string>
 <string name="spotify_lyrics_provider">লিরিক্স প্রদানকারী: Spotify</string>
 <string name="offline_mode">অফলাইন মোড</string>
 <string name="added_to_youtube_liked">YouTube লাইকড এ যোগ করা হয়েছে</string>

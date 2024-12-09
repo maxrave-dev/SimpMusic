@@ -118,7 +118,7 @@
     <string name="about_us">Sobre nosotros</string>
     <string name="version">Versión</string>
     <string name="github">Github</string>
-    <string name="maxrave_dev">maxrave-dev</string>
+    <string name="maxrave_dev">FilmUteam</string>
     <string name="buy_me_a_coffee">Buy me a coffee</string>
     <string name="paypal">PayPal</string>
     <string name="title">Título</string>
@@ -136,7 +136,7 @@
     <string name="albums_inArtist">Álbumes</string>
     <string name="singles_inArtist">Sencillos</string>
     <string name="fans_might_also_like_inArtist">A los fans también les gusta</string>
-    <string name="crash_log">SimpMusic falló. Disculpe este problema.\nEnviar registro de errores al desarrollador</string>
+    <string name="crash_log">FilmUmusic falló. Disculpe este problema.\nEnviar registro de errores al desarrollador</string>
     <string name="crash">Falla</string>
     <string name="send">Enviar</string>
     <string name="mail_subject">Reportar error</string>
@@ -194,7 +194,7 @@
     <string name="what_segments_will_be_skipped">Qué segmentos se omitirán</string>
     <string name="save">Guardar</string>
     <string name="saved">Guardado</string>
-    <string name="sponsor_block_intro">SponsorBlock es un sistema de fuentes múltiples para omitir partes molestas de vídeos de YouTube.\nMás información: https://sponsor. jay.app/\nEn SimpMusic, SponsorBlock sólo está disponible cuando el dispositivo está conectado</string>
+    <string name="sponsor_block_intro">SponsorBlock es un sistema de fuentes múltiples para omitir partes molestas de vídeos de YouTube.\nMás información: https://sponsor. jay.app/\nEn FilmUmusic, SponsorBlock sólo está disponible cuando el dispositivo está conectado</string>
     <string name="skip_sponsor_part_of_video">Omitir patrocinadores en el vídeo</string>
     <string name="customactivityoncrash_error_activity_error_occurred_explanation">Ha producido un error inesperado. Disculpe las molestias.</string>
     <string name="customactivityoncrash_error_activity_restart_app">Reiniciar app</string>
@@ -232,7 +232,7 @@
     <string name="saved_to_local_playlist">Guardado en la lista de reproducción local</string>
     <string name="if_you_want_to_unsync_this_playlist_please_go_to_local_playlist">si quieres desincronizar esta lista, por favor ve a la lista de reproducción local</string>
     <string name="log_in_to_get_YouTube_playlist">Inicia sesión para obtener la lista de reproducción de YouTube</string>
-    <string name="sync_playlist_warning">SimpMusic creará automáticamente una lista de reproducción de música de YouTube. ¿Estás seguro?</string>
+    <string name="sync_playlist_warning">FilmUmusic creará automáticamente una lista de reproducción de música de YouTube. ¿Estás seguro?</string>
     <string name="syncing">Sincronizando</string>
     <string name="unsync_playlist_warning">"¿Dessincronizar esta lista? Esta lista de reproducción no se eliminará de YouTube Music "</string>
     <string name="unsyncing">Dessincronizando</string>
@@ -245,7 +245,7 @@
     <string name="main_lyrics_provider">Proveedor principal de letras</string>
     <string name="log_in_to_Musixmatch">Inicia sesión en Musixmatch</string>
     <string name="only_support_email_and_password_type">Solo admite tipo de correo electrónico y contraseña</string>
-    <string name="musixmatch_login_description">La API de traducción de Musixmatch solo funciona con un usuario que ha iniciado sesión. SimpMusic utilizó la API de desarrollador Musixmatch. Más información, vaya a https://github.com/maxrave-dev/SimpMusic o https://developer.musixmatch.com/</string>
+    <string name="musixmatch_login_description">La API de traducción de Musixmatch solo funciona con un usuario que ha iniciado sesión. FilmUmusic utilizó la API de desarrollador Musixmatch. Más información, vaya a https://https://github.com/FilmU-Entertainment/Nexas o https://developer.musixmatch.com/</string>
     <string name="use_musixmatch_translation">Utilizar la traducción de Musixmatch</string>
     <string name="use_musixmatch_translation_description">Habilite la traducción de letras usando Musixmatch (Requiere inicio de sesión)</string>
     <string name="translation_language">Idioma de la traducción</string>
@@ -254,7 +254,7 @@
     <string name="password">Contraseña</string>
     <string name="please_enter_your_email_and_password">Por favor, introduzca su correo electrónico y contraseña</string>
     <string name="log_out_from_musixmatch">Cerrar sesión en Musixmatch</string>
-    <string name="translation_language_message">Escriba el código de idioma (Ej.: en) (2 letras). Si desea usar el idioma de SimpMusic, deje el cuadro de edición vacío.</string>
+    <string name="translation_language_message">Escriba el código de idioma (Ej.: en) (2 letras). Si desea usar el idioma de FilmUmusic, deje el cuadro de edición vacío.</string>
     <string name="invalid_language_code">Código de idioma no válido</string>
     <string name="lyrics_provider_youtube">Letra proporcionada por YouTube</string>
     <string name="limit_player_cache">Limitar caché del reproductor</string>
@@ -268,7 +268,7 @@
     <string name="suggest">Sugerencia</string>
     <string name="reload">Recargar</string>
     <string name="added_date">Fecha añadida</string>
-    <string name="credit_app">Una aplicación de música sencilla que utiliza YouTube Music como backend \n\nSimpMusic es un proyecto de código abierto para transmitir música desde YouTube y YouTube Music sin anuncios ni seguimiento. SimpMusic ofrece muchas funciones:\n\n - Transmisión de música \n - Letras sincronizadas\n - Personalizar datos\n - etc... \n\nSimpMusic es siempre gratuito y sin anuncios\n\nCompilado con ❤️ de Tuan Minh Nguyen Duc (maxrave-dev)</string>
+    <string name="credit_app">Una aplicación de música sencilla que utiliza YouTube Music como backend \n\nFilmUmusic es un proyecto de código abierto para transmitir música desde YouTube y YouTube Music sin anuncios ni seguimiento. FilmUmusic ofrece muchas funciones:\n\n - Transmisión de música \n - Letras sincronizadas\n - Personalizar datos\n - etc... \n\nFilmUmusic es siempre gratuito y sin anuncios\n\nCompilado con ❤️ de FilmUentertainment (FilmUteam)</string>
     <string name="issue_tracker">Rastreador de errores</string>
     <string name="featured_playlists">Listas de reproducción destacadas</string>
     <string name="featured_inArtist">Destacado en</string>
@@ -308,7 +308,7 @@
     <string name="enable_spotify_lyrics">Activar Letras de Spotify</string>
     <string name="spotify_lyrícs_info">Más letras sin traducción</string>
     <string name="enable_canvas">Activar Canvas</string>
-    <string name="canvas_info">Mostrar Spotify Canvas en SimpMusic</string>
+    <string name="canvas_info">Mostrar Spotify Canvas en FilmUmusic</string>
     <string name="spotify_lyrics_provider">Letras proporcionadas por Spotify</string>
     <string name="offline_mode">Modo sin conexión</string>
     <string name="added_to_youtube_liked">Añadido a YouTube me gustó</string>

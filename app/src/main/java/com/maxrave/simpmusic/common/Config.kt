@@ -169,8 +169,8 @@ object SUPPORTED_LOCATION {
 }
 
 object SUPPORTED_LANGUAGE {
-    val items: Array<CharSequence> =
-        arrayOf(
+    val items: Array<CharSequence>
+        get() = arrayOf(
             "English",
             "Tiếng Việt",
             "Italiano",
@@ -191,13 +191,12 @@ object SUPPORTED_LANGUAGE {
             "עברית",
             "Azerbaijani",
             "हिन्दी",
-            "ภาษาไทย"
-            "ગુજરાતી"
-            "বাংলা"
-            "తెలుగు"
-            "தமிழ்"
-            "ਪੰਜਾਬੀ"
-            "ಕನ್ನಡ"
+            "ภาษาไทย",
+            "ગુજરાતી",
+            "বাংলা",
+            "తెలుగు",
+            "தமிழ்",
+            "ಕನ್ನಡ",
         )
     val codes: Array<String> =
         arrayOf(
@@ -226,7 +225,6 @@ object SUPPORTED_LANGUAGE {
             "bn-IN",
             "te-IN",
             "ta-IN", 
-            "pa-IN",
             "ka-IN"      
         )
 }

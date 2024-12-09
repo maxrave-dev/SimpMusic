@@ -18,7 +18,7 @@ android {
         minSdk = 26
         targetSdk = 35
         versionCode = 21
-        versionName = "0.2.4"
+        versionName = "2.0.0"
         vectorDrawables.useSupportLibrary = true
 
         ksp {
@@ -54,7 +54,6 @@ android {
                 "bn",
                 "te",
                 "ta",
-                "pa",
                 "ka"
             )
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -68,6 +67,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
         debug {
             isMinifyEnabled = false

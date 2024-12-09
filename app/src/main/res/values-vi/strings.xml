@@ -118,7 +118,7 @@
     <string name="about_us">Về tôi</string>
     <string name="version">Phiên bản</string>
     <string name="github">Github</string>
-    <string name="maxrave_dev">maxrave-dev</string>
+    <string name="maxrave_dev">FilmUteam</string>
     <string name="buy_me_a_coffee">Hỗ trợ tôi</string>
     <string name="paypal">PayPal</string>
     <string name="title">Tiêu đề</string>
@@ -136,7 +136,7 @@
     <string name="albums_inArtist">Đĩa nhạc</string>
     <string name="singles_inArtist">Đĩa đơn</string>
     <string name="fans_might_also_like_inArtist">Người hâm mộ có thể cũng thích</string>
-    <string name="crash_log">SimpMusic đã dừng đột ngột. Xin lỗi bạn vì sự bất tiện này. Gửi crash-log đến nhà phát trển</string>
+    <string name="crash_log">FilmUmusic đã dừng đột ngột. Xin lỗi bạn vì sự bất tiện này. Gửi crash-log đến nhà phát trển</string>
     <string name="crash">Lỗi</string>
     <string name="send">Gửi</string>
     <string name="mail_subject">Báo cáo</string>
@@ -194,7 +194,7 @@
     <string name="what_segments_will_be_skipped">Loại phân đoạn gì sẽ được bỏ qua</string>
     <string name="save">Lưu</string>
     <string name="saved">Đã lưu</string>
-    <string name="sponsor_block_intro">SponsorBlock là một dự án mã nguồn mở sử dụng để bỏ qua các phần gây khó chịu của video trên YouTube.\nTìm hiểu thêm: https://sponsor.ajay.app/\nTrong SimpMusic, SponsorBlock chỉ khả dụng khi thiết bị của bạn trực tuyến</string>
+    <string name="sponsor_block_intro">SponsorBlock là một dự án mã nguồn mở sử dụng để bỏ qua các phần gây khó chịu của video trên YouTube.\nTìm hiểu thêm: https://sponsor.ajay.app/\nTrong FilmUmusic, SponsorBlock chỉ khả dụng khi thiết bị của bạn trực tuyến</string>
     <string name="skip_sponsor_part_of_video">Bỏ qua phân đoạn được tài trợ của video</string>
     <string name="customactivityoncrash_error_activity_error_occurred_explanation">Đã xảy ra lỗi không mong muốn. Xin lỗi vì sự bất tiện.</string>
     <string name="customactivityoncrash_error_activity_restart_app">Khởi động lại ứng dụng</string>
@@ -232,7 +232,7 @@
     <string name="saved_to_local_playlist">Đã lưu vào danh sách phát nội bộ</string>
     <string name="if_you_want_to_unsync_this_playlist_please_go_to_local_playlist">Nếu bạn muốn huỷ đồng bộ danh sách phát này, xin hãy truy cập đến phần danh sách phát nội bộ</string>
     <string name="log_in_to_get_YouTube_playlist">Đăng nhập để tải danh sách phát YouTube của bạn</string>
-    <string name="sync_playlist_warning">SimpMusic sẽ tự động tạo một danh sách phát trên YouTube Music. Bạn có chắc chắn?</string>
+    <string name="sync_playlist_warning">FilmUmusic sẽ tự động tạo một danh sách phát trên YouTube Music. Bạn có chắc chắn?</string>
     <string name="syncing">Đang đồng bộ</string>
     <string name="unsync_playlist_warning">"Huỷ đồng bộ danh sách phát này? Điều này sẽ không xoá danh sách phát này trên YouTube Music"</string>
     <string name="unsyncing">Đang huỷ đồng bộ</string>
@@ -245,7 +245,7 @@
     <string name="main_lyrics_provider">Nguồn cung cấp lời bài hát chính</string>
     <string name="log_in_to_Musixmatch">Đăng nhập vào Musixmatch</string>
     <string name="only_support_email_and_password_type">Chỉ hỗ trợ đăng nhập bằng email và mật khẩu</string>
-    <string name="musixmatch_login_description">Musixmatch Dịch API chỉ hoạt động cho người dùng đã đăng nhập. Thêm thông tin về Musixmatch Developer API, đi tới https://github.com/maxrave-dev/SimpMusic hoặc https://developer.musixmatch.com/</string>
+    <string name="musixmatch_login_description">Musixmatch Dịch API chỉ hoạt động cho người dùng đã đăng nhập. Thêm thông tin về Musixmatch Developer API, đi tới https://https://github.com/FilmU-Entertainment/Nexas hoặc https://developer.musixmatch.com/</string>
     <string name="use_musixmatch_translation">Sử dụng hệ thống dịch của Musixmatch</string>
     <string name="use_musixmatch_translation_description">Bật dịch bài hát sử dụng Musixmatch. Yêu cầu đăng nhập</string>
     <string name="translation_language">Ngôn ngữ dịch</string>
@@ -254,7 +254,7 @@
     <string name="password">Mật khẩu</string>
     <string name="please_enter_your_email_and_password">Hãy nhập email và mật khẩu của bạn</string>
     <string name="log_out_from_musixmatch">Đăng xuất tài khoản Musixmatch</string>
-    <string name="translation_language_message">Nhập mã ngôn ngữ (Ví dụ: vi) (2 kí tự). Nếu bạn muốn để theo ngôn ngữ chính của SimpMusic, hãy để trống</string>
+    <string name="translation_language_message">Nhập mã ngôn ngữ (Ví dụ: vi) (2 kí tự). Nếu bạn muốn để theo ngôn ngữ chính của FilmUmusic, hãy để trống</string>
     <string name="invalid_language_code">Mã ngôn ngữ không hợp lệ</string>
     <string name="lyrics_provider_youtube">Lời bài hát được cung cấp bởi YouTube</string>
     <string name="limit_player_cache">Giới hạn cache của trình phát nhạc</string>
@@ -268,7 +268,7 @@
     <string name="suggest">Đề xuất</string>
     <string name="reload">Làm mới</string>
     <string name="added_date">Ngày thêm vào</string>
-    <string name="credit_app">Một ứng dụng âm nhạc đơn giản sử dụng dữ liệu từ YouTube Music \n\nSimpMusic là một dự án nguồn mở để phát nhạc từ YouTube và YouTube Music mà không bị quảng cáo và theo dõi. SimpMusic cung cấp nhiều tính năng:\n\n - Phát nhạc \n - Lời bài hát được đồng bộ hóa\n - Cá nhân hóa dữ liệu\n - v.v… \n\nSimpMusic luôn miễn phí và không có quảng cáo\n\nXây dựng với ❤️ bởi Nguyên Đức Tuấn Minh (maxrave-dev)</string>
+    <string name="credit_app">Một ứng dụng âm nhạc đơn giản sử dụng dữ liệu từ YouTube Music \n\nFilmUmusic là một dự án nguồn mở để phát nhạc từ YouTube và YouTube Music mà không bị quảng cáo và theo dõi. FilmUmusic cung cấp nhiều tính năng:\n\n - Phát nhạc \n - Lời bài hát được đồng bộ hóa\n - Cá nhân hóa dữ liệu\n - v.v… \n\nFilmUmusic luôn miễn phí và không có quảng cáo\n\nXây dựng với ❤️ bởi Nguyên Đức Tuấn Minh (FilmUteam)</string>
     <string name="issue_tracker">Theo dõi lỗi</string>
     <string name="featured_playlists">Danh sách phát nổi bật</string>
     <string name="featured_inArtist">Nổi bật</string>
@@ -307,7 +307,7 @@
     <string name="enable_spotify_lyrics">Bật lời bài hát từ Spotify</string>
     <string name="spotify_lyrícs_info">Nhiều lời bài hát hơn nhưng không có dịch</string>
     <string name="enable_canvas">Bật Canvas</string>
-    <string name="canvas_info">Hiện thỉ Spotify Canvas trong SimpMusic</string>
+    <string name="canvas_info">Hiện thỉ Spotify Canvas trong FilmUmusic</string>
     <string name="spotify_lyrics_provider">Lời bài hát được cung cấp bởi Spotify</string>
     <string name="offline_mode">Chế độ ngoại tuyến</string>
     <string name="added_to_youtube_liked">Thêm vào danh sách phát YouTube Yêu Thích</string>
@@ -356,5 +356,5 @@
     <string name="loading">Đang tải</string>
     <string name="updating">Đang cập nhật</string>
     <string name="go_to_log_in_page">Đi tới trang đăng nhập</string>
-    <string name="log_in_warning">YouTube Music hiện tại đang yêu cầu đăng nhập để nghe nhạc trực tuyến, cũng như các thực thể Piped đôi khi không hoạt động. Bạn nên đăng nhập vào YouTube để có trải nghiệm nghe nhạc tốt nhất với SimpMusic.</string>
+    <string name="log_in_warning">YouTube Music hiện tại đang yêu cầu đăng nhập để nghe nhạc trực tuyến, cũng như các thực thể Piped đôi khi không hoạt động. Bạn nên đăng nhập vào YouTube để có trải nghiệm nghe nhạc tốt nhất với FilmUmusic.</string>
 </resources>

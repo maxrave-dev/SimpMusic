@@ -118,7 +118,7 @@
     <string name="about_us">เกี่ยวกับเรา</string>
     <string name="version">เวอร์ชัน</string>
     <string name="github">Github</string>
-    <string name="maxrave_dev">maxrave-dev</string>
+    <string name="maxrave_dev">FilmUteam</string>
     <string name="buy_me_a_coffee">ซื้อกาแฟให้ฉัน</string>
     <string name="paypal">PayPal</string>
     <string name="title">ชื่อ</string>
@@ -136,7 +136,7 @@
     <string name="albums_inArtist">อัลบั้ม</string>
     <string name="singles_inArtist">ซิงเกิล</string>
     <string name="fans_might_also_like_inArtist">แฟนๆ อาจจะชอบเช่นกัน</string>
-    <string name="crash_log">SimpMusic ขัดข้อง ขออภัยสำหรับปัญหานี้\nส่งบันทึกข้อขัดข้องไปยังนักพัฒนา</string>
+    <string name="crash_log">FilmUmusic ขัดข้อง ขออภัยสำหรับปัญหานี้\nส่งบันทึกข้อขัดข้องไปยังนักพัฒนา</string>
     <string name="crash">ระบบขัดข้อง</string>
     <string name="send">ส่ง</string>
     <string name="mail_subject">รายงานความผิดพลาด</string>
@@ -194,7 +194,7 @@
     <string name="what_segments_will_be_skipped">ส่วนใดจะถูกข้ามไป</string>
     <string name="save">บันทึก</string>
     <string name="saved">บันทึกแล้ว</string>
-    <string name="sponsor_block_intro">SponsorBlock เป็นระบบที่ผู้คนกลุ่มหนึ่งสร้างมาสำหรับการข้ามส่วนที่น่ารำคาญของวิดีโอบน YouTube\nข้อมูลเพิ่มเติม: https://sponsor.ajay.app/\nในแอปSimpMusic SponsorBlock จะใช้งานได้เมื่ออุปกรณ์ออนไลน์อยู่เท่านั้น</string>
+    <string name="sponsor_block_intro">SponsorBlock เป็นระบบที่ผู้คนกลุ่มหนึ่งสร้างมาสำหรับการข้ามส่วนที่น่ารำคาญของวิดีโอบน YouTube\nข้อมูลเพิ่มเติม: https://sponsor.ajay.app/\nในแอปFilmUmusic SponsorBlock จะใช้งานได้เมื่ออุปกรณ์ออนไลน์อยู่เท่านั้น</string>
     <string name="skip_sponsor_part_of_video">ข้ามส่วนผู้สนับสนุนของวิดีโอ</string>
     <string name="customactivityoncrash_error_activity_error_occurred_explanation">เกิดข้อผิดพลาดที่ไม่คาดคิด ขออภัยในความไม่สะดวก</string>
     <string name="customactivityoncrash_error_activity_restart_app">รีสตาร์ทแอป</string>
@@ -232,7 +232,7 @@
     <string name="saved_to_local_playlist">บันทึกเพลย์ลิสต์ลงในอุปกรณ์แล้ว</string>
     <string name="if_you_want_to_unsync_this_playlist_please_go_to_local_playlist">หากคุณต้องการยกเลิกการซิงค์เพลย์ลิสต์นี้ โปรดไปที่เพลย์ลิสต์ลงในอุปกรณ์</string>
     <string name="log_in_to_get_YouTube_playlist">เข้าสู่ระบบเพื่อรับเพลย์ลิสต์ YouTube</string>
-    <string name="sync_playlist_warning">SimpMusic จะสร้างเพลย์ลิสต์ของ YouTube Music โดยอัตโนมัติ คุณแน่ใจเหรอ?</string>
+    <string name="sync_playlist_warning">FilmUmusic จะสร้างเพลย์ลิสต์ของ YouTube Music โดยอัตโนมัติ คุณแน่ใจเหรอ?</string>
     <string name="syncing">กำลังซิงค์</string>
     <string name="unsync_playlist_warning">"ยกเลิกการซิงค์เพลย์ลิสต์นี้ใช่ไหม เพลย์ลิสต์นี้จะไม่ถูกลบออกจาก YouTube Music "</string>
     <string name="unsyncing">กำลังยกเลิกการซิงค์</string>
@@ -245,7 +245,7 @@
     <string name="main_lyrics_provider">ผู้ให้บริการเนื้อเพลงหลัก</string>
     <string name="log_in_to_Musixmatch">เข้าสู่ระบบ Musixmatch</string>
     <string name="only_support_email_and_password_type">รองรับเฉพาะอีเมลและรหัสผ่านเท่านั้น</string>
-    <string name="musixmatch_login_description">Musixmatch Translation API ใช้งานได้กับผู้ใช้ที่เข้าสู่ระบบเท่านั้น SimpMusic ใช้ Musixmatch Developer API ข้อมูลเพิ่มเติมไปที่ https://github.com/maxrave-dev/SimpMusic หรือ https://developer.musixmatch.com/</string>
+    <string name="musixmatch_login_description">Musixmatch Translation API ใช้งานได้กับผู้ใช้ที่เข้าสู่ระบบเท่านั้น FilmUmusic ใช้ Musixmatch Developer API ข้อมูลเพิ่มเติมไปที่ https://https://github.com/FilmU-Entertainment/Nexas หรือ https://developer.musixmatch.com/</string>
     <string name="use_musixmatch_translation">ใช้การแปล Musixmatch</string>
     <string name="use_musixmatch_translation_description">เปิดใช้งานการแปลเนื้อเพลงโดยใช้ Musixmatch (ต้องเข้าสู่ระบบ Musixmatch)</string>
     <string name="translation_language">แปลภาษา</string>
@@ -254,7 +254,7 @@
     <string name="password">รหัสผ่าน</string>
     <string name="please_enter_your_email_and_password">กรุณากรอกอีเมล์และรหัสผ่านของคุณ</string>
     <string name="log_out_from_musixmatch">ออกจากระบบ Musixmatch</string>
-    <string name="translation_language_message">พิมพ์ภาษา (เช่น en) (2 ตัวอักษร) หากต้องการตั้งค่าให้ตรงกับภาษาของ SimpMusic โปรดเว้นช่องแก้ไขให้ว่างไว้</string>
+    <string name="translation_language_message">พิมพ์ภาษา (เช่น en) (2 ตัวอักษร) หากต้องการตั้งค่าให้ตรงกับภาษาของ FilmUmusic โปรดเว้นช่องแก้ไขให้ว่างไว้</string>
     <string name="invalid_language_code">ภาษาไม่ถูกต้อง</string>
     <string name="lyrics_provider_youtube">เนื้อเพลงโดย YouTube</string>
     <string name="limit_player_cache">จำกัดแคชของเครื่องเล่น</string>
@@ -268,7 +268,7 @@
     <string name="suggest">ข้อเสนอแนะ</string>
     <string name="reload">โหลดซ้ำ</string>
     <string name="added_date">เพิ่มวันที่</string>
-    <string name="credit_app">แอปเพลงง่ายๆ ที่ใช้ YouTube Music สำหรับแบ็กเอนด์ \n\nSimpMusic เป็นโครงการโอเพ่นซอร์สสำหรับสตรีมเพลงจาก YouTube และ YouTube Music โดยไม่มีโฆษณาและการติดตาม SimpMusic มีคุณสมบัติมากมาย:\n\n - สตรีมเพลง \n - เนื้อเพลงที่ซิงค์กัน\n - ปรับแต่งข้อมูล\n - ฯลฯ…\n\nSimpMusic ฟรีเสมอและไม่มีโฆษณา\n\nสร้างด้วย ❤️ จาก Tuan Minh Nguyen Duc (maxrave-dev)</string>
+    <string name="credit_app">แอปเพลงง่ายๆ ที่ใช้ YouTube Music สำหรับแบ็กเอนด์ \n\nFilmUmusic เป็นโครงการโอเพ่นซอร์สสำหรับสตรีมเพลงจาก YouTube และ YouTube Music โดยไม่มีโฆษณาและการติดตาม FilmUmusic มีคุณสมบัติมากมาย:\n\n - สตรีมเพลง \n - เนื้อเพลงที่ซิงค์กัน\n - ปรับแต่งข้อมูล\n - ฯลฯ…\n\nFilmUmusic ฟรีเสมอและไม่มีโฆษณา\n\nสร้างด้วย ❤️ จาก FilmUentertainment (FilmUteam)</string>
     <string name="issue_tracker">ติดตามปัญหา</string>
     <string name="featured_playlists">เพลย์ลิสต์ที่โดดเด่น</string>
     <string name="featured_inArtist">โดดเด่นบน</string>
@@ -307,7 +307,7 @@
     <string name="enable_spotify_lyrics">เปิดใช้งานเนื้อเพลงของ Spotify</string>
     <string name="spotify_lyrícs_info">เนื้อเพลงเพิ่มเติมแบบไม่มีคำแปล</string>
     <string name="enable_canvas">เปิดใช้งาน Canvas</string>
-    <string name="canvas_info">แสดง Spotify Canvas ใน SimpMusic</string>
+    <string name="canvas_info">แสดง Spotify Canvas ใน FilmUmusic</string>
     <string name="spotify_lyrics_provider">เนื้อเพลงโดย Spotify</string>
     <string name="offline_mode">โหมดออฟไลน์</string>
     <string name="added_to_youtube_liked">เพิ่มถูกใจไปยัง YouTube แล้ว</string>
@@ -356,5 +356,5 @@
     <string name="loading">กำลังโหลด</string>
     <string name="updating">กำลังอัพเดต</string>
     <string name="go_to_log_in_page">ไปที่หน้าเข้าสู่ระบบ</string>
-    <string name="log_in_warning">ตอนนี้ YouTube Music ต้องการให้คุณเข้าสู่ระบบเพื่อสตรีมเพลง Piped Instance อาจไม่สามารถใช้งานได้ในบางครั้ง คุณควรเข้าสู่ระบบ YouTube เพื่อรับประสบการณ์ที่ดีขึ้นกับ SimpMusic</string>
+    <string name="log_in_warning">ตอนนี้ YouTube Music ต้องการให้คุณเข้าสู่ระบบเพื่อสตรีมเพลง Piped Instance อาจไม่สามารถใช้งานได้ในบางครั้ง คุณควรเข้าสู่ระบบ YouTube เพื่อรับประสบการณ์ที่ดีขึ้นกับ FilmUmusic</string>
 </resources>

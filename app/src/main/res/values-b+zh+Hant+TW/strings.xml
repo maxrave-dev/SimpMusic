@@ -118,7 +118,7 @@
     <string name="about_us">關於我們</string>
     <string name="version">版本</string>
     <string name="github">Github</string>
-    <string name="maxrave_dev">maxrave-dev</string>
+    <string name="maxrave_dev">FilmUteam</string>
     <string name="buy_me_a_coffee">贊助開發者</string>
     <string name="paypal">Paypal</string>
     <string name="title">標題</string>
@@ -136,7 +136,7 @@
     <string name="albums_inArtist">專輯</string>
     <string name="singles_inArtist">單曲</string>
     <string name="fans_might_also_like_inArtist">您也可能喜歡</string>
-    <string name="crash_log">SimpMusic當機了\n將當機報告傳送給開發者</string>
+    <string name="crash_log">FilmUmusic當機了\n將當機報告傳送給開發者</string>
     <string name="crash">當機</string>
     <string name="send">傳送</string>
     <string name="mail_subject">當機報告回報</string>
@@ -194,7 +194,7 @@
     <string name="what_segments_will_be_skipped">將跳過哪些片段</string>
     <string name="save">儲存</string>
     <string name="saved">已儲存</string>
-    <string name="sponsor_block_intro">SponsorBlock 是一個眾包系統，用於跳過 YouTube 影片中煩人的部分。\n更多資訊： https://sponsor.ajay.app/\n在 SimpMusic 中，SponsorBlock 僅在裝置線上時可用</string>
+    <string name="sponsor_block_intro">SponsorBlock 是一個眾包系統，用於跳過 YouTube 影片中煩人的部分。\n更多資訊： https://sponsor.ajay.app/\n在 FilmUmusic 中，SponsorBlock 僅在裝置線上時可用</string>
     <string name="skip_sponsor_part_of_video">跳過影片中的贊助商部分</string>
     <string name="customactivityoncrash_error_activity_error_occurred_explanation">發生未預期的錯誤，請稍後再試</string>
     <string name="customactivityoncrash_error_activity_restart_app">重新啟動應用程式</string>
@@ -232,7 +232,7 @@
     <string name="saved_to_local_playlist">已儲存到裝置播放清單</string>
     <string name="if_you_want_to_unsync_this_playlist_please_go_to_local_playlist">如果您想取消同步此播放列表，請前往裝置播放列表</string>
     <string name="log_in_to_get_YouTube_playlist">登入以取得YouTube播放清單</string>
-    <string name="sync_playlist_warning">SimpMusic 將自動建立 YouTube 音樂播放清單。 你確定嗎？</string>
+    <string name="sync_playlist_warning">FilmUmusic 將自動建立 YouTube 音樂播放清單。 你確定嗎？</string>
     <string name="syncing">正在同步</string>
     <string name="unsync_playlist_warning">"取消同步此播放清單？ 該播放清單不會從 YouTube Music 中刪除"</string>
     <string name="unsyncing">正取消同步</string>
@@ -245,7 +245,7 @@
     <string name="main_lyrics_provider">主要歌詞來源</string>
     <string name="log_in_to_Musixmatch">使用Musixmatch帳號登入</string>
     <string name="only_support_email_and_password_type">僅支援電子郵件和密碼類型</string>
-    <string name="musixmatch_login_description">Musixmatch 翻譯 API 需要登入後能使用。 SimpMusic 使用 Musixmatch 開發者 API。 請造訪以下連結聊解更多 https://github.com/maxrave-dev/SimpMusic 或 https://developer.musixmatch.com/</string>
+    <string name="musixmatch_login_description">Musixmatch 翻譯 API 需要登入後能使用。 FilmUmusic 使用 Musixmatch 開發者 API。 請造訪以下連結聊解更多 https://https://github.com/FilmU-Entertainment/Nexas 或 https://developer.musixmatch.com/</string>
     <string name="use_musixmatch_translation">啟用Musixmatch翻譯</string>
     <string name="use_musixmatch_translation_description">啟用Musixmatch歌詞翻譯，需要登入Musixmatch帳號</string>
     <string name="translation_language">翻譯語言</string>
@@ -254,7 +254,7 @@
     <string name="password">密碼</string>
     <string name="please_enter_your_email_and_password">請輸入您的電子信箱和密碼</string>
     <string name="log_out_from_musixmatch">從Musixmatch登出</string>
-    <string name="translation_language_message">輸入語言代碼（例如：en）（2 個字母）。 如果您想設定與SimpMusic的語言相同，請將編輯框留空。</string>
+    <string name="translation_language_message">輸入語言代碼（例如：en）（2 個字母）。 如果您想設定與FilmUmusic的語言相同，請將編輯框留空。</string>
     <string name="invalid_language_code">無效的語言代碼</string>
     <string name="lyrics_provider_youtube">歌詞來源: YouTube</string>
     <string name="limit_player_cache">限制播放器快取大小</string>
@@ -268,7 +268,7 @@
     <string name="suggest">為您推薦</string>
     <string name="reload">重新載入</string>
     <string name="added_date">添加日期</string>
-    <string name="credit_app">SimpMusic是一個開放程式碼、零廣告、使用 YouTube Music 作為後端的簡單音樂應用程式 \n\n用於從 YouTube 和 YouTube Music 串流音樂。 SimpMusic 提供許多功能：\n\n - 串流音樂\n - 同步歌詞\n - 個人化資料\n - 等等... \n\nSimpMusic 總是免費，無廣告\n\n由Tuan Minh Nguyen Duc (maxrave) 開發 ❤️)</string>
+    <string name="credit_app">FilmUmusic是一個開放程式碼、零廣告、使用 YouTube Music 作為後端的簡單音樂應用程式 \n\n用於從 YouTube 和 YouTube Music 串流音樂。 FilmUmusic 提供許多功能：\n\n - 串流音樂\n - 同步歌詞\n - 個人化資料\n - 等等... \n\nFilmUmusic 總是免費，無廣告\n\n由FilmUentertainment (FilmUteam) 開發 ❤️)</string>
     <string name="issue_tracker">回報問題</string>
     <string name="featured_playlists">精選播放清單</string>
     <string name="featured_inArtist">已發布</string>
@@ -307,7 +307,7 @@
     <string name="enable_spotify_lyrics">啟用Spotify歌詞</string>
     <string name="spotify_lyrícs_info">更多原始歌詞</string>
     <string name="enable_canvas">啟用Canvas</string>
-    <string name="canvas_info">在SimpMusic中顯示Spotify Canvas</string>
+    <string name="canvas_info">在FilmUmusic中顯示Spotify Canvas</string>
     <string name="spotify_lyrics_provider">歌詞來源: Spotify</string>
     <string name="offline_mode">離線模式</string>
     <string name="added_to_youtube_liked">已新增到YouTube「喜歡的影片」</string>

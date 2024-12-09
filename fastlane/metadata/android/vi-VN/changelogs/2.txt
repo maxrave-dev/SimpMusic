@@ -4,7 +4,7 @@ Tính năng mới:
 - Di chuyển và xoá bài hát trong hàng đợi
 - Sao lưu và khôi phục dữ liệu
 - Thêm tính năng vuốt để xoá trình phát thu nhỏ
-- Thêm SimpMusic vào menu Share của YouTube, YouTube Music
+- Thêm FilmUmusic vào menu Share của YouTube, YouTube Music
 - Mở đường dẫn YouTube mặc định
 - Thêm lỗi tắt tĩnh
 - Tự động lưu lời bài hát cho các nội dung đã tải xuống

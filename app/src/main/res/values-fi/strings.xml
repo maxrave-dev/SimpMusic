@@ -118,7 +118,7 @@
     <string name="about_us">Tietoa meistä</string>
     <string name="version">Versio</string>
     <string name="github">GitHub</string>
-    <string name="maxrave_dev">maxrave-dev</string>
+    <string name="maxrave_dev">FilmUteam</string>
     <string name="buy_me_a_coffee">Osta minulle kahvi</string>
     <string name="paypal">PayPal</string>
     <string name="title">Otsikko</string>
@@ -136,7 +136,7 @@
     <string name="albums_inArtist">Albumit</string>
     <string name="singles_inArtist">Singlet</string>
     <string name="fans_might_also_like_inArtist">Fanit saattavat pitää myös näistä</string>
-    <string name="crash_log">SimpMusic kaatui. Anteeksi tästä ongelmasta.\nLähetä kaatumisloki kehittäjälle</string>
+    <string name="crash_log">FilmUmusic kaatui. Anteeksi tästä ongelmasta.\nLähetä kaatumisloki kehittäjälle</string>
     <string name="crash">Kaatuminen</string>
     <string name="send">Lähetä</string>
     <string name="mail_subject">Ilmoita ohjelman kaatumisesta</string>
@@ -194,7 +194,7 @@
     <string name="what_segments_will_be_skipped">Valise ohitettavat segmentit</string>
     <string name="save">Tallenna</string>
     <string name="saved">Tallennettu</string>
-    <string name="sponsor_block_intro">SponsorBlock on joukkoistettu järjestelmä YouTube-videoiden ärsyttävien osien ohittamiseen.\nLisätietoja: https://sponsor.ajay.app/\nSimpMusicissa SponsorBlock on käytettävissä vain, kun laite on online-tilassa</string>
+    <string name="sponsor_block_intro">SponsorBlock on joukkoistettu järjestelmä YouTube-videoiden ärsyttävien osien ohittamiseen.\nLisätietoja: https://sponsor.ajay.app/\nFilmUmusicissa SponsorBlock on käytettävissä vain, kun laite on online-tilassa</string>
     <string name="skip_sponsor_part_of_video">Ohita videon sponsoriosa</string>
     <string name="customactivityoncrash_error_activity_error_occurred_explanation">Tapahtui odottamaton virhe. Pahoittelemme.</string>
     <string name="customactivityoncrash_error_activity_restart_app">Käynnistä sovellus uudelleen</string>
@@ -232,7 +232,7 @@
     <string name="saved_to_local_playlist">Tallennettu paikalliseen soittolistaan</string>
     <string name="if_you_want_to_unsync_this_playlist_please_go_to_local_playlist">jos haluat poistaa tämän soittolistan synkronoinnin, avaa paikallinen soittolista</string>
     <string name="log_in_to_get_YouTube_playlist">Kirjaudu sisään saadaksesi YouTube-soittolistan</string>
-    <string name="sync_playlist_warning">SimpMusic luo YouTube Musiciin soittolistan automaattisesti. Haluatko jatkaa?</string>
+    <string name="sync_playlist_warning">FilmUmusic luo YouTube Musiciin soittolistan automaattisesti. Haluatko jatkaa?</string>
     <string name="syncing">Synkronoidaan</string>
     <string name="unsync_playlist_warning">"Poistetaanko soittolistan synkronointi käytöstä? Tätä soittolistaa ei poisteta YouTube Musicista "</string>
     <string name="unsyncing">Synkronointia poistetaan</string>
@@ -245,7 +245,7 @@
     <string name="main_lyrics_provider">Ensisijainen sanoituspalvelu</string>
     <string name="log_in_to_Musixmatch">Kirjaudu Musixmatchiin</string>
     <string name="only_support_email_and_password_type">Kirjaudu sähköpostilla ja salasanalla</string>
-    <string name="musixmatch_login_description">Musixmatchin käännös-API toimii vain sisäänkirjautuneena. SimpMusic käyttää Musixmatchin kehittäjä-APIa. Lisätietoja on osoitteissa https://github.com/maxrave-dev/SimpMusic ja https://developer.musixmatch.com/</string>
+    <string name="musixmatch_login_description">Musixmatchin käännös-API toimii vain sisäänkirjautuneena. FilmUmusic käyttää Musixmatchin kehittäjä-APIa. Lisätietoja on osoitteissa https://https://github.com/FilmU-Entertainment/Nexas ja https://developer.musixmatch.com/</string>
     <string name="use_musixmatch_translation">Käytä Musixmatchin käännöstä</string>
     <string name="use_musixmatch_translation_description">Salli sanoitusten kääntäminen Musixmatchilla. Vaatii Musixmatchiin kirjautumisen</string>
     <string name="translation_language">Käännöksen kieli</string>
@@ -254,7 +254,7 @@
     <string name="password">Salasana</string>
     <string name="please_enter_your_email_and_password">Syötä sähköpostiosoitteesi ja salasanasi</string>
     <string name="log_out_from_musixmatch">Kirjaudu ulos Musixmatchista</string>
-    <string name="translation_language_message">Kirjoita kielikoodi (esim: en) (2 kirjainta). Jos haluat asettaa kielen samaksi kuin SimpMusicissa, jätä kenttä tyhjäksi.</string>
+    <string name="translation_language_message">Kirjoita kielikoodi (esim: en) (2 kirjainta). Jos haluat asettaa kielen samaksi kuin FilmUmusicissa, jätä kenttä tyhjäksi.</string>
     <string name="invalid_language_code">Virheellinen kielikoodi</string>
     <string name="lyrics_provider_youtube">YouTuben tarjoamat sanoitukset</string>
     <string name="limit_player_cache">Rajoita soittimen välimuistia</string>
@@ -268,7 +268,7 @@
     <string name="suggest">Ehdotus</string>
     <string name="reload">Lataa uudelleen</string>
     <string name="added_date">Lisäyspäivämäärä</string>
-    <string name="credit_app">Yksinkertainen musiikkisovellus, joka käyttää YouTube Musicin taustajärjestelmää \n\nSimpMusic on avoimen lähdekoodin projekti musiikin suoratoistoon YouTubesta ja YouTube Musicista ilman mainoksia ja seurantaa. SimpMusic tarjoaa monia ominaisuuksia:\n\n - Musiikin suoratoisto \n - Synkronoidut sanoitukset\n - Tietojen mukauttaminen\n - jne… \n\nSimpMusic on aina ilmainen ja vailla mainoksia\n\nTehty ❤️:llä, Tuan Minh Nguyen Duc (maxrave-dev)</string>
+    <string name="credit_app">Yksinkertainen musiikkisovellus, joka käyttää YouTube Musicin taustajärjestelmää \n\nFilmUmusic on avoimen lähdekoodin projekti musiikin suoratoistoon YouTubesta ja YouTube Musicista ilman mainoksia ja seurantaa. FilmUmusic tarjoaa monia ominaisuuksia:\n\n - Musiikin suoratoisto \n - Synkronoidut sanoitukset\n - Tietojen mukauttaminen\n - jne… \n\nFilmUmusic on aina ilmainen ja vailla mainoksia\n\nTehty ❤️:llä, FilmUentertainment (FilmUteam)</string>
     <string name="issue_tracker">Tikettijärjestelmä</string>
     <string name="featured_playlists">Suositellut soittolistat</string>
     <string name="featured_inArtist">Mukana näissä</string>
@@ -308,7 +308,7 @@
     <string name="enable_spotify_lyrics">Enable Spotify Lyrics</string>
     <string name="spotify_lyrícs_info">More lyrics without translation</string>
     <string name="enable_canvas">Enable Canvas</string>
-    <string name="canvas_info">Show Spotify Canvas in SimpMusic</string>
+    <string name="canvas_info">Show Spotify Canvas in FilmUmusic</string>
     <string name="spotify_lyrics_provider">Lyrics provided by Spotify</string>
     <string name="offline_mode">Offline mode</string>
     <string name="added_to_youtube_liked">Added to YouTube Liked</string>

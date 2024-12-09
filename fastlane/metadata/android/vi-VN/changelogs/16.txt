@@ -7,4 +7,4 @@
 - Giữ màn hình sáng khi hiển thị lời bài hát
 - Duyệt trực tuyến trên Android Auto
 - Thêm tiện ích màn hình chính
-- Sửa một số lỗi. Thay đổi đầy đủ: https://github.com/maxrave-dev/SimpMusic/compare/v0.1.8...v0.2.0
+- Sửa một số lỗi. Thay đổi đầy đủ: https://https://github.com/FilmU-Entertainment/Nexas/compare/v0.1.8...v0.2.0

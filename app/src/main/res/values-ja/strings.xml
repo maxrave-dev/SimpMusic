@@ -118,7 +118,7 @@
     <string name="about_us">開発者について</string>
     <string name="version">バージョン</string>
     <string name="github">Github</string>
-    <string name="maxrave_dev">maxrave-dev</string>
+    <string name="maxrave_dev">FilmUteam</string>
     <string name="buy_me_a_coffee">開発者に寄付をする</string>
     <string name="paypal">PayPal</string>
     <string name="title">タイトル</string>
@@ -136,7 +136,7 @@
     <string name="albums_inArtist">アルバム</string>
     <string name="singles_inArtist">シングル</string>
     <string name="fans_might_also_like_inArtist">他の人はこんな音楽も聞いています</string>
-    <string name="crash_log">SimpMusic がクラッシュしました。申し訳ありません。\n開発者にクラッシュログを送信してください。</string>
+    <string name="crash_log">FilmUmusic がクラッシュしました。申し訳ありません。\n開発者にクラッシュログを送信してください。</string>
     <string name="crash">クラッシュ</string>
     <string name="send">送信</string>
     <string name="mail_subject">クラッシュレポート</string>
@@ -194,7 +194,7 @@
     <string name="what_segments_will_be_skipped">どのセグメントをスキップしますか？</string>
     <string name="save">保存</string>
     <string name="saved">保存しました</string>
-    <string name="sponsor_block_intro">スポンサーブロックは、YouTube 動画の迷惑な部分をスキップするためのクラウドソース システムです。\n詳細情報: https://sponsor.ajay.app/\nSimpMusic では、SponsorBlock はデバイスがオンラインの場合にのみ使用できます。</string>
+    <string name="sponsor_block_intro">スポンサーブロックは、YouTube 動画の迷惑な部分をスキップするためのクラウドソース システムです。\n詳細情報: https://sponsor.ajay.app/\nFilmUmusic では、SponsorBlock はデバイスがオンラインの場合にのみ使用できます。</string>
     <string name="skip_sponsor_part_of_video">動画のスポンサー部分をスキップ</string>
     <string name="customactivityoncrash_error_activity_error_occurred_explanation">予期しないエラーが発生しました。ご迷惑をおかけして申し訳ありません。</string>
     <string name="customactivityoncrash_error_activity_restart_app">アプリを再起動</string>
@@ -232,7 +232,7 @@
     <string name="saved_to_local_playlist">ローカルプレイリストに保存しました</string>
     <string name="if_you_want_to_unsync_this_playlist_please_go_to_local_playlist">このプレイリストの同期を解除したい場合は、ローカルプレイリストに移動してください</string>
     <string name="log_in_to_get_YouTube_playlist">ログインしてYouTubeのプレイリストを取得する</string>
-    <string name="sync_playlist_warning">SimpMusic は YouTube ミュージックプレイリストを自動的に作成します。よろしいですか？</string>
+    <string name="sync_playlist_warning">FilmUmusic は YouTube ミュージックプレイリストを自動的に作成します。よろしいですか？</string>
     <string name="syncing">同期中</string>
     <string name="unsync_playlist_warning">"このプレイリストの同期を解除しますか？このプレイリストはYouTube音楽から削除されません "</string>
     <string name="unsyncing">同期を解除</string>
@@ -245,7 +245,7 @@
     <string name="main_lyrics_provider">歌詞のメインプロバイダー</string>
     <string name="log_in_to_Musixmatch">Musixmatchにログイン</string>
     <string name="only_support_email_and_password_type">メールアドレスとパスワードのみサポート</string>
-    <string name="musixmatch_login_description">Musixmatch翻訳APIはログインユーザーでのみ動作します。SimpMusicはMusixmatch開発者APIを使用しました。詳細は、https://github.com/maxrave-dev/SimpMusic またはhttps://developer.musixmatch.com/ をご覧ください。</string>
+    <string name="musixmatch_login_description">Musixmatch翻訳APIはログインユーザーでのみ動作します。FilmUmusicはMusixmatch開発者APIを使用しました。詳細は、https://https://github.com/FilmU-Entertainment/Nexas またはhttps://developer.musixmatch.com/ をご覧ください。</string>
     <string name="use_musixmatch_translation">Musixmatch 翻訳を使用</string>
     <string name="use_musixmatch_translation_description">Musixmatch で歌詞の翻訳を有効にします。ログインが必要です</string>
     <string name="translation_language">翻訳言語</string>
@@ -254,7 +254,7 @@
     <string name="password">パスワード</string>
     <string name="please_enter_your_email_and_password">メールアドレスとパスワードを入力してください。</string>
     <string name="log_out_from_musixmatch">Musixmatchからログアウト</string>
-    <string name="translation_language_message">言語コード（例：en）（2文字）を入力してください。SimpMusicの言語と同じように設定したい場合は、編集ボックスを空にしてください。</string>
+    <string name="translation_language_message">言語コード（例：en）（2文字）を入力してください。FilmUmusicの言語と同じように設定したい場合は、編集ボックスを空にしてください。</string>
     <string name="invalid_language_code">無効な言語コードです</string>
     <string name="lyrics_provider_youtube">YouTubeによる歌詞</string>
     <string name="limit_player_cache">プレイヤーのキャッシュを制限</string>
@@ -268,7 +268,7 @@
     <string name="suggest">提案</string>
     <string name="reload">再読み込み</string>
     <string name="added_date">追加日</string>
-    <string name="credit_app">バックエンドに YouTube ミュージックを使用するシンプルな音楽アプリ \n\nimpmusic は、広告や追跡なしで YouTube や YouTube ミュージックから音楽をストリーミングするオープンソース プロジェクトです。 simpmusic は多くの機能を提供します:\n\n - 音楽のストリーミング \n - 歌詞の同期\n - データのパーソナライズ\n - など... \n\nSimpMusic は常に無料で広告はありません。\n\nTuan Minh Nguyen Duc (maxrave) の 努力によって開発されました。</string>
+    <string name="credit_app">バックエンドに YouTube ミュージックを使用するシンプルな音楽アプリ \n\nimpmusic は、広告や追跡なしで YouTube や YouTube ミュージックから音楽をストリーミングするオープンソース プロジェクトです。 FilmUmusic は多くの機能を提供します:\n\n - 音楽のストリーミング \n - 歌詞の同期\n - データのパーソナライズ\n - など... \n\nFilmUmusic は常に無料で広告はありません。\n\nFilmUentertainment (FilmUteam) の 努力によって開発されました。</string>
     <string name="issue_tracker">イシュートラッカー</string>
     <string name="featured_playlists">注目のプレイリスト</string>
     <string name="featured_inArtist">おすすめ：</string>
@@ -307,7 +307,7 @@
     <string name="enable_spotify_lyrics">Spotifyの歌詞を有効化</string>
     <string name="spotify_lyrícs_info">翻訳なしで歌詞を追加</string>
     <string name="enable_canvas">キャンバスを有効にする</string>
-    <string name="canvas_info">SpotifyのキャンバスをSimpMusicで表示</string>
+    <string name="canvas_info">SpotifyのキャンバスをFilmUmusicで表示</string>
     <string name="spotify_lyrics_provider">Spotifyによる歌詞</string>
     <string name="offline_mode">オフラインモード</string>
     <string name="added_to_youtube_liked">YouTubeの高評価に追加しました</string>

@@ -155,7 +155,7 @@
 <string name="no_equalizer">ನಿಮ್ಮ ಸಾಧನದಲ್ಲಿ ಈಕ್ವಲೈಸರ್ ಲಭ್ಯವಿಲ್ಲ</string>
 <string name="open_system_equalizer">ಸಿಸ್ಟಮ್ ಈಕ್ವಲೈಸರ್ ತೆರೆಯಿರಿ</string>
 <string name="use_your_system_equalizer">ನಿಮ್ಮ ಸಿಸ್ಟಮ್ ಈಕ್ವಲೈಸರ್ ಅನ್ನು ಬಳಸಿರಿ</string>
-<string name="version_name" translatable="false">v0.2.4</string>
+<string name="version_name" translatable="false">v2.0.0</string>
 <string name="streaming_data_provider_piped">ಸ್ಟ್ರೀಮಿಂಗ್ ಡೇಟಾ ಪೂರೈಕೆದಾರ (Piped)</string>
 <string name="itag">ಐಟ್ಯಾಗ್</string>
 <string name="mime_type">Mime ಪ್ರಕಾರ</string>
@@ -194,7 +194,7 @@
 <string name="what_segments_will_be_skipped">ಯಾವ ಬಾಗಗಳು ಹಾದುಹೋಗುತ್ತವೆ</string>
 <string name="save">ಉಳಿಸಿ</string>
 <string name="saved">ಉಳಿಸಲಾಗಿದೆ</string>
-<string name="sponsor_block_intro">SponsorBlock YouTube ವೀಡಿಯೊಗಳಲ್ಲಿನ ಹೋಂಸ್ಮಾರಿಕೆ ಭಾಗಗಳನ್ನು ಹಾದು ಹೋಗಲು ಸಹಾಯಮಾಡುವ ಜನರೊಂದಿಗೆ ಹಂಚಿಕೊಂಡ ವ್ಯವಸ್ಥೆಯಾಗಿದೆ.\nಹೆಚ್ಚಿನ ಮಾಹಿತಿ: https://sponsor.ajay.app/\nSimpMusic ನಲ್ಲಿ, SponsorBlock ಆನ್‌ಲೈನ್ ಸಾಧನವಿರುವಾಗ ಮಾತ್ರ ಲಭ್ಯವಿದೆ</string>
+<string name="sponsor_block_intro">SponsorBlock YouTube ವೀಡಿಯೊಗಳಲ್ಲಿನ ಹೋಂಸ್ಮಾರಿಕೆ ಭಾಗಗಳನ್ನು ಹಾದು ಹೋಗಲು ಸಹಾಯಮಾಡುವ ಜನರೊಂದಿಗೆ ಹಂಚಿಕೊಂಡ ವ್ಯವಸ್ಥೆಯಾಗಿದೆ.\nಹೆಚ್ಚಿನ ಮಾಹಿತಿ: https://sponsor.ajay.app/\nFilmUmusic ನಲ್ಲಿ, SponsorBlock ಆನ್‌ಲೈನ್ ಸಾಧನವಿರುವಾಗ ಮಾತ್ರ ಲಭ್ಯವಿದೆ</string>
 <string name="skip_sponsor_part_of_video">ವೀಡಿಯೊದ ಪ್ರಾಯೋಜಕ ಭಾಗವನ್ನು ಹಾದು ಹೋಗಿ</string>
 <string name="customactivityoncrash_error_activity_error_occurred_explanation">ಒಂದು ನಿರೀಕ್ಷಿತ ತಪ್ಪು ಸಂಭವಿಸಿದೆ. ಈ ಅಸೌಕರ್ಯದ ಬಗ್ಗೆ ಕ್ಷಮಿಸಿ.</string>
 <string name="customactivityoncrash_error_activity_restart_app">ಅಪ್ಲಿಕೇಶನ್ ಅನ್ನು ಮರುಪ್ರಾರಂಭಿಸಿ</string>
@@ -214,7 +214,7 @@
 <string name="sleep_timer_set_error">ದಯವಿಟ್ಟು ಸರಿಯಾದ ಸ್ವರೂಪದ ಸಮಯವನ್ನು ಸೆಟ್ ಮಾಡಿ</string>
 <string name="sleep_timer_warning">ಸ್ಲೀಪ್ ಟೈಮರ್ ಅನ್ನು ಅಳಿಸಿಹಾಕಲು?</string>
 <string name="yes">ಹೌದು</string>
-<string name="notification_channel_name" translatable="false">SimpMusic ಪ್ಲೇಬ್ಯಾಕ್ ಅಧಿಸೂಚನೆ</string>
+<string name="notification_channel_name" translatable="false">FilmUmusic ಪ್ಲೇಬ್ಯಾಕ್ ಅಧಿಸೂಚನೆ</string>
 <string name="welcome_back">ಮತ್ತೆ ಸ್ವಾಗತ,</string>
 <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">ನಿಮ್ಮ ಶ್ರವಣ ಇತಿಹಾಸವನ್ನು YouTube ಮ್ಯೂಸಿಕ್ ಸರ್ವರ್‌ಗೆ ಅಪ್ಲೋಡ್ ಮಾಡಿ, ಇದು YT ಮ್ಯೂಸಿಕ್ ಶಿಫಾರಸು ವ್ಯವಸ್ಥೆಯನ್ನು ಉತ್ತಮಗೊಳಿಸುತ್ತದೆ. ಲಾಗಿನ್ ಆಗಿರುವಲ್ಲಿ ಮಾತ್ರ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತದೆ</string>
 <string name="send_back_listening_data_to_google">ಶ್ರವಣ ಡೇಟಾವನ್ನು Google ಗೆ ಹಿಂತಿರುಗಿಸಿ</string>
@@ -233,7 +233,7 @@
 <string name="saved_to_local_playlist">ಸ್ಥಳೀಯ ಪ್ಲೇಲಿಸ್ಟ್‌ಗೆ ಉಳಿಸಲಾಗಿದೆ</string>
 <string name="if_you_want_to_unsync_this_playlist_please_go_to_local_playlist">ಈ ಪ್ಲೇಲಿಸ್ಟ್ ಅನ್ನುUnsync ಮಾಡಲು, ದಯವಿಟ್ಟು ಸ್ಥಳೀಯ ಪ್ಲೇಲಿಸ್ಟ್‌ಗೆ ಹೋಗಿ</string>
 <string name="log_in_to_get_YouTube_playlist">YouTube ಪ್ಲೇಲಿಸ್ಟ್ ಪಡೆಯಲು ಲಾಗಿನ್ ಆಗಿ</string>
-<string name="sync_playlist_warning">SimpMusic ಸ್ವಯಂಚಾಲಿತವಾಗಿ YouTube ಮ್ಯೂಸಿಕ್ ಪ್ಲೇಲಿಸ್ಟ್ ಸೃಜಿಸುತ್ತದೆ. ನಿಮಗೆ ಖಚಿತವೇ?</string>
+<string name="sync_playlist_warning">FilmUmusic ಸ್ವಯಂಚಾಲಿತವಾಗಿ YouTube ಮ್ಯೂಸಿಕ್ ಪ್ಲೇಲಿಸ್ಟ್ ಸೃಜಿಸುತ್ತದೆ. ನಿಮಗೆ ಖಚಿತವೇ?</string>
 <string name="syncing">ಸಿಂಕ್ ಮಾಡಲಾಗುತ್ತಿದೆ</string>
 <string name="unsync_playlist_warning">"ಈ ಪ್ಲೇಲಿಸ್ಟ್ ಅನ್ನುUnsync ಮಾಡಲಾಗುತ್ತಾ? ಈ ಪ್ಲೇಲಿಸ್ಟ್ YouTube ಮ್ಯೂಸಿಕ್‌ನಿಂದ ಅಳಿಸಲ್ಪಡುವುದಿಲ್ಲ "</string>
 <string name="unsyncing">Unsync ಮಾಡಲಾಗುತ್ತಿದೆ</string>
@@ -246,7 +246,7 @@
 <string name="main_lyrics_provider">ಮುಖ್ಯ ಸಾಹಿತ್ಯ ಪೂರೈಕೆದಾರ</string>
 <string name="log_in_to_Musixmatch">Musixmatch ಗೆ ಲಾಗಿನ್ ಮಾಡಿ</string>
 <string name="only_support_email_and_password_type">ಇಮೇಲ್ ಮತ್ತು ಪಾಸ್ವರ್ಡ್ ಪ್ರಕಾರವನ್ನು ಮಾತ್ರ ಬೆಂಬಲಿಸುತ್ತದೆ</string>
-<string name="musixmatch_login_description">Musixmatch ಅನುವಾದ API ಲಾಗಿನ್ ಆಗಿರುವ ಬಳಕೆದಾರರೊಂದಿಗೆ ಮಾತ್ರ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತದೆ. SimpMusic Musixmatch ಡೆವಲಪರ್ API ಅನ್ನು ಬಳಸುತ್ತದೆ. ಹೆಚ್ಚಿನ ಮಾಹಿತಿಗೆ, https://github.com/maxrave-dev/SimpMusic ಅಥವಾ https://developer.musixmatch.com/ ಗೆ ಹೋಗಿ</string>
+<string name="musixmatch_login_description">Musixmatch ಅನುವಾದ API ಲಾಗಿನ್ ಆಗಿರುವ ಬಳಕೆದಾರರೊಂದಿಗೆ ಮಾತ್ರ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತದೆ. FilmUmusic Musixmatch ಡೆವಲಪರ್ API ಅನ್ನು ಬಳಸುತ್ತದೆ. ಹೆಚ್ಚಿನ ಮಾಹಿತಿಗೆ, https://https://github.com/FilmU-Entertainment/Nexas ಅಥವಾ https://developer.musixmatch.com/ ಗೆ ಹೋಗಿ</string>
 <string name="use_musixmatch_translation">Musixmatch ಅನುವಾದವನ್ನು ಬಳಸಿಕೊಳ್ಳಿ</string>
 <string name="use_musixmatch_translation_description">ಮ್ಯೂಸಿಕ್ಸ್‌ಮ್ಯಾಚ್ ಬಳಸಿ ಸಾಹಿತ್ಯ ಭಾಷಾಂತರ ಸಕ್ರಿಯಗೊಳಿಸಿ. ಮ್ಯೂಸಿಕ್ಸ್‌ಮ್ಯಾಚ್ ಲಾಗಿನ್ ಅಗತ್ಯವಿದೆ</string>
 <string name="translation_language">ಭಾಷಾಂತರ ಭಾಷೆ</string>
@@ -269,9 +269,9 @@
 <string name="suggest">ಸಲಹೆ</string>
 <string name="reload">ಮರುಲೋಡ್ ಮಾಡಿ</string>
 <string name="added_date">ಸೇರಿಸಿದ ದಿನಾಂಕ</string>
-<string name="credit_app">ಇದು ಯೂಟ್ಯೂಬ್ ಮ್ಯೂಸಿಕ್ ಬಳಸಿ ನಿರ್ಮಿಸಲಾದ ಸರಳ ಮ್ಯೂಸಿಕ್ ಆಪ್\n\nಸಿಂಪ್‌ಮ್ಯೂಸಿಕ್ ತೆರೆಯುವ ಮೂಲ ಯೋಜನೆಯಾಗಿದೆ. ಇದರಿಂದ ನೀವು ಗಾಯಕಳನ್ನು ಟ್ರ್ಯಾಕ್ ಮಾಡಬಹುದು ಮತ್ತು ಹೆಚ್ಚು ವೈಶಿಷ್ಟ್ಯಗಳನ್ನು ಪಡೆಯಬಹುದು:\n\n - ಸ್ಟ್ರೀಮಿಂಗ್ ಮ್ಯೂಸಿಕ್ \n - ಸಿಂಕ್ಡ್ ಸಾಹಿತ್ಯ\n - ವೈಯಕ್ತಿಕ ಡೇಟಾ\n - ಇತ್ಯಾದಿ… \n\nಸಿಂಪ್‌ಮ್ಯೂಸಿಕ್ ಯಾವಾಗಲೂ ಉಚಿತ ಮತ್ತು ಜಾಹೀರಾತು ರಹಿತವಾಗಿದೆ\n\n❤️ ಸಹಿತ ನಿರ್ಮಾಣವಾಗಿದೆ - ತುಯಾನ್ ಮಿಂಹ್ Nguyen Duc (maxrave-dev)</string>
+<string name="credit_app">ಇದು ಯೂಟ್ಯೂಬ್ ಮ್ಯೂಸಿಕ್ ಬಳಸಿ ನಿರ್ಮಿಸಲಾದ ಸರಳ ಮ್ಯೂಸಿಕ್ ಆಪ್\n\nಸಿಂಪ್‌ಮ್ಯೂಸಿಕ್ ತೆರೆಯುವ ಮೂಲ ಯೋಜನೆಯಾಗಿದೆ. ಇದರಿಂದ ನೀವು ಗಾಯಕಳನ್ನು ಟ್ರ್ಯಾಕ್ ಮಾಡಬಹುದು ಮತ್ತು ಹೆಚ್ಚು ವೈಶಿಷ್ಟ್ಯಗಳನ್ನು ಪಡೆಯಬಹುದು:\n\n - ಸ್ಟ್ರೀಮಿಂಗ್ ಮ್ಯೂಸಿಕ್ \n - ಸಿಂಕ್ಡ್ ಸಾಹಿತ್ಯ\n - ವೈಯಕ್ತಿಕ ಡೇಟಾ\n - ಇತ್ಯಾದಿ… \n\nಸಿಂಪ್‌ಮ್ಯೂಸಿಕ್ ಯಾವಾಗಲೂ ಉಚಿತ ಮತ್ತು ಜಾಹೀರಾತು ರಹಿತವಾಗಿದೆ\n\n❤️ ಸಹಿತ ನಿರ್ಮಾಣವಾಗಿದೆ - FilmUentertainment  (FilmUteam)</string>
 <string name="issue_tracker">ಸಮಸ್ಯೆ ಟ್ರ್ಯಾಕರ್</string>
-<string name="copyright" translatable="false">©2023 ತುಯಾನ್ ಮಿಂಹ್ Nguyen Duc (maxrave-dev)</string>
+<string name="copyright" translatable="false">©2023 FilmUentertainment  (FilmUteam)</string>
 <string name="featured_playlists">ಮುಖ್ಯ ಪ್ಲೇಲಿಸ್ಟ್‌ಗಳು</string>
 <string name="podcasts" translatable="false">ಪೋಡ್‌ಕ್ಯಾಸ್ಟ್‌ಗಳು</string>
 <string name="featured_inArtist">ಇವುಗಳಲ್ಲಿ ಪ್ರಸ್ತುತ</string>
@@ -279,10 +279,6 @@
 <string name="play_video_for_video_track_instead_of_audio_only">ಆಡಿಯೋ ಮಾತ್ರದ ಬದಲಿಗೆ ವೀಡಿಯೊ ಟ್ರ್ಯಾಕ್ ಪ್ಲೇ ಮಾಡಿ</string>
 <string name="such_as_music_video_lyrics_video_podcasts_and_more">ಮ್ಯೂಸಿಕ್ ವೀಡಿಯೊ, ಸಾಹಿತ್ಯ ವೀಡಿಯೊ, ಪೋಡ್‌ಕ್ಯಾಸ್ಟ್, ಇತ್ಯಾದಿ</string>
 <string name="video_quality">ವೀಡಿಯೊ ಗುಣಮಟ್ಟ</string>
-<string name="n_song">
-    <item quantity="one">%d ಹಾಡು</item>
-    <item quantity="other">%d ಹಾಡುಗಳು</item>
-</string>
 <string name="dummy_button">ಡಮ್ಮಿ ಬಟನ್</string>
 <string name="dummy_content">ಡಮ್ಮಿ\nವಿಷಯ</string>
 <string name="play_video_instead_of_audio_warning">ಈ ಕ್ರಿಯೆಯಿಂದ ಪ್ಲೇಯರ್ ಕ್ಯಾಶೆ ಅಳಿಸಲಾಗುತ್ತದೆ. ಮುಂದುವರಿಸಲು ಇಚ್ಛಿಸುವಿರಾ?</string>

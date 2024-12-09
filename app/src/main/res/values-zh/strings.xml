@@ -118,7 +118,7 @@
     <string name="about_us">关于我们</string>
     <string name="version">版本</string>
     <string name="github">Github</string>
-    <string name="maxrave_dev">maxrave-dev</string>
+    <string name="maxrave_dev">FilmUteam</string>
     <string name="buy_me_a_coffee">请我喝杯咖啡（捐赠）</string>
     <string name="paypal">PayPal</string>
     <string name="title">标题</string>
@@ -136,7 +136,7 @@
     <string name="albums_inArtist">专辑</string>
     <string name="singles_inArtist">单个</string>
     <string name="fans_might_also_like_inArtist">粉丝可能也喜欢</string>
-    <string name="crash_log">SimpMusic 崩溃了。很抱歉出现此问题。\n将崩溃日志发给开发人员</string>
+    <string name="crash_log">FilmUmusic 崩溃了。很抱歉出现此问题。\n将崩溃日志发给开发人员</string>
     <string name="crash">崩溃</string>
     <string name="send">发送</string>
     <string name="mail_subject">报告崩溃</string>
@@ -194,7 +194,7 @@
     <string name="what_segments_will_be_skipped">将跳过哪些段</string>
     <string name="save">保存</string>
     <string name="saved">已保存</string>
-    <string name="sponsor_block_intro">SponsorBlock 是一个由众人组成的系统，用于跳过烦人的 YouTube 视频的部分。\n更多信息：https://sponsor.ajay.app/\n在 SimpMusic 中，SponsorBlock 仅在设备在线时可用</string>
+    <string name="sponsor_block_intro">SponsorBlock 是一个由众人组成的系统，用于跳过烦人的 YouTube 视频的部分。\n更多信息：https://sponsor.ajay.app/\n在 FilmUmusic 中，SponsorBlock 仅在设备在线时可用</string>
     <string name="skip_sponsor_part_of_video">跳过视频赞助部分</string>
     <string name="customactivityoncrash_error_activity_error_occurred_explanation">发生意外错误。很抱歉给您带来不便。</string>
     <string name="customactivityoncrash_error_activity_restart_app">重启应用</string>
@@ -232,7 +232,7 @@
     <string name="saved_to_local_playlist">已保存到本地歌单</string>
     <string name="if_you_want_to_unsync_this_playlist_please_go_to_local_playlist">如果您想要取消同步此歌单，请转到本地歌单</string>
     <string name="log_in_to_get_YouTube_playlist">登录以获取 YouTube 歌单</string>
-    <string name="sync_playlist_warning">SimpMusic 将自动创建 YouTube 音乐歌单。确定吗？</string>
+    <string name="sync_playlist_warning">FilmUmusic 将自动创建 YouTube 音乐歌单。确定吗？</string>
     <string name="syncing">同步中</string>
     <string name="unsync_playlist_warning">"取消同步此歌单吗？此歌单将不会从 YouTube Music 中删除 "</string>
     <string name="unsyncing">取消同步中</string>
@@ -245,7 +245,7 @@
     <string name="main_lyrics_provider">主歌词提供商</string>
     <string name="log_in_to_Musixmatch">登录到 Musixmatch</string>
     <string name="only_support_email_and_password_type">仅支持电子邮件和密码类型</string>
-    <string name="musixmatch_login_description">Musixmatch 翻译 API 只对登录用户有效。SimpMusic 使用Musixmatch 开发者API。更多信息请访问https://github.com/maxrave-dev/SimpMusic 或 https://developer.musixmatch.com/</string>
+    <string name="musixmatch_login_description">Musixmatch 翻译 API 只对登录用户有效。FilmUmusic 使用Musixmatch 开发者API。更多信息请访问https://https://github.com/FilmU-Entertainment/Nexas 或 https://developer.musixmatch.com/</string>
     <string name="use_musixmatch_translation">使用 Musixmatch 翻译</string>
     <string name="use_musixmatch_translation_description">使用 Musixmatch 启用歌词翻译。需要 Musixmatch 登录</string>
     <string name="translation_language">翻译语言</string>
@@ -254,7 +254,7 @@
     <string name="password">密码</string>
     <string name="please_enter_your_email_and_password">请输入你的电子邮箱和密码</string>
     <string name="log_out_from_musixmatch">退出 Musixmatch</string>
-    <string name="translation_language_message">输入语言代码 (例如: en) (2 字符)。如果您想使用 SimpMusic 相同的语言设置，请将编辑框置空。</string>
+    <string name="translation_language_message">输入语言代码 (例如: en) (2 字符)。如果您想使用 FilmUmusic 相同的语言设置，请将编辑框置空。</string>
     <string name="invalid_language_code">无效的语言代码</string>
     <string name="lyrics_provider_youtube">歌词 by YouTube</string>
     <string name="limit_player_cache">限制播放器缓存</string>
@@ -268,7 +268,7 @@
     <string name="suggest">建议</string>
     <string name="reload">重载</string>
     <string name="added_date">已添加日期</string>
-    <string name="credit_app">使用 YouTube Music 作为后端的简单音乐应用 \n\nSimpMusic 是一个开源项目，可以在没有广告和跟踪的情况下从 YouTube 和 YouTube Music 中流式播放音乐。SimpMusic 提供许多功能：\n\n - 流媒体音乐 \n - 同步歌词 \n - 个性化数据 \n -等等… \n\nSimpMusic始终是免费的，没有广告\n\n Tuan Minh Nguyen Duc(Maxrave-dev) 用 ❤️ 构建</string>
+    <string name="credit_app">使用 YouTube Music 作为后端的简单音乐应用 \n\nFilmUmusic 是一个开源项目，可以在没有广告和跟踪的情况下从 YouTube 和 YouTube Music 中流式播放音乐。FilmUmusic 提供许多功能：\n\n - 流媒体音乐 \n - 同步歌词 \n - 个性化数据 \n -等等… \n\nFilmUmusic始终是免费的，没有广告\n\n FilmUentertainment(FilmUteam) 用 ❤️ 构建</string>
     <string name="issue_tracker">问题跟踪</string>
     <string name="featured_playlists">精选歌单</string>
     <string name="featured_inArtist">精选开启</string>

@@ -33,6 +33,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.media3.common.MediaItem
 import androidx.media3.common.util.UnstableApi
+import androidx.media3.exoplayer.ExoPlayer
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -98,7 +99,93 @@ class MainActivity : AppCompatActivity() {
         data = intent.data ?: intent.getStringExtra(Intent.EXTRA_TEXT)?.toUri()
         Log.d("MainActivity", "onNewIntent: $data")
         viewModel.intent.value = intent
+
+        handleDeepLink(intent.data)
     }
+
+    private fun handleDeepLink(uri: Uri?) {
+        if (uri == null) {
+            Log.e("DeepLink", "URI is null")
+            return
+        }
+
+        // Check the host and path to handle the deep link
+        when (uri.host) {
+            "share.filmu.site" -> {
+                when (uri.pathSegments.firstOrNull()) {
+                    "watch" -> {
+                        // Handle a song deep link
+                        val videoId = uri.getQueryParameter("id")
+                        if (videoId != null) {
+                            lifecycleScope.launch {
+                                fetchAndPlaySong(videoId)
+                            }
+                        } else {
+                            Log.e("DeepLink", "No video ID found in the deep link")
+                        }
+                    }
+                    "playlist" -> {
+                        // Handle a playlist deep link
+                        val playlistId = uri.getQueryParameter("list")
+                        if (playlistId != null) {
+                            handlePlaylistNavigation(playlistId)
+                        } else {
+                            Log.e("DeepLink", "No playlist ID found in the deep link")
+                        }
+                    }
+                    else -> {
+                        Log.e("DeepLink", "Unhandled path: ${uri.path}")
+                    }
+                }
+            }
+            else -> {
+                Log.e("DeepLink", "Unhandled host: ${uri.host}")
+            }
+        }
+    }
+
+
+    private suspend fun fetchAndPlaySong(videoId: String) {
+        val result = YouTube.player(videoId)
+        result.onSuccess { (_, playerResponse, _) ->
+            val audioUrl = playerResponse.streamingData?.adaptiveFormats
+                ?.find { it.mimeType.contains("audio") }?.url
+
+            if (!audioUrl.isNullOrEmpty()) {
+                playAudio(audioUrl)
+            } else {
+                Log.e("DeepLink", "No playable audio found for video ID: $videoId")
+                Toast.makeText(this, "No audio found for the song", Toast.LENGTH_SHORT).show()
+            }
+        }.onFailure { error ->
+            Log.e("DeepLink", "Failed to fetch song: ${error.message}")
+            Toast.makeText(this, "Failed to play song", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun playAudio(url: String) {
+        try {
+            val player = ExoPlayer.Builder(this).build()
+            val mediaItem = MediaItem.fromUri(url)
+            player.setMediaItem(mediaItem)
+            player.prepare()
+            player.playWhenReady = true
+            Log.d("DeepLink", "Playing audio from URL: $url")
+        } catch (e: Exception) {
+            Log.e("DeepLink", "Error initializing player: ${e.message}")
+            Toast.makeText(this, "Error playing audio", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun handlePlaylistNavigation(playlistId: String) {
+        // Add your logic to navigate to the playlist screen
+        Log.d("DeepLink", "Navigating to Playlist: $playlistId")
+        Toast.makeText(this, "Navigating to playlist: $playlistId", Toast.LENGTH_SHORT).show()
+        // You can use a navigation component or Intent to open the relevant playlist screen
+    }
+
+
+
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -132,6 +219,9 @@ class MainActivity : AppCompatActivity() {
         if (data != null) {
             viewModel.intent.value = intent
         }
+
+        handleDeepLink(intent?.data)
+
         Log.d("Italy", "Key: ${Locale.ITALY.toLanguageTag()}")
 
         // Check if the migration has already been done or not
@@ -196,10 +286,10 @@ class MainActivity : AppCompatActivity() {
 //            WindowCompat.setDecorFitsSystemWindows(window, false)
         enableEdgeToEdge(
             navigationBarStyle =
-                SystemBarStyle.auto(
-                    lightScrim = Color.Transparent.toArgb(),
-                    darkScrim = Color.Transparent.toArgb(),
-                ),
+            SystemBarStyle.auto(
+                lightScrim = Color.Transparent.toArgb(),
+                darkScrim = Color.Transparent.toArgb(),
+            ),
         )
         viewModel.checkIsRestoring()
         viewModel.runWorker()
@@ -346,7 +436,7 @@ class MainActivity : AppCompatActivity() {
 
                 R.id.bottom_navigation_item_library,
                 R.id.favoriteFragment, R.id.localPlaylistFragment,
-                -> {
+                    -> {
                     binding.bottomNavigationView.menu
                         .findItem(
                             R.id.bottom_navigation_item_library,
@@ -397,7 +487,7 @@ class MainActivity : AppCompatActivity() {
                         "fragment_log_in",
                         "MusixmatchFragment",
                     )
-                ).contains(destination.label)
+                    ).contains(destination.label)
             ) {
                 lifecycleScope.launch { viewModel.showOrHideMiniplayer.emit(false) }
                 Log.w("MainActivity", "onCreate: HIDE MINIPLAYER")
@@ -597,7 +687,7 @@ class MainActivity : AppCompatActivity() {
                                         "fragment_log_in",
                                         "MusixmatchFragment",
                                     )
-                                ).contains(navController.currentDestination?.label) &&
+                                    ).contains(navController.currentDestination?.label) &&
                                 it.nowPlayingTitle.isNotEmpty() &&
                                 binding.miniplayer.visibility != View.VISIBLE
                             ) {
@@ -672,6 +762,10 @@ class MainActivity : AppCompatActivity() {
 //                )
 //            }
 //        }
+        // ATTENTION: This was auto-generated to handle app links.
+        val appLinkIntent: Intent = intent
+        val appLinkAction: String? = appLinkIntent.action
+        val appLinkData: Uri? = appLinkIntent.data
     }
 
     private fun isNetworkAvailable(context: Context?): Boolean {

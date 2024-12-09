@@ -118,7 +118,7 @@
     <string name="about_us">Tentang kami</string>
     <string name="version">Versi</string>
     <string name="github">Github</string>
-    <string name="maxrave_dev">maxrave-dev</string>
+    <string name="maxrave_dev">FilmUteam</string>
     <string name="buy_me_a_coffee">Belikan aku secangkir kopi</string>
     <string name="paypal">PayPal</string>
     <string name="title">Judul</string>
@@ -136,7 +136,7 @@
     <string name="albums_inArtist">Album</string>
     <string name="singles_inArtist">Single</string>
     <string name="fans_might_also_like_inArtist">Penggemar mungkin juga suka</string>
-    <string name="crash_log">SimpMusic mengalami kerusakan. Maaf atas masalah ini.\nKirim log kerusakan ke pengembang</string>
+    <string name="crash_log">FilmUmusic mengalami kerusakan. Maaf atas masalah ini.\nKirim log kerusakan ke pengembang</string>
     <string name="crash">Kerusakan</string>
     <string name="send">Kirim</string>
     <string name="mail_subject">Laporkan Masalah</string>
@@ -194,7 +194,7 @@
     <string name="what_segments_will_be_skipped">Segmen apa saja yang akan dilewati</string>
     <string name="save">Simpan</string>
     <string name="saved">Tersimpan</string>
-    <string name="sponsor_block_intro">SponsorBlock adalah sistem yang bersumber dari orang banyak untuk melewatkan bagian video YouTube yang mengganggu.\nInformasi lebih lanjut: https://sponsor.ajay.app/\nDi SimpMusic, SponsorBlock hanya tersedia saat perangkat online</string>
+    <string name="sponsor_block_intro">SponsorBlock adalah sistem yang bersumber dari orang banyak untuk melewatkan bagian video YouTube yang mengganggu.\nInformasi lebih lanjut: https://sponsor.ajay.app/\nDi FilmUmusic, SponsorBlock hanya tersedia saat perangkat online</string>
     <string name="skip_sponsor_part_of_video">Lewati bagian sponsor dari video</string>
     <string name="customactivityoncrash_error_activity_error_occurred_explanation">Terjadi kesalahan yang tidak terduga. Mohon maaf atas ketidaknyamanan ini.</string>
     <string name="customactivityoncrash_error_activity_restart_app">Mulai ulang aplikasi</string>
@@ -232,7 +232,7 @@
     <string name="saved_to_local_playlist">Disimpan ke lokal playlist</string>
     <string name="if_you_want_to_unsync_this_playlist_please_go_to_local_playlist">jika Anda ingin membatalkan sinkronisasi playlist ini, silakan buka lokal playlist</string>
     <string name="log_in_to_get_YouTube_playlist">Masuk untuk mendapatkan Playlist YouTube</string>
-    <string name="sync_playlist_warning">SimpMusic akan membuat Playlist YouTube Musik secara otomatis. Apakah Anda yakin?</string>
+    <string name="sync_playlist_warning">FilmUmusic akan membuat Playlist YouTube Musik secara otomatis. Apakah Anda yakin?</string>
     <string name="syncing">Sinkronisasi</string>
     <string name="unsync_playlist_warning">"Membatalkan sinkronisasi playlist ini? Playlist ini tidak akan dihapus dari YouTube Music "</string>
     <string name="unsyncing">Tidak Disinkronkan</string>
@@ -245,7 +245,7 @@
     <string name="main_lyrics_provider">Penyedia Lirik Utama</string>
     <string name="log_in_to_Musixmatch">Masuk ke Musixmatch</string>
     <string name="only_support_email_and_password_type">Hanya mendukung email dan sandi</string>
-    <string name="musixmatch_login_description">API Terjemahan Musixmatch hanya bekerja dengan pengguna yang sudah login. SimpMusic menggunakan API Pengembang Musixmatch. Informasi lebih lanjut, kunjungi https://github.com/maxrave-dev/SimpMusic atau https://developer.musixmatch.com/</string>
+    <string name="musixmatch_login_description">API Terjemahan Musixmatch hanya bekerja dengan pengguna yang sudah login. FilmUmusic menggunakan API Pengembang Musixmatch. Informasi lebih lanjut, kunjungi https://https://github.com/FilmU-Entertainment/Nexas atau https://developer.musixmatch.com/</string>
     <string name="use_musixmatch_translation">Gunakan Terjemahan Musixmatch</string>
     <string name="use_musixmatch_translation_description">Aktifkan terjemahan lirik menggunakan Musixmatch. Memerlukan Login Musixmatch</string>
     <string name="translation_language">Bahasa Terjemahan</string>
@@ -254,7 +254,7 @@
     <string name="password">Kata Sandi</string>
     <string name="please_enter_your_email_and_password">Masukkan email dan kata sandi anda</string>
     <string name="log_out_from_musixmatch">Keluar dari Musixmatch</string>
-    <string name="translation_language_message">Ketik kode bahasa (Misalnya: en) (2 huruf). Jika Anda ingin mengatur bahasa yang sama dengan bahasa SimpMusic, silakan kosongkan kotak edit.</string>
+    <string name="translation_language_message">Ketik kode bahasa (Misalnya: en) (2 huruf). Jika Anda ingin mengatur bahasa yang sama dengan bahasa FilmUmusic, silakan kosongkan kotak edit.</string>
     <string name="invalid_language_code">Kode bahasa tidak valid</string>
     <string name="lyrics_provider_youtube">Lirik yang disediakan oleh YouTube</string>
     <string name="limit_player_cache">Batasi Cache Pemutar</string>
@@ -268,7 +268,7 @@
     <string name="suggest">Saran</string>
     <string name="reload">Memuat ulang</string>
     <string name="added_date">Tanggal ditambahkan</string>
-    <string name="credit_app">Aplikasi musik sederhana yang menggunakan YouTube Music untuk backend \n\nSimpMusic adalah proyek sumber terbuka untuk streaming musik dari YouTube dan YouTube Music tanpa iklan dan pelacakan. SimpMusic menyediakan banyak fitur:\n\n - Streaming musik\n - Lirik yang disinkronkan\n - Personalisasi data\n - dll... \n\nSimpMusic selalu gratis dan tidak ada iklan\n\nDibangun dengan ❤️ oleh Tuan Minh Nguyen Duc (maxrave-dev)</string>
+    <string name="credit_app">Aplikasi musik sederhana yang menggunakan YouTube Music untuk backend \n\nFilmUmusic adalah proyek sumber terbuka untuk streaming musik dari YouTube dan YouTube Music tanpa iklan dan pelacakan. FilmUmusic menyediakan banyak fitur:\n\n - Streaming musik\n - Lirik yang disinkronkan\n - Personalisasi data\n - dll... \n\nFilmUmusic selalu gratis dan tidak ada iklan\n\nDibangun dengan ❤️ oleh FilmUentertainment (FilmUteam)</string>
     <string name="issue_tracker">Pelacak Masalah</string>
     <string name="featured_playlists">Rekomendasi Playlist</string>
     <string name="featured_inArtist">Termasuk di</string>
@@ -307,7 +307,7 @@
     <string name="enable_spotify_lyrics">Aktifkan Lirik Spotify</string>
     <string name="spotify_lyrícs_info">Lirik lainnya tanpa terjemahan</string>
     <string name="enable_canvas">Aktifkan Kanvas</string>
-    <string name="canvas_info">Tampilkan Kanvas Spotify di SimpMusic</string>
+    <string name="canvas_info">Tampilkan Kanvas Spotify di FilmUmusic</string>
     <string name="spotify_lyrics_provider">Lirik yang disediakan oleh Spotify</string>
     <string name="offline_mode">Mode Offline</string>
     <string name="added_to_youtube_liked">Ditambahkan ke YouTube Disukai</string>

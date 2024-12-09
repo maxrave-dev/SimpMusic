@@ -637,7 +637,7 @@ class SettingsFragment : Fragment() {
             val urlIntent =
                 Intent(
                     Intent.ACTION_VIEW,
-                    Uri.parse("https://github.com/maxrave-dev/"),
+                    Uri.parse("https://github.com/RounakDadsena/"),
                 )
             startActivity(urlIntent)
         }
@@ -645,7 +645,7 @@ class SettingsFragment : Fragment() {
             val urlIntent =
                 Intent(
                     Intent.ACTION_VIEW,
-                    Uri.parse("https://buymeacoffee.com/maxrave"),
+                    Uri.parse("https://buymeacoffee.com/RounakDadsena"),
                 )
             startActivity(urlIntent)
         }

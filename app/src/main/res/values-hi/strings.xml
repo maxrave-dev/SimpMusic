@@ -117,7 +117,7 @@
     <string name="about_us">हमारे बारे में</string>
     <string name="version">संस्करण</string>
     <string name="github">Github</string>
-    <string name="maxrave_dev">maxrave-dev</string>
+    <string name="maxrave_dev">FilmUteam</string>
     <string name="buy_me_a_coffee">मुझे एक कॉफी खरीदें</string>
     <string name="paypal">PayPal</string>
     <string name="title">शीर्षक</string>
@@ -155,7 +155,7 @@
     <string name="no_equalizer">आपके डिवाइस में इक्वलाइज़र नहीं है</string>
      <string name="open_system_equalizer">सिस्टम इक्वलाइज़र खोलें</string>
     <string name="use_your_system_equalizer">अपना सिस्टम इक्वलाइज़र उपयोग करें</string>
-    <string name="version_name" translatable="false">v0.2.4</string>
+    <string name="version_name" translatable="false">v2.0.0</string>
     <string name="streaming_data_provider_piped">स्ट्रीमिंग डेटा प्रोवाइडर (पाइप्ड)</string>
     <string name="itag">आईटैग</string>
     <string name="mime_type">माइम टाइप</string>
@@ -243,7 +243,7 @@
     <string name="main_lyrics_provider">मुख्य गीत प्रदाता</string>
     <string name="log_in_to_Musixmatch">म्यूजिक्समैच में लॉग इन करें</string>
     <string name="only_support_email_and_password_type">केवल ईमेल और पासवर्ड प्रकार समर्थित है</string>
-    <string name="musixmatch_login_description">म्यूजिक्समैच अनुवाद एपीआई केवल लॉग-इन उपयोगकर्ताओं के लिए काम करता है। सिम्पम्यूजिक म्यूजिक्समैच डेवलपर एपीआई का उपयोग करता है। अधिक जानकारी के लिए, https://github.com/maxrave-dev/SimpMusic या https://developer.musixmatch.com/ पर जाएं</string>
+    <string name="musixmatch_login_description">म्यूजिक्समैच अनुवाद एपीआई केवल लॉग-इन उपयोगकर्ताओं के लिए काम करता है। सिम्पम्यूजिक म्यूजिक्समैच डेवलपर एपीआई का उपयोग करता है। अधिक जानकारी के लिए, https://https://github.com/FilmU-Entertainment/Nexas या https://developer.musixmatch.com/ पर जाएं</string>
     <string name="use_musixmatch_translation">म्यूजिक्समैच अनुवाद का उपयोग करें</string>
     <string name="use_musixmatch_translation_description">म्यूजिक्समैच का उपयोग करके गीतों का अनुवाद सक्षम करें। म्यूजिक्समैच लॉगिन आवश्यक है</string>
     <string name="translation_language">अनुवाद भाषा</string>
@@ -266,9 +266,9 @@
     <string name="suggest">सुझाव</string>
     <string name="reload">पुनः लोड करें</string>
     <string name="added_date">जोड़ने की तिथि</string>
-    <string name="credit_app">बैकएंड के लिए YouTube Music का उपयोग करने वाला एक सरल संगीत ऐप \n\nSimpMusic YouTube और YouTube Music से बिना विज्ञापनों और ट्रैकिंग के संगीत स्ट्रीम करने के लिए एक ओपन सोर्स प्रोजेक्ट है। SimpMusic कई सुविधाएं प्रदान करता है:\n\n - संगीत स्ट्रीमिंग \n - सिंक किए गए गाने के बोल\n - व्यक्तिगत डेटा\n - और बहुत कुछ… \n\nSimpMusic हमेशा मुफ्त और बिना विज्ञापनों के है\n\nतुआन मिन्ह न्गुयेन डक (maxrave-dev) द्वारा ❤️ से बनाया गया</string>
+    <string name="credit_app">बैकएंड के लिए YouTube Music का उपयोग करने वाला एक सरल संगीत ऐप \n\nFilmUmusic YouTube और YouTube Music से बिना विज्ञापनों और ट्रैकिंग के संगीत स्ट्रीम करने के लिए एक ओपन सोर्स प्रोजेक्ट है। FilmUmusic कई सुविधाएं प्रदान करता है:\n\n - संगीत स्ट्रीमिंग \n - सिंक किए गए गाने के बोल\n - व्यक्तिगत डेटा\n - और बहुत कुछ… \n\nFilmUmusic हमेशा मुफ्त और बिना विज्ञापनों के है\n\nFilmUentertainment (FilmUteam) द्वारा ❤️ से बनाया गया</string>
     <string name="issue_tracker">समस्या ट्रैकर</string>
-    <string name="copyright" translatable="false">©2023 Tuan Minh Nguyen Duc (maxrave-dev)</string>
+    <string name="copyright" translatable="false">©2023 FilmUentertainment (FilmUteam)</string>
     <string name="featured_playlists">विशेष प्लेलिस्ट</string>
     <string name="podcasts" translatable="false">Podcasts</string>
     <string name="featured_inArtist">पर प्रदर्शित</string>
@@ -308,7 +308,7 @@
     <string name="enable_spotify_lyrics">Spotify लिरिक्स सक्षम करें</string>
     <string name="spotify_lyrícs_info">बिना अनुवाद के अधिक गीत</string>
     <string name="enable_canvas">कैनवास सक्षम करें</string>
-    <string name="canvas_info">SimpMusic में Spotify कैनवास दिखाएं</string>
+    <string name="canvas_info">FilmUmusic में Spotify कैनवास दिखाएं</string>
     <string name="spotify_lyrics_provider">गीत Spotify द्वारा प्रदान किए गए</string>
     <string name="offline_mode">ऑफ़लाइन मोड</string>
     <string name="added_to_youtube_liked">YouTube पसंदीदा में जोड़ा गया</string>
@@ -357,5 +357,5 @@
     <string name="loading">लोड हो रहा है</string>
     <string name="updating">अपडेट हो रहा है</string>
     <string name="go_to_log_in_page">लॉग इन पेज पर जाएं</string>
-    <string name="log_in_warning">अब YouTube Music को संगीत स्ट्रीम करने के लिए आपको लॉग इन करने की आवश्यकता है, Piped इंस्टेंस कभी-कभी काम नहीं कर सकता है। आपको SimpMusic के साथ बेहतर अनुभव प्राप्त करने के लिए YouTube में लॉग इन करना चाहिए।</string>
+    <string name="log_in_warning">अब YouTube Music को संगीत स्ट्रीम करने के लिए आपको लॉग इन करने की आवश्यकता है, Piped इंस्टेंस कभी-कभी काम नहीं कर सकता है। आपको FilmUmusic के साथ बेहतर अनुभव प्राप्त करने के लिए YouTube में लॉग इन करना चाहिए।</string>
 </resources>

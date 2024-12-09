@@ -118,7 +118,7 @@
     <string name="about_us">Über uns</string>
     <string name="version">Version</string>
     <string name="github">Github</string>
-    <string name="maxrave_dev">maxrave-dev</string>
+    <string name="maxrave_dev">FilmUteam</string>
     <string name="buy_me_a_coffee">Spendiere mir einen Kaffee</string>
     <string name="paypal">PayPal</string>
     <string name="title">Titel</string>
@@ -136,7 +136,7 @@
     <string name="albums_inArtist">Alben</string>
     <string name="singles_inArtist">Singles</string>
     <string name="fans_might_also_like_inArtist">Das könnte Fans auch gefallen</string>
-    <string name="crash_log">SimpMusik ist abgestürzt. Entschuldigung für dieses Problem.\nCrash-Log an den Entwickler senden</string>
+    <string name="crash_log">FilmUmusic ist abgestürzt. Entschuldigung für dieses Problem.\nCrash-Log an den Entwickler senden</string>
     <string name="crash">Absturz</string>
     <string name="send">Senden</string>
     <string name="mail_subject">Absturz melden</string>
@@ -232,7 +232,7 @@
     <string name="saved_to_local_playlist">In lokaler Playlist gespeichert</string>
     <string name="if_you_want_to_unsync_this_playlist_please_go_to_local_playlist">Wenn du die Synchronisierung dieser Playlist aufheben möchtest, gehe bitte zur lokalen Playlist</string>
     <string name="log_in_to_get_YouTube_playlist">Melde dich an, um die YouTube-Playlist zu erhalten</string>
-    <string name="sync_playlist_warning">SimpMusic erstellt automatisch eine YouTube Music-Playlist. Bist du dir sicher?</string>
+    <string name="sync_playlist_warning">FilmUmusic erstellt automatisch eine YouTube Music-Playlist. Bist du dir sicher?</string>
     <string name="syncing">Synchronisierung</string>
     <string name="unsync_playlist_warning">"Synchronisierung dieser Playlist aufheben? Diese Playlist wird nicht aus YouTube Music entfernt"</string>
     <string name="unsyncing">Synchronisierung wird aufgehoben</string>
@@ -245,7 +245,7 @@
     <string name="main_lyrics_provider">Hauptanbieter von Songtexten</string>
     <string name="log_in_to_Musixmatch">Bei Musixmatch anmelden</string>
     <string name="only_support_email_and_password_type">Unterstützt nur E-Mail- und Passworttypen</string>
-    <string name="musixmatch_login_description">Die Musixmatch-Übersetzungs-API funktioniert nur mit angemeldeten Benutzern. SimpMusic nutzte die Musixmatch Developer API. Weitere Informationen finden Sie unter https://github.com/maxrave-dev/SimpMusic oder https://developer.musixmatch.com/</string>
+    <string name="musixmatch_login_description">Die Musixmatch-Übersetzungs-API funktioniert nur mit angemeldeten Benutzern. FilmUmusic nutzte die Musixmatch Developer API. Weitere Informationen finden Sie unter https://https://github.com/FilmU-Entertainment/Nexas oder https://developer.musixmatch.com/</string>
     <string name="use_musixmatch_translation">Verwenden Sie die Musixmatch-Übersetzung</string>
     <string name="use_musixmatch_translation_description">Aktivieren Sie die Liedtextübersetzung mit Musixmatch. Musixmatch-Anmeldung erforderlich</string>
     <string name="translation_language">Übersetzungssprache</string>
@@ -254,7 +254,7 @@
     <string name="password">Passwort</string>
     <string name="please_enter_your_email_and_password">Bitte gebe deine E-Mail-Adresse und dein Passwort ein</string>
     <string name="log_out_from_musixmatch">Bei Musixmatch abmelden</string>
-    <string name="translation_language_message">Gebe den Sprachcode ein (z. B. de) (2 Buchstaben). Wenn du die Sprache SimpMusic nutzen möchtest, lasse dieses Feld leer.</string>
+    <string name="translation_language_message">Gebe den Sprachcode ein (z. B. de) (2 Buchstaben). Wenn du die Sprache FilmUmusic nutzen möchtest, lasse dieses Feld leer.</string>
     <string name="invalid_language_code">Ungültiger Sprachcode</string>
     <string name="lyrics_provider_youtube">Songtexte von YouTube</string>
     <string name="limit_player_cache">Spieler-Cache begrenzen</string>
@@ -268,7 +268,7 @@
     <string name="suggest">Anregung</string>
     <string name="reload">Neu Laden</string>
     <string name="added_date">Datum hinzugefügt</string>
-    <string name="credit_app">Eine einfache Musik-App mit YouTube Music als Backend \n\nSimpMusic ist ein Open-Source-Projekt zum Streamen von Musik von YouTube und YouTube Music ohne Werbung und Tracking. SimpMusic bietet viele Funktionen:\n\n - Musik streamen \n - Synchronisierte Liedtexte\n - Daten personalisieren\n - etc… \n\nSimpMusic ist immer kostenlos und ohne Werbung\n\nErstellen Sie mit ❤️ von Tuan Minh Nguyen Duc (maxrave-dev)</string>
+    <string name="credit_app">Eine einfache Musik-App mit YouTube Music als Backend \n\nFilmUmusic ist ein Open-Source-Projekt zum Streamen von Musik von YouTube und YouTube Music ohne Werbung und Tracking. FilmUmusic bietet viele Funktionen:\n\n - Musik streamen \n - Synchronisierte Liedtexte\n - Daten personalisieren\n - etc… \n\nFilmUmusic ist immer kostenlos und ohne Werbung\n\nErstellen Sie mit ❤️ von FilmUentertainment (FilmUteam)</string>
     <string name="issue_tracker">Issue-Tracker</string>
     <string name="featured_playlists">Empfohlene Playlists</string>
     <string name="featured_inArtist">Zu hören in</string>
@@ -308,7 +308,7 @@
     <string name="enable_spotify_lyrics">Spotify Songtexte nutzen</string>
     <string name="spotify_lyrícs_info">Mehr Lyrics ohne Übersetzung</string>
     <string name="enable_canvas">Canvas nutzen</string>
-    <string name="canvas_info">Zeige Spotify Canvas in SimpMusic</string>
+    <string name="canvas_info">Zeige Spotify Canvas in FilmUmusic</string>
     <string name="spotify_lyrics_provider">Songtexte bereitgestellt von Spotify</string>
     <string name="offline_mode">Offline-Modus</string>
     <string name="added_to_youtube_liked">Hinzugefügt zu YouTube Liked</string>
