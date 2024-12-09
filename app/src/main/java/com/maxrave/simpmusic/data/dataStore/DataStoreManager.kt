@@ -297,6 +297,11 @@ class DataStoreManager(private val settingsDataStore: DataStore<Preferences>) {
                         settings[stringPreferencesKey(category)] = TRUE
                     }
                 }
+                SPONSOR_BLOCK.list.filter { !categories.contains(it) }.forEach { category ->
+                    settingsDataStore.edit { settings ->
+                        settings[stringPreferencesKey(category.toString())] = FALSE
+                    }
+                }
             }
         }
 

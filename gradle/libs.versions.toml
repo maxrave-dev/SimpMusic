@@ -119,6 +119,7 @@ customactivityoncrash = { group = "cat.ereza", name = "customactivityoncrash", v
 sdp-android = { group = "com.intuit.sdp", name = "sdp-android", version.ref = "sdp-android" }
 ssp-android = { group = "com.intuit.ssp", name = "ssp-android", version.ref = "ssp-android" }
 aboutlibraries = { group = "com.mikepenz", name = "aboutlibraries", version.ref = "aboutlibraries" }
+aboutlibraries-compose-m3 = { group = "com.mikepenz", name = "aboutlibraries-compose-m3", version.ref = "aboutlibraries" }
 flexbox = { group = "com.google.android.flexbox", name = "flexbox", version.ref = "flexbox" }
 balloon = { group = "com.github.skydoves", name = "balloon", version.ref = "balloon" }
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil3" }

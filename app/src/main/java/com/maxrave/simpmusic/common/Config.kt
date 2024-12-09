@@ -1,5 +1,7 @@
 package com.maxrave.simpmusic.common
 
+import android.content.Context
+import android.util.Log
 import com.maxrave.simpmusic.R
 import java.time.LocalDateTime
 import java.time.Month
@@ -25,7 +27,7 @@ object Config {
     const val CANVAS_CACHE = "canvasCache"
     const val SERVICE_SCOPE = "serviceScope"
 
-    val REMOVED_SONG_DATE_TIME = LocalDateTime.of(2003, Month.AUGUST, 26, 3, 0)
+    val REMOVED_SONG_DATE_TIME: LocalDateTime = LocalDateTime.of(2003, Month.AUGUST, 26, 3, 0)
 
     val listOfHomeChip =
         listOf(
@@ -217,6 +219,24 @@ object SUPPORTED_LANGUAGE {
             "hi-IN",
             "th-TH"
         )
+    fun getLanguageFromCode(code: String?): String {
+        val index = codes.indexOf(code)
+        Log.d("Config", "getLanguageFromCode: $index")
+        if (index == -1) {
+            return "English"
+        }
+        Log.w("Config", "getLanguageFromCode: ${items.get(index)}")
+        return (items.getOrNull(index) ?: "English").toString()
+    }
+    fun getCodeFromLanguage(language: String?): String {
+        val index = items.indexOf(language ?: "English")
+        Log.d("Config", "getCodeFromLanguage: $index")
+        if (index == -1) {
+            return "en-US"
+        }
+        Log.w("Config", "getCodeFromLanguage: ${codes.getOrNull(index)}")
+        return (codes.getOrNull(index) ?: "en-US").toString()
+    }
 }
 
 object QUALITY {
@@ -236,6 +256,15 @@ object LYRICS_PROVIDER {
 object LIMIT_CACHE_SIZE {
     val items: Array<CharSequence> = arrayOf("100MB", "250MB", "500MB", "1GB", "2GB", "5GB", "8GB", "∞")
     val data: Array<Int> = arrayOf(100, 250, 500, 1000, 2000, 5000, 8000, -1)
+
+    fun getDataFromItem(item: CharSequence?): Int {
+        val index = items.indexOf(item)
+        return data.getOrNull(index) ?: -1
+    }
+    fun getItemFromData(input: Int?): CharSequence {
+        val index = data.indexOf(input)
+        return items.getOrNull(index) ?: "∞"
+    }
 }
 
 object SPONSOR_BLOCK {
@@ -253,6 +282,24 @@ object SPONSOR_BLOCK {
             R.string.poi_highlight,
             R.string.filter,
         )
+    fun fromDbToName(context: Context, list: List<CharSequence>): List<String> {
+        val result = mutableListOf<String>()
+        for (item in list) {
+            val index = list.indexOf(item)
+            result.add(context.getString(listName[index]))
+        }
+        return result
+    }
+    fun fromNameToDb(context: Context, input: List<String>): List<CharSequence> {
+        val allString = fromDbToName(context, list.toList())
+        val listIndex = allString.map {
+            allString.indexOf(it)
+        }
+        val result = listIndex.mapNotNull {
+            list.getOrNull(it)
+        }
+        return result
+    }
 }
 
 object CHART_SUPPORTED_COUNTRY {

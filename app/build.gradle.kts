@@ -289,6 +289,7 @@ dependencies {
     implementation(libs.ssp.android)
 
     implementation(libs.aboutlibraries)
+    implementation(libs.aboutlibraries.compose.m3)
 
     implementation(libs.flexbox)
     implementation(libs.balloon)

@@ -19,7 +19,7 @@ import coil3.request.crossfade
 import coil3.util.DebugLogger
 import okio.FileSystem
 
-private val DarkColors =
+val DarkColors =
     darkColorScheme(
         primary = md_theme_dark_primary,
         onPrimary = md_theme_dark_onPrimary,
