@@ -81,6 +81,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.foundation.background
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import com.maxrave.simpmusic.R
@@ -583,14 +585,14 @@ fun FullscreenLyricsSheet(
                                     if (isShuffle) {
                                         Icon(
                                             imageVector = Icons.Filled.Shuffle,
-                                            tint = Color.White,
+                                            tint = seed, // Accent color when shuffle is ON
                                             contentDescription = "",
                                             modifier = Modifier.size(32.dp),
                                         )
                                     } else {
                                         Icon(
                                             imageVector = Icons.Filled.Shuffle,
-                                            tint = seed,
+                                            tint = Color.White, // White when shuffle is OFF
                                             contentDescription = "",
                                             modifier = Modifier.size(32.dp),
                                         )
