@@ -555,7 +555,7 @@ fun FullscreenLyricsSheet(
                         // Control Button Layout
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween,
+                            horizontalArrangement = Arrangement.Center,
                             modifier =
                                 Modifier
                                     .fillMaxWidth()
@@ -569,7 +569,7 @@ fun FullscreenLyricsSheet(
                                     ),
                                 modifier =
                                     Modifier
-                                        .size(48.dp)
+                                        .weight(1f) // Distribute equal weight
                                         .aspectRatio(1f)
                                         .clip(
                                             CircleShape,
@@ -582,14 +582,14 @@ fun FullscreenLyricsSheet(
                                     if (isShuffle) {
                                         Icon(
                                             imageVector = Icons.Filled.Shuffle,
-                                            tint = Color.White,
+                                            tint = seed, // Accent color when shuffle is ON
                                             contentDescription = "",
                                             modifier = Modifier.size(32.dp),
                                         )
                                     } else {
                                         Icon(
                                             imageVector = Icons.Filled.Shuffle,
-                                            tint = seed,
+                                            tint = Color.White, // White when shuffle is OFF
                                             contentDescription = "",
                                             modifier = Modifier.size(32.dp),
                                         )
@@ -603,7 +603,7 @@ fun FullscreenLyricsSheet(
                                     ),
                                 modifier =
                                     Modifier
-                                        .size(72.dp)
+                                        .weight(1f)
                                         .aspectRatio(1f)
                                         .clip(
                                             CircleShape,
@@ -628,7 +628,7 @@ fun FullscreenLyricsSheet(
                                     ),
                                 modifier =
                                     Modifier
-                                        .size(96.dp)
+                                        .weight(1f)
                                         .aspectRatio(1f)
                                         .clip(
                                             CircleShape,
@@ -643,7 +643,7 @@ fun FullscreenLyricsSheet(
                                             imageVector = Icons.Filled.PlayCircle,
                                             tint = Color.White,
                                             contentDescription = "",
-                                            modifier = Modifier.size(72.dp),
+                                            modifier = Modifier.size(56.dp),
                                         )
                                     } else {
                                         Icon(
@@ -662,7 +662,7 @@ fun FullscreenLyricsSheet(
                                     ),
                                 modifier =
                                     Modifier
-                                        .size(72.dp)
+                                        .weight(1f)
                                         .aspectRatio(1f)
                                         .clip(
                                             CircleShape,
@@ -687,7 +687,7 @@ fun FullscreenLyricsSheet(
                                     ),
                                 modifier =
                                     Modifier
-                                        .size(48.dp)
+                                        .weight(1f)
                                         .aspectRatio(1f)
                                         .clip(
                                             CircleShape,
