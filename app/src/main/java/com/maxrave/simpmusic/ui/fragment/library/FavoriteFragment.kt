@@ -20,26 +20,30 @@ class FavoriteFragment : Fragment() {
     private lateinit var composeView: ComposeView
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?,
-    ): View {
-        return ComposeView(requireContext()).also {
+    ): View =
+        ComposeView(requireContext()).also {
             composeView = it
         }
-    }
 
     @UnstableApi
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     @ExperimentalMaterial3Api
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
         super.onViewCreated(view, savedInstanceState)
-        val type = when (arguments?.getString("type")) {
-            "favorite" -> LibraryDynamicPlaylistType.Favorite
-            "followed" -> LibraryDynamicPlaylistType.Followed
-            "most_played" -> LibraryDynamicPlaylistType.MostPlayed
-            "downloaded" -> LibraryDynamicPlaylistType.Downloaded
-            else -> LibraryDynamicPlaylistType.Favorite
-        }
+        val type =
+            when (arguments?.getString("type")) {
+                "favorite" -> LibraryDynamicPlaylistType.Favorite
+                "followed" -> LibraryDynamicPlaylistType.Followed
+                "most_played" -> LibraryDynamicPlaylistType.MostPlayed
+                "downloaded" -> LibraryDynamicPlaylistType.Downloaded
+                else -> LibraryDynamicPlaylistType.Favorite
+            }
         Log.w("FavoriteFragment", "type: $type")
         composeView.apply {
             setContent {

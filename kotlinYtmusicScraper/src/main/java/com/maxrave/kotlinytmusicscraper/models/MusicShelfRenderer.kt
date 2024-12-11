@@ -48,9 +48,7 @@ data class MusicShelfRenderer(
                 val watchEndpoint: WatchEndpoint?,
             )
         }
-
     }
 }
 
-fun List<Continuation>.getContinuation() =
-    firstOrNull()?.nextContinuationData?.continuation
+fun List<Continuation>.getContinuation() = firstOrNull()?.nextContinuationData?.continuation

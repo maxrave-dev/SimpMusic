@@ -120,9 +120,10 @@ class SettingsViewModel(
     val basicAlertData: StateFlow<SettingBasicAlertState?> = _basicAlertData
 
     // Fraction of storage
-    private var _fraction: MutableStateFlow<SettingsStorageSectionFraction> = MutableStateFlow(
-        SettingsStorageSectionFraction()
-    )
+    private var _fraction: MutableStateFlow<SettingsStorageSectionFraction> =
+        MutableStateFlow(
+            SettingsStorageSectionFraction(),
+        )
     val fraction: StateFlow<SettingsStorageSectionFraction> = _fraction
 
     fun getAudioSessionId() = simpleMediaServiceHandler.player.audioSessionId
@@ -183,19 +184,32 @@ class SettingsViewModel(
             val simpMusicSize = getSizeOfFile(application.filesDir).bytesToMB()
             val thumbSize = (application.imageLoader.diskCache?.size ?: 0L).bytesToMB()
             val otherApp = simpMusicSize.let { usedSpace.minus(it) - thumbSize }
-            val databaseSize = simpMusicSize - playerCache.cacheSpace.bytesToMB() - downloadCache.cacheSpace.bytesToMB() - canvasCache.cacheSpace.bytesToMB()
+            val databaseSize =
+                simpMusicSize - playerCache.cacheSpace.bytesToMB() - downloadCache.cacheSpace.bytesToMB() - canvasCache.cacheSpace.bytesToMB()
             if (totalByte ==
                 freeSpace + otherApp + simpMusicSize + thumbSize
             ) {
                 _fraction.update {
                     it.copy(
                         otherApp = otherApp.toFloat().div(totalByte.toFloat()),
-                        downloadCache = downloadCache.cacheSpace.bytesToMB().toFloat().div(totalByte.toFloat()),
-                        playerCache = playerCache.cacheSpace.bytesToMB().toFloat().div(totalByte.toFloat()),
-                        canvasCache = canvasCache.cacheSpace.bytesToMB().toFloat().div(totalByte.toFloat()),
+                        downloadCache =
+                            downloadCache.cacheSpace
+                                .bytesToMB()
+                                .toFloat()
+                                .div(totalByte.toFloat()),
+                        playerCache =
+                            playerCache.cacheSpace
+                                .bytesToMB()
+                                .toFloat()
+                                .div(totalByte.toFloat()),
+                        canvasCache =
+                            canvasCache.cacheSpace
+                                .bytesToMB()
+                                .toFloat()
+                                .div(totalByte.toFloat()),
                         thumbCache = thumbSize.toFloat().div(totalByte.toFloat()),
                         freeSpace = freeSpace.toFloat().div(totalByte.toFloat()),
-                        appDatabase = databaseSize.toFloat().div(totalByte.toFloat())
+                        appDatabase = databaseSize.toFloat().div(totalByte.toFloat()),
                     )
                 }
                 log("calculateDataFraction: $totalByte, $freeSpace, $usedSpace, $simpMusicSize, $otherApp, $databaseSize", Log.WARN)
@@ -489,9 +503,7 @@ class SettingsViewModel(
         }
     }
 
-    fun backup(
-        uri: Uri
-    ) {
+    fun backup(uri: Uri) {
         runCatching {
             application.applicationContext.contentResolver.openOutputStream(uri)?.use {
                 it.buffered().zipOutputStream().use { outputStream ->
@@ -517,9 +529,7 @@ class SettingsViewModel(
     }
 
     @UnstableApi
-    fun restore(
-        uri: Uri
-    ) {
+    fun restore(uri: Uri) {
         runCatching {
             application.applicationContext.contentResolver.openInputStream(uri)?.use {
                 it.zipInputStream().use { inputStream ->
@@ -550,6 +560,7 @@ class SettingsViewModel(
             }
             makeToast(getString(R.string.restore_success))
             application.stopService(Intent(application, SimpleMediaService::class.java))
+            getData()
             application.startActivity(Intent(application, MainActivity::class.java))
             exitProcess(0)
         }.onFailure {
@@ -929,11 +940,8 @@ data class SettingsStorageSectionFraction(
     val appDatabase: Float = 0f,
     val freeSpace: Float = 0f,
 ) {
-    fun combine(): Float {
-        return otherApp + downloadCache + playerCache + canvasCache + thumbCache + appDatabase + freeSpace
-    }
+    fun combine(): Float = otherApp + downloadCache + playerCache + canvasCache + thumbCache + appDatabase + freeSpace
 }
-
 
 data class SettingAlertState(
     val title: String,
@@ -950,16 +958,14 @@ data class SettingAlertState(
         // User typing string -> (true or false, If false, show error message)
         val verifyCodeBlock: ((String) -> Pair<Boolean, String?>)? = null,
     )
+
     data class SelectData(
         // Selected / Data
-        val listSelect: List<Pair<Boolean, String>>
+        val listSelect: List<Pair<Boolean, String>>,
     ) {
-        fun getSelected(): String {
-            return listSelect.firstOrNull { it.first }?.second ?: ""
-        }
-        fun getListSelected(): List<String> {
-            return listSelect.filter { it.first }.map { it.second }
-        }
+        fun getSelected(): String = listSelect.firstOrNull { it.first }?.second ?: ""
+
+        fun getListSelected(): List<String> = listSelect.filter { it.first }.map { it.second }
     }
 }
 

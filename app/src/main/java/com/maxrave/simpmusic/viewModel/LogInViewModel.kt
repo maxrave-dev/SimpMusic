@@ -11,11 +11,12 @@ import kotlinx.coroutines.launch
 import org.koin.android.annotation.KoinViewModel
 
 @KoinViewModel
-class LogInViewModel(private val application: Application) : BaseViewModel(application) {
-
+class LogInViewModel(
+    private val application: Application,
+) : BaseViewModel(application) {
     override val tag: String
         get() = "LogInViewModel"
-    
+
     private val _status: MutableLiveData<Boolean> = MutableLiveData(false)
     var status: LiveData<Boolean> = _status
 
@@ -34,7 +35,8 @@ class LogInViewModel(private val application: Application) : BaseViewModel(appli
 
     fun saveSpotifySpdc(cookie: String) {
         viewModelScope.launch {
-            cookie.split("; ")
+            cookie
+                .split("; ")
                 .filter { it.isNotEmpty() }
                 .associate {
                     val (key, value) = it.split("=")

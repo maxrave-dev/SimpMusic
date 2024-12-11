@@ -15,29 +15,37 @@ import com.maxrave.simpmusic.R
 import org.koin.android.ext.android.inject
 
 @UnstableApi
-class MusicDownloadService : DownloadService(
-    NOTIFICATION_ID,
-    1000L,
-    CHANNEL_ID,
-    R.string.download,
-    0
-) {
+class MusicDownloadService :
+    DownloadService(
+        NOTIFICATION_ID,
+        1000L,
+        CHANNEL_ID,
+        R.string.download,
+        0,
+    ) {
     private val downloadUtil: DownloadUtils by inject()
 
     override fun getDownloadManager() = downloadUtil.downloadManager
 
     override fun getScheduler(): Scheduler = PlatformScheduler(this, JOB_ID)
 
-    override fun getForegroundNotification(downloads: MutableList<Download>, notMetRequirements: Int): Notification =
+    override fun getForegroundNotification(
+        downloads: MutableList<Download>,
+        notMetRequirements: Int,
+    ): Notification =
         downloadUtil.downloadNotificationHelper.buildProgressNotification(
             this,
             R.drawable.mono,
             null,
-            if (downloads.size == 1) Util.fromUtf8Bytes(downloads[0].request.data)
-            else resources.getQuantityString(R.plurals.n_song, downloads.size, downloads.size),
+            if (downloads.size == 1) {
+                Util.fromUtf8Bytes(downloads[0].request.data)
+            } else {
+                resources.getQuantityString(R.plurals.n_song, downloads.size, downloads.size)
+            },
             downloads,
-            notMetRequirements
+            notMetRequirements,
         )
+
     class TerminalStateNotificationHelper(
         private val context: Context,
         private val notificationHelper: DownloadNotificationHelper,
@@ -49,28 +57,29 @@ class MusicDownloadService : DownloadService(
             finalException: Exception?,
         ) {
             if (download.state == Download.STATE_FAILED) {
-                val notification = notificationHelper.buildDownloadFailedNotification(
-                    context,
-                    R.drawable.baseline_error_outline_24,
-                    null,
-                    Util.fromUtf8Bytes(download.request.data)
-                )
+                val notification =
+                    notificationHelper.buildDownloadFailedNotification(
+                        context,
+                        R.drawable.baseline_error_outline_24,
+                        null,
+                        Util.fromUtf8Bytes(download.request.data),
+                    )
                 NotificationUtil.setNotification(context, nextNotificationId++, notification)
-            }
-            else if (download.state == Download.STATE_COMPLETED) {
-                val notification = notificationHelper.buildDownloadCompletedNotification(
-                    context,
-                    R.drawable.baseline_downloaded,
-                    null,
-                    Util.fromUtf8Bytes(download.request.data)
-                )
+            } else if (download.state == Download.STATE_COMPLETED) {
+                val notification =
+                    notificationHelper.buildDownloadCompletedNotification(
+                        context,
+                        R.drawable.baseline_downloaded,
+                        null,
+                        Util.fromUtf8Bytes(download.request.data),
+                    )
                 NotificationUtil.setNotification(context, nextNotificationId++, notification)
             }
         }
 
         override fun onDownloadsPausedChanged(
             downloadManager: DownloadManager,
-            downloadsPaused: Boolean
+            downloadsPaused: Boolean,
         ) {
             if (downloadsPaused) {
                 downloadManager.resumeDownloads()

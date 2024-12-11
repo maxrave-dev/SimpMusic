@@ -10,7 +10,7 @@ import kotlinx.serialization.protobuf.ProtoNumber
 @ExperimentalSerializationApi
 class SpotifyClientBody(
     @ProtoNumber(1)
-    @SerialName("client_data") val client_data: ClientData = ClientData()
+    @SerialName("client_data") val client_data: ClientData = ClientData(),
 ) {
     @Serializable
     data class ClientData(
@@ -19,7 +19,7 @@ class SpotifyClientBody(
         @ProtoNumber(2)
         @SerialName("client_id") val client_id: String = "d8a5ed958d274c2e8ee717e6a4b0971d",
         @ProtoNumber(3)
-        @SerialName("js_sdk_data") val js_sdk_data: JsSdkData = JsSdkData()
+        @SerialName("js_sdk_data") val js_sdk_data: JsSdkData = JsSdkData(),
     ) {
         @Serializable
         data class JsSdkData(
@@ -34,7 +34,7 @@ class SpotifyClientBody(
             @ProtoNumber(5)
             @SerialName("device_id") val device_id: String = randomString(32),
             @ProtoNumber(6)
-            @SerialName("device_type") val device_type: String = "computer"
+            @SerialName("device_type") val device_type: String = "computer",
         )
     }
 }

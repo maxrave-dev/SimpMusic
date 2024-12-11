@@ -14,39 +14,44 @@ import com.maxrave.simpmusic.ui.MainActivity
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 
-
 @UnstableApi
 class BasicWidget : BaseAppWidget() {
-
     /**
      * Initialize given widgets to default state, where we launch Music on default click and hide
      * actions if service not running.
      */
 
-    override fun defaultAppWidget(context: Context, appWidgetIds: IntArray) {
-        val appWidgetView = RemoteViews(
-            context.packageName, R.layout.app_widget_base
-        )
+    override fun defaultAppWidget(
+        context: Context,
+        appWidgetIds: IntArray,
+    ) {
+        val appWidgetView =
+            RemoteViews(
+                context.packageName,
+                R.layout.app_widget_base,
+            )
 
         appWidgetView.setViewVisibility(
             R.id.media_titles,
-            View.INVISIBLE
+            View.INVISIBLE,
         )
         appWidgetView.setImageViewResource(R.id.image, R.drawable.holder_video)
         appWidgetView.setImageViewResource(
-            R.id.button_toggle_play_pause, R.drawable.play_widget
+            R.id.button_toggle_play_pause,
+            R.drawable.play_widget,
         )
         appWidgetView.setImageViewResource(
-            R.id.button_next, R.drawable.next_widget
+            R.id.button_next,
+            R.drawable.next_widget,
         )
         appWidgetView.setImageViewResource(
-            R.id.button_prev, R.drawable.previous_widget
-
+            R.id.button_prev,
+            R.drawable.previous_widget,
         )
         appWidgetView.setImageViewResource(
-            R.id.logo, R.mipmap.ic_launcher_round
+            R.id.logo,
+            R.mipmap.ic_launcher_round,
         )
-
 
 //        linkButtons(context, appWidgetView)
         pushUpdate(context, appWidgetIds, appWidgetView)
@@ -58,12 +63,14 @@ class BasicWidget : BaseAppWidget() {
     override fun performUpdate(
         context: Context,
         handler: SimpleMediaServiceHandler,
-        appWidgetIds: IntArray?
+        appWidgetIds: IntArray?,
     ) {
         Log.d("BasicWidget", "performUpdate")
-        val appWidgetView = RemoteViews(
-            context.packageName, R.layout.app_widget_base
-        )
+        val appWidgetView =
+            RemoteViews(
+                context.packageName,
+                R.layout.app_widget_base,
+            )
         val isPlaying = handler.player.isPlaying
         val song = runBlocking { handler.nowPlaying.first() }
 
@@ -71,17 +78,17 @@ class BasicWidget : BaseAppWidget() {
         if (song?.mediaMetadata?.title.isNullOrEmpty() && song?.mediaMetadata?.artist.isNullOrEmpty()) {
             appWidgetView.setViewVisibility(
                 R.id.media_titles,
-                View.INVISIBLE
+                View.INVISIBLE,
             )
         } else {
             appWidgetView.setViewVisibility(
                 R.id.media_titles,
-                View.VISIBLE
+                View.VISIBLE,
             )
             appWidgetView.setTextViewText(R.id.title, song?.mediaMetadata?.title)
             appWidgetView.setTextViewText(
                 R.id.text,
-                song?.mediaMetadata?.artist
+                song?.mediaMetadata?.artist,
             )
         }
 
@@ -107,20 +114,21 @@ class BasicWidget : BaseAppWidget() {
 
         // Set prev/next button drawables
         appWidgetView.setImageViewResource(
-            R.id.button_next, R.drawable.next_widget
+            R.id.button_next,
+            R.drawable.next_widget,
         )
         appWidgetView.setImageViewResource(
-            R.id.button_prev, R.drawable.previous_widget
-
+            R.id.button_prev,
+            R.drawable.previous_widget,
         )
         appWidgetView.setImageViewResource(
             R.id.button_toggle_play_pause,
-            if (!isPlaying) R.drawable.play_widget else R.drawable.pause_widget
+            if (!isPlaying) R.drawable.play_widget else R.drawable.pause_widget,
         )
         appWidgetView.setImageViewResource(
-            R.id.logo, R.mipmap.ic_launcher_round
+            R.id.logo,
+            R.mipmap.ic_launcher_round,
         )
-
 
         // Link actions buttons to intents
         linkButtons(context, appWidgetView)
@@ -129,22 +137,32 @@ class BasicWidget : BaseAppWidget() {
         pushUpdate(context, appWidgetIds, appWidgetView)
     }
 
-    fun updateImage(context: Context, bitmap: Bitmap) {
+    fun updateImage(
+        context: Context,
+        bitmap: Bitmap,
+    ) {
         Log.w("BasicWidget", "updateImage")
-        val appWidgetView = RemoteViews(
-            context.packageName, R.layout.app_widget_base
-        )
+        val appWidgetView =
+            RemoteViews(
+                context.packageName,
+                R.layout.app_widget_base,
+            )
         appWidgetView.setImageViewBitmap(R.id.image, bitmap)
         pushUpdatePartially(context, appWidgetView)
     }
 
-    fun updatePlayingState(context: Context, isPlaying: Boolean) {
-        val appWidgetView = RemoteViews(
-            context.packageName, R.layout.app_widget_base
-        )
+    fun updatePlayingState(
+        context: Context,
+        isPlaying: Boolean,
+    ) {
+        val appWidgetView =
+            RemoteViews(
+                context.packageName,
+                R.layout.app_widget_base,
+            )
         appWidgetView.setImageViewResource(
             R.id.button_toggle_play_pause,
-            if (!isPlaying) R.drawable.play_widget else R.drawable.pause_widget
+            if (!isPlaying) R.drawable.play_widget else R.drawable.pause_widget,
         )
         pushUpdatePartially(context, appWidgetView)
     }
@@ -153,15 +171,20 @@ class BasicWidget : BaseAppWidget() {
      * Link up various button actions using [PendingIntent].
      */
     @UnstableApi
-    private fun linkButtons(context: Context, views: RemoteViews) {
+    private fun linkButtons(
+        context: Context,
+        views: RemoteViews,
+    ) {
         val action = Intent(context, MainActivity::class.java)
 
         // Home
         action.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
         var pendingIntent =
             PendingIntent.getActivity(
-                context, 0, action,
-                PendingIntent.FLAG_IMMUTABLE
+                context,
+                0,
+                action,
+                PendingIntent.FLAG_IMMUTABLE,
             )
         views.setOnClickPendingIntent(R.id.clickable_area, pendingIntent)
 
@@ -179,7 +202,6 @@ class BasicWidget : BaseAppWidget() {
     }
 
     companion object {
-
         const val NAME: String = "basic_widget"
         const val ACTION_TOGGLE_PAUSE = "com.maxrave.simpmusic.action.TOGGLE_PAUSE"
         const val ACTION_REWIND = "com.maxrave.simpmusic.action.REWIND"

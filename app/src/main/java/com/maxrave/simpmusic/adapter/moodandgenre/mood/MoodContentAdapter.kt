@@ -4,43 +4,52 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import coil3.load
-import coil3.request.crossfade
-import coil3.request.placeholder
 import com.maxrave.simpmusic.data.model.explore.mood.moodmoments.Content
 import com.maxrave.simpmusic.databinding.ItemHomeContentPlaylistBinding
 
-class MoodContentAdapter(private var contentList: ArrayList<Content>): RecyclerView.Adapter<MoodContentAdapter.ViewHolder>() {
-    inner class ViewHolder(val binding: ItemHomeContentPlaylistBinding, var listener: OnClickListener): RecyclerView.ViewHolder(binding.root) {
+class MoodContentAdapter(
+    private var contentList: ArrayList<Content>,
+) : RecyclerView.Adapter<MoodContentAdapter.ViewHolder>() {
+    inner class ViewHolder(
+        val binding: ItemHomeContentPlaylistBinding,
+        var listener: OnClickListener,
+    ) : RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
                 listener.onClick(bindingAdapterPosition)
             }
         }
     }
-    interface OnClickListener{
+
+    interface OnClickListener {
         fun onClick(position: Int)
     }
+
     private lateinit var mListener: OnClickListener
-    fun setOnClickListener(listener: OnClickListener){
+
+    fun setOnClickListener(listener: OnClickListener) {
         mListener = listener
     }
-    fun updateData(newList: ArrayList<Content>){
+
+    fun updateData(newList: ArrayList<Content>) {
         contentList.clear()
         contentList.addAll(newList)
         notifyDataSetChanged()
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(ItemHomeContentPlaylistBinding.inflate(LayoutInflater.from(parent.context), parent, false), mListener)
-    }
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int,
+    ): ViewHolder = ViewHolder(ItemHomeContentPlaylistBinding.inflate(LayoutInflater.from(parent.context), parent, false), mListener)
 
-    override fun getItemCount(): Int {
-        return contentList.size
-    }
+    override fun getItemCount(): Int = contentList.size
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+    override fun onBindViewHolder(
+        holder: ViewHolder,
+        position: Int,
+    ) {
         val content = contentList[position]
-        with(holder){
+        with(holder) {
             binding.tvTitle.text = content.title
             binding.tvDescription.text = content.subtitle
             binding.tvTitle.isSelected = true

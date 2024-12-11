@@ -13,7 +13,7 @@ data class TokenResponse(
     val responseType: String?,
     @ProtoNumber(2)
     @SerialName("granted_token")
-    val grantedToken: GrantedToken?
+    val grantedToken: GrantedToken?,
 ) {
     @Serializable
     data class GrantedToken(
@@ -26,12 +26,12 @@ data class TokenResponse(
         @SerialName("refresh_after_seconds")
         val refreshAfterSeconds: Int?,
         @ProtoNumber(4)
-        val domains: List<Domain>?
+        val domains: List<Domain>?,
     ) {
         @Serializable
         data class Domain(
             @ProtoNumber(1)
-            val domain: String?
+            val domain: String?,
         )
     }
 }

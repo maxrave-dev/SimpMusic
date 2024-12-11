@@ -8,8 +8,9 @@ import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.databinding.ItemLocalPlaylistBinding
 import com.maxrave.simpmusic.extension.setEnabledAll
 
-class AddToAPlaylistAdapter(private val list: ArrayList<LocalPlaylistEntity>): RecyclerView.Adapter<AddToAPlaylistAdapter.ViewHolder>() {
-
+class AddToAPlaylistAdapter(
+    private val list: ArrayList<LocalPlaylistEntity>,
+) : RecyclerView.Adapter<AddToAPlaylistAdapter.ViewHolder>() {
     lateinit var mListener: OnItemClickListener
 
     private var videoId: String? = null
@@ -28,8 +29,9 @@ class AddToAPlaylistAdapter(private val list: ArrayList<LocalPlaylistEntity>): R
         list.forEach { playlist ->
             if (playlist.tracks?.contains(videoId) == true && !playlist.tracks.contains(oldVideoId)) {
                 notifyItemChanged(list.indexOf(playlist))
-            } else if (playlist.tracks?.contains(oldVideoId) == true && !playlist.tracks.contains(
-                    videoId
+            } else if (playlist.tracks?.contains(oldVideoId) == true &&
+                !playlist.tracks.contains(
+                    videoId,
                 )
             ) {
                 notifyItemChanged(list.indexOf(playlist))
@@ -39,7 +41,7 @@ class AddToAPlaylistAdapter(private val list: ArrayList<LocalPlaylistEntity>): R
 
     inner class ViewHolder(
         val binding: ItemLocalPlaylistBinding,
-        val listener: OnItemClickListener
+        val listener: OnItemClickListener,
     ) : RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
@@ -59,17 +61,17 @@ class AddToAPlaylistAdapter(private val list: ArrayList<LocalPlaylistEntity>): R
         }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(ItemLocalPlaylistBinding.inflate(LayoutInflater.from(parent.context), parent, false), mListener)
-    }
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int,
+    ): ViewHolder = ViewHolder(ItemLocalPlaylistBinding.inflate(LayoutInflater.from(parent.context), parent, false), mListener)
 
-    override fun getItemCount(): Int {
-        return list.size
-    }
+    override fun getItemCount(): Int = list.size
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        return holder.bind(list[position])
-    }
+    override fun onBindViewHolder(
+        holder: ViewHolder,
+        position: Int,
+    ) = holder.bind(list[position])
 
     fun updateList(newList: List<LocalPlaylistEntity>) {
         list.clear()

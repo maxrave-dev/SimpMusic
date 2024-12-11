@@ -13,19 +13,20 @@ import java.time.LocalDateTime
             entity = LocalPlaylistEntity::class,
             parentColumns = ["id"],
             childColumns = ["playlistId"],
-            onDelete = ForeignKey.CASCADE
+            onDelete = ForeignKey.CASCADE,
         ),
         ForeignKey(
             entity = SongEntity::class,
             parentColumns = ["videoId"],
             childColumns = ["songId"],
-            onDelete = ForeignKey.CASCADE)
-    ]
+            onDelete = ForeignKey.CASCADE,
+        ),
+    ],
 )
 data class PairSongLocalPlaylist(
     @PrimaryKey(autoGenerate = true) val id: Int = 0,
     @ColumnInfo(index = true) val playlistId: Long,
     @ColumnInfo(index = true) val songId: String,
     val position: Int = 0,
-    val inPlaylist: LocalDateTime = LocalDateTime.now()
+    val inPlaylist: LocalDateTime = LocalDateTime.now(),
 )

@@ -4,17 +4,17 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class MusixmatchLyricsReponse(
-    val message: Message
+    val message: Message,
 ) {
     @Serializable
     data class Message(
         val body: Body,
-        val header: Header
+        val header: Header,
     ) {
         @Serializable
         data class Body(
             val subtitle: Subtitle?,
-            val lyrics: Lyrics?
+            val lyrics: Lyrics?,
         ) {
             @Serializable
             data class Subtitle(
@@ -22,6 +22,7 @@ data class MusixmatchLyricsReponse(
                 val subtitle_id: Int,
                 val lyrics_copyright: String,
             )
+
             @Serializable
             data class Lyrics(
                 val lyrics_body: String,
@@ -32,7 +33,7 @@ data class MusixmatchLyricsReponse(
 
         @Serializable
         data class Header(
-            val status_code: Int
+            val status_code: Int,
         )
     }
 }

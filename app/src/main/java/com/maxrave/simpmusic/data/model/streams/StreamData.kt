@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.data.model.streams
 
-
 import com.google.gson.annotations.SerializedName
 
 data class StreamData(
@@ -59,5 +58,5 @@ data class StreamData(
     @SerializedName("views")
     val views: Int?,
     @SerializedName("visibility")
-    val visibility: String?
+    val visibility: String?,
 )

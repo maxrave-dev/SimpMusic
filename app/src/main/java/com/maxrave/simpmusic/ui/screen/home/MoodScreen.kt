@@ -25,12 +25,11 @@ import com.maxrave.simpmusic.ui.component.MoodAndGenresContentItem
 import com.maxrave.simpmusic.ui.component.NormalAppBar
 import com.maxrave.simpmusic.viewModel.MoodViewModel
 
-
 @Composable
 fun MoodScreen(
     navController: NavController,
     viewModel: MoodViewModel = viewModel(),
-    params: String?
+    params: String?,
 ) {
     val moodData by viewModel.moodsMomentObject.collectAsState()
     val loading by viewModel.loading.collectAsState()
@@ -50,19 +49,19 @@ fun MoodScreen(
                 IconButton(onClick = { navController.popBackStack() }) {
                     Icon(
                         painterResource(id = R.drawable.baseline_arrow_back_ios_new_24),
-                        contentDescription = "Back"
+                        contentDescription = "Back",
                     )
                 }
-            }
+            },
         )
         AnimatedVisibility(visible = !loading) {
             LazyColumn(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
             ) {
                 items(moodData?.items ?: emptyList()) { item ->
                     MoodAndGenresContentItem(
                         data = item,
-                        navController = navController
+                        navController = navController,
                     )
                 }
                 item {
@@ -72,7 +71,7 @@ fun MoodScreen(
         }
         AnimatedVisibility(visible = loading) {
             Box(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier.fillMaxSize(),
             ) {
                 CircularProgressIndicator(
                     modifier = Modifier.align(Alignment.Center),
@@ -80,5 +79,4 @@ fun MoodScreen(
             }
         }
     }
-
 }

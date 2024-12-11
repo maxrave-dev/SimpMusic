@@ -3,29 +3,30 @@ package com.maxrave.kotlinytmusicscraper.models.response.spotify.search
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class SpotifySearchResponse (
+data class SpotifySearchResponse(
     val data: Data? = null,
 ) {
     @Serializable
     data class Data(
-        val searchV2: Search
+        val searchV2: Search,
     ) {
         @Serializable
         data class Search(
             val query: String? = null,
-            val tracksV2: TracksV2? = null
+            val tracksV2: TracksV2? = null,
         ) {
             @Serializable
             data class TracksV2(
                 val items: List<Items>? = null,
                 val pagingInfo: PagingInfo? = null,
-                val totalCount: Int? = null
+                val totalCount: Int? = null,
             ) {
                 @Serializable
                 data class PagingInfo(
                     val limit: Int? = null,
                     val nextOffset: Int? = null,
                 )
+
                 @Serializable
                 data class Items(
                     val item: Item? = null,
@@ -39,12 +40,13 @@ data class SpotifySearchResponse (
                             val id: String? = null,
                             val name: String? = null,
                             val artists: Artists? = null,
-                            val duration: Duration? = null
+                            val duration: Duration? = null,
                         ) {
                             @Serializable
                             data class Duration(
                                 val totalMilliseconds: Int? = null,
                             )
+
                             @Serializable
                             data class Artists(
                                 val items: List<ItemX>? = null,

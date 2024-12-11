@@ -25,8 +25,6 @@ import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import coil3.load
-import coil3.request.crossfade
-import coil3.request.placeholder
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -181,7 +179,7 @@ class FullscreenFragment : Fragment() {
                     launch {
                         viewModel.timeline.collect {
                             if (it.total >= 0L) {
-                                val progress = it.current.toFloat()/it.total
+                                val progress = it.current.toFloat() / it.total
                                 binding.progressSong.value = progress * 100
                                 binding.tvCurrentTime.text = formatDuration(it.current)
                                 binding.tvFullTime.text = formatDuration(it.total)
@@ -230,8 +228,7 @@ class FullscreenFragment : Fragment() {
                                 } else {
                                     binding.subtitleView.visibility = View.GONE
                                 }
-                            }
-                            else {
+                            } else {
                                 binding.progressSong.value = 0f
                                 binding.tvCurrentTime.text = getString(R.string.na_na)
                                 binding.tvFullTime.text = getString(R.string.na_na)
@@ -366,11 +363,12 @@ class FullscreenFragment : Fragment() {
                                         )
                                         dialog.dismiss()
                                     } else {
-                                        Toast.makeText(
-                                            requireContext(),
-                                            getString(R.string.no_album),
-                                            Toast.LENGTH_SHORT,
-                                        ).show()
+                                        Toast
+                                            .makeText(
+                                                requireContext(),
+                                                getString(R.string.no_album),
+                                                Toast.LENGTH_SHORT,
+                                            ).show()
                                     }
                                 }
 
@@ -405,17 +403,16 @@ class FullscreenFragment : Fragment() {
                                             .setMessage(getString(R.string.sleep_timer_warning))
                                             .setPositiveButton(getString(R.string.yes)) { d, _ ->
                                                 viewModel.stopSleepTimer()
-                                                Toast.makeText(
-                                                    requireContext(),
-                                                    getString(R.string.sleep_timer_off_done),
-                                                    Toast.LENGTH_SHORT,
-                                                ).show()
+                                                Toast
+                                                    .makeText(
+                                                        requireContext(),
+                                                        getString(R.string.sleep_timer_off_done),
+                                                        Toast.LENGTH_SHORT,
+                                                    ).show()
                                                 d.dismiss()
-                                            }
-                                            .setNegativeButton(getString(R.string.cancel)) { d, _ ->
+                                            }.setNegativeButton(getString(R.string.cancel)) { d, _ ->
                                                 d.dismiss()
-                                            }
-                                            .show()
+                                            }.show()
                                     } else {
                                         val d = BottomSheetDialog(requireContext())
                                         d.apply {
@@ -423,16 +420,20 @@ class FullscreenFragment : Fragment() {
                                         }
                                         val v = BottomSheetSleepTimerBinding.inflate(layoutInflater)
                                         v.btSet.setOnClickListener {
-                                            val min = v.etTime.editText?.text.toString()
+                                            val min =
+                                                v.etTime.editText
+                                                    ?.text
+                                                    .toString()
                                             if (min.isNotBlank() && min.toInt() > 0) {
                                                 viewModel.setSleepTimer(min.toInt())
                                                 d.dismiss()
                                             } else {
-                                                Toast.makeText(
-                                                    requireContext(),
-                                                    getString(R.string.sleep_timer_set_error),
-                                                    Toast.LENGTH_SHORT,
-                                                ).show()
+                                                Toast
+                                                    .makeText(
+                                                        requireContext(),
+                                                        getString(R.string.sleep_timer_set_error),
+                                                        Toast.LENGTH_SHORT,
+                                                    ).show()
                                             }
                                         }
                                         d.setContentView(v.root)
@@ -480,7 +481,9 @@ class FullscreenFragment : Fragment() {
                                                 }
                                                 if (!tempTrack.contains(
                                                         song.videoId,
-                                                    ) && playlist.syncState == LocalPlaylistEntity.YouTubeSyncState.Synced && playlist.youtubePlaylistId != null
+                                                    ) &&
+                                                    playlist.syncState == LocalPlaylistEntity.YouTubeSyncState.Synced &&
+                                                    playlist.youtubePlaylistId != null
                                                 ) {
                                                     viewModel.addToYouTubePlaylist(
                                                         playlist.id,
@@ -565,11 +568,9 @@ class FullscreenFragment : Fragment() {
                                                 checkedIndex,
                                             ) { _, which ->
                                                 checkedIndex = which
-                                            }
-                                            .setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                                            }.setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
                                                 dialog.dismiss()
-                                            }
-                                            .setPositiveButton(getString(R.string.change)) { dialog, _ ->
+                                            }.setPositiveButton(getString(R.string.change)) { dialog, _ ->
                                                 if (checkedIndex != -1) {
                                                     if (checkedIndex == 0) {
                                                         if (mainLyricsProvider != DataStoreManager.MUSIXMATCH) {
@@ -605,11 +606,11 @@ class FullscreenFragment : Fragment() {
                                             DownloadState.STATE_PREPARING,
                                         )
                                         val downloadRequest =
-                                            DownloadRequest.Builder(
-                                                song.videoId,
-                                                song.videoId.toUri(),
-                                            )
-                                                .setData(song.title.toByteArray())
+                                            DownloadRequest
+                                                .Builder(
+                                                    song.videoId,
+                                                    song.videoId.toUri(),
+                                                ).setData(song.title.toByteArray())
                                                 .setCustomCacheKey(song.videoId)
                                                 .build()
                                         viewModel.updateDownloadState(
@@ -647,11 +648,12 @@ class FullscreenFragment : Fragment() {
                                                                 getString(R.string.download)
                                                             ivDownload.setImageResource(R.drawable.outline_download_for_offline_24)
                                                             setEnabledAll(btDownload, true)
-                                                            Toast.makeText(
-                                                                requireContext(),
-                                                                getString(androidx.media3.exoplayer.R.string.exo_download_failed),
-                                                                Toast.LENGTH_SHORT,
-                                                            ).show()
+                                                            Toast
+                                                                .makeText(
+                                                                    requireContext(),
+                                                                    getString(androidx.media3.exoplayer.R.string.exo_download_failed),
+                                                                    Toast.LENGTH_SHORT,
+                                                                ).show()
                                                         }
 
                                                         Download.STATE_COMPLETED -> {
@@ -659,11 +661,12 @@ class FullscreenFragment : Fragment() {
                                                                 song.videoId,
                                                                 DownloadState.STATE_DOWNLOADED,
                                                             )
-                                                            Toast.makeText(
-                                                                requireContext(),
-                                                                getString(androidx.media3.exoplayer.R.string.exo_download_completed),
-                                                                Toast.LENGTH_SHORT,
-                                                            ).show()
+                                                            Toast
+                                                                .makeText(
+                                                                    requireContext(),
+                                                                    getString(androidx.media3.exoplayer.R.string.exo_download_completed),
+                                                                    Toast.LENGTH_SHORT,
+                                                                ).show()
                                                             tvDownload.text =
                                                                 getString(R.string.downloaded)
                                                             ivDownload.setImageResource(R.drawable.baseline_downloaded)
@@ -680,7 +683,8 @@ class FullscreenFragment : Fragment() {
                                                 }
                                             }
                                         }
-                                    } else if (tvDownload.text == getString(R.string.downloaded) || tvDownload.text ==
+                                    } else if (tvDownload.text == getString(R.string.downloaded) ||
+                                        tvDownload.text ==
                                         getString(
                                             R.string.downloading,
                                         )
@@ -698,11 +702,12 @@ class FullscreenFragment : Fragment() {
                                         tvDownload.text = getString(R.string.download)
                                         ivDownload.setImageResource(R.drawable.outline_download_for_offline_24)
                                         setEnabledAll(btDownload, true)
-                                        Toast.makeText(
-                                            requireContext(),
-                                            getString(R.string.removed_download),
-                                            Toast.LENGTH_SHORT,
-                                        ).show()
+                                        Toast
+                                            .makeText(
+                                                requireContext(),
+                                                getString(R.string.removed_download),
+                                                Toast.LENGTH_SHORT,
+                                            ).show()
                                     }
                                 }
                             }

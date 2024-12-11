@@ -23,8 +23,9 @@ subprojects {
                 arrayOf("reports", "metrics").forEach {
                     freeCompilerArgs.addAll(
                         listOf(
-                            "-P", "plugin:androidx.compose.compiler.plugins.kotlin:${it}Destination=${layout.buildDirectory.asFile.get().absolutePath}/compose_metrics"
-                        )
+                            "-P",
+                            "plugin:androidx.compose.compiler.plugins.kotlin:${it}Destination=${layout.buildDirectory.asFile.get().absolutePath}/compose_metrics",
+                        ),
                     )
                 }
             }

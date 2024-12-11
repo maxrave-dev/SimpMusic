@@ -201,16 +201,17 @@ object YouTube {
             ytMusic.proxy = value
         }
 
-    private val listPipedInstances = listOf(
-        "https://pipedapi.nosebs.ru",
-        "https://pipedapi.kavin.rocks",
-        "https://pipedapi.tokhmi.xyz",
-        "https://pipedapi.syncpundit.io",
-        "https://pipedapi.leptons.xyz",
-        "https://pipedapi.r4fo.com",
-        "https://yapi.vyper.me",
-        "https://pipedapi-libre.kavin.rocks"
-    )
+    private val listPipedInstances =
+        listOf(
+            "https://pipedapi.nosebs.ru",
+            "https://pipedapi.kavin.rocks",
+            "https://pipedapi.tokhmi.xyz",
+            "https://pipedapi.syncpundit.io",
+            "https://pipedapi.leptons.xyz",
+            "https://pipedapi.r4fo.com",
+            "https://yapi.vyper.me",
+            "https://pipedapi-libre.kavin.rocks",
+        )
 
     /**
      * Search for a song, album, artist, playlist, etc.
@@ -590,18 +591,20 @@ object YouTube {
             val listPair = mutableListOf<Pair<SongItem, String>>()
             val response = ytMusic.playlist(plId).body<BrowseResponse>()
             listPair.addAll(
-                response.fromPlaylistToTrackWithSetVideoId()
+                response.fromPlaylistToTrackWithSetVideoId(),
             )
             var continuation = response.getPlaylistContinuation()
             while (continuation != null) {
-                val continuationResponse = ytMusic.browse(
-                    client = WEB_REMIX,
-                    setLogin = true,
-                    params = null,
-                    continuation = continuation
-                ).body<BrowseResponse>()
+                val continuationResponse =
+                    ytMusic
+                        .browse(
+                            client = WEB_REMIX,
+                            setLogin = true,
+                            params = null,
+                            continuation = continuation,
+                        ).body<BrowseResponse>()
                 listPair.addAll(
-                    continuationResponse.fromPlaylistToTrackWithSetVideoId()
+                    continuationResponse.fromPlaylistToTrackWithSetVideoId(),
                 )
                 continuation = continuationResponse.getContinuePlaylistContinuation()
             }
@@ -611,18 +614,22 @@ object YouTube {
 
     suspend fun getSuggestionsTrackForPlaylist(playlistId: String): Result<Pair<String?, List<SongItem>?>?> =
         runCatching {
-            val initialResponse = ytMusic.playlist(
-                if (playlistId.startsWith("VL")) playlistId else "VL$playlistId"
-            ).body<BrowseResponse>()
+            val initialResponse =
+                ytMusic
+                    .playlist(
+                        if (playlistId.startsWith("VL")) playlistId else "VL$playlistId",
+                    ).body<BrowseResponse>()
             var continuation = initialResponse.getPlaylistContinuation()
             println("YouTube: getSuggestionsTrackForPlaylist: $continuation")
             while (continuation != null) {
-                val continuationResponse = ytMusic.browse(
-                    client = WEB_REMIX,
-                    setLogin = true,
-                    params = "wAEB",
-                    continuation = continuation
-                ).body<BrowseResponse>()
+                val continuationResponse =
+                    ytMusic
+                        .browse(
+                            client = WEB_REMIX,
+                            setLogin = true,
+                            params = "wAEB",
+                            continuation = continuation,
+                        ).body<BrowseResponse>()
                 println("YouTube: getSuggestionsTrackForPlaylist: ${continuationResponse.getReloadParams()}")
                 if (continuationResponse.hasReloadParams()) {
                     return@runCatching Pair(continuationResponse.getReloadParams(), continuationResponse.getSuggestionSongItems())
@@ -638,18 +645,20 @@ object YouTube {
             val songs = mutableListOf<SongItem>()
             val response = ytMusic.playlist(playlistId).body<BrowseResponse>()
             songs.addAll(
-                response.fromPlaylistToTrack()
+                response.fromPlaylistToTrack(),
             )
             var continuation = response.getPlaylistContinuation()
             while (continuation != null) {
-                val continuationResponse = ytMusic.browse(
-                    client = WEB_REMIX,
-                    setLogin = true,
-                    params = null,
-                    continuation = continuation
-                ).body<BrowseResponse>()
+                val continuationResponse =
+                    ytMusic
+                        .browse(
+                            client = WEB_REMIX,
+                            setLogin = true,
+                            params = null,
+                            continuation = continuation,
+                        ).body<BrowseResponse>()
                 songs.addAll(
-                    continuationResponse.fromPlaylistContinuationToTracks()
+                    continuationResponse.fromPlaylistContinuationToTracks(),
                 )
                 continuation = continuationResponse.getContinuePlaylistContinuation()
             }
@@ -1248,7 +1257,7 @@ object YouTube {
                         ]
                     }.joinToString("")
             val playerResponse =
-                ytMusic.player( if (cookie != null) ANDROID_MUSIC else IOS, videoId, playlistId, cpn).body<PlayerResponse>()
+                ytMusic.player(if (cookie != null) ANDROID_MUSIC else IOS, videoId, playlistId, cpn).body<PlayerResponse>()
             println("Player Response " + playerResponse)
 //        val ytScrapeInitial: YouTubeInitialPage = ytMusic.player(WEB, videoId, playlistId, cpn).body<YouTubeInitialPage>()
             println("Thumbnails " + playerResponse.videoDetails?.thumbnail)
@@ -1284,11 +1293,11 @@ object YouTube {
                             null,
                             playerResponse.copy(
                                 streamingData =
-                                PlayerResponse.StreamingData(
-                                    formats = stream.toListFormat(),
-                                    adaptiveFormats = stream.toListFormat(),
-                                    expiresInSeconds = 0,
-                                ),
+                                    PlayerResponse.StreamingData(
+                                        formats = stream.toListFormat(),
+                                        adaptiveFormats = stream.toListFormat(),
+                                        expiresInSeconds = 0,
+                                    ),
                                 videoDetails = playerResponse.videoDetails?.copy(),
                             ),
                             thumbnails,
@@ -1716,7 +1725,7 @@ object YouTube {
 
     suspend fun searchSpotifyTrack(
         query: String,
-        authToken: String
+        authToken: String,
     ) = runCatching {
         ytMusic
             .searchSpotifyTrack(query, authToken)

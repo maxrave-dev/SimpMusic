@@ -11,70 +11,71 @@ import com.maxrave.kotlinytmusicscraper.models.SectionListRenderer
 import com.maxrave.kotlinytmusicscraper.models.Thumbnail
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
-import com.maxrave.kotlinytmusicscraper.models.response.spotify.SearchResponse
-import com.maxrave.kotlinytmusicscraper.models.response.spotify.TokenResponse
-import com.maxrave.kotlinytmusicscraper.models.response.spotify.search.SpotifySearchResponse
-import io.ktor.client.call.body
 import io.ktor.client.statement.bodyAsText
-import io.ktor.client.statement.request
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlin.random.Random
 
 fun main() {
     runBlocking {
-
     }
 }
 
 fun testLrc() {
     runBlocking {
-        YouTube.customQuery("FEmusic_radio_builder").onSuccess {
-            println(it)
-        }.onFailure {
-            it.printStackTrace()
-        }
+        YouTube
+            .customQuery("FEmusic_radio_builder")
+            .onSuccess {
+                println(it)
+            }.onFailure {
+                it.printStackTrace()
+            }
     }
 }
 
 fun testSongInfo() {
     runBlocking {
-        YouTube.getYouTubeCaption("vfKiaXKO44M").onSuccess {
-            println(it)
-        }.onFailure {
-            it.printStackTrace()
-        }
+        YouTube
+            .getYouTubeCaption("vfKiaXKO44M")
+            .onSuccess {
+                println(it)
+            }.onFailure {
+                it.printStackTrace()
+            }
     }
 }
 
 fun testPlayer() {
     runBlocking {
-        Ytmusic().apply {
-            locale = YouTubeLocale("VN", "vi")
-            cookie = ""
-        }.player(
-            YouTubeClient.TVHTML5,
-            "ctiKD8jtvV8",
-            null,
-            (1..16).map {
-                "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"[
-                    Random.Default.nextInt(
-                        0,
-                        64,
-                    ),
-                ]
-            }.joinToString(""),
-        ).apply {
-            println(bodyAsText())
-        }
+        Ytmusic()
+            .apply {
+                locale = YouTubeLocale("VN", "vi")
+                cookie = ""
+            }.player(
+                YouTubeClient.TVHTML5,
+                "ctiKD8jtvV8",
+                null,
+                (1..16)
+                    .map {
+                        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"[
+                            Random.Default.nextInt(
+                                0,
+                                64,
+                            ),
+                        ]
+                    }.joinToString(""),
+            ).apply {
+                println(bodyAsText())
+            }
     }
 }
 
 fun testNext() {
     runBlocking {
-        Ytmusic().apply {
-            locale = YouTubeLocale("VN", "vi")
-        }.next(YouTubeClient.WEB, "Fwsl_XS4sYQ", null, null, null, null).apply {
+        Ytmusic()
+            .apply {
+                locale = YouTubeLocale("VN", "vi")
+            }.next(YouTubeClient.WEB, "Fwsl_XS4sYQ", null, null, null, null)
+            .apply {
 //            val response = body<NextResponse>()
 //            println(response)
 //            if (response.contents.twoColumnWatchNextResults?.results?.results?.content?.find {
@@ -86,8 +87,8 @@ fun testNext() {
 //                }?.itemSectionRenderer?.contents?.firstOrNull()?.continuationItemRenderer?.continuationEndpoint?.continuationCommand?.token
 //                println("Continuation: $continuation")
 //            }
-            println(bodyAsText())
-        }
+                println(bodyAsText())
+            }
     }
 }
 
@@ -98,15 +99,24 @@ fun parseLibraryPlaylist(input: List<GridRenderer.Item>): ArrayList<PlaylistsRes
             input[1].musicTwoRowItemRenderer?.let {
                 list.add(
                     PlaylistsResult(
-                        author = it.subtitle?.runs?.get(0)?.text ?: "",
+                        author =
+                            it.subtitle
+                                ?.runs
+                                ?.get(0)
+                                ?.text ?: "",
                         browseId = it.navigationEndpoint.browseEndpoint?.browseId ?: "",
                         category = "",
                         itemCount = "",
                         resultType = "",
                         thumbnails =
-                            it.thumbnailRenderer.musicThumbnailRenderer?.thumbnail?.thumbnails
+                            it.thumbnailRenderer.musicThumbnailRenderer
+                                ?.thumbnail
+                                ?.thumbnails
                                 ?: listOf(),
-                        title = it.title.runs?.get(0)?.text ?: "",
+                        title =
+                            it.title.runs
+                                ?.get(0)
+                                ?.text ?: "",
                     ),
                 )
             }
@@ -115,15 +125,24 @@ fun parseLibraryPlaylist(input: List<GridRenderer.Item>): ArrayList<PlaylistsRes
                     input[i].musicTwoRowItemRenderer?.let {
                         list.add(
                             PlaylistsResult(
-                                author = it.subtitle?.runs?.get(0)?.text ?: "",
+                                author =
+                                    it.subtitle
+                                        ?.runs
+                                        ?.get(0)
+                                        ?.text ?: "",
                                 browseId = it.navigationEndpoint.browseEndpoint?.browseId ?: "",
                                 category = "",
                                 itemCount = "",
                                 resultType = "",
                                 thumbnails =
-                                    it.thumbnailRenderer.musicThumbnailRenderer?.thumbnail?.thumbnails
+                                    it.thumbnailRenderer.musicThumbnailRenderer
+                                        ?.thumbnail
+                                        ?.thumbnails
                                         ?: listOf(),
-                                title = it.title.runs?.get(0)?.text ?: "",
+                                title =
+                                    it.title.runs
+                                        ?.get(0)
+                                        ?.text ?: "",
                             ),
                         )
                     }
@@ -199,23 +218,43 @@ fun parseMixedContent(data: List<SectionListRenderer.Content>?): List<Map<String
         for (row in data) {
             if (row.musicDescriptionShelfRenderer != null) {
                 val results = row.musicDescriptionShelfRenderer
-                var title = results.header?.runs?.get(0)?.text
-                var content = results.description.runs?.get(0)?.text
+                var title =
+                    results.header
+                        ?.runs
+                        ?.get(0)
+                        ?.text
+                var content =
+                    results.description.runs
+                        ?.get(0)
+                        ?.text
                 val map = mapOf("title" to title, "content" to content)
                 list.add(map)
             } else {
                 val results1 = row.musicCarouselShelfRenderer
                 val title =
-                    results1?.header?.musicCarouselShelfBasicHeaderRenderer?.title?.runs?.get(0)?.text
+                    results1
+                        ?.header
+                        ?.musicCarouselShelfBasicHeaderRenderer
+                        ?.title
+                        ?.runs
+                        ?.get(0)
+                        ?.text
                 val listContent = mutableListOf<Any?>()
                 results1?.contents?.forEach { result1 ->
                     if (result1.musicTwoRowItemRenderer != null) {
                         val pageType =
-                            result1.musicTwoRowItemRenderer.title.runs?.get(
-                                0,
-                            )?.navigationEndpoint?.browseEndpoint?.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType
+                            result1.musicTwoRowItemRenderer.title.runs
+                                ?.get(
+                                    0,
+                                )?.navigationEndpoint
+                                ?.browseEndpoint
+                                ?.browseEndpointContextSupportedConfigs
+                                ?.browseEndpointContextMusicConfig
+                                ?.pageType
                         if (pageType == null) {
-                            if (result1.musicTwoRowItemRenderer.navigationEndpoint.watchEndpoint?.playlistId != null) {
+                            if (result1.musicTwoRowItemRenderer.navigationEndpoint.watchEndpoint
+                                    ?.playlistId != null
+                            ) {
                                 val content = parseWatchPlaylist(result1.musicTwoRowItemRenderer)
                                 listContent.add(content)
                             } else {
@@ -255,22 +294,66 @@ fun parseSongFlat(data: MusicResponsiveListItemRenderer?): Map<String, Any?>? {
         }
         val song =
             mapOf(
-                "title" to column[0]?.text?.runs?.get(0)?.text,
-                "videoId" to column[0]?.text?.runs?.get(0)?.navigationEndpoint?.watchEndpoint?.videoId,
-                "thumbnails" to data.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails,
+                "title" to
+                    column[0]
+                        ?.text
+                        ?.runs
+                        ?.get(0)
+                        ?.text,
+                "videoId" to
+                    column[0]
+                        ?.text
+                        ?.runs
+                        ?.get(0)
+                        ?.navigationEndpoint
+                        ?.watchEndpoint
+                        ?.videoId,
+                "thumbnails" to
+                    data.thumbnail
+                        ?.musicThumbnailRenderer
+                        ?.thumbnail
+                        ?.thumbnails,
                 "isExplicit" to null,
                 "artists" to parseSongArtists(data, 1),
             )
-        if (column.size > 2 && column[2] != null && column[2]?.text?.runs?.get(0)?.text != null) {
+        if (column.size > 2 &&
+            column[2] != null &&
+            column[2]
+                ?.text
+                ?.runs
+                ?.get(0)
+                ?.text != null
+        ) {
             song.plus(
                 "album" to
                     mapOf(
-                        "name" to column[2]?.text?.runs?.get(0)?.text,
-                        "id" to column[2]?.text?.runs?.get(0)?.navigationEndpoint?.browseEndpoint?.browseId,
+                        "name" to
+                            column[2]
+                                ?.text
+                                ?.runs
+                                ?.get(0)
+                                ?.text,
+                        "id" to
+                            column[2]
+                                ?.text
+                                ?.runs
+                                ?.get(0)
+                                ?.navigationEndpoint
+                                ?.browseEndpoint
+                                ?.browseId,
                     ),
             )
         } else {
-            song.plus("views" to column[1]?.text?.runs?.last()?.text?.split(" ")?.get(0))
+            song.plus(
+                "views" to
+                    column[1]
+                        ?.text
+                        ?.runs
+                        ?.last()
+                        ?.text
+                        ?.split(" ")
+                        ?.get(0),
+            )
         }
         return song
     } else {
@@ -295,7 +378,12 @@ fun getFlexColumnItem(
     data: MusicResponsiveListItemRenderer,
     index: Int,
 ): MusicResponsiveListItemRenderer.FlexColumn.MusicResponsiveListItemFlexColumnRenderer? {
-    if (data.flexColumns.size <= index || data.flexColumns[index].musicResponsiveListItemFlexColumnRenderer.text == null || data.flexColumns[index].musicResponsiveListItemFlexColumnRenderer.text?.runs == null) {
+    if (data.flexColumns.size <= index ||
+        data.flexColumns[index].musicResponsiveListItemFlexColumnRenderer.text == null ||
+        data.flexColumns[index]
+            .musicResponsiveListItemFlexColumnRenderer.text
+            ?.runs == null
+    ) {
         return null
     }
     return data.flexColumns[index].musicResponsiveListItemFlexColumnRenderer
@@ -305,9 +393,20 @@ fun parsePlaylist(data: MusicTwoRowItemRenderer): Map<String, Any?> {
     val subtitle = data.subtitle
     val playlist =
         mapOf(
-            "title" to data.title.runs?.get(0)?.text,
-            "playlistId" to data.title.runs?.get(0)?.navigationEndpoint?.browseEndpoint?.browseId,
-            "thumbnails" to data.thumbnailRenderer.musicThumbnailRenderer?.thumbnail?.thumbnails,
+            "title" to
+                data.title.runs
+                    ?.get(0)
+                    ?.text,
+            "playlistId" to
+                data.title.runs
+                    ?.get(0)
+                    ?.navigationEndpoint
+                    ?.browseEndpoint
+                    ?.browseId,
+            "thumbnails" to
+                data.thumbnailRenderer.musicThumbnailRenderer
+                    ?.thumbnail
+                    ?.thumbnails,
         )
     if (subtitle?.runs != null) {
         val descripton = ""
@@ -316,7 +415,12 @@ fun parsePlaylist(data: MusicTwoRowItemRenderer): Map<String, Any?> {
         }
         playlist.plus("description" to descripton)
         if (subtitle.runs.size == 3) {
-            val count = data.subtitle.runs?.get(2)?.text?.split(" ")?.get(0)
+            val count =
+                data.subtitle.runs
+                    ?.get(2)
+                    ?.text
+                    ?.split(" ")
+                    ?.get(0)
             playlist.plus("count" to count)
             val author = parseSongArtistsRuns(subtitle.runs.take(1))
             playlist.plus("author" to author)
@@ -338,19 +442,48 @@ fun parseSongArtistsRuns(runs: List<Run>): List<Map<String, Any?>> {
     return artists
 }
 
-fun parseRelatedArtists(data: MusicTwoRowItemRenderer): Map<String, Any?> {
-    return mapOf(
-        "title" to data.title.runs?.get(0)?.text,
-        "browseId" to data.title.runs?.get(0)?.navigationEndpoint?.browseEndpoint?.browseId,
-        "thumbnails" to data.thumbnailRenderer.musicThumbnailRenderer?.thumbnail?.thumbnails.toString(),
-        "subscriber" to data.subtitle?.runs?.get(0)?.text?.split(" ")?.get(0),
+fun parseRelatedArtists(data: MusicTwoRowItemRenderer): Map<String, Any?> =
+    mapOf(
+        "title" to
+            data.title.runs
+                ?.get(0)
+                ?.text,
+        "browseId" to
+            data.title.runs
+                ?.get(0)
+                ?.navigationEndpoint
+                ?.browseEndpoint
+                ?.browseId,
+        "thumbnails" to
+            data.thumbnailRenderer.musicThumbnailRenderer
+                ?.thumbnail
+                ?.thumbnails
+                .toString(),
+        "subscriber" to
+            data.subtitle
+                ?.runs
+                ?.get(0)
+                ?.text
+                ?.split(" ")
+                ?.get(0),
     )
-}
 
 fun parseAlbum(data: MusicTwoRowItemRenderer): Map<String, Any?> {
-    val title = data.title.runs?.get(0)?.text
-    val year = data.subtitle?.runs?.get(2)?.text
-    val browseId = data.title.runs?.get(0)?.navigationEndpoint?.browseEndpoint?.browseId
+    val title =
+        data.title.runs
+            ?.get(0)
+            ?.text
+    val year =
+        data.subtitle
+            ?.runs
+            ?.get(2)
+            ?.text
+    val browseId =
+        data.title.runs
+            ?.get(0)
+            ?.navigationEndpoint
+            ?.browseEndpoint
+            ?.browseId
     val thumbnails = data.thumbnailRenderer.musicThumbnailRenderer?.thumbnail
     val isExplicit = ""
     return mapOf(
@@ -363,7 +496,10 @@ fun parseAlbum(data: MusicTwoRowItemRenderer): Map<String, Any?> {
 }
 
 fun parseSong(data: MusicTwoRowItemRenderer): Map<String, Any?> {
-    val title = data.title.runs?.get(0)?.text
+    val title =
+        data.title.runs
+            ?.get(0)
+            ?.text
     val videoId = data.navigationEndpoint.watchEndpoint?.videoId
     val thumbnails = data.thumbnailRenderer.musicThumbnailRenderer?.thumbnail
     val runs = data.subtitle?.runs
@@ -398,7 +534,8 @@ fun parseSongRuns(runs: List<Run>?): Map<String, Any?> {
                     list.plus(
                         mapOf(
                             "duration_seconds" to
-                                text.split(":")
+                                text
+                                    .split(":")
                                     .let { it[0].toInt() * 60 + it[1].toInt() },
                         ),
                     )
@@ -415,7 +552,10 @@ fun parseSongRuns(runs: List<Run>?): Map<String, Any?> {
 }
 
 fun parseWatchPlaylist(data: MusicTwoRowItemRenderer): Map<String, String?> {
-    val title = data.title.runs?.get(0)?.text
+    val title =
+        data.title.runs
+            ?.get(0)
+            ?.text
     val playlistId = data.navigationEndpoint.watchPlaylistEndpoint?.playlistId
     val thumbnails = data.thumbnailRenderer.musicThumbnailRenderer?.thumbnail
     return mapOf(

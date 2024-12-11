@@ -28,7 +28,7 @@ import com.maxrave.simpmusic.ui.theme.typo
 fun DropdownButton(
     defaultSelected: String = "",
     items: List<String>,
-    onItemSelected: (String) -> Unit
+    onItemSelected: (String) -> Unit,
 ) {
     var expanded by rememberSaveable {
         mutableStateOf(false)
@@ -37,8 +37,7 @@ fun DropdownButton(
         mutableStateOf(defaultSelected)
     }
     Box(Modifier.width(150.dp)) {
-        ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { new -> expanded = new })
-        {
+        ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { new -> expanded = new }) {
             OutlinedTextField(
                 modifier = Modifier.menuAnchor(type = MenuAnchorType.PrimaryNotEditable),
                 textStyle = typo.bodyMedium,
@@ -48,13 +47,13 @@ fun DropdownButton(
                 maxLines = 1,
                 trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                 shape = RoundedCornerShape(40),
-                colors = ExposedDropdownMenuDefaults.textFieldColors(
-                    focusedIndicatorColor = Gray,
-                    unfocusedIndicatorColor = Gray,
-                    unfocusedContainerColor = Transparent,
-                    focusedContainerColor = Transparent,
-
-                    )
+                colors =
+                    ExposedDropdownMenuDefaults.textFieldColors(
+                        focusedIndicatorColor = Gray,
+                        unfocusedIndicatorColor = Gray,
+                        unfocusedContainerColor = Transparent,
+                        focusedContainerColor = Transparent,
+                    ),
             )
             ExposedDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                 items.forEachIndexed { index, s ->
@@ -75,13 +74,13 @@ fun DropdownButton(
 
 @Preview(
     showSystemUi = true,
-    uiMode = Configuration.UI_MODE_NIGHT_YES
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
 )
 @Composable
 fun DropdownButtonPreview() {
     DropdownButton(
         defaultSelected = "Item 1 SIMPMUSIC",
         items = listOf("Item 1 SIMPMUSIC", "Item 2", "Item 3", "Item 4", "Item 5"),
-        onItemSelected = { /*TODO*/ }
+        onItemSelected = { /*TODO*/ },
     )
 }

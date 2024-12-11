@@ -9,14 +9,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun CenterLoadingBox(
-    modifier: Modifier
-) {
+fun CenterLoadingBox(modifier: Modifier) {
     Box(modifier = modifier) {
         CircularProgressIndicator(
-            modifier = Modifier
-                .width(32.dp)
-                .align(Alignment.Center),
+            modifier =
+                Modifier
+                    .width(32.dp)
+                    .align(Alignment.Center),
         )
     }
 }

@@ -14,13 +14,20 @@ import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toVideoIdList
 
-class PopularAdapter(private var popularList: ArrayList<ResultSong>): RecyclerView.Adapter<PopularAdapter.ViewHolder>() {
+class PopularAdapter(
+    private var popularList: ArrayList<ResultSong>,
+) : RecyclerView.Adapter<PopularAdapter.ViewHolder>() {
     private lateinit var mListener: OnItemClickListener
     private lateinit var mOptionsListener: OnOptionsClickListener
-    interface OnItemClickListener{
-        fun onItemClick(position: Int, type: String = "song")
+
+    interface OnItemClickListener {
+        fun onItemClick(
+            position: Int,
+            type: String = "song",
+        )
     }
-    interface OnOptionsClickListener{
+
+    interface OnOptionsClickListener {
         fun onOptionsClick(position: Int)
     }
 
@@ -32,9 +39,7 @@ class PopularAdapter(private var popularList: ArrayList<ResultSong>): RecyclerVi
         mOptionsListener = listener
     }
 
-    fun getCurrentList(): ArrayList<ResultSong> {
-        return popularList
-    }
+    fun getCurrentList(): ArrayList<ResultSong> = popularList
 
     private var downloadedList = arrayListOf<SongEntity>()
     private var playingTrackVideoId: String? = null
@@ -46,12 +51,16 @@ class PopularAdapter(private var popularList: ArrayList<ResultSong>): RecyclerVi
         popularList.mapIndexed { index, result ->
             val videoId = result.videoId
             if (downloadedList != null) {
-                if (downloadedList.toVideoIdList().contains(videoId) && !oldList.toVideoIdList()
+                if (downloadedList.toVideoIdList().contains(videoId) &&
+                    !oldList
+                        .toVideoIdList()
                         .contains(videoId)
                 ) {
                     notifyItemChanged(index)
-                } else if (!downloadedList.toVideoIdList()
-                        .contains(videoId) && oldList.toVideoIdList().contains(videoId)
+                } else if (!downloadedList
+                        .toVideoIdList()
+                        .contains(videoId) &&
+                    oldList.toVideoIdList().contains(videoId)
                 ) {
                     notifyItemChanged(index)
                 }
@@ -72,11 +81,10 @@ class PopularAdapter(private var popularList: ArrayList<ResultSong>): RecyclerVi
         }
     }
 
-
     inner class ViewHolder(
         val binding: ItemPopularSongBinding,
         listener: OnItemClickListener,
-        optionListener: OnOptionsClickListener
+        optionListener: OnOptionsClickListener,
     ) : RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
@@ -87,23 +95,26 @@ class PopularAdapter(private var popularList: ArrayList<ResultSong>): RecyclerVi
             }
         }
     }
-    fun updateList(newList: ArrayList<ResultSong>){
+
+    fun updateList(newList: ArrayList<ResultSong>) {
         popularList.clear()
         popularList.addAll(newList)
         notifyDataSetChanged()
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(ItemPopularSongBinding.inflate(LayoutInflater.from(parent.context), parent, false), mListener, mOptionsListener)
-    }
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int,
+    ): ViewHolder = ViewHolder(ItemPopularSongBinding.inflate(LayoutInflater.from(parent.context), parent, false), mListener, mOptionsListener)
 
-    override fun getItemCount(): Int {
-        return popularList.size
-    }
+    override fun getItemCount(): Int = popularList.size
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+    override fun onBindViewHolder(
+        holder: ViewHolder,
+        position: Int,
+    ) {
         val song = popularList[position]
-        with(holder.binding){
+        with(holder.binding) {
             tvSongTitle.text = song.title
             val artistName = song.artists.toListName().connectArtists()
             tvSongArtist.text = artistName
@@ -128,7 +139,5 @@ class PopularAdapter(private var popularList: ArrayList<ResultSong>): RecyclerVi
         }
     }
 
-    fun getItem(position: Int): ResultSong {
-        return popularList[position]
-    }
+    fun getItem(position: Int): ResultSong = popularList[position]
 }

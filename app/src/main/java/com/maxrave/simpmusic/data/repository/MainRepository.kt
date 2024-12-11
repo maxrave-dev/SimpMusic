@@ -282,9 +282,10 @@ class MainRepository(
             emit(localDataSource.getLikedAlbums())
         }.flowOn(Dispatchers.IO)
 
-    fun insertAlbum(albumEntity: AlbumEntity) = flow {
-        emit(localDataSource.insertAlbum(albumEntity))
-    }.flowOn(Dispatchers.IO)
+    fun insertAlbum(albumEntity: AlbumEntity) =
+        flow {
+            emit(localDataSource.insertAlbum(albumEntity))
+        }.flowOn(Dispatchers.IO)
 
     suspend fun updateAlbumLiked(
         albumId: String,
@@ -409,7 +410,8 @@ class MainRepository(
             emit(localDataSource.getAllRecentData())
         }.flowOn(Dispatchers.IO)
 
-    suspend fun getAllDownloadedPlaylist(): Flow<List<PlaylistType>> = flow { emit(localDataSource.getAllDownloadedPlaylist()) }.flowOn(Dispatchers.IO)
+    suspend fun getAllDownloadedPlaylist(): Flow<List<PlaylistType>> =
+        flow { emit(localDataSource.getAllDownloadedPlaylist()) }.flowOn(Dispatchers.IO)
 
     suspend fun getRecentSong(
         limit: Int,
@@ -1962,12 +1964,29 @@ class MainRepository(
                                     if (duration != 0) {
                                         searchResponse.data?.searchV2?.tracksV2?.items?.find {
                                             abs(
-                                                (((it.item?.data?.duration?.totalMilliseconds ?: (0 / 1000)) - duration)),
+                                                (
+                                                    (
+                                                        (
+                                                            it.item
+                                                                ?.data
+                                                                ?.duration
+                                                                ?.totalMilliseconds ?: (0 / 1000)
+                                                        ) - duration
+                                                    )
+                                                ),
                                             ) < 1
                                         }
-                                            ?: searchResponse.data?.searchV2?.tracksV2?.items?.firstOrNull()
+                                            ?: searchResponse.data
+                                                ?.searchV2
+                                                ?.tracksV2
+                                                ?.items
+                                                ?.firstOrNull()
                                     } else {
-                                        searchResponse.data?.searchV2?.tracksV2?.items?.firstOrNull()
+                                        searchResponse.data
+                                            ?.searchV2
+                                            ?.tracksV2
+                                            ?.items
+                                            ?.firstOrNull()
                                     }
                                 if (track != null) {
                                     YouTube
@@ -2048,12 +2067,29 @@ class MainRepository(
                                 if (duration != 0 && duration != null) {
                                     searchResponse.data?.searchV2?.tracksV2?.items?.find {
                                         abs(
-                                            (((it.item?.data?.duration?.totalMilliseconds ?: (0 / 1000)) - duration)),
+                                            (
+                                                (
+                                                    (
+                                                        it.item
+                                                            ?.data
+                                                            ?.duration
+                                                            ?.totalMilliseconds ?: (0 / 1000)
+                                                    ) - duration
+                                                )
+                                            ),
                                         ) < 1
                                     }
-                                        ?: searchResponse.data?.searchV2?.tracksV2?.items?.firstOrNull()
+                                        ?: searchResponse.data
+                                            ?.searchV2
+                                            ?.tracksV2
+                                            ?.items
+                                            ?.firstOrNull()
                                 } else {
-                                    searchResponse.data?.searchV2?.tracksV2?.items?.firstOrNull()
+                                    searchResponse.data
+                                        ?.searchV2
+                                        ?.tracksV2
+                                        ?.items
+                                        ?.firstOrNull()
                                 }
                             Log.d("Lyrics", "track: $track")
                             if (track != null) {

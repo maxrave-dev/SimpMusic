@@ -29,8 +29,9 @@ class MoreAlbumsFragment : Fragment() {
     private lateinit var listAlbum: ArrayList<YTItem>
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?,
     ): View {
         // Inflate the layout for this fragment
         _binding = FragmentMoreAlbumsBinding.inflate(inflater, container, false)
@@ -48,7 +49,10 @@ class MoreAlbumsFragment : Fragment() {
         arguments?.clear()
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
         super.onViewCreated(view, savedInstanceState)
         id = arguments?.getString("id")
         type = arguments?.getString("type")
@@ -61,8 +65,7 @@ class MoreAlbumsFragment : Fragment() {
         }
         if (id == null) {
             fetchFromViewModel()
-        }
-        else {
+        } else {
             if (type != null) {
                 when (type) {
                     "album" -> {
@@ -74,24 +77,32 @@ class MoreAlbumsFragment : Fragment() {
                 }
             }
         }
-        albumAdapter.setOnClickListener(object : MoreAlbumAdapter.OnItemClickListener {
-            override fun onItemClick(position: Int, type: String) {
-                val bundle = Bundle()
-                bundle.putString("browseId", listAlbum[position].id)
-                findNavController().navigate(
-                    R.id.action_global_albumFragment,
-                    bundle
-                )
-            }
-        })
+        albumAdapter.setOnClickListener(
+            object : MoreAlbumAdapter.OnItemClickListener {
+                override fun onItemClick(
+                    position: Int,
+                    type: String,
+                ) {
+                    val bundle = Bundle()
+                    bundle.putString("browseId", listAlbum[position].id)
+                    findNavController().navigate(
+                        R.id.action_global_albumFragment,
+                        bundle,
+                    )
+                }
+            },
+        )
         binding.topAppBar.setNavigationOnClickListener {
             findNavController().popBackStack()
         }
         lifecycleScope.launch {
-            viewModel.browseResult.collect {data ->
+            viewModel.browseResult.collect { data ->
                 if (data != null) {
                     binding.topAppBar.title = data.title
-                    data.items.firstOrNull()?.items?.let { listAlbum.addAll(it) }
+                    data.items
+                        .firstOrNull()
+                        ?.items
+                        ?.let { listAlbum.addAll(it) }
                     Log.w("MoreAlbumsFragment", "listAlbum: $listAlbum")
                     albumAdapter.updateList(listAlbum)
                 }
@@ -101,7 +112,11 @@ class MoreAlbumsFragment : Fragment() {
 
     private fun fetchFromViewModel() {
         if (viewModel.browseResult.value != null) {
-            viewModel.browseResult.value!!.items.firstOrNull()?.items?.let { listAlbum.addAll(it) }
+            viewModel.browseResult.value!!
+                .items
+                .firstOrNull()
+                ?.items
+                ?.let { listAlbum.addAll(it) }
             albumAdapter.updateList(listAlbum)
         }
     }

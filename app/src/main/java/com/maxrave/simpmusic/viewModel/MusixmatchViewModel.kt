@@ -12,15 +12,20 @@ import kotlinx.coroutines.withContext
 import org.koin.android.annotation.KoinViewModel
 
 @KoinViewModel
-class MusixmatchViewModel(application: Application) : BaseViewModel(application) {
-
+class MusixmatchViewModel(
+    application: Application,
+) : BaseViewModel(application) {
     override val tag: String
         get() = "MusixmatchViewModel"
-    
+
     var loading: MutableStateFlow<Boolean?> = MutableStateFlow(null)
     private var _data: MutableStateFlow<MusixmatchCredential?> = MutableStateFlow(null)
     val data: MutableStateFlow<MusixmatchCredential?> = _data
-    fun login(email: String, password: String) {
+
+    fun login(
+        email: String,
+        password: String,
+    ) {
         loading.value = true
         viewModelScope.launch {
             mainRepository.loginToMusixMatch(email, password).collect {
@@ -28,6 +33,7 @@ class MusixmatchViewModel(application: Application) : BaseViewModel(application)
             }
         }
     }
+
     fun saveCookie(cookie: String) {
         viewModelScope.launch {
             dataStoreManager.setMusixmatchCookie(cookie)

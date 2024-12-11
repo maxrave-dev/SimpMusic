@@ -15,7 +15,7 @@ data class NextResponse(
     @Serializable
     data class Contents(
         val singleColumnMusicWatchNextResultsRenderer: SingleColumnMusicWatchNextResultsRenderer?,
-        val twoColumnWatchNextResults: YouTubeDataPage.Contents.TwoColumnWatchNextResults?
+        val twoColumnWatchNextResults: YouTubeDataPage.Contents.TwoColumnWatchNextResults?,
     ) {
         @Serializable
         data class SingleColumnMusicWatchNextResultsRenderer(
@@ -37,30 +37,30 @@ data class NextResponse(
     data class ContinuationContents(
         val playlistPanelContinuation: PlaylistPanelRenderer?,
         val sectionListContinuation: BrowseResponse.ContinuationContents.SectionListContinuation?,
-        val musicPlaylistShelfContinuation: BrowseResponse.ContinuationContents.MusicPlaylistShelfContinuation?
+        val musicPlaylistShelfContinuation: BrowseResponse.ContinuationContents.MusicPlaylistShelfContinuation?,
     )
 }
 
 @Serializable
 data class NextAndroidMusicResponse(
-    val playerOverlays: PlayerOverlays?
+    val playerOverlays: PlayerOverlays?,
 ) {
     @Serializable
     data class PlayerOverlays(
-        val playerOverlayRenderer: PlayerOverlayRenderer?
+        val playerOverlayRenderer: PlayerOverlayRenderer?,
     ) {
         @Serializable
         data class PlayerOverlayRenderer(
-            val actions: List<Action>?
+            val actions: List<Action>?,
         ) {
             @Serializable
             data class Action(
-                val likeButtonRenderer: LikeButtonRenderer?
+                val likeButtonRenderer: LikeButtonRenderer?,
             ) {
                 @Serializable
                 data class LikeButtonRenderer(
                     val likeStatus: String?,
-                    val likesAllowed: Boolean?
+                    val likesAllowed: Boolean?,
                 )
             }
         }

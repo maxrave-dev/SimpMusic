@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.data.model.explore.mood.moodmoments
 
-
 import androidx.compose.runtime.Immutable
 import com.google.gson.annotations.SerializedName
 
@@ -13,5 +12,5 @@ data class MoodsMomentObject(
     @SerializedName("items")
     val items: List<Item>,
     @SerializedName("params")
-    val params: String
+    val params: String,
 )

@@ -268,15 +268,15 @@ class MainActivity : AppCompatActivity() {
             binding.miniplayer.visibility = View.GONE
         }
         binding.root.addOnLayoutChangeListener {
-                _,
-                left,
-                top,
-                right,
-                bottom,
-                oldLeft,
-                oldTop,
-                oldRight,
-                oldBottom,
+            _,
+            left,
+            top,
+            right,
+            bottom,
+            oldLeft,
+            oldTop,
+            oldRight,
+            oldBottom,
             ->
             val rect = Rect(left, top, right, bottom)
             val oldRect = Rect(oldLeft, oldTop, oldRight, oldBottom)
@@ -358,7 +358,8 @@ class MainActivity : AppCompatActivity() {
                     val currentBackStack = nav.previousBackStackEntry?.destination?.id
                     when (currentBackStack) {
                         R.id.bottom_navigation_item_library,
-                        R.id.favoriteFragment, R.id.localPlaylistFragment -> {
+                        R.id.favoriteFragment, R.id.localPlaylistFragment,
+                        -> {
                             binding.bottomNavigationView.menu
                                 .findItem(
                                     R.id.bottom_navigation_item_library,

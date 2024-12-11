@@ -48,7 +48,7 @@ fun ExpandableText(
     Box(
         modifier =
             Modifier
-                .clickable{ isExpanded = !isExpanded }
+                .clickable { isExpanded = !isExpanded }
                 .then(modifier),
     ) {
         // Text composable with buildAnnotatedString to handle "Show More" and "Show Less" buttons.
@@ -67,7 +67,8 @@ fun ExpandableText(
                         } else {
                             // Display truncated text and "Show More" button when collapsed.
                             val adjustText =
-                                text.substring(startIndex = 0, endIndex = lastCharIndex)
+                                text
+                                    .substring(startIndex = 0, endIndex = lastCharIndex)
                                     .dropLast(showMoreText.length)
                                     .dropLastWhile { Character.isWhitespace(it) || it == '.' }
                             append(adjustText)
@@ -86,11 +87,12 @@ fun ExpandableText(
                 if (!isExpanded && textLayoutResult.hasVisualOverflow) {
                     clickable = true
                     lastCharIndex =
-                        if (kotlin.runCatching {
-                                textLayoutResult.getLineEnd(
-                                    collapsedMaxLine - 1,
-                                )
-                            }.isSuccess
+                        if (kotlin
+                                .runCatching {
+                                    textLayoutResult.getLineEnd(
+                                        collapsedMaxLine - 1,
+                                    )
+                                }.isSuccess
                         ) {
                             textLayoutResult.getLineEnd(collapsedMaxLine - 1)
                         } else {

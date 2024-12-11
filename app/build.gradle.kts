@@ -24,7 +24,7 @@ android {
         ksp {
             arg("room.schemaLocation", "$projectDir/schemas")
             arg("KOIN_CONFIG_CHECK", "true")
-            arg("KOIN_USE_COMPOSE_VIEWMODEL","true")
+            arg("KOIN_USE_COMPOSE_VIEWMODEL", "true")
         }
 
         resourceConfigurations +=
@@ -50,7 +50,7 @@ android {
                 "az",
                 "hi",
                 "th",
-                "nl"
+                "nl",
             )
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

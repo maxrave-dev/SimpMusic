@@ -8,7 +8,7 @@ import com.maxrave.simpmusic.data.type.RecentlyType
 import java.time.LocalDateTime
 
 @Entity(tableName = "album")
-data class AlbumEntity (
+data class AlbumEntity(
     @PrimaryKey(autoGenerate = false) val browseId: String = "",
     val artistId: List<String?>? = null,
     val artistName: List<String>? = null,
@@ -25,7 +25,9 @@ data class AlbumEntity (
     val liked: Boolean = false,
     val inLibrary: LocalDateTime = LocalDateTime.now(),
     val downloadState: Int = DownloadState.STATE_NOT_DOWNLOADED,
-    ): PlaylistType, RecentlyType {
-        override fun objectType(): RecentlyType.Type = RecentlyType.Type.ALBUM
-        override fun playlistType(): PlaylistType.Type = PlaylistType.Type.ALBUM
-    }
+) : PlaylistType,
+    RecentlyType {
+    override fun objectType(): RecentlyType.Type = RecentlyType.Type.ALBUM
+
+    override fun playlistType(): PlaylistType.Type = PlaylistType.Type.ALBUM
+}

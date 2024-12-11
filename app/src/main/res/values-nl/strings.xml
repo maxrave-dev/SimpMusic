@@ -103,7 +103,7 @@
     <string name="your_playlist">Uw Afspeellijsten</string>
     <string name="lyrics">Songteksten</string>
     <string name="all">Alles</string>
-    <string name="videos">Video's</string>
+    <string name="videos">Video\'s</string>
     <string name="content">Content</string>
     <string name="storage">Opslag</string>
     <string name="player_cache">Player Cache</string>
@@ -194,7 +194,7 @@
     <string name="what_segments_will_be_skipped">Welke segmenten worden overgeslagen</string>
     <string name="save">Opslaan</string>
     <string name="saved">Opgeslagen</string>
-    <string name="sponsor_block_intro">SponsorBlock is een crowd-sourced systeem voor het overslaan van vervelende delen van YouTube-video's. Meer informatie: https://sponsor.ajay.app/ In SimpMusic is SponsorBlock alleen beschikbaar als het apparaat online is</string>
+    <string name="sponsor_block_intro">SponsorBlock is een crowd-sourced systeem voor het overslaan van vervelende delen van YouTube-video\'s. Meer informatie: https://sponsor.ajay.app/ In SimpMusic is SponsorBlock alleen beschikbaar als het apparaat online is</string>
     <string name="skip_sponsor_part_of_video">Sponsorgedeelte van video overslaan</string>
     <string name="customactivityoncrash_error_activity_error_occurred_explanation">Er heeft zich een onverwachte fout voorgedaan. Excuses voor het ongemak.</string>
     <string name="customactivityoncrash_error_activity_restart_app">Herstart app</string>
@@ -218,7 +218,7 @@
     <string name="welcome_back">Welkom terug,</string>
     <string name="upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in">Upload je luistergeschiedenis naar de YouTube Music server, dit zal het YT Music aanbevelingssysteem beter maken. Werkt alleen als je bent ingelogd</string>
     <string name="send_back_listening_data_to_google">Luistergegevens terugsturen naar Google</string>
-    <string name="videos_inArtist">Video's</string>
+    <string name="videos_inArtist">Video\'s</string>
     <string name="your_youtube_playlists">Je YouTube-afspeellijsten</string>
     <string name="no_YouTube_playlists">Geen YouTube-afspeellijsten</string>
     <string name="track">nummer(s)</string>
@@ -271,13 +271,12 @@
     <string name="added_date">Datum toegevoegd</string>
     <string name="credit_app">Een eenvoudige muziekapp die YouTube Music gebruikt als backend. \n\nSimpMusic is een open-source project om muziek te streamen van YouTube en YouTube Music zonder advertenties en tracking. SimpMusic biedt veel functies:\n\n - Muziekstreaming\n - Gesynchroniseerde songteksten\n - Gepersonaliseerde data\n - enzovoorts…\n\nSimpMusic is altijd gratis en zonder advertenties.\n\nGemaakt met ❤️ door Tuan Minh Nguyen Duc (maxrave-dev)</string>
     <string name="issue_tracker">Probleemtracker</string>
-    <string name="copyright" translatable="false">©2023 Tuan Minh Nguyen Duc (maxrave-dev)</string>
     <string name="featured_playlists">Uitgelichte afspeellijsten</string>
     <string name="podcasts" translatable="false">Podcasts</string>
     <string name="featured_inArtist">Uitgelicht bij</string>
     <string name="audio_quality">Audiokwaliteit</string>
     <string name="play_video_for_video_track_instead_of_audio_only">Speel video af voor videotracks in plaats van alleen audio</string>
-    <string name="such_as_music_video_lyrics_video_podcasts_and_more">Zoals muziekvideo's, songtekstenvideo's, podcasts en meer</string>
+    <string name="such_as_music_video_lyrics_video_podcasts_and_more">Zoals muziekvideo\'s, songtekstenvideo\'s, podcasts en meer</string>
     <string name="video_quality">Videokwaliteit</string>
     <plurals name="n_song">
         <item quantity="one">%d nummer</item>
@@ -324,7 +323,7 @@
     <string name="guide_liked_title">Toevoegen aan YouTube Liked Afspeellijst</string>
     <string name="log_out_from_spotify">Uitloggen bij Spotify</string>
     <string name="delete">Verwijderen</string>
-    <string name="top_videos">Topvideo's</string>
+    <string name="top_videos">Topvideo\'s</string>
     <string name="trending">Trending</string>
     <string name="new_singles">Nieuwe singles</string>
     <string name="new_albums">Nieuwe albums</string>

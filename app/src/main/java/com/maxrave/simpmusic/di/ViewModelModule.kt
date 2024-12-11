@@ -11,30 +11,31 @@ import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 @UnstableApi
-val viewModelModule = module {
-    viewModel {
-        NowPlayingBottomSheetViewModel(
-            application = androidApplication()
-        )
+val viewModelModule =
+    module {
+        viewModel {
+            NowPlayingBottomSheetViewModel(
+                application = androidApplication(),
+            )
+        }
+        viewModel {
+            LibraryViewModel(
+                application = androidApplication(),
+            )
+        }
+        viewModel {
+            LibraryDynamicPlaylistViewModel(
+                application = androidApplication(),
+            )
+        }
+        viewModel {
+            AlbumViewModel(
+                application = androidApplication(),
+            )
+        }
+        viewModel {
+            SettingsViewModel(
+                application = androidApplication(),
+            )
+        }
     }
-    viewModel {
-        LibraryViewModel(
-            application = androidApplication()
-        )
-    }
-    viewModel {
-        LibraryDynamicPlaylistViewModel(
-            application = androidApplication()
-        )
-    }
-    viewModel {
-        AlbumViewModel(
-            application = androidApplication()
-        )
-    }
-    viewModel {
-        SettingsViewModel(
-            application = androidApplication()
-        )
-    }
-}

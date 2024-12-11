@@ -3,7 +3,6 @@ package com.maxrave.kotlinytmusicscraper
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.maxrave.kotlinytmusicscraper.encoder.brotli
-import com.maxrave.kotlinytmusicscraper.extension.sha256
 import com.maxrave.kotlinytmusicscraper.models.Context
 import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient
@@ -22,7 +21,6 @@ import com.maxrave.kotlinytmusicscraper.models.body.NotificationBody
 import com.maxrave.kotlinytmusicscraper.models.body.PlayerBody
 import com.maxrave.kotlinytmusicscraper.models.body.SearchBody
 import com.maxrave.kotlinytmusicscraper.models.body.spotify.CanvasBody
-import com.maxrave.kotlinytmusicscraper.models.body.spotify.SpotifyClientBody
 import com.maxrave.kotlinytmusicscraper.models.musixmatch.SearchMusixmatchResponse
 import com.maxrave.kotlinytmusicscraper.utils.CustomRedirectConfig
 import com.maxrave.kotlinytmusicscraper.utils.parseCookieString
@@ -45,7 +43,6 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
-import io.ktor.http.contentLength
 import io.ktor.http.contentType
 import io.ktor.http.parameters
 import io.ktor.http.userAgent
@@ -55,7 +52,6 @@ import io.ktor.serialization.kotlinx.protobuf.protobuf
 import io.ktor.serialization.kotlinx.xml.xml
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonNamingStrategy
 import kotlinx.serialization.protobuf.ProtoBuf
 import nl.adaptivity.xmlutil.XmlDeclMode
 import nl.adaptivity.xmlutil.serialization.XML
@@ -63,7 +59,6 @@ import okhttp3.Interceptor
 import java.io.File
 import java.lang.reflect.Type
 import java.net.Proxy
-import java.time.LocalDateTime
 import java.util.Locale
 
 class Ytmusic {
@@ -1053,7 +1048,7 @@ class Ytmusic {
 
     suspend fun searchSpotifyTrack(
         q: String,
-        authToken: String
+        authToken: String,
     ) = spotifyClient.get("https://api-partner.spotify.com/pathfinder/v1/query?operationName=searchTracks") {
         userAgent(YouTubeClient.WEB.userAgent)
         contentType(ContentType.Application.Json)
@@ -1068,16 +1063,15 @@ class Ytmusic {
         val sha = "220d098228a4eaf216b39e8c147865244959c4cc6fd82d394d88afda0b710929"
         parameter(
             "variables",
-            variable
+            variable,
         )
         parameter(
             "extensions",
-            "{\"persistedQuery\":{\"version\":1,\"sha256Hash\":\"${sha}\"}}"
+            "{\"persistedQuery\":{\"version\":1,\"sha256Hash\":\"${sha}\"}}",
         )
     }
     // {"searchTerm":"trình+hieuthuhai","offset":0,"limit":20,"numberOfTopResults":20,"includeAudiobooks":true,"includePreReleases":false}
     // {"persistedQuery":{"version":1,"sha256Hash":"e4ed1f91a2cc5415befedb85acf8671dc1a4bf3ca1a5b945a6386101a22e28a6"}}
-
 
     suspend fun getSpotifyCanvas(
         trackId: String,

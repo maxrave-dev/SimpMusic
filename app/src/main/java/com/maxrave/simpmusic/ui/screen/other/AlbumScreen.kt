@@ -96,7 +96,7 @@ import org.koin.androidx.compose.koinViewModel
 fun AlbumScreen(
     browseId: String,
     navController: NavController,
-    viewModel: AlbumViewModel = koinViewModel()
+    viewModel: AlbumViewModel = koinViewModel(),
 ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
@@ -151,49 +151,49 @@ fun AlbumScreen(
             LocalPlaylistState.PlaylistLoadState.Success -> {
                 LazyColumn(
                     modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .background(Color.Black),
+                        Modifier
+                            .fillMaxWidth()
+                            .background(Color.Black),
                     state = lazyState,
                 ) {
                     item(contentType = "header") {
                         Box(
                             modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .wrapContentHeight()
-                                .background(Color.Transparent),
+                                Modifier
+                                    .fillMaxWidth()
+                                    .wrapContentHeight()
+                                    .background(Color.Transparent),
                         ) {
                             Box(
                                 modifier =
-                                Modifier
-                                    .fillMaxWidth(),
+                                    Modifier
+                                        .fillMaxWidth(),
                             ) {
                                 Box(
                                     modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .aspectRatio(1f)
-                                        .clip(
-                                            RoundedCornerShape(8.dp),
-                                        ).angledGradientBackground(uiState.colors, 25f),
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .aspectRatio(1f)
+                                            .clip(
+                                                RoundedCornerShape(8.dp),
+                                            ).angledGradientBackground(uiState.colors, 25f),
                                 )
                                 Box(
                                     modifier =
-                                    Modifier
-                                        .fillMaxWidth()
-                                        .height(180.dp)
-                                        .align(Alignment.BottomCenter)
-                                        .background(
-                                            brush =
-                                            Brush.verticalGradient(
-                                                listOf(
-                                                    Color.Transparent,
-                                                    Color(0x75000000),
-                                                    Color.Black,
-                                                ),
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .height(180.dp)
+                                            .align(Alignment.BottomCenter)
+                                            .background(
+                                                brush =
+                                                    Brush.verticalGradient(
+                                                        listOf(
+                                                            Color.Transparent,
+                                                            Color(0x75000000),
+                                                            Color.Black,
+                                                        ),
+                                                    ),
                                             ),
-                                        ),
                                 )
                             }
                             Column(
@@ -202,10 +202,10 @@ fun AlbumScreen(
                             ) {
                                 Row(
                                     modifier =
-                                    Modifier
-                                        .wrapContentWidth()
-                                        .padding(16.dp)
-                                        .windowInsetsPadding(WindowInsets.statusBars),
+                                        Modifier
+                                            .wrapContentWidth()
+                                            .padding(16.dp)
+                                            .windowInsetsPadding(WindowInsets.statusBars),
                                 ) {
                                     RippleIconButton(
                                         resId = R.drawable.baseline_arrow_back_ios_new_24,
@@ -217,33 +217,38 @@ fun AlbumScreen(
                                     horizontalAlignment = Alignment.Start,
                                 ) {
                                     AsyncImage(
-                                        model = ImageRequest.Builder(LocalContext.current)
-                                            .data(uiState.thumbnail)
-                                            .diskCachePolicy(CachePolicy.ENABLED)
-                                            .diskCacheKey(uiState.thumbnail)
-                                            .crossfade(true)
-                                            .build(),
+                                        model =
+                                            ImageRequest
+                                                .Builder(LocalContext.current)
+                                                .data(uiState.thumbnail)
+                                                .diskCachePolicy(CachePolicy.ENABLED)
+                                                .diskCacheKey(uiState.thumbnail)
+                                                .crossfade(true)
+                                                .build(),
                                         placeholder = painterResource(R.drawable.holder),
                                         error = painterResource(R.drawable.holder),
                                         contentDescription = null,
                                         contentScale = ContentScale.FillHeight,
                                         onSuccess = {
-                                            bitmap = it.result.image.toBitmap().asImageBitmap()
+                                            bitmap =
+                                                it.result.image
+                                                    .toBitmap()
+                                                    .asImageBitmap()
                                         },
                                         modifier =
-                                        Modifier
-                                            .height(250.dp)
-                                            .wrapContentWidth()
-                                            .align(Alignment.CenterHorizontally)
-                                            .clip(
-                                                RoundedCornerShape(8.dp),
-                                            ),
+                                            Modifier
+                                                .height(250.dp)
+                                                .wrapContentWidth()
+                                                .align(Alignment.CenterHorizontally)
+                                                .clip(
+                                                    RoundedCornerShape(8.dp),
+                                                ),
                                     )
                                     Box(
                                         modifier =
-                                        Modifier
-                                            .fillMaxWidth()
-                                            .wrapContentHeight(),
+                                            Modifier
+                                                .fillMaxWidth()
+                                                .wrapContentHeight(),
                                     ) {
                                         Column(Modifier.padding(horizontal = 32.dp)) {
                                             Spacer(modifier = Modifier.size(25.dp))
@@ -260,25 +265,31 @@ fun AlbumScreen(
                                                     text = uiState.artist.name,
                                                     style = typo.titleSmall,
                                                     color = Color.White,
-                                                    modifier = Modifier.clickable {
-                                                        navController.navigateSafe(R.id.action_global_artistFragment, Bundle().apply {
-                                                            putString("channelId", uiState.artist.id ?: return@clickable)
-                                                        })
-                                                    }
+                                                    modifier =
+                                                        Modifier.clickable {
+                                                            navController.navigateSafe(
+                                                                R.id.action_global_artistFragment,
+                                                                Bundle().apply {
+                                                                    putString("channelId", uiState.artist.id ?: return@clickable)
+                                                                },
+                                                            )
+                                                        },
                                                 )
                                                 Spacer(modifier = Modifier.height(8.dp))
                                                 Text(
                                                     text =
-                                                    stringResource(
-                                                        id = R.string.year_and_category, uiState.year, stringResource(R.string.album)
-                                                    ),
+                                                        stringResource(
+                                                            id = R.string.year_and_category,
+                                                            uiState.year,
+                                                            stringResource(R.string.album),
+                                                        ),
                                                     style = typo.bodyMedium,
                                                     color = Color(0xC4FFFFFF),
                                                 )
                                             }
                                             Row(
                                                 modifier =
-                                                Modifier.fillMaxWidth(),
+                                                    Modifier.fillMaxWidth(),
                                                 verticalAlignment = Alignment.CenterVertically,
                                             ) {
                                                 RippleIconButton(
@@ -294,29 +305,27 @@ fun AlbumScreen(
                                                         DownloadState.STATE_DOWNLOADED -> {
                                                             Box(
                                                                 modifier =
-                                                                Modifier
-                                                                    .size(36.dp)
-                                                                    .clip(
-                                                                        CircleShape,
-                                                                    )
-                                                                    .clickable {
-                                                                        Toast
-                                                                            .makeText(
-                                                                                context,
-                                                                                context.getString(R.string.downloaded),
-                                                                                Toast.LENGTH_SHORT,
-                                                                            )
-                                                                            .show()
-                                                                    },
+                                                                    Modifier
+                                                                        .size(36.dp)
+                                                                        .clip(
+                                                                            CircleShape,
+                                                                        ).clickable {
+                                                                            Toast
+                                                                                .makeText(
+                                                                                    context,
+                                                                                    context.getString(R.string.downloaded),
+                                                                                    Toast.LENGTH_SHORT,
+                                                                                ).show()
+                                                                        },
                                                             ) {
                                                                 Icon(
                                                                     painter = painterResource(id = R.drawable.baseline_downloaded),
                                                                     tint = Color(0xFF00A0CB),
                                                                     contentDescription = "",
                                                                     modifier =
-                                                                    Modifier
-                                                                        .size(36.dp)
-                                                                        .padding(2.dp),
+                                                                        Modifier
+                                                                            .size(36.dp)
+                                                                            .padding(2.dp),
                                                                 )
                                                             }
                                                         }
@@ -324,20 +333,18 @@ fun AlbumScreen(
                                                         DownloadState.STATE_DOWNLOADING -> {
                                                             Box(
                                                                 modifier =
-                                                                Modifier
-                                                                    .size(36.dp)
-                                                                    .clip(
-                                                                        CircleShape,
-                                                                    )
-                                                                    .clickable {
-                                                                        Toast
-                                                                            .makeText(
-                                                                                context,
-                                                                                context.getString(R.string.downloading),
-                                                                                Toast.LENGTH_SHORT,
-                                                                            )
-                                                                            .show()
-                                                                    },
+                                                                    Modifier
+                                                                        .size(36.dp)
+                                                                        .clip(
+                                                                            CircleShape,
+                                                                        ).clickable {
+                                                                            Toast
+                                                                                .makeText(
+                                                                                    context,
+                                                                                    context.getString(R.string.downloading),
+                                                                                    Toast.LENGTH_SHORT,
+                                                                                ).show()
+                                                                        },
                                                             ) {
                                                                 LottieAnimation(
                                                                     composition,
@@ -362,7 +369,7 @@ fun AlbumScreen(
                                                 Spacer(Modifier.size(5.dp))
                                                 RippleIconButton(
                                                     modifier =
-                                                    Modifier.size(36.dp),
+                                                        Modifier.size(36.dp),
                                                     resId = R.drawable.baseline_shuffle_24,
                                                     fillMaxSize = true,
                                                 ) {
@@ -370,9 +377,10 @@ fun AlbumScreen(
                                                 }
                                             }
                                             DescriptionView(
-                                                text = uiState.description?.let {
-                                                    it.ifEmpty { null }
-                                                } ?: stringResource(R.string.no_description),
+                                                text =
+                                                    uiState.description?.let {
+                                                        it.ifEmpty { null }
+                                                    } ?: stringResource(R.string.no_description),
                                                 onTimeClicked = { raw ->
                                                     // Don't handle time click
                                                 },
@@ -381,15 +389,15 @@ fun AlbumScreen(
                                                         url,
                                                     )
                                                 },
-                                                modifier = Modifier.padding(vertical = 8.dp)
+                                                modifier = Modifier.padding(vertical = 8.dp),
                                             )
                                             Text(
                                                 text =
-                                                stringResource(
-                                                    id = R.string.album_length,
-                                                    (uiState.trackCount).toString(),
-                                                    uiState.length,
-                                                ),
+                                                    stringResource(
+                                                        id = R.string.album_length,
+                                                        (uiState.trackCount).toString(),
+                                                        uiState.length,
+                                                    ),
                                                 color = Color.White,
                                                 style = typo.bodyMedium,
                                                 modifier = Modifier.padding(vertical = 8.dp),
@@ -450,9 +458,9 @@ fun AlbumScreen(
                             }
                         },
                         colors =
-                        TopAppBarDefaults.topAppBarColors(
-                            containerColor = Color.Transparent,
-                        ),
+                            TopAppBarDefaults.topAppBarColors(
+                                containerColor = Color.Transparent,
+                            ),
                         modifier = Modifier.angledGradientBackground(uiState.colors, 90f),
                     )
                 }
@@ -463,7 +471,7 @@ fun AlbumScreen(
                             chosenSong = null
                         },
                         navController = navController,
-                        song = chosenSong?.toSongEntity()
+                        song = chosenSong?.toSongEntity(),
                     )
                 }
             }
@@ -473,7 +481,7 @@ fun AlbumScreen(
             }
             LocalPlaylistState.PlaylistLoadState.Loading -> {
                 CenterLoadingBox(
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize(),
                 )
             }
         }

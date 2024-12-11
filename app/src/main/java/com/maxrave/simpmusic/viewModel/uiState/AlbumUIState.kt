@@ -12,9 +12,11 @@ data class AlbumUIState(
     val title: String = "",
     val thumbnail: String? = null,
     val colors: List<Color> = listOf(Color.Black, md_theme_dark_background),
-    val artist: Artist = Artist(
-        id = null, name = ""
-    ),
+    val artist: Artist =
+        Artist(
+            id = null,
+            name = "",
+        ),
     val year: String = LocalDateTime.now().year.toString(),
     val downloadState: Int = DownloadState.STATE_NOT_DOWNLOADED,
     val liked: Boolean = false,
@@ -25,7 +27,6 @@ data class AlbumUIState(
     val loadState: LocalPlaylistState.PlaylistLoadState = LocalPlaylistState.PlaylistLoadState.Loading,
 ) {
     companion object {
-        fun initial(): AlbumUIState =
-            AlbumUIState()
+        fun initial(): AlbumUIState = AlbumUIState()
     }
 }

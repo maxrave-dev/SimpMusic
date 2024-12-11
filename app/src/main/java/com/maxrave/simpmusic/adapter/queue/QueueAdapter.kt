@@ -11,11 +11,10 @@ import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.toListName
 import java.util.Collections
 
-
 class QueueAdapter(
     private val listTrack: ArrayList<Track>,
     val context: Context,
-    private var currentPlaying: Int
+    private var currentPlaying: Int,
 ) : RecyclerView.Adapter<QueueAdapter.QueueViewHolder>(),
     RecyclerRowMoveCallback.RecyclerViewRowTouchHelperContract {
     private lateinit var mListener: OnItemClickListener
@@ -48,7 +47,10 @@ class QueueAdapter(
     }
 
     interface OnSwapListener {
-        fun onSwap(from: Int, to: Int)
+        fun onSwap(
+            from: Int,
+            to: Int,
+        )
     }
 
     fun setOnOptionClickListener(listener: OnOptionClickListener) {
@@ -63,16 +65,16 @@ class QueueAdapter(
     inner class QueueViewHolder(
         val binding: ItemQueueTrackBinding,
         listener: OnItemClickListener,
-        optionClickListener: OnOptionClickListener
+        optionClickListener: OnOptionClickListener,
     ) : RecyclerView.ViewHolder(binding.root) {
         init {
-             binding.root.setOnClickListener {
-                 listener.onItemClick(bindingAdapterPosition)
-             }
-             binding.btMore.setOnClickListener {
-                 optionClickListener.onOptionClick(bindingAdapterPosition)
-             }
-         }
+            binding.root.setOnClickListener {
+                listener.onItemClick(bindingAdapterPosition)
+            }
+            binding.btMore.setOnClickListener {
+                optionClickListener.onOptionClick(bindingAdapterPosition)
+            }
+        }
     }
 
     fun updateList(tracks: ArrayList<Track>) {
@@ -80,23 +82,27 @@ class QueueAdapter(
         listTrack.addAll(tracks)
         notifyDataSetChanged()
     }
-    fun addToList(track: Track){
+
+    fun addToList(track: Track) {
         listTrack.add(track)
         notifyItemInserted(listTrack.size - 1)
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): QueueViewHolder {
-        return QueueViewHolder(ItemQueueTrackBinding.inflate(LayoutInflater.from(parent.context), parent, false), mListener, mOptionListener)
-    }
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int,
+    ): QueueViewHolder =
+        QueueViewHolder(ItemQueueTrackBinding.inflate(LayoutInflater.from(parent.context), parent, false), mListener, mOptionListener)
 
-    override fun getItemCount(): Int {
-        return listTrack.size
-    }
+    override fun getItemCount(): Int = listTrack.size
 
-    override fun onBindViewHolder(holder: QueueViewHolder, position: Int) {
+    override fun onBindViewHolder(
+        holder: QueueViewHolder,
+        position: Int,
+    ) {
         val track = listTrack[position]
-        with(holder){
-            if (position == currentPlaying){
+        with(holder) {
+            if (position == currentPlaying) {
                 binding.tvPosition.visibility = View.VISIBLE
                 binding.ivPlaying.visibility = View.VISIBLE
                 binding.tvPosition.text = null
@@ -104,8 +110,7 @@ class QueueAdapter(
                 binding.tvSongName.isSelected = true
                 binding.tvArtistName.text = track.artists.toListName().connectArtists()
                 binding.tvArtistName.isSelected = true
-            }
-            else {
+            } else {
                 binding.tvPosition.visibility = View.VISIBLE
                 binding.ivPlaying.visibility = View.GONE
                 binding.tvPosition.text = (position + 1).toString()
@@ -117,7 +122,10 @@ class QueueAdapter(
         }
     }
 
-    override fun onRowMoved(from: Int, to: Int) {
+    override fun onRowMoved(
+        from: Int,
+        to: Int,
+    ) {
         if (from < to) {
             for (i in from until to) {
                 Collections.swap(listTrack, i, i + 1)
@@ -131,7 +139,10 @@ class QueueAdapter(
         notifyItemMoved(from, to)
     }
 
-    override fun onRowMove(from: Int, to: Int) {
+    override fun onRowMove(
+        from: Int,
+        to: Int,
+    ) {
         if (from < to) {
             for (i in from until to) {
                 Collections.swap(listTrack, i, i + 1)
@@ -159,10 +170,10 @@ class QueueAdapter(
 //
 //            binding.tvSongName.text = track.mediaMetadata.title
 //            binding.tvSongName.isSelected = true
-////            var artist = ""
-////            for (i in track.artists!!.indices){
-////                artist += if (i == track.artists.size - 1) track.artists[i].name else "${track.artists[i].name}, "
-////            }
+// //            var artist = ""
+// //            for (i in track.artists!!.indices){
+// //                artist += if (i == track.artists.size - 1) track.artists[i].name else "${track.artists[i].name}, "
+// //            }
 //            binding.tvArtistName.text = track.mediaMetadata.artist
 //        }
 //    }

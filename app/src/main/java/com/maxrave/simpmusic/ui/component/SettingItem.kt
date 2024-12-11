@@ -27,31 +27,37 @@ fun SettingItem(
     isEnable: Boolean = true,
     onClick: (() -> Unit)? = null,
     switch: Pair<Boolean, ((Boolean) -> Unit)>? = null,
-    otherView: @Composable (() -> Unit)? = null
+    otherView: @Composable (() -> Unit)? = null,
 ) {
     Box(
         Modifier
             .then(
-                if (onClick != null && isEnable) Modifier.clickable { onClick.invoke() }
-                else Modifier
-            )
-            .then(
-                if (!isEnable) Modifier.greyScale()
-                else Modifier
-            )
+                if (onClick != null && isEnable) {
+                    Modifier.clickable { onClick.invoke() }
+                } else {
+                    Modifier
+                },
+            ).then(
+                if (!isEnable) {
+                    Modifier.greyScale()
+                } else {
+                    Modifier
+                },
+            ),
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    vertical = 8.dp,
-                    horizontal = 24.dp
-                ),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        vertical = 8.dp,
+                        horizontal = 24.dp,
+                    ),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(
                 modifier = Modifier.weight(1f),
-                horizontalAlignment = Alignment.Start
+                horizontalAlignment = Alignment.Start,
             ) {
                 Text(text = title, style = typo.labelMedium)
                 Spacer(Modifier.height(4.dp))
@@ -69,7 +75,7 @@ fun SettingItem(
                     checked = switch.first,
                     onCheckedChange = {
                         switch.second.invoke(it)
-                    }
+                    },
                 )
             }
         }

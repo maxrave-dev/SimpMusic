@@ -20,11 +20,10 @@ class SettingsFragment : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?,
-    ): View {
-        return ComposeView(requireContext()).also {
+    ): View =
+        ComposeView(requireContext()).also {
             composeView = it
         }
-    }
 
     override fun onViewCreated(
         view: View,

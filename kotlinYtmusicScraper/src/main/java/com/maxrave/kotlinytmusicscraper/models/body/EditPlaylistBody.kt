@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 data class EditPlaylistBody(
     val context: Context,
     val playlistId: String,
-    val actions: List<Action>
+    val actions: List<Action>,
 ) {
     @Serializable
     data class Action(

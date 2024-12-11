@@ -426,7 +426,10 @@ interface DatabaseDao {
     suspend fun getPlaylistPairSong(playlistId: Long): List<PairSongLocalPlaylist>?
 
     @Query("SELECT * FROM pair_song_local_playlist WHERE playlistId = :playlistId AND position in (:positionList)")
-    suspend fun getPlaylistPairSongByListPosition(playlistId: Long, positionList: List<Int>): List<PairSongLocalPlaylist>?
+    suspend fun getPlaylistPairSongByListPosition(
+        playlistId: Long,
+        positionList: List<Int>,
+    ): List<PairSongLocalPlaylist>?
 
     @Query(
         "SELECT * FROM pair_song_local_playlist WHERE playlistId = :playlistId ORDER BY position " +

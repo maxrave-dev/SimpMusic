@@ -136,7 +136,8 @@ val mediaServiceModule =
                         get(),
                     ),
                 ).setRenderersFactory(provideRendererFactory(androidContext()))
-                .build().also {
+                .build()
+                .also {
                     it.addAnalyticsListener(EventLogger())
                 }
         }
@@ -183,7 +184,8 @@ private fun provideResolvingDataSourceFactory(
                 mediaId,
                 dataSpec.position,
                 length,
-            )) {
+            )
+        ) {
             coroutineScope.launch(Dispatchers.IO) {
                 mainRepository.updateFormat(
                     if (mediaId.contains(MergingMediaSourceFactory.isVideo)) {
@@ -217,7 +219,8 @@ private fun provideResolvingDataSourceFactory(
                     .getStream(
                         id,
                         true,
-                    ).singleOrNull()?.let {
+                    ).singleOrNull()
+                    ?.let {
                         dataSpecReturn = dataSpec.withUri(it.toUri()).subrange(dataSpec.uriPositionOffset, CHUNK_LENGTH)
                     }
             } else {
@@ -327,7 +330,7 @@ private fun provideCoilBitmapLoader(
 private fun provideCacheDataSource(
     downloadCache: SimpleCache,
     playerCache: SimpleCache,
-    context: Context
+    context: Context,
 ): CacheDataSource.Factory =
     CacheDataSource
         .Factory()
@@ -341,10 +344,11 @@ private fun provideCacheDataSource(
                         .Factory(
                             context,
                             OkHttpDataSource.Factory(
-                                OkHttpClient.Builder()
-                                    .build()
-                            )
-                        )
+                                OkHttpClient
+                                    .Builder()
+                                    .build(),
+                            ),
+                        ),
                 ),
         ).setCacheWriteDataSinkFactory(null)
         .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)

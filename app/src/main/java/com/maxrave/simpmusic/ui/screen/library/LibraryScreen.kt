@@ -37,7 +37,7 @@ import org.koin.androidx.compose.koinViewModel
 fun LibraryScreen(
     innerPadding: PaddingValues,
     viewModel: LibraryViewModel = koinViewModel(),
-    navController: NavController
+    navController: NavController,
 ) {
     val loggedIn by viewModel.youtubeLoggedIn.collectAsStateWithLifecycle(initialValue = false)
     val nowPlaying by viewModel.nowPlayingVideoId.collectAsState()
@@ -72,56 +72,66 @@ fun LibraryScreen(
         }
         item {
             LibraryItem(
-                state = LibraryItemState(
-                    type = LibraryItemType.YouTubePlaylist(loggedIn) {
-                        viewModel.getYouTubePlaylist()
-                    },
-                    data = youTubePlaylist.data ?: emptyList(),
-                    isLoading = youTubePlaylist is LocalResource.Loading,
-                ),
-                navController = navController
+                state =
+                    LibraryItemState(
+                        type =
+                            LibraryItemType.YouTubePlaylist(loggedIn) {
+                                viewModel.getYouTubePlaylist()
+                            },
+                        data = youTubePlaylist.data ?: emptyList(),
+                        isLoading = youTubePlaylist is LocalResource.Loading,
+                    ),
+                navController = navController,
             )
         }
         item {
             LibraryItem(
-                state = LibraryItemState(
-                    type = LibraryItemType.LocalPlaylist { newTitle ->
-                        viewModel.createPlaylist(newTitle)
-                    },
-                    data = yourLocalPlaylist.data ?: emptyList(),
-                    isLoading = yourLocalPlaylist is LocalResource.Loading,
-                ),
-                navController = navController
+                state =
+                    LibraryItemState(
+                        type =
+                            LibraryItemType.LocalPlaylist { newTitle ->
+                                viewModel.createPlaylist(newTitle)
+                            },
+                        data = yourLocalPlaylist.data ?: emptyList(),
+                        isLoading = yourLocalPlaylist is LocalResource.Loading,
+                    ),
+                navController = navController,
             )
         }
         item {
             LibraryItem(
-                state = LibraryItemState(
-                    type = LibraryItemType.FavoritePlaylist,
-                    data = favoritePlaylist.data ?: emptyList(),
-                    isLoading = favoritePlaylist is LocalResource.Loading,
-                ),
-                navController = navController
+                state =
+                    LibraryItemState(
+                        type = LibraryItemType.FavoritePlaylist,
+                        data = favoritePlaylist.data ?: emptyList(),
+                        isLoading = favoritePlaylist is LocalResource.Loading,
+                    ),
+                navController = navController,
             )
         }
         item {
             LibraryItem(
-                state = LibraryItemState(
-                    type = LibraryItemType.DownloadedPlaylist,
-                    data = downloadedPlaylist.data ?: emptyList(),
-                    isLoading = downloadedPlaylist is LocalResource.Loading,
-                ),
-                navController = navController
+                state =
+                    LibraryItemState(
+                        type = LibraryItemType.DownloadedPlaylist,
+                        data = downloadedPlaylist.data ?: emptyList(),
+                        isLoading = downloadedPlaylist is LocalResource.Loading,
+                    ),
+                navController = navController,
             )
         }
         item {
             LibraryItem(
-                state = LibraryItemState(
-                    type = LibraryItemType.RecentlyAdded(
-                        playingVideoId = nowPlaying
-                    ), data = recentlyAdded.data ?: emptyList(), isLoading = recentlyAdded is LocalResource.Loading
-                ),
-                navController = navController
+                state =
+                    LibraryItemState(
+                        type =
+                            LibraryItemType.RecentlyAdded(
+                                playingVideoId = nowPlaying,
+                            ),
+                        data = recentlyAdded.data ?: emptyList(),
+                        isLoading = recentlyAdded is LocalResource.Loading,
+                    ),
+                navController = navController,
             )
         }
         item {
@@ -134,7 +144,7 @@ fun LibraryScreen(
                 text = stringResource(R.string.library),
                 style = typo.titleMedium,
             )
-        }
+        },
     )
 }
 

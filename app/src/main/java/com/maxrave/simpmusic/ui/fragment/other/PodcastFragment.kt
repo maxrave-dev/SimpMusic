@@ -45,7 +45,6 @@ import kotlin.random.Random
 
 @UnstableApi
 class PodcastFragment : Fragment() {
-
     private val viewModel by activityViewModels<PodcastViewModel>()
     private val sharedViewModel by activityViewModels<SharedViewModel>()
     private var _binding: FragmentPodcastBinding? = null
@@ -57,8 +56,9 @@ class PodcastFragment : Fragment() {
     private lateinit var podcastAdapter: PodcastAdapter
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?,
     ): View {
         _binding = FragmentPodcastBinding.inflate(inflater, container, false)
         return binding.root
@@ -68,12 +68,15 @@ class PodcastFragment : Fragment() {
         super.onDestroyView()
         setStatusBarsColor(
             ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark),
-            requireActivity()
+            requireActivity(),
         )
         _binding = null
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
         super.onViewCreated(view, savedInstanceState)
 
         if (viewModel.gradientDrawable.value != null) {
@@ -105,8 +108,10 @@ class PodcastFragment : Fragment() {
                 if (viewModel.gradientDrawable.value != null) {
                     if (viewModel.gradientDrawable.value?.colors != null) {
                         setStatusBarsColor(
-                            viewModel.gradientDrawable.value?.colors!!.first(),
-                            requireActivity()
+                            viewModel.gradientDrawable.value
+                                ?.colors!!
+                                .first(),
+                            requireActivity(),
                         )
                     }
                 }
@@ -115,29 +120,37 @@ class PodcastFragment : Fragment() {
                 binding.topAppBar.background = null
                 setStatusBarsColor(
                     ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark),
-                    requireActivity()
+                    requireActivity(),
                 )
             }
         }
         binding.btPlayPause.setOnClickListener {
             if (viewModel.podcastBrowse.value is Resource.Success && viewModel.podcastBrowse.value?.data != null) {
-                val firstQueue = viewModel.podcastBrowse.value?.data?.listEpisode?.firstOrNull()?.toTrack()
+                val firstQueue =
+                    viewModel.podcastBrowse.value
+                        ?.data
+                        ?.listEpisode
+                        ?.firstOrNull()
+                        ?.toTrack()
                 viewModel.setQueueData(
                     QueueData(
-                        listTracks = viewModel.podcastBrowse.value?.data?.listEpisode?.toListTrack() ?: arrayListOf(),
+                        listTracks =
+                            viewModel.podcastBrowse.value
+                                ?.data
+                                ?.listEpisode
+                                ?.toListTrack() ?: arrayListOf(),
                         firstPlayedTrack = firstQueue,
                         playlistId = id?.replaceFirst("VL", "") ?: "",
                         playlistName = "Podcast \"${viewModel.podcastBrowse.value?.data?.title}\"",
                         playlistType = PlaylistType.PLAYLIST,
-                        continuation = null
-
-                    )
+                        continuation = null,
+                    ),
                 )
                 if (firstQueue != null) {
                     viewModel.loadMediaItem(
                         firstQueue,
                         Config.PLAYLIST_CLICK,
-                        0
+                        0,
                     )
                 }
             }
@@ -145,13 +158,23 @@ class PodcastFragment : Fragment() {
         binding.btShuffle.setOnClickListener {
             if (viewModel.podcastBrowse.value is Resource.Success && viewModel.podcastBrowse.value?.data != null) {
                 val index =
-                    Random.nextInt(0, viewModel.podcastBrowse.value?.data!!.listEpisode.size - 1)
+                    Random.nextInt(
+                        0,
+                        viewModel.podcastBrowse.value
+                            ?.data!!
+                            .listEpisode.size - 1,
+                    )
                 val shuffleList: ArrayList<Track> = arrayListOf()
                 viewModel.podcastBrowse.value?.data?.listEpisode?.let {
                     shuffleList.addAll(it.toListTrack())
                 }
                 shuffleList.removeAt(index)
-                val firstPlay = viewModel.podcastBrowse.value?.data?.listEpisode?.get(index)?.toTrack()
+                val firstPlay =
+                    viewModel.podcastBrowse.value
+                        ?.data
+                        ?.listEpisode
+                        ?.get(index)
+                        ?.toTrack()
                 shuffleList.shuffle()
                 if (firstPlay != null) {
                     shuffleList.add(0, firstPlay)
@@ -162,24 +185,36 @@ class PodcastFragment : Fragment() {
                             id?.replaceFirst("VL", "") ?: "",
                             "Podcast \"${viewModel.podcastBrowse.value?.data?.title}\"",
                             PlaylistType.PLAYLIST,
-                            continuation = null
-                        )
+                            continuation = null,
+                        ),
                     )
                     viewModel.loadMediaItem(
                         firstPlay,
                         Config.PLAYLIST_CLICK,
-                        0
+                        0,
                     )
                 }
-
             }
         }
         binding.btMore.setOnClickListener {
             val bottomSheetDialog = BottomSheetDialog(requireContext())
             val moreView = BottomSheetPlaylistMoreBinding.inflate(layoutInflater)
-            moreView.ivThumbnail.load(viewModel.podcastBrowse.value?.data?.thumbnail?.lastOrNull()?.url)
-            moreView.tvSongTitle.text = viewModel.podcastBrowse.value?.data?.title
-            moreView.tvSongArtist.text = viewModel.podcastBrowse.value?.data?.author?.name
+            moreView.ivThumbnail.load(
+                viewModel.podcastBrowse.value
+                    ?.data
+                    ?.thumbnail
+                    ?.lastOrNull()
+                    ?.url,
+            )
+            moreView.tvSongTitle.text =
+                viewModel.podcastBrowse.value
+                    ?.data
+                    ?.title
+            moreView.tvSongArtist.text =
+                viewModel.podcastBrowse.value
+                    ?.data
+                    ?.author
+                    ?.name
             moreView.btShare.setOnClickListener {
                 val shareIntent = Intent(Intent.ACTION_SEND)
                 shareIntent.type = "text/plain"
@@ -194,31 +229,41 @@ class PodcastFragment : Fragment() {
             bottomSheetDialog.setCancelable(true)
             bottomSheetDialog.show()
         }
-        podcastAdapter.setOnItemClickListener(object : PodcastAdapter.OnItemClickListener {
-            override fun onItemClick(position: Int) {
-                if (viewModel.podcastBrowse.value is Resource.Success && viewModel.podcastBrowse.value?.data != null) {
-                    val firstQueue = viewModel.podcastBrowse.value?.data?.listEpisode?.getOrNull(position)?.toTrack()
-                    viewModel.setQueueData(
-                        QueueData(
-                            listTracks = viewModel.podcastBrowse.value?.data?.listEpisode?.toListTrack() ?: arrayListOf(),
-                            firstPlayedTrack = firstQueue,
-                            playlistId = id?.replaceFirst("VL", "") ?: "",
-                            playlistName = "Podcast \"${viewModel.podcastBrowse.value?.data?.title}\"",
-                            playlistType = PlaylistType.PLAYLIST,
-                            continuation = null
-
+        podcastAdapter.setOnItemClickListener(
+            object : PodcastAdapter.OnItemClickListener {
+                override fun onItemClick(position: Int) {
+                    if (viewModel.podcastBrowse.value is Resource.Success && viewModel.podcastBrowse.value?.data != null) {
+                        val firstQueue =
+                            viewModel.podcastBrowse.value
+                                ?.data
+                                ?.listEpisode
+                                ?.getOrNull(position)
+                                ?.toTrack()
+                        viewModel.setQueueData(
+                            QueueData(
+                                listTracks =
+                                    viewModel.podcastBrowse.value
+                                        ?.data
+                                        ?.listEpisode
+                                        ?.toListTrack() ?: arrayListOf(),
+                                firstPlayedTrack = firstQueue,
+                                playlistId = id?.replaceFirst("VL", "") ?: "",
+                                playlistName = "Podcast \"${viewModel.podcastBrowse.value?.data?.title}\"",
+                                playlistType = PlaylistType.PLAYLIST,
+                                continuation = null,
+                            ),
                         )
-                    )
-                    if (firstQueue != null) {
-                        viewModel.loadMediaItem(
-                            firstQueue,
-                            Config.PLAYLIST_CLICK,
-                            position
-                        )
+                        if (firstQueue != null) {
+                            viewModel.loadMediaItem(
+                                firstQueue,
+                                Config.PLAYLIST_CLICK,
+                                position,
+                            )
+                        }
                     }
                 }
-            }
-        })
+            },
+        )
     }
 
     private fun fetchDataFromViewModel() {
@@ -240,8 +285,7 @@ class PodcastFragment : Fragment() {
                         }
                         podcastAdapter.updateData(listEpisode)
                         if (viewModel.gradientDrawable.value == null) {
-                            viewModel.gradientDrawable.observe(viewLifecycleOwner)
-                            { gradient ->
+                            viewModel.gradientDrawable.observe(viewLifecycleOwner) { gradient ->
                                 topAppBarLayout.background = gradient
                             }
                         } else {
@@ -254,7 +298,8 @@ class PodcastFragment : Fragment() {
             }
 
             is Resource.Error -> {
-                Snackbar.make(binding.root, response.message.toString(), Snackbar.LENGTH_LONG)
+                Snackbar
+                    .make(binding.root, response.message.toString(), Snackbar.LENGTH_LONG)
                     .show()
                 findNavController().popBackStack()
             }
@@ -287,12 +332,12 @@ class PodcastFragment : Fragment() {
                             }
                             podcastAdapter.updateData(listEpisode)
                             if (viewModel.gradientDrawable.value == null) {
-                                viewModel.gradientDrawable.observe(viewLifecycleOwner)
-                                { gradient ->
+                                viewModel.gradientDrawable.observe(viewLifecycleOwner) { gradient ->
                                     if (gradient != null) {
-                                        val start = topAppBarLayout.background ?: ColorDrawable(
-                                            Color.TRANSPARENT
-                                        )
+                                        val start =
+                                            topAppBarLayout.background ?: ColorDrawable(
+                                                Color.TRANSPARENT,
+                                            )
                                         val transition =
                                             TransitionDrawable(arrayOf(start, gradient))
                                         topAppBarLayout.background = transition
@@ -310,7 +355,8 @@ class PodcastFragment : Fragment() {
                 }
 
                 is Resource.Error -> {
-                    Snackbar.make(binding.root, response.message.toString(), Snackbar.LENGTH_LONG)
+                    Snackbar
+                        .make(binding.root, response.message.toString(), Snackbar.LENGTH_LONG)
                         .show()
                     findNavController().popBackStack()
                 }
@@ -325,45 +371,49 @@ class PodcastFragment : Fragment() {
     private fun loadImage(url: String?) {
         if (url != null) {
             binding.ivPlaylistArt.load(url) {
-                transformations(object : Transformation() {
-                    override val cacheKey: String
-                        get() = url
+                transformations(
+                    object : Transformation() {
+                        override val cacheKey: String
+                            get() = url
 
-                    override suspend fun transform(input: Bitmap, size: Size): Bitmap {
-                        val p = Palette.from(input).generate()
-                        val defaultColor = 0x000000
-                        var startColor = p.getDarkVibrantColor(defaultColor)
-                        if (startColor == defaultColor) {
-                            startColor = p.getDarkMutedColor(defaultColor)
+                        override suspend fun transform(
+                            input: Bitmap,
+                            size: Size,
+                        ): Bitmap {
+                            val p = Palette.from(input).generate()
+                            val defaultColor = 0x000000
+                            var startColor = p.getDarkVibrantColor(defaultColor)
                             if (startColor == defaultColor) {
-                                startColor = p.getVibrantColor(defaultColor)
+                                startColor = p.getDarkMutedColor(defaultColor)
                                 if (startColor == defaultColor) {
-                                    startColor = p.getMutedColor(defaultColor)
+                                    startColor = p.getVibrantColor(defaultColor)
                                     if (startColor == defaultColor) {
-                                        startColor = p.getLightVibrantColor(defaultColor)
+                                        startColor = p.getMutedColor(defaultColor)
                                         if (startColor == defaultColor) {
-                                            startColor = p.getLightMutedColor(defaultColor)
+                                            startColor = p.getLightVibrantColor(defaultColor)
+                                            if (startColor == defaultColor) {
+                                                startColor = p.getLightMutedColor(defaultColor)
+                                            }
                                         }
                                     }
                                 }
                             }
+                            startColor = ColorUtils.setAlphaComponent(startColor, 150)
+                            val endColor = resources.getColor(R.color.md_theme_dark_background, null)
+                            val gd =
+                                GradientDrawable(
+                                    GradientDrawable.Orientation.TOP_BOTTOM,
+                                    intArrayOf(startColor, endColor),
+                                )
+                            gd.cornerRadius = 0f
+                            gd.gradientType = GradientDrawable.LINEAR_GRADIENT
+                            gd.gradientRadius = 0.5f
+                            viewModel.gradientDrawable.postValue(gd)
+                            return input
                         }
-                        startColor = ColorUtils.setAlphaComponent(startColor, 150)
-                        val endColor = resources.getColor(R.color.md_theme_dark_background, null)
-                        val gd = GradientDrawable(
-                            GradientDrawable.Orientation.TOP_BOTTOM,
-                            intArrayOf(startColor, endColor)
-                        )
-                        gd.cornerRadius = 0f
-                        gd.gradientType = GradientDrawable.LINEAR_GRADIENT
-                        gd.gradientRadius = 0.5f
-                        viewModel.gradientDrawable.postValue(gd)
-                        return input
-                    }
-
-                })
+                    },
+                )
             }
         }
     }
-
 }

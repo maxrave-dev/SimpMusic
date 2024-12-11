@@ -32,23 +32,24 @@ import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.ui.theme.typo
 
 @Composable
-fun LibraryTilingBox(
-    navController: NavController
-) {
-    val listItem = listOf(
-        LibraryTilingState.Favorite,
-        LibraryTilingState.Followed,
-        LibraryTilingState.MostPlayed,
-        LibraryTilingState.Downloaded
-    )
+fun LibraryTilingBox(navController: NavController) {
+    val listItem =
+        listOf(
+            LibraryTilingState.Favorite,
+            LibraryTilingState.Followed,
+            LibraryTilingState.MostPlayed,
+            LibraryTilingState.Downloaded,
+        )
     NonLazyGrid(
         columns = 2,
         itemCount = 4,
-        modifier = Modifier.fillMaxWidth()
-            .padding(bottom = 10.dp, end = 10.dp)
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(bottom = 10.dp, end = 10.dp),
     ) { number ->
         Box(
-            Modifier.padding(start = 10.dp, top = 10.dp)
+            Modifier.padding(start = 10.dp, top = 10.dp),
         ) {
             LibraryTilingItem(
                 listItem[number],
@@ -58,22 +59,31 @@ fun LibraryTilingBox(
                             navController.navigateSafe(R.id.action_bottom_navigation_item_library_to_favoriteFragment)
                         }
                         LibraryTilingState.Followed -> {
-                            navController.navigateSafe(R.id.action_bottom_navigation_item_library_to_favoriteFragment, Bundle().apply {
-                                putString("type", "followed")
-                            })
+                            navController.navigateSafe(
+                                R.id.action_bottom_navigation_item_library_to_favoriteFragment,
+                                Bundle().apply {
+                                    putString("type", "followed")
+                                },
+                            )
                         }
                         LibraryTilingState.MostPlayed -> {
-                            navController.navigateSafe(R.id.action_bottom_navigation_item_library_to_favoriteFragment, Bundle().apply {
-                                putString("type", "most_played")
-                            })
+                            navController.navigateSafe(
+                                R.id.action_bottom_navigation_item_library_to_favoriteFragment,
+                                Bundle().apply {
+                                    putString("type", "most_played")
+                                },
+                            )
                         }
                         LibraryTilingState.Downloaded -> {
-                            navController.navigateSafe(R.id.action_bottom_navigation_item_library_to_favoriteFragment, Bundle().apply {
-                                putString("type", "downloaded")
-                            })
+                            navController.navigateSafe(
+                                R.id.action_bottom_navigation_item_library_to_favoriteFragment,
+                                Bundle().apply {
+                                    putString("type", "downloaded")
+                                },
+                            )
                         }
                     }
-                }
+                },
             )
         }
     }
@@ -82,35 +92,39 @@ fun LibraryTilingBox(
 @Composable
 fun LibraryTilingItem(
     state: LibraryTilingState,
-    onClick: () -> Unit = {}
-    ) {
+    onClick: () -> Unit = {},
+) {
     val context = LocalContext.current
     val title = context.getString(state.title)
     ElevatedCard(
-        modifier = Modifier.fillMaxWidth().clickable {
-            onClick.invoke()
-        },
+        modifier =
+            Modifier.fillMaxWidth().clickable {
+                onClick.invoke()
+            },
         shape = RoundedCornerShape(8.dp),
         elevation = CardDefaults.elevatedCardElevation(),
-        colors = CardDefaults.elevatedCardColors().copy(
-            containerColor = state.containerColor
-        )
+        colors =
+            CardDefaults.elevatedCardColors().copy(
+                containerColor = state.containerColor,
+            ),
     ) {
         Row(
             Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             Icon(
                 state.icon,
                 contentDescription = title,
-                modifier = Modifier.size(50.dp)
-                    .padding(10.dp),
-                tint = state.iconColor
+                modifier =
+                    Modifier
+                        .size(50.dp)
+                        .padding(10.dp),
+                tint = state.iconColor,
             )
             Text(
                 title,
                 style = typo.titleSmall,
-                color = Color.Black
+                color = Color.Black,
             )
         }
     }
@@ -120,32 +134,36 @@ data class LibraryTilingState(
     @StringRes val title: Int,
     val containerColor: Color,
     val icon: ImageVector,
-    val iconColor: Color
+    val iconColor: Color,
 ) {
     companion object {
-        val Favorite = LibraryTilingState(
-            title = R.string.favorite,
-            containerColor = Color(0xffff99ae),
-            icon = Icons.Default.Favorite,
-            iconColor = Color(0xffD10000)
-        )
-        val Followed = LibraryTilingState(
-            title = R.string.followed,
-            containerColor = Color(0xffFFEB3B),
-            icon = Icons.Default.Insights,
-            iconColor = Color.Black
-        )
-        val MostPlayed = LibraryTilingState(
-            title = R.string.most_played,
-            containerColor = Color(0xff00BCD4),
-            icon = Icons.AutoMirrored.Filled.TrendingUp,
-            iconColor = Color.Black
-        )
-        val Downloaded = LibraryTilingState(
-            title = R.string.downloaded,
-            containerColor = Color(0xff4CAF50),
-            icon = Icons.Default.Downloading,
-            iconColor = Color.Black
-        )
+        val Favorite =
+            LibraryTilingState(
+                title = R.string.favorite,
+                containerColor = Color(0xffff99ae),
+                icon = Icons.Default.Favorite,
+                iconColor = Color(0xffD10000),
+            )
+        val Followed =
+            LibraryTilingState(
+                title = R.string.followed,
+                containerColor = Color(0xffFFEB3B),
+                icon = Icons.Default.Insights,
+                iconColor = Color.Black,
+            )
+        val MostPlayed =
+            LibraryTilingState(
+                title = R.string.most_played,
+                containerColor = Color(0xff00BCD4),
+                icon = Icons.AutoMirrored.Filled.TrendingUp,
+                iconColor = Color.Black,
+            )
+        val Downloaded =
+            LibraryTilingState(
+                title = R.string.downloaded,
+                containerColor = Color(0xff4CAF50),
+                icon = Icons.Default.Downloading,
+                iconColor = Color.Black,
+            )
     }
 }

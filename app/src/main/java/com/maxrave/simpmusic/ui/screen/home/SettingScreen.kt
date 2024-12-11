@@ -6,7 +6,9 @@ import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,18 +23,30 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AlertDialogDefaults
+import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Slider
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
@@ -52,11 +66,13 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLinkStyles
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -64,6 +80,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.annotation.ExperimentalCoilApi
+import coil3.compose.AsyncImage
+import coil3.request.ImageRequest
+import coil3.request.crossfade
 import com.maxrave.kotlinytmusicscraper.extension.isTwoLetterCode
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.LIMIT_CACHE_SIZE
@@ -75,6 +94,7 @@ import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.TRUE
 import com.maxrave.simpmusic.extension.bytesToMB
 import com.maxrave.simpmusic.extension.navigateSafe
+import com.maxrave.simpmusic.ui.component.ActionButton
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SettingItem
@@ -104,7 +124,7 @@ fun SettingScreen(
     innerPadding: PaddingValues,
     navController: NavController,
     viewModel: SettingsViewModel = koinViewModel(),
-    sharedViewModel: SharedViewModel = viewModel()
+    sharedViewModel: SharedViewModel = viewModel(),
 ) {
     val context = LocalContext.current
     val localDensity = LocalDensity.current
@@ -158,23 +178,28 @@ fun SettingScreen(
     val fraction by viewModel.fraction.collectAsStateWithLifecycle()
     val githubResponse by viewModel.githubResponse.collectAsStateWithLifecycle()
     val lastCheckUpdate by viewModel.lastCheckForUpdate.collectAsStateWithLifecycle()
+    val googleAccounts by viewModel.googleAccounts.collectAsStateWithLifecycle()
     var checkForUpdateSubtitle by rememberSaveable {
         mutableStateOf("")
     }
     var showLibrary by rememberSaveable {
         mutableStateOf(false)
     }
+    var showYouTubeAccountDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
 
     LaunchedEffect(lastCheckUpdate) {
         val lastCheckLong = lastCheckUpdate?.toLong() ?: 0L
         if (lastCheckLong > 0L) {
-            checkForUpdateSubtitle = context.getString(
-                R.string.last_checked_at,
-                DateTimeFormatter
-                    .ofPattern("yyyy-MM-dd HH:mm:ss")
-                    .withZone(ZoneId.systemDefault())
-                    .format(Instant.ofEpochMilli(lastCheckLong))
-            )
+            checkForUpdateSubtitle =
+                context.getString(
+                    R.string.last_checked_at,
+                    DateTimeFormatter
+                        .ofPattern("yyyy-MM-dd HH:mm:ss")
+                        .withZone(ZoneId.systemDefault())
+                        .format(Instant.ofEpochMilli(lastCheckLong)),
+                )
         }
     }
 
@@ -198,14 +223,15 @@ fun SettingScreen(
                 SettingBasicAlertState(
                     title = context.getString(R.string.update_available),
                     message = context.getString(R.string.update_message, res.tagName, formatted, res.body),
-                    confirm = context.getString(R.string.download) to {
-                        uriHandler.openUri(
-                            res.assets?.firstOrNull()?.browserDownloadUrl
-                                ?: "https://github.com/maxrave-dev/SimpMusic/releases"
-                        )
-                    },
-                    dismiss = context.getString(R.string.cancel)
-                )
+                    confirm =
+                        context.getString(R.string.download) to {
+                            uriHandler.openUri(
+                                res.assets?.firstOrNull()?.browserDownloadUrl
+                                    ?: "https://github.com/maxrave-dev/SimpMusic/releases",
+                            )
+                        },
+                    dismiss = context.getString(R.string.cancel),
+                ),
             )
         }
         viewModel.getLastCheckForUpdate()
@@ -217,9 +243,10 @@ fun SettingScreen(
 
     LazyColumn(
         contentPadding = innerPadding,
-        modifier = Modifier
-            .padding(horizontal = 16.dp)
-            .padding(top = 64.dp)
+        modifier =
+            Modifier
+                .padding(horizontal = 16.dp)
+                .padding(top = 64.dp),
     ) {
         item(key = "user_interface") {
             Column {
@@ -229,7 +256,7 @@ fun SettingScreen(
                     title = stringResource(R.string.translucent_bottom_navigation_bar),
                     subtitle = stringResource(R.string.you_can_see_the_content_below_the_bottom_bar),
                     smallSubtitle = true,
-                    switch = (enableTranslucentNavBar to { viewModel.setTranslucentBottomBar(it) })
+                    switch = (enableTranslucentNavBar to { viewModel.setTranslucentBottomBar(it) }),
                 )
             }
         }
@@ -239,7 +266,10 @@ fun SettingScreen(
                 SettingItem(
                     title = stringResource(R.string.youtube_account),
                     subtitle = stringResource(R.string.manage_your_youtube_accounts),
-                    onClick = {}
+                    onClick = {
+                        viewModel.getAllGoogleAccount()
+                        showYouTubeAccountDialog = true
+                    },
                 )
                 SettingItem(
                     title = stringResource(R.string.language),
@@ -248,30 +278,34 @@ fun SettingScreen(
                         viewModel.setAlertData(
                             SettingAlertState(
                                 title = context.getString(R.string.language),
-                                selectOne = SettingAlertState.SelectData(
-                                    listSelect = SUPPORTED_LANGUAGE.items.map {
-                                        (it.toString() == SUPPORTED_LANGUAGE.getLanguageFromCode(language ?: "en-US")) to it.toString()
-                                    }
-                                ),
-                                confirm = context.getString(R.string.change) to { state ->
-                                    val code = SUPPORTED_LANGUAGE.getCodeFromLanguage(state.selectOne?.getSelected() ?: "English")
-                                    viewModel.setBasicAlertData(
-                                        SettingBasicAlertState(
-                                            title = context.getString(R.string.warning),
-                                            message = context.getString(R.string.change_language_warning),
-                                            confirm = context.getString(R.string.change) to {
-                                                sharedViewModel.activityRecreate()
-                                                viewModel.setBasicAlertData(null)
-                                                viewModel.changeLanguage(code)
+                                selectOne =
+                                    SettingAlertState.SelectData(
+                                        listSelect =
+                                            SUPPORTED_LANGUAGE.items.map {
+                                                (it.toString() == SUPPORTED_LANGUAGE.getLanguageFromCode(language ?: "en-US")) to it.toString()
                                             },
-                                            dismiss = context.getString(R.string.cancel)
+                                    ),
+                                confirm =
+                                    context.getString(R.string.change) to { state ->
+                                        val code = SUPPORTED_LANGUAGE.getCodeFromLanguage(state.selectOne?.getSelected() ?: "English")
+                                        viewModel.setBasicAlertData(
+                                            SettingBasicAlertState(
+                                                title = context.getString(R.string.warning),
+                                                message = context.getString(R.string.change_language_warning),
+                                                confirm =
+                                                    context.getString(R.string.change) to {
+                                                        sharedViewModel.activityRecreate()
+                                                        viewModel.setBasicAlertData(null)
+                                                        viewModel.changeLanguage(code)
+                                                    },
+                                                dismiss = context.getString(R.string.cancel),
+                                            ),
                                         )
-                                    )
-                                },
-                                dismiss = context.getString(R.string.cancel)
-                            )
+                                    },
+                                dismiss = context.getString(R.string.cancel),
+                            ),
                         )
-                    }
+                    },
                 )
                 SettingItem(
                     title = stringResource(R.string.content_country),
@@ -280,19 +314,22 @@ fun SettingScreen(
                         viewModel.setAlertData(
                             SettingAlertState(
                                 title = context.getString(R.string.content_country),
-                                selectOne = SettingAlertState.SelectData(
-                                    listSelect = SUPPORTED_LOCATION.items.map { item ->
-                                        (item.toString() == location) to item.toString()
-                                    }
-                                ),
-                                confirm = context.getString(R.string.change) to { state ->
-                                    viewModel.changeLocation(
-                                        state.selectOne?.getSelected() ?: "US"
-                                    )
-                                }
-                            )
+                                selectOne =
+                                    SettingAlertState.SelectData(
+                                        listSelect =
+                                            SUPPORTED_LOCATION.items.map { item ->
+                                                (item.toString() == location) to item.toString()
+                                            },
+                                    ),
+                                confirm =
+                                    context.getString(R.string.change) to { state ->
+                                        viewModel.changeLocation(
+                                            state.selectOne?.getSelected() ?: "US",
+                                        )
+                                    },
+                            ),
                         )
-                    }
+                    },
                 )
                 SettingItem(
                     title = stringResource(R.string.quality),
@@ -302,18 +339,21 @@ fun SettingScreen(
                         viewModel.setAlertData(
                             SettingAlertState(
                                 title = context.getString(R.string.quality),
-                                selectOne = SettingAlertState.SelectData(
-                                    listSelect = QUALITY.items.map { item ->
-                                        (item.toString() == quality) to item.toString()
-                                    }
-                                ),
-                                confirm = context.getString(R.string.change) to { state ->
-                                    viewModel.changeQuality(state.selectOne?.getSelected())
-                                },
-                                dismiss = context.getString(R.string.cancel)
-                            )
+                                selectOne =
+                                    SettingAlertState.SelectData(
+                                        listSelect =
+                                            QUALITY.items.map { item ->
+                                                (item.toString() == quality) to item.toString()
+                                            },
+                                    ),
+                                confirm =
+                                    context.getString(R.string.change) to { state ->
+                                        viewModel.changeQuality(state.selectOne?.getSelected())
+                                    },
+                                dismiss = context.getString(R.string.cancel),
+                            ),
                         )
-                    }
+                    },
                 )
                 SettingItem(
                     title = stringResource(R.string.home_limit),
@@ -335,7 +375,7 @@ fun SettingScreen(
                     title = stringResource(R.string.play_video_for_video_track_instead_of_audio_only),
                     subtitle = stringResource(R.string.such_as_music_video_lyrics_video_podcasts_and_more),
                     smallSubtitle = true,
-                    switch = (playVideo to { viewModel.setPlayVideoInsteadOfAudio(it) })
+                    switch = (playVideo to { viewModel.setPlayVideoInsteadOfAudio(it) }),
                 )
                 SettingItem(
                     title = stringResource(R.string.video_quality),
@@ -343,12 +383,13 @@ fun SettingScreen(
                 )
                 SettingItem(
                     title = stringResource(R.string.send_back_listening_data_to_google),
-                    subtitle = stringResource(
-                        R.string.
-                        upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in
-                    ),
+                    subtitle =
+                        stringResource(
+                            R.string
+                                .upload_your_listening_history_to_youtube_music_server_it_will_make_yt_music_recommendation_system_better_working_only_if_logged_in,
+                        ),
                     smallSubtitle = true,
-                    switch = (sendData to { viewModel.setSendBackToGoogle(it) })
+                    switch = (sendData to { viewModel.setSendBackToGoogle(it) }),
                 )
             }
         }
@@ -358,12 +399,12 @@ fun SettingScreen(
                 SettingItem(
                     title = stringResource(R.string.normalize_volume),
                     subtitle = stringResource(R.string.balance_media_loudness),
-                    switch = (normalizeVolume to { viewModel.setNormalizeVolume(it) })
+                    switch = (normalizeVolume to { viewModel.setNormalizeVolume(it) }),
                 )
                 SettingItem(
                     title = stringResource(R.string.skip_silent),
                     subtitle = stringResource(R.string.skip_no_music_part),
-                    switch = (skipSilent to { viewModel.setSkipSilent(it) })
+                    switch = (skipSilent to { viewModel.setSkipSilent(it) }),
                 )
                 SettingItem(
                     title = stringResource(R.string.open_system_equalizer),
@@ -381,7 +422,7 @@ fun SettingScreen(
                         } else {
                             resultLauncher.launch(eqIntent)
                         }
-                    }
+                    },
                 )
             }
         }
@@ -391,12 +432,12 @@ fun SettingScreen(
                 SettingItem(
                     title = stringResource(R.string.save_playback_state),
                     subtitle = stringResource(R.string.save_shuffle_and_repeat_mode),
-                    switch = (savePlaybackState to { viewModel.setSavedPlaybackState(it) })
+                    switch = (savePlaybackState to { viewModel.setSavedPlaybackState(it) }),
                 )
                 SettingItem(
                     title = stringResource(R.string.save_last_played),
                     subtitle = stringResource(R.string.save_last_played_track_and_queue),
-                    switch = (saveLastPlayed to { viewModel.setSaveLastPlayed(it) })
+                    switch = (saveLastPlayed to { viewModel.setSaveLastPlayed(it) }),
                 )
             }
         }
@@ -405,52 +446,64 @@ fun SettingScreen(
                 Text(text = stringResource(R.string.lyrics), style = typo.labelMedium, modifier = Modifier.padding(vertical = 8.dp))
                 SettingItem(
                     title = stringResource(R.string.main_lyrics_provider),
-                    subtitle = when (mainLyricsProvider) {
-                        DataStoreManager.MUSIXMATCH -> stringResource(R.string.musixmatch)
-                        DataStoreManager.YOUTUBE -> stringResource(R.string.youtube_transcript)
-                        else -> stringResource(R.string.unknown)
-                    },
+                    subtitle =
+                        when (mainLyricsProvider) {
+                            DataStoreManager.MUSIXMATCH -> stringResource(R.string.musixmatch)
+                            DataStoreManager.YOUTUBE -> stringResource(R.string.youtube_transcript)
+                            else -> stringResource(R.string.unknown)
+                        },
                     onClick = {
                         viewModel.setAlertData(
                             SettingAlertState(
                                 title = context.getString(R.string.main_lyrics_provider),
-                                selectOne = SettingAlertState.SelectData(
-                                    listSelect = listOf(
-                                        (mainLyricsProvider == DataStoreManager.MUSIXMATCH) to context.getString(R.string.musixmatch),
-                                        (mainLyricsProvider == DataStoreManager.YOUTUBE) to context.getString(R.string.youtube_transcript)
-                                    )
-                                ),
-                                confirm = context.getString(R.string.change) to { state ->
-                                    viewModel.setLyricsProvider(
-                                        when (state.selectOne?.getSelected()) {
-                                            context.getString(R.string.musixmatch) -> DataStoreManager.MUSIXMATCH
-                                            context.getString(R.string.youtube_transcript) -> DataStoreManager.YOUTUBE
-                                            else -> DataStoreManager.MUSIXMATCH
-                                        }
-                                    )
-                                },
-                            )
+                                selectOne =
+                                    SettingAlertState.SelectData(
+                                        listSelect =
+                                            listOf(
+                                                (mainLyricsProvider == DataStoreManager.MUSIXMATCH) to context.getString(R.string.musixmatch),
+                                                (mainLyricsProvider == DataStoreManager.YOUTUBE) to context.getString(R.string.youtube_transcript),
+                                            ),
+                                    ),
+                                confirm =
+                                    context.getString(R.string.change) to { state ->
+                                        viewModel.setLyricsProvider(
+                                            when (state.selectOne?.getSelected()) {
+                                                context.getString(R.string.musixmatch) -> DataStoreManager.MUSIXMATCH
+                                                context.getString(R.string.youtube_transcript) -> DataStoreManager.YOUTUBE
+                                                else -> DataStoreManager.MUSIXMATCH
+                                            },
+                                        )
+                                    },
+                            ),
                         )
-                    }
+                    },
                 )
                 SettingItem(
-                    title = if (musixmatchLoggedIn) stringResource(R.string.log_out_from_musixmatch)
-                    else stringResource(R.string.log_in_to_Musixmatch),
-                    subtitle = if (musixmatchLoggedIn) stringResource(R.string.logged_in)
-                    else stringResource(R.string.only_support_email_and_password_type),
+                    title =
+                        if (musixmatchLoggedIn) {
+                            stringResource(R.string.log_out_from_musixmatch)
+                        } else {
+                            stringResource(R.string.log_in_to_Musixmatch)
+                        },
+                    subtitle =
+                        if (musixmatchLoggedIn) {
+                            stringResource(R.string.logged_in)
+                        } else {
+                            stringResource(R.string.only_support_email_and_password_type)
+                        },
                     onClick = {
                         if (musixmatchLoggedIn) {
                             viewModel.clearMusixmatchCookie()
                         } else {
                             navController.navigateSafe(R.id.action_global_musixmatchFragment)
                         }
-                    }
+                    },
                 )
                 SettingItem(
                     title = stringResource(R.string.use_musixmatch_translation),
                     subtitle = stringResource(R.string.use_musixmatch_translation_description),
                     switch = (useMusixmatchTranslation to { viewModel.setUseTranslation(it) }),
-                    isEnable = musixmatchLoggedIn
+                    isEnable = musixmatchLoggedIn,
                 )
                 SettingItem(
                     title = stringResource(R.string.translation_language),
@@ -459,21 +512,23 @@ fun SettingScreen(
                         viewModel.setAlertData(
                             SettingAlertState(
                                 title = context.getString(R.string.translation_language),
-                                textField = SettingAlertState.TextFieldData(
-                                    label = context.getString(R.string.translation_language),
-                                    value = musixmatchTranslationLanguage ?: "",
-                                    verifyCodeBlock = {
-                                        (it.length == 2 && it.isTwoLetterCode()) to context.getString(R.string.invalid_language_code)
-                                    }
-                                ),
+                                textField =
+                                    SettingAlertState.TextFieldData(
+                                        label = context.getString(R.string.translation_language),
+                                        value = musixmatchTranslationLanguage ?: "",
+                                        verifyCodeBlock = {
+                                            (it.length == 2 && it.isTwoLetterCode()) to context.getString(R.string.invalid_language_code)
+                                        },
+                                    ),
                                 message = context.getString(R.string.translation_language_message),
-                                confirm = context.getString(R.string.change) to { state ->
-                                    viewModel.setTranslationLanguage(state.textField?.value ?: "")
-                                },
-                            )
+                                confirm =
+                                    context.getString(R.string.change) to { state ->
+                                        viewModel.setTranslationLanguage(state.textField?.value ?: "")
+                                    },
+                            ),
                         )
                     },
-                    isEnable = useMusixmatchTranslation
+                    isEnable = useMusixmatchTranslation,
                 )
             }
         }
@@ -482,27 +537,31 @@ fun SettingScreen(
                 Text(text = stringResource(R.string.spotify), style = typo.labelMedium, modifier = Modifier.padding(vertical = 8.dp))
                 SettingItem(
                     title = stringResource(R.string.log_in_to_spotify),
-                    subtitle = if (spotifyLoggedIn) stringResource(R.string.logged_in)
-                    else stringResource(R.string.intro_login_to_spotify),
+                    subtitle =
+                        if (spotifyLoggedIn) {
+                            stringResource(R.string.logged_in)
+                        } else {
+                            stringResource(R.string.intro_login_to_spotify)
+                        },
                     onClick = {
                         if (spotifyLoggedIn) {
                             viewModel.setSpotifyLogIn(false)
                         } else {
                             navController.navigateSafe(R.id.action_global_spotifyLogInFragment)
                         }
-                    }
+                    },
                 )
                 SettingItem(
                     title = stringResource(R.string.enable_spotify_lyrics),
                     subtitle = stringResource(R.string.spotify_lyrícs_info),
                     switch = (spotifyLyrics to { viewModel.setSpotifyLyrics(it) }),
-                    isEnable = spotifyLoggedIn
+                    isEnable = spotifyLoggedIn,
                 )
                 SettingItem(
                     title = stringResource(R.string.enable_canvas),
                     subtitle = stringResource(R.string.canvas_info),
                     switch = (spotifyCanvas to { viewModel.setSpotifyCanvas(it) }),
-                    isEnable = spotifyLoggedIn
+                    isEnable = spotifyLoggedIn,
                 )
             }
         }
@@ -512,44 +571,53 @@ fun SettingScreen(
                 SettingItem(
                     title = stringResource(R.string.enable_sponsor_block),
                     subtitle = stringResource(R.string.skip_sponsor_part_of_video),
-                    switch = (enableSponsorBlock to { viewModel.setSponsorBlockEnabled(it) })
+                    switch = (enableSponsorBlock to { viewModel.setSponsorBlockEnabled(it) }),
                 )
                 SettingItem(
                     title = stringResource(R.string.categories_sponsor_block),
                     subtitle = stringResource(R.string.what_segments_will_be_skipped),
                     onClick = {
-                        val listName = SPONSOR_BLOCK.listName.map {
-                            context.getString(it)
-                        }
+                        val listName =
+                            SPONSOR_BLOCK.listName.map {
+                                context.getString(it)
+                            }
                         viewModel.setAlertData(
                             SettingAlertState(
                                 title = context.getString(R.string.categories_sponsor_block),
-                                multipleSelect = SettingAlertState.SelectData(
-                                    listSelect = listName.mapIndexed { index, item ->
-                                        (skipSegments?.contains(
-                                            SPONSOR_BLOCK.list.getOrNull(index)
-                                        ) == true) to item
-                                    }.also {
-                                        Log.w("SettingScreen", "SettingAlertState: $skipSegments")
-                                        Log.w("SettingScreen", "SettingAlertState: $it")
-                                    }
-                                ),
-                                confirm = context.getString(R.string.save) to { state ->
-                                    viewModel.setSponsorBlockCategories(
-                                        state.multipleSelect?.getListSelected()?.map { selected ->
-                                            listName.indexOf(selected)
-                                        }?.mapNotNull { s ->
-                                            SPONSOR_BLOCK.list.getOrNull(s).let {
-                                                it?.toString()
-                                            }
-                                        }?.toCollection(ArrayList()) ?: arrayListOf()
-                                    )
-                                },
-                                dismiss = context.getString(R.string.cancel)
-                            )
+                                multipleSelect =
+                                    SettingAlertState.SelectData(
+                                        listSelect =
+                                            listName
+                                                .mapIndexed { index, item ->
+                                                    (
+                                                        skipSegments?.contains(
+                                                            SPONSOR_BLOCK.list.getOrNull(index),
+                                                        ) == true
+                                                    ) to item
+                                                }.also {
+                                                    Log.w("SettingScreen", "SettingAlertState: $skipSegments")
+                                                    Log.w("SettingScreen", "SettingAlertState: $it")
+                                                },
+                                    ),
+                                confirm =
+                                    context.getString(R.string.save) to { state ->
+                                        viewModel.setSponsorBlockCategories(
+                                            state.multipleSelect
+                                                ?.getListSelected()
+                                                ?.map { selected ->
+                                                    listName.indexOf(selected)
+                                                }?.mapNotNull { s ->
+                                                    SPONSOR_BLOCK.list.getOrNull(s).let {
+                                                        it?.toString()
+                                                    }
+                                                }?.toCollection(ArrayList()) ?: arrayListOf(),
+                                        )
+                                    },
+                                dismiss = context.getString(R.string.cancel),
+                            ),
                         )
                     },
-                    isEnable = enableSponsorBlock
+                    isEnable = enableSponsorBlock,
                 )
                 val beforeUrl = stringResource(R.string.sponsor_block_intro).substringBefore("https://sponsor.ajay.app/")
                 val afterUrl = stringResource(R.string.sponsor_block_intro).substringAfter("https://sponsor.ajay.app/")
@@ -559,8 +627,8 @@ fun SettingScreen(
                         withLink(
                             LinkAnnotation.Url(
                                 "https://sponsor.ajay.app/",
-                                TextLinkStyles(style = SpanStyle(color = md_theme_dark_primary))
-                            )
+                                TextLinkStyles(style = SpanStyle(color = md_theme_dark_primary)),
+                            ),
                         ) {
                             append("https://sponsor.ajay.app/")
                         }
@@ -582,13 +650,14 @@ fun SettingScreen(
                             SettingBasicAlertState(
                                 title = context.getString(R.string.clear_player_cache),
                                 message = null,
-                                confirm = context.getString(R.string.clear) to {
-                                    viewModel.clearPlayerCache()
-                                },
-                                dismiss = context.getString(R.string.cancel)
-                            )
+                                confirm =
+                                    context.getString(R.string.clear) to {
+                                        viewModel.clearPlayerCache()
+                                    },
+                                dismiss = context.getString(R.string.cancel),
+                            ),
                         )
-                    }
+                    },
                 )
                 SettingItem(
                     title = stringResource(R.string.downloaded_cache),
@@ -598,13 +667,14 @@ fun SettingScreen(
                             SettingBasicAlertState(
                                 title = context.getString(R.string.clear_downloaded_cache),
                                 message = null,
-                                confirm = context.getString(R.string.clear) to {
-                                    viewModel.clearDownloadedCache()
-                                },
-                                dismiss = context.getString(R.string.cancel)
-                            )
+                                confirm =
+                                    context.getString(R.string.clear) to {
+                                        viewModel.clearDownloadedCache()
+                                    },
+                                dismiss = context.getString(R.string.cancel),
+                            ),
                         )
-                    }
+                    },
                 )
                 SettingItem(
                     title = stringResource(R.string.thumbnail_cache),
@@ -614,13 +684,14 @@ fun SettingScreen(
                             SettingBasicAlertState(
                                 title = context.getString(R.string.clear_thumbnail_cache),
                                 message = null,
-                                confirm = context.getString(R.string.clear) to {
-                                    viewModel.clearThumbnailCache()
-                                },
-                                dismiss = context.getString(R.string.cancel)
-                            )
+                                confirm =
+                                    context.getString(R.string.clear) to {
+                                        viewModel.clearThumbnailCache()
+                                    },
+                                dismiss = context.getString(R.string.cancel),
+                            ),
                         )
-                    }
+                    },
                 )
                 SettingItem(
                     title = stringResource(R.string.spotify_canvas_cache),
@@ -630,13 +701,14 @@ fun SettingScreen(
                             SettingBasicAlertState(
                                 title = context.getString(R.string.clear_canvas_cache),
                                 message = null,
-                                confirm = context.getString(R.string.clear) to {
-                                    viewModel.clearCanvasCache()
-                                },
-                                dismiss = context.getString(R.string.cancel)
-                            )
+                                confirm =
+                                    context.getString(R.string.clear) to {
+                                        viewModel.clearCanvasCache()
+                                    },
+                                dismiss = context.getString(R.string.cancel),
+                            ),
                         )
-                    }
+                    },
                 )
                 SettingItem(
                     title = stringResource(R.string.limit_player_cache),
@@ -645,191 +717,207 @@ fun SettingScreen(
                         viewModel.setAlertData(
                             SettingAlertState(
                                 title = context.getString(R.string.limit_player_cache),
-                                selectOne = SettingAlertState.SelectData(
-                                    listSelect = LIMIT_CACHE_SIZE.items.map { item ->
-                                        (item == LIMIT_CACHE_SIZE.getItemFromData(limitPlayerCache)) to item.toString()
-                                    }
-                                ),
-                                confirm = context.getString(R.string.change) to { state ->
-                                    viewModel.setPlayerCacheLimit(
-                                        LIMIT_CACHE_SIZE.getDataFromItem(state.selectOne?.getSelected())
-                                    )
-                                },
-                                dismiss = context.getString(R.string.cancel)
-                            )
+                                selectOne =
+                                    SettingAlertState.SelectData(
+                                        listSelect =
+                                            LIMIT_CACHE_SIZE.items.map { item ->
+                                                (item == LIMIT_CACHE_SIZE.getItemFromData(limitPlayerCache)) to item.toString()
+                                            },
+                                    ),
+                                confirm =
+                                    context.getString(R.string.change) to { state ->
+                                        viewModel.setPlayerCacheLimit(
+                                            LIMIT_CACHE_SIZE.getDataFromItem(state.selectOne?.getSelected()),
+                                        )
+                                    },
+                                dismiss = context.getString(R.string.cancel),
+                            ),
                         )
-                    }
+                    },
                 )
                 Box(
                     Modifier.padding(
                         horizontal = 24.dp,
-                        vertical = 16.dp
-                    )
+                        vertical = 16.dp,
+                    ),
                 ) {
                     LazyRow(
                         horizontalArrangement = Arrangement.spacedBy(0.dp),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(8.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .onGloballyPositioned { layoutCoordinates ->
-                                with(localDensity) {
-                                    width = layoutCoordinates.size.width.toDp().value.toInt()
-                                }
-                            }
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .height(8.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .onGloballyPositioned { layoutCoordinates ->
+                                    with(localDensity) {
+                                        width =
+                                            layoutCoordinates.size.width
+                                                .toDp()
+                                                .value
+                                                .toInt()
+                                    }
+                                },
                     ) {
                         item {
                             Box(
-                                modifier = Modifier
-                                    .width(
-                                        (fraction.otherApp * width).dp
-                                    )
-                                    .background(
-                                        md_theme_dark_primary
-                                    )
-                                    .fillMaxHeight()
+                                modifier =
+                                    Modifier
+                                        .width(
+                                            (fraction.otherApp * width).dp,
+                                        ).background(
+                                            md_theme_dark_primary,
+                                        ).fillMaxHeight(),
                             )
                         }
                         item {
                             Box(
-                                modifier = Modifier
-                                    .width(
-                                        (fraction.downloadCache * width).dp
-                                    )
-                                    .background(
-                                        Color(0xD540FF17)
-                                    )
-                                    .fillMaxHeight()
+                                modifier =
+                                    Modifier
+                                        .width(
+                                            (fraction.downloadCache * width).dp,
+                                        ).background(
+                                            Color(0xD540FF17),
+                                        ).fillMaxHeight(),
                             )
                         }
                         item {
                             Box(
-                                modifier = Modifier
-                                    .width(
-                                        (fraction.playerCache * width).dp
-                                    )
-                                    .background(
-                                        Color(0xD5FFFF00)
-                                    )
-                                    .fillMaxHeight()
+                                modifier =
+                                    Modifier
+                                        .width(
+                                            (fraction.playerCache * width).dp,
+                                        ).background(
+                                            Color(0xD5FFFF00),
+                                        ).fillMaxHeight(),
                             )
                         }
                         item {
                             Box(
-                                modifier = Modifier
-                                    .width(
-                                        (fraction.canvasCache * width).dp
-                                    )
-                                    .background(
-                                        Color.Cyan
-                                    )
-                                    .fillMaxHeight()
+                                modifier =
+                                    Modifier
+                                        .width(
+                                            (fraction.canvasCache * width).dp,
+                                        ).background(
+                                            Color.Cyan,
+                                        ).fillMaxHeight(),
                             )
                         }
                         item {
                             Box(
-                                modifier = Modifier
-                                    .width(
-                                        (fraction.thumbCache * width).dp
-                                    )
-                                    .background(
-                                        Color.Magenta
-                                    )
-                                    .fillMaxHeight()
+                                modifier =
+                                    Modifier
+                                        .width(
+                                            (fraction.thumbCache * width).dp,
+                                        ).background(
+                                            Color.Magenta,
+                                        ).fillMaxHeight(),
                             )
                         }
                         item {
                             Box(
-                                modifier = Modifier
-                                    .width(
-                                        (fraction.appDatabase * width).dp
-                                    )
-                                    .background(
-                                        Color.White
-                                    )
+                                modifier =
+                                    Modifier
+                                        .width(
+                                            (fraction.appDatabase * width).dp,
+                                        ).background(
+                                            Color.White,
+                                        ),
                             )
                         }
                         item {
                             Box(
-                                modifier = Modifier
-                                    .width(
-                                        (fraction.freeSpace * width).dp
-                                    )
-                                    .background(
-                                        Color.DarkGray
-                                    )
-                                    .fillMaxHeight()
+                                modifier =
+                                    Modifier
+                                        .width(
+                                            (fraction.freeSpace * width).dp,
+                                        ).background(
+                                            Color.DarkGray,
+                                        ).fillMaxHeight(),
                             )
                         }
                     }
                 }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp)
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
                 ) {
-                    Box(Modifier.size(12.dp).clip(CircleShape).background(
-                        md_theme_dark_primary
-                    ))
+                    Box(
+                        Modifier.size(12.dp).clip(CircleShape).background(
+                            md_theme_dark_primary,
+                        ),
+                    )
                     Spacer(Modifier.width(8.dp))
                     Text(text = stringResource(R.string.other_app), style = typo.bodySmall)
                 }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp)
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
                 ) {
-                    Box(Modifier.size(12.dp).clip(CircleShape).background(
-                        Color.Green
-                    ))
+                    Box(
+                        Modifier.size(12.dp).clip(CircleShape).background(
+                            Color.Green,
+                        ),
+                    )
                     Spacer(Modifier.width(8.dp))
                     Text(text = stringResource(R.string.downloaded_cache), style = typo.bodySmall)
                 }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp)
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
                 ) {
-                    Box(Modifier.size(12.dp).clip(CircleShape).background(
-                        Color.Yellow
-                    ))
+                    Box(
+                        Modifier.size(12.dp).clip(CircleShape).background(
+                            Color.Yellow,
+                        ),
+                    )
                     Spacer(Modifier.width(8.dp))
                     Text(text = stringResource(R.string.player_cache), style = typo.bodySmall)
                 }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp)
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
                 ) {
-                    Box(Modifier.size(12.dp).clip(CircleShape).background(
-                        Color.Cyan
-                    ))
+                    Box(
+                        Modifier.size(12.dp).clip(CircleShape).background(
+                            Color.Cyan,
+                        ),
+                    )
                     Spacer(Modifier.width(8.dp))
                     Text(text = stringResource(R.string.spotify_canvas_cache), style = typo.bodySmall)
                 }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp)
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
                 ) {
-                    Box(Modifier.size(12.dp).clip(CircleShape).background(
-                        Color.Magenta
-                    ))
+                    Box(
+                        Modifier.size(12.dp).clip(CircleShape).background(
+                            Color.Magenta,
+                        ),
+                    )
                     Spacer(Modifier.width(8.dp))
                     Text(text = stringResource(R.string.thumbnail_cache), style = typo.bodySmall)
                 }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp)
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
                 ) {
-                    Box(Modifier.size(12.dp).clip(CircleShape).background(
-                        Color.White
-                    ))
+                    Box(
+                        Modifier.size(12.dp).clip(CircleShape).background(
+                            Color.White,
+                        ),
+                    )
                     Spacer(Modifier.width(8.dp))
                     Text(text = stringResource(R.string.database), style = typo.bodySmall)
                 }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp)
+                    modifier = Modifier.padding(horizontal = 24.dp, vertical = 4.dp),
                 ) {
-                    Box(Modifier.size(12.dp).clip(CircleShape).background(
-                        Color.LightGray
-                    ))
+                    Box(
+                        Modifier.size(12.dp).clip(CircleShape).background(
+                            Color.LightGray,
+                        ),
+                    )
                     Spacer(Modifier.width(8.dp))
                     Text(text = stringResource(R.string.free_space), style = typo.bodySmall)
                 }
@@ -844,14 +932,14 @@ fun SettingScreen(
                     onClick = {
                         val formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
                         backupLauncher.launch("${context.getString(R.string.app_name)}_${LocalDateTime.now().format(formatter)}.backup")
-                    }
+                    },
                 )
                 SettingItem(
                     title = stringResource(R.string.restore_your_data),
                     subtitle = stringResource(R.string.restore_your_saved_data),
                     onClick = {
                         restoreLauncher.launch(arrayOf("application/octet-stream"))
-                    }
+                    },
                 )
             }
         }
@@ -863,7 +951,7 @@ fun SettingScreen(
                     subtitle = stringResource(R.string.version_name),
                     onClick = {
                         navController.navigateSafe(R.id.action_global_creditFragment)
-                    }
+                    },
                 )
                 SettingItem(
                     title = stringResource(R.string.check_for_update),
@@ -871,21 +959,21 @@ fun SettingScreen(
                     onClick = {
                         checkForUpdateSubtitle = context.getString(R.string.checking)
                         viewModel.checkForUpdate()
-                    }
+                    },
                 )
                 SettingItem(
                     title = stringResource(R.string.author),
                     subtitle = stringResource(R.string.maxrave_dev),
                     onClick = {
                         uriHandler.openUri("https://github.com/maxrave-dev")
-                    }
+                    },
                 )
                 SettingItem(
                     title = stringResource(R.string.buy_me_a_coffee),
                     subtitle = stringResource(R.string.donation),
                     onClick = {
                         uriHandler.openUri("https://www.buymeacoffee.com/maxrave")
-                    }
+                    },
                 )
                 SettingItem(
                     title = stringResource(R.string.third_party_libraries),
@@ -910,7 +998,7 @@ fun SettingScreen(
                                     localLib,
                                 ).intent(context)
                         context.startActivity(intent)
-                    }
+                    },
                 )
             }
         }
@@ -936,7 +1024,7 @@ fun SettingScreen(
                     onClick = {
                         alertBasicState.confirm.second.invoke()
                         viewModel.setBasicAlertData(null)
-                    }
+                    },
                 ) {
                     Text(text = alertBasicState.confirm.first)
                 }
@@ -945,17 +1033,137 @@ fun SettingScreen(
                 TextButton(
                     onClick = {
                         viewModel.setBasicAlertData(null)
-                    }
+                    },
                 ) {
                     Text(text = alertBasicState.dismiss)
                 }
-            }
+            },
         )
+    }
+    if (showYouTubeAccountDialog) {
+        BasicAlertDialog(
+            onDismissRequest = { },
+            modifier = Modifier.wrapContentSize(),
+        ) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.large,
+                color = Color(0xFF242424),
+                tonalElevation = AlertDialogDefaults.TonalElevation,
+                shadowElevation = 1.dp,
+            ) {
+                LazyColumn(modifier = Modifier.padding(8.dp)) {
+                    item {
+                        Box(modifier = Modifier.fillMaxWidth().height(48.dp)) {
+                            IconButton(
+                                onClick = { showYouTubeAccountDialog = false },
+                                colors = IconButtonDefaults.iconButtonColors().copy(
+                                    contentColor = Color.White
+                                ),
+                                modifier = Modifier.align(Alignment.CenterStart).fillMaxHeight(),
+                            ) {
+                                Icon(Icons.Outlined.Close, null, tint = Color.White)
+                            }
+                            Text(
+                                stringResource(R.string.youtube_account),
+                                style = typo.titleMedium,
+                                modifier = Modifier.align(Alignment.Center)
+                                    .wrapContentHeight(align = Alignment.CenterVertically)
+                                    .wrapContentWidth()
+                            )
+                        }
+                    }
+                    items(googleAccounts ?: emptyList(), key = { it.email + it.name + it.cache }) {
+                        Row(
+                            modifier = Modifier.padding(vertical = 8.dp)
+                                .clickable {
+                                    viewModel.setUsedAccount(it)
+                                },
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Spacer(Modifier.width(24.dp))
+                            AsyncImage(
+                                model =
+                                ImageRequest
+                                    .Builder(LocalContext.current)
+                                    .data(it.thumbnailUrl)
+                                    .crossfade(550)
+                                    .build(),
+                                placeholder = painterResource(R.drawable.baseline_people_alt_24),
+                                error = painterResource(R.drawable.baseline_people_alt_24),
+                                contentDescription = it.name,
+                                modifier = Modifier.size(48.dp)
+                                    .clip(CircleShape)
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            Column(Modifier.weight(1f)) {
+                                Text(it.name, style = typo.labelMedium)
+                                Text(it.email, style = typo.bodySmall)
+                            }
+                            Spacer(Modifier.width(12.dp))
+                            AnimatedVisibility(it.isUsed) {
+                                Text(
+                                    stringResource(R.string.signed_in),
+                                    style = typo.bodySmall,
+                                    maxLines = 2,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.widthIn(0.dp, 64.dp)
+                                )
+                            }
+                            Spacer(Modifier.width(24.dp))
+                        }
+                    }
+                    if (googleAccounts.isNullOrEmpty()) {
+                        item {
+                            Text(
+                                stringResource(R.string.no_account),
+                                style = typo.bodyMedium,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(12.dp).fillMaxWidth(),
+                            )
+                        }
+                    }
+                    item {
+                        Column {
+                            ActionButton(
+                                icon = painterResource(R.drawable.baseline_people_alt_24),
+                                text = R.string.guest
+                            ) {
+                                viewModel.setUsedAccount(null)
+                                showYouTubeAccountDialog = false
+                            }
+                            ActionButton(
+                                icon = painterResource(R.drawable.baseline_close_24),
+                                text = R.string.log_out
+                            ) {
+                                viewModel.setBasicAlertData(
+                                    SettingBasicAlertState(
+                                        title = context.getString(R.string.warning),
+                                        message = context.getString(R.string.log_out_warning),
+                                        confirm = context.getString(R.string.log_out) to {
+                                            viewModel.logOutAllYouTube()
+                                            showYouTubeAccountDialog = false
+                                        },
+                                        dismiss = context.getString(R.string.cancel)
+                                    )
+                                )
+                            }
+                            ActionButton(
+                                icon = painterResource(R.drawable.baseline_playlist_add_24),
+                                text = R.string.add_an_account
+                            ) {
+                                navController.navigateSafe(R.id.action_global_logInFragment)
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
     val alertData by viewModel.alertData.collectAsStateWithLifecycle()
     if (alertData != null) {
         val alertState = alertData ?: return
-        //AlertDialog
+        // AlertDialog
         AlertDialog(
             onDismissRequest = { viewModel.setAlertData(null) },
             title = {
@@ -966,18 +1174,20 @@ fun SettingScreen(
                     Column {
                         Text(text = alertState.message)
                         if (alertState.textField != null) {
-                            val verify = alertState.textField.verifyCodeBlock?.invoke(
-                                alertState.textField.value
-                            ) ?: (true to null)
+                            val verify =
+                                alertState.textField.verifyCodeBlock?.invoke(
+                                    alertState.textField.value,
+                                ) ?: (true to null)
                             TextField(
                                 value = alertState.textField.value,
                                 onValueChange = {
                                     viewModel.setAlertData(
                                         alertState.copy(
-                                            textField = alertState.textField.copy(
-                                                value = it
-                                            )
-                                        )
+                                            textField =
+                                                alertState.textField.copy(
+                                                    value = it,
+                                                ),
+                                        ),
                                     )
                                 },
                                 isError = !verify.first,
@@ -987,7 +1197,7 @@ fun SettingScreen(
                                         Text(
                                             modifier = Modifier.fillMaxWidth(),
                                             text = stringResource(R.string.invalid_language_code),
-                                            color = DarkColors.error
+                                            color = DarkColors.error,
                                         )
                                     }
                                 },
@@ -996,16 +1206,18 @@ fun SettingScreen(
                                         Icons.Outlined.Error
                                     }
                                 },
-                                modifier = Modifier.fillMaxWidth().padding(
-                                    vertical = 6.dp
-                                )
+                                modifier =
+                                    Modifier.fillMaxWidth().padding(
+                                        vertical = 6.dp,
+                                    ),
                             )
                         }
                     }
                 } else if (alertState.selectOne != null) {
                     LazyColumn(
-                        Modifier.padding(vertical = 6.dp)
-                            .heightIn(0.dp, 500.dp)
+                        Modifier
+                            .padding(vertical = 6.dp)
+                            .heightIn(0.dp, 500.dp),
                     ) {
                         items(alertState.selectOne.listSelect) { item ->
                             Row(Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -1014,18 +1226,20 @@ fun SettingScreen(
                                     onClick = {
                                         viewModel.setAlertData(
                                             alertState.copy(
-                                                selectOne = alertState.selectOne.copy(
-                                                    listSelect = alertState.selectOne.listSelect.toMutableList().map {
-                                                        if (it == item) {
-                                                            true to it.second
-                                                        } else {
-                                                            false to it.second
-                                                        }
-                                                    }
-                                                )
-                                            )
+                                                selectOne =
+                                                    alertState.selectOne.copy(
+                                                        listSelect =
+                                                            alertState.selectOne.listSelect.toMutableList().map {
+                                                                if (it == item) {
+                                                                    true to it.second
+                                                                } else {
+                                                                    false to it.second
+                                                                }
+                                                            },
+                                                    ),
+                                            ),
                                         )
-                                    }
+                                    },
                                 )
                                 Spacer(Modifier.width(8.dp))
                                 Text(text = item.second, style = typo.bodyMedium, maxLines = 1)
@@ -1034,7 +1248,7 @@ fun SettingScreen(
                     }
                 } else if (alertState.multipleSelect != null) {
                     LazyColumn(
-                        Modifier.padding(vertical = 6.dp)
+                        Modifier.padding(vertical = 6.dp),
                     ) {
                         items(alertState.multipleSelect.listSelect) { item ->
                             Row(Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -1043,18 +1257,20 @@ fun SettingScreen(
                                     onCheckedChange = {
                                         viewModel.setAlertData(
                                             alertState.copy(
-                                                multipleSelect = alertState.multipleSelect.copy(
-                                                    listSelect = alertState.multipleSelect.listSelect.toMutableList().map {
-                                                        if (it == item) {
-                                                            !it.first to it.second
-                                                        } else {
-                                                            it
-                                                        }
-                                                    }
-                                                )
-                                            )
+                                                multipleSelect =
+                                                    alertState.multipleSelect.copy(
+                                                        listSelect =
+                                                            alertState.multipleSelect.listSelect.toMutableList().map {
+                                                                if (it == item) {
+                                                                    !it.first to it.second
+                                                                } else {
+                                                                    it
+                                                                }
+                                                            },
+                                                    ),
+                                            ),
                                         )
-                                    }
+                                    },
                                 )
                                 Spacer(Modifier.width(8.dp))
                                 Text(text = item.second, style = typo.bodyMedium, maxLines = 1)
@@ -1069,11 +1285,15 @@ fun SettingScreen(
                         alertState.confirm.second.invoke(alertState)
                         viewModel.setAlertData(null)
                     },
-                    enabled = if (alertState.textField?.verifyCodeBlock != null) {
-                        alertState.textField.verifyCodeBlock.invoke(
-                            alertState.textField.value
-                        ).first
-                    } else true
+                    enabled =
+                        if (alertState.textField?.verifyCodeBlock != null) {
+                            alertState.textField.verifyCodeBlock
+                                .invoke(
+                                    alertState.textField.value,
+                                ).first
+                        } else {
+                            true
+                        },
                 ) {
                     Text(text = alertState.confirm.first)
                 }
@@ -1082,20 +1302,21 @@ fun SettingScreen(
                 TextButton(
                     onClick = {
                         viewModel.setAlertData(null)
-                    }
+                    },
                 ) {
                     Text(text = alertState.dismiss)
                 }
-            }
+            },
         )
     }
 
     TopAppBar(
         title = {
             Text(
-                text = stringResource(
-                    R.string.settings
-                ),
+                text =
+                    stringResource(
+                        R.string.settings,
+                    ),
                 style = typo.titleMedium,
             )
         },
@@ -1110,6 +1331,6 @@ fun SettingScreen(
                     navController.popBackStack()
                 }
             }
-        }
+        },
     )
 }

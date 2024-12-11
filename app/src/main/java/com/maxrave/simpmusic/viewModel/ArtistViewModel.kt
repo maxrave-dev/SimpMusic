@@ -28,8 +28,9 @@ import org.koin.android.annotation.KoinViewModel
 import java.time.LocalDateTime
 
 @KoinViewModel
-class ArtistViewModel (private val application: Application): BaseViewModel(application){
-
+class ArtistViewModel(
+    private val application: Application,
+) : BaseViewModel(application) {
     override val tag: String
         get() = "ArtistViewModel"
 
@@ -47,7 +48,6 @@ class ArtistViewModel (private val application: Application): BaseViewModel(appl
     private var _listLocalPlaylist: MutableLiveData<List<LocalPlaylistEntity>> = MutableLiveData()
     val listLocalPlaylist: LiveData<List<LocalPlaylistEntity>> = _listLocalPlaylist
 
-
     private var regionCode: String? = null
     private var language: String? = null
 
@@ -56,7 +56,7 @@ class ArtistViewModel (private val application: Application): BaseViewModel(appl
         language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
     }
 
-    fun browseArtist(channelId: String){
+    fun browseArtist(channelId: String) {
         loading.value = true
         _artistBrowse.value = null
         viewModelScope.launch {
@@ -67,17 +67,17 @@ class ArtistViewModel (private val application: Application): BaseViewModel(appl
             mainRepository.getArtistData(channelId).collect {
                 _artistBrowse.emit(it)
             }
-            withContext(Dispatchers.Main){
+            withContext(Dispatchers.Main) {
                 loading.value = false
             }
         }
     }
 
-    fun insertArtist(artist: ArtistEntity){
+    fun insertArtist(artist: ArtistEntity) {
         viewModelScope.launch {
             mainRepository.insertArtist(artist)
             mainRepository.updateArtistInLibrary(LocalDateTime.now(), artist.channelId)
-            mainRepository.getArtistById(artist.channelId).collect{
+            mainRepository.getArtistById(artist.channelId).collect {
                 _artistEntity.value = it
                 _followed.value = it.followed
                 Log.d("ArtistViewModel", "insertArtist: ${it.followed}")
@@ -85,13 +85,17 @@ class ArtistViewModel (private val application: Application): BaseViewModel(appl
         }
     }
 
-    fun updateFollowed(followed: Int, channelId: String){
+    fun updateFollowed(
+        followed: Int,
+        channelId: String,
+    ) {
         viewModelScope.launch {
             _followed.value = followed == 1
             mainRepository.updateFollowedStatus(channelId, followed)
             Log.d("ArtistViewModel", "updateFollowed: ${_followed.value}")
         }
     }
+
     fun getLocation() {
         regionCode = runBlocking { dataStoreManager.location.first() }
         language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
@@ -108,7 +112,10 @@ class ArtistViewModel (private val application: Application): BaseViewModel(appl
         }
     }
 
-    fun updateLikeStatus(videoId: String, likeStatus: Int) {
+    fun updateLikeStatus(
+        videoId: String,
+        likeStatus: Int,
+    ) {
         viewModelScope.launch {
             mainRepository.updateLikeStatus(likeStatus = likeStatus, videoId = videoId)
         }
@@ -122,12 +129,15 @@ class ArtistViewModel (private val application: Application): BaseViewModel(appl
         }
     }
 
-    fun updateLocalPlaylistTracks(list: List<String>, id: Long) {
+    fun updateLocalPlaylistTracks(
+        list: List<String>,
+        id: Long,
+    ) {
         viewModelScope.launch {
             mainRepository.getSongsByListVideoId(list).collect { values ->
                 var count = 0
                 values.forEach { song ->
-                    if (song.downloadState == DownloadState.STATE_DOWNLOADED){
+                    if (song.downloadState == DownloadState.STATE_DOWNLOADED) {
                         count++
                     }
                 }
@@ -135,22 +145,25 @@ class ArtistViewModel (private val application: Application): BaseViewModel(appl
                 Toast.makeText(getApplication(), application.getString(R.string.added_to_playlist), Toast.LENGTH_SHORT).show()
                 if (count == values.size) {
                     mainRepository.updateLocalPlaylistDownloadState(DownloadState.STATE_DOWNLOADED, id)
-                }
-                else {
+                } else {
                     mainRepository.updateLocalPlaylistDownloadState(DownloadState.STATE_NOT_DOWNLOADED, id)
                 }
             }
         }
     }
-    fun addToYouTubePlaylist(localPlaylistId: Long, youtubePlaylistId: String, videoId: String) {
+
+    fun addToYouTubePlaylist(
+        localPlaylistId: Long,
+        youtubePlaylistId: String,
+        videoId: String,
+    ) {
         viewModelScope.launch {
             mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylistId, LocalPlaylistEntity.YouTubeSyncState.Syncing)
             mainRepository.addYouTubePlaylistItem(youtubePlaylistId, videoId).collect { response ->
                 if (response == "STATUS_SUCCEEDED") {
                     mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylistId, LocalPlaylistEntity.YouTubeSyncState.Synced)
                     Toast.makeText(getApplication(), application.getString(R.string.added_to_youtube_playlist), Toast.LENGTH_SHORT).show()
-                }
-                else {
+                } else {
                     mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(localPlaylistId, LocalPlaylistEntity.YouTubeSyncState.NotSynced)
                     Toast.makeText(getApplication(), application.getString(R.string.error), Toast.LENGTH_SHORT).show()
                 }
@@ -169,5 +182,4 @@ class ArtistViewModel (private val application: Application): BaseViewModel(appl
             mainRepository.insertPairSongLocalPlaylist(pairSongLocalPlaylist)
         }
     }
-
 }

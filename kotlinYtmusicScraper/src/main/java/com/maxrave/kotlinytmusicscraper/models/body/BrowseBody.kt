@@ -14,5 +14,5 @@ data class BrowseBody(
     val isAudioOnly: Boolean? = null,
     val tunerSettingValue: String? = null,
     val playlistId: String? = null,
-    val watchEndpointMusicSupportedConfigs: WatchEndpoint.WatchEndpointMusicSupportedConfigs? = null
+    val watchEndpointMusicSupportedConfigs: WatchEndpoint.WatchEndpointMusicSupportedConfigs? = null,
 )

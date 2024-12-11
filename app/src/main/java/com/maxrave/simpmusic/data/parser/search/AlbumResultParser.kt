@@ -12,11 +12,13 @@ fun parseSearchAlbum(result: SearchResult): ArrayList<AlbumsResult> {
         val album = it as AlbumItem
         albumsResult.add(
             AlbumsResult(
-                artists = album.artists?.map { artistItem ->
-                    Artist(
-                        id = artistItem.id,
-                        name = artistItem.name
-                    ) } ?: listOf(),
+                artists =
+                    album.artists?.map { artistItem ->
+                        Artist(
+                            id = artistItem.id,
+                            name = artistItem.name,
+                        )
+                    } ?: listOf(),
                 browseId = album.browseId,
                 category = "Album",
                 duration = "",
@@ -25,8 +27,8 @@ fun parseSearchAlbum(result: SearchResult): ArrayList<AlbumsResult> {
                 thumbnails = listOf(Thumbnail(544, Regex("([wh])120").replace(album.thumbnail, "$1544"), 544)),
                 title = album.title,
                 type = "Album",
-                year = album.year.toString()
-            )
+                year = album.year.toString(),
+            ),
         )
     }
     return albumsResult

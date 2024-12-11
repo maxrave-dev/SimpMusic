@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.data.model.explore.mood.genre
 
-
 import androidx.compose.runtime.Immutable
 import com.google.gson.annotations.SerializedName
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
@@ -13,5 +12,5 @@ data class Content(
     @SerializedName("thumbnail")
     val thumbnail: List<Thumbnail>?,
     @SerializedName("title")
-    val title: Title
-): HomeContentType
+    val title: Title,
+) : HomeContentType

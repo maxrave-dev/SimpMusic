@@ -35,11 +35,12 @@ data class AccountMenuResponse(
                             val accountPhoto: Thumbnails,
                             val channelHandle: Runs,
                         ) {
-                            fun toAccountInfo() = AccountInfo(
-                                accountName.runs!!.first().text,
-                                channelHandle.runs!!.first().text,
-                                accountPhoto.thumbnails
-                            )
+                            fun toAccountInfo() =
+                                AccountInfo(
+                                    accountName.runs!!.first().text,
+                                    channelHandle.runs!!.first().text,
+                                    accountPhoto.thumbnails,
+                                )
                         }
                     }
                 }

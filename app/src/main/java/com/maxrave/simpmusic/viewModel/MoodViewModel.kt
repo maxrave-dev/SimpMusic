@@ -18,9 +18,8 @@ import org.koin.android.annotation.KoinViewModel
 
 @KoinViewModel
 class MoodViewModel(
-    application: Application
+    application: Application,
 ) : BaseViewModel(application) {
-
     override val tag: String
         get() = "MoodViewModel"
 

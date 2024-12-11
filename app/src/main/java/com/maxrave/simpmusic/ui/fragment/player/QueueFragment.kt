@@ -100,7 +100,8 @@ class QueueFragment : BottomSheetDialogFragment() {
         touchHelper.attachToRecyclerView(binding.rvQueue)
         val queue =
             runBlocking {
-                viewModel.getQueueData()
+                viewModel
+                    .getQueueData()
                     ?.listTracks
             }
         if (!queue.isNullOrEmpty()) {
@@ -124,7 +125,8 @@ class QueueFragment : BottomSheetDialogFragment() {
                                 binding.loadingQueue.visibility = View.GONE
                                 binding.rvQueue.visibility = View.VISIBLE
                                 queueAdapter.updateList(
-                                    viewModel.getQueueData()
+                                    viewModel
+                                        .getQueueData()
                                         ?.listTracks ?: arrayListOf(),
                                 )
                             }
@@ -226,7 +228,8 @@ class QueueFragment : BottomSheetDialogFragment() {
                     lifecycleScope.launch {
                         viewModel.swapQueue(from, to)
                         queueAdapter.updateList(
-                            viewModel.getQueueData()
+                            viewModel
+                                .getQueueData()
                                 ?.listTracks ?: arrayListOf(),
                         )
                     }
@@ -272,7 +275,8 @@ class QueueFragment : BottomSheetDialogFragment() {
                             lifecycleScope.launch {
                                 viewModel.moveItemUp(position)
                                 queueAdapter.updateList(
-                                    viewModel.getQueueData()
+                                    viewModel
+                                        .getQueueData()
                                         ?.listTracks ?: arrayListOf(),
                                 )
                             }
@@ -282,7 +286,8 @@ class QueueFragment : BottomSheetDialogFragment() {
                             lifecycleScope.launch {
                                 viewModel.moveItemDown(position)
                                 queueAdapter.updateList(
-                                    viewModel.getQueueData()
+                                    viewModel
+                                        .getQueueData()
                                         ?.listTracks ?: arrayListOf(),
                                 )
                             }
@@ -292,7 +297,8 @@ class QueueFragment : BottomSheetDialogFragment() {
                             viewModel.removeItem(position)
                             lifecycleScope.launch {
                                 queueAdapter.updateList(
-                                    viewModel.getQueueData()
+                                    viewModel
+                                        .getQueueData()
                                         ?.listTracks ?: arrayListOf(),
                                 )
                             }

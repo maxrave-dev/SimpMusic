@@ -46,6 +46,7 @@ abstract class BaseViewModel(
     protected val simpleMediaServiceHandler: SimpleMediaServiceHandler by inject()
 
     private val _nowPlayingVideoId: MutableStateFlow<String> = MutableStateFlow("")
+
     /**
      * Get now playing video id
      * If empty, no video is playing
@@ -60,7 +61,10 @@ abstract class BaseViewModel(
     /**
      * Log with viewModel tag
      */
-    protected fun log(message: String, logType: Int) {
+    protected fun log(
+        message: String,
+        logType: Int,
+    ) {
         when (logType) {
             Log.ASSERT -> Log.wtf(tag, message)
             Log.VERBOSE -> Log.v(tag, message)
@@ -97,6 +101,7 @@ abstract class BaseViewModel(
     fun showLoadingDialog(message: String? = null) {
         _showLoadingDialog.value = true to (message ?: getString(R.string.loading))
     }
+
     fun hideLoadingDialog() {
         _showLoadingDialog.value = false to getString(R.string.loading)
     }
@@ -112,7 +117,6 @@ abstract class BaseViewModel(
                     _nowPlayingVideoId.value = ""
                 }
             }
-
         }
     }
 
@@ -126,14 +130,15 @@ abstract class BaseViewModel(
     fun <T> loadMediaItem(
         anyTrack: T,
         type: String,
-        index: Int? = null
+        index: Int? = null,
     ) {
-        val track = when (anyTrack) {
-            is Track -> anyTrack
-            is SongItem -> anyTrack.toTrack()
-            is SongEntity -> anyTrack.toTrack()
-            else -> return
-        }
+        val track =
+            when (anyTrack) {
+                is Track -> anyTrack
+                is SongItem -> anyTrack.toTrack()
+                is SongEntity -> anyTrack.toTrack()
+                else -> return
+            }
         viewModelScope.launch {
             mainRepository.insertSong(track.toSongEntity()).singleOrNull()?.let {
                 log("Inserted song: ${track.title}", Log.DEBUG)

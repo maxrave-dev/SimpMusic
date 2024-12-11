@@ -138,12 +138,14 @@ fun NotificationItem(
             ) {
                 val thumb = notification.thumbnail
                 AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(thumb)
-                        .diskCachePolicy(CachePolicy.ENABLED)
-                        .diskCacheKey(thumb)
-                        .crossfade(true)
-                        .build(),
+                    model =
+                        ImageRequest
+                            .Builder(LocalContext.current)
+                            .data(thumb)
+                            .diskCachePolicy(CachePolicy.ENABLED)
+                            .diskCacheKey(thumb)
+                            .crossfade(true)
+                            .build(),
                     placeholder = painterResource(R.drawable.holder),
                     error = painterResource(R.drawable.holder),
                     contentDescription = null,
@@ -209,7 +211,7 @@ fun ItemAlbumNotification(
     Box(
         modifier =
             Modifier
-                .clickable{
+                .clickable {
                     navController.navigateSafe(
                         R.id.action_global_albumFragment,
                         Bundle().apply {
@@ -222,12 +224,14 @@ fun ItemAlbumNotification(
             Modifier.padding(5.dp),
         ) {
             AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(thumbnail)
-                    .diskCachePolicy(CachePolicy.ENABLED)
-                    .diskCacheKey(thumbnail)
-                    .crossfade(true)
-                    .build(),
+                model =
+                    ImageRequest
+                        .Builder(LocalContext.current)
+                        .data(thumbnail)
+                        .diskCachePolicy(CachePolicy.ENABLED)
+                        .diskCacheKey(thumbnail)
+                        .crossfade(true)
+                        .build(),
                 placeholder = painterResource(R.drawable.holder),
                 error = painterResource(R.drawable.holder),
                 contentDescription = null,
@@ -252,9 +256,8 @@ fun ItemAlbumNotification(
                         .padding(top = 10.dp)
                         .basicMarquee(
                             iterations = Int.MAX_VALUE,
-                            animationMode = MarqueeAnimationMode.Immediately
-                        )
-                        .focusable(),
+                            animationMode = MarqueeAnimationMode.Immediately,
+                        ).focusable(),
             )
             Text(
                 text = if (isAlbum) stringResource(id = R.string.album) else stringResource(id = R.string.singles),
@@ -267,9 +270,8 @@ fun ItemAlbumNotification(
                         .padding(top = 10.dp)
                         .basicMarquee(
                             iterations = Int.MAX_VALUE,
-                            animationMode = MarqueeAnimationMode.Immediately
-                        )
-                        .focusable(),
+                            animationMode = MarqueeAnimationMode.Immediately,
+                        ).focusable(),
             )
         }
     }

@@ -18,27 +18,30 @@ import kotlinx.coroutines.guava.future
 import java.util.concurrent.ExecutionException
 
 @UnstableApi
-class CoilBitmapLoader(private val context: Context, private val coroutineScope: CoroutineScope) : BitmapLoader {
-    override fun supportsMimeType(mimeType: String): Boolean {
-        return true
-    }
+class CoilBitmapLoader(
+    private val context: Context,
+    private val coroutineScope: CoroutineScope,
+) : BitmapLoader {
+    override fun supportsMimeType(mimeType: String): Boolean = true
 
-    override fun decodeBitmap(data: ByteArray): ListenableFuture<Bitmap> {
-        return coroutineScope.future(Dispatchers.IO) {
+    override fun decodeBitmap(data: ByteArray): ListenableFuture<Bitmap> =
+        coroutineScope.future(Dispatchers.IO) {
             BitmapFactory.decodeByteArray(data, 0, data.size)
                 ?: error("Could not decode image data")
         }
-    }
 
-    override fun loadBitmap(uri: Uri): ListenableFuture<Bitmap> {
-        return coroutineScope.future(Dispatchers.IO) {
+    override fun loadBitmap(uri: Uri): ListenableFuture<Bitmap> =
+        coroutineScope.future(Dispatchers.IO) {
             val result =
-                (context.imageLoader.execute(
-                    ImageRequest.Builder(context)
-                        .data(uri)
-                        .allowHardware(false)
-                        .build()
-                ))
+                (
+                    context.imageLoader.execute(
+                        ImageRequest
+                            .Builder(context)
+                            .data(uri)
+                            .allowHardware(false)
+                            .build(),
+                    )
+                )
             if (result is ErrorResult) {
                 throw ExecutionException(result.throwable)
             }
@@ -48,5 +51,4 @@ class CoilBitmapLoader(private val context: Context, private val coroutineScope:
                 throw ExecutionException(e)
             }
         }
-    }
 }

@@ -219,7 +219,7 @@ object SUPPORTED_LANGUAGE {
             "az-AZ",
             "hi-IN",
             "th-TH",
-            "nl-NL
+            "nl-NL"
         )
     fun getLanguageFromCode(code: String?): String {
         val index = codes.indexOf(code)

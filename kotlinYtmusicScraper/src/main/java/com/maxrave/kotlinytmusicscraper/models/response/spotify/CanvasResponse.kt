@@ -7,7 +7,7 @@ import kotlinx.serialization.protobuf.ProtoNumber
 @OptIn(kotlinx.serialization.ExperimentalSerializationApi::class)
 data class CanvasResponse(
     @ProtoNumber(1)
-    val canvases: List<Canvas>
+    val canvases: List<Canvas>,
 ) {
     @Serializable
     data class Canvas(
@@ -22,7 +22,7 @@ data class CanvasResponse(
         @ProtoNumber(9)
         val other_id: String? = null,
         @ProtoNumber(11)
-        val canvas_uri: String
+        val canvas_uri: String,
     ) {
         @Serializable
         data class Artist(
@@ -31,12 +31,12 @@ data class CanvasResponse(
             @ProtoNumber(2)
             val artist_name: String,
             @ProtoNumber(3)
-            val artist_img_url: String
+            val artist_img_url: String,
         )
     }
 }
 
-//message CanvasResponse {
+// message CanvasResponse {
 //  message Canvas {
 //    string id = 1;                // ef3bc2ac86ba4a39b2cddff19dca884a
 //    string canvas_url = 2;        // https://canvaz.scdn.co/upload/artist/6i1GVNJCyyssRwXmnaeEFH/video/ef3bc2ac86ba4a39b2cddff19dca884a.cnvs.mp4
@@ -51,4 +51,4 @@ data class CanvasResponse(
 //    string canvas_uri = 11;       // spotify:canvas:1OuybAWK7XOQMG725ZtFwG
 //  }
 //  repeated Canvas canvases = 1;
-//}
+// }

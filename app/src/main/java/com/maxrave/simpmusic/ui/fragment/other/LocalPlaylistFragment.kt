@@ -34,11 +34,10 @@ class LocalPlaylistFragment : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?,
-    ): View {
-        return ComposeView(requireContext()).also {
+    ): View =
+        ComposeView(requireContext()).also {
             composeView = it
         }
-    }
 
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     @UnstableApi
@@ -985,7 +984,7 @@ class LocalPlaylistFragment : Fragment() {
         super.onDestroyView()
         setStatusBarsColor(
             ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark),
-            requireActivity()
+            requireActivity(),
         )
     }
 }

@@ -63,27 +63,29 @@ import org.koin.compose.koinInject
 fun LibraryItem(
     state: LibraryItemState,
     viewModel: LibraryViewModel = koinInject(),
-    navController: NavController
+    navController: NavController,
 ) {
     val context = LocalContext.current
-    
+
     var showBottomSheet by remember { mutableStateOf(false) }
     var showAddSheet by remember { mutableStateOf(false) }
     var songEntity by remember { mutableStateOf<SongEntity?>(null) }
-    val title = when (state.type) {
-        is LibraryItemType.YouTubePlaylist -> stringResource(R.string.your_youtube_playlists)
-        is LibraryItemType.LocalPlaylist -> stringResource(R.string.your_playlists)
-        is LibraryItemType.FavoritePlaylist -> stringResource(R.string.favorite_playlists)
-        is LibraryItemType.DownloadedPlaylist -> stringResource(R.string.downloaded_playlists)
-        is LibraryItemType.RecentlyAdded -> stringResource(R.string.recently_added)
-    }
-    val noPlaylistTitle = when (state.type) {
-        is LibraryItemType.YouTubePlaylist -> stringResource(R.string.no_YouTube_playlists)
-        is LibraryItemType.LocalPlaylist -> stringResource(R.string.no_playlists_added)
-        LibraryItemType.DownloadedPlaylist -> stringResource(R.string.no_playlists_downloaded)
-        LibraryItemType.FavoritePlaylist -> stringResource(R.string.no_favorite_playlists)
-        is LibraryItemType.RecentlyAdded -> stringResource(R.string.recently_added)
-    }
+    val title =
+        when (state.type) {
+            is LibraryItemType.YouTubePlaylist -> stringResource(R.string.your_youtube_playlists)
+            is LibraryItemType.LocalPlaylist -> stringResource(R.string.your_playlists)
+            is LibraryItemType.FavoritePlaylist -> stringResource(R.string.favorite_playlists)
+            is LibraryItemType.DownloadedPlaylist -> stringResource(R.string.downloaded_playlists)
+            is LibraryItemType.RecentlyAdded -> stringResource(R.string.recently_added)
+        }
+    val noPlaylistTitle =
+        when (state.type) {
+            is LibraryItemType.YouTubePlaylist -> stringResource(R.string.no_YouTube_playlists)
+            is LibraryItemType.LocalPlaylist -> stringResource(R.string.no_playlists_added)
+            LibraryItemType.DownloadedPlaylist -> stringResource(R.string.no_playlists_downloaded)
+            LibraryItemType.FavoritePlaylist -> stringResource(R.string.no_favorite_playlists)
+            is LibraryItemType.RecentlyAdded -> stringResource(R.string.recently_added)
+        }
     Box {
         if (showBottomSheet) {
             NowPlayingBottomSheet(
@@ -94,8 +96,7 @@ fun LibraryItem(
                 navController = navController,
                 song = songEntity ?: return,
                 onDelete = {
-
-                }
+                },
             )
         }
         Column {
@@ -106,23 +107,25 @@ fun LibraryItem(
                     text = title,
                     style = typo.headlineMedium,
                     maxLines = 1,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(35.dp)
-                        .align(Alignment.CenterStart)
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .height(35.dp)
+                            .align(Alignment.CenterStart),
                 )
                 if (state.type is LibraryItemType.LocalPlaylist || state.type is LibraryItemType.YouTubePlaylist) {
                     TextButton(
-                        modifier = Modifier
-                            .align(Alignment.CenterEnd)
-                            .defaultMinSize(minWidth = 1.dp, minHeight = 1.dp),
+                        modifier =
+                            Modifier
+                                .align(Alignment.CenterEnd)
+                                .defaultMinSize(minWidth = 1.dp, minHeight = 1.dp),
                         onClick = {
                             if (state.type is LibraryItemType.LocalPlaylist) {
                                 showAddSheet = true
                             } else {
                                 (state.type as LibraryItemType.YouTubePlaylist).onReload.invoke()
                             }
-                        }
+                        },
                     ) {
                         if (state.type is LibraryItemType.LocalPlaylist) {
                             Text(stringResource(R.string.add))
@@ -135,9 +138,11 @@ fun LibraryItem(
             Crossfade(targetState = state.type is LibraryItemType.YouTubePlaylist && !state.type.isLoggedIn) { notLoggedIn ->
                 if (notLoggedIn) {
                     Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(120.dp), contentAlignment = Alignment.Center
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .height(120.dp),
+                        contentAlignment = Alignment.Center,
                     ) {
                         Text(stringResource(R.string.log_in_to_get_YouTube_playlist), style = typo.bodyMedium)
                     }
@@ -165,15 +170,15 @@ fun LibraryItem(
                                                                 playlistId = "RDAMVM${item.videoId}",
                                                                 playlistName = item.title,
                                                                 playlistType = com.maxrave.simpmusic.service.PlaylistType.RADIO,
-                                                                continuation = null
-                                                            )
+                                                                continuation = null,
+                                                            ),
                                                         )
                                                         viewModel.loadMediaItem(
                                                             item,
                                                             type = Config.SONG_CLICK,
-                                                            index = 0
+                                                            index = 0,
                                                         )
-                                                    }
+                                                    },
                                                 )
                                             }
                                             RecentlyType.Type.ARTIST -> {
@@ -184,9 +189,9 @@ fun LibraryItem(
                                                             R.id.action_global_artistFragment,
                                                             Bundle().apply {
                                                                 putString("channelId", item.channelId)
-                                                            }
+                                                            },
                                                         )
-                                                    }
+                                                    },
                                                 )
                                             }
                                             else -> {
@@ -200,7 +205,7 @@ fun LibraryItem(
                                                                         R.id.action_global_albumFragment,
                                                                         Bundle().apply {
                                                                             putString("browseId", item.browseId)
-                                                                        }
+                                                                        },
                                                                     )
                                                                 }
                                                                 is PlaylistEntity -> {
@@ -208,11 +213,11 @@ fun LibraryItem(
                                                                         R.id.action_global_playlistFragment,
                                                                         Bundle().apply {
                                                                             putString("id", item.id)
-                                                                        }
+                                                                        },
                                                                     )
                                                                 }
                                                             }
-                                                        }
+                                                        },
                                                     )
                                                 }
                                             }
@@ -232,7 +237,7 @@ fun LibraryItem(
                                                                     R.id.action_bottom_navigation_item_library_to_localPlaylistFragment,
                                                                     Bundle().apply {
                                                                         putLong("id", item.id)
-                                                                    }
+                                                                    },
                                                                 )
                                                             }
                                                             is PlaylistsResult -> {
@@ -241,7 +246,7 @@ fun LibraryItem(
                                                                     Bundle().apply {
                                                                         putString("id", item.browseId)
                                                                         putBoolean("youtube", true)
-                                                                    }
+                                                                    },
                                                                 )
                                                             }
                                                             is AlbumEntity -> {
@@ -249,7 +254,7 @@ fun LibraryItem(
                                                                     R.id.action_global_albumFragment,
                                                                     Bundle().apply {
                                                                         putString("browseId", item.browseId)
-                                                                    }
+                                                                    },
                                                                 )
                                                             }
                                                             is PlaylistEntity -> {
@@ -257,22 +262,24 @@ fun LibraryItem(
                                                                     R.id.action_global_playlistFragment,
                                                                     Bundle().apply {
                                                                         putString("id", item.id)
-                                                                    }
+                                                                    },
                                                                 )
                                                             }
                                                         }
                                                     },
                                                     data = item as? PlaylistType ?: return@items,
-                                                    thumbSize = 125.dp
+                                                    thumbSize = 125.dp,
                                                 )
                                             }
                                         }
                                     }
                                 } else {
                                     Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .height(130.dp), contentAlignment = Alignment.Center
+                                        modifier =
+                                            Modifier
+                                                .fillMaxWidth()
+                                                .height(130.dp),
+                                        contentAlignment = Alignment.Center,
                                     ) {
                                         Text(noPlaylistTitle, style = typo.bodyMedium)
                                     }
@@ -280,9 +287,11 @@ fun LibraryItem(
                             }
                         } else {
                             Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(130.dp), contentAlignment = Alignment.Center
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .height(130.dp),
+                                contentAlignment = Alignment.Center,
                             ) {
                                 CircularProgressIndicator()
                             }
@@ -300,10 +309,12 @@ fun LibraryItem(
                 skipPartiallyExpanded = true,
             )
         val hideEditTitleBottomSheet: () -> Unit =
-            { coroutineScope.launch {
-                showAddSheetState.hide()
-                showAddSheet = false
-            } }
+            {
+                coroutineScope.launch {
+                    showAddSheetState.hide()
+                    showAddSheet = false
+                }
+            }
         ModalBottomSheet(
             onDismissRequest = { showAddSheet = false },
             sheetState = showAddSheetState,
@@ -314,9 +325,9 @@ fun LibraryItem(
         ) {
             Card(
                 modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight(),
+                    Modifier
+                        .fillMaxWidth()
+                        .wrapContentHeight(),
                 shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
                 colors = CardDefaults.cardColors().copy(containerColor = Color(0xFF242424)),
             ) {
@@ -326,13 +337,13 @@ fun LibraryItem(
                     Spacer(modifier = Modifier.height(5.dp))
                     Card(
                         modifier =
-                        Modifier
-                            .width(60.dp)
-                            .height(4.dp),
+                            Modifier
+                                .width(60.dp)
+                                .height(4.dp),
                         colors =
-                        CardDefaults.cardColors().copy(
-                            containerColor = Color(0xFF474545),
-                        ),
+                            CardDefaults.cardColors().copy(
+                                containerColor = Color(0xFF474545),
+                            ),
                         shape = RoundedCornerShape(50),
                     ) {}
                     Spacer(modifier = Modifier.height(5.dp))
@@ -342,9 +353,10 @@ fun LibraryItem(
                         label = {
                             Text(text = stringResource(id = R.string.playlist_name))
                         },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 8.dp),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 8.dp),
                     )
                     Spacer(modifier = Modifier.height(5.dp))
                     TextButton(
@@ -357,9 +369,9 @@ fun LibraryItem(
                             }
                         },
                         modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .align(Alignment.CenterHorizontally),
+                            Modifier
+                                .fillMaxWidth()
+                                .align(Alignment.CenterHorizontally),
                     ) {
                         Text(text = stringResource(id = R.string.create))
                     }
@@ -372,25 +384,25 @@ fun LibraryItem(
 sealed class LibraryItemType {
     data class YouTubePlaylist(
         val isLoggedIn: Boolean,
-        val onReload: () -> Unit = {}
+        val onReload: () -> Unit = {},
     ) : LibraryItemType()
 
     data class LocalPlaylist(
         // Create new local playlist
-        val onAddClick: (String) -> Unit
+        val onAddClick: (String) -> Unit,
     ) : LibraryItemType()
 
-    data object FavoritePlaylist: LibraryItemType()
+    data object FavoritePlaylist : LibraryItemType()
 
-    data object DownloadedPlaylist: LibraryItemType()
+    data object DownloadedPlaylist : LibraryItemType()
 
     data class RecentlyAdded(
-        val playingVideoId: String
+        val playingVideoId: String,
     ) : LibraryItemType()
 }
 
 data class LibraryItemState(
     val type: LibraryItemType,
     val data: List<LibraryType>,
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
 )

@@ -15,20 +15,29 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.maxrave.simpmusic.R
 
 @Composable
-fun WebView(modifier: Modifier = Modifier, url: String, onFinished: () -> Unit) {
+fun WebView(
+    modifier: Modifier = Modifier,
+    url: String,
+    onFinished: () -> Unit,
+) {
     AndroidView(
         modifier = modifier,
         factory = { context ->
             WebView(context).apply {
-                webViewClient = object : WebViewClient() {
-                    override fun onPageFinished(view: WebView?, url: String?) {
-                        onFinished()
+                webViewClient =
+                    object : WebViewClient() {
+                        override fun onPageFinished(
+                            view: WebView?,
+                            url: String?,
+                        ) {
+                            onFinished()
+                        }
                     }
-                }
 //                settings.javaScriptEnabled = true
                 loadUrl(url)
             }
-        })
+        },
+    )
 }
 
 @Preview
@@ -43,7 +52,7 @@ fun WebViewPreview() {
                 IconButton(onClick = { }) {
                     Icon(
                         painterResource(id = R.drawable.baseline_arrow_back_ios_new_24),
-                        contentDescription = "Back"
+                        contentDescription = "Back",
                     )
                 }
             },
@@ -51,10 +60,10 @@ fun WebViewPreview() {
                 IconButton(onClick = { }) {
                     Icon(
                         painterResource(id = R.drawable.baseline_more_vert_24),
-                        contentDescription = "Back"
+                        contentDescription = "Back",
                     )
                 }
-            }
+            },
         )
         WebView(modifier = Modifier.fillMaxSize(), url = "https://www.google.com", onFinished = {})
     }

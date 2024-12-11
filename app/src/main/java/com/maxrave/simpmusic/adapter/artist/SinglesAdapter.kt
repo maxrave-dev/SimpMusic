@@ -10,18 +10,26 @@ import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.data.model.browse.artist.ResultSingle
 import com.maxrave.simpmusic.databinding.ItemSinglesBinding
 
-class SinglesAdapter(private var singleList: ArrayList<ResultSingle>): RecyclerView.Adapter<SinglesAdapter.ViewHolder>() {
+class SinglesAdapter(
+    private var singleList: ArrayList<ResultSingle>,
+) : RecyclerView.Adapter<SinglesAdapter.ViewHolder>() {
     private lateinit var mListener: OnItemClickListener
 
-    interface OnItemClickListener{
-        fun onItemClick(position: Int, type: String = "single")
+    interface OnItemClickListener {
+        fun onItemClick(
+            position: Int,
+            type: String = "single",
+        )
     }
 
-    fun setOnClickListener(listener: OnItemClickListener){
+    fun setOnClickListener(listener: OnItemClickListener) {
         mListener = listener
     }
 
-    inner class ViewHolder(val binding: ItemSinglesBinding, listener: OnItemClickListener): RecyclerView.ViewHolder(binding.root) {
+    inner class ViewHolder(
+        val binding: ItemSinglesBinding,
+        listener: OnItemClickListener,
+    ) : RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
                 listener.onItemClick(bindingAdapterPosition)
@@ -29,22 +37,25 @@ class SinglesAdapter(private var singleList: ArrayList<ResultSingle>): RecyclerV
         }
     }
 
-    fun updateList(newList: ArrayList<ResultSingle>){
+    fun updateList(newList: ArrayList<ResultSingle>) {
         singleList.clear()
         singleList.addAll(newList)
         notifyDataSetChanged()
     }
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(ItemSinglesBinding.inflate(LayoutInflater.from(parent.context), parent, false), mListener)
-    }
 
-    override fun getItemCount(): Int {
-        return singleList.size
-    }
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int,
+    ): ViewHolder = ViewHolder(ItemSinglesBinding.inflate(LayoutInflater.from(parent.context), parent, false), mListener)
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+    override fun getItemCount(): Int = singleList.size
+
+    override fun onBindViewHolder(
+        holder: ViewHolder,
+        position: Int,
+    ) {
         val single = singleList[position]
-        with(holder.binding){
+        with(holder.binding) {
             tvAlbumName.text = single.title
             tvAlbumYear.text = single.year.toString()
             ivAlbumArt.load(if (single.thumbnails.size > 1) single.thumbnails[1].url else single.thumbnails[0].url) {
@@ -54,7 +65,5 @@ class SinglesAdapter(private var singleList: ArrayList<ResultSingle>): RecyclerV
         }
     }
 
-    fun getItem(position: Int): ResultSingle {
-        return singleList[position]
-    }
+    fun getItem(position: Int): ResultSingle = singleList[position]
 }

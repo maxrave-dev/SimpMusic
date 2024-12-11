@@ -1,6 +1,5 @@
 package com.maxrave.kotlinytmusicscraper.models.sponsorblock
 
-
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -21,5 +20,5 @@ data class SkipSegments(
     @SerialName("videoDuration")
     val videoDuration: Double,
     @SerialName("votes")
-    val votes: Int
+    val votes: Int,
 )

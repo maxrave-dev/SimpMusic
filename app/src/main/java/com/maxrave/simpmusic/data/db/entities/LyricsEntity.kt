@@ -5,9 +5,9 @@ import androidx.room.PrimaryKey
 import com.maxrave.simpmusic.data.model.metadata.Line
 
 @Entity(tableName = "lyrics")
-data class LyricsEntity (
+data class LyricsEntity(
     @PrimaryKey(autoGenerate = false) val videoId: String,
     val error: Boolean,
     val lines: List<Line>?,
-    val syncType: String?
+    val syncType: String?,
 )

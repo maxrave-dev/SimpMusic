@@ -21,14 +21,16 @@ class LibraryFragment : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?,
-    ): View {
-        return ComposeView(requireContext()).also {
+    ): View =
+        ComposeView(requireContext()).also {
             composeView = it
         }
-    }
 
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
         super.onViewCreated(view, savedInstanceState)
         composeView.apply {
             setContent {
@@ -582,42 +584,42 @@ class LibraryFragment : Fragment() {
 //                job2.join()
 //            }
 //        }
-////        binding.topAppBar.setOnMenuItemClickListener { menuItem ->
-////            when (menuItem.itemId) {
-////                R.id.library_fragment_menu_item_add -> {
-////                    val dialog = BottomSheetDialog(requireContext())
-////                    val viewDialog = BottomSheetAddPlaylistBinding.inflate(layoutInflater)
-////                    viewDialog.btCreatePlaylist.setOnClickListener {
-////                        val title = viewDialog.etPlaylistName.editText?.text.toString()
-////                        if (title.isNotEmpty()){
-////                            viewModel.createPlaylist(title)
-////                            viewModel.listLocalPlaylist.observe(viewLifecycleOwner) { list ->
-////                                val temp: ArrayList<Any> = arrayListOf()
-////                                for (i in list.size - 1 downTo 0) {
-////                                    temp.add(list[i])
-////                                }
-////                                listLocalPlaylist.clear()
-////                                listLocalPlaylist.addAll(temp)
-////                                adapterLocalPlaylist.updateList(temp)
-////                                if (listLocalPlaylist.isEmpty()) {
-////                                    binding.tvYourPlaylistsStatus.visibility = View.VISIBLE
-////                                }
-////                                else {
-////                                    binding.tvYourPlaylistsStatus.visibility = View.GONE
-////                                }
-////                            }
-////                            dialog.dismiss()
-////                        }
-////                    }
-////                    dialog.setCancelable(true)
-////                    dialog.setContentView(viewDialog.root)
-////                    dialog.show()
-////                    true
-////                }
-////                else -> {
-////                    false
-////                }
-////            }
-////        }
+// //        binding.topAppBar.setOnMenuItemClickListener { menuItem ->
+// //            when (menuItem.itemId) {
+// //                R.id.library_fragment_menu_item_add -> {
+// //                    val dialog = BottomSheetDialog(requireContext())
+// //                    val viewDialog = BottomSheetAddPlaylistBinding.inflate(layoutInflater)
+// //                    viewDialog.btCreatePlaylist.setOnClickListener {
+// //                        val title = viewDialog.etPlaylistName.editText?.text.toString()
+// //                        if (title.isNotEmpty()){
+// //                            viewModel.createPlaylist(title)
+// //                            viewModel.listLocalPlaylist.observe(viewLifecycleOwner) { list ->
+// //                                val temp: ArrayList<Any> = arrayListOf()
+// //                                for (i in list.size - 1 downTo 0) {
+// //                                    temp.add(list[i])
+// //                                }
+// //                                listLocalPlaylist.clear()
+// //                                listLocalPlaylist.addAll(temp)
+// //                                adapterLocalPlaylist.updateList(temp)
+// //                                if (listLocalPlaylist.isEmpty()) {
+// //                                    binding.tvYourPlaylistsStatus.visibility = View.VISIBLE
+// //                                }
+// //                                else {
+// //                                    binding.tvYourPlaylistsStatus.visibility = View.GONE
+// //                                }
+// //                            }
+// //                            dialog.dismiss()
+// //                        }
+// //                    }
+// //                    dialog.setCancelable(true)
+// //                    dialog.setContentView(viewDialog.root)
+// //                    dialog.show()
+// //                    true
+// //                }
+// //                else -> {
+// //                    false
+// //                }
+// //            }
+// //        }
 //    }
 }

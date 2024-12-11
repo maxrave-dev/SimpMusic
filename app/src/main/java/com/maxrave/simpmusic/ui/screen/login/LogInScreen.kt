@@ -12,5 +12,4 @@ fun LogInScreen(
     settingsViewModel: SettingsViewModel = viewModel(),
     sharedViewModel: SharedViewModel = viewModel(),
 ) {
-
 }

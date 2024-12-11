@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.data.model.streams
 
-
 import com.google.gson.annotations.SerializedName
 
 data class VideoStream(
@@ -43,5 +42,5 @@ data class VideoStream(
     @SerializedName("videoOnly")
     val videoOnly: Boolean?,
     @SerializedName("width")
-    val width: Int?
+    val width: Int?,
 )

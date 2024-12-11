@@ -11,8 +11,7 @@ import org.brotli.dec.BrotliInputStream
 object BrotliEncoder : ContentEncoder {
     override val name: String = "br"
 
-    override fun CoroutineScope.decode(source: ByteReadChannel): ByteReadChannel =
-        BrotliInputStream(source.toInputStream()).toByteReadChannel()
+    override fun CoroutineScope.decode(source: ByteReadChannel): ByteReadChannel = BrotliInputStream(source.toInputStream()).toByteReadChannel()
 
     override fun CoroutineScope.encode(source: ByteReadChannel): ByteReadChannel =
         throw UnsupportedOperationException("Encode not implemented by the library yet.")

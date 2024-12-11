@@ -8,7 +8,5 @@ data class FollowedArtistSingleAndAlbum(
     @PrimaryKey(autoGenerate = false) val channelId: String,
     val name: String,
     val single: List<Map<String, String>> = listOf(),
-    val album: List<Map<String, String>> = listOf()
-
-) {
-}
+    val album: List<Map<String, String>> = listOf(),
+)

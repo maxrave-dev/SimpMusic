@@ -28,43 +28,51 @@ import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toTrack
 
-class SuggestYTItemAdapter(private val listYtItems: ArrayList<YTItem>, private val context: Context): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class SuggestYTItemAdapter(
+    private val listYtItems: ArrayList<YTItem>,
+    private val context: Context,
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     private lateinit var mListener: onItemClickListener
 
-    interface onItemClickListener{
-        fun onItemClick(position: Int, type: String)
+    interface onItemClickListener {
+        fun onItemClick(
+            position: Int,
+            type: String,
+        )
     }
-    fun setOnClickListener(listener: onItemClickListener){
+
+    fun setOnClickListener(listener: onItemClickListener) {
         mListener = listener
     }
+
     fun getCurrentList(): ArrayList<YTItem> = listYtItems
 
-
-
-    inner class SongViewHolder(val binding: ItemSongsSearchResultBinding, listener: onItemClickListener): RecyclerView.ViewHolder(binding.root) {
+    inner class SongViewHolder(
+        val binding: ItemSongsSearchResultBinding,
+        listener: onItemClickListener,
+    ) : RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
                 listener.onItemClick(bindingAdapterPosition, SONG_CLICK)
             }
         }
-        fun bind(data: SongItem){
+
+        fun bind(data: SongItem) {
             val song = data.toTrack()
-            with(binding){
+            with(binding) {
                 if (!song.thumbnails.isNullOrEmpty()) {
-                    if (song.thumbnails.size > 1){
+                    if (song.thumbnails.size > 1) {
                         ivThumbnail.load(song.thumbnails[1].url) {
                             crossfade(true)
                             placeholder(R.drawable.holder)
                         }
-                    }
-                    else {
+                    } else {
                         ivThumbnail.load(song.thumbnails[0].url) {
                             crossfade(true)
                             placeholder(R.drawable.holder)
                         }
                     }
-                }
-                else {
+                } else {
                     ivThumbnail.load(data.thumbnail) {
                         crossfade(true)
                         placeholder(R.drawable.holder)
@@ -81,17 +89,27 @@ class SuggestYTItemAdapter(private val listYtItems: ArrayList<YTItem>, private v
             }
         }
     }
-    inner class VideoViewHolder(val binding: ItemsVideosSearchResultBinding, listener: onItemClickListener): RecyclerView.ViewHolder(binding.root) {
+
+    inner class VideoViewHolder(
+        val binding: ItemsVideosSearchResultBinding,
+        listener: onItemClickListener,
+    ) : RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
                 listener.onItemClick(bindingAdapterPosition, VIDEO_CLICK)
             }
         }
-        fun bind(video: VideoItem){
+
+        fun bind(video: VideoItem) {
             val data = video.toTrack()
-            with (binding) {
+            with(binding) {
                 btOptions.visibility = View.GONE
-                ivThumbnail.load(video.thumbnails?.thumbnails?.lastOrNull()?.url) {
+                ivThumbnail.load(
+                    video.thumbnails
+                        ?.thumbnails
+                        ?.lastOrNull()
+                        ?.url,
+                ) {
                     crossfade(true)
                     placeholder(R.drawable.holder_video)
                 }
@@ -102,13 +120,18 @@ class SuggestYTItemAdapter(private val listYtItems: ArrayList<YTItem>, private v
             }
         }
     }
-    inner class ArtistViewHolder(val binding: ItemArtistSearchResultBinding, listener: onItemClickListener): RecyclerView.ViewHolder(binding.root) {
+
+    inner class ArtistViewHolder(
+        val binding: ItemArtistSearchResultBinding,
+        listener: onItemClickListener,
+    ) : RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
                 listener.onItemClick(bindingAdapterPosition, "artist")
             }
         }
-        fun bind(artist: ArtistItem){
+
+        fun bind(artist: ArtistItem) {
             with(binding) {
                 ivThumbnail.load(artist.thumbnail) {
                     crossfade(true)
@@ -118,12 +141,17 @@ class SuggestYTItemAdapter(private val listYtItems: ArrayList<YTItem>, private v
             }
         }
     }
-    inner class PlaylistViewHolder(val binding: ItemPlaylistSearchResultBinding, listener: onItemClickListener): RecyclerView.ViewHolder(binding.root) {
+
+    inner class PlaylistViewHolder(
+        val binding: ItemPlaylistSearchResultBinding,
+        listener: onItemClickListener,
+    ) : RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
                 listener.onItemClick(bindingAdapterPosition, PLAYLIST_CLICK)
             }
         }
+
         fun bind(playlist: PlaylistItem) {
             with(binding) {
                 ivThumbnail.load(playlist.thumbnail) {
@@ -138,13 +166,18 @@ class SuggestYTItemAdapter(private val listYtItems: ArrayList<YTItem>, private v
             }
         }
     }
-    inner class AlbumViewHolder(val binding: ItemAlbumSearchResultBinding, listener: onItemClickListener): RecyclerView.ViewHolder(binding.root){
+
+    inner class AlbumViewHolder(
+        val binding: ItemAlbumSearchResultBinding,
+        listener: onItemClickListener,
+    ) : RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
                 listener.onItemClick(bindingAdapterPosition, ALBUM_CLICK)
             }
         }
-        fun bind(album: AlbumItem){
+
+        fun bind(album: AlbumItem) {
             with(binding) {
                 ivThumbnail.load(album.thumbnail) {
                     crossfade(true)
@@ -162,14 +195,15 @@ class SuggestYTItemAdapter(private val listYtItems: ArrayList<YTItem>, private v
             }
         }
     }
-    fun updateList(newList: ArrayList<YTItem>){
+
+    fun updateList(newList: ArrayList<YTItem>) {
         listYtItems.clear()
         listYtItems.addAll(newList)
         notifyDataSetChanged()
     }
 
-    override fun getItemViewType(position: Int): Int {
-        return when (listYtItems[position]) {
+    override fun getItemViewType(position: Int): Int =
+        when (listYtItems[position]) {
             is SongItem -> VIEW_TYPE_SONG
             is ArtistItem -> VIEW_TYPE_ARTIST
             is PlaylistItem -> VIEW_TYPE_PLAYLIST
@@ -177,8 +211,11 @@ class SuggestYTItemAdapter(private val listYtItems: ArrayList<YTItem>, private v
             is VideoItem -> VIEW_TYPE_VIDEO
             else -> throw IllegalArgumentException("Unknown view type")
         }
-    }
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int,
+    ): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         return when (viewType) {
             VIEW_TYPE_SONG -> {
@@ -205,11 +242,12 @@ class SuggestYTItemAdapter(private val listYtItems: ArrayList<YTItem>, private v
         }
     }
 
-    override fun getItemCount(): Int {
-        return listYtItems.size
-    }
+    override fun getItemCount(): Int = listYtItems.size
 
-    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+    override fun onBindViewHolder(
+        holder: RecyclerView.ViewHolder,
+        position: Int,
+    ) {
         when (holder) {
             is SongViewHolder -> {
                 holder.bind(listYtItems[position] as SongItem)
@@ -228,6 +266,7 @@ class SuggestYTItemAdapter(private val listYtItems: ArrayList<YTItem>, private v
             }
         }
     }
+
     companion object {
         private const val VIEW_TYPE_SONG = 0
         private const val VIEW_TYPE_ARTIST = 1

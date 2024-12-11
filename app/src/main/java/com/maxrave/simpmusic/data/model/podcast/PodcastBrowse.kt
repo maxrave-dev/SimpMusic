@@ -9,7 +9,7 @@ data class PodcastBrowse(
     val authorThumbnail: String?,
     val thumbnail: List<Thumbnail>,
     val description: String?,
-    val listEpisode: List<EpisodeItem>
+    val listEpisode: List<EpisodeItem>,
 ) {
     data class EpisodeItem(
         val title: String,

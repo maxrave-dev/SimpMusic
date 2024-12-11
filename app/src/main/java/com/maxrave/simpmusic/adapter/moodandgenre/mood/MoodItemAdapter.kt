@@ -13,25 +13,34 @@ import com.maxrave.simpmusic.data.model.explore.mood.moodmoments.Item
 import com.maxrave.simpmusic.databinding.ItemMoodMomentPlaylistBinding
 import com.maxrave.simpmusic.extension.navigateSafe
 
-class MoodItemAdapter(private var itemList: ArrayList<Item>, val context: Context, val navController: NavController): RecyclerView.Adapter<MoodItemAdapter.ViewHolder>() {
-    inner class ViewHolder(val binding: ItemMoodMomentPlaylistBinding): RecyclerView.ViewHolder(binding.root)
+class MoodItemAdapter(
+    private var itemList: ArrayList<Item>,
+    val context: Context,
+    val navController: NavController,
+) : RecyclerView.Adapter<MoodItemAdapter.ViewHolder>() {
+    inner class ViewHolder(
+        val binding: ItemMoodMomentPlaylistBinding,
+    ) : RecyclerView.ViewHolder(binding.root)
 
-    fun updateData(newList: ArrayList<Item>){
+    fun updateData(newList: ArrayList<Item>) {
         itemList.clear()
         itemList.addAll(newList)
         notifyDataSetChanged()
     }
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(ItemMoodMomentPlaylistBinding.inflate(LayoutInflater.from(parent.context), parent, false))
-    }
 
-    override fun getItemCount(): Int {
-        return itemList.size
-    }
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int,
+    ): ViewHolder = ViewHolder(ItemMoodMomentPlaylistBinding.inflate(LayoutInflater.from(parent.context), parent, false))
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+    override fun getItemCount(): Int = itemList.size
+
+    override fun onBindViewHolder(
+        holder: ViewHolder,
+        position: Int,
+    ) {
         val item = itemList[position]
-        with(holder){
+        with(holder) {
             binding.tvTitle.text = item.header
             val playlistContent: ArrayList<Content> = item.contents as ArrayList<Content>
             val contentAdapter = MoodContentAdapter(playlistContent)
@@ -40,13 +49,15 @@ class MoodItemAdapter(private var itemList: ArrayList<Item>, val context: Contex
                 adapter = contentAdapter
                 layoutManager = linearLayoutManager
             }
-            contentAdapter.setOnClickListener(object : MoodContentAdapter.OnClickListener{
-                override fun onClick(position: Int) {
-                    val args = Bundle()
-                    args.putString("id", playlistContent[position].playlistBrowseId)
-                    navController.navigateSafe(R.id.action_global_playlistFragment, args)
-                }
-            })
+            contentAdapter.setOnClickListener(
+                object : MoodContentAdapter.OnClickListener {
+                    override fun onClick(position: Int) {
+                        val args = Bundle()
+                        args.putString("id", playlistContent[position].playlistBrowseId)
+                        navController.navigateSafe(R.id.action_global_playlistFragment, args)
+                    }
+                },
+            )
         }
     }
 }

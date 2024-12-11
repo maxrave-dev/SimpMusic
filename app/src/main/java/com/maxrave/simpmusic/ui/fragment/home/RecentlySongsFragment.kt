@@ -33,7 +33,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class RecentlySongsFragment: Fragment() {
+class RecentlySongsFragment : Fragment() {
     private var _binding: FragmentRecentlySongsBinding? = null
     val binding get() = _binding!!
 
@@ -44,7 +44,8 @@ class RecentlySongsFragment: Fragment() {
     private lateinit var loadAdapter: RecentLoadStateAdapter
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
         // Inflate the layout for this fragment
@@ -57,7 +58,10 @@ class RecentlySongsFragment: Fragment() {
         return binding.root
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
         super.onViewCreated(view, savedInstanceState)
         mainAdapter = RecentPagingAdapter(requireContext())
         loadAdapter = RecentLoadStateAdapter()
@@ -70,55 +74,61 @@ class RecentlySongsFragment: Fragment() {
         lifecycleScope.launch {
             withContext(Dispatchers.IO) {
                 viewModel.recentlySongs.collectLatest { pagingData ->
-                    mainAdapter.submitData(pagingData) }
+                    mainAdapter.submitData(pagingData)
+                }
             }
         }
         binding.topAppBar.setNavigationOnClickListener {
             findNavController().popBackStack()
         }
 
-        mainAdapter.setOnClickListener(object : RecentPagingAdapter.onItemClickListener {
-            @UnstableApi
-            override fun onItemClick(position: Int, type: String) {
-                if (type == "artist"){
-                    val channelId = (mainAdapter.getItemByIndex(position) as ArtistEntity).channelId
-                    val args = Bundle()
-                    args.putString("channelId", channelId)
-                    findNavController().navigateSafe(R.id.action_global_artistFragment, args)
-                }
-                if (type == Config.ALBUM_CLICK){
-                    val browseId = (mainAdapter.getItemByIndex(position) as AlbumEntity).browseId
-                    val args = Bundle()
-                    args.putString("browseId", browseId)
-                    findNavController().navigateSafe(R.id.action_global_albumFragment, args)
-                }
-                if (type == Config.PLAYLIST_CLICK){
-                    val id = (mainAdapter.getItemByIndex(position) as PlaylistEntity).id
-                    val args = Bundle()
-                    args.putString("id", id)
-                    findNavController().navigateSafe(R.id.action_global_playlistFragment, args)
-                }
-                if (type == Config.SONG_CLICK){
-                    val songClicked = mainAdapter.getItemByIndex(position) as SongEntity
-                    val videoId = songClicked.videoId
-                    val firstQueue: Track = songClicked.toTrack()
-                    viewModel.setQueueData(
-                        QueueData(
-                            listTracks = arrayListOf(firstQueue),
-                            firstPlayedTrack = firstQueue,
-                            playlistId = "RDAMVM$videoId",
-                            playlistName = getString(R.string.recently_added),
-                            playlistType = PlaylistType.RADIO,
-                            continuation = null
+        mainAdapter.setOnClickListener(
+            object : RecentPagingAdapter.onItemClickListener {
+                @UnstableApi
+                override fun onItemClick(
+                    position: Int,
+                    type: String,
+                ) {
+                    if (type == "artist") {
+                        val channelId = (mainAdapter.getItemByIndex(position) as ArtistEntity).channelId
+                        val args = Bundle()
+                        args.putString("channelId", channelId)
+                        findNavController().navigateSafe(R.id.action_global_artistFragment, args)
+                    }
+                    if (type == Config.ALBUM_CLICK) {
+                        val browseId = (mainAdapter.getItemByIndex(position) as AlbumEntity).browseId
+                        val args = Bundle()
+                        args.putString("browseId", browseId)
+                        findNavController().navigateSafe(R.id.action_global_albumFragment, args)
+                    }
+                    if (type == Config.PLAYLIST_CLICK) {
+                        val id = (mainAdapter.getItemByIndex(position) as PlaylistEntity).id
+                        val args = Bundle()
+                        args.putString("id", id)
+                        findNavController().navigateSafe(R.id.action_global_playlistFragment, args)
+                    }
+                    if (type == Config.SONG_CLICK) {
+                        val songClicked = mainAdapter.getItemByIndex(position) as SongEntity
+                        val videoId = songClicked.videoId
+                        val firstQueue: Track = songClicked.toTrack()
+                        viewModel.setQueueData(
+                            QueueData(
+                                listTracks = arrayListOf(firstQueue),
+                                firstPlayedTrack = firstQueue,
+                                playlistId = "RDAMVM$videoId",
+                                playlistName = getString(R.string.recently_added),
+                                playlistType = PlaylistType.RADIO,
+                                continuation = null,
+                            ),
                         )
-                    )
-                    viewModel.loadMediaItem(
-                        firstQueue,
-                        Config.SONG_CLICK,
-                        0
-                    )
+                        viewModel.loadMediaItem(
+                            firstQueue,
+                            Config.SONG_CLICK,
+                            0,
+                        )
+                    }
                 }
-            }
-        })
+            },
+        )
     }
 }

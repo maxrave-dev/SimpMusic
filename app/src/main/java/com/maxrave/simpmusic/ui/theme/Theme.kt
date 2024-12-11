@@ -66,9 +66,11 @@ fun AppTheme(
 //    }
     val contentWithImageLoader: @Composable () -> Unit = {
         setSingletonImageLoaderFactory { context ->
-            ImageLoader.Builder(context)
+            ImageLoader
+                .Builder(context)
                 .logger(DebugLogger())
-                .diskCachePolicy(CachePolicy.ENABLED).networkCachePolicy(CachePolicy.ENABLED)
+                .diskCachePolicy(CachePolicy.ENABLED)
+                .networkCachePolicy(CachePolicy.ENABLED)
                 .diskCache(newDiskCache())
                 .crossfade(true)
                 .build()
@@ -90,11 +92,12 @@ fun AppTheme(
 
 fun supportsDynamic(): Boolean = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) true else false
 
-fun newDiskCache(): DiskCache {
-    return DiskCache.Builder().directory(FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "image_cache")
+fun newDiskCache(): DiskCache =
+    DiskCache
+        .Builder()
+        .directory(FileSystem.SYSTEM_TEMPORARY_DIRECTORY / "image_cache")
         .maxSizeBytes(512L * 1024 * 1024)
         .build()
-}
 
 @Composable
 @Preview(

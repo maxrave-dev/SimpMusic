@@ -7,8 +7,8 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 
 @DeleteTable.Entries(
     DeleteTable(
-        tableName = "format"
-    )
+        tableName = "format",
+    ),
 )
 class AutoMigration7_8 : AutoMigrationSpec {
     override fun onPostMigrate(db: SupportSQLiteDatabase) {
@@ -20,7 +20,7 @@ class AutoMigration7_8 : AutoMigrationSpec {
 @DeleteColumn.Entries(
     DeleteColumn(
         tableName = "local_playlist",
-        columnName = "synced_with_youtube_playlist"
-    )
+        columnName = "synced_with_youtube_playlist",
+    ),
 )
-class AutoMigration11_12: AutoMigrationSpec
+class AutoMigration11_12 : AutoMigrationSpec

@@ -1,6 +1,5 @@
 package com.maxrave.kotlinytmusicscraper.models.simpmusic
 
-
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -31,5 +30,5 @@ data class Asset(
     @SerialName("uploader")
     val uploader: Uploader?,
     @SerialName("url")
-    val url: String?
+    val url: String?,
 )

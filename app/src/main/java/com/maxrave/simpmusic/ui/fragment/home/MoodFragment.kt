@@ -13,17 +13,15 @@ import com.maxrave.simpmusic.ui.screen.home.MoodScreen
 import com.maxrave.simpmusic.ui.theme.AppTheme
 import com.maxrave.simpmusic.viewModel.MoodViewModel
 
-class MoodFragment: Fragment() {
+class MoodFragment : Fragment() {
     private val viewModel by viewModels<MoodViewModel>()
 
     private lateinit var composeView: ComposeView
 
-
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
 //        _binding = MoodMomentDialogBinding.inflate(inflater, container, false)
 //        binding.topAppBarLayout.applyInsetter {
@@ -41,7 +39,10 @@ class MoodFragment: Fragment() {
         super.onDestroyView()
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
         super.onViewCreated(view, savedInstanceState)
 //        binding.contentLayout.visibility = View.GONE
 //        binding.loadingLayout.visibility = View.VISIBLE
@@ -71,7 +72,7 @@ class MoodFragment: Fragment() {
         composeView.apply {
             setContent {
                 AppTheme {
-                    Scaffold() {
+                    Scaffold {
                         MoodScreen(findNavController(), viewModel, params)
                     }
                 }

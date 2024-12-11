@@ -43,7 +43,7 @@ fun LibraryDynamicPlaylistScreen(
     innerPadding: PaddingValues,
     navController: NavController,
     type: LibraryDynamicPlaylistType,
-    viewModel: LibraryDynamicPlaylistViewModel = koinViewModel()
+    viewModel: LibraryDynamicPlaylistViewModel = koinViewModel(),
 ) {
     val nowPlayingVideoId by viewModel.nowPlayingVideoId.collectAsState()
 
@@ -57,17 +57,20 @@ fun LibraryDynamicPlaylistScreen(
 
     LazyColumn(
         modifier = Modifier.padding(top = 64.dp),
-        contentPadding = innerPadding
+        contentPadding = innerPadding,
     ) {
         if (type == LibraryDynamicPlaylistType.Followed) {
             items(followed, key = { it.channelId }) { artist ->
                 ArtistFullWidthItems(
                     artist,
-                    onClickListener =  {
-                        navController.navigateSafe(R.id.action_global_artistFragment, Bundle().apply {
-                            putString("channelId", artist.channelId)
-                        })
-                    }
+                    onClickListener = {
+                        navController.navigateSafe(
+                            R.id.action_global_artistFragment,
+                            Bundle().apply {
+                                putString("channelId", artist.channelId)
+                            },
+                        )
+                    },
                 )
             }
         } else {
@@ -78,7 +81,7 @@ fun LibraryDynamicPlaylistScreen(
                     LibraryDynamicPlaylistType.MostPlayed -> mostPlayed
                     else -> emptyList()
                 },
-                key = { it.videoId }
+                key = { it.videoId },
             ) { song ->
                 SongFullWidthItems(
                     songEntity = song,
@@ -90,7 +93,7 @@ fun LibraryDynamicPlaylistScreen(
                     },
                     onClickListener = { videoId ->
                         viewModel.playSong(videoId, type = type)
-                    }
+                    },
                 )
             }
         }
@@ -105,15 +108,16 @@ fun LibraryDynamicPlaylistScreen(
                 chosenSong = null
             },
             navController = navController,
-            song = chosenSong ?: return
+            song = chosenSong ?: return,
         )
     }
     TopAppBar(
         title = {
             Text(
-                text = stringResource(
-                    type.name()
-                ),
+                text =
+                    stringResource(
+                        type.name(),
+                    ),
                 style = typo.titleMedium,
             )
         },
@@ -128,20 +132,24 @@ fun LibraryDynamicPlaylistScreen(
                     navController.popBackStack()
                 }
             }
-        }
+        },
     )
 }
 
 sealed class LibraryDynamicPlaylistType {
     data object Favorite : LibraryDynamicPlaylistType()
+
     data object Followed : LibraryDynamicPlaylistType()
+
     data object MostPlayed : LibraryDynamicPlaylistType()
+
     data object Downloaded : LibraryDynamicPlaylistType()
 
-    @StringRes fun name(): Int = when (this) {
-        Favorite -> R.string.favorite
-        Followed -> R.string.followed
-        MostPlayed -> R.string.most_played
-        Downloaded -> R.string.downloaded
-    }
+    @StringRes fun name(): Int =
+        when (this) {
+            Favorite -> R.string.favorite
+            Followed -> R.string.followed
+            MostPlayed -> R.string.most_played
+            Downloaded -> R.string.downloaded
+        }
 }

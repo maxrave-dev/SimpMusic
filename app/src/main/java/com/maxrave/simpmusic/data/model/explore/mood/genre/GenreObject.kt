@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.data.model.explore.mood.genre
 
-
 import androidx.compose.runtime.Immutable
 import com.google.gson.annotations.SerializedName
 
@@ -11,5 +10,5 @@ data class GenreObject(
     @SerializedName("itemsPlaylist")
     val itemsPlaylist: List<ItemsPlaylist>,
     @SerializedName("itemsSong")
-    val itemsSong: List<ItemsSong>?
+    val itemsSong: List<ItemsSong>?,
 )

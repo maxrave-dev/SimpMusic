@@ -346,9 +346,8 @@ fun FullscreenLyricsSheet(
                                         .wrapContentHeight(align = Alignment.CenterVertically)
                                         .basicMarquee(
                                             iterations = Int.MAX_VALUE,
-                                            animationMode = MarqueeAnimationMode.Immediately
-                                        )
-                                        .focusable(),
+                                            animationMode = MarqueeAnimationMode.Immediately,
+                                        ).focusable(),
                             )
                         }
                     },

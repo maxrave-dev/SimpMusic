@@ -20,8 +20,8 @@ import kotlinx.coroutines.launch
 
 @UnstableApi
 class LibraryDynamicPlaylistViewModel(
-    application: Application
-): BaseViewModel(application) {
+    application: Application,
+) : BaseViewModel(application) {
     override val tag: String
         get() = "LibraryDynamicPlaylistViewModel"
 
@@ -76,13 +76,17 @@ class LibraryDynamicPlaylistViewModel(
         }
     }
 
-    fun playSong(videoId: String, type: LibraryDynamicPlaylistType) {
-        val (targetList, playTrack) = when (type) {
-            LibraryDynamicPlaylistType.Favorite -> listFavoriteSong.value to listFavoriteSong.value.find { it.videoId == videoId }
-            LibraryDynamicPlaylistType.Downloaded -> listDownloadedSong.value to listDownloadedSong.value.find { it.videoId == videoId }
-            LibraryDynamicPlaylistType.Followed -> return
-            LibraryDynamicPlaylistType.MostPlayed -> listMostPlayedSong.value to listMostPlayedSong.value.find { it.videoId == videoId }
-        }
+    fun playSong(
+        videoId: String,
+        type: LibraryDynamicPlaylistType,
+    ) {
+        val (targetList, playTrack) =
+            when (type) {
+                LibraryDynamicPlaylistType.Favorite -> listFavoriteSong.value to listFavoriteSong.value.find { it.videoId == videoId }
+                LibraryDynamicPlaylistType.Downloaded -> listDownloadedSong.value to listDownloadedSong.value.find { it.videoId == videoId }
+                LibraryDynamicPlaylistType.Followed -> return
+                LibraryDynamicPlaylistType.MostPlayed -> listMostPlayedSong.value to listMostPlayedSong.value.find { it.videoId == videoId }
+            }
         if (playTrack == null) return
         setQueueData(
             QueueData(
@@ -101,7 +105,7 @@ class LibraryDynamicPlaylistViewModel(
         loadMediaItem(
             playTrack.toTrack(),
             Config.PLAYLIST_CLICK,
-            0
+            0,
         )
     }
 }

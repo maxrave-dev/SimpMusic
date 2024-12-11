@@ -32,10 +32,9 @@ fun HomeItemShimmer() {
                 .height(36.dp)
                 .padding(vertical = 8.dp)
                 .background(
-                    color = shimmerBackground
-                )
-                .clip(RoundedCornerShape(10))
-                .shimmer()
+                    color = shimmerBackground,
+                ).clip(RoundedCornerShape(10))
+                .shimmer(),
         )
         LazyRow(userScrollEnabled = false) {
             items(10) {
@@ -43,13 +42,12 @@ fun HomeItemShimmer() {
             }
         }
     }
-
 }
 
 @Preview(
     showSystemUi = true,
     showBackground = true,
-    uiMode = Configuration.UI_MODE_NIGHT_YES
+    uiMode = Configuration.UI_MODE_NIGHT_YES,
 )
 @Composable
 fun PreviewShimmer() {
@@ -61,18 +59,16 @@ fun PlaylistShimmer() {
     Column(
         Modifier
             .height(270.dp)
-            .padding(10.dp)
+            .padding(10.dp),
     ) {
         Box(
             Modifier
                 .size(160.dp)
                 .clip(
-                    RoundedCornerShape(10)
-                )
-                .background(
-                    color = shimmerBackground
-                )
-                .shimmer()
+                    RoundedCornerShape(10),
+                ).background(
+                    color = shimmerBackground,
+                ).shimmer(),
         )
         Spacer(modifier = Modifier.size(10.dp))
         Box(
@@ -80,12 +76,10 @@ fun PlaylistShimmer() {
                 .width(130.dp)
                 .height(18.dp)
                 .clip(
-                    RoundedCornerShape(10)
-                )
-                .background(
-                    color = shimmerBackground
-                )
-                .shimmer()
+                    RoundedCornerShape(10),
+                ).background(
+                    color = shimmerBackground,
+                ).shimmer(),
         )
         Spacer(modifier = Modifier.size(10.dp))
         Box(
@@ -93,12 +87,10 @@ fun PlaylistShimmer() {
                 .width(130.dp)
                 .height(18.dp)
                 .clip(
-                    RoundedCornerShape(10)
-                )
-                .background(
-                    color = shimmerBackground
-                )
-                .shimmer()
+                    RoundedCornerShape(10),
+                ).background(
+                    color = shimmerBackground,
+                ).shimmer(),
         )
     }
 }
@@ -108,20 +100,20 @@ fun QuickPicksShimmerItem() {
     Row(
         Modifier
             .height(70.dp)
-            .padding(10.dp)
+            .padding(10.dp),
     ) {
         Box(
             Modifier
                 .size(50.dp)
                 .clip(RoundedCornerShape(10))
                 .background(shimmerBackground)
-                .shimmer()
+                .shimmer(),
         )
         Column(
             Modifier
                 .padding(start = 10.dp)
                 .wrapContentHeight(align = Alignment.CenterVertically)
-                .align(Alignment.CenterVertically)
+                .align(Alignment.CenterVertically),
         ) {
             Box(
                 Modifier
@@ -129,7 +121,7 @@ fun QuickPicksShimmerItem() {
                     .height(21.dp)
                     .clip(RoundedCornerShape(10))
                     .background(shimmerBackground)
-                    .shimmer()
+                    .shimmer(),
             )
             Spacer(modifier = Modifier.height(3.dp))
             Box(
@@ -138,7 +130,7 @@ fun QuickPicksShimmerItem() {
                     .height(21.dp)
                     .clip(RoundedCornerShape(10))
                     .background(shimmerBackground)
-                    .shimmer()
+                    .shimmer(),
             )
         }
     }
@@ -153,10 +145,9 @@ fun QuickPicksShimmer() {
                 .height(36.dp)
                 .padding(vertical = 8.dp)
                 .background(
-                    color = shimmerBackground
-                )
-                .clip(RoundedCornerShape(10))
-                .shimmer()
+                    color = shimmerBackground,
+                ).clip(RoundedCornerShape(10))
+                .shimmer(),
         )
         LazyColumn(userScrollEnabled = false) {
             items(4) {
@@ -169,7 +160,7 @@ fun QuickPicksShimmer() {
 @Composable
 fun HomeShimmer() {
     Column(
-        Modifier.padding(horizontal = 15.dp)
+        Modifier.padding(horizontal = 15.dp),
     ) {
         QuickPicksShimmer()
         LazyColumn(userScrollEnabled = false) {

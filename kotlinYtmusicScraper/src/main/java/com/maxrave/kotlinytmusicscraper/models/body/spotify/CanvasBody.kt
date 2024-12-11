@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class CanvasBody(
-    val tracks: List<CanvasBody.Track>
+    val tracks: List<CanvasBody.Track>,
 ) {
     @Serializable
     data class Track(
@@ -12,9 +12,9 @@ data class CanvasBody(
     )
 }
 
-//message CanvasRequest {
+// message CanvasRequest {
 //  message Track {
 //    string track_uri = 1;         // spotify:track:5osCClSjGplWagDsJmyivf
 //  }
 //  repeated Track tracks = 1;
-//}
+// }

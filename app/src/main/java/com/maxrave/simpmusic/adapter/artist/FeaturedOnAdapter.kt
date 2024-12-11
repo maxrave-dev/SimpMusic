@@ -10,21 +10,26 @@ import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.data.model.browse.artist.ResultPlaylist
 import com.maxrave.simpmusic.databinding.ItemSinglesBinding
 
-class FeaturedOnAdapter(private var playlistList: ArrayList<ResultPlaylist>) :
-    RecyclerView.Adapter<FeaturedOnAdapter.ViewHolder>() {
+class FeaturedOnAdapter(
+    private var playlistList: ArrayList<ResultPlaylist>,
+) : RecyclerView.Adapter<FeaturedOnAdapter.ViewHolder>() {
     private lateinit var mListener: OnItemClickListener
 
     interface OnItemClickListener {
-        fun onItemClick(position: Int, type: String = "playlist")
+        fun onItemClick(
+            position: Int,
+            type: String = "playlist",
+        )
     }
 
     fun setOnClickListener(listener: OnItemClickListener) {
         mListener = listener
     }
 
-
-    inner class ViewHolder(val binding: ItemSinglesBinding, listener: OnItemClickListener) :
-        RecyclerView.ViewHolder(binding.root) {
+    inner class ViewHolder(
+        val binding: ItemSinglesBinding,
+        listener: OnItemClickListener,
+    ) : RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
                 listener.onItemClick(bindingAdapterPosition)
@@ -38,21 +43,25 @@ class FeaturedOnAdapter(private var playlistList: ArrayList<ResultPlaylist>) :
         notifyDataSetChanged()
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-        return ViewHolder(
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int,
+    ): ViewHolder =
+        ViewHolder(
             ItemSinglesBinding.inflate(
                 LayoutInflater.from(parent.context),
                 parent,
-                false
-            ), mListener
+                false,
+            ),
+            mListener,
         )
-    }
 
-    override fun getItemCount(): Int {
-        return playlistList.size
-    }
+    override fun getItemCount(): Int = playlistList.size
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+    override fun onBindViewHolder(
+        holder: ViewHolder,
+        position: Int,
+    ) {
         val album = playlistList[position]
         with(holder.binding) {
             tvAlbumName.text = album.title
@@ -64,7 +73,5 @@ class FeaturedOnAdapter(private var playlistList: ArrayList<ResultPlaylist>) :
         }
     }
 
-    fun getItem(position: Int): ResultPlaylist {
-        return playlistList[position]
-    }
+    fun getItem(position: Int): ResultPlaylist = playlistList[position]
 }

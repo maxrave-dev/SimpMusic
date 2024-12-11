@@ -34,54 +34,59 @@ import org.koin.core.component.inject
 @KoinViewModel
 class NowPlayingBottomSheetViewModel(
     private val application: Application,
-): BaseViewModel(application) {
+) : BaseViewModel(application) {
     override val tag: String
         get() = "NowPlayingBottomSheetViewModel"
 
     private val downloadUtils: DownloadUtils by inject()
     private val localPlaylistManager: LocalPlaylistManager by inject()
 
-    private val _uiState: MutableStateFlow<NowPlayingBottomSheetUIState> = MutableStateFlow(
-        NowPlayingBottomSheetUIState(
-            listLocalPlaylist = emptyList(),
-            mainLyricsProvider = MUSIXMATCH,
-            sleepTimer = SleepTimerState(
-                false,
-                0
-            )
+    private val _uiState: MutableStateFlow<NowPlayingBottomSheetUIState> =
+        MutableStateFlow(
+            NowPlayingBottomSheetUIState(
+                listLocalPlaylist = emptyList(),
+                mainLyricsProvider = MUSIXMATCH,
+                sleepTimer =
+                    SleepTimerState(
+                        false,
+                        0,
+                    ),
+            ),
         )
-    )
     val uiState: StateFlow<NowPlayingBottomSheetUIState> get() = _uiState.asStateFlow()
 
     private var getSongAsFlow: Job? = null
 
     init {
         viewModelScope.launch {
-            val sleepTimerJob = launch {
-                simpleMediaServiceHandler.sleepTimerState.collectLatest { sl ->
-                   _uiState.update { it.copy(sleepTimer = sl) }
+            val sleepTimerJob =
+                launch {
+                    simpleMediaServiceHandler.sleepTimerState.collectLatest { sl ->
+                        _uiState.update { it.copy(sleepTimer = sl) }
+                    }
                 }
-            }
-            val listLocalPlaylistJob = launch {
-                mainRepository.getAllLocalPlaylists().collectLatest { list ->
-                    _uiState.update { it.copy(listLocalPlaylist = list) }
+            val listLocalPlaylistJob =
+                launch {
+                    mainRepository.getAllLocalPlaylists().collectLatest { list ->
+                        _uiState.update { it.copy(listLocalPlaylist = list) }
+                    }
                 }
-            }
-            val mainLyricsProviderJob = launch {
-                dataStoreManager.lyricsProvider.collectLatest {
-                    when (it) {
-                        MUSIXMATCH -> {
-                            _uiState.update { it.copy(mainLyricsProvider = MUSIXMATCH) }
-                        }
-                        YOUTUBE -> {
-                            _uiState.update { it.copy(mainLyricsProvider = YOUTUBE) }
-                        }
-                        else -> {
-                            log("Unknown lyrics provider", Log.ERROR)
+            val mainLyricsProviderJob =
+                launch {
+                    dataStoreManager.lyricsProvider.collectLatest {
+                        when (it) {
+                            MUSIXMATCH -> {
+                                _uiState.update { it.copy(mainLyricsProvider = MUSIXMATCH) }
+                            }
+                            YOUTUBE -> {
+                                _uiState.update { it.copy(mainLyricsProvider = YOUTUBE) }
+                            }
+                            else -> {
+                                log("Unknown lyrics provider", Log.ERROR)
+                            }
                         }
                     }
                 }
-            }
             sleepTimerJob.join()
             listLocalPlaylistJob.join()
             mainLyricsProviderJob.join()
@@ -108,31 +113,34 @@ class NowPlayingBottomSheetViewModel(
     private fun getSongEntityFlow(videoId: String) {
         getSongAsFlow?.cancel()
         if (videoId.isEmpty()) return
-        getSongAsFlow = viewModelScope.launch {
-            mainRepository.getSongAsFlow(videoId).collectLatest { song ->
-                log("getSongEntityFlow: $song", Log.WARN)
-               if (song != null) {
-                   _uiState.update {
-                       it.copy(songUIState =
-                           NowPlayingBottomSheetUIState.SongUIState(
-                               videoId = song.videoId,
-                               title = song.title,
-                               listArtists = song.artistName?.mapIndexed { i, name ->
-                                   Artist(name = name, id = song.artistId?.getOrNull(i) ?: "")
-                               } ?: emptyList(),
-                               thumbnails = song.thumbnails,
-                               liked = song.liked,
-                               downloadState = song.downloadState,
-                               album = song.albumName?.let { name ->
-                                   Album(name = name, id = song.albumId ?: "")
-                               }
-
-                           )
-                       )
-                   }
-               }
+        getSongAsFlow =
+            viewModelScope.launch {
+                mainRepository.getSongAsFlow(videoId).collectLatest { song ->
+                    log("getSongEntityFlow: $song", Log.WARN)
+                    if (song != null) {
+                        _uiState.update {
+                            it.copy(
+                                songUIState =
+                                    NowPlayingBottomSheetUIState.SongUIState(
+                                        videoId = song.videoId,
+                                        title = song.title,
+                                        listArtists =
+                                            song.artistName?.mapIndexed { i, name ->
+                                                Artist(name = name, id = song.artistId?.getOrNull(i) ?: "")
+                                            } ?: emptyList(),
+                                        thumbnails = song.thumbnails,
+                                        liked = song.liked,
+                                        downloadState = song.downloadState,
+                                        album =
+                                            song.albumName?.let { name ->
+                                                Album(name = name, id = song.albumId ?: "")
+                                            },
+                                    ),
+                            )
+                        }
+                    }
+                }
             }
-        }
     }
 
     fun onUIEvent(ev: NowPlayingBottomSheetUIEvent) {
@@ -141,30 +149,32 @@ class NowPlayingBottomSheetViewModel(
         viewModelScope.launch {
             when (ev) {
                 is NowPlayingBottomSheetUIEvent.DeleteFromPlaylist -> {
-
                 }
                 is NowPlayingBottomSheetUIEvent.ToggleLike -> {
                     mainRepository.updateLikeStatus(
-                        songUIState.videoId, if (songUIState.liked) 0 else 1
+                        songUIState.videoId,
+                        if (songUIState.liked) 0 else 1,
                     )
                 }
                 is NowPlayingBottomSheetUIEvent.Download -> {
                     when (songUIState.downloadState) {
                         DownloadState.STATE_NOT_DOWNLOADED -> {
                             mainRepository.updateDownloadState(
-                                    videoId = songUIState.videoId,
-                                    downloadState = DownloadState.STATE_PREPARING
-                                )
+                                videoId = songUIState.videoId,
+                                downloadState = DownloadState.STATE_PREPARING,
+                            )
                             downloadUtils.downloadTrack(
                                 videoId = songUIState.videoId,
-                                title = songUIState.title, thumbnail = songUIState.thumbnails ?: "")
+                                title = songUIState.title,
+                                thumbnail = songUIState.thumbnails ?: "",
+                            )
                             makeToast(getString(R.string.downloading))
                         }
                         DownloadState.STATE_PREPARING, DownloadState.STATE_DOWNLOADING -> {
                             downloadUtils.removeDownload(songUIState.videoId)
                             mainRepository.updateDownloadState(
                                 songUIState.videoId,
-                                DownloadState.STATE_NOT_DOWNLOADED
+                                DownloadState.STATE_NOT_DOWNLOADED,
                             )
                             makeToast(getString(R.string.removed_download))
                         }
@@ -172,7 +182,7 @@ class NowPlayingBottomSheetViewModel(
                             downloadUtils.removeDownload(songUIState.videoId)
                             mainRepository.updateDownloadState(
                                 songUIState.videoId,
-                                DownloadState.STATE_NOT_DOWNLOADED
+                                DownloadState.STATE_NOT_DOWNLOADED,
                             )
                             makeToast(getString(R.string.removed_download))
                         }
@@ -183,8 +193,7 @@ class NowPlayingBottomSheetViewModel(
                     val newList = (targetPlaylist.tracks ?: emptyList<String>()).toMutableList()
                     if (newList.contains(songUIState.videoId)) {
                         return@launch
-                    }
-                    else {
+                    } else {
                         val songEntity = mainRepository.getSongById(songUIState.videoId).singleOrNull() ?: return@launch
                         localPlaylistManager.addTrackToLocalPlaylist(id = ev.playlistId, song = songEntity).collectLatestResource(
                             onSuccess = {
@@ -192,10 +201,9 @@ class NowPlayingBottomSheetViewModel(
                             },
                             onError = {
                                 makeToast(getString(R.string.error))
-                            }
+                            },
                         )
                     }
-
                 }
                 is NowPlayingBottomSheetUIEvent.PlayNext -> {
                     val songEntity = mainRepository.getSongById(songUIState.videoId).singleOrNull() ?: return@launch
@@ -210,7 +218,9 @@ class NowPlayingBottomSheetViewModel(
                 is NowPlayingBottomSheetUIEvent.ChangeLyricsProvider -> {
                     if (listOf(MUSIXMATCH, YOUTUBE).contains(ev.lyricsProvider)) {
                         dataStoreManager.setLyricsProvider(ev.lyricsProvider)
-                    } else return@launch
+                    } else {
+                        return@launch
+                    }
                 }
                 is NowPlayingBottomSheetUIEvent.SetSleepTimer -> {
                     if (ev.cancel) {
@@ -225,22 +235,22 @@ class NowPlayingBottomSheetViewModel(
                     shareIntent.type = "text/plain"
                     val url = "https://music.youtube.com/watch?v=${songUIState.videoId}"
                     shareIntent.putExtra(Intent.EXTRA_TEXT, url)
-                    val chooserIntent = Intent.createChooser(shareIntent, getString(R.string.share_url)).apply {
-                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    }
+                    val chooserIntent =
+                        Intent.createChooser(shareIntent, getString(R.string.share_url)).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                        }
                     application.startActivity(chooserIntent)
                 }
             }
         }
     }
-
 }
 
 data class NowPlayingBottomSheetUIState(
     val songUIState: SongUIState = SongUIState(),
     val listLocalPlaylist: List<LocalPlaylistEntity>,
     val mainLyricsProvider: String, // MUSIXMATCH OR YOUTUBE ONLY
-    val sleepTimer: SleepTimerState
+    val sleepTimer: SleepTimerState,
 ) {
     data class SongUIState(
         val videoId: String = "",
@@ -254,13 +264,31 @@ data class NowPlayingBottomSheetUIState(
 }
 
 sealed class NowPlayingBottomSheetUIEvent {
-    data class DeleteFromPlaylist(val videoId: String, val playlistId: Long): NowPlayingBottomSheetUIEvent()
-    data object ToggleLike: NowPlayingBottomSheetUIEvent()
-    data object Download: NowPlayingBottomSheetUIEvent()
-    data class AddToPlaylist(val playlistId: Long): NowPlayingBottomSheetUIEvent()
-    data object PlayNext: NowPlayingBottomSheetUIEvent()
-    data object AddToQueue: NowPlayingBottomSheetUIEvent()
-    data class ChangeLyricsProvider(val lyricsProvider: String): NowPlayingBottomSheetUIEvent()
-    data class SetSleepTimer(val cancel: Boolean = false, val minutes: Int = 0): NowPlayingBottomSheetUIEvent()
-    data object Share: NowPlayingBottomSheetUIEvent()
+    data class DeleteFromPlaylist(
+        val videoId: String,
+        val playlistId: Long,
+    ) : NowPlayingBottomSheetUIEvent()
+
+    data object ToggleLike : NowPlayingBottomSheetUIEvent()
+
+    data object Download : NowPlayingBottomSheetUIEvent()
+
+    data class AddToPlaylist(
+        val playlistId: Long,
+    ) : NowPlayingBottomSheetUIEvent()
+
+    data object PlayNext : NowPlayingBottomSheetUIEvent()
+
+    data object AddToQueue : NowPlayingBottomSheetUIEvent()
+
+    data class ChangeLyricsProvider(
+        val lyricsProvider: String,
+    ) : NowPlayingBottomSheetUIEvent()
+
+    data class SetSleepTimer(
+        val cancel: Boolean = false,
+        val minutes: Int = 0,
+    ) : NowPlayingBottomSheetUIEvent()
+
+    data object Share : NowPlayingBottomSheetUIEvent()
 }

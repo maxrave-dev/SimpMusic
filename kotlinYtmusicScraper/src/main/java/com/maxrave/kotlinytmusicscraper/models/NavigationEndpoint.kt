@@ -13,10 +13,11 @@ data class NavigationEndpoint(
     val playlistEditEndpoint: PlaylistEditEndpoint? = null,
 ) {
     val endpoint: Endpoint?
-        get() = watchEndpoint
-            ?: watchPlaylistEndpoint
-            ?: browseEndpoint
-            ?: searchEndpoint
-            ?: queueAddEndpoint
-            ?: shareEntityEndpoint
+        get() =
+            watchEndpoint
+                ?: watchPlaylistEndpoint
+                ?: browseEndpoint
+                ?: searchEndpoint
+                ?: queueAddEndpoint
+                ?: shareEntityEndpoint
 }

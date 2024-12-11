@@ -1,6 +1,5 @@
 package com.maxrave.kotlinytmusicscraper.models.lyrics
 
-
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -13,5 +12,5 @@ data class Line(
     @SerialName("syllables")
     val syllables: List<String>?,
     @SerialName("words")
-    val words: String
+    val words: String,
 )

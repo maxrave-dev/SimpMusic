@@ -2,23 +2,22 @@ package com.maxrave.kotlinytmusicscraper.models.musixmatch
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class MusixmatchTranslationLyricsResponse (
-    val message: Message
+data class MusixmatchTranslationLyricsResponse(
+    val message: Message,
 ) {
     @Serializable
     data class Message(
         val body: Body,
-        val header: Header
+        val header: Header,
     ) {
         @Serializable
         data class Body(
-            val translations_list: List<Translation>
+            val translations_list: List<Translation>,
         ) {
             @Serializable
             data class Translation(
-                val translation: TranslationData
-            )
-            {
+                val translation: TranslationData,
+            ) {
                 @Serializable
                 data class TranslationData(
                     val snippet: String,
@@ -31,7 +30,7 @@ data class MusixmatchTranslationLyricsResponse (
 
         @Serializable
         data class Header(
-            val status_code: Int
+            val status_code: Int,
         )
     }
 }

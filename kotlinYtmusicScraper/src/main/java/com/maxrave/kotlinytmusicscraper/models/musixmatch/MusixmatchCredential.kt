@@ -4,16 +4,16 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class MusixmatchCredential(
-    val message: Message
+    val message: Message,
 ) {
     @Serializable
     data class Message(
         val body: List<Credential>,
-        val header: Header
+        val header: Header,
     ) {
         @Serializable
         data class Credential(
-            val credential : CredentialData
+            val credential: CredentialData,
         ) {
             @Serializable
             data class CredentialData(
@@ -22,13 +22,14 @@ data class MusixmatchCredential(
                 val email: String,
                 val id: String,
                 val error: Error?,
-                val account: Account?
+                val account: Account?,
             ) {
                 @Serializable
                 data class Error(
                     val status_code: Int,
                     val description: String,
                 )
+
                 @Serializable
                 data class Account(
                     val first_name: String,
@@ -41,7 +42,7 @@ data class MusixmatchCredential(
 
         @Serializable
         data class Header(
-            val status_code: Int
+            val status_code: Int,
         )
     }
 }

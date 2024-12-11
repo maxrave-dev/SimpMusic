@@ -29,8 +29,9 @@ import org.koin.core.component.inject
 import org.koin.core.qualifier.named
 
 @UnstableApi
-class SimpleMediaService : MediaLibraryService(), KoinComponent {
-
+class SimpleMediaService :
+    MediaLibraryService(),
+    KoinComponent {
     private val player: ExoPlayer by inject()
     private val coilBitmapLoader: CoilBitmapLoader by inject()
     private val serviceCoroutineScope: CoroutineScope by inject(named(SERVICE_SCOPE))
@@ -63,7 +64,7 @@ class SimpleMediaService : MediaLibraryService(), KoinComponent {
                 this,
                 this,
                 player,
-                simpleMediaSessionCallback
+                simpleMediaSessionCallback,
             )
 
         // Set late init set notification layout
@@ -149,7 +150,7 @@ class SimpleMediaService : MediaLibraryService(), KoinComponent {
         context: Context,
         service: MediaLibraryService,
         player: ExoPlayer,
-        callback: SimpleMediaSessionCallback
+        callback: SimpleMediaSessionCallback,
     ): MediaLibrarySession =
         MediaLibrarySession
             .Builder(
