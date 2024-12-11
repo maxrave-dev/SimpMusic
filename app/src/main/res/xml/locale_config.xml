@@ -22,4 +22,9 @@
     <locale android:name="hi" />
     <locale android:name="th" />
     <locale android:name="nl" />
+    <locale android:name="gu" />
+    <locale android:name="bn" />
+    <locale android:name="te" />
+    <locale android:name="ta" />
+    <locale android:name="ka" />
 </locale-config>
