@@ -49,7 +49,8 @@ android {
                 "iw",
                 "az",
                 "hi",
-                "th"
+                "th",
+                "nl"
             )
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
