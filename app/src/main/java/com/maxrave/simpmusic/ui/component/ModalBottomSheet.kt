@@ -32,9 +32,11 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -62,8 +64,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -282,6 +286,8 @@ fun NowPlayingBottomSheet(
         )
     }
 
+    val nestedScrollInterop = rememberNestedScrollInteropConnection()
+
     if (isBottomSheetVisible) {
         ModalBottomSheet(
             onDismissRequest = onDismiss,
@@ -295,12 +301,14 @@ fun NowPlayingBottomSheet(
                 modifier =
                     Modifier
                         .fillMaxWidth()
-                        .wrapContentHeight(),
+                        .wrapContentHeight()
+                        .nestedScroll(nestedScrollInterop),
                 shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
                 colors = CardDefaults.cardColors().copy(containerColor = Color(0xFF242424)),
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.verticalScroll(rememberScrollState())
                 ) {
                     Spacer(modifier = Modifier.height(5.dp))
                     Card(

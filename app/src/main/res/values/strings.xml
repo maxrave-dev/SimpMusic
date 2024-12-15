@@ -374,4 +374,5 @@
     <string name="invalid_port">Invalid port</string>
     <string name="proxy_host_message">Please enter your Proxy host</string>
     <string name="proxy_port_message">Please enter your Proxy port</string>
+    <string name="five_seconds">Five seconds</string>
 </resources>

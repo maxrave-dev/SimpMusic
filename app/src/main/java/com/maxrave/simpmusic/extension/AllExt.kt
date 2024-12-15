@@ -866,7 +866,8 @@ fun LocalDateTime.formatTimeAgo(context: Context): String {
     }
 }
 
-fun formatDuration(duration: Long): String {
+fun formatDuration(duration: Long, context: Context): String {
+    if (duration < 0L) return context.getString(R.string.na_na)
     val minutes: Long = TimeUnit.MINUTES.convert(duration, TimeUnit.MILLISECONDS)
     val seconds: Long = (
         TimeUnit.SECONDS.convert(duration, TimeUnit.MILLISECONDS) -

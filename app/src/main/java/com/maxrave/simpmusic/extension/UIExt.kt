@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
@@ -47,6 +48,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.graphics.ColorUtils
 import com.kmpalette.palette.graphics.Palette
@@ -393,7 +395,10 @@ fun LazyListState.animateScrollAndCentralizeItem(
 }
 
 @Composable
-fun KeepScreenOn() = AndroidView({ View(it).apply { keepScreenOn = true } })
+fun KeepScreenOn() = AndroidView(
+    factory = { View(it).apply { keepScreenOn = true } },
+    modifier = Modifier.size(0.1.dp)
+)
 
 @Composable
 fun LazyListState.isScrollingUp(): Boolean {
@@ -464,3 +469,17 @@ fun Palette?.getColorFromPalette(): Color {
     }
     return Color(ColorUtils.setAlphaComponent(startColor, 255))
 }
+
+fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
+}
+
+@RequiresOptIn(
+    level = RequiresOptIn.Level.WARNING,
+    message = "This will be migrate to Compose. I use this to mark which fragment need to be migrate to Compose",
+)
+@Retention(AnnotationRetention.BINARY)
+@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
+annotation class IntermediaryMigrateApi

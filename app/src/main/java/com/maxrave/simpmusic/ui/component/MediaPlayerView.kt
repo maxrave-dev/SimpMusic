@@ -2,6 +2,7 @@ package com.maxrave.simpmusic.ui.component
 
 import android.util.Log
 import android.view.TextureView
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -20,6 +21,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.viewinterop.AndroidView
@@ -36,6 +38,11 @@ import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import coil3.compose.AsyncImage
+import coil3.request.CachePolicy
+import coil3.request.ImageRequest
+import coil3.request.crossfade
+import coil3.toCoilUri
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.extension.KeepScreenOn
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
@@ -168,6 +175,10 @@ fun MediaPlayerView(
         mutableStateOf(false)
     }
 
+    var showArtwork by rememberSaveable {
+        mutableStateOf(false)
+    }
+
     val playerListener =
         remember {
             object : Player.Listener {
@@ -175,7 +186,10 @@ fun MediaPlayerView(
                     super.onVideoSizeChanged(videoSize)
                     Log.w("MediaPlayerView", "Video size changed: ${videoSize.width} / ${videoSize.height}")
                     if (videoSize.width != 0 && videoSize.height != 0) {
+                        showArtwork = false
                         videoRatio = videoSize.width.toFloat() / videoSize.height.toFloat()
+                    } else if (videoSize.width == 0) {
+                        showArtwork = true
                     }
                 }
 
@@ -195,24 +209,54 @@ fun MediaPlayerView(
     LaunchedEffect(player) {
         player.addListener(playerListener)
     }
-
-    if (keepScreenOn) {
-        KeepScreenOn()
+    LaunchedEffect(true) {
+        player.videoSize.let {
+            if (it.width == 0) {
+                showArtwork = true
+            } else {
+                showArtwork = false
+            }
+        }
     }
 
-    Box(modifier) {
-        AndroidView(
-            factory = { ctx ->
-                TextureView(ctx).also {
-                    player.setVideoTextureView(it)
-                    player.videoScalingMode = C.VIDEO_SCALING_MODE_DEFAULT
-                }
-            },
-            modifier =
-                Modifier
-                    .wrapContentSize()
-                    .aspectRatio(if (videoRatio > 0f) videoRatio else 16f / 9)
-                    .align(Alignment.Center),
-        )
+    Box(
+        modifier,
+        contentAlignment = Alignment.Center
+    ) {
+        if (keepScreenOn) {
+            KeepScreenOn()
+        }
+        Crossfade(showArtwork) {
+            if (it) {
+                AsyncImage(
+                    model =
+                    ImageRequest
+                        .Builder(LocalContext.current)
+                        .data(player.currentMediaItem?.mediaMetadata?.artworkUri?.toCoilUri())
+                        .diskCachePolicy(CachePolicy.ENABLED)
+                        .diskCacheKey(player.currentMediaItem?.mediaMetadata?.artworkUri?.toString())
+                        .crossfade(550)
+                        .build(),
+                    contentDescription = null,
+                    contentScale = ContentScale.FillHeight,
+                    modifier = Modifier.fillMaxHeight()
+                        .align(Alignment.Center),
+                )
+            } else {
+                AndroidView(
+                    factory = { ctx ->
+                        TextureView(ctx).also {
+                            player.setVideoTextureView(it)
+                            player.videoScalingMode = C.VIDEO_SCALING_MODE_DEFAULT
+                        }
+                    },
+                    modifier =
+                    Modifier
+                        .wrapContentSize()
+                        .aspectRatio(if (videoRatio > 0f) videoRatio else 16f / 9)
+                        .align(Alignment.Center),
+                )
+            }
+        }
     }
 }

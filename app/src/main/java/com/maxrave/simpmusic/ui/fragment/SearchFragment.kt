@@ -8,6 +8,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.widget.SearchView
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.viewinterop.AndroidViewBinding
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -51,6 +53,7 @@ import com.maxrave.simpmusic.databinding.BottomSheetAddToAPlaylistBinding
 import com.maxrave.simpmusic.databinding.BottomSheetNowPlayingBinding
 import com.maxrave.simpmusic.databinding.BottomSheetSeeArtistOfNowPlayingBinding
 import com.maxrave.simpmusic.databinding.FragmentSearchBinding
+import com.maxrave.simpmusic.extension.IntermediaryMigrateApi
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.removeConflicts
@@ -1561,4 +1564,10 @@ class SearchFragment : Fragment() {
             }
         }
     }
+}
+
+@Composable
+@IntermediaryMigrateApi
+fun SearchFragmentComposable() {
+    AndroidViewBinding(FragmentSearchBinding::inflate)
 }

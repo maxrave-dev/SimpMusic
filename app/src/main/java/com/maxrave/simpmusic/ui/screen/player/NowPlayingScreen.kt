@@ -3,6 +3,7 @@
 package com.maxrave.simpmusic.ui.screen.player
 
 import android.util.Log
+import android.view.View
 import androidx.compose.animation.Animatable
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -92,6 +93,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
@@ -109,10 +111,12 @@ import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import coil3.toBitmap
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.kmpalette.rememberPaletteState
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.extension.GradientAngle
 import com.maxrave.simpmusic.extension.GradientOffset
+import com.maxrave.simpmusic.extension.findActivity
 import com.maxrave.simpmusic.extension.formatDuration
 import com.maxrave.simpmusic.extension.getColorFromPalette
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
@@ -215,6 +219,16 @@ fun NowPlayingScreen(
                 startColor.animateTo(it.getColorFromPalette())
                 endColor.animateTo(md_theme_dark_background)
             }
+    }
+
+    LaunchedEffect(true) {
+        val activity = context.findActivity() ?: return@LaunchedEffect
+        val bottom = activity.findViewById<BottomNavigationView>(R.id.bottom_navigation_view)
+        val miniplayer = activity.findViewById<ComposeView>(R.id.miniplayer)
+        if (bottom.visibility != View.GONE || miniplayer.visibility != View.GONE) {
+            bottom.visibility = View.GONE
+            miniplayer.visibility = View.GONE
+        }
     }
 
     // Height
@@ -912,23 +926,13 @@ fun NowPlayingScreen(
                                         .padding(horizontal = 40.dp),
                                 ) {
                                     Text(
-                                        text =
-                                            if (timelineState.current >= 0L) {
-                                                formatDuration(timelineState.current)
-                                            } else {
-                                                stringResource(id = R.string.na_na)
-                                            },
+                                        text = formatDuration(timelineState.current, context),
                                         style = typo.bodyMedium,
                                         modifier = Modifier.weight(1f),
                                         textAlign = TextAlign.Left,
                                     )
                                     Text(
-                                        text =
-                                            if (timelineState.total >= 0L) {
-                                                formatDuration(timelineState.total)
-                                            } else {
-                                                stringResource(id = R.string.na_na)
-                                            },
+                                        text = formatDuration(timelineState.total, context),
                                         style = typo.bodyMedium,
                                         modifier = Modifier.weight(1f),
                                         textAlign = TextAlign.Right,
