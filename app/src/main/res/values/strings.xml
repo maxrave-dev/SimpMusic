@@ -363,4 +363,15 @@
     <string name="log_in_warning">YouTube Music now requires you to log in to stream music, Piped Instance sometime can\'t work too. You should log in to YouTube to get better experience with SimpMusic.</string>
     <string name="spotify_canvas_cache">Spotify Canvas Cache</string>
     <string name="clear_canvas_cache">Clear canvas cache</string>
+    <string name="proxy">Proxy</string>
+    <string name="proxy_description">Using Proxy to bypass country content blocking</string>
+    <string name="proxy_type">Proxy type</string>
+    <string name="http">HTTP</string>
+    <string name="socks">Socks</string>
+    <string name="proxy_host">Proxy host</string>
+    <string name="invalid_host">Invalid host</string>
+    <string name="proxy_port">Proxy port</string>
+    <string name="invalid_port">Invalid port</string>
+    <string name="proxy_host_message">Please enter your Proxy host</string>
+    <string name="proxy_port_message">Please enter your Proxy port</string>
 </resources>

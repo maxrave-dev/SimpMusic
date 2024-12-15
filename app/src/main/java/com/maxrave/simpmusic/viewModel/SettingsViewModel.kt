@@ -15,8 +15,6 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.cache.SimpleCache
 import coil3.annotation.ExperimentalCoilApi
 import coil3.imageLoader
-import com.maxrave.kotlinytmusicscraper.YouTube
-import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
@@ -41,11 +39,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.koin.core.component.inject
 import org.koin.core.qualifier.named
 import java.io.FileInputStream
@@ -112,6 +112,14 @@ class SettingsViewModel(
     val homeLimit: StateFlow<Int?> = _homeLimit
     private var _translucentBottomBar: MutableStateFlow<String?> = MutableStateFlow(null)
     val translucentBottomBar: StateFlow<String?> = _translucentBottomBar
+    private var _usingProxy = MutableStateFlow(false)
+    val usingProxy: StateFlow<Boolean> = _usingProxy
+    private var _proxyType = MutableStateFlow(DataStoreManager.Settings.ProxyType.PROXY_TYPE_HTTP)
+    val proxyType: StateFlow<DataStoreManager.Settings.ProxyType> = _proxyType
+    private var _proxyHost = MutableStateFlow("")
+    val proxyHost: StateFlow<String> = _proxyHost
+    private var _proxyPort = MutableStateFlow(8000)
+    val proxyPort: StateFlow<Int> = _proxyPort
 
     private var _alertData: MutableStateFlow<SettingAlertState?> = MutableStateFlow(null)
     val alertData: StateFlow<SettingAlertState?> = _alertData
@@ -155,9 +163,12 @@ class SettingsViewModel(
         getSpotifyLogIn()
         getSpotifyLyrics()
         getSpotifyCanvas()
+        getUsingProxy()
         getCanvasCache()
         getTranslucentBottomBar()
-        calculateDataFraction()
+        viewModelScope.launch {
+            calculateDataFraction()
+        }
     }
 
     private fun getCanvasCache() {
@@ -172,49 +183,105 @@ class SettingsViewModel(
         _basicAlertData.value = alertData
     }
 
-    private fun calculateDataFraction() {
-        val mStorageStatsManager =
-            application.getSystemService(StorageStatsManager::class.java)
-        if (mStorageStatsManager != null) {
-            val totalByte =
-                mStorageStatsManager.getTotalBytes(StorageManager.UUID_DEFAULT).bytesToMB()
-            val freeSpace =
-                mStorageStatsManager.getFreeBytes(StorageManager.UUID_DEFAULT).bytesToMB()
-            val usedSpace = totalByte - freeSpace
-            val simpMusicSize = getSizeOfFile(application.filesDir).bytesToMB()
-            val thumbSize = (application.imageLoader.diskCache?.size ?: 0L).bytesToMB()
-            val otherApp = simpMusicSize.let { usedSpace.minus(it) - thumbSize }
-            val databaseSize =
-                simpMusicSize - playerCache.cacheSpace.bytesToMB() - downloadCache.cacheSpace.bytesToMB() - canvasCache.cacheSpace.bytesToMB()
-            if (totalByte ==
-                freeSpace + otherApp + simpMusicSize + thumbSize
-            ) {
-                _fraction.update {
-                    it.copy(
-                        otherApp = otherApp.toFloat().div(totalByte.toFloat()),
-                        downloadCache =
-                            downloadCache.cacheSpace
-                                .bytesToMB()
-                                .toFloat()
-                                .div(totalByte.toFloat()),
-                        playerCache =
-                            playerCache.cacheSpace
-                                .bytesToMB()
-                                .toFloat()
-                                .div(totalByte.toFloat()),
-                        canvasCache =
-                            canvasCache.cacheSpace
-                                .bytesToMB()
-                                .toFloat()
-                                .div(totalByte.toFloat()),
-                        thumbCache = thumbSize.toFloat().div(totalByte.toFloat()),
-                        freeSpace = freeSpace.toFloat().div(totalByte.toFloat()),
-                        appDatabase = databaseSize.toFloat().div(totalByte.toFloat()),
-                    )
+    private fun getUsingProxy() {
+        viewModelScope.launch {
+            dataStoreManager.usingProxy.collectLatest { usingProxy ->
+                if (usingProxy == DataStoreManager.TRUE) {
+                    getProxy()
                 }
-                log("calculateDataFraction: $totalByte, $freeSpace, $usedSpace, $simpMusicSize, $otherApp, $databaseSize", Log.WARN)
-                log("calculateDataFraction: ${_fraction.value}", Log.WARN)
-                log("calculateDataFraction: ${_fraction.value.combine()}", Log.WARN)
+                _usingProxy.value = usingProxy == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setUsingProxy(usingProxy: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setUsingProxy(usingProxy)
+            getUsingProxy()
+            getProxy()
+        }
+    }
+
+    private fun getProxy() {
+        viewModelScope.launch {
+            val host = launch {
+                dataStoreManager.proxyHost.collect {
+                    _proxyHost.value = it
+                }
+            }
+            val port = launch {
+                dataStoreManager.proxyPort.collect {
+                    _proxyPort.value = it
+                }
+            }
+            val type = launch {
+                dataStoreManager.proxyType.collect {
+                    _proxyType.value = it
+                    log("getProxy: $it", Log.DEBUG)
+                }
+            }
+            host.join()
+            port.join()
+            type.join()
+        }
+    }
+
+    fun setProxy(proxyType: DataStoreManager.Settings.ProxyType, host: String, port: Int) {
+        log("setProxy: $proxyType, $host, $port", Log.DEBUG)
+        viewModelScope.launch {
+            dataStoreManager.setProxyType(proxyType)
+            dataStoreManager.setProxyHost(host)
+            dataStoreManager.setProxyPort(port)
+        }
+    }
+
+    private suspend fun calculateDataFraction() {
+        withContext(Dispatchers.Default) {
+            val mStorageStatsManager =
+                application.getSystemService(StorageStatsManager::class.java)
+            if (mStorageStatsManager != null) {
+                val totalByte =
+                    mStorageStatsManager.getTotalBytes(StorageManager.UUID_DEFAULT).bytesToMB()
+                val freeSpace =
+                    mStorageStatsManager.getFreeBytes(StorageManager.UUID_DEFAULT).bytesToMB()
+                val usedSpace = totalByte - freeSpace
+                val simpMusicSize = getSizeOfFile(application.filesDir).bytesToMB()
+                val thumbSize = (application.imageLoader.diskCache?.size ?: 0L).bytesToMB()
+                val otherApp = simpMusicSize.let { usedSpace.minus(it) - thumbSize }
+                val databaseSize =
+                    simpMusicSize - playerCache.cacheSpace.bytesToMB() - downloadCache.cacheSpace.bytesToMB() - canvasCache.cacheSpace.bytesToMB()
+                if (totalByte ==
+                    freeSpace + otherApp + simpMusicSize + thumbSize
+                ) {
+                    withContext(Dispatchers.Main) {
+                        _fraction.update {
+                            it.copy(
+                                otherApp = otherApp.toFloat().div(totalByte.toFloat()),
+                                downloadCache =
+                                downloadCache.cacheSpace
+                                    .bytesToMB()
+                                    .toFloat()
+                                    .div(totalByte.toFloat()),
+                                playerCache =
+                                playerCache.cacheSpace
+                                    .bytesToMB()
+                                    .toFloat()
+                                    .div(totalByte.toFloat()),
+                                canvasCache =
+                                canvasCache.cacheSpace
+                                    .bytesToMB()
+                                    .toFloat()
+                                    .div(totalByte.toFloat()),
+                                thumbCache = thumbSize.toFloat().div(totalByte.toFloat()),
+                                freeSpace = freeSpace.toFloat().div(totalByte.toFloat()),
+                                appDatabase = databaseSize.toFloat().div(totalByte.toFloat()),
+                            )
+                        }
+                        log("calculateDataFraction: $totalByte, $freeSpace, $usedSpace, $simpMusicSize, $otherApp, $databaseSize", Log.WARN)
+                        log("calculateDataFraction: ${_fraction.value}", Log.WARN)
+                        log("calculateDataFraction: ${_fraction.value.combine()}", Log.WARN)
+                    }
+                }
             }
         }
     }
@@ -346,7 +413,6 @@ class SettingsViewModel(
     fun changeLocation(location: String) {
         viewModelScope.launch {
             dataStoreManager.setLocation(location)
-            YouTube.locale = YouTubeLocale(location, language.value!!)
             getLocation()
         }
     }
@@ -431,11 +497,10 @@ class SettingsViewModel(
         }
     }
 
-    fun changeVideoQuality(checkedIndex: Int) {
+    fun changeVideoQuality(item: String) {
         viewModelScope.launch {
-            when (checkedIndex) {
-                0 -> dataStoreManager.setVideoQuality(VIDEO_QUALITY.items[0].toString())
-                1 -> dataStoreManager.setVideoQuality(VIDEO_QUALITY.items[1].toString())
+            if (VIDEO_QUALITY.items.contains(item)) {
+                dataStoreManager.setVideoQuality(item)
             }
             getVideoQuality()
         }
@@ -582,7 +647,6 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.putString(SELECTED_LANGUAGE, code)
             Log.w("SettingsViewModel", "changeLanguage: $code")
-            YouTube.locale = YouTubeLocale(location.value!!, code.substring(0..1))
             getLanguage()
             val localeList =
                 LocaleListCompat.forLanguageTags(
@@ -604,7 +668,6 @@ class SettingsViewModel(
     fun clearCookie() {
         viewModelScope.launch {
             dataStoreManager.setCookie("")
-            YouTube.cookie = null
             dataStoreManager.setLoggedIn(false)
         }
     }
@@ -681,7 +744,6 @@ class SettingsViewModel(
     fun clearMusixmatchCookie() {
         viewModelScope.launch {
             dataStoreManager.setMusixmatchCookie("")
-            YouTube.musixMatchCookie = null
             dataStoreManager.setMusixmatchLoggedIn(false)
             makeToast(getString(R.string.logged_out))
         }
@@ -733,7 +795,7 @@ class SettingsViewModel(
                                         email = it.email,
                                         name = it.name,
                                         thumbnailUrl = it.thumbnails.lastOrNull()?.url ?: "",
-                                        cache = YouTube.cookie,
+                                        cache = mainRepository.getYouTubeCookie(),
                                         isUsed = true,
                                     ),
                                 )
@@ -770,12 +832,12 @@ class SettingsViewModel(
                             email = accountInfo.email,
                             name = accountInfo.name,
                             thumbnailUrl = accountInfo.thumbnails.lastOrNull()?.url ?: "",
-                            cache = YouTube.cookie,
+                            cache = mainRepository.getYouTubeCookie(),
                             isUsed = true,
                         ),
                     )
                     dataStoreManager.setLoggedIn(true)
-                    dataStoreManager.setCookie(YouTube.cookie ?: "")
+                    dataStoreManager.setCookie(mainRepository.getYouTubeCookie() ?: "")
                     delay(500)
                     getAllGoogleAccount()
                     getLoggedIn()
@@ -793,7 +855,6 @@ class SettingsViewModel(
                 dataStoreManager.putString("AccountName", acc.name)
                 dataStoreManager.putString("AccountThumbUrl", acc.thumbnailUrl)
                 mainRepository.updateGoogleAccountUsed(acc.email, true)
-                YouTube.cookie = acc.cache
                 dataStoreManager.setCookie(acc.cache ?: "")
                 dataStoreManager.setLoggedIn(true)
                 delay(500)
@@ -807,7 +868,6 @@ class SettingsViewModel(
                 dataStoreManager.putString("AccountThumbUrl", "")
                 dataStoreManager.setLoggedIn(false)
                 dataStoreManager.setCookie("")
-                YouTube.cookie = null
                 delay(500)
                 getAllGoogleAccount()
                 getLoggedIn()
@@ -824,7 +884,6 @@ class SettingsViewModel(
             dataStoreManager.putString("AccountThumbUrl", "")
             dataStoreManager.setLoggedIn(false)
             dataStoreManager.setCookie("")
-            YouTube.cookie = null
             delay(500)
             getAllGoogleAccount()
             getLoggedIn()

@@ -79,7 +79,7 @@ class RecentlySongsFragment : Fragment() {
             }
         }
         binding.topAppBar.setNavigationOnClickListener {
-            findNavController().popBackStack()
+            findNavController().navigateUp()
         }
 
         mainAdapter.setOnClickListener(

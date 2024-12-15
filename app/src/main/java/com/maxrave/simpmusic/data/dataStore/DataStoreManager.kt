@@ -556,6 +556,66 @@ class DataStoreManager(
         }
     }
 
+    val usingProxy =
+        settingsDataStore.data.map { preferences ->
+            preferences[USING_PROXY] ?: FALSE
+        }
+    suspend fun setUsingProxy(usingProxy: Boolean) {
+        withContext(Dispatchers.IO) {
+            if (usingProxy) {
+                settingsDataStore.edit { settings ->
+                    settings[USING_PROXY] = TRUE
+                }
+            } else {
+                settingsDataStore.edit { settings ->
+                    settings[USING_PROXY] = FALSE
+                }
+            }
+        }
+    }
+    val proxyType =
+        settingsDataStore.data.map { preferences ->
+            preferences[PROXY_TYPE]
+        }.map {
+            when (it) {
+                PROXY_TYPE_HTTP -> ProxyType.PROXY_TYPE_HTTP
+                PROXY_TYPE_SOCKS -> ProxyType.PROXY_TYPE_SOCKS
+                else -> ProxyType.PROXY_TYPE_HTTP
+            }
+        }
+    suspend fun setProxyType(proxyType: ProxyType) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[PROXY_TYPE] = when (proxyType) {
+                    ProxyType.PROXY_TYPE_HTTP -> PROXY_TYPE_HTTP
+                    ProxyType.PROXY_TYPE_SOCKS -> PROXY_TYPE_SOCKS
+                }
+            }
+        }
+    }
+    val proxyHost =
+        settingsDataStore.data.map { preferences ->
+            preferences[PROXY_HOST] ?: ""
+        }
+    suspend fun setProxyHost(proxyHost: String) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[PROXY_HOST] = proxyHost
+            }
+        }
+    }
+    val proxyPort =
+        settingsDataStore.data.map { preferences ->
+            preferences[PROXY_PORT] ?: 8000
+        }
+    suspend fun setProxyPort(proxyPort: Int) {
+        withContext(Dispatchers.IO) {
+            settingsDataStore.edit { settings ->
+                settings[PROXY_PORT] = proxyPort
+            }
+        }
+    }
+
     companion object Settings {
         val COOKIE = stringPreferencesKey("cookie")
         val LOGGED_IN = stringPreferencesKey("logged_in")
@@ -592,10 +652,21 @@ class DataStoreManager(
         val HOME_LIMIT = intPreferencesKey("home_limit")
         val CHART_KEY = stringPreferencesKey("chart_key")
         val TRANSLUCENT_BOTTOM_BAR = stringPreferencesKey("translucent_bottom_bar")
+        val USING_PROXY = stringPreferencesKey("using_proxy")
+        val PROXY_TYPE = stringPreferencesKey("proxy_type")
+        val PROXY_HOST = stringPreferencesKey("proxy_host")
+        val PROXY_PORT = intPreferencesKey("proxy_port")
         const val REPEAT_MODE_OFF = "REPEAT_MODE_OFF"
         const val REPEAT_ONE = "REPEAT_ONE"
         const val REPEAT_ALL = "REPEAT_ALL"
         const val TRUE = "TRUE"
         const val FALSE = "FALSE"
+        const val PROXY_TYPE_HTTP = "http"
+        const val PROXY_TYPE_SOCKS = "socks"
+        // Proxy type
+        enum class ProxyType {
+            PROXY_TYPE_HTTP,
+            PROXY_TYPE_SOCKS
+        }
     }
 }

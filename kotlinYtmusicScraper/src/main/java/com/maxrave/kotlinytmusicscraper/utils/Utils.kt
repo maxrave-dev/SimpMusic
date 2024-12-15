@@ -1,26 +1,6 @@
 package com.maxrave.kotlinytmusicscraper.utils
 
-import com.maxrave.kotlinytmusicscraper.YouTube
-import com.maxrave.kotlinytmusicscraper.pages.PlaylistPage
 import java.security.MessageDigest
-
-suspend fun Result<PlaylistPage>.completed() =
-    runCatching {
-        val page = getOrThrow()
-        val songs = page.songs.toMutableList()
-        var continuation = page.songsContinuation
-        while (continuation != null) {
-            val continuationPage = YouTube.playlistContinuation(continuation).getOrNull() ?: break
-            songs += continuationPage.songs
-            continuation = continuationPage.continuation
-        }
-        PlaylistPage(
-            playlist = page.playlist,
-            songs = songs,
-            songsContinuation = null,
-            continuation = page.continuation,
-        )
-    }
 
 fun ByteArray.toHex(): String = joinToString(separator = "") { eachByte -> "%02x".format(eachByte) }
 

@@ -38,6 +38,7 @@ import java.time.LocalDateTime
 
 class LocalPlaylistManager(
     context: Context,
+    private val youTube: YouTube
 ) : BaseManager(context) {
     override val tag: String = this.javaClass.simpleName
 
@@ -134,7 +135,7 @@ class LocalPlaylistManager(
                 emit(LocalResource.Success(getString(R.string.updated)))
                 val localPlaylist = localDataSource.getLocalPlaylist(id)
                 if (localPlaylist.youtubePlaylistId != null) {
-                    YouTube
+                    youTube
                         .editPlaylist(localPlaylist.youtubePlaylistId, newTitle)
                         .onSuccess {
                             emit(LocalResource.Success(getString(R.string.updated_to_youtube_playlist)))
@@ -198,7 +199,7 @@ class LocalPlaylistManager(
             }
             val ytPlaylistId = playlist.id
             val id = ytPlaylistId.verifyYouTubePlaylistId()
-            YouTube
+            youTube
                 .customQuery(browseId = id, setLogin = true)
                 .onSuccess { res ->
                     val listContent: ArrayList<MusicShelfRenderer.Content> = arrayListOf()
@@ -222,7 +223,7 @@ class LocalPlaylistManager(
                             ?.nextContinuationData
                             ?.continuation
                     while (continueParam != null) {
-                        YouTube
+                        youTube
                             .customQuery(
                                 "",
                                 continuation = continueParam,
@@ -280,7 +281,7 @@ class LocalPlaylistManager(
             emit(LocalResource.Loading())
             val playlist = localDataSource.getLocalPlaylist(playlistId)
             val res =
-                YouTube.createPlaylist(
+                youTube.createPlaylist(
                     playlist.title,
                     playlist.tracks,
                 )
@@ -288,7 +289,7 @@ class LocalPlaylistManager(
             if (res.isSuccess && value != null) {
                 val ytId = value.playlistId
                 Log.d(tag, "syncLocalPlaylistToYouTubePlaylist: $ytId")
-                YouTube
+                youTube
                     .getYouTubePlaylistFullTracksWithSetVideoId(ytId)
                     .onSuccess { list ->
                         Log.d(tag, "syncLocalPlaylistToYouTubePlaylist: onSuccess song ${list.map { it.first.title }}")
@@ -350,7 +351,7 @@ class LocalPlaylistManager(
             val currentTracks = tracks.toMutableList()
             localPlaylist.youtubePlaylistId?.let { ytId ->
                 Log.d(tag, "updateListTrackSynced: $ytId")
-                YouTube
+                youTube
                     .getYouTubePlaylistFullTracksWithSetVideoId(ytId)
                     .onSuccess { list ->
                         Log.d(tag, "updateListTrackSynced: onSuccess ${list.map { it.first.title }}")
@@ -427,7 +428,7 @@ class LocalPlaylistManager(
 
             // Add to YouTube playlist
             if (localPlaylist.youtubePlaylistId != null) {
-                YouTube
+                youTube
                     .addPlaylistItem(localPlaylist.youtubePlaylistId, song.videoId)
                     .onSuccess {
                         val data = it.playlistEditResults
@@ -465,7 +466,7 @@ class LocalPlaylistManager(
             if (localPlaylist.youtubePlaylistId != null) {
                 val setVideoId = localDataSource.getSetVideoId(song.videoId)
                 if (setVideoId?.setVideoId != null) {
-                    YouTube
+                    youTube
                         .removeItemYouTubePlaylist(localPlaylist.youtubePlaylistId, song.videoId, setVideoId.setVideoId)
                         .onSuccess {
                             emit(LocalResource.Success(getString(R.string.removed_from_YouTube_playlist)))
@@ -483,7 +484,7 @@ class LocalPlaylistManager(
             val localPlaylist = localDataSource.getLocalPlaylist(id)
             val ytPlaylistId = localPlaylist.youtubePlaylistId ?: return@flow
 
-            YouTube
+            youTube
                 .getSuggestionsTrackForPlaylist(ytPlaylistId)
                 .onSuccess { data ->
                     val listSongItem = data?.second?.map { it.toTrack() }

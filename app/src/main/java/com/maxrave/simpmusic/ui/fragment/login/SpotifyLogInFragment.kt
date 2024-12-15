@@ -93,7 +93,7 @@ class SpotifyLogInFragment : Fragment() {
                                             R.string.login_success,
                                             Toast.LENGTH_SHORT,
                                         ).show()
-                                    findNavController().popBackStack()
+                                    findNavController().navigateUp()
                                 }
                             }
                         }
@@ -104,7 +104,7 @@ class SpotifyLogInFragment : Fragment() {
             loadUrl(Config.SPOTIFY_LOG_IN_URL)
         }
         binding.topAppBar.setNavigationOnClickListener {
-            findNavController().popBackStack()
+            findNavController().navigateUp()
         }
     }
 

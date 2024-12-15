@@ -108,10 +108,10 @@ class FullscreenFragment : Fragment() {
                 binding.subtitleView.visibility = View.GONE
             }
             toolbar.setNavigationOnClickListener {
-                findNavController().popBackStack()
+                findNavController().navigateUp()
             }
             btOutFullScreen.setOnClickListener {
-                findNavController().popBackStack()
+                findNavController().navigateUp()
             }
             btNext.setOnClickListener {
                 viewModel.onUIEvent(UIEvent.Next)

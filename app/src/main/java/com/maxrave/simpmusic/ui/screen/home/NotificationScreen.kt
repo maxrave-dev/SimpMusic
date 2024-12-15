@@ -73,7 +73,7 @@ fun NotificationScreen(
             },
             navigationIcon = {
                 RippleIconButton(resId = R.drawable.baseline_arrow_back_ios_new_24) {
-                    navController.popBackStack()
+                    navController.navigateUp()
                 }
             },
         )

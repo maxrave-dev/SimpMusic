@@ -11,6 +11,7 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.simpmusic.common.DB_NAME
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.Converters
@@ -173,14 +174,20 @@ val databaseModule =
         single(createdAtStart = true) {
             DataStoreManager(get<DataStore<Preferences>>())
         }
+
+        // Move YouTube from Singleton to Koin DI
+        single(createdAtStart = true) {
+            YouTube()
+        }
+
         // MainRepository
         single(createdAtStart = true) {
-            MainRepository(get<LocalDataSource>(), get<DataStoreManager>(), get<MusicDatabase>(), androidContext())
+            MainRepository(get<LocalDataSource>(), get<DataStoreManager>(), get<YouTube>(), get<MusicDatabase>(), androidContext())
         }
         // List of managers
 
         single(createdAtStart = true) {
-            LocalPlaylistManager(androidContext())
+            LocalPlaylistManager(androidContext(), get<YouTube>())
         }
 
         // Notification Worker

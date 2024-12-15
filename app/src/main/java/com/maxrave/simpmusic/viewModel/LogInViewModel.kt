@@ -28,7 +28,6 @@ class LogInViewModel(
             Log.d("LogInViewModel", "saveCookie: $cookie")
             dataStoreManager.setCookie(cookie)
             dataStoreManager.setLoggedIn(true)
-            YouTube.cookie = cookie
             _status.postValue(true)
         }
     }

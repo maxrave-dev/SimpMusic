@@ -16,8 +16,6 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
-import com.maxrave.kotlinytmusicscraper.YouTube
-import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
 import com.maxrave.kotlinytmusicscraper.models.response.spotify.CanvasResponse
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.simpmusic.R
@@ -196,6 +194,7 @@ class SharedViewModel(
     val likeStatus: StateFlow<Boolean> = _likeStatus
 
     init {
+        mainRepository.initYouTube(viewModelScope)
         viewModelScope.launch {
             val timeLineJob =
                 launch {
@@ -1047,7 +1046,6 @@ class SharedViewModel(
         regionCode = runBlocking { dataStoreManager.location.first() }
         quality = runBlocking { dataStoreManager.quality.first() }
         language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
-        YouTube.locale = YouTubeLocale(gl = regionCode ?: "US", hl = language?.substring(0..1) ?: "en")
     }
 
     fun checkAllDownloadingSongs() {
@@ -1066,27 +1064,6 @@ class SharedViewModel(
                         song.videoId,
                         DownloadState.STATE_NOT_DOWNLOADED,
                     )
-                }
-            }
-        }
-    }
-
-    fun checkAuth() {
-        viewModelScope.launch {
-            dataStoreManager.cookie.first().let { cookie ->
-                if (cookie != "") {
-                    YouTube.cookie = cookie
-                    Log.d("Cookie", "Cookie is not empty")
-                } else {
-                    Log.e("Cookie", "Cookie is empty")
-                }
-            }
-            dataStoreManager.musixmatchCookie.first().let { cookie ->
-                if (cookie != "") {
-                    YouTube.musixMatchCookie = cookie
-                    Log.d("Musixmatch", "Cookie is not empty")
-                } else {
-                    Log.e("Musixmatch", "Cookie is empty")
                 }
             }
         }

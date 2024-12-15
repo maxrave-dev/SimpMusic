@@ -36,8 +36,6 @@ import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.maxrave.kotlinytmusicscraper.YouTube
-import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.FIRST_TIME_MIGRATION
@@ -59,12 +57,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import okhttp3.CacheControl
-import okhttp3.Interceptor
-import okhttp3.Request
-import okhttp3.Response
 import pub.devrel.easypermissions.EasyPermissions
-import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -152,18 +145,8 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     putString("location", "US")
                 }
-                YouTube.locale =
-                    YouTubeLocale(
-                        gl = getString("location") ?: "US",
-                        hl = Locale.getDefault().toLanguageTag().substring(0..1),
-                    )
             } else {
                 putString(SELECTED_LANGUAGE, "en-US")
-                YouTube.locale =
-                    YouTubeLocale(
-                        gl = getString("location") ?: "US",
-                        hl = "en-US".substring(0..1),
-                    )
             }
             // Fetch the selected language from wherever it was stored. In this case its SharedPref
             getString(SELECTED_LANGUAGE)?.let {
@@ -185,11 +168,6 @@ class MainActivity : AppCompatActivity() {
                 "onCreate: ${AppCompatDelegate.getApplicationLocales().toLanguageTags()}",
             )
             putString(SELECTED_LANGUAGE, AppCompatDelegate.getApplicationLocales().toLanguageTags())
-            YouTube.locale =
-                YouTubeLocale(
-                    gl = getString("location") ?: "US",
-                    hl = AppCompatDelegate.getApplicationLocales().toLanguageTags().substring(0..1),
-                )
         }
 //
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -217,36 +195,7 @@ class MainActivity : AppCompatActivity() {
                 )
             }
         }
-        YouTube.cacheControlInterceptor =
-            object : Interceptor {
-                override fun intercept(chain: Interceptor.Chain): Response {
-                    val originalResponse = chain.proceed(chain.request())
-                    if (isNetworkAvailable(applicationContext)) {
-                        val maxAge = 60 // read from cache for 1 minute
-                        return originalResponse
-                            .newBuilder()
-                            .header("Cache-Control", "public, max-age=$maxAge")
-                            .build()
-                    } else {
-                        val maxStale = 60 * 60 * 24 * 28 // tolerate 4-weeks stale
-                        return originalResponse
-                            .newBuilder()
-                            .header("Cache-Control", "public, only-if-cached, max-stale=$maxStale")
-                            .build()
-                    }
-                }
-            }
-        YouTube.forceCacheInterceptor =
-            Interceptor { chain ->
-                val builder: Request.Builder = chain.request().newBuilder()
-                if (!isNetworkAvailable(applicationContext)) {
-                    builder.cacheControl(CacheControl.FORCE_CACHE)
-                }
-                chain.proceed(builder.build())
-            }
-        YouTube.cachePath = File(application.cacheDir, "http-cache")
         viewModel.getLocation()
-        viewModel.checkAuth()
         viewModel.checkAllDownloadingSongs()
         runBlocking { delay(500) }
 
@@ -673,29 +622,6 @@ class MainActivity : AppCompatActivity() {
 //                )
 //            }
 //        }
-    }
-
-    private fun isNetworkAvailable(context: Context?): Boolean {
-        val connectivityManager = context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        // Returns a Network object corresponding to
-        // the currently active default data network.
-        val network = connectivityManager.activeNetwork ?: return false
-
-        // Representation of the capabilities of an active network.
-        val activeNetwork = connectivityManager.getNetworkCapabilities(network) ?: return false
-
-        return when {
-            // Indicates this network uses a Wi-Fi transport,
-            // or WiFi has network connectivity
-            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
-
-            // Indicates this network uses a Cellular transport. or
-            // Cellular has network connectivity
-            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
-
-            // else return false
-            else -> false
-        }
     }
 
     override fun onDestroy() {

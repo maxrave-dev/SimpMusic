@@ -174,7 +174,7 @@ private fun provideResolvingDataSourceFactory(
     mainRepository: MainRepository,
     coroutineScope: CoroutineScope,
 ): DataSource.Factory {
-    val CHUNK_LENGTH = 512 * 1024L
+    val CHUNK_LENGTH = 5 * 512 * 1024L
     return ResolvingDataSource.Factory(cacheDataSourceFactory) { dataSpec ->
         val mediaId = dataSpec.key ?: error("No media id")
         Log.w("Stream", mediaId)

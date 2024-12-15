@@ -82,6 +82,8 @@ import com.maxrave.kotlinytmusicscraper.parser.parseUnsyncedLyrics
 import com.mohamedrejeb.ksoup.html.parser.KsoupHtmlHandler
 import com.mohamedrejeb.ksoup.html.parser.KsoupHtmlParser
 import io.ktor.client.call.body
+import io.ktor.client.engine.ProxyBuilder
+import io.ktor.client.engine.http
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
@@ -91,7 +93,6 @@ import kotlinx.serialization.json.jsonPrimitive
 import okhttp3.Interceptor
 import org.json.JSONArray
 import java.io.File
-import java.net.Proxy
 import kotlin.math.abs
 import kotlin.random.Random
 
@@ -132,7 +133,7 @@ private fun List<PipedResponse.AudioStream>.toListFormat(): List<PlayerResponse.
  * Using YouTube Internal API, Spotify Web API and Spotify Internal API for get lyrics
  * @author maxrave-dev
  */
-object YouTube {
+class YouTube {
     private val ytMusic = Ytmusic()
 
     var cachePath: File?
@@ -193,13 +194,28 @@ object YouTube {
         }
 
     /**
+     * Remove proxy for client
+     */
+    fun removeProxy() {
+        ytMusic.proxy = null
+    }
+    /**
      * Set the proxy for client
      */
-    var proxy: Proxy?
-        get() = ytMusic.proxy
-        set(value) {
-            ytMusic.proxy = value
+    fun setProxy(isHttp: Boolean, host: String, port: Int) {
+        val verifiedHost = if (!host.contains("http")) {
+            "http://$host"
+        } else {
+            host
         }
+        runCatching {
+            if (isHttp) ProxyBuilder.http("${verifiedHost}:${port}") else ProxyBuilder.socks(verifiedHost, port)
+        }.onSuccess {
+            ytMusic.proxy = it
+        }.onFailure {
+            it.printStackTrace()
+        }
+    }
 
     private val listPipedInstances =
         listOf(
@@ -1755,10 +1771,13 @@ object YouTube {
         runCatching {
             ytMusic.removeFromLiked(mediaId).status.value
         }
+    companion object {
 
-    const val MAX_GET_QUEUE_SIZE = 1000
+        const val MAX_GET_QUEUE_SIZE = 1000
 
-    private const val VISITOR_DATA_PREFIX = "Cgt"
+        private const val VISITOR_DATA_PREFIX = "Cgt"
 
-    const val DEFAULT_VISITOR_DATA = "CgtsZG1ySnZiQWtSbyiMjuGSBg%3D%3D"
+        const val DEFAULT_VISITOR_DATA = "CgtsZG1ySnZiQWtSbyiMjuGSBg%3D%3D"
+
+    }
 }

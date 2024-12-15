@@ -1,7 +1,6 @@
 package com.maxrave.simpmusic.ui.fragment.login
 
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,7 +14,6 @@ import androidx.lifecycle.lifecycleScope
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.databinding.FragmentMusixmatchBinding
 import com.maxrave.simpmusic.extension.isMyServiceRunning
@@ -89,40 +87,13 @@ class MusixmatchFragment : Fragment() {
                                 binding.progressBar.visibility = View.GONE
                                 Toast.makeText(requireContext(), getString(R.string.logged_in), Toast.LENGTH_SHORT).show()
                                 delay(1000)
-                                findNavController().popBackStack()
+                                findNavController().navigateUp()
                             }
                         } else {
                             binding.progressBar.visibility = View.GONE
                         }
                     }
                 }
-            val dataJob =
-                launch {
-                    viewModel.data.collectLatest { data ->
-                        if (data != null) {
-                            Log.w("MusixmatchFragment", data.toString())
-                            if (data.message.body[0]
-                                    .credential.error == null &&
-                                data.message.body[0]
-                                    .credential.account != null
-                            ) {
-                                YouTube.musixMatchCookie?.let { viewModel.saveCookie(it) }
-                            } else {
-                                Toast
-                                    .makeText(
-                                        requireContext(),
-                                        data.message.body[0]
-                                            .credential.error
-                                            ?.description,
-                                        Toast.LENGTH_SHORT,
-                                    ).show()
-                            }
-                        } else {
-                            Toast.makeText(requireContext(), getString(R.string.error), Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                }
-            dataJob.join()
             loadingJob.join()
         }
     }

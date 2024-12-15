@@ -7,12 +7,12 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -90,6 +90,7 @@ import com.maxrave.simpmusic.common.QUALITY
 import com.maxrave.simpmusic.common.SPONSOR_BLOCK
 import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
 import com.maxrave.simpmusic.common.SUPPORTED_LOCATION
+import com.maxrave.simpmusic.common.VIDEO_QUALITY
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.TRUE
 import com.maxrave.simpmusic.extension.bytesToMB
@@ -108,6 +109,7 @@ import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.mikepenz.aboutlibraries.Libs
 import com.mikepenz.aboutlibraries.LibsBuilder
 import kotlinx.coroutines.flow.map
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.koin.androidx.compose.koinViewModel
 import java.text.SimpleDateFormat
 import java.time.Instant
@@ -117,7 +119,7 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import java.util.Scanner
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class, ExperimentalCoilApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalCoilApi::class)
 @UnstableApi
 @Composable
 fun SettingScreen(
@@ -179,6 +181,10 @@ fun SettingScreen(
     val githubResponse by viewModel.githubResponse.collectAsStateWithLifecycle()
     val lastCheckUpdate by viewModel.lastCheckForUpdate.collectAsStateWithLifecycle()
     val googleAccounts by viewModel.googleAccounts.collectAsStateWithLifecycle()
+    val usingProxy by viewModel.usingProxy.collectAsStateWithLifecycle()
+    val proxyType by viewModel.proxyType.collectAsStateWithLifecycle()
+    val proxyHost by viewModel.proxyHost.collectAsStateWithLifecycle()
+    val proxyPort by viewModel.proxyPort.collectAsStateWithLifecycle()
     var checkForUpdateSubtitle by rememberSaveable {
         mutableStateOf("")
     }
@@ -187,6 +193,10 @@ fun SettingScreen(
     }
     var showYouTubeAccountDialog by rememberSaveable {
         mutableStateOf(false)
+    }
+
+    LaunchedEffect(true) {
+        viewModel.getAllGoogleAccount()
     }
 
     LaunchedEffect(lastCheckUpdate) {
@@ -380,6 +390,22 @@ fun SettingScreen(
                 SettingItem(
                     title = stringResource(R.string.video_quality),
                     subtitle = videoQuality ?: "",
+                    onClick = {
+                        viewModel.setAlertData(
+                            SettingAlertState(
+                                title = context.getString(R.string.video_quality),
+                                selectOne = SettingAlertState.SelectData(
+                                    listSelect = VIDEO_QUALITY.items.map { item ->
+                                        (item.toString() == videoQuality) to item.toString()
+                                    },
+                                ),
+                                confirm = context.getString(R.string.change) to { state ->
+                                    viewModel.changeVideoQuality(state.selectOne?.getSelected() ?: "")
+                                },
+                                dismiss = context.getString(R.string.cancel)
+                            )
+                        )
+                    }
                 )
                 SettingItem(
                     title = stringResource(R.string.send_back_listening_data_to_google),
@@ -391,6 +417,105 @@ fun SettingScreen(
                     smallSubtitle = true,
                     switch = (sendData to { viewModel.setSendBackToGoogle(it) }),
                 )
+                SettingItem(
+                    title = stringResource(R.string.proxy),
+                    subtitle = stringResource(R.string.proxy_description),
+                    switch = (usingProxy to { viewModel.setUsingProxy(it) }),
+                )
+            }
+        }
+        item(key = "proxy") {
+            Crossfade(usingProxy) { it ->
+                if (it) {
+                    Column {
+                        SettingItem(
+                            title = stringResource(R.string.proxy_type),
+                            subtitle = when (proxyType) {
+                                DataStoreManager.Settings.ProxyType.PROXY_TYPE_HTTP -> stringResource(R.string.http)
+                                DataStoreManager.Settings.ProxyType.PROXY_TYPE_SOCKS -> stringResource(R.string.socks)
+                            },
+                            onClick = {
+                                viewModel.setAlertData(
+                                    SettingAlertState(
+                                        title = context.getString(R.string.proxy_type),
+                                        selectOne = SettingAlertState.SelectData(
+                                            listSelect = listOf(
+                                                (proxyType == DataStoreManager.Settings.ProxyType.PROXY_TYPE_HTTP) to context.getString(R.string.http),
+                                                (proxyType == DataStoreManager.Settings.ProxyType.PROXY_TYPE_SOCKS) to context.getString(R.string.socks),
+                                            ),
+                                        ),
+                                        confirm = context.getString(R.string.change) to { state ->
+                                            viewModel.setProxy(
+                                                if (state.selectOne?.getSelected() == context.getString(R.string.socks)) {
+                                                    DataStoreManager.Settings.ProxyType.PROXY_TYPE_SOCKS
+                                                } else {
+                                                    DataStoreManager.Settings.ProxyType.PROXY_TYPE_HTTP
+                                                },
+                                                proxyHost,
+                                                proxyPort,
+                                            )
+                                        },
+                                        dismiss = context.getString(R.string.cancel),
+                                    )
+                                )
+                            }
+                        )
+                        SettingItem(
+                            title = stringResource(R.string.proxy_host),
+                            subtitle = proxyHost,
+                            onClick = {
+                                viewModel.setAlertData(
+                                    SettingAlertState(
+                                        title = context.getString(R.string.proxy_host),
+                                        message = context.getString(R.string.proxy_host_message),
+                                        textField = SettingAlertState.TextFieldData(
+                                            label = context.getString(R.string.proxy_host),
+                                            value = proxyHost,
+                                            verifyCodeBlock = {
+                                                (it.toHttpUrlOrNull() != null) to context.getString(R.string.invalid_host)
+                                            },
+                                        ),
+                                        confirm = context.getString(R.string.change) to { state ->
+                                            viewModel.setProxy(
+                                                proxyType,
+                                                state.textField?.value ?: "",
+                                                proxyPort,
+                                            )
+                                        },
+                                        dismiss = context.getString(R.string.cancel),
+                                    )
+                                )
+                            }
+                        )
+                        SettingItem(
+                            title = stringResource(R.string.proxy_port),
+                            subtitle = proxyPort.toString(),
+                            onClick = {
+                                viewModel.setAlertData(
+                                    SettingAlertState(
+                                        title = context.getString(R.string.proxy_port),
+                                        message = context.getString(R.string.proxy_port_message),
+                                        textField = SettingAlertState.TextFieldData(
+                                            label = context.getString(R.string.proxy_port),
+                                            value = proxyPort.toString(),
+                                            verifyCodeBlock = {
+                                                (it.toIntOrNull() != null) to context.getString(R.string.invalid_port)
+                                            },
+                                        ),
+                                        confirm = context.getString(R.string.change) to { state ->
+                                            viewModel.setProxy(
+                                                proxyType,
+                                                proxyHost,
+                                                state.textField?.value?.toIntOrNull() ?: 0,
+                                            )
+                                        },
+                                        dismiss = context.getString(R.string.cancel),
+                                    )
+                                )
+                            }
+                        )
+                    }
+                }
             }
         }
         item(key = "audio") {
@@ -1012,7 +1137,10 @@ fun SettingScreen(
         AlertDialog(
             onDismissRequest = { viewModel.setBasicAlertData(null) },
             title = {
-                Text(text = alertBasicState.title)
+                Text(
+                    text = alertBasicState.title,
+                    style = typo.titleSmall
+                )
             },
             text = {
                 if (alertBasicState.message != null) {
@@ -1167,7 +1295,10 @@ fun SettingScreen(
         AlertDialog(
             onDismissRequest = { viewModel.setAlertData(null) },
             title = {
-                Text(text = alertState.title)
+                Text(
+                    text = alertState.title,
+                    style = typo.titleSmall
+                )
             },
             text = {
                 if (alertState.message != null) {
@@ -1220,25 +1351,32 @@ fun SettingScreen(
                             .heightIn(0.dp, 500.dp),
                     ) {
                         items(alertState.selectOne.listSelect) { item ->
-                            Row(Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                            val onSelect = {
+                                viewModel.setAlertData(
+                                    alertState.copy(
+                                        selectOne =
+                                        alertState.selectOne.copy(
+                                            listSelect =
+                                            alertState.selectOne.listSelect.toMutableList().map {
+                                                if (it == item) {
+                                                    true to it.second
+                                                } else {
+                                                    false to it.second
+                                                }
+                                            },
+                                        ),
+                                    ),
+                                )
+                            }
+                            Row(
+                                Modifier.padding(vertical = 4.dp).clickable {
+                                    onSelect.invoke()
+                                }.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically) {
                                 RadioButton(
                                     selected = item.first,
                                     onClick = {
-                                        viewModel.setAlertData(
-                                            alertState.copy(
-                                                selectOne =
-                                                    alertState.selectOne.copy(
-                                                        listSelect =
-                                                            alertState.selectOne.listSelect.toMutableList().map {
-                                                                if (it == item) {
-                                                                    true to it.second
-                                                                } else {
-                                                                    false to it.second
-                                                                }
-                                                            },
-                                                    ),
-                                            ),
-                                        )
+                                        onSelect.invoke()
                                     },
                                 )
                                 Spacer(Modifier.width(8.dp))
@@ -1251,25 +1389,32 @@ fun SettingScreen(
                         Modifier.padding(vertical = 6.dp),
                     ) {
                         items(alertState.multipleSelect.listSelect) { item ->
-                            Row(Modifier.padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                            val onCheck = {
+                                viewModel.setAlertData(
+                                    alertState.copy(
+                                        multipleSelect =
+                                        alertState.multipleSelect.copy(
+                                            listSelect =
+                                            alertState.multipleSelect.listSelect.toMutableList().map {
+                                                if (it == item) {
+                                                    !it.first to it.second
+                                                } else {
+                                                    it
+                                                }
+                                            },
+                                        ),
+                                    ),
+                                )
+                            }
+                            Row(
+                                Modifier.padding(vertical = 4.dp).clickable {
+                                    onCheck.invoke()
+                                }.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically) {
                                 Checkbox(
                                     checked = item.first,
                                     onCheckedChange = {
-                                        viewModel.setAlertData(
-                                            alertState.copy(
-                                                multipleSelect =
-                                                    alertState.multipleSelect.copy(
-                                                        listSelect =
-                                                            alertState.multipleSelect.listSelect.toMutableList().map {
-                                                                if (it == item) {
-                                                                    !it.first to it.second
-                                                                } else {
-                                                                    it
-                                                                }
-                                                            },
-                                                    ),
-                                            ),
-                                        )
+                                        onCheck.invoke()
                                     },
                                 )
                                 Spacer(Modifier.width(8.dp))
@@ -1328,7 +1473,7 @@ fun SettingScreen(
                         .size(32.dp),
                     true,
                 ) {
-                    navController.popBackStack()
+                    navController.navigateUp()
                 }
             }
         },

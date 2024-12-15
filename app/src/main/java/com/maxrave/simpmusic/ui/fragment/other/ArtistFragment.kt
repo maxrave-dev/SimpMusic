@@ -153,7 +153,7 @@ class ArtistFragment : Fragment() {
         }
 
         binding.toolBar.setNavigationOnClickListener {
-            findNavController().popBackStack()
+            findNavController().navigateUp()
         }
         binding.btShuffle.setOnClickListener {
             val id =
@@ -667,7 +667,7 @@ class ArtistFragment : Fragment() {
                                                 fetchData(channelId)
                                             }
                                         }.show()
-                                    findNavController().popBackStack()
+                                    findNavController().navigateUp()
                                 }
 
                                 else -> {

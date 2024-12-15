@@ -118,7 +118,11 @@ class Ytmusic {
         set(value) {
             field = value
             httpClient.close()
+            musixmatchClient.close()
+            spotifyClient.close()
             httpClient = createClient()
+            musixmatchClient = createMusixmatchClient()
+            spotifyClient = createSpotifyClient()
         }
 
     @OptIn(ExperimentalSerializationApi::class)
@@ -188,6 +192,11 @@ class Ytmusic {
             defaultRequest {
                 url("https://api.spotify.com")
             }
+            if (proxy != null) {
+                engine {
+                    proxy = this@Ytmusic.proxy
+                }
+            }
         }
 
     @OptIn(ExperimentalSerializationApi::class)
@@ -252,6 +261,11 @@ class Ytmusic {
             }
             defaultRequest {
                 url("https://apic-desktop.musixmatch.com/ws/1.1/")
+            }
+            if (proxy != null) {
+                engine {
+                    proxy = this@Ytmusic.proxy
+                }
             }
         }
 

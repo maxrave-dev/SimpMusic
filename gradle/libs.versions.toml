@@ -3,7 +3,7 @@ android = "8.7.3"
 kotlin = "2.0.0"
 serialization = "2.0.0"
 ksp = "2.0.0-1.0.22"
-compose-bom = "2024.11.00"
+compose-bom = "2024.12.01"
 constraintlayout-compose = "1.1.0"
 activity-compose = "1.9.3"
 lifecycle-viewmodel-compose = "2.8.7"
@@ -15,7 +15,7 @@ material = "1.12.0"
 startup-runtime = "1.2.0"
 lifecycle-livedata-ktx = "2.8.7"
 lifecycle-viewmodel-ktx = "2.8.7"
-ui-tooling = "1.7.5"
+ui-tooling = "1.7.6"
 media3 = "1.5.0"
 palette-ktx = "1.0.0"
 expandable-text = "2.0.0"
@@ -27,7 +27,7 @@ room = "2.6.1"
 legacy-support-v4 = "1.0.0"
 coroutines-android = "1.9.0"
 coroutines-guava = "1.9.0"
-navigation = "2.8.4"
+navigation = "2.8.5"
 gson = "2.10.1"
 coil3 = "3.0.4"
 kmpalette = "3.1.0"
@@ -39,7 +39,7 @@ swiperefreshlayout = "1.2.0-alpha01"
 insetter = "0.6.1"
 shimmer = "0.5.0"
 lottie = "6.4.0"
-paging = "3.3.4"
+paging = "3.3.5"
 customactivityoncrash = "2.4.0"
 sdp-android = "1.1.0"
 ssp-android = "1.1.0"
@@ -64,6 +64,7 @@ compose-ui = { group = "androidx.compose.ui", name = "ui" }
 compose-material-ripple = { group = "androidx.compose.material", name = "material-ripple" }
 compose-material-icons-core = { group = "androidx.compose.material", name = "material-icons-core" }
 compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
+compose-ui-viewbinding = { group = "androidx.compose.ui", name = "ui-viewbinding" }
 constraintlayout-compose = { group = "androidx.constraintlayout", name = "constraintlayout-compose", version.ref = "constraintlayout-compose" }
 ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activity-compose" }

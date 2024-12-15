@@ -8,6 +8,7 @@ import android.view.ViewTreeObserver
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.view.marginBottom
 import androidx.core.view.marginEnd
 import androidx.core.view.marginStart
@@ -152,14 +153,8 @@ class NowPlayingFragment : Fragment() {
         savedInstanceState: Bundle?,
     ) {
         super.onViewCreated(view, savedInstanceState)
-//        val activity = requireActivity()
-//        val bottom = activity.findViewById<BottomNavigationView>(R.id.bottom_navigation_view)
-//        val miniplayer = activity.findViewById<ComposeView>(R.id.miniplayer)
-//
-//        bottom.visibility = View.GONE
-//        miniplayer.visibility = View.GONE
-
         composeView.apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 AppTheme {
                     Scaffold { paddingValues ->
@@ -1358,7 +1353,7 @@ class NowPlayingFragment : Fragment() {
 //        }
 //
 //        binding.topAppBar.setNavigationOnClickListener {
-//            findNavController().popBackStack()
+//            findNavController().navigateUp()
 //        }
 //        binding.btQueue.setOnClickListener {
 //            findNavController().navigateSafe(R.id.action_global_queueFragment)

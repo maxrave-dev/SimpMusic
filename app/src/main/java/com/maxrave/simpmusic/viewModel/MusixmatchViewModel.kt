@@ -1,9 +1,10 @@
 package com.maxrave.simpmusic.viewModel
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.viewModelScope
-import com.maxrave.kotlinytmusicscraper.YouTube
-import com.maxrave.kotlinytmusicscraper.models.musixmatch.MusixmatchCredential
+import androidx.media3.common.util.UnstableApi
+import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,6 +12,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.android.annotation.KoinViewModel
 
+@UnstableApi
 @KoinViewModel
 class MusixmatchViewModel(
     application: Application,
@@ -19,8 +21,6 @@ class MusixmatchViewModel(
         get() = "MusixmatchViewModel"
 
     var loading: MutableStateFlow<Boolean?> = MutableStateFlow(null)
-    private var _data: MutableStateFlow<MusixmatchCredential?> = MutableStateFlow(null)
-    val data: MutableStateFlow<MusixmatchCredential?> = _data
 
     fun login(
         email: String,
@@ -28,17 +28,31 @@ class MusixmatchViewModel(
     ) {
         loading.value = true
         viewModelScope.launch {
-            mainRepository.loginToMusixMatch(email, password).collect {
-                _data.value = it
+            mainRepository.loginToMusixMatch(email, password).collect { data ->
+                if (data != null) {
+                    Log.w("MusixmatchFragment", data.toString())
+                    if (data.message.body.firstOrNull()
+                            ?.credential?.error == null &&
+                        data.message.body.firstOrNull()
+                            ?.credential?.account != null
+                    ) {
+                        mainRepository.getMusixmatchCookie()?.let { saveCookie(it) }
+                    } else {
+                        makeToast(data.message.body.firstOrNull()
+                            ?.credential?.error
+                            ?.description ?: getString(R.string.error))
+                    }
+                } else {
+                    makeToast(getString(R.string.error))
+                }
             }
         }
     }
 
-    fun saveCookie(cookie: String) {
+    private fun saveCookie(cookie: String) {
         viewModelScope.launch {
             dataStoreManager.setMusixmatchCookie(cookie)
             dataStoreManager.setMusixmatchLoggedIn(true)
-            YouTube.musixMatchCookie = cookie
             withContext(Dispatchers.Main) {
                 loading.value = false
             }

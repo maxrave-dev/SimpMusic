@@ -643,7 +643,7 @@ fun FullscreenLyricsSheet(
                                             imageVector = Icons.Filled.PlayCircle,
                                             tint = Color.White,
                                             contentDescription = "",
-                                            modifier = Modifier.size(56.dp),
+                                            modifier = Modifier.size(72.dp),
                                         )
                                     } else {
                                         Icon(

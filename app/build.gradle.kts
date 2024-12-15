@@ -190,6 +190,7 @@ dependencies {
     implementation(libs.compose.material.ripple)
     implementation(libs.compose.material.icons.core)
     implementation(libs.compose.material.icons.extended)
+    implementation(libs.compose.ui.viewbinding)
     implementation(libs.constraintlayout.compose)
 
     // Android Studio Preview support

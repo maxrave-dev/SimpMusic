@@ -1,7 +1,6 @@
 package com.maxrave.kotlinytmusicscraper.test
 
 import com.google.gson.annotations.SerializedName
-import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.Ytmusic
 import com.maxrave.kotlinytmusicscraper.models.GridRenderer
 import com.maxrave.kotlinytmusicscraper.models.MusicResponsiveListItemRenderer
@@ -20,29 +19,6 @@ fun main() {
     }
 }
 
-fun testLrc() {
-    runBlocking {
-        YouTube
-            .customQuery("FEmusic_radio_builder")
-            .onSuccess {
-                println(it)
-            }.onFailure {
-                it.printStackTrace()
-            }
-    }
-}
-
-fun testSongInfo() {
-    runBlocking {
-        YouTube
-            .getYouTubeCaption("vfKiaXKO44M")
-            .onSuccess {
-                println(it)
-            }.onFailure {
-                it.printStackTrace()
-            }
-    }
-}
 
 fun testPlayer() {
     runBlocking {

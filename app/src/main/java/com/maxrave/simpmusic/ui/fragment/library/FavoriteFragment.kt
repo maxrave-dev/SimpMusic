@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.findNavController
@@ -46,6 +47,7 @@ class FavoriteFragment : Fragment() {
             }
         Log.w("FavoriteFragment", "type: $type")
         composeView.apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 AppTheme {
                     Scaffold { paddingValue ->

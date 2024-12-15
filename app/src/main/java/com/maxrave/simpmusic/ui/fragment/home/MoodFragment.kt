@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -65,11 +66,12 @@ class MoodFragment : Fragment() {
 //        }
 //
 //        binding.topAppBar.setNavigationOnClickListener {
-//            findNavController().popBackStack()
+//            findNavController().navigateUp()
 //        }
         val params = requireArguments().getString("params")
 
         composeView.apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 AppTheme {
                     Scaffold {
@@ -98,7 +100,7 @@ class MoodFragment : Fragment() {
 //                    binding.contentLayout.visibility = View.GONE
 //                    binding.loadingLayout.visibility = View.GONE
 //                    Snackbar.make(binding.root, response.message.toString(), Snackbar.LENGTH_LONG).show()
-//                    findNavController().popBackStack()
+//                    findNavController().navigateUp()
 //                }
 //            }
 //        })
