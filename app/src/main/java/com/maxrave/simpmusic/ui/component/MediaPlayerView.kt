@@ -1,5 +1,6 @@
 package com.maxrave.simpmusic.ui.component
 
+import android.os.Build
 import android.util.Log
 import android.view.TextureView
 import androidx.compose.animation.Crossfade
@@ -45,7 +46,9 @@ import coil3.request.crossfade
 import coil3.toCoilUri
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.extension.KeepScreenOn
+import com.maxrave.simpmusic.extension.PipListenerPreAPI12
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
+import com.maxrave.simpmusic.extension.pipModifier
 import org.koin.compose.koinInject
 import org.koin.core.qualifier.named
 import kotlin.math.roundToInt
@@ -166,7 +169,9 @@ fun MediaPlayerView(
 fun MediaPlayerView(
     player: ExoPlayer,
     modifier: Modifier = Modifier,
+    pipSupport: Boolean = false,
 ) {
+    val context = LocalContext.current
     var videoRatio by rememberSaveable {
         mutableFloatStateOf(16f / 9)
     }
@@ -177,6 +182,10 @@ fun MediaPlayerView(
 
     var showArtwork by rememberSaveable {
         mutableStateOf(false)
+    }
+
+    if (pipSupport) {
+        PipListenerPreAPI12()
     }
 
     val playerListener =
@@ -220,7 +229,13 @@ fun MediaPlayerView(
     }
 
     Box(
-        modifier,
+        modifier.then(
+            if (pipSupport && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                Modifier.pipModifier(context)
+            } else {
+                Modifier
+            }
+        ),
         contentAlignment = Alignment.Center
     ) {
         if (keepScreenOn) {

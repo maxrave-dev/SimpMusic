@@ -39,6 +39,8 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Replay5
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
+import androidx.compose.material.icons.filled.Subtitles
+import androidx.compose.material.icons.filled.SubtitlesOff
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
@@ -57,6 +59,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -71,6 +74,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -126,7 +130,7 @@ fun FullscreenPlayer(
     }
 
     LaunchedEffect(true) {
-        val activity = context.findActivity() ?: return@LaunchedEffect
+        val activity = context.findActivity()
         val window = activity.window
         val insetsController = WindowCompat.getInsetsController(window, window.decorView)
         insetsController.apply {
@@ -194,15 +198,110 @@ fun FullscreenPlayer(
         }
     }
 
+    var currentLineIndex by rememberSaveable {
+        mutableIntStateOf(-1)
+    }
+    var shouldShowSubtitle by rememberSaveable {
+        mutableStateOf(true)
+    }
+    LaunchedEffect(key1 = timelineState) {
+        val lines = nowPlayingState.lyricsData?.lyrics?.lines ?: return@LaunchedEffect
+        if (timelineState.current > 0L) {
+            lines.indices.forEach { i ->
+                val sentence = lines[i]
+                val startTimeMs = sentence.startTimeMs.toLong()
+
+                // estimate the end time of the current sentence based on the start time of the next sentence
+                val endTimeMs =
+                    if (i < lines.size - 1) {
+                        lines[i + 1].startTimeMs.toLong()
+                    } else {
+                        // if this is the last sentence, set the end time to be some default value (e.g., 1 minute after the start time)
+                        startTimeMs + 60000
+                    }
+                if (timelineState.current in startTimeMs..endTimeMs) {
+                    currentLineIndex = i
+                }
+            }
+            if (lines.isNotEmpty() &&
+                (
+                    timelineState.current in (
+                        0..(
+                            lines.getOrNull(0)?.startTimeMs
+                                ?: "0"
+                            ).toLong()
+                        )
+                    )
+            ) {
+                currentLineIndex = -1
+            }
+        } else {
+            currentLineIndex = -1
+        }
+    }
+
     Box {
         MediaPlayerView(
             player = player,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier.fillMaxSize(),
+            pipSupport = true
         )
+        if (nowPlayingState.lyricsData != null && !context.findActivity().isInPictureInPictureMode && shouldShowSubtitle) {
+            Crossfade(currentLineIndex != -1) {
+                val lines = nowPlayingState.lyricsData?.lyrics?.lines ?: return@Crossfade
+                if (it) {
+                    Box(
+                        Modifier.fillMaxWidth()
+                            .fillMaxHeight()
+                            .padding(bottom = 40.dp)
+                            .align(Alignment.BottomCenter),
+                        contentAlignment = Alignment.BottomCenter
+                    ) {
+                        Box(Modifier.fillMaxWidth(0.7f)) {
+                            Column(
+                                Modifier.align(Alignment.BottomCenter),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Text(
+                                    text = lines.getOrNull(currentLineIndex)?.words ?: return@Crossfade,
+                                    style = typo.bodyLarge,
+                                    color = Color.White,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier
+                                        .padding(4.dp)
+                                        .background(Color.Black.copy(alpha = 0.5f))
+                                        .wrapContentWidth()
+                                )
+                                Crossfade(nowPlayingState.lyricsData?.translatedLyrics?.lines != null, label = "") { translate ->
+                                    val translateLines = nowPlayingState.lyricsData?.translatedLyrics?.lines ?: return@Crossfade
+                                    if (translate) {
+                                        Text(
+                                            text = translateLines.getOrNull(currentLineIndex)?.words ?: return@Crossfade,
+                                            style = typo.bodyMedium,
+                                            color = Color.Yellow,
+                                            textAlign = TextAlign.Center,
+                                            modifier = Modifier
+                                                .background(Color.Black.copy(alpha = 0.5f))
+                                                .wrapContentWidth()
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
         Row(Modifier.fillMaxSize()) {
             // Left side
             Box(
                 Modifier.fillMaxHeight().weight(1f)
+                    .clip(
+                        RoundedCornerShape(
+                            topEndPercent = 10,
+                            bottomEndPercent = 10
+                        )
+                    )
                     .indication(
                         interactionSource = interactionSourceBackward,
                         indication = ripple()
@@ -249,6 +348,12 @@ fun FullscreenPlayer(
             }
             Box(
                 Modifier.fillMaxHeight().weight(1f)
+                    .clip(
+                        RoundedCornerShape(
+                            topStartPercent = 10,
+                            bottomStartPercent = 10
+                        )
+                    )
                     .indication(
                         interactionSource = interactionSourceForward,
                         indication = ripple()
@@ -517,31 +622,75 @@ fun FullscreenPlayer(
                                     style = typo.bodySmall
                                 )
                             }
-                            FilledTonalIconButton(
-                                colors =
-                                IconButtonDefaults.iconButtonColors().copy(
-                                    containerColor = Color.Transparent,
-                                ),
-                                modifier =
+                            Row(
                                 Modifier
-                                    .size(32.dp)
-                                    .aspectRatio(1f)
-                                    .clip(
-                                        CircleShape,
-                                    )
                                     .align(Alignment.CenterEnd),
-                                onClick = {
-                                    navController.navigateUp()
-                                },
+                                verticalAlignment = Alignment.CenterVertically,
                             ) {
-                                Icon(
-                                    imageVector = Icons.Filled.FullscreenExit,
-                                    tint = Color.White,
-                                    contentDescription = "",
+                                FilledTonalIconButton(
+                                    colors =
+                                    IconButtonDefaults.iconButtonColors().copy(
+                                        containerColor = Color.Transparent,
+                                    ),
                                     modifier =
                                     Modifier
-                                        .size(24.dp)
-                                )
+                                        .size(32.dp)
+                                        .aspectRatio(1f)
+                                        .clip(
+                                            CircleShape,
+                                        ),
+                                    onClick = {
+                                        shouldShowSubtitle = !shouldShowSubtitle
+                                    },
+                                ) {
+                                    Crossfade(shouldShowSubtitle) {
+                                        if (it) {
+                                            Icon(
+                                                imageVector = Icons.Filled.SubtitlesOff,
+                                                tint = Color.White,
+                                                contentDescription = "",
+                                                modifier =
+                                                Modifier
+                                                    .size(24.dp)
+                                            )
+                                        } else {
+                                            Icon(
+                                                imageVector = Icons.Filled.Subtitles,
+                                                tint = Color.White,
+                                                contentDescription = "",
+                                                modifier =
+                                                Modifier
+                                                    .size(24.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                                Spacer(Modifier.width(8.dp))
+                                FilledTonalIconButton(
+                                    colors =
+                                    IconButtonDefaults.iconButtonColors().copy(
+                                        containerColor = Color.Transparent,
+                                    ),
+                                    modifier =
+                                    Modifier
+                                        .size(32.dp)
+                                        .aspectRatio(1f)
+                                        .clip(
+                                            CircleShape,
+                                        ),
+                                    onClick = {
+                                        navController.navigateUp()
+                                    },
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Filled.FullscreenExit,
+                                        tint = Color.White,
+                                        contentDescription = "",
+                                        modifier =
+                                        Modifier
+                                            .size(24.dp)
+                                    )
+                                }
                             }
                         }
                         Box(
