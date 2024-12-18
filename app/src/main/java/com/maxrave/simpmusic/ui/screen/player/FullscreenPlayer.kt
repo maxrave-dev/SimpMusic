@@ -112,10 +112,10 @@ fun FullscreenPlayer(
     val context = LocalContext.current
 
     DisposableEffect(true) {
-        val activity = context.findActivity() ?: return@DisposableEffect onDispose {}
+        val activity = context.findActivity()
         val originalOrientation = activity.requestedOrientation
         activity.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE
-        val window = context.findActivity()?.window ?: return@DisposableEffect onDispose {}
+        val window = context.findActivity().window
         val insetsController = WindowCompat.getInsetsController(window, window.decorView)
 
         onDispose {

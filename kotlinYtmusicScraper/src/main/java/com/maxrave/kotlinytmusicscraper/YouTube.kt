@@ -1272,8 +1272,11 @@ class YouTube {
                             ),
                         ]
                     }.joinToString("")
-            val playerResponse =
+            val playerResponse = try {
                 ytMusic.player(if (cookie != null) ANDROID_MUSIC else IOS, videoId, playlistId, cpn).body<PlayerResponse>()
+            } catch (e: Exception) {
+                ytMusic.noLogInPlayer(videoId).body<PlayerResponse>()
+            }
             println("Player Response " + playerResponse)
 //        val ytScrapeInitial: YouTubeInitialPage = ytMusic.player(WEB, videoId, playlistId, cpn).body<YouTubeInitialPage>()
             println("Thumbnails " + playerResponse.videoDetails?.thumbnail)

@@ -14,6 +14,11 @@ data class YouTubeClient(
     val userAgent: String,
     val referer: String? = null,
     val osVersion: String? = null,
+    val deviceMake: String? = null,
+    val deviceModel: String? = null,
+    val acceptHeader: String? = null,
+    val timeZone: String? = null,
+    val utcOffsetMinutes: Int? = null,
 ) {
     fun toContext(
         locale: YouTubeLocale,
@@ -27,8 +32,35 @@ data class YouTubeClient(
                 hl = locale.hl,
                 visitorData = visitorData,
                 osVersion = osVersion,
+//                userAgent = userAgent,
+//                deviceMake = deviceMake,
+//                deviceModel = deviceModel,
+//                acceptHeader = acceptHeader,
+//                timeZone = timeZone,
+//                utcOffsetMinutes = utcOffsetMinutes,
             ),
     )
+
+//    {
+//        "context": {
+//        "client": {
+//        "clientName": "IOS",
+//        "clientVersion": "19.29.1",
+//        "hl": "en",
+//        "gl": "US",
+//        "visitorData": "CgtsZG1ySnZiQWtSbyiMjuGSBg%3D%3D",
+//        "userAgent": "com.google.ios.youtube/19.29.1 (iPhone16,2; U; CPU iOS 17_5_1 like Mac OS X;)",
+//        "deviceMake": "Apple",
+//        "deviceModel": "iPhone16,2",
+//        "osName": "iOS",
+//        "osVersion": "17.5.1.21F90",
+//        "acceptHeader": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+//        "timeZone": "UTC",
+//        "utcOffsetMinutes": 0
+//    }
+//    },
+//        "videoId": "rPnIcUgrdnU"
+//    }
 
     companion object {
         private const val REFERER_YOUTUBE_MUSIC = "https://music.youtube.com/"
@@ -41,7 +73,6 @@ data class YouTubeClient(
         val ANDROID_MUSIC =
             YouTubeClient(
                 clientName = "ANDROID_MUSIC",
-//            clientVersion = "5.01",
                 clientVersion = "6.33.52",
                 api_key = "AIzaSyAOghZGza2MQSZkY_zfZ370N-PUdXEo8AI",
                 userAgent = USER_AGENT_ANDROID,
@@ -111,6 +142,11 @@ data class YouTubeClient(
                 api_key = "AIzaSyB-63vPrdThhKuerbB2N_l7Kwwcxj6yUAc",
                 userAgent = USER_AGENT_IOS,
                 osVersion = "17.5.1.21F90",
+//                deviceMake = "Apple",
+//                deviceModel = "iPhone16,2",
+//                acceptHeader = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
+//                timeZone = "UTC",
+//                utcOffsetMinutes = 0,
             )
     }
 }

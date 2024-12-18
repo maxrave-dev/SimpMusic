@@ -10,12 +10,15 @@ import com.maxrave.kotlinytmusicscraper.models.SectionListRenderer
 import com.maxrave.kotlinytmusicscraper.models.Thumbnail
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
+import com.maxrave.kotlinytmusicscraper.models.response.PlayerResponse
+import io.ktor.client.call.body
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.runBlocking
 import kotlin.random.Random
 
 fun main() {
     runBlocking {
+        testPlayer()
     }
 }
 
@@ -25,9 +28,8 @@ fun testPlayer() {
         Ytmusic()
             .apply {
                 locale = YouTubeLocale("VN", "vi")
-                cookie = ""
             }.player(
-                YouTubeClient.TVHTML5,
+                YouTubeClient.IOS,
                 "ctiKD8jtvV8",
                 null,
                 (1..16)
@@ -40,7 +42,8 @@ fun testPlayer() {
                         ]
                     }.joinToString(""),
             ).apply {
-                println(bodyAsText())
+                println(toString())
+                println(body<PlayerResponse>())
             }
     }
 }
