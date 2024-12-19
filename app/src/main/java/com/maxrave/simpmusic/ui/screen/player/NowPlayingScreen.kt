@@ -381,19 +381,26 @@ Column(
     Modifier
         .verticalScroll(mainScrollState)
         .pointerInput(Unit) {
-            detectHorizontalDragGestures { change, dragAmount ->
+            var isSwipeHandled = false
+            detectHorizontalDragGestures(
+                onDragEnd = { isSwipeHandled = false }
+            ) { change, dragAmount ->
                 change.consume()
-                when {
-                    // Swipe left (negative dragAmount)
-                    dragAmount < -50 -> {
-                        if (controllerState.isNextAvailable) {
-                            sharedViewModel.onUIEvent(UIEvent.Next)
+                if (!isSwipeHandled) {
+                    when {
+                        // Swipe left (negative dragAmount)
+                        dragAmount < -50 -> {
+                            if (controllerState.isNextAvailable) {
+                                sharedViewModel.onUIEvent(UIEvent.Next)
+                                isSwipeHandled = true
+                            }
                         }
-                    }
-                    // Swipe right (positive dragAmount)
-                    dragAmount > 50 -> {
-                        if (controllerState.isPreviousAvailable) {
-                            sharedViewModel.onUIEvent(UIEvent.Previous)
+                        // Swipe right (positive dragAmount)
+                        dragAmount > 50 -> {
+                            if (controllerState.isPreviousAvailable) {
+                                sharedViewModel.onUIEvent(UIEvent.Previous)
+                                isSwipeHandled = true
+                            }
                         }
                     }
                 }
