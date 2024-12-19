@@ -106,6 +106,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
@@ -375,29 +377,45 @@ fun NowPlayingScreen(
         }
     }
 
-    Column(
-        Modifier
-            .verticalScroll(
-                mainScrollState,
-            ).then(
-                if (showHideMiddleLayout) {
-                    Modifier.background(
-                        Brush.linearGradient(
-                            colors =
-                                listOf(
-                                    startColor.value,
-                                    endColor
-                                        .value,
-                                ),
-                            start = gradientOffset.start,
-                            end = gradientOffset.end,
+Column(
+    Modifier
+        .verticalScroll(mainScrollState)
+        .pointerInput(Unit) {
+            detectHorizontalDragGestures { change, dragAmount ->
+                change.consume()
+                when {
+                    // Swipe left (negative dragAmount)
+                    dragAmount < -50 -> {
+                        if (controllerState.isNextAvailable) {
+                            sharedViewModel.onUIEvent(UIEvent.Next)
+                        }
+                    }
+                    // Swipe right (positive dragAmount)
+                    dragAmount > 50 -> {
+                        if (controllerState.isPreviousAvailable) {
+                            sharedViewModel.onUIEvent(UIEvent.Previous)
+                        }
+                    }
+                }
+            }
+        }
+        .then(
+            if (showHideMiddleLayout) {
+                Modifier.background(
+                    Brush.linearGradient(
+                        colors = listOf(
+                            startColor.value,
+                            endColor.value,
                         ),
-                    )
-                } else {
-                    Modifier.background(md_theme_dark_background)
-                },
-            ),
-    ) {
+                        start = gradientOffset.start,
+                        end = gradientOffset.end,
+                    ),
+                )
+            } else {
+                Modifier.background(md_theme_dark_background)
+            },
+        )
+) {
         Box(modifier = Modifier.fillMaxWidth()) {
             // Canvas Layout
             Box(
