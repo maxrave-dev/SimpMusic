@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="demo_description">You can also find us with:  electronic dance music 2023 edm top electronic dance songs 2023 edm songs edm music 2023 electronic dance music best electro dance music popular edm songs top edm songs edm songs 2023 edm music top edm songs 2023 top electronic dance songs edm 2023 popular edm songs 2023 best electro dance music 2023  No matter how your day is, you can always listen to good music:  1. EDM Hits Playlist - Popular EDM Hits in 2023 -  We would like to keep you with us many years from now on! So, in the next year, you could find our playlist like this: EDM 2024 ♫ Top EDM Songs 2024</string>
     <string name="Song_and_artist_name">Bài hát • %1$s</string>
     <string name="playlist_and_author">Danh sách phát • %1$s</string>
     <string name="album_and_artist_name">Album • %1$s</string>
@@ -357,4 +356,18 @@
     <string name="updating">Đang cập nhật</string>
     <string name="go_to_log_in_page">Đi tới trang đăng nhập</string>
     <string name="log_in_warning">YouTube Music hiện tại đang yêu cầu đăng nhập để nghe nhạc trực tuyến, cũng như các thực thể Piped đôi khi không hoạt động. Bạn nên đăng nhập vào YouTube để có trải nghiệm nghe nhạc tốt nhất với SimpMusic.</string>
+    <string name="spotify_canvas_cache">Cache của Spotify Canvas</string>
+    <string name="clear_canvas_cache">Xoá bộ nhớ cache của Spotify Canvas</string>
+    <string name="proxy">Proxy</string>
+    <string name="proxy_description">Sử dụng Proxy để vượt qua trình chặn nội dung</string>
+    <string name="proxy_type">Loại Proxy</string>
+    <string name="http">HTTP</string>
+    <string name="socks">Socks</string>
+    <string name="proxy_host">Máy chủ proxy</string>
+    <string name="invalid_host">Máy chủ không hợp lệ</string>
+    <string name="proxy_port">Cổng proxy</string>
+    <string name="invalid_port">Cổng không hợp lệ</string>
+    <string name="proxy_host_message">Hãy nhập máy chủ Proxy của bạn</string>
+    <string name="proxy_port_message">Hãy nhập cổng Proxy của bạn</string>
+    <string name="five_seconds">5 giây</string>
 </resources>

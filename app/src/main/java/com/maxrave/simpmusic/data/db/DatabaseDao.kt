@@ -481,7 +481,7 @@ interface DatabaseDao {
     suspend fun updateGoogleAccountUsed(
         isUsed: Boolean,
         email: String,
-    )
+    ): Int
 
     @Query("DELETE FROM googleaccountentity WHERE email = :email")
     suspend fun deleteGoogleAccount(email: String)

@@ -95,6 +95,7 @@ class SharedViewModel(
     var isFirstLiked: Boolean = false
     var isFirstMiniplayer: Boolean = false
     var isFirstSuggestions: Boolean = false
+    var showedUpdateDialog: Boolean = false
     var showOrHideMiniplayer: MutableSharedFlow<Boolean> = MutableSharedFlow()
 
     override val tag = "SharedViewModel"

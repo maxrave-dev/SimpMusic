@@ -639,7 +639,7 @@ class MainRepository(
     suspend fun updateGoogleAccountUsed(
         email: String,
         isUsed: Boolean,
-    ) = withContext(Dispatchers.IO) { localDataSource.updateGoogleAccountUsed(email, isUsed) }
+    ): Flow<Int> = flow { emit(localDataSource.updateGoogleAccountUsed(email, isUsed)) }.flowOn(Dispatchers.IO)
 
     suspend fun insertFollowedArtistSingleAndAlbum(followedArtistSingleAndAlbum: FollowedArtistSingleAndAlbum) =
         withContext(Dispatchers.IO) {

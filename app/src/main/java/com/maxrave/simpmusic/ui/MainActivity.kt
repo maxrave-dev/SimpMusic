@@ -685,8 +685,9 @@ class MainActivity : AppCompatActivity() {
     private fun checkForUpdate() {
         viewModel.checkForUpdate()
         viewModel.githubResponse.observe(this) { response ->
-            if (response != null && !this.isInPictureInPictureMode) {
+            if (response != null && !this.isInPictureInPictureMode && !viewModel.showedUpdateDialog) {
                 if (response.tagName != getString(R.string.version_name)) {
+                    viewModel.showedUpdateDialog = true
                     val inputFormat =
                         SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
                     val outputFormat = SimpleDateFormat("dd MMM yyyy HH:mm:ss", Locale.getDefault())
