@@ -27,11 +27,11 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.koin.android.annotation.KoinViewModel
+
 import org.koin.core.component.inject
 import java.time.LocalDateTime
 
-@KoinViewModel
+
 @UnstableApi
 class AlbumViewModel(
     private val application: Application,

@@ -2,14 +2,11 @@ package com.maxrave.simpmusic.ui
 
 import android.Manifest
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.res.Configuration
 import android.graphics.Rect
 import android.graphics.drawable.ColorDrawable
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -688,7 +685,7 @@ class MainActivity : AppCompatActivity() {
     private fun checkForUpdate() {
         viewModel.checkForUpdate()
         viewModel.githubResponse.observe(this) { response ->
-            if (response != null) {
+            if (response != null && !this.isInPictureInPictureMode) {
                 if (response.tagName != getString(R.string.version_name)) {
                     val inputFormat =
                         SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())

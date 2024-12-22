@@ -35,12 +35,12 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import org.koin.android.annotation.KoinViewModel
+
 import org.koin.core.component.inject
 import java.time.LocalDateTime
 
 @UnstableApi
-@KoinViewModel
+
 class SearchViewModel(
     private val application: Application,
 ) : BaseViewModel(application) {

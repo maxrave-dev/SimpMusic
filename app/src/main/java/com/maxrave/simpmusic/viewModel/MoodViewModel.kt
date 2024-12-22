@@ -14,9 +14,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import org.koin.android.annotation.KoinViewModel
 
-@KoinViewModel
+
+
 class MoodViewModel(
     application: Application,
 ) : BaseViewModel(application) {

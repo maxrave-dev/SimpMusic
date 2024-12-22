@@ -49,6 +49,7 @@ import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -221,6 +222,8 @@ private fun provideResolvingDataSourceFactory(
                         true,
                     ).singleOrNull()
                     ?.let {
+                        Log.d("Stream", it)
+                        Log.w("Stream", "Video")
                         dataSpecReturn = dataSpec.withUri(it.toUri()).subrange(dataSpec.uriPositionOffset, CHUNK_LENGTH)
                     }
             } else {
@@ -230,6 +233,8 @@ private fun provideResolvingDataSourceFactory(
                         isVideo = false,
                     ).singleOrNull()
                     ?.let {
+                        Log.d("Stream", it)
+                        Log.w("Stream", "Audio")
                         dataSpecReturn = dataSpec.withUri(it.toUri()).subrange(dataSpec.uriPositionOffset, CHUNK_LENGTH)
                     }
             }
@@ -346,7 +351,12 @@ private fun provideCacheDataSource(
                             OkHttpDataSource.Factory(
                                 OkHttpClient
                                     .Builder()
-                                    .build(),
+                                    .addInterceptor(
+                                        HttpLoggingInterceptor()
+                                            .apply {
+                                                level = HttpLoggingInterceptor.Level.HEADERS
+                                            },
+                                    ).build(),
                             ),
                         ),
                 ),

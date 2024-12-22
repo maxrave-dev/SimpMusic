@@ -17,8 +17,8 @@ android {
         applicationId = "com.maxrave.simpmusic"
         minSdk = 26
         targetSdk = 35
-        versionCode = 21
-        versionName = "0.2.4"
+        versionCode = 22
+        versionName = "0.2.5"
         vectorDrawables.useSupportLibrary = true
 
         ksp {
@@ -225,6 +225,7 @@ dependencies {
     implementation(libs.media3.exoplayer.smoothstreaming)
     implementation(libs.media3.exoplayer.workmanager)
     implementation(libs.media3.datasource.okhttp)
+    implementation(libs.okhttp3.logging.interceptor)
 
     // Palette Color
     implementation(libs.palette.ktx)
@@ -307,8 +308,6 @@ dependencies {
     implementation(libs.koin.android)
     implementation(libs.koin.workmanager)
     implementation(libs.koin.androidx.compose)
-    implementation(libs.koin.annotations)
-    ksp(libs.koin.ksp)
 
     // Store5
     implementation(libs.store)

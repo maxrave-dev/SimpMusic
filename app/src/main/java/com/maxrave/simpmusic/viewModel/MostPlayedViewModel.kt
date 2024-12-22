@@ -18,11 +18,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import org.koin.android.annotation.KoinViewModel
 import org.koin.core.component.inject
 import java.time.LocalDateTime
 
-@KoinViewModel
 @UnstableApi
 class MostPlayedViewModel(
     private val application: Application,

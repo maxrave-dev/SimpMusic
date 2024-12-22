@@ -3,6 +3,7 @@ package com.maxrave.simpmusic.viewModel
 import android.app.Application
 import android.app.usage.StorageStatsManager
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.storage.StorageManager
@@ -33,7 +34,6 @@ import com.maxrave.simpmusic.extension.zipInputStream
 import com.maxrave.simpmusic.extension.zipOutputStream
 import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
-import com.maxrave.simpmusic.ui.MainActivity
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -51,7 +51,6 @@ import org.koin.core.qualifier.named
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.zip.ZipEntry
-import kotlin.system.exitProcess
 
 @UnstableApi
 class SettingsViewModel(
@@ -204,29 +203,36 @@ class SettingsViewModel(
 
     private fun getProxy() {
         viewModelScope.launch {
-            val host = launch {
-                dataStoreManager.proxyHost.collect {
-                    _proxyHost.value = it
+            val host =
+                launch {
+                    dataStoreManager.proxyHost.collect {
+                        _proxyHost.value = it
+                    }
                 }
-            }
-            val port = launch {
-                dataStoreManager.proxyPort.collect {
-                    _proxyPort.value = it
+            val port =
+                launch {
+                    dataStoreManager.proxyPort.collect {
+                        _proxyPort.value = it
+                    }
                 }
-            }
-            val type = launch {
-                dataStoreManager.proxyType.collect {
-                    _proxyType.value = it
-                    log("getProxy: $it", Log.DEBUG)
+            val type =
+                launch {
+                    dataStoreManager.proxyType.collect {
+                        _proxyType.value = it
+                        log("getProxy: $it", Log.DEBUG)
+                    }
                 }
-            }
             host.join()
             port.join()
             type.join()
         }
     }
 
-    fun setProxy(proxyType: DataStoreManager.Settings.ProxyType, host: String, port: Int) {
+    fun setProxy(
+        proxyType: DataStoreManager.Settings.ProxyType,
+        host: String,
+        port: Int,
+    ) {
         log("setProxy: $proxyType, $host, $port", Log.DEBUG)
         viewModelScope.launch {
             dataStoreManager.setProxyType(proxyType)
@@ -258,20 +264,20 @@ class SettingsViewModel(
                             it.copy(
                                 otherApp = otherApp.toFloat().div(totalByte.toFloat()),
                                 downloadCache =
-                                downloadCache.cacheSpace
-                                    .bytesToMB()
-                                    .toFloat()
-                                    .div(totalByte.toFloat()),
+                                    downloadCache.cacheSpace
+                                        .bytesToMB()
+                                        .toFloat()
+                                        .div(totalByte.toFloat()),
                                 playerCache =
-                                playerCache.cacheSpace
-                                    .bytesToMB()
-                                    .toFloat()
-                                    .div(totalByte.toFloat()),
+                                    playerCache.cacheSpace
+                                        .bytesToMB()
+                                        .toFloat()
+                                        .div(totalByte.toFloat()),
                                 canvasCache =
-                                canvasCache.cacheSpace
-                                    .bytesToMB()
-                                    .toFloat()
-                                    .div(totalByte.toFloat()),
+                                    canvasCache.cacheSpace
+                                        .bytesToMB()
+                                        .toFloat()
+                                        .div(totalByte.toFloat()),
                                 thumbCache = thumbSize.toFloat().div(totalByte.toFloat()),
                                 freeSpace = freeSpace.toFloat().div(totalByte.toFloat()),
                                 appDatabase = databaseSize.toFloat().div(totalByte.toFloat()),
@@ -598,7 +604,12 @@ class SettingsViewModel(
         runCatching {
             application.applicationContext.contentResolver.openInputStream(uri)?.use {
                 it.zipInputStream().use { inputStream ->
-                    var entry = inputStream.nextEntry
+                    var entry =
+                        try {
+                            inputStream.nextEntry
+                        } catch (e: Exception) {
+                            null
+                        }
                     var count = 0
                     while (entry != null && count < 2) {
                         when (entry.name) {
@@ -611,8 +622,8 @@ class SettingsViewModel(
                             DB_NAME -> {
                                 runBlocking(Dispatchers.IO) {
                                     mainRepository.databaseDaoCheckpoint()
+                                    mainRepository.closeDatabase()
                                 }
-                                mainRepository.closeDatabase()
                                 FileOutputStream(databasePath).use { outputStream ->
                                     inputStream.copyTo(outputStream)
                                 }
@@ -626,8 +637,12 @@ class SettingsViewModel(
             makeToast(getString(R.string.restore_success))
             application.stopService(Intent(application, SimpleMediaService::class.java))
             getData()
-            application.startActivity(Intent(application, MainActivity::class.java))
-            exitProcess(0)
+            val ctx = application.applicationContext
+            val pm: PackageManager = ctx.packageManager
+            val intent = pm.getLaunchIntentForPackage(ctx.packageName)
+            val mainIntent = Intent.makeRestartActivityTask(intent?.component)
+            ctx.startActivity(mainIntent)
+            Runtime.getRuntime().exit(0)
         }.onFailure {
             it.printStackTrace()
             makeToast(getString(R.string.restore_failed))

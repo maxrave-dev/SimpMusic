@@ -5,12 +5,10 @@ import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
-import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import org.koin.android.annotation.KoinViewModel
 
-@KoinViewModel
 class LogInViewModel(
     private val application: Application,
 ) : BaseViewModel(application) {
@@ -28,6 +26,7 @@ class LogInViewModel(
             Log.d("LogInViewModel", "saveCookie: $cookie")
             dataStoreManager.setCookie(cookie)
             dataStoreManager.setLoggedIn(true)
+            delay(1000)
             _status.postValue(true)
         }
     }

@@ -28,10 +28,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.koin.android.annotation.KoinViewModel
 import java.time.LocalDateTime
 
-@KoinViewModel
 @UnstableApi
 class LibraryViewModel(
     private val application: Application,

@@ -155,7 +155,6 @@
     <string name="no_equalizer">आपके डिवाइस में इक्वलाइज़र नहीं है</string>
      <string name="open_system_equalizer">सिस्टम इक्वलाइज़र खोलें</string>
     <string name="use_your_system_equalizer">अपना सिस्टम इक्वलाइज़र उपयोग करें</string>
-    <string name="version_name" translatable="false">v0.2.4</string>
     <string name="streaming_data_provider_piped">स्ट्रीमिंग डेटा प्रोवाइडर (पाइप्ड)</string>
     <string name="itag">आईटैग</string>
     <string name="mime_type">माइम टाइप</string>

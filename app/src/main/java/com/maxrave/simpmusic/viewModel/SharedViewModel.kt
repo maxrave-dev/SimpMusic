@@ -83,13 +83,11 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import org.koin.android.annotation.KoinViewModel
 import org.koin.core.component.inject
 import org.koin.core.qualifier.named
 import java.time.LocalDateTime
 import java.util.concurrent.TimeUnit
 
-@KoinViewModel
 @UnstableApi
 class SharedViewModel(
     private val application: Application,

@@ -155,7 +155,6 @@
     <string name="no_equalizer">Uw apparaat heeft geen equalizer</string>
     <string name="open_system_equalizer">Open systeem equalizer</string>
     <string name="use_your_system_equalizer">Gebruik de equalizer van uw systeem</string>
-    <string name="version_name" translatable="false">v0.2.4</string>
     <string name="streaming_data_provider_piped">Streaming data provider (Piped)</string>
     <string name="itag">Itag</string>
     <string name="mime_type">Mime Type</string>
