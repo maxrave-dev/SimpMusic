@@ -24,10 +24,10 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import org.koin.android.annotation.KoinViewModel
+
 import java.time.LocalDateTime
 
-@KoinViewModel
+
 class ArtistViewModel(
     private val application: Application,
 ) : BaseViewModel(application) {

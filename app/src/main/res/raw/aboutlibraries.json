@@ -2114,7 +2114,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.5.0",
+            "artifactVersion": "1.5.1",
             "description": "Media3 common module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2135,7 +2135,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.5.0",
+            "artifactVersion": "1.5.1",
             "description": "Media3 Container module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2156,7 +2156,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.5.0",
+            "artifactVersion": "1.5.1",
             "description": "Media3 database module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2177,7 +2177,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.5.0",
+            "artifactVersion": "1.5.1",
             "description": "Media3 DataSource module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2198,7 +2198,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.5.0",
+            "artifactVersion": "1.5.1",
             "description": "Media3 OkHttp DataSource module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2219,7 +2219,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.5.0",
+            "artifactVersion": "1.5.1",
             "description": "Media3 decoder module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2240,7 +2240,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.5.0",
+            "artifactVersion": "1.5.1",
             "description": "Media3 ExoPlayer module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2261,7 +2261,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.5.0",
+            "artifactVersion": "1.5.1",
             "description": "Media3 ExoPlayer DASH module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2282,7 +2282,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.5.0",
+            "artifactVersion": "1.5.1",
             "description": "Media3 ExoPlayer HLS module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2303,7 +2303,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.5.0",
+            "artifactVersion": "1.5.1",
             "description": "Media3 ExoPlayer RTSP module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2324,7 +2324,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.5.0",
+            "artifactVersion": "1.5.1",
             "description": "Media3 ExoPlayer SmoothStreaming module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2345,7 +2345,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.5.0",
+            "artifactVersion": "1.5.1",
             "description": "Media3 ExoPlayer WorkManager module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2366,7 +2366,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.5.0",
+            "artifactVersion": "1.5.1",
             "description": "Media3 Extractor module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2387,7 +2387,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.5.0",
+            "artifactVersion": "1.5.1",
             "description": "Media3 Session module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -2408,7 +2408,7 @@
                     "name": "The Android Open Source Project"
                 }
             ],
-            "artifactVersion": "1.5.0",
+            "artifactVersion": "1.5.1",
             "description": "Media3 UI module",
             "scm": {
                 "connection": "scm:git:https://github.com/androidx/media.git",
@@ -4443,6 +4443,29 @@
             ]
         },
         {
+            "uniqueId": "com.squareup.okhttp3:logging-interceptor",
+            "funding": [
+                
+            ],
+            "developers": [
+                {
+                    "name": "Square, Inc."
+                }
+            ],
+            "artifactVersion": "4.12.0",
+            "description": "Square\u2019s meticulous HTTP client for Java and Kotlin.",
+            "scm": {
+                "connection": "scm:git:https://github.com/square/okhttp.git",
+                "url": "https://github.com/square/okhttp",
+                "developerConnection": "scm:git:ssh://git@github.com/square/okhttp.git"
+            },
+            "name": "okhttp-logging-interceptor",
+            "website": "https://square.github.io/okhttp/",
+            "licenses": [
+                "Apache-2.0"
+            ]
+        },
+        {
             "uniqueId": "com.squareup.okhttp3:okhttp",
             "funding": [
                 
@@ -4796,28 +4819,6 @@
                 }
             ],
             "artifactVersion": "4.0.0-RC1",
-            "description": "KOIN - Kotlin simple Dependency Injection Framework",
-            "scm": {
-                "connection": "https://github.com/InsertKoinIO/koin.git",
-                "url": "https://github.com/InsertKoinIO/koin"
-            },
-            "name": "Koin",
-            "website": "https://insert-koin.io/",
-            "licenses": [
-                "Apache-2.0"
-            ]
-        },
-        {
-            "uniqueId": "io.insert-koin:koin-annotations-jvm",
-            "funding": [
-                
-            ],
-            "developers": [
-                {
-                    "name": "Arnaud Giuliani"
-                }
-            ],
-            "artifactVersion": "1.4.0-RC4",
             "description": "KOIN - Kotlin simple Dependency Injection Framework",
             "scm": {
                 "connection": "https://github.com/InsertKoinIO/koin.git",
@@ -5469,7 +5470,7 @@
                     "name": "Kotlin Team"
                 }
             ],
-            "artifactVersion": "2.0.0",
+            "artifactVersion": "2.0.10",
             "description": "Kotlin Full Reflection Library",
             "scm": {
                 "connection": "scm:git:https://github.com/JetBrains/kotlin.git",

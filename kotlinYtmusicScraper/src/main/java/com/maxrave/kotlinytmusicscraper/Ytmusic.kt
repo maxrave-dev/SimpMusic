@@ -6,6 +6,8 @@ import com.maxrave.kotlinytmusicscraper.encoder.brotli
 import com.maxrave.kotlinytmusicscraper.models.Context
 import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient
+import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.IOS
+import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.WEB_REMIX
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
 import com.maxrave.kotlinytmusicscraper.models.body.AccountMenuBody
 import com.maxrave.kotlinytmusicscraper.models.body.BrowseBody
@@ -17,7 +19,6 @@ import com.maxrave.kotlinytmusicscraper.models.body.GetSearchSuggestionsBody
 import com.maxrave.kotlinytmusicscraper.models.body.LikeBody
 import com.maxrave.kotlinytmusicscraper.models.body.MusixmatchCredentialsBody
 import com.maxrave.kotlinytmusicscraper.models.body.NextBody
-import com.maxrave.kotlinytmusicscraper.models.body.NotificationBody
 import com.maxrave.kotlinytmusicscraper.models.body.PlayerBody
 import com.maxrave.kotlinytmusicscraper.models.body.SearchBody
 import com.maxrave.kotlinytmusicscraper.models.body.spotify.CanvasBody
@@ -100,7 +101,7 @@ class Ytmusic {
             gl = Locale.getDefault().country,
             hl = Locale.getDefault().toLanguageTag(),
         )
-    var visitorData: String = "CgtMN0FkbDFaWERfdyi8t4u7BjIKCgJWThIEGgAgWQ%3D%3D"
+    var visitorData: String = "CgtrcUxtWU5xWDJlVSivkpa7BjIKCgJWThIEGgAgHg%3D%3D"
     var cookie: String? = null
         set(value) {
             field = value
@@ -334,38 +335,27 @@ class Ytmusic {
         contentType(ContentType.Application.Json)
         headers {
             append("X-Goog-Api-Format-Version", "1")
-            append(
-                "X-YouTube-Client-Name",
-                if (client != YouTubeClient.NOTIFICATION_CLIENT) client.clientName else "1",
-            )
+            append("X-YouTube-Client-Name", client.clientName)
             append("X-YouTube-Client-Version", client.clientVersion)
-            append(
-                "x-origin",
-                if (client != YouTubeClient.NOTIFICATION_CLIENT) "https://music.youtube.com" else "https://www.youtube.com",
-            )
-            append("X-Goog-Visitor-Id", visitorData)
-            if (client == YouTubeClient.NOTIFICATION_CLIENT) {
-                append("X-Youtube-Bootstrap-Logged-In", "true")
-                append("X-Goog-Authuser", "0")
-                append("Origin", "https://www.youtube.com")
-            }
+            append("x-origin", "https://music.youtube.com")
             if (client.referer != null) {
                 append("Referer", client.referer)
             }
             if (setLogin) {
                 cookie?.let { cookie ->
                     append("Cookie", cookie)
-                    if ("SAPISID" !in cookieMap) return@let
+                    if ("SAPISID" !in cookieMap || "__Secure-3PAPISID" !in cookieMap) return@let
                     val currentTime = System.currentTimeMillis() / 1000
-                    val keyValue = cookieMap["SAPISID"] ?: cookieMap["__Secure-3PAPISID"]
-                    println("keyValue: $keyValue")
-                    val sapisidHash =
-                        if (client != YouTubeClient.NOTIFICATION_CLIENT) {
-                            sha1("$currentTime $keyValue https://music.youtube.com")
-                        } else {
-                            sha1("$currentTime $keyValue https://www.youtube.com")
-                        }
-                    append("Authorization", "SAPISIDHASH ${currentTime}_$sapisidHash")
+                    if (client != WEB_REMIX) {
+                        val sapisidHash = sha1("$currentTime ${cookieMap["SAPISID"]} https://music.youtube.com")
+                        append("Authorization", "SAPISIDHASH ${currentTime}_$sapisidHash")
+                    } else {
+                        val sapisidHash = sha1("$currentTime ${cookieMap["__Secure-3PAPISID"]} https://music.youtube.com")
+                        append(
+                            "Authorization",
+                            "SAPISIDHASH ${currentTime}_$sapisidHash",
+                        )
+                    }
                 }
             }
         }
@@ -397,29 +387,27 @@ class Ytmusic {
             contentType(ContentType.Application.Json)
         }
 
-    suspend fun noLogInPlayer(
-        videoId: String
-    ) = httpClient.post("player") {
-        accept(ContentType.Application.Json)
-        contentType(ContentType.Application.Json)
-        header("Host", "music.youtube.com")
-        setBody(
-            PlayerBody(
-                context = YouTubeClient.IOS.toContext(locale, visitorData),
-                playlistId = null,
-                cpn = null,
-                param = null,
-                videoId = videoId,
+    suspend fun noLogInPlayer(videoId: String) =
+        httpClient.post("player") {
+            accept(ContentType.Application.Json)
+            contentType(ContentType.Application.Json)
+            header("Host", "music.youtube.com")
+            setBody(
+                PlayerBody(
+                    context = IOS.toContext(locale, visitorData),
+                    playlistId = null,
+                    cpn = null,
+                    videoId = videoId,
+                ),
             )
-        )
-    }
+        }
 
     suspend fun player(
         client: YouTubeClient,
         videoId: String,
         playlistId: String?,
         cpn: String?,
-    ) = createClient().post("player") {
+    ) = httpClient.post("player") {
         ytClient(client, setLogin = true)
         setBody(
             PlayerBody(
@@ -1006,16 +994,6 @@ class Ytmusic {
         }
     }
 
-    suspend fun getNotification() =
-        httpClient.post("https://www.youtube.com/youtubei/v1/notification/get_notification_menu") {
-            ytClient(YouTubeClient.NOTIFICATION_CLIENT, true)
-            setBody(
-                NotificationBody(
-                    context = YouTubeClient.NOTIFICATION_CLIENT.toContext(locale, visitorData),
-                ),
-            )
-        }
-
     suspend fun addToLiked(videoId: String) =
         httpClient.post("like/like") {
             ytClient(YouTubeClient.WEB_REMIX, true)
@@ -1037,29 +1015,6 @@ class Ytmusic {
                 ),
             )
         }
-
-    /***
-     * Spotify WEB API
-     * Please don't use my client id and client secret for your project. Create your own client id and client secret in Spotify Web API page.
-     */
-
-//    private val spotify_client_id = "721d6f670f074b1497e74fc59125a6f3"
-//    private val spotify_client_secret = "efddc083fa974d39bc6369a892c07ced"
-//
-//    suspend fun getSpotifyToken() =
-//        httpClient.post("https://accounts.spotify.com/api/token") {
-//            userAgent(YouTubeClient.WEB.userAgent)
-//            contentType(ContentType.Application.FormUrlEncoded)
-//            setBody(
-//                FormDataContent(
-//                    Parameters.build {
-//                        append("grant_type", "client_credentials")
-//                        append("client_id", spotify_client_id)
-//                        append("client_secret", spotify_client_secret)
-//                    },
-//                ),
-//            )
-//        }
 
     suspend fun getSpotifyLyricsToken(spdc: String) =
         spotifyClient.get("https://open.spotify.com/get_access_token?reason=transport&productType=web_player") {

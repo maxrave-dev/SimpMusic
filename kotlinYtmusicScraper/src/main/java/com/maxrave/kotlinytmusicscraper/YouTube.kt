@@ -199,17 +199,23 @@ class YouTube {
     fun removeProxy() {
         ytMusic.proxy = null
     }
+
     /**
      * Set the proxy for client
      */
-    fun setProxy(isHttp: Boolean, host: String, port: Int) {
-        val verifiedHost = if (!host.contains("http")) {
-            "http://$host"
-        } else {
-            host
-        }
+    fun setProxy(
+        isHttp: Boolean,
+        host: String,
+        port: Int,
+    ) {
+        val verifiedHost =
+            if (!host.contains("http")) {
+                "http://$host"
+            } else {
+                host
+            }
         runCatching {
-            if (isHttp) ProxyBuilder.http("${verifiedHost}:${port}") else ProxyBuilder.socks(verifiedHost, port)
+            if (isHttp) ProxyBuilder.http("$verifiedHost:$port") else ProxyBuilder.socks(verifiedHost, port)
         }.onSuccess {
             ytMusic.proxy = it
         }.onFailure {
@@ -1272,14 +1278,18 @@ class YouTube {
                             ),
                         ]
                     }.joinToString("")
-            val playerResponse = try {
-                ytMusic.player(if (cookie != null) ANDROID_MUSIC else IOS, videoId, playlistId, cpn).body<PlayerResponse>()
-            } catch (e: Exception) {
-                ytMusic.noLogInPlayer(videoId).body<PlayerResponse>()
-            }
-            println("Player Response " + playerResponse)
-//        val ytScrapeInitial: YouTubeInitialPage = ytMusic.player(WEB, videoId, playlistId, cpn).body<YouTubeInitialPage>()
+            val playerResponse =
+                try {
+                    Log.w("Player Response", "Try Android")
+                    ytMusic.player(if (cookie != null) ANDROID_MUSIC else IOS, videoId, playlistId, cpn).body<PlayerResponse>()
+                } catch (e: Exception) {
+                    println("Player Response Error $e")
+                    Log.w("Player Response", "Try IOS")
+                    ytMusic.noLogInPlayer(videoId).body<PlayerResponse>()
+                }
+            println("Player Response $playerResponse")
             println("Thumbnails " + playerResponse.videoDetails?.thumbnail)
+            println("Player Response status: ${playerResponse.playabilityStatus.status}")
             val firstThumb =
                 playerResponse.videoDetails
                     ?.thumbnail
@@ -1288,11 +1298,10 @@ class YouTube {
             val thumbnails =
                 if (firstThumb?.height == firstThumb?.width && firstThumb != null) MediaType.Song else MediaType.Video
             val formatList = playerResponse.streamingData?.formats?.map { Pair(it.itag, it.isAudio) }
-            println("Player Response " + formatList)
+            println("Player Response $formatList")
             val adaptiveFormatsList = playerResponse.streamingData?.adaptiveFormats?.map { Pair(it.itag, it.isAudio) }
-            println("Player Response " + adaptiveFormatsList)
+            println("Player Response $adaptiveFormatsList")
 
-//        println( playerResponse.streamingData?.adaptiveFormats?.findLast { it.itag == 251 }?.mimeType.toString())
             if (playerResponse.playabilityStatus.status == "OK" && (formatList != null || adaptiveFormatsList != null)) {
                 return@runCatching Triple(
                     cpn,
@@ -1328,7 +1337,7 @@ class YouTube {
                     }
                 }
             }
-            throw Exception(error ?: "Unknown error")
+            throw Exception(playerResponse.playabilityStatus.status ?: "Unknown error")
         }
 
     suspend fun updateWatchTime(
@@ -1728,11 +1737,6 @@ class YouTube {
         ytMusic.createYouTubePlaylist(title, listVideoId).body<CreatePlaylistResponse>()
     }
 
-    suspend fun getNotification() =
-        runCatching {
-            ytMusic.getNotification().bodyAsText()
-        }
-
     /***
      * Spotify Implementation
      */
@@ -1774,13 +1778,12 @@ class YouTube {
         runCatching {
             ytMusic.removeFromLiked(mediaId).status.value
         }
-    companion object {
 
+    companion object {
         const val MAX_GET_QUEUE_SIZE = 1000
 
         private const val VISITOR_DATA_PREFIX = "Cgt"
 
         const val DEFAULT_VISITOR_DATA = "CgtsZG1ySnZiQWtSbyiMjuGSBg%3D%3D"
-
     }
 }

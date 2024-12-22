@@ -75,6 +75,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.util.UnstableApi
@@ -96,12 +97,14 @@ import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.TRUE
 import com.maxrave.simpmusic.extension.bytesToMB
 import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.ui.component.ActionButton
+import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.EndOfPage
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SettingItem
 import com.maxrave.simpmusic.ui.theme.DarkColors
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_primary
 import com.maxrave.simpmusic.ui.theme.typo
+import com.maxrave.simpmusic.utils.LocalResource
 import com.maxrave.simpmusic.viewModel.SettingAlertState
 import com.maxrave.simpmusic.viewModel.SettingBasicAlertState
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
@@ -180,7 +183,6 @@ fun SettingScreen(
     val fraction by viewModel.fraction.collectAsStateWithLifecycle()
     val githubResponse by viewModel.githubResponse.collectAsStateWithLifecycle()
     val lastCheckUpdate by viewModel.lastCheckForUpdate.collectAsStateWithLifecycle()
-    val googleAccounts by viewModel.googleAccounts.collectAsStateWithLifecycle()
     val usingProxy by viewModel.usingProxy.collectAsStateWithLifecycle()
     val proxyType by viewModel.proxyType.collectAsStateWithLifecycle()
     val proxyHost by viewModel.proxyHost.collectAsStateWithLifecycle()
@@ -394,18 +396,21 @@ fun SettingScreen(
                         viewModel.setAlertData(
                             SettingAlertState(
                                 title = context.getString(R.string.video_quality),
-                                selectOne = SettingAlertState.SelectData(
-                                    listSelect = VIDEO_QUALITY.items.map { item ->
-                                        (item.toString() == videoQuality) to item.toString()
+                                selectOne =
+                                    SettingAlertState.SelectData(
+                                        listSelect =
+                                            VIDEO_QUALITY.items.map { item ->
+                                                (item.toString() == videoQuality) to item.toString()
+                                            },
+                                    ),
+                                confirm =
+                                    context.getString(R.string.change) to { state ->
+                                        viewModel.changeVideoQuality(state.selectOne?.getSelected() ?: "")
                                     },
-                                ),
-                                confirm = context.getString(R.string.change) to { state ->
-                                    viewModel.changeVideoQuality(state.selectOne?.getSelected() ?: "")
-                                },
-                                dismiss = context.getString(R.string.cancel)
-                            )
+                                dismiss = context.getString(R.string.cancel),
+                            ),
                         )
-                    }
+                    },
                 )
                 SettingItem(
                     title = stringResource(R.string.send_back_listening_data_to_google),
@@ -430,35 +435,43 @@ fun SettingScreen(
                     Column {
                         SettingItem(
                             title = stringResource(R.string.proxy_type),
-                            subtitle = when (proxyType) {
-                                DataStoreManager.Settings.ProxyType.PROXY_TYPE_HTTP -> stringResource(R.string.http)
-                                DataStoreManager.Settings.ProxyType.PROXY_TYPE_SOCKS -> stringResource(R.string.socks)
-                            },
+                            subtitle =
+                                when (proxyType) {
+                                    DataStoreManager.Settings.ProxyType.PROXY_TYPE_HTTP -> stringResource(R.string.http)
+                                    DataStoreManager.Settings.ProxyType.PROXY_TYPE_SOCKS -> stringResource(R.string.socks)
+                                },
                             onClick = {
                                 viewModel.setAlertData(
                                     SettingAlertState(
                                         title = context.getString(R.string.proxy_type),
-                                        selectOne = SettingAlertState.SelectData(
-                                            listSelect = listOf(
-                                                (proxyType == DataStoreManager.Settings.ProxyType.PROXY_TYPE_HTTP) to context.getString(R.string.http),
-                                                (proxyType == DataStoreManager.Settings.ProxyType.PROXY_TYPE_SOCKS) to context.getString(R.string.socks),
+                                        selectOne =
+                                            SettingAlertState.SelectData(
+                                                listSelect =
+                                                    listOf(
+                                                        (proxyType == DataStoreManager.Settings.ProxyType.PROXY_TYPE_HTTP) to
+                                                            context.getString(
+                                                                R.string.http,
+                                                            ),
+                                                        (proxyType == DataStoreManager.Settings.ProxyType.PROXY_TYPE_SOCKS) to
+                                                            context.getString(R.string.socks),
+                                                    ),
                                             ),
-                                        ),
-                                        confirm = context.getString(R.string.change) to { state ->
-                                            viewModel.setProxy(
-                                                if (state.selectOne?.getSelected() == context.getString(R.string.socks)) {
-                                                    DataStoreManager.Settings.ProxyType.PROXY_TYPE_SOCKS
-                                                } else {
-                                                    DataStoreManager.Settings.ProxyType.PROXY_TYPE_HTTP
-                                                },
-                                                proxyHost,
-                                                proxyPort,
-                                            )
-                                        },
+                                        confirm =
+                                            context.getString(R.string.change) to { state ->
+                                                viewModel.setProxy(
+                                                    if (state.selectOne?.getSelected() == context.getString(R.string.socks)) {
+                                                        DataStoreManager.Settings.ProxyType.PROXY_TYPE_SOCKS
+                                                    } else {
+                                                        DataStoreManager.Settings.ProxyType.PROXY_TYPE_HTTP
+                                                    },
+                                                    proxyHost,
+                                                    proxyPort,
+                                                )
+                                            },
                                         dismiss = context.getString(R.string.cancel),
-                                    )
+                                    ),
                                 )
-                            }
+                            },
                         )
                         SettingItem(
                             title = stringResource(R.string.proxy_host),
@@ -468,24 +481,26 @@ fun SettingScreen(
                                     SettingAlertState(
                                         title = context.getString(R.string.proxy_host),
                                         message = context.getString(R.string.proxy_host_message),
-                                        textField = SettingAlertState.TextFieldData(
-                                            label = context.getString(R.string.proxy_host),
-                                            value = proxyHost,
-                                            verifyCodeBlock = {
-                                                (it.toHttpUrlOrNull() != null) to context.getString(R.string.invalid_host)
+                                        textField =
+                                            SettingAlertState.TextFieldData(
+                                                label = context.getString(R.string.proxy_host),
+                                                value = proxyHost,
+                                                verifyCodeBlock = {
+                                                    (it.toHttpUrlOrNull() != null) to context.getString(R.string.invalid_host)
+                                                },
+                                            ),
+                                        confirm =
+                                            context.getString(R.string.change) to { state ->
+                                                viewModel.setProxy(
+                                                    proxyType,
+                                                    state.textField?.value ?: "",
+                                                    proxyPort,
+                                                )
                                             },
-                                        ),
-                                        confirm = context.getString(R.string.change) to { state ->
-                                            viewModel.setProxy(
-                                                proxyType,
-                                                state.textField?.value ?: "",
-                                                proxyPort,
-                                            )
-                                        },
                                         dismiss = context.getString(R.string.cancel),
-                                    )
+                                    ),
                                 )
-                            }
+                            },
                         )
                         SettingItem(
                             title = stringResource(R.string.proxy_port),
@@ -495,24 +510,26 @@ fun SettingScreen(
                                     SettingAlertState(
                                         title = context.getString(R.string.proxy_port),
                                         message = context.getString(R.string.proxy_port_message),
-                                        textField = SettingAlertState.TextFieldData(
-                                            label = context.getString(R.string.proxy_port),
-                                            value = proxyPort.toString(),
-                                            verifyCodeBlock = {
-                                                (it.toIntOrNull() != null) to context.getString(R.string.invalid_port)
+                                        textField =
+                                            SettingAlertState.TextFieldData(
+                                                label = context.getString(R.string.proxy_port),
+                                                value = proxyPort.toString(),
+                                                verifyCodeBlock = {
+                                                    (it.toIntOrNull() != null) to context.getString(R.string.invalid_port)
+                                                },
+                                            ),
+                                        confirm =
+                                            context.getString(R.string.change) to { state ->
+                                                viewModel.setProxy(
+                                                    proxyType,
+                                                    proxyHost,
+                                                    state.textField?.value?.toIntOrNull() ?: 0,
+                                                )
                                             },
-                                        ),
-                                        confirm = context.getString(R.string.change) to { state ->
-                                            viewModel.setProxy(
-                                                proxyType,
-                                                proxyHost,
-                                                state.textField?.value?.toIntOrNull() ?: 0,
-                                            )
-                                        },
                                         dismiss = context.getString(R.string.cancel),
-                                    )
+                                    ),
                                 )
-                            }
+                            },
                         )
                     }
                 }
@@ -1139,7 +1156,7 @@ fun SettingScreen(
             title = {
                 Text(
                     text = alertBasicState.title,
-                    style = typo.titleSmall
+                    style = typo.titleSmall,
                 )
             },
             text = {
@@ -1180,14 +1197,26 @@ fun SettingScreen(
                 tonalElevation = AlertDialogDefaults.TonalElevation,
                 shadowElevation = 1.dp,
             ) {
+                val googleAccounts by viewModel.googleAccounts.collectAsStateWithLifecycle(
+                    minActiveState = Lifecycle.State.RESUMED,
+                )
+                LaunchedEffect(googleAccounts) {
+                    Log.w(
+                        "SettingScreen",
+                        "LaunchedEffect: ${googleAccounts.data?.map {
+                            it.name to it.isUsed
+                        }}",
+                    )
+                }
                 LazyColumn(modifier = Modifier.padding(8.dp)) {
                     item {
                         Box(modifier = Modifier.fillMaxWidth().height(48.dp)) {
                             IconButton(
                                 onClick = { showYouTubeAccountDialog = false },
-                                colors = IconButtonDefaults.iconButtonColors().copy(
-                                    contentColor = Color.White
-                                ),
+                                colors =
+                                    IconButtonDefaults.iconButtonColors().copy(
+                                        contentColor = Color.White,
+                                    ),
                                 modifier = Modifier.align(Alignment.CenterStart).fillMaxHeight(),
                             ) {
                                 Icon(Icons.Outlined.Close, null, tint = Color.White)
@@ -1195,91 +1224,107 @@ fun SettingScreen(
                             Text(
                                 stringResource(R.string.youtube_account),
                                 style = typo.titleMedium,
-                                modifier = Modifier.align(Alignment.Center)
-                                    .wrapContentHeight(align = Alignment.CenterVertically)
-                                    .wrapContentWidth()
+                                modifier =
+                                    Modifier
+                                        .align(Alignment.Center)
+                                        .wrapContentHeight(align = Alignment.CenterVertically)
+                                        .wrapContentWidth(),
                             )
                         }
                     }
-                    items(googleAccounts ?: emptyList(), key = { it.email + it.name + it.cache }) {
-                        Row(
-                            modifier = Modifier.padding(vertical = 8.dp)
-                                .clickable {
-                                    viewModel.setUsedAccount(it)
-                                },
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Spacer(Modifier.width(24.dp))
-                            AsyncImage(
-                                model =
-                                ImageRequest
-                                    .Builder(LocalContext.current)
-                                    .data(it.thumbnailUrl)
-                                    .crossfade(550)
-                                    .build(),
-                                placeholder = painterResource(R.drawable.baseline_people_alt_24),
-                                error = painterResource(R.drawable.baseline_people_alt_24),
-                                contentDescription = it.name,
-                                modifier = Modifier.size(48.dp)
-                                    .clip(CircleShape)
-                            )
-                            Spacer(Modifier.width(12.dp))
-                            Column(Modifier.weight(1f)) {
-                                Text(it.name, style = typo.labelMedium)
-                                Text(it.email, style = typo.bodySmall)
-                            }
-                            Spacer(Modifier.width(12.dp))
-                            AnimatedVisibility(it.isUsed) {
+                    if (googleAccounts is LocalResource.Success) {
+                        val data = googleAccounts.data
+                        if (data.isNullOrEmpty()) {
+                            item {
                                 Text(
-                                    stringResource(R.string.signed_in),
-                                    style = typo.bodySmall,
-                                    maxLines = 2,
+                                    stringResource(R.string.no_account),
+                                    style = typo.bodyMedium,
                                     textAlign = TextAlign.Center,
-                                    modifier = Modifier.widthIn(0.dp, 64.dp)
+                                    modifier = Modifier.padding(12.dp).fillMaxWidth(),
                                 )
                             }
-                            Spacer(Modifier.width(24.dp))
+                        } else {
+                            items(data) {
+                                Row(
+                                    modifier =
+                                        Modifier
+                                            .padding(vertical = 8.dp)
+                                            .clickable {
+                                                viewModel.setUsedAccount(it)
+                                            },
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Spacer(Modifier.width(24.dp))
+                                    AsyncImage(
+                                        model =
+                                            ImageRequest
+                                                .Builder(LocalContext.current)
+                                                .data(it.thumbnailUrl)
+                                                .crossfade(550)
+                                                .build(),
+                                        placeholder = painterResource(R.drawable.baseline_people_alt_24),
+                                        error = painterResource(R.drawable.baseline_people_alt_24),
+                                        contentDescription = it.name,
+                                        modifier =
+                                            Modifier
+                                                .size(48.dp)
+                                                .clip(CircleShape),
+                                    )
+                                    Spacer(Modifier.width(12.dp))
+                                    Column(Modifier.weight(1f)) {
+                                        Text(it.name, style = typo.labelMedium)
+                                        Text(it.email, style = typo.bodySmall)
+                                    }
+                                    Spacer(Modifier.width(12.dp))
+                                    AnimatedVisibility(it.isUsed) {
+                                        Text(
+                                            stringResource(R.string.signed_in),
+                                            style = typo.bodySmall,
+                                            maxLines = 2,
+                                            textAlign = TextAlign.Center,
+                                            modifier = Modifier.widthIn(0.dp, 64.dp),
+                                        )
+                                    }
+                                    Spacer(Modifier.width(24.dp))
+                                }
+                            }
                         }
-                    }
-                    if (googleAccounts.isNullOrEmpty()) {
+                    } else {
                         item {
-                            Text(
-                                stringResource(R.string.no_account),
-                                style = typo.bodyMedium,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.padding(12.dp).fillMaxWidth(),
-                            )
+                            CenterLoadingBox(Modifier.fillMaxWidth().height(54.dp))
                         }
                     }
                     item {
                         Column {
                             ActionButton(
                                 icon = painterResource(R.drawable.baseline_people_alt_24),
-                                text = R.string.guest
+                                text = R.string.guest,
                             ) {
                                 viewModel.setUsedAccount(null)
                                 showYouTubeAccountDialog = false
                             }
                             ActionButton(
                                 icon = painterResource(R.drawable.baseline_close_24),
-                                text = R.string.log_out
+                                text = R.string.log_out,
                             ) {
                                 viewModel.setBasicAlertData(
                                     SettingBasicAlertState(
                                         title = context.getString(R.string.warning),
                                         message = context.getString(R.string.log_out_warning),
-                                        confirm = context.getString(R.string.log_out) to {
-                                            viewModel.logOutAllYouTube()
-                                            showYouTubeAccountDialog = false
-                                        },
-                                        dismiss = context.getString(R.string.cancel)
-                                    )
+                                        confirm =
+                                            context.getString(R.string.log_out) to {
+                                                viewModel.logOutAllYouTube()
+                                                showYouTubeAccountDialog = false
+                                            },
+                                        dismiss = context.getString(R.string.cancel),
+                                    ),
                                 )
                             }
                             ActionButton(
                                 icon = painterResource(R.drawable.baseline_playlist_add_24),
-                                text = R.string.add_an_account
+                                text = R.string.add_an_account,
                             ) {
+                                showYouTubeAccountDialog = false
                                 navController.navigateSafe(R.id.action_global_logInFragment)
                             }
                         }
@@ -1297,7 +1342,7 @@ fun SettingScreen(
             title = {
                 Text(
                     text = alertState.title,
-                    style = typo.titleSmall
+                    style = typo.titleSmall,
                 )
             },
             text = {
@@ -1355,24 +1400,27 @@ fun SettingScreen(
                                 viewModel.setAlertData(
                                     alertState.copy(
                                         selectOne =
-                                        alertState.selectOne.copy(
-                                            listSelect =
-                                            alertState.selectOne.listSelect.toMutableList().map {
-                                                if (it == item) {
-                                                    true to it.second
-                                                } else {
-                                                    false to it.second
-                                                }
-                                            },
-                                        ),
+                                            alertState.selectOne.copy(
+                                                listSelect =
+                                                    alertState.selectOne.listSelect.toMutableList().map {
+                                                        if (it == item) {
+                                                            true to it.second
+                                                        } else {
+                                                            false to it.second
+                                                        }
+                                                    },
+                                            ),
                                     ),
                                 )
                             }
                             Row(
-                                Modifier.padding(vertical = 4.dp).clickable {
-                                    onSelect.invoke()
-                                }.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically) {
+                                Modifier
+                                    .padding(vertical = 4.dp)
+                                    .clickable {
+                                        onSelect.invoke()
+                                    }.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
                                 RadioButton(
                                     selected = item.first,
                                     onClick = {
@@ -1393,24 +1441,27 @@ fun SettingScreen(
                                 viewModel.setAlertData(
                                     alertState.copy(
                                         multipleSelect =
-                                        alertState.multipleSelect.copy(
-                                            listSelect =
-                                            alertState.multipleSelect.listSelect.toMutableList().map {
-                                                if (it == item) {
-                                                    !it.first to it.second
-                                                } else {
-                                                    it
-                                                }
-                                            },
-                                        ),
+                                            alertState.multipleSelect.copy(
+                                                listSelect =
+                                                    alertState.multipleSelect.listSelect.toMutableList().map {
+                                                        if (it == item) {
+                                                            !it.first to it.second
+                                                        } else {
+                                                            it
+                                                        }
+                                                    },
+                                            ),
                                     ),
                                 )
                             }
                             Row(
-                                Modifier.padding(vertical = 4.dp).clickable {
-                                    onCheck.invoke()
-                                }.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically) {
+                                Modifier
+                                    .padding(vertical = 4.dp)
+                                    .clickable {
+                                        onCheck.invoke()
+                                    }.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
                                 Checkbox(
                                     checked = item.first,
                                     onCheckedChange = {

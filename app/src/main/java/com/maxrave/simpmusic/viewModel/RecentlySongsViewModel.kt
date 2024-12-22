@@ -7,9 +7,7 @@ import androidx.paging.PagingConfig
 import androidx.paging.cachedIn
 import com.maxrave.simpmusic.pagination.RecentPagingSource
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
-import org.koin.android.annotation.KoinViewModel
 
-@KoinViewModel
 class RecentlySongsViewModel(
     application: Application,
 ) : BaseViewModel(application) {

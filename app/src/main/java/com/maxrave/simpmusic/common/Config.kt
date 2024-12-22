@@ -194,7 +194,7 @@ object SUPPORTED_LANGUAGE {
             "Azerbaijani",
             "हिन्दी",
             "ภาษาไทย",
-            "Nederlands"
+            "Nederlands",
         )
     val codes: Array<String> =
         arrayOf(
@@ -219,8 +219,9 @@ object SUPPORTED_LANGUAGE {
             "az-AZ",
             "hi-IN",
             "th-TH",
-            "nl-NL"
+            "nl-NL",
         )
+
     fun getLanguageFromCode(code: String?): String {
         val index = codes.indexOf(code)
         Log.d("Config", "getLanguageFromCode: $index")
@@ -230,6 +231,7 @@ object SUPPORTED_LANGUAGE {
         Log.w("Config", "getLanguageFromCode: ${items.get(index)}")
         return (items.getOrNull(index) ?: "English").toString()
     }
+
     fun getCodeFromLanguage(language: String?): String {
         val index = items.indexOf(language ?: "English")
         Log.d("Config", "getCodeFromLanguage: $index")
@@ -263,6 +265,7 @@ object LIMIT_CACHE_SIZE {
         val index = items.indexOf(item)
         return data.getOrNull(index) ?: -1
     }
+
     fun getItemFromData(input: Int?): CharSequence {
         val index = data.indexOf(input)
         return items.getOrNull(index) ?: "∞"
@@ -284,7 +287,11 @@ object SPONSOR_BLOCK {
             R.string.poi_highlight,
             R.string.filter,
         )
-    fun fromDbToName(context: Context, list: List<CharSequence>): List<String> {
+
+    fun fromDbToName(
+        context: Context,
+        list: List<CharSequence>,
+    ): List<String> {
         val result = mutableListOf<String>()
         for (item in list) {
             val index = list.indexOf(item)
@@ -292,14 +299,20 @@ object SPONSOR_BLOCK {
         }
         return result
     }
-    fun fromNameToDb(context: Context, input: List<String>): List<CharSequence> {
+
+    fun fromNameToDb(
+        context: Context,
+        input: List<String>,
+    ): List<CharSequence> {
         val allString = fromDbToName(context, list.toList())
-        val listIndex = allString.map {
-            allString.indexOf(it)
-        }
-        val result = listIndex.mapNotNull {
-            list.getOrNull(it)
-        }
+        val listIndex =
+            allString.map {
+                allString.indexOf(it)
+            }
+        val result =
+            listIndex.mapNotNull {
+                list.getOrNull(it)
+            }
         return result
     }
 }

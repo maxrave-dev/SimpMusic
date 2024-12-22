@@ -14,7 +14,7 @@ import com.maxrave.kotlinytmusicscraper.models.response.PlayerResponse
 import io.ktor.client.call.body
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.runBlocking
-import kotlin.random.Random
+import java.util.Collections.addAll
 
 fun main() {
     runBlocking {
@@ -22,28 +22,21 @@ fun main() {
     }
 }
 
-
 fun testPlayer() {
     runBlocking {
         Ytmusic()
-            .apply {
-                locale = YouTubeLocale("VN", "vi")
-            }.player(
-                YouTubeClient.IOS,
-                "ctiKD8jtvV8",
-                null,
-                (1..16)
+            .player(YouTubeClient.IOS, videoId = "UFkm74XwStQ", null, null)
+            .body<PlayerResponse>()
+            .also {
+                println(it.playabilityStatus.status)
+                val listFormat = (it.streamingData?.formats?.toMutableList() ?: mutableListOf())
+                listFormat.addAll(it.streamingData?.adaptiveFormats ?: mutableListOf())
+                listFormat
                     .map {
-                        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"[
-                            Random.Default.nextInt(
-                                0,
-                                64,
-                            ),
-                        ]
-                    }.joinToString(""),
-            ).apply {
-                println(toString())
-                println(body<PlayerResponse>())
+                        it.itag to it.url
+                    }.forEach { data ->
+                        println(data)
+                    }
             }
     }
 }

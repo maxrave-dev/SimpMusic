@@ -1,0 +1,7 @@
+- Temporary fixed the "No internet connection" issue
+- Fixed log in function
+- PiP support (beta)
+- Improve UI and performance
+- Improve loading video
+- Add Proxy support
+- Add new languages: Hindi, Thai, Nederland

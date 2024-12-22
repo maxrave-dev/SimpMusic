@@ -27,11 +27,11 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.koin.android.annotation.KoinViewModel
+
 import org.koin.core.component.inject
 
 @UnstableApi
-@KoinViewModel
+
 class NowPlayingBottomSheetViewModel(
     private val application: Application,
 ) : BaseViewModel(application) {
