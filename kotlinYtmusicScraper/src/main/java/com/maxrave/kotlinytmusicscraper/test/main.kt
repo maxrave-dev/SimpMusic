@@ -25,11 +25,7 @@ fun main() {
 fun testPlayer() {
     runBlocking {
         Ytmusic()
-            .apply {
-//                locale = YouTubeLocale("VN", "vi")
-//                cookie =
-//                    "SID=g.a000rgiHuEN3pITP2WY3Uq6yr7JPl4M0pgFC4f4Rjqokr1XthBeqolbEmg_JsfUCrXnIph1UfgACgYKAQ4SARMSFQHGX2MiSMc4pDncJTBzl80qdyTPfRoVAUF8yKqqnCWdihCcCrdDHKeZqQnu0076; __Secure-1PSID=g.a000rgiHuEN3pITP2WY3Uq6yr7JPl4M0pgFC4f4Rjqokr1XthBeqQ0u17I8ULyJwv1NSwJi_nAACgYKAZYSARMSFQHGX2MiYfO4iHIhkN0w5hYHNcKzwhoVAUF8yKr0sU8WipZ1GR9rQF02CSio0076; __Secure-3PSID=g.a000rgiHuEN3pITP2WY3Uq6yr7JPl4M0pgFC4f4Rjqokr1XthBeqhZPK0WQtZK3ECq7_AZkbKQACgYKAdASARMSFQHGX2MinXTrWvGtVNg2QjNj8WHF8xoVAUF8yKovL0GHZjDSS-8qwK1DxF-k0076; HSID=A72HUSRzPM_r_vjhj; SSID=APP0RUU9Nh5B3TEf7; APISID=Hfnav7L5_cIcZF2_/AK6-pGtFA7chcvIgg; SAPISID=qu-9bwAvd0Fjp8eK/AoJucSMbSmgpIqbPb; __Secure-1PAPISID=qu-9bwAvd0Fjp8eK/AoJucSMbSmgpIqbPb; __Secure-3PAPISID=qu-9bwAvd0Fjp8eK/AoJucSMbSmgpIqbPb; YSC=4eOj2Zn2-kA; LOGIN_INFO=AFmmF2swQwIfc2xpuK8qEqE5Vfc-MN6iPcjizdql_58fekc7zJvhPQIgCwcY86x_JiUeRA3rBZOT4_LUH_xm6o2RHroInNATCIg:QUQ3MjNmekNOa296M3FXLU0zUHBxSVZUaks5SXkxTDcyWlRtX0lKUDU5b2pad2lVNnV3ZjVmc2Z2bzBOR0R1T09zY0FQQ0dibEZnUFZnbGJsdkp5Ynl5Vl9PckNkZ21mcGtlcXltN0pNWXdvblBQaFZGRU1lV0VydnlkSHkzZGRTQ3pqTmtDemhwVzdVWHdWaGdCRG1ldlR6YTVHckpOMEpn; VISITOR_INFO1_LIVE=j9EuVT6WMPs; VISITOR_PRIVACY_METADATA=CgJWThIEGgAgDw%3D%3D; _gcl_au=1.1.1326547816.1734710309; ST-1uzmccj=csn=ncRE-esb4yboqprY&itct=CJIEEKCzAhgAIhMIqP_Fvdu2igMVBp_YBR2Z-Dn9; PREF=repeat=NONE; SIDCC=AKEyXzX3O8DHUkPeKg0PtnfpsKomxYlObORq7hRSszLOhcHmvBO9Co49iiQ7eKw4rFDBeEkd; __Secure-1PSIDCC=AKEyXzUPZEY7K0R8V3zpwrsQjYg_HM5x2VrjRUvx1F4qxHb0hgdG0Fbavh6wI2u6jSwHLFNi; __Secure-3PSIDCC=AKEyXzVLZnWQeqRTQtUuNV6qHDMbD1-ykcKYl-fg1c_pp0iYQps96FHCK9bYRfxq5WYyeXDD"
-            }.player(YouTubeClient.IOS, videoId = "UFkm74XwStQ", null, null)
+            .player(YouTubeClient.IOS, videoId = "UFkm74XwStQ", null, null)
             .body<PlayerResponse>()
             .also {
                 println(it.playabilityStatus.status)
