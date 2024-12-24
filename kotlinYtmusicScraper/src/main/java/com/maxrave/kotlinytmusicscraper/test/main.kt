@@ -1,6 +1,7 @@
 package com.maxrave.kotlinytmusicscraper.test
 
 import com.google.gson.annotations.SerializedName
+import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.Ytmusic
 import com.maxrave.kotlinytmusicscraper.models.GridRenderer
 import com.maxrave.kotlinytmusicscraper.models.MusicResponsiveListItemRenderer
@@ -10,11 +11,8 @@ import com.maxrave.kotlinytmusicscraper.models.SectionListRenderer
 import com.maxrave.kotlinytmusicscraper.models.Thumbnail
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
-import com.maxrave.kotlinytmusicscraper.models.response.PlayerResponse
-import io.ktor.client.call.body
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.runBlocking
-import java.util.Collections.addAll
 
 fun main() {
     runBlocking {
@@ -24,20 +22,14 @@ fun main() {
 
 fun testPlayer() {
     runBlocking {
-        Ytmusic()
+        YouTube()
             .apply {}
-            .noLogInPlayer("Fwsl_XS4sYQ")
-            .body<PlayerResponse>()
-            .also {
-                println(it.playabilityStatus.status)
-                val listFormat = (it.streamingData?.formats?.toMutableList() ?: mutableListOf())
-                listFormat.addAll(it.streamingData?.adaptiveFormats ?: mutableListOf())
-                listFormat
-                    .map {
-                        it.itag to it.url
-                    }.forEach { data ->
-                        println(data)
-                    }
+            .player(
+                "Fwsl_XS4sYQ",
+            ).onSuccess {
+                println(it)
+            }.onFailure {
+                it.printStackTrace()
             }
     }
 }
