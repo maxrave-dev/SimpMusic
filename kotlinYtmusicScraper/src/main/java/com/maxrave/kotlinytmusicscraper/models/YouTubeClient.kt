@@ -10,6 +10,11 @@ data class YouTubeClient(
     val userAgent: String,
     val osVersion: String? = null,
     val referer: String? = null,
+    val deviceMake: String? = null,
+    val deviceModel: String? = null,
+    val osName: String? = null,
+    val timeZone: String? = null,
+    val utcOffsetMinutes: Int? = null,
 ) {
     fun toContext(
         locale: YouTubeLocale,
@@ -23,6 +28,12 @@ data class YouTubeClient(
                 gl = locale.gl,
                 hl = locale.hl,
                 visitorData = visitorData,
+                userAgent = userAgent,
+                deviceMake = deviceMake,
+                deviceModel = deviceModel,
+                osName = osName,
+                timeZone = timeZone,
+                utcOffsetMinutes = utcOffsetMinutes,
             ),
     )
 
@@ -33,7 +44,7 @@ data class YouTubeClient(
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.157 Safari/537.36"
         private const val USER_AGENT_ANDROID =
             "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Mobile Safari/537.36"
-        private const val USER_AGENT_IOS = "com.google.ios.youtube/19.29.1 (iPhone16,2; U; CPU iOS 17_5_1 like Mac OS X;)"
+        private const val USER_AGENT_IOS = "com.google.ios.youtube/19.45.4 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X;)"
 
         val ANDROID_MUSIC =
             YouTubeClient(
@@ -79,10 +90,15 @@ data class YouTubeClient(
         val IOS =
             YouTubeClient(
                 clientName = "IOS",
-                clientVersion = "19.29.1",
-                api_key = "AIzaSyB-63vPrdThhKuerbB2N_l7Kwwcxj6yUAc",
+                clientVersion = "19.45.4",
+                deviceMake = "Apple",
+                deviceModel = "iPhone16,2",
                 userAgent = USER_AGENT_IOS,
+                api_key = "AIzaSyB-63vPrdThhKuerbB2N_l7Kwwcxj6yUAc",
+                osName = "iPhone",
                 osVersion = "17.5.1.21F90",
+                timeZone = "UTC",
+                utcOffsetMinutes = 0,
             )
     }
 }

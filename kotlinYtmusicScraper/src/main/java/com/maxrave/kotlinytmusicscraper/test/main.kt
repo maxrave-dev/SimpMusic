@@ -25,7 +25,8 @@ fun main() {
 fun testPlayer() {
     runBlocking {
         Ytmusic()
-            .player(YouTubeClient.IOS, videoId = "UFkm74XwStQ", null, null)
+            .apply {}
+            .noLogInPlayer("Fwsl_XS4sYQ")
             .body<PlayerResponse>()
             .also {
                 println(it.playabilityStatus.status)
