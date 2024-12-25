@@ -101,7 +101,7 @@ class Ytmusic {
             gl = Locale.getDefault().country,
             hl = Locale.getDefault().toLanguageTag(),
         )
-    var visitorData: String = "CgtrcUxtWU5xWDJlVSivkpa7BjIKCgJWThIEGgAgHg%3D%3D"
+    var visitorData: String = "CgtsZG1ySnZiQWtSbyiMjuGSBg%3D%3D"
     var cookie: String? = null
         set(value) {
             field = value
@@ -346,16 +346,9 @@ class Ytmusic {
                     append("Cookie", cookie)
                     if ("SAPISID" !in cookieMap || "__Secure-3PAPISID" !in cookieMap) return@let
                     val currentTime = System.currentTimeMillis() / 1000
-                    if (client != WEB_REMIX) {
-                        val sapisidHash = sha1("$currentTime ${cookieMap["SAPISID"]} https://music.youtube.com")
-                        append("Authorization", "SAPISIDHASH ${currentTime}_$sapisidHash")
-                    } else {
-                        val sapisidHash = sha1("$currentTime ${cookieMap["__Secure-3PAPISID"]} https://music.youtube.com")
-                        append(
-                            "Authorization",
-                            "SAPISIDHASH ${currentTime}_$sapisidHash",
-                        )
-                    }
+                    val sapisidCookie = cookieMap["SAPISID"] ?: cookieMap["__Secure-3PAPISID"]
+                    val sapisidHash = sha1("$currentTime $sapisidCookie https://music.youtube.com")
+                    append("Authorization", "SAPISIDHASH ${currentTime}_$sapisidHash")
                 }
             }
         }
@@ -387,20 +380,50 @@ class Ytmusic {
             contentType(ContentType.Application.Json)
         }
 
-    suspend fun noLogInPlayer(videoId: String) =
-        httpClient.post("player") {
-            accept(ContentType.Application.Json)
-            contentType(ContentType.Application.Json)
-            header("Host", "music.youtube.com")
-            setBody(
-                PlayerBody(
-                    context = IOS.toContext(locale, visitorData),
-                    playlistId = null,
-                    cpn = null,
-                    videoId = videoId,
-                ),
-            )
-        }
+    suspend fun ghostRequest(videoId: String) =
+        httpClient
+            .get("https://www.youtube.com/watch?v=$videoId&bpctr=9999999999&has_verified=1") {
+                headers {
+                    header("Connection", "close")
+                    header("Host", "www.youtube.com")
+                    header("Cookie", "PREF=hl=en&tz=UTC; SOCS=CAI")
+                    header("Sec-Fetch-Mode", "navigate")
+                    header(
+                        "User-Agent",
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36",
+                    )
+                }
+            }
+
+    suspend fun noLogInPlayer(
+        videoId: String,
+        cookie: String,
+        visitorData: String?,
+    ) = httpClient.post("https://www.youtube.com/youtubei/v1/player") {
+        accept(ContentType.Application.Json)
+        contentType(ContentType.Application.Json)
+        header("Host", "www.youtube.com")
+        header("Origin", "https://www.youtube.com")
+        header("Sec-Fetch-Mode", "navigate")
+        header(HttpHeaders.UserAgent, IOS.userAgent)
+        header(
+            "Set-Cookie",
+            cookie,
+        )
+        header("X-Goog-Visitor-Id", visitorData ?: this@Ytmusic.visitorData)
+        header("X-YouTube-Client-Name", IOS.clientName)
+        header("X-YouTube-Client-Version", IOS.clientVersion)
+        setBody(
+            PlayerBody(
+                context = IOS.toContext(locale, null),
+                playlistId = null,
+                cpn = null,
+                videoId = videoId,
+                playbackContext = PlayerBody.PlaybackContext(),
+            ),
+        )
+        parameter("prettyPrint", false)
+    }
 
     suspend fun player(
         client: YouTubeClient,

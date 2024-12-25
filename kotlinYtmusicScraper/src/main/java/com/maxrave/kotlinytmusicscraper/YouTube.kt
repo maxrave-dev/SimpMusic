@@ -53,6 +53,7 @@ import com.maxrave.kotlinytmusicscraper.models.response.spotify.search.SpotifySe
 import com.maxrave.kotlinytmusicscraper.models.response.toLikeStatus
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
+import com.maxrave.kotlinytmusicscraper.models.youtube.GhostResponse
 import com.maxrave.kotlinytmusicscraper.models.youtube.Transcript
 import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
 import com.maxrave.kotlinytmusicscraper.pages.AlbumPage
@@ -1280,12 +1281,52 @@ class YouTube {
                     }.joinToString("")
             val playerResponse =
                 try {
-                    Log.w("Player Response", "Try Android")
-                    ytMusic.player(if (cookie != null) ANDROID_MUSIC else IOS, videoId, playlistId, cpn).body<PlayerResponse>()
+//                    Log.w("Player Response", "Try Android")
+                    ytMusic.player(if (!cookie.isNullOrEmpty()) ANDROID_MUSIC else IOS, videoId, playlistId, cpn).body<PlayerResponse>().also {
+                        if (it.playabilityStatus.status != "OK") throw Exception(it.playabilityStatus.status)
+                    }
                 } catch (e: Exception) {
                     println("Player Response Error $e")
-                    Log.w("Player Response", "Try IOS")
-                    ytMusic.noLogInPlayer(videoId).body<PlayerResponse>()
+//                    Log.w("Player Response", "Try IOS")
+                    val ghostRequest = ytMusic.ghostRequest(videoId)
+                    val cookie =
+                        "PREF=hl=en&tz=UTC; SOCS=CAI; ${ghostRequest.headers
+                            .getAll("set-cookie")
+                            ?.map {
+                                it.split(";").first()
+                            }?.filter {
+                                it.lastOrNull() != '='
+                            }?.joinToString("; ")}"
+                    var response = ""
+                    val ksoupHtmlParser =
+                        KsoupHtmlParser(
+                            object : KsoupHtmlHandler {
+                                override fun onText(text: String) {
+                                    super.onText(text)
+                                    if (text.contains("var ytInitialPlayerResponse")) {
+                                        print("Text $text")
+                                        val temp = text.replace("var ytInitialPlayerResponse = ", "").split(";var").firstOrNull()
+                                        println("Scrape Temp $temp")
+                                        temp?.let {
+                                            response = it.trimIndent()
+                                        }
+                                    }
+                                }
+                            },
+                        )
+                    ksoupHtmlParser.write(ghostRequest.bodyAsText())
+                    ksoupHtmlParser.end()
+                    val json = Json { ignoreUnknownKeys = true }
+                    val jsonData = json.decodeFromString<GhostResponse>(response)
+                    val visitorData =
+                        jsonData.responseContext.serviceTrackingParams
+                            ?.find { it.service == "GFEEDBACK" }
+                            ?.params
+                            ?.find { it.key == "visitor_data" }
+                            ?.value
+                    println("Visitor Data $visitorData")
+                    println("Cookie $cookie")
+                    ytMusic.noLogInPlayer(videoId, cookie, visitorData).body<PlayerResponse>()
                 }
             println("Player Response $playerResponse")
             println("Thumbnails " + playerResponse.videoDetails?.thumbnail)
