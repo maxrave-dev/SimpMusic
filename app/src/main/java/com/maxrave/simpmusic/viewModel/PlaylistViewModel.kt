@@ -39,11 +39,11 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import org.koin.android.annotation.KoinViewModel
+
 import org.koin.core.component.inject
 import java.time.LocalDateTime
 
-@KoinViewModel
+
 @UnstableApi
 class PlaylistViewModel(
     private val application: Application,

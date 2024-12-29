@@ -51,12 +51,12 @@ import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.koin.android.annotation.KoinViewModel
+
 import org.koin.core.component.inject
 import java.time.LocalDateTime
 
 @UnstableApi
-@KoinViewModel
+
 class LocalPlaylistViewModel(
     private val application: Application,
 ) : BaseViewModel(application) {

@@ -3,6 +3,7 @@ package com.maxrave.simpmusic.viewModel
 import android.app.Application
 import android.app.usage.StorageStatsManager
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
 import android.os.storage.StorageManager
@@ -33,7 +34,7 @@ import com.maxrave.simpmusic.extension.zipInputStream
 import com.maxrave.simpmusic.extension.zipOutputStream
 import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
-import com.maxrave.simpmusic.ui.MainActivity
+import com.maxrave.simpmusic.utils.LocalResource
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -51,7 +52,6 @@ import org.koin.core.qualifier.named
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.zip.ZipEntry
-import kotlin.system.exitProcess
 
 @UnstableApi
 class SettingsViewModel(
@@ -204,29 +204,36 @@ class SettingsViewModel(
 
     private fun getProxy() {
         viewModelScope.launch {
-            val host = launch {
-                dataStoreManager.proxyHost.collect {
-                    _proxyHost.value = it
+            val host =
+                launch {
+                    dataStoreManager.proxyHost.collect {
+                        _proxyHost.value = it
+                    }
                 }
-            }
-            val port = launch {
-                dataStoreManager.proxyPort.collect {
-                    _proxyPort.value = it
+            val port =
+                launch {
+                    dataStoreManager.proxyPort.collect {
+                        _proxyPort.value = it
+                    }
                 }
-            }
-            val type = launch {
-                dataStoreManager.proxyType.collect {
-                    _proxyType.value = it
-                    log("getProxy: $it", Log.DEBUG)
+            val type =
+                launch {
+                    dataStoreManager.proxyType.collect {
+                        _proxyType.value = it
+                        log("getProxy: $it", Log.DEBUG)
+                    }
                 }
-            }
             host.join()
             port.join()
             type.join()
         }
     }
 
-    fun setProxy(proxyType: DataStoreManager.Settings.ProxyType, host: String, port: Int) {
+    fun setProxy(
+        proxyType: DataStoreManager.Settings.ProxyType,
+        host: String,
+        port: Int,
+    ) {
         log("setProxy: $proxyType, $host, $port", Log.DEBUG)
         viewModelScope.launch {
             dataStoreManager.setProxyType(proxyType)
@@ -258,20 +265,20 @@ class SettingsViewModel(
                             it.copy(
                                 otherApp = otherApp.toFloat().div(totalByte.toFloat()),
                                 downloadCache =
-                                downloadCache.cacheSpace
-                                    .bytesToMB()
-                                    .toFloat()
-                                    .div(totalByte.toFloat()),
+                                    downloadCache.cacheSpace
+                                        .bytesToMB()
+                                        .toFloat()
+                                        .div(totalByte.toFloat()),
                                 playerCache =
-                                playerCache.cacheSpace
-                                    .bytesToMB()
-                                    .toFloat()
-                                    .div(totalByte.toFloat()),
+                                    playerCache.cacheSpace
+                                        .bytesToMB()
+                                        .toFloat()
+                                        .div(totalByte.toFloat()),
                                 canvasCache =
-                                canvasCache.cacheSpace
-                                    .bytesToMB()
-                                    .toFloat()
-                                    .div(totalByte.toFloat()),
+                                    canvasCache.cacheSpace
+                                        .bytesToMB()
+                                        .toFloat()
+                                        .div(totalByte.toFloat()),
                                 thumbCache = thumbSize.toFloat().div(totalByte.toFloat()),
                                 freeSpace = freeSpace.toFloat().div(totalByte.toFloat()),
                                 appDatabase = databaseSize.toFloat().div(totalByte.toFloat()),
@@ -598,7 +605,12 @@ class SettingsViewModel(
         runCatching {
             application.applicationContext.contentResolver.openInputStream(uri)?.use {
                 it.zipInputStream().use { inputStream ->
-                    var entry = inputStream.nextEntry
+                    var entry =
+                        try {
+                            inputStream.nextEntry
+                        } catch (e: Exception) {
+                            null
+                        }
                     var count = 0
                     while (entry != null && count < 2) {
                         when (entry.name) {
@@ -611,8 +623,8 @@ class SettingsViewModel(
                             DB_NAME -> {
                                 runBlocking(Dispatchers.IO) {
                                     mainRepository.databaseDaoCheckpoint()
+                                    mainRepository.closeDatabase()
                                 }
-                                mainRepository.closeDatabase()
                                 FileOutputStream(databasePath).use { outputStream ->
                                     inputStream.copyTo(outputStream)
                                 }
@@ -626,8 +638,12 @@ class SettingsViewModel(
             makeToast(getString(R.string.restore_success))
             application.stopService(Intent(application, SimpleMediaService::class.java))
             getData()
-            application.startActivity(Intent(application, MainActivity::class.java))
-            exitProcess(0)
+            val ctx = application.applicationContext
+            val pm: PackageManager = ctx.packageManager
+            val intent = pm.getLaunchIntentForPackage(ctx.packageName)
+            val mainIntent = Intent.makeRestartActivityTask(intent?.component)
+            ctx.startActivity(mainIntent)
+            Runtime.getRuntime().exit(0)
         }.onFailure {
             it.printStackTrace()
             makeToast(getString(R.string.restore_failed))
@@ -764,22 +780,18 @@ class SettingsViewModel(
         }
     }
 
-    private var _googleAccounts: MutableStateFlow<ArrayList<GoogleAccountEntity>?> =
-        MutableStateFlow(null)
-    val googleAccounts: MutableStateFlow<ArrayList<GoogleAccountEntity>?> = _googleAccounts
-
-    private var _loading: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val loading: MutableStateFlow<Boolean> = _loading
+    private var _googleAccounts: MutableStateFlow<LocalResource<List<GoogleAccountEntity>>> =
+        MutableStateFlow(LocalResource.Loading())
+    val googleAccounts: StateFlow<LocalResource<List<GoogleAccountEntity>>> = _googleAccounts
 
     fun getAllGoogleAccount() {
         Log.w("getAllGoogleAccount", "getAllGoogleAccount: Go to function")
         viewModelScope.launch {
-            _loading.value = true
-            mainRepository.getGoogleAccounts().collect { accounts ->
+            _googleAccounts.emit(LocalResource.Loading())
+            mainRepository.getGoogleAccounts().collectLatest { accounts ->
                 Log.w("getAllGoogleAccount", "getAllGoogleAccount: $accounts")
                 if (!accounts.isNullOrEmpty()) {
-                    _googleAccounts.value = accounts as ArrayList<GoogleAccountEntity>
-                    _loading.value = false
+                    _googleAccounts.emit(LocalResource.Success(accounts))
                 } else {
                     if (loggedIn.value == DataStoreManager.TRUE) {
                         mainRepository.getAccountInfo().collect {
@@ -802,25 +814,34 @@ class SettingsViewModel(
                                 delay(500)
                                 getAllGoogleAccount()
                             } else {
-                                _googleAccounts.value = null
-                                _loading.value = false
+                                _googleAccounts.emit(LocalResource.Success(emptyList()))
                             }
                         }
                     } else {
-                        _googleAccounts.value = null
-                        _loading.value = false
+                        _googleAccounts.emit(LocalResource.Success(emptyList()))
                     }
                 }
             }
         }
     }
 
-    fun addAccount() {
+    fun addAccount(cookie: String) {
         viewModelScope.launch {
+            dataStoreManager.setCookie(cookie)
+            dataStoreManager.setLoggedIn(true)
             mainRepository.getAccountInfo().collect { accountInfo ->
+                Log.d("getAllGoogleAccount", "addAccount: $accountInfo")
                 if (accountInfo != null) {
-                    googleAccounts.value?.forEach {
-                        mainRepository.updateGoogleAccountUsed(it.email, false)
+                    runBlocking {
+                        mainRepository.getGoogleAccounts().singleOrNull()?.forEach {
+                            Log.d("getAllGoogleAccount", "set used: $it start")
+                            mainRepository
+                                .updateGoogleAccountUsed(it.email, false)
+                                .singleOrNull()
+                                ?.let {
+                                    Log.w("getAllGoogleAccount", "set used: $it")
+                                }
+                        }
                     }
                     dataStoreManager.putString("AccountName", accountInfo.name)
                     dataStoreManager.putString(
@@ -849,20 +870,35 @@ class SettingsViewModel(
     fun setUsedAccount(acc: GoogleAccountEntity?) {
         viewModelScope.launch {
             if (acc != null) {
-                googleAccounts.value?.forEach {
-                    mainRepository.updateGoogleAccountUsed(it.email, false)
+                googleAccounts.value.data?.forEach {
+                    mainRepository
+                        .updateGoogleAccountUsed(it.email, false)
+                        .singleOrNull()
+                        ?.let {
+                            Log.w("getAllGoogleAccount", "set used: $it")
+                        }
                 }
                 dataStoreManager.putString("AccountName", acc.name)
                 dataStoreManager.putString("AccountThumbUrl", acc.thumbnailUrl)
-                mainRepository.updateGoogleAccountUsed(acc.email, true)
+                mainRepository
+                    .updateGoogleAccountUsed(acc.email, true)
+                    .singleOrNull()
+                    ?.let {
+                        Log.w("getAllGoogleAccount", "set used: $it")
+                    }
                 dataStoreManager.setCookie(acc.cache ?: "")
                 dataStoreManager.setLoggedIn(true)
                 delay(500)
                 getAllGoogleAccount()
                 getLoggedIn()
             } else {
-                googleAccounts.value?.forEach {
-                    mainRepository.updateGoogleAccountUsed(it.email, false)
+                googleAccounts.value.data?.forEach {
+                    mainRepository
+                        .updateGoogleAccountUsed(it.email, false)
+                        .singleOrNull()
+                        ?.let {
+                            Log.w("getAllGoogleAccount", "set used: $it")
+                        }
                 }
                 dataStoreManager.putString("AccountName", "")
                 dataStoreManager.putString("AccountThumbUrl", "")
@@ -877,7 +913,7 @@ class SettingsViewModel(
 
     fun logOutAllYouTube() {
         viewModelScope.launch {
-            googleAccounts.value?.forEach { account ->
+            googleAccounts.value.data?.forEach { account ->
                 mainRepository.deleteGoogleAccount(account.email)
             }
             dataStoreManager.putString("AccountName", "")

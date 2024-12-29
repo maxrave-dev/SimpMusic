@@ -234,9 +234,9 @@ fun MediaPlayerView(
                 Modifier.pipModifier(context)
             } else {
                 Modifier
-            }
+            },
         ),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         if (keepScreenOn) {
             KeepScreenOn()
@@ -245,17 +245,27 @@ fun MediaPlayerView(
             if (it) {
                 AsyncImage(
                     model =
-                    ImageRequest
-                        .Builder(LocalContext.current)
-                        .data(player.currentMediaItem?.mediaMetadata?.artworkUri?.toCoilUri())
-                        .diskCachePolicy(CachePolicy.ENABLED)
-                        .diskCacheKey(player.currentMediaItem?.mediaMetadata?.artworkUri?.toString())
-                        .crossfade(550)
-                        .build(),
+                        ImageRequest
+                            .Builder(LocalContext.current)
+                            .data(
+                                player.currentMediaItem
+                                    ?.mediaMetadata
+                                    ?.artworkUri
+                                    ?.toCoilUri(),
+                            ).diskCachePolicy(CachePolicy.ENABLED)
+                            .diskCacheKey(
+                                player.currentMediaItem
+                                    ?.mediaMetadata
+                                    ?.artworkUri
+                                    ?.toString(),
+                            ).crossfade(550)
+                            .build(),
                     contentDescription = null,
                     contentScale = ContentScale.FillHeight,
-                    modifier = Modifier.fillMaxHeight()
-                        .align(Alignment.Center),
+                    modifier =
+                        Modifier
+                            .fillMaxHeight()
+                            .align(Alignment.Center),
                 )
             } else {
                 AndroidView(
@@ -266,10 +276,10 @@ fun MediaPlayerView(
                         }
                     },
                     modifier =
-                    Modifier
-                        .wrapContentSize()
-                        .aspectRatio(if (videoRatio > 0f) videoRatio else 16f / 9)
-                        .align(Alignment.Center),
+                        Modifier
+                            .wrapContentSize()
+                            .aspectRatio(if (videoRatio > 0f) videoRatio else 16f / 9)
+                            .align(Alignment.Center),
                 )
             }
         }

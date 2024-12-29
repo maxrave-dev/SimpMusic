@@ -7,6 +7,7 @@ import android.content.ContextWrapper
 import android.graphics.Point
 import android.os.Build
 import android.util.Log
+import android.util.Rational
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.annotation.ColorInt
@@ -45,12 +46,15 @@ import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.toAndroidRectF
+import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
 import androidx.core.graphics.ColorUtils
+import androidx.core.graphics.toRect
 import com.kmpalette.palette.graphics.Palette
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.ui.theme.shimmerBackground
@@ -492,15 +496,16 @@ fun PipListenerPreAPI12() {
         val context = LocalContext.current
         DisposableEffect(context) {
             val onUserLeaveBehavior: () -> Unit = {
-                context.findActivity()
+                context
+                    .findActivity()
                     .enterPictureInPictureMode(PictureInPictureParams.Builder().build())
             }
             context.findActivity().addOnUserLeaveHintListener(
-                onUserLeaveBehavior
+                onUserLeaveBehavior,
             )
             onDispose {
                 context.findActivity().removeOnUserLeaveHintListener(
-                    onUserLeaveBehavior
+                    onUserLeaveBehavior,
                 )
             }
         }
@@ -513,15 +518,20 @@ fun PipListenerPreAPI12() {
 /**
  * Android 12 and above Picture in Picture mode
  */
-fun Modifier.pipModifier(context: Context) = this.onGloballyPositioned { layoutCoordinates ->
-    val builder = PictureInPictureParams.Builder()
-
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-        builder.setAutoEnterEnabled(true)
+fun Modifier.pipModifier(context: Context) =
+    this.onGloballyPositioned { layoutCoordinates ->
+        val builder = PictureInPictureParams.Builder()
+        val sourceRect = layoutCoordinates.boundsInWindow().toAndroidRectF().toRect()
+        builder.setSourceRectHint(sourceRect)
+        builder.setAspectRatio(
+            Rational(16, 9),
+        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            builder.setAutoEnterEnabled(true)
+        }
+        Log.w("PiP info", "layoutCoordinates: $layoutCoordinates")
+        context.findActivity().setPictureInPictureParams(builder.build())
     }
-    Log.w("PiP info", "layoutCoordinates: $layoutCoordinates")
-    context.findActivity().setPictureInPictureParams(builder.build())
-}
 
 @RequiresOptIn(
     level = RequiresOptIn.Level.WARNING,

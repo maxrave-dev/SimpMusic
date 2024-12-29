@@ -53,6 +53,7 @@ import com.maxrave.kotlinytmusicscraper.models.response.spotify.search.SpotifySe
 import com.maxrave.kotlinytmusicscraper.models.response.toLikeStatus
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
+import com.maxrave.kotlinytmusicscraper.models.youtube.GhostResponse
 import com.maxrave.kotlinytmusicscraper.models.youtube.Transcript
 import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
 import com.maxrave.kotlinytmusicscraper.pages.AlbumPage
@@ -199,17 +200,23 @@ class YouTube {
     fun removeProxy() {
         ytMusic.proxy = null
     }
+
     /**
      * Set the proxy for client
      */
-    fun setProxy(isHttp: Boolean, host: String, port: Int) {
-        val verifiedHost = if (!host.contains("http")) {
-            "http://$host"
-        } else {
-            host
-        }
+    fun setProxy(
+        isHttp: Boolean,
+        host: String,
+        port: Int,
+    ) {
+        val verifiedHost =
+            if (!host.contains("http")) {
+                "http://$host"
+            } else {
+                host
+            }
         runCatching {
-            if (isHttp) ProxyBuilder.http("${verifiedHost}:${port}") else ProxyBuilder.socks(verifiedHost, port)
+            if (isHttp) ProxyBuilder.http("$verifiedHost:$port") else ProxyBuilder.socks(verifiedHost, port)
         }.onSuccess {
             ytMusic.proxy = it
         }.onFailure {
@@ -1273,10 +1280,57 @@ class YouTube {
                         ]
                     }.joinToString("")
             val playerResponse =
-                ytMusic.player(if (cookie != null) ANDROID_MUSIC else IOS, videoId, playlistId, cpn).body<PlayerResponse>()
-            println("Player Response " + playerResponse)
-//        val ytScrapeInitial: YouTubeInitialPage = ytMusic.player(WEB, videoId, playlistId, cpn).body<YouTubeInitialPage>()
+                try {
+//                    Log.w("Player Response", "Try Android")
+                    ytMusic.player(if (!cookie.isNullOrEmpty()) ANDROID_MUSIC else IOS, videoId, playlistId, cpn).body<PlayerResponse>().also {
+                        if (it.playabilityStatus.status != "OK") throw Exception(it.playabilityStatus.status)
+                    }
+                } catch (e: Exception) {
+                    println("Player Response Error $e")
+//                    Log.w("Player Response", "Try IOS")
+                    val ghostRequest = ytMusic.ghostRequest(videoId)
+                    val cookie =
+                        "PREF=hl=en&tz=UTC; SOCS=CAI; ${ghostRequest.headers
+                            .getAll("set-cookie")
+                            ?.map {
+                                it.split(";").first()
+                            }?.filter {
+                                it.lastOrNull() != '='
+                            }?.joinToString("; ")}"
+                    var response = ""
+                    val ksoupHtmlParser =
+                        KsoupHtmlParser(
+                            object : KsoupHtmlHandler {
+                                override fun onText(text: String) {
+                                    super.onText(text)
+                                    if (text.contains("var ytInitialPlayerResponse")) {
+                                        print("Text $text")
+                                        val temp = text.replace("var ytInitialPlayerResponse = ", "").split(";var").firstOrNull()
+                                        println("Scrape Temp $temp")
+                                        temp?.let {
+                                            response = it.trimIndent()
+                                        }
+                                    }
+                                }
+                            },
+                        )
+                    ksoupHtmlParser.write(ghostRequest.bodyAsText())
+                    ksoupHtmlParser.end()
+                    val json = Json { ignoreUnknownKeys = true }
+                    val jsonData = json.decodeFromString<GhostResponse>(response)
+                    val visitorData =
+                        jsonData.responseContext.serviceTrackingParams
+                            ?.find { it.service == "GFEEDBACK" }
+                            ?.params
+                            ?.find { it.key == "visitor_data" }
+                            ?.value
+                    println("Visitor Data $visitorData")
+                    println("Cookie $cookie")
+                    ytMusic.noLogInPlayer(videoId, cookie, visitorData).body<PlayerResponse>()
+                }
+            println("Player Response $playerResponse")
             println("Thumbnails " + playerResponse.videoDetails?.thumbnail)
+            println("Player Response status: ${playerResponse.playabilityStatus.status}")
             val firstThumb =
                 playerResponse.videoDetails
                     ?.thumbnail
@@ -1285,11 +1339,10 @@ class YouTube {
             val thumbnails =
                 if (firstThumb?.height == firstThumb?.width && firstThumb != null) MediaType.Song else MediaType.Video
             val formatList = playerResponse.streamingData?.formats?.map { Pair(it.itag, it.isAudio) }
-            println("Player Response " + formatList)
+            println("Player Response $formatList")
             val adaptiveFormatsList = playerResponse.streamingData?.adaptiveFormats?.map { Pair(it.itag, it.isAudio) }
-            println("Player Response " + adaptiveFormatsList)
+            println("Player Response $adaptiveFormatsList")
 
-//        println( playerResponse.streamingData?.adaptiveFormats?.findLast { it.itag == 251 }?.mimeType.toString())
             if (playerResponse.playabilityStatus.status == "OK" && (formatList != null || adaptiveFormatsList != null)) {
                 return@runCatching Triple(
                     cpn,
@@ -1325,7 +1378,7 @@ class YouTube {
                     }
                 }
             }
-            throw Exception(error ?: "Unknown error")
+            throw Exception(playerResponse.playabilityStatus.status ?: "Unknown error")
         }
 
     suspend fun updateWatchTime(
@@ -1725,11 +1778,6 @@ class YouTube {
         ytMusic.createYouTubePlaylist(title, listVideoId).body<CreatePlaylistResponse>()
     }
 
-    suspend fun getNotification() =
-        runCatching {
-            ytMusic.getNotification().bodyAsText()
-        }
-
     /***
      * Spotify Implementation
      */
@@ -1771,13 +1819,12 @@ class YouTube {
         runCatching {
             ytMusic.removeFromLiked(mediaId).status.value
         }
-    companion object {
 
+    companion object {
         const val MAX_GET_QUEUE_SIZE = 1000
 
         private const val VISITOR_DATA_PREFIX = "Cgt"
 
         const val DEFAULT_VISITOR_DATA = "CgtsZG1ySnZiQWtSbyiMjuGSBg%3D%3D"
-
     }
 }

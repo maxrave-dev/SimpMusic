@@ -1,6 +1,7 @@
 package com.maxrave.kotlinytmusicscraper.test
 
 import com.google.gson.annotations.SerializedName
+import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.Ytmusic
 import com.maxrave.kotlinytmusicscraper.models.GridRenderer
 import com.maxrave.kotlinytmusicscraper.models.MusicResponsiveListItemRenderer
@@ -12,35 +13,23 @@ import com.maxrave.kotlinytmusicscraper.models.YouTubeClient
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.runBlocking
-import kotlin.random.Random
 
 fun main() {
     runBlocking {
+        testPlayer()
     }
 }
 
-
 fun testPlayer() {
     runBlocking {
-        Ytmusic()
-            .apply {
-                locale = YouTubeLocale("VN", "vi")
-                cookie = ""
-            }.player(
-                YouTubeClient.TVHTML5,
-                "ctiKD8jtvV8",
-                null,
-                (1..16)
-                    .map {
-                        "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"[
-                            Random.Default.nextInt(
-                                0,
-                                64,
-                            ),
-                        ]
-                    }.joinToString(""),
-            ).apply {
-                println(bodyAsText())
+        YouTube()
+            .apply {}
+            .player(
+                "Fwsl_XS4sYQ",
+            ).onSuccess {
+                println(it)
+            }.onFailure {
+                it.printStackTrace()
             }
     }
 }

@@ -9,5 +9,18 @@ data class PlayerBody(
     val videoId: String,
     val playlistId: String?,
     val cpn: String?,
-    val param: String? = "8AUB",
-)
+    val contentCheckOk: Boolean = true,
+    val racyCheckOk: Boolean = true,
+    val playbackContext: PlaybackContext? = null,
+) {
+    @Serializable
+    data class PlaybackContext(
+        val contentPlaybackContext: ContentPlaybackContext = ContentPlaybackContext(),
+    ) {
+        @Serializable
+        data class ContentPlaybackContext(
+            val html5Preference: String = "HTML5_PREF_WANTS",
+            val signatureTimestamp: Int = 20073,
+        )
+    }
+}

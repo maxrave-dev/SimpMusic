@@ -72,7 +72,7 @@ class LogInFragment : Fragment() {
                     ) {
                         if (url == Config.YOUTUBE_MUSIC_MAIN_URL) {
                             CookieManager.getInstance().getCookie(url)?.let {
-                                viewModel.saveCookie(it)
+                                settingsViewModel.addAccount(it)
                             }
                             WebStorage.getInstance().deleteAllData()
 
@@ -84,18 +84,13 @@ class LogInFragment : Fragment() {
                             binding.webView.clearFormData()
                             binding.webView.clearHistory()
                             binding.webView.clearSslPreferences()
-                            viewModel.status.observe(this@LogInFragment) {
-                                if (it) {
-                                    settingsViewModel.addAccount()
-                                    Toast
-                                        .makeText(
-                                            requireContext(),
-                                            R.string.login_success,
-                                            Toast.LENGTH_SHORT,
-                                        ).show()
-                                    findNavController().navigateUp()
-                                }
-                            }
+                            Toast
+                                .makeText(
+                                    requireContext(),
+                                    R.string.login_success,
+                                    Toast.LENGTH_SHORT,
+                                ).show()
+                            findNavController().navigateUp()
                         }
                     }
                 }

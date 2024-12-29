@@ -101,6 +101,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flow
@@ -153,47 +154,53 @@ class MainRepository(
             }
         youTube.cachePath = File(context.cacheDir, "http-cache")
         scope.launch {
-            val localeJob = launch {
-                combine(dataStoreManager.location, dataStoreManager.language) { location, language ->
-                    Pair(location, language)
-                }.collectLatest { (location, language) ->
-                    youTube.locale = YouTubeLocale(location, language.substring(0..1))
-                }
-            }
-            val ytCookieJob = launch {
-                dataStoreManager.cookie.collectLatest { cookie ->
-                    if (cookie.isNotEmpty()) {
-                        youTube.cookie = cookie
-                    } else {
-                        youTube.cookie = null
+            val localeJob =
+                launch {
+                    combine(dataStoreManager.location, dataStoreManager.language) { location, language ->
+                        Pair(location, language)
+                    }.collectLatest { (location, language) ->
+                        youTube.locale = YouTubeLocale(location, language.substring(0..1))
                     }
                 }
-            }
-            val musixmatchCookieJob = launch {
-                dataStoreManager.musixmatchCookie.collectLatest { cookie ->
-                    youTube.musixMatchCookie = cookie
-                }
-            }
-            val usingProxy = launch {
-                combine(dataStoreManager.usingProxy,
-                    dataStoreManager.proxyType,
-                    dataStoreManager.proxyHost,
-                    dataStoreManager.proxyPort) { usingProxy, proxyType, proxyHost, proxyPort ->
-                    Pair(usingProxy == DataStoreManager.TRUE, Triple(proxyType, proxyHost, proxyPort))
-                }.collectLatest { (usingProxy, data) ->
-                    if (usingProxy) {
-                        withContext(Dispatchers.IO) {
-                            youTube.setProxy(
-                                data.first == DataStoreManager.Settings.ProxyType.PROXY_TYPE_HTTP,
-                                data.second,
-                                data.third
-                            )
+            val ytCookieJob =
+                launch {
+                    dataStoreManager.cookie.distinctUntilChanged().collectLatest { cookie ->
+                        if (cookie.isNotEmpty()) {
+                            youTube.cookie = cookie
+                        } else {
+                            youTube.cookie = null
                         }
-                    } else {
-                        youTube.removeProxy()
                     }
                 }
-            }
+            val musixmatchCookieJob =
+                launch {
+                    dataStoreManager.musixmatchCookie.collectLatest { cookie ->
+                        youTube.musixMatchCookie = cookie
+                    }
+                }
+            val usingProxy =
+                launch {
+                    combine(
+                        dataStoreManager.usingProxy,
+                        dataStoreManager.proxyType,
+                        dataStoreManager.proxyHost,
+                        dataStoreManager.proxyPort,
+                    ) { usingProxy, proxyType, proxyHost, proxyPort ->
+                        Pair(usingProxy == DataStoreManager.TRUE, Triple(proxyType, proxyHost, proxyPort))
+                    }.collectLatest { (usingProxy, data) ->
+                        if (usingProxy) {
+                            withContext(Dispatchers.IO) {
+                                youTube.setProxy(
+                                    data.first == DataStoreManager.Settings.ProxyType.PROXY_TYPE_HTTP,
+                                    data.second,
+                                    data.third,
+                                )
+                            }
+                        } else {
+                            youTube.removeProxy()
+                        }
+                    }
+                }
 
             localeJob.join()
             ytCookieJob.join()
@@ -203,8 +210,9 @@ class MainRepository(
     }
 
     fun getMusixmatchCookie() = youTube.getMusixmatchCookie()
+
     fun getYouTubeCookie() = youTube.cookie
-    
+
     // Database
     fun closeDatabase() {
         if (database.isOpen) {
@@ -631,7 +639,7 @@ class MainRepository(
     suspend fun updateGoogleAccountUsed(
         email: String,
         isUsed: Boolean,
-    ) = withContext(Dispatchers.IO) { localDataSource.updateGoogleAccountUsed(email, isUsed) }
+    ): Flow<Int> = flow { emit(localDataSource.updateGoogleAccountUsed(email, isUsed)) }.flowOn(Dispatchers.IO)
 
     suspend fun insertFollowedArtistSingleAndAlbum(followedArtistSingleAndAlbum: FollowedArtistSingleAndAlbum) =
         withContext(Dispatchers.IO) {
@@ -2864,7 +2872,7 @@ class MainRepository(
                             }
                         }
                     if (format == null) {
-                        format = response.streamingData?.adaptiveFormats?.lastOrNull()
+                        format = response.streamingData?.adaptiveFormats?.lastOrNull() ?: response.streamingData?.formats?.lastOrNull()
                     }
                     Log.w("Stream", "format: $format")
                     Log.d("Stream", "expireInSeconds ${response.streamingData?.expiresInSeconds}")

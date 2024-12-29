@@ -10,10 +10,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.koin.android.annotation.KoinViewModel
+
 
 @UnstableApi
-@KoinViewModel
+
 class MusixmatchViewModel(
     application: Application,
 ) : BaseViewModel(application) {
