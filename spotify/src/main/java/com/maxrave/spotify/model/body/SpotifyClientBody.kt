@@ -1,6 +1,6 @@
-package com.maxrave.kotlinytmusicscraper.models.body.spotify
+package com.maxrave.spotify.model.body
 
-import com.maxrave.kotlinytmusicscraper.extension.randomString
+import com.maxrave.spotify.extensions.randomString
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable

@@ -210,7 +210,10 @@ dependencies {
     implementation(libs.material)
     // Runtime
     implementation(libs.startup.runtime)
+    // Other module
     implementation(project(mapOf("path" to ":kotlinYtmusicScraper")))
+    implementation(project(mapOf("path" to ":spotify")))
+
     implementation(libs.lifecycle.livedata.ktx)
     implementation(libs.lifecycle.viewmodel.ktx)
     debugImplementation(libs.ui.tooling)

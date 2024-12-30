@@ -17,7 +17,7 @@ import com.maxrave.kotlinytmusicscraper.models.musixmatch.MusixmatchTranslationL
 import com.maxrave.kotlinytmusicscraper.models.musixmatch.SearchMusixmatchResponse
 import com.maxrave.kotlinytmusicscraper.models.response.LikeStatus
 import com.maxrave.kotlinytmusicscraper.models.response.SearchResponse
-import com.maxrave.kotlinytmusicscraper.models.response.spotify.CanvasResponse
+import com.maxrave.spotify.model.response.spotify.CanvasResponse
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
 import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
@@ -95,6 +95,7 @@ import com.maxrave.simpmusic.extension.toTrack
 import com.maxrave.simpmusic.service.test.source.MergingMediaSourceFactory
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.FilterState
+import com.maxrave.spotify.Spotify
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -121,6 +122,7 @@ class MainRepository(
     private val localDataSource: LocalDataSource,
     private val dataStoreManager: DataStoreManager,
     private val youTube: YouTube,
+    private val spotify: Spotify,
     private val database: MusicDatabase,
     private val context: Context,
 ) {
@@ -195,9 +197,15 @@ class MainRepository(
                                     data.second,
                                     data.third,
                                 )
+                                spotify.setProxy(
+                                    data.first == DataStoreManager.Settings.ProxyType.PROXY_TYPE_HTTP,
+                                    data.second,
+                                    data.third,
+                                )
                             }
                         } else {
                             youTube.removeProxy()
+                            spotify.removeProxy()
                         }
                     }
                 }
@@ -2016,7 +2024,7 @@ class MainRepository(
     suspend fun getCanvas(
         videoId: String,
         duration: Int,
-    ): Flow<CanvasResponse?> =
+    ): Flow<com.maxrave.spotify.model.response.spotify.CanvasResponse?> =
         flow {
             runCatching {
                 getSongById(videoId).first().let { song ->
@@ -2042,7 +2050,7 @@ class MainRepository(
                         spotifyPersonalToken = dataStoreManager.spotifyPersonalToken.first()
                         Log.d("Canvas", "spotifyPersonalToken: $spotifyPersonalToken")
                     } else if (dataStoreManager.spdc.first().isNotEmpty()) {
-                        youTube
+                        spotify
                             .getPersonalToken(dataStoreManager.spdc.first())
                             .onSuccess {
                                 spotifyPersonalToken = it.accessToken
@@ -2058,7 +2066,7 @@ class MainRepository(
                     }
                     if (spotifyPersonalToken.isNotEmpty()) {
                         val authToken = spotifyPersonalToken
-                        youTube
+                        spotify
                             .searchSpotifyTrack(q, authToken)
                             .onSuccess { searchResponse ->
                                 Log.w("Canvas", "searchSpotifyResponse: $searchResponse")
@@ -2091,7 +2099,7 @@ class MainRepository(
                                             ?.firstOrNull()
                                     }
                                 if (track != null) {
-                                    youTube
+                                    spotify
                                         .getSpotifyCanvas(
                                             track.item?.data?.id ?: "",
                                             spotifyPersonalToken,
@@ -2145,7 +2153,7 @@ class MainRepository(
                     spotifyPersonalToken = dataStoreManager.spotifyPersonalToken.first()
                     Log.d("Lyrics", "spotifyPersonalToken: $spotifyPersonalToken")
                 } else if (dataStoreManager.spdc.first().isNotEmpty()) {
-                    youTube
+                    spotify
                         .getPersonalToken(dataStoreManager.spdc.first())
                         .onSuccess {
                             spotifyPersonalToken = it.accessToken
@@ -2162,7 +2170,7 @@ class MainRepository(
                 if (spotifyPersonalToken.isNotEmpty()) {
                     val authToken = spotifyPersonalToken
                     Log.d("Lyrics", "authToken: $authToken")
-                    youTube
+                    spotify
                         .searchSpotifyTrack(q, authToken)
                         .onSuccess { searchResponse ->
                             val track =
@@ -2195,7 +2203,7 @@ class MainRepository(
                                 }
                             Log.d("Lyrics", "track: $track")
                             if (track != null) {
-                                youTube
+                                spotify
                                     .getSpotifyLyrics(track.item?.data?.id ?: "", spotifyPersonalToken)
                                     .onSuccess {
                                         emit(Resource.Success<Lyrics>(it.toLyrics()))

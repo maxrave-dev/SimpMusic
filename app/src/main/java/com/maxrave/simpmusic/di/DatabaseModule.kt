@@ -25,6 +25,7 @@ import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.extension.dataStore
 import com.maxrave.simpmusic.extension.toSQLiteQuery
 import com.maxrave.simpmusic.service.test.notification.NotifyWork
+import com.maxrave.spotify.Spotify
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.workmanager.dsl.workerOf
 import org.koin.dsl.module
@@ -180,9 +181,13 @@ val databaseModule =
             YouTube()
         }
 
+        single(createdAtStart = true) {
+            Spotify()
+        }
+
         // MainRepository
         single(createdAtStart = true) {
-            MainRepository(get<LocalDataSource>(), get<DataStoreManager>(), get<YouTube>(), get<MusicDatabase>(), androidContext())
+            MainRepository(get<LocalDataSource>(), get<DataStoreManager>(), get<YouTube>(), get<Spotify>(), get<MusicDatabase>(), androidContext())
         }
         // List of managers
 
