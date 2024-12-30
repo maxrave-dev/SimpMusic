@@ -21,7 +21,6 @@ import com.maxrave.kotlinytmusicscraper.models.body.MusixmatchCredentialsBody
 import com.maxrave.kotlinytmusicscraper.models.body.NextBody
 import com.maxrave.kotlinytmusicscraper.models.body.PlayerBody
 import com.maxrave.kotlinytmusicscraper.models.body.SearchBody
-import com.maxrave.kotlinytmusicscraper.models.body.spotify.CanvasBody
 import com.maxrave.kotlinytmusicscraper.models.musixmatch.SearchMusixmatchResponse
 import com.maxrave.kotlinytmusicscraper.utils.CustomRedirectConfig
 import com.maxrave.kotlinytmusicscraper.utils.parseCookieString
@@ -35,6 +34,7 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.cookies.AcceptAllCookiesStorage
 import io.ktor.client.plugins.cookies.HttpCookies
 import io.ktor.client.plugins.defaultRequest
+import io.ktor.client.request.HttpRequest
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.accept
 import io.ktor.client.request.get
@@ -44,6 +44,7 @@ import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
+import io.ktor.http.Headers
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
 import io.ktor.http.parameters
@@ -57,6 +58,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.protobuf.ProtoBuf
 import nl.adaptivity.xmlutil.XmlDeclMode
 import nl.adaptivity.xmlutil.serialization.XML
+import okhttp3.Challenge
 import okhttp3.Interceptor
 import java.io.File
 import java.lang.reflect.Type
@@ -66,7 +68,6 @@ import java.util.Locale
 class Ytmusic {
     private var httpClient = createClient()
     private var musixmatchClient = createMusixmatchClient()
-    private var spotifyClient = createSpotifyClient()
 
     var cacheControlInterceptor: Interceptor? = null
         set(value) {
@@ -75,8 +76,6 @@ class Ytmusic {
             httpClient = createClient()
             musixmatchClient.close()
             musixmatchClient = createMusixmatchClient()
-            spotifyClient.close()
-            spotifyClient = createSpotifyClient()
         }
     var forceCacheInterceptor: Interceptor? = null
         set(value) {
@@ -85,15 +84,12 @@ class Ytmusic {
             httpClient = createClient()
             musixmatchClient.close()
             musixmatchClient = createMusixmatchClient()
-            spotifyClient.close()
-            spotifyClient = createSpotifyClient()
         }
     var cachePath: File? = null
         set(value) {
             field = value
             httpClient = createClient()
             musixmatchClient = createMusixmatchClient()
-            spotifyClient = createSpotifyClient()
         }
 
     var locale =
@@ -102,6 +98,7 @@ class Ytmusic {
             hl = Locale.getDefault().toLanguageTag(),
         )
     var visitorData: String = "CgtsZG1ySnZiQWtSbyiMjuGSBg%3D%3D"
+    private var poTokenChallengeRequestKey = "O43z0dpjhgX20SCx4KAo"
     var cookie: String? = null
         set(value) {
             field = value
@@ -121,84 +118,8 @@ class Ytmusic {
             field = value
             httpClient.close()
             musixmatchClient.close()
-            spotifyClient.close()
             httpClient = createClient()
             musixmatchClient = createMusixmatchClient()
-            spotifyClient = createSpotifyClient()
-        }
-
-    @OptIn(ExperimentalSerializationApi::class)
-    private fun createSpotifyClient() =
-        HttpClient(OkHttp) {
-            expectSuccess = true
-            followRedirects = false
-            if (cachePath != null) {
-                engine {
-                    config {
-                        cache(
-                            okhttp3.Cache(cachePath!!, 50L * 1024 * 1024),
-                        )
-                    }
-                    if (cacheControlInterceptor != null) {
-                        addNetworkInterceptor(cacheControlInterceptor!!)
-                    }
-                    if (forceCacheInterceptor != null) {
-                        addInterceptor(forceCacheInterceptor!!)
-                    }
-                }
-            }
-            install(HttpCache)
-            install(HttpSend) {
-                maxSendCount = 100
-            }
-            install(HttpCookies) {
-                storage = AcceptAllCookiesStorage()
-            }
-            install(CustomRedirectConfig) {
-                checkHttpMethod = false
-                allowHttpsDowngrade = true
-            }
-            install(ContentNegotiation) {
-                register(
-                    ContentType.Text.Plain,
-                    KotlinxSerializationConverter(
-                        Json {
-                            prettyPrint = true
-                            isLenient = true
-                            ignoreUnknownKeys = true
-                            explicitNulls = false
-                            encodeDefaults = true
-                        },
-                    ),
-                )
-                json(
-                    Json {
-                        prettyPrint = true
-                        isLenient = true
-                        ignoreUnknownKeys = true
-                        explicitNulls = false
-                        encodeDefaults = true
-                    },
-                )
-                protobuf(
-                    ProtoBuf {
-                        encodeDefaults = true
-                    },
-                )
-            }
-            install(ContentEncoding) {
-                brotli(1.0F)
-                gzip(0.9F)
-                deflate(0.8F)
-            }
-            defaultRequest {
-                url("https://api.spotify.com")
-            }
-            if (proxy != null) {
-                engine {
-                    proxy = this@Ytmusic.proxy
-                }
-            }
         }
 
     @OptIn(ExperimentalSerializationApi::class)
@@ -275,23 +196,8 @@ class Ytmusic {
     private fun createClient() =
         HttpClient(OkHttp) {
             expectSuccess = true
-//            if (cachePath != null) {
-//                engine {
-//                    config {
-//                        cache(
-//                            okhttp3.Cache(cachePath!!, 50L * 1024 * 1024),
-//                        )
-//                    }
-//                    if (cacheControlInterceptor != null) {
-//                        addNetworkInterceptor(cacheControlInterceptor!!)
-//                    }
-//                    if (forceCacheInterceptor != null) {
-//                        addInterceptor(forceCacheInterceptor!!)
-//                    }
-//                }
-//            }
-//            install(HttpCache)
             install(ContentNegotiation) {
+                protobuf()
                 json(
                     Json {
                         ignoreUnknownKeys = true
@@ -334,8 +240,8 @@ class Ytmusic {
     ) {
         contentType(ContentType.Application.Json)
         headers {
-            append("X-Goog-Api-Format-Version", "1")
-            append("X-YouTube-Client-Name", client.clientName)
+//            append("X-Goog-Api-Format-Version", "1")
+            append("X-YouTube-Client-Name", "${client.xClientName ?: 1}")
             append("X-YouTube-Client-Version", client.clientVersion)
             append("x-origin", "https://music.youtube.com")
             if (client.referer != null) {
@@ -343,6 +249,8 @@ class Ytmusic {
             }
             if (setLogin) {
                 cookie?.let { cookie ->
+                    append("X-Goog-Authuser", "0")
+                    append("X-Goog-Visitor-Id", visitorData)
                     append("Cookie", cookie)
                     if ("SAPISID" !in cookieMap || "__Secure-3PAPISID" !in cookieMap) return@let
                     val currentTime = System.currentTimeMillis() / 1000
@@ -353,7 +261,6 @@ class Ytmusic {
             }
         }
         userAgent(client.userAgent)
-        parameter("key", client.api_key)
         parameter("prettyPrint", false)
     }
 
@@ -380,13 +287,18 @@ class Ytmusic {
             contentType(ContentType.Application.Json)
         }
 
-    suspend fun ghostRequest(videoId: String) =
+    suspend fun ghostRequest(videoId: String, playlistId: String?) =
         httpClient
-            .get("https://www.youtube.com/watch?v=$videoId&bpctr=9999999999&has_verified=1") {
+            .get(
+                "https://www.youtube.com/watch?v=$videoId&bpctr=9999999999&has_verified=1"
+                    .let {
+                        if (playlistId != null) "$it&list=$playlistId" else it
+                    }
+            ) {
                 headers {
                     header("Connection", "close")
                     header("Host", "www.youtube.com")
-                    header("Cookie", "PREF=hl=en&tz=UTC; SOCS=CAI")
+                    header("Cookie", if (cookie.isNullOrEmpty()) "PREF=hl=en&tz=UTC; SOCS=CAI" else cookie)
                     header("Sec-Fetch-Mode", "navigate")
                     header(
                         "User-Agent",
@@ -395,10 +307,64 @@ class Ytmusic {
                 }
             }
 
+    private fun HttpRequestBuilder.poHeader() {
+        headers {
+            header("accept", "*/*")
+            header("origin", "https://www.youtube.com")
+            header("content-type", "application/json+protobuf")
+            header("priority", "u=1, i")
+            header("referer", "https://www.youtube.com/")
+            header("sec-ch-ua", "\"Microsoft Edge\";v=\"131\", \"Chromium\";v=\"131\", \"Not_A Brand\";v=\"24\"")
+            header("sec-ch-ua-mobile", "?0")
+            header("sec-ch-ua-platform", "\"macOS\"")
+            header("sec-fetch-dest", "empty")
+            header("sec-fetch-mode", "cors")
+            header("sec-fetch-site", "cross-site")
+            header(
+                "user-agent",
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0")
+            header("x-goog-api-key", "AIzaSyDyT5W0Jh49F30Pqqtyfdf7pDLFKLJoAnw")
+            header("x-user-agent", "grpc-web-javascript/0.1")
+        }
+    }
+
+    suspend fun createPoTokenChallenge() = httpClient.post(
+        "https://jnn-pa.googleapis.com/\$rpc/google.internal.waa.v1.Waa/Create"
+    ) {
+        poHeader()
+        setBody("[\"$poTokenChallengeRequestKey\"]")
+    }
+
+    suspend fun generatePoToken(challenge: String) = httpClient.post(
+        "https://jnn-pa.googleapis.com/\$rpc/google.internal.waa.v1.Waa/GenerateIT"
+    ) {
+        poHeader()
+        setBody("[\"$poTokenChallengeRequestKey\", \"$challenge\"]")
+    }
+
+//    curl 'https://jnn-pa.googleapis.com/$rpc/google.internal.waa.v1.Waa/Create' \
+//    -H 'accept: */*' \
+//    -H 'accept-language: vi,en;q=0.9,en-GB;q=0.8,en-US;q=0.7' \
+//    -H 'content-type: application/json+protobuf' \
+//    -H 'origin: https://www.youtube.com' \
+//    -H 'priority: u=1, i' \
+//    -H 'referer: https://www.youtube.com/' \
+//    -H 'sec-ch-ua: "Microsoft Edge";v="131", "Chromium";v="131", "Not_A Brand";v="24"' \
+//    -H 'sec-ch-ua-mobile: ?0' \
+//    -H 'sec-ch-ua-platform: "macOS"' \
+//    -H 'sec-fetch-dest: empty' \
+//    -H 'sec-fetch-mode: cors' \
+//    -H 'sec-fetch-site: cross-site' \
+//    -H 'user-agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0' \
+//    -H 'x-goog-api-key: AIzaSyDyT5W0Jh49F30Pqqtyfdf7pDLFKLJoAnw' \
+//    -H 'x-user-agent: grpc-web-javascript/0.1' \
+//    --data-raw '["O43z0dpjhgX20SCx4KAo"]'
+
     suspend fun noLogInPlayer(
         videoId: String,
         cookie: String,
         visitorData: String?,
+        poToken: String,
     ) = httpClient.post("https://www.youtube.com/youtubei/v1/player") {
         accept(ContentType.Application.Json)
         contentType(ContentType.Application.Json)
@@ -408,7 +374,7 @@ class Ytmusic {
         header(HttpHeaders.UserAgent, IOS.userAgent)
         header(
             "Set-Cookie",
-            cookie,
+            cookie
         )
         header("X-Goog-Visitor-Id", visitorData ?: this@Ytmusic.visitorData)
         header("X-YouTube-Client-Name", IOS.clientName)
@@ -420,6 +386,9 @@ class Ytmusic {
                 cpn = null,
                 videoId = videoId,
                 playbackContext = PlayerBody.PlaybackContext(),
+                serviceIntegrityDimensions = PlayerBody.ServiceIntegrityDimensions(
+                    poToken = poToken,
+                )
             ),
         )
         parameter("prettyPrint", false)
@@ -430,6 +399,7 @@ class Ytmusic {
         videoId: String,
         playlistId: String?,
         cpn: String?,
+        poToken: String? = null,
     ) = httpClient.post("player") {
         ytClient(client, setLogin = true)
         setBody(
@@ -450,6 +420,10 @@ class Ytmusic {
                 videoId = videoId,
                 playlistId = playlistId,
                 cpn = cpn,
+                playbackContext = PlayerBody.PlaybackContext(),
+                serviceIntegrityDimensions = if (poToken != null) PlayerBody.ServiceIntegrityDimensions(
+                    poToken = poToken
+                ) else null
             ),
         )
     }
@@ -1038,75 +1012,4 @@ class Ytmusic {
                 ),
             )
         }
-
-    suspend fun getSpotifyLyricsToken(spdc: String) =
-        spotifyClient.get("https://open.spotify.com/get_access_token?reason=transport&productType=web_player") {
-            userAgent(YouTubeClient.WEB.userAgent)
-            contentType(ContentType.Application.Json)
-            header("Cookie", "sp_dc=$spdc")
-        }
-
-    suspend fun getSpotifyLyrics(
-        token: String,
-        trackId: String,
-    ) = spotifyClient.get("https://spclient.wg.spotify.com/color-lyrics/v2/track/$trackId?format=json&vocalRemoval=false&market=from_token") {
-        userAgent(YouTubeClient.WEB.userAgent)
-        contentType(ContentType.Application.Json)
-        header("Authorization", "Bearer $token")
-        header("App-platform", "WebPlayer")
-    }
-
-    suspend fun searchSpotifyTrack(
-        q: String,
-        authToken: String,
-    ) = spotifyClient.get("https://api-partner.spotify.com/pathfinder/v1/query?operationName=searchTracks") {
-        userAgent(YouTubeClient.WEB.userAgent)
-        contentType(ContentType.Application.Json)
-        header("Authorization", "Bearer $authToken")
-        header(
-            HttpHeaders
-                .AcceptEncoding,
-            "gzip, deflate, br",
-        )
-        val variable =
-            "{\"searchTerm\":\"${q}\",\"offset\":0,\"limit\":3,\"numberOfTopResults\":3,\"includeAudiobooks\":true,\"includePreReleases\":false}"
-        val sha = "220d098228a4eaf216b39e8c147865244959c4cc6fd82d394d88afda0b710929"
-        parameter(
-            "variables",
-            variable,
-        )
-        parameter(
-            "extensions",
-            "{\"persistedQuery\":{\"version\":1,\"sha256Hash\":\"${sha}\"}}",
-        )
-    }
-    // {"searchTerm":"trình+hieuthuhai","offset":0,"limit":20,"numberOfTopResults":20,"includeAudiobooks":true,"includePreReleases":false}
-    // {"persistedQuery":{"version":1,"sha256Hash":"e4ed1f91a2cc5415befedb85acf8671dc1a4bf3ca1a5b945a6386101a22e28a6"}}
-
-    suspend fun getSpotifyCanvas(
-        trackId: String,
-        token: String,
-    ) = spotifyClient.post("https://spclient.wg.spotify.com/canvaz-cache/v0/canvases") {
-        headers {
-            append(HttpHeaders.Accept, "application/protobuf")
-            append(HttpHeaders.ContentType, "application/protobuf")
-            append(
-                HttpHeaders
-                    .AcceptEncoding,
-                "gzip, deflate, br",
-            )
-            append(HttpHeaders.Authorization, "Bearer $token")
-            append(HttpHeaders.UserAgent, "Spotify/8.5.49 iOS/Version 13.3.1 (Build 17D50)")
-        }
-        setBody(
-            CanvasBody(
-                tracks =
-                    listOf(
-                        CanvasBody.Track(
-                            track_uri = "spotify:track:$trackId",
-                        ),
-                    ),
-            ),
-        )
-    }
 }

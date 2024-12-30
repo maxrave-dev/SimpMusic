@@ -15,6 +15,7 @@ data class YouTubeClient(
     val osName: String? = null,
     val timeZone: String? = null,
     val utcOffsetMinutes: Int? = null,
+    val xClientName: Int? = null,
 ) {
     fun toContext(
         locale: YouTubeLocale,
@@ -40,18 +41,23 @@ data class YouTubeClient(
     companion object {
         private const val REFERER_YOUTUBE_MUSIC = "https://music.youtube.com/"
 
-        private const val USER_AGENT_WEB =
+        const val USER_AGENT_WEB =
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.157 Safari/537.36"
         private const val USER_AGENT_ANDROID =
-            "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Mobile Safari/537.36"
+            "com.google.android.apps.youtube.music/7.27.52 (Linux; U; Android 11) gzip"
         private const val USER_AGENT_IOS = "com.google.ios.youtube/19.45.4 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X;)"
+        private const val USER_AGENT_MWEB =
+            "Mozilla/5.0 (iPad; CPU OS 16_7_10 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Mobile/15E148 Safari/604.1,gzip(gfe)"
 
         val ANDROID_MUSIC =
             YouTubeClient(
                 clientName = "ANDROID_MUSIC",
-                clientVersion = "5.01",
+                clientVersion = "7.27.52",
                 api_key = "AIzaSyAOghZGza2MQSZkY_zfZ370N-PUdXEo8AI",
                 userAgent = USER_AGENT_ANDROID,
+                osName = "Android",
+                osVersion = "11",
+                xClientName = 21
             )
 
         val ANDROID =
@@ -99,6 +105,17 @@ data class YouTubeClient(
                 osVersion = "17.5.1.21F90",
                 timeZone = "UTC",
                 utcOffsetMinutes = 0,
+                xClientName = 5
             )
+
+        val MWEB = YouTubeClient(
+            clientName = "MWEB",
+            clientVersion = "2.20241202.07.00",
+            api_key = "AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX3",
+            userAgent = USER_AGENT_MWEB,
+            timeZone = "UTC",
+            utcOffsetMinutes = 0,
+            xClientName = 2
+        )
     }
 }

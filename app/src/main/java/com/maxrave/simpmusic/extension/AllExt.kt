@@ -24,7 +24,7 @@ import com.maxrave.kotlinytmusicscraper.models.SongItem
 import com.maxrave.kotlinytmusicscraper.models.VideoItem
 import com.maxrave.kotlinytmusicscraper.models.musixmatch.MusixmatchTranslationLyricsResponse
 import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
-import com.maxrave.kotlinytmusicscraper.models.response.spotify.SpotifyLyricsResponse
+import com.maxrave.spotify.model.response.spotify.SpotifyLyricsResponse
 import com.maxrave.kotlinytmusicscraper.models.youtube.Transcript
 import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
 import com.maxrave.simpmusic.R
@@ -621,7 +621,7 @@ fun com.maxrave.kotlinytmusicscraper.models.lyrics.Lyrics.toLyrics(): Lyrics {
     }
 }
 
-fun SpotifyLyricsResponse.toLyrics(): Lyrics {
+fun com.maxrave.spotify.model.response.spotify.SpotifyLyricsResponse.toLyrics(): Lyrics {
     val lines: ArrayList<Line> = arrayListOf()
     this.lyrics.lines.forEach {
         lines.add(

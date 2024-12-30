@@ -16,7 +16,7 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
-import com.maxrave.kotlinytmusicscraper.models.response.spotify.CanvasResponse
+import com.maxrave.spotify.model.response.spotify.CanvasResponse
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config.ALBUM_CLICK
@@ -137,8 +137,8 @@ class SharedViewModel(
     private var _format: MutableStateFlow<NewFormatEntity?> = MutableStateFlow(null)
     val format: SharedFlow<NewFormatEntity?> = _format.asSharedFlow()
 
-    private var _canvas: MutableStateFlow<CanvasResponse?> = MutableStateFlow(null)
-    val canvas: StateFlow<CanvasResponse?> = _canvas
+    private var _canvas: MutableStateFlow<com.maxrave.spotify.model.response.spotify.CanvasResponse?> = MutableStateFlow(null)
+    val canvas: StateFlow<com.maxrave.spotify.model.response.spotify.CanvasResponse?> = _canvas
 
     private var canvasJob: Job? = null
 

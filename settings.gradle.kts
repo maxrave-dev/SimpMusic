@@ -22,3 +22,4 @@ dependencyResolutionManagement {
 rootProject.name = "SimpMusic"
 include("app")
 include(":kotlinYtmusicScraper")
+include(":spotify")

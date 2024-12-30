@@ -1,4 +1,4 @@
-package com.maxrave.kotlinytmusicscraper.models.response.spotify.search
+package com.maxrave.spotify.model.response.spotify.search
 
 import kotlinx.serialization.Serializable
 

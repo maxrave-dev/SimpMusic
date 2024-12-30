@@ -1,6 +1,7 @@
 package com.maxrave.simpmusic.di
 
 import android.content.Context
+import java.net.Proxy
 import android.util.Log
 import androidx.annotation.OptIn
 import androidx.core.net.toUri
@@ -45,6 +46,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -58,11 +60,11 @@ import org.koin.dsl.module
 val mediaServiceModule =
     module {
         // Cache
-        single<DatabaseProvider>(createdAtStart = true) {
+        single<DatabaseProvider> {
             StandaloneDatabaseProvider(androidContext())
         }
         // Player Cache
-        single<SimpleCache>(createdAtStart = true, qualifier = named(PLAYER_CACHE)) {
+        single<SimpleCache>(qualifier = named(PLAYER_CACHE)) {
             SimpleCache(
                 androidContext().filesDir.resolve("exoplayer"),
                 when (val cacheSize = runBlocking { get<DataStoreManager>().maxSongCacheSize.first() }) {
@@ -73,7 +75,7 @@ val mediaServiceModule =
             )
         }
         // Download Cache
-        single<SimpleCache>(createdAtStart = true, qualifier = named(DOWNLOAD_CACHE)) {
+        single<SimpleCache>(qualifier = named(DOWNLOAD_CACHE)) {
             SimpleCache(
                 androidContext().filesDir.resolve("download"),
                 NoOpCacheEvictor(),
@@ -81,7 +83,7 @@ val mediaServiceModule =
             )
         }
         // Spotify Canvas Cache
-        single<SimpleCache>(createdAtStart = true, qualifier = named(CANVAS_CACHE)) {
+        single<SimpleCache>(qualifier = named(CANVAS_CACHE)) {
             SimpleCache(
                 androidContext().filesDir.resolve("spotifyCanvas"),
                 NoOpCacheEvictor(),
@@ -89,11 +91,11 @@ val mediaServiceModule =
             )
         }
         // MediaSession Callback for main player
-        single(createdAtStart = true) {
+        single() {
             SimpleMediaSessionCallback(androidContext(), get<MainRepository>())
         }
         // DownloadUtils
-        single(createdAtStart = true) {
+        single() {
             DownloadUtils(
                 context = androidContext(),
                 playerCache = get(named(PLAYER_CACHE)),
@@ -105,12 +107,12 @@ val mediaServiceModule =
 
         // Service
         // CoroutineScope for service
-        single<CoroutineScope>(createdAtStart = true, qualifier = named(SERVICE_SCOPE)) {
+        single<CoroutineScope>(qualifier = named(SERVICE_SCOPE)) {
             CoroutineScope(Dispatchers.Main + SupervisorJob())
         }
 
         // AudioAttributes
-        single<AudioAttributes>(createdAtStart = true) {
+        single<AudioAttributes>() {
             AudioAttributes
                 .Builder()
                 .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
@@ -119,7 +121,7 @@ val mediaServiceModule =
         }
 
         // ExoPlayer
-        single<ExoPlayer>(createdAtStart = true) {
+        single<ExoPlayer>() {
             ExoPlayer
                 .Builder(androidContext())
                 .setAudioAttributes(get(), true)
@@ -143,19 +145,19 @@ val mediaServiceModule =
                 }
         }
         // CoilBitmapLoader
-        single<CoilBitmapLoader>(createdAtStart = true) {
+        single<CoilBitmapLoader>() {
             provideCoilBitmapLoader(androidContext(), get(named(SERVICE_SCOPE)))
         }
 
         // MediaSessionCallback
-        single<SimpleMediaSessionCallback>(createdAtStart = true) {
+        single<SimpleMediaSessionCallback>() {
             SimpleMediaSessionCallback(
                 androidContext(),
                 get(),
             )
         }
         // MediaServiceHandler
-        single<SimpleMediaServiceHandler>(createdAtStart = true) {
+        single<SimpleMediaServiceHandler>() {
             SimpleMediaServiceHandler(
                 player = get(),
                 dataStoreManager = get(),
@@ -265,11 +267,17 @@ private fun provideMediaSourceFactory(
     downloadCache: SimpleCache,
     playerCache: SimpleCache,
     mainRepository: MainRepository,
+    dataStoreManager: DataStoreManager,
     coroutineScope: CoroutineScope,
 ): DefaultMediaSourceFactory =
     DefaultMediaSourceFactory(
         provideResolvingDataSourceFactory(
-            provideCacheDataSource(downloadCache, playerCache, context),
+            provideCacheDataSource(
+                downloadCache,
+                playerCache,
+                context,
+                dataStoreManager.getProxy()
+            ),
             downloadCache,
             playerCache,
             mainRepository,
@@ -293,7 +301,8 @@ private fun provideMergingMediaSource(
             downloadCache,
             playerCache,
             mainRepository,
-            coroutineScope,
+            dataStoreManager,
+            coroutineScope
         ),
         dataStoreManager,
     )
@@ -336,6 +345,7 @@ private fun provideCacheDataSource(
     downloadCache: SimpleCache,
     playerCache: SimpleCache,
     context: Context,
+    proxy: Proxy? = null,
 ): CacheDataSource.Factory =
     CacheDataSource
         .Factory()
@@ -351,6 +361,9 @@ private fun provideCacheDataSource(
                             OkHttpDataSource.Factory(
                                 OkHttpClient
                                     .Builder()
+                                    .proxy(
+                                        proxy
+                                    )
                                     .addInterceptor(
                                         HttpLoggingInterceptor()
                                             .apply {
