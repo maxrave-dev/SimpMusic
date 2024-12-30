@@ -1,10 +1,10 @@
-package com.maxrave.kotlinytmusicscraper.models.body.spotify
+package com.maxrave.spotify.model.body
 
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class CanvasBody(
-    val tracks: List<CanvasBody.Track>,
+    val tracks: List<Track>,
 ) {
     @Serializable
     data class Track(

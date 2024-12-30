@@ -22,7 +22,6 @@ import com.maxrave.kotlinytmusicscraper.models.VideoItem
 import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
 import com.maxrave.kotlinytmusicscraper.models.YTItemType
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.ANDROID_MUSIC
-import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.IOS
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.WEB
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.WEB_REMIX
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
@@ -46,10 +45,6 @@ import com.maxrave.kotlinytmusicscraper.models.response.NextResponse
 import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
 import com.maxrave.kotlinytmusicscraper.models.response.PlayerResponse
 import com.maxrave.kotlinytmusicscraper.models.response.SearchResponse
-import com.maxrave.kotlinytmusicscraper.models.response.spotify.CanvasResponse
-import com.maxrave.kotlinytmusicscraper.models.response.spotify.PersonalTokenResponse
-import com.maxrave.kotlinytmusicscraper.models.response.spotify.SpotifyLyricsResponse
-import com.maxrave.kotlinytmusicscraper.models.response.spotify.search.SpotifySearchResponse
 import com.maxrave.kotlinytmusicscraper.models.response.toLikeStatus
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
@@ -131,7 +126,7 @@ private fun List<PipedResponse.AudioStream>.toListFormat(): List<PlayerResponse.
  * This library is from [z-huang/InnerTune] and I just modified it to comply with SimpMusic
  *
  * Here is the object that can create all request to YouTube Music and Spotify in SimpMusic
- * Using YouTube Internal API, Spotify Web API and Spotify Internal API for get lyrics
+ * Using YouTube Internal API
  * @author maxrave-dev
  */
 class YouTube {
@@ -193,6 +188,25 @@ class YouTube {
         set(value) {
             ytMusic.musixmatchUserToken = value
         }
+
+    /**
+     * Json deserializer for PO token request
+     */
+    private val poTokenJsonDeserializer = Json {
+        ignoreUnknownKeys = true
+        encodeDefaults = true
+        coerceInputValues = true
+        useArrayPolymorphism = true
+    }
+
+    private fun String.getPoToken(): String? {
+        return this.replace("[", "").replace("]", "")
+            .split(",")
+            .findLast { it.contains("\"") }
+            ?.replace("\"", "")
+    }
+
+    private var poTokenObject: Pair<String?, Long> = Pair(null, 0)
 
     /**
      * Remove proxy for client
@@ -1263,12 +1277,75 @@ class YouTube {
             // Get author thumbnails, subscribers, description, like count
         }
 
+    private suspend fun getVisitorData(videoId: String, playlistId: String?): Triple<String, String, PlayerResponse.PlaybackTracking?> {
+        try {
+            val pId = if (playlistId?.startsWith("VL") == true) playlistId.removeRange(0..1) else playlistId
+            val ghostRequest = ytMusic.ghostRequest(videoId, pId)
+            val cookie =
+                "PREF=hl=en&tz=UTC; SOCS=CAI; ${ghostRequest.headers
+                    .getAll("set-cookie")
+                    ?.map {
+                        it.split(";").first()
+                    }?.filter {
+                        it.lastOrNull() != '='
+                    }?.joinToString("; ")}"
+            var response = ""
+            var data = ""
+            val ksoupHtmlParser =
+                KsoupHtmlParser(
+                    object : KsoupHtmlHandler {
+                        override fun onText(text: String) {
+                            super.onText(text)
+                            if (text.contains("var ytInitialPlayerResponse")) {
+                                val temp = text.replace("var ytInitialPlayerResponse = ", "").split(";var").firstOrNull()
+                                temp?.let {
+                                    response = it.trimIndent()
+                                }
+                            } else if (text.contains("var ytInitialData = ")) {
+                                val temp = text.replace("var ytInitialData = ", "").dropLast(1)
+                                temp.let {
+                                    data = it.trimIndent()
+                                }
+                            }
+                        }
+                    },
+                )
+            ksoupHtmlParser.write(ghostRequest.bodyAsText())
+            ksoupHtmlParser.end()
+            val ytInitialData = poTokenJsonDeserializer.decodeFromString<GhostResponse>(data)
+            val ytInitialPlayerResponse = poTokenJsonDeserializer.decodeFromString<GhostResponse>(response)
+            val playbackTracking = ytInitialPlayerResponse.playbackTracking
+            val loggedIn = ytInitialData.responseContext.serviceTrackingParams
+                ?.find { it.service == "GFEEDBACK" }
+                ?.params
+                ?.find { it.key == "logged_in" }?.value == "1"
+            println("Logged In $loggedIn")
+            val visitorData =
+                ytInitialPlayerResponse.responseContext.serviceTrackingParams
+                    ?.find { it.service == "GFEEDBACK" }
+                    ?.params
+                    ?.find { it.key == "visitor_data" }
+                    ?.value
+                    ?: ytInitialData.responseContext.webResponseContextExtensionData
+                        ?.ytConfigData
+                        ?.visitorData
+            println("Visitor Data $visitorData")
+            println("New Cookie $cookie")
+            println("Playback Tracking $playbackTracking")
+            if (!visitorData.isNullOrEmpty()) this@YouTube.visitorData = visitorData
+            return Triple(cookie, visitorData ?: this@YouTube.visitorData, playbackTracking)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return Triple("", "", null)
+        }
+    }
+
     suspend fun player(
         videoId: String,
         playlistId: String? = null,
     ): Result<Triple<String?, PlayerResponse, MediaType>> =
         runCatching {
-            var error: String? = null
+            val (tempCookie, visitorData, playbackTracking) = getVisitorData(videoId, playlistId)
             val cpn =
                 (1..16)
                     .map {
@@ -1279,55 +1356,40 @@ class YouTube {
                             ),
                         ]
                     }.joinToString("")
-            val playerResponse =
-                try {
-//                    Log.w("Player Response", "Try Android")
-                    ytMusic.player(if (!cookie.isNullOrEmpty()) ANDROID_MUSIC else IOS, videoId, playlistId, cpn).body<PlayerResponse>().also {
-                        if (it.playabilityStatus.status != "OK") throw Exception(it.playabilityStatus.status)
+            val now = System.currentTimeMillis()
+            val poToken = if (now < poTokenObject.second) {
+                println("Use saved PoToken")
+                poTokenObject.first
+            }
+            else
+                ytMusic.createPoTokenChallenge().bodyAsText().let { challenge ->
+                    val listChallenge = poTokenJsonDeserializer.decodeFromString<List<String?>>(challenge)
+                    listChallenge.filterIsInstance<String>().firstOrNull()
+                }?.let { poTokenChallenge ->
+                    ytMusic.generatePoToken(poTokenChallenge).bodyAsText().getPoToken().also { poToken ->
+                        if (poToken != null) {
+                            poTokenObject = Pair(poToken, now + 21600000)
+                        }
                     }
-                } catch (e: Exception) {
-                    println("Player Response Error $e")
-//                    Log.w("Player Response", "Try IOS")
-                    val ghostRequest = ytMusic.ghostRequest(videoId)
-                    val cookie =
-                        "PREF=hl=en&tz=UTC; SOCS=CAI; ${ghostRequest.headers
-                            .getAll("set-cookie")
-                            ?.map {
-                                it.split(";").first()
-                            }?.filter {
-                                it.lastOrNull() != '='
-                            }?.joinToString("; ")}"
-                    var response = ""
-                    val ksoupHtmlParser =
-                        KsoupHtmlParser(
-                            object : KsoupHtmlHandler {
-                                override fun onText(text: String) {
-                                    super.onText(text)
-                                    if (text.contains("var ytInitialPlayerResponse")) {
-                                        print("Text $text")
-                                        val temp = text.replace("var ytInitialPlayerResponse = ", "").split(";var").firstOrNull()
-                                        println("Scrape Temp $temp")
-                                        temp?.let {
-                                            response = it.trimIndent()
-                                        }
-                                    }
-                                }
-                            },
-                        )
-                    ksoupHtmlParser.write(ghostRequest.bodyAsText())
-                    ksoupHtmlParser.end()
-                    val json = Json { ignoreUnknownKeys = true }
-                    val jsonData = json.decodeFromString<GhostResponse>(response)
-                    val visitorData =
-                        jsonData.responseContext.serviceTrackingParams
-                            ?.find { it.service == "GFEEDBACK" }
-                            ?.params
-                            ?.find { it.key == "visitor_data" }
-                            ?.value
-                    println("Visitor Data $visitorData")
-                    println("Cookie $cookie")
-                    ytMusic.noLogInPlayer(videoId, cookie, visitorData).body<PlayerResponse>()
                 }
+            println("PoToken $poToken")
+            val playerResponse = ytMusic.noLogInPlayer(videoId, tempCookie, visitorData, poToken ?: "").body<PlayerResponse>()
+//                try {
+//                    println("Start logged in request")
+//                    ytMusic.player(
+//                        IOS,
+//                        videoId,
+//                        playlistId,
+//                        cpn,
+//                        poToken
+//                    ).body<PlayerResponse>().also {
+//                        if (it.playabilityStatus.status != "OK") throw Exception(it.playabilityStatus.status)
+//                    }
+//                } catch (e: Exception) {
+//                    println("Player Response Error $e")
+//                    println("Start no logged in request")
+//                    ytMusic.noLogInPlayer(videoId, tempCookie, visitorData, poToken ?: "").body<PlayerResponse>()
+//                }
             println("Player Response $playerResponse")
             println("Thumbnails " + playerResponse.videoDetails?.thumbnail)
             println("Player Response status: ${playerResponse.playabilityStatus.status}")
@@ -1339,15 +1401,16 @@ class YouTube {
             val thumbnails =
                 if (firstThumb?.height == firstThumb?.width && firstThumb != null) MediaType.Song else MediaType.Video
             val formatList = playerResponse.streamingData?.formats?.map { Pair(it.itag, it.isAudio) }
-            println("Player Response $formatList")
+            println("Player Response formatList $formatList")
             val adaptiveFormatsList = playerResponse.streamingData?.adaptiveFormats?.map { Pair(it.itag, it.isAudio) }
-            println("Player Response $adaptiveFormatsList")
+            println("Player Response adaptiveFormat $adaptiveFormatsList")
 
             if (playerResponse.playabilityStatus.status == "OK" && (formatList != null || adaptiveFormatsList != null)) {
                 return@runCatching Triple(
                     cpn,
                     playerResponse.copy(
                         videoDetails = playerResponse.videoDetails?.copy(),
+                        playbackTracking = playbackTracking ?: playerResponse.playbackTracking,
                     ),
                     thumbnails,
                 )
@@ -1368,12 +1431,12 @@ class YouTube {
                                         expiresInSeconds = 0,
                                     ),
                                 videoDetails = playerResponse.videoDetails?.copy(),
-                            ),
+                                playbackTracking = playbackTracking ?: playerResponse.playbackTracking,
+                                ),
                             thumbnails,
                         )
                     } catch (e: Exception) {
                         e.printStackTrace()
-                        error = e.message
                         continue
                     }
                 }
@@ -1776,38 +1839,6 @@ class YouTube {
         listVideoId: List<String>?,
     ) = runCatching {
         ytMusic.createYouTubePlaylist(title, listVideoId).body<CreatePlaylistResponse>()
-    }
-
-    /***
-     * Spotify Implementation
-     */
-
-    suspend fun getPersonalToken(spdc: String) =
-        runCatching {
-            ytMusic.getSpotifyLyricsToken(spdc).body<PersonalTokenResponse>()
-        }
-
-    suspend fun searchSpotifyTrack(
-        query: String,
-        authToken: String,
-    ) = runCatching {
-        ytMusic
-            .searchSpotifyTrack(query, authToken)
-            .body<SpotifySearchResponse>()
-    }
-
-    suspend fun getSpotifyLyrics(
-        trackId: String,
-        token: String,
-    ) = runCatching {
-        ytMusic.getSpotifyLyrics(token, trackId).body<SpotifyLyricsResponse>()
-    }
-
-    suspend fun getSpotifyCanvas(
-        trackId: String,
-        token: String,
-    ) = runCatching {
-        ytMusic.getSpotifyCanvas(trackId, token).body<CanvasResponse>()
     }
 
     suspend fun addToLiked(mediaId: String) =

@@ -1372,7 +1372,7 @@ fun SettingScreen(
                                     if (!verify.first) {
                                         Text(
                                             modifier = Modifier.fillMaxWidth(),
-                                            text = stringResource(R.string.invalid_language_code),
+                                            text = verify.second ?: "",
                                             color = DarkColors.error,
                                         )
                                     }
