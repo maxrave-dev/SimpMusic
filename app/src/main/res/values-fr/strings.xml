@@ -1,5 +1,4 @@
 <resources>
-    <string name="demo_description" translatable="false">Vous pouvez également nous trouver avec : musique de danse électronique 2023 edm top chansons de danse électronique 2023 chansons edm musique edm 2023 musique de danse électronique meilleure musique de danse électro chansons edm populaires meilleures chansons edm chansons edm 2023 musique edm meilleures chansons edm 2023 meilleures chansons de danse électronique edm 2023 chansons edm populaires 2023 meilleure musique de danse électro 2023 Peu importe comment se déroule votre journée, vous pouvez toujours écouter de la bonne musique : 1. Playlist des hits EDM - Hits EDM populaires en 2023 - Nous aimerions vous garder avec nous pendant de nombreuses années à partir de maintenant ! Ainsi, l'année prochaine, vous pourrez trouver notre playlist comme celle-ci : EDM 2024 ♫ Top des chansons EDM 2024</string>
     <string name="Song_and_artist_name">Titre • %1$s</string>
     <string name="playlist_and_author">Playlist • %1$s</string>
     <string name="album_and_artist_name">Album • %1$s</string>
@@ -364,7 +363,7 @@
     <string name="spotify_canvas_cache">Cache de la toile Spotify</string>
     <string name="clear_canvas_cache">Vider le cache de la toile</string>
     <string name="proxy">Proxy</string>
-    <string name="proxy_description">Utilisation d\'un proxy pour contourner le blocage du contenu d'un pays</string>
+    <string name="proxy_description">Utilisation d\'un proxy pour contourner le blocage du contenu d\'un pays</string>
     <string name="proxy_type">Type de proxy</string>
     <string name="http">HTTP</string>
     <string name="socks">Chaussettes</string>
