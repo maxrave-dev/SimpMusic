@@ -20,7 +20,6 @@ import com.maxrave.simpmusic.data.model.home.HomeDataCombine
 import com.maxrave.simpmusic.data.model.home.HomeItem
 import com.maxrave.simpmusic.data.model.home.chart.Chart
 import com.maxrave.simpmusic.extension.toSongEntity
-import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Job
@@ -36,7 +35,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
-import org.koin.core.component.inject
 import java.time.LocalDateTime
 
 @UnstableApi
@@ -46,8 +44,6 @@ class HomeViewModel(
 ) : BaseViewModel(application) {
     override val tag: String
         get() = "HomeViewModel"
-
-    private val downloadUtils: DownloadUtils by inject()
 
     private val _homeItemList: MutableStateFlow<ArrayList<HomeItem>> =
         MutableStateFlow(arrayListOf())
@@ -69,7 +65,6 @@ class HomeViewModel(
 
     val loading = MutableStateFlow<Boolean>(false)
     val loadingChart = MutableStateFlow<Boolean>(false)
-    val errorMessage = MutableLiveData<String>()
     private var regionCode: String = ""
     private var language: String = ""
 
@@ -138,21 +133,17 @@ class HomeViewModel(
     }
 
     fun getHomeItemList(params: String? = null) {
+        loading.value = true
         language =
             runBlocking {
                 dataStoreManager.getString(SELECTED_LANGUAGE).first()
                     ?: SUPPORTED_LANGUAGE.codes.first()
             }
         regionCode = runBlocking { dataStoreManager.location.first() }
-        loading.value = true
         homeJob?.cancel()
         homeJob =
             viewModelScope.launch {
                 combine(
-//                mainRepository.getHome(
-//                    regionCode,
-//                    SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language)]
-//                ),
                     mainRepository.getHomeData(params),
                     mainRepository.getMoodAndMomentsData(),
                     mainRepository.getChartData(dataStoreManager.chartKey.first()),
@@ -250,11 +241,6 @@ class HomeViewModel(
                     loadingChart.value = false
                 }
         }
-    }
-
-    private fun onError(message: String) {
-        errorMessage.value = message
-        loading.value = false
     }
 
     fun updateLikeStatus(
