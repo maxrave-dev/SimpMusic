@@ -159,7 +159,6 @@ fun NowPlayingScreen(
     val context = LocalContext.current
     val localDensity = LocalDensity.current
     val uriHandler = LocalUriHandler.current
-    val coroutineScope = rememberCoroutineScope()
 
     // ViewModel State
     val controllerState by sharedViewModel.controllerState.collectAsState()
@@ -389,14 +388,14 @@ Column(
                 if (!isSwipeHandled) {
                     when {
                         // Swipe left (negative dragAmount)
-                        dragAmount < -50 -> {
+                        dragAmount < -90 -> {
                             if (controllerState.isNextAvailable) {
                                 sharedViewModel.onUIEvent(UIEvent.Next)
                                 isSwipeHandled = true
                             }
                         }
                         // Swipe right (positive dragAmount)
-                        dragAmount > 50 -> {
+                        dragAmount > 90 -> {
                             if (controllerState.isPreviousAvailable) {
                                 sharedViewModel.onUIEvent(UIEvent.Previous)
                                 isSwipeHandled = true
