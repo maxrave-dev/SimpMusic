@@ -152,6 +152,17 @@ class AlbumViewModel(
         }
     }
 
+    fun setAlbumLike() {
+        viewModelScope.launch {
+            mainRepository.updateAlbumLiked(uiState.value.browseId, if (!uiState.value.liked) 1 else 0 )
+            _uiState.update {
+                it.copy(
+                    liked = !it.liked,
+                )
+            }
+        }
+    }
+
     private fun getAlbumFlow(browseId: String) {
         job?.cancel()
         collectDownloadStateJob?.cancel()

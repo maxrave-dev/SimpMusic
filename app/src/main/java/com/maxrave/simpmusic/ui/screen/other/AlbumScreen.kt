@@ -79,6 +79,7 @@ import com.maxrave.simpmusic.extension.toSongEntity
 import com.maxrave.simpmusic.ui.component.CenterLoadingBox
 import com.maxrave.simpmusic.ui.component.DescriptionView
 import com.maxrave.simpmusic.ui.component.EndOfPage
+import com.maxrave.simpmusic.ui.component.HeartCheckBox
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.RippleIconButton
 import com.maxrave.simpmusic.ui.component.SongFullWidthItems
@@ -365,6 +366,14 @@ fun AlbumScreen(
                                                         }
                                                     }
                                                 }
+                                                Spacer(modifier = Modifier.size(5.dp))
+                                                HeartCheckBox(
+                                                    size = 36,
+                                                    checked = uiState.liked,
+                                                    onStateChange = {
+                                                        viewModel.setAlbumLike()
+                                                    },
+                                                )
                                                 Spacer(Modifier.weight(1f))
                                                 Spacer(Modifier.size(5.dp))
                                                 RippleIconButton(
