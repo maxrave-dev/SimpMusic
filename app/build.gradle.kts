@@ -51,6 +51,7 @@ android {
                 "hi",
                 "th",
                 "nl",
+                "ko",
             )
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
