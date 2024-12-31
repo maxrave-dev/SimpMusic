@@ -1,0 +1,5 @@
+- Sửa lỗi tính năng "Gửi lại dữ liệu cho Google"
+- Thêm chức năng vuốt để chuyển bài tiếp theo hoặc trước đó trong màn hình đang phát
+- Cải thiện hiệu suất và ổn định
+- Sửa một số lỗi trong màn hình cài đặt
+- Thêm ngôn ngữ mới: Hàn Quốc

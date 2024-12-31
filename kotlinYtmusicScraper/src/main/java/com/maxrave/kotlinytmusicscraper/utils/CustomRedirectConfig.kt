@@ -20,9 +20,9 @@ import io.ktor.http.authority
 import io.ktor.http.isSecure
 import io.ktor.http.takeFrom
 import io.ktor.util.AttributeKey
-import io.ktor.util.InternalAPI
-import io.ktor.util.KtorDsl
 import io.ktor.util.logging.KtorSimpleLogger
+import io.ktor.utils.io.InternalAPI
+import io.ktor.utils.io.KtorDsl
 
 private val ALLOWED_FOR_REDIRECT: Set<HttpMethod> = setOf(HttpMethod.Get, HttpMethod.Head)
 
@@ -106,7 +106,7 @@ class CustomRedirectConfig private constructor(
                 client.monitor.raise(HttpResponseRedirect, call.response)
 
                 var location = call.response.headers[HttpHeaders.Location]
-                LOGGER.trace("Received redirect response to $location for request ${context.url}")
+                LOGGER.trace("Received redirect response to {} for request {}", location, context.url)
                 println("Location header: $location")
 
                 requestBuilder =

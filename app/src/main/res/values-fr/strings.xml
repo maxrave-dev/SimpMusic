@@ -154,7 +154,6 @@
     <string name="no_equalizer">Votre appareil ne dispose pas d\'égaliseur</string>
     <string name="open_system_equalizer">Ouvrir l\'égaliseur du système</string>
     <string name="use_your_system_equalizer">Utilisez votre égaliseur système</string>
-    <string name="version_name" translatable="false">v0.2.5</string>
     <string name="streaming_data_provider_piped">Fournisseur de données de streaming (Piped)</string>
     <string name="itag">Itag</string>
     <string name="mime_type">Type MIME</string>

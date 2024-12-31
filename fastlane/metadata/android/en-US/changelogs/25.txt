@@ -1,0 +1,5 @@
+- Fixed "Send back to Google" feature
+- Added swipe to next or previous inside now playing screen
+- Improve performance and stability
+- Fixed some bugs inside Setting screen
+- Added new language: Korean
