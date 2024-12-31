@@ -361,9 +361,9 @@ class DataStoreManager(
 
     val translationLanguage =
         settingsDataStore.data.map { preferences ->
-            preferences[TRANSLATION_LANGUAGE] ?: if (language.first().length >= 2) {
-                language
-                    .first()
+            val languageValue = language.first()
+            preferences[TRANSLATION_LANGUAGE] ?: if (languageValue.length >= 2) {
+                languageValue
                     .substring(0..1)
             } else {
                 "en"

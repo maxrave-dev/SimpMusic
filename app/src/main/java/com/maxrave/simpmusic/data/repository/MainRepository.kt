@@ -161,7 +161,11 @@ class MainRepository(
                     combine(dataStoreManager.location, dataStoreManager.language) { location, language ->
                         Pair(location, language)
                     }.collectLatest { (location, language) ->
-                        youTube.locale = YouTubeLocale(location, language.substring(0..1))
+                        youTube.locale = YouTubeLocale(location, try {
+                            language.substring(0..1)
+                        } catch (e: Exception) {
+                            "en"
+                        })
                     }
                 }
             val ytCookieJob =

@@ -4489,6 +4489,29 @@
             ]
         },
         {
+            "uniqueId": "com.squareup.okhttp3:okhttp-sse",
+            "funding": [
+                
+            ],
+            "developers": [
+                {
+                    "name": "Square, Inc."
+                }
+            ],
+            "artifactVersion": "4.12.0",
+            "description": "Square\u2019s meticulous HTTP client for Java and Kotlin.",
+            "scm": {
+                "connection": "scm:git:https://github.com/square/okhttp.git",
+                "url": "https://github.com/square/okhttp",
+                "developerConnection": "scm:git:ssh://git@github.com/square/okhttp.git"
+            },
+            "name": "okhttp-sse",
+            "website": "https://square.github.io/okhttp/",
+            "licenses": [
+                "Apache-2.0"
+            ]
+        },
+        {
             "uniqueId": "com.squareup.okio:okio-jvm",
             "funding": [
                 
@@ -4719,7 +4742,7 @@
             ]
         },
         {
-            "uniqueId": "io.github.pdvrieze.xmlutil:core-android",
+            "uniqueId": "io.github.pdvrieze.xmlutil:core-jvmcommon",
             "funding": [
                 
             ],
@@ -4728,7 +4751,7 @@
                     "name": "Paul de Vrieze"
                 }
             ],
-            "artifactVersion": "0.86.3",
+            "artifactVersion": "0.90.3",
             "description": "Component of the XMLUtil library",
             "scm": {
                 "connection": "scm:git:https://github.com/pdvrieze/xmlutil.git",
@@ -4751,7 +4774,7 @@
                     "name": "Paul de Vrieze"
                 }
             ],
-            "artifactVersion": "0.86.3",
+            "artifactVersion": "0.90.3",
             "description": "Component of the XMLUtil library",
             "scm": {
                 "connection": "scm:git:https://github.com/pdvrieze/xmlutil.git",
@@ -4904,10 +4927,10 @@
             "developers": [
                 {
                     "organisationUrl": "https://www.jetbrains.com",
-                    "name": "JetBrains Team"
+                    "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "2.3.12",
+            "artifactVersion": "3.0.3",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -4926,10 +4949,10 @@
             "developers": [
                 {
                     "organisationUrl": "https://www.jetbrains.com",
-                    "name": "JetBrains Team"
+                    "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "2.3.12",
+            "artifactVersion": "3.0.3",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -4948,10 +4971,10 @@
             "developers": [
                 {
                     "organisationUrl": "https://www.jetbrains.com",
-                    "name": "JetBrains Team"
+                    "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "2.3.12",
+            "artifactVersion": "3.0.3",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -4970,10 +4993,10 @@
             "developers": [
                 {
                     "organisationUrl": "https://www.jetbrains.com",
-                    "name": "JetBrains Team"
+                    "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "2.3.12",
+            "artifactVersion": "3.0.3",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -4992,10 +5015,10 @@
             "developers": [
                 {
                     "organisationUrl": "https://www.jetbrains.com",
-                    "name": "JetBrains Team"
+                    "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "2.3.12",
+            "artifactVersion": "3.0.3",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5014,10 +5037,10 @@
             "developers": [
                 {
                     "organisationUrl": "https://www.jetbrains.com",
-                    "name": "JetBrains Team"
+                    "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "2.3.12",
+            "artifactVersion": "3.0.3",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5036,10 +5059,10 @@
             "developers": [
                 {
                     "organisationUrl": "https://www.jetbrains.com",
-                    "name": "JetBrains Team"
+                    "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "2.3.12",
+            "artifactVersion": "3.0.3",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5058,10 +5081,10 @@
             "developers": [
                 {
                     "organisationUrl": "https://www.jetbrains.com",
-                    "name": "JetBrains Team"
+                    "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "2.3.12",
+            "artifactVersion": "3.0.3",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5080,10 +5103,10 @@
             "developers": [
                 {
                     "organisationUrl": "https://www.jetbrains.com",
-                    "name": "JetBrains Team"
+                    "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "2.3.12",
+            "artifactVersion": "3.0.3",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5102,10 +5125,10 @@
             "developers": [
                 {
                     "organisationUrl": "https://www.jetbrains.com",
-                    "name": "JetBrains Team"
+                    "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "2.3.12",
+            "artifactVersion": "3.0.3",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5124,10 +5147,10 @@
             "developers": [
                 {
                     "organisationUrl": "https://www.jetbrains.com",
-                    "name": "JetBrains Team"
+                    "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "2.3.12",
+            "artifactVersion": "3.0.3",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5146,10 +5169,10 @@
             "developers": [
                 {
                     "organisationUrl": "https://www.jetbrains.com",
-                    "name": "JetBrains Team"
+                    "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "2.3.12",
+            "artifactVersion": "3.0.3",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5168,10 +5191,10 @@
             "developers": [
                 {
                     "organisationUrl": "https://www.jetbrains.com",
-                    "name": "JetBrains Team"
+                    "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "2.3.12",
+            "artifactVersion": "3.0.3",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5190,10 +5213,10 @@
             "developers": [
                 {
                     "organisationUrl": "https://www.jetbrains.com",
-                    "name": "JetBrains Team"
+                    "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "2.3.12",
+            "artifactVersion": "3.0.3",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5212,10 +5235,10 @@
             "developers": [
                 {
                     "organisationUrl": "https://www.jetbrains.com",
-                    "name": "JetBrains Team"
+                    "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "2.3.12",
+            "artifactVersion": "3.0.3",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5234,15 +5257,37 @@
             "developers": [
                 {
                     "organisationUrl": "https://www.jetbrains.com",
-                    "name": "JetBrains Team"
+                    "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "2.3.12",
+            "artifactVersion": "3.0.3",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
             },
             "name": "ktor-serialization-kotlinx-xml",
+            "website": "https://github.com/ktorio/ktor",
+            "licenses": [
+                "Apache-2.0"
+            ]
+        },
+        {
+            "uniqueId": "io.ktor:ktor-sse-jvm",
+            "funding": [
+                
+            ],
+            "developers": [
+                {
+                    "organisationUrl": "https://www.jetbrains.com",
+                    "name": "Jetbrains Team"
+                }
+            ],
+            "artifactVersion": "3.0.3",
+            "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
+            "scm": {
+                "url": "https://github.com/ktorio/ktor.git"
+            },
+            "name": "ktor-sse",
             "website": "https://github.com/ktorio/ktor",
             "licenses": [
                 "Apache-2.0"
@@ -5256,10 +5301,10 @@
             "developers": [
                 {
                     "organisationUrl": "https://www.jetbrains.com",
-                    "name": "JetBrains Team"
+                    "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "2.3.12",
+            "artifactVersion": "3.0.3",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5278,10 +5323,10 @@
             "developers": [
                 {
                     "organisationUrl": "https://www.jetbrains.com",
-                    "name": "JetBrains Team"
+                    "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "2.3.12",
+            "artifactVersion": "3.0.3",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5300,10 +5345,10 @@
             "developers": [
                 {
                     "organisationUrl": "https://www.jetbrains.com",
-                    "name": "JetBrains Team"
+                    "name": "Jetbrains Team"
                 }
             ],
-            "artifactVersion": "2.3.12",
+            "artifactVersion": "3.0.3",
             "description": "Ktor is a framework for quickly creating web applications in Kotlin with minimal effort.",
             "scm": {
                 "url": "https://github.com/ktorio/ktor.git"
@@ -5470,7 +5515,7 @@
                     "name": "Kotlin Team"
                 }
             ],
-            "artifactVersion": "2.0.10",
+            "artifactVersion": "2.1.0",
             "description": "Kotlin Full Reflection Library",
             "scm": {
                 "connection": "scm:git:https://github.com/JetBrains/kotlin.git",
@@ -5494,7 +5539,7 @@
                     "name": "Kotlin Team"
                 }
             ],
-            "artifactVersion": "2.0.21",
+            "artifactVersion": "2.1.0",
             "description": "Kotlin Standard Library",
             "scm": {
                 "connection": "scm:git:https://github.com/JetBrains/kotlin.git",
@@ -5518,7 +5563,7 @@
                     "name": "Kotlin Team"
                 }
             ],
-            "artifactVersion": "1.9.21",
+            "artifactVersion": "1.9.0",
             "description": "Kotlin Standard Library JDK 7 extension",
             "scm": {
                 "connection": "scm:git:https://github.com/JetBrains/kotlin.git",
@@ -5542,7 +5587,7 @@
                     "name": "Kotlin Team"
                 }
             ],
-            "artifactVersion": "1.9.21",
+            "artifactVersion": "1.9.0",
             "description": "Kotlin Standard Library JDK 8 extension",
             "scm": {
                 "connection": "scm:git:https://github.com/JetBrains/kotlin.git",
@@ -5688,28 +5733,6 @@
             ]
         },
         {
-            "uniqueId": "org.jetbrains.kotlinx:kotlinx-coroutines-jdk8",
-            "funding": [
-                
-            ],
-            "developers": [
-                {
-                    "organisationUrl": "https://www.jetbrains.com",
-                    "name": "JetBrains Team"
-                }
-            ],
-            "artifactVersion": "1.9.0",
-            "description": "Coroutines support libraries for Kotlin",
-            "scm": {
-                "url": "https://github.com/Kotlin/kotlinx.coroutines"
-            },
-            "name": "kotlinx-coroutines-jdk8",
-            "website": "https://github.com/Kotlin/kotlinx.coroutines",
-            "licenses": [
-                "Apache-2.0"
-            ]
-        },
-        {
             "uniqueId": "org.jetbrains.kotlinx:kotlinx-coroutines-slf4j",
             "funding": [
                 
@@ -5754,6 +5777,50 @@
             ]
         },
         {
+            "uniqueId": "org.jetbrains.kotlinx:kotlinx-io-bytestring-jvm",
+            "funding": [
+                
+            ],
+            "developers": [
+                {
+                    "organisationUrl": "https://www.jetbrains.com",
+                    "name": "JetBrains Team"
+                }
+            ],
+            "artifactVersion": "0.5.4",
+            "description": "IO support for Kotlin",
+            "scm": {
+                "url": "https://github.com/Kotlin/kotlinx-io"
+            },
+            "name": "kotlinx-io-bytestring",
+            "website": "https://github.com/Kotlin/kotlinx-io",
+            "licenses": [
+                "Apache-2.0"
+            ]
+        },
+        {
+            "uniqueId": "org.jetbrains.kotlinx:kotlinx-io-core-jvm",
+            "funding": [
+                
+            ],
+            "developers": [
+                {
+                    "organisationUrl": "https://www.jetbrains.com",
+                    "name": "JetBrains Team"
+                }
+            ],
+            "artifactVersion": "0.5.4",
+            "description": "IO support for Kotlin",
+            "scm": {
+                "url": "https://github.com/Kotlin/kotlinx-io"
+            },
+            "name": "kotlinx-io-core",
+            "website": "https://github.com/Kotlin/kotlinx-io",
+            "licenses": [
+                "Apache-2.0"
+            ]
+        },
+        {
             "uniqueId": "org.jetbrains.kotlinx:kotlinx-serialization-bom",
             "funding": [
                 
@@ -5764,7 +5831,7 @@
                     "name": "JetBrains Team"
                 }
             ],
-            "artifactVersion": "1.6.3",
+            "artifactVersion": "1.7.3",
             "description": "Kotlin multiplatform serialization runtime library",
             "scm": {
                 "url": "https://github.com/Kotlin/kotlinx.serialization"
@@ -5786,12 +5853,34 @@
                     "name": "JetBrains Team"
                 }
             ],
-            "artifactVersion": "1.6.3",
+            "artifactVersion": "1.7.3",
             "description": "Kotlin multiplatform serialization runtime library",
             "scm": {
                 "url": "https://github.com/Kotlin/kotlinx.serialization"
             },
             "name": "kotlinx-serialization-core",
+            "website": "https://github.com/Kotlin/kotlinx.serialization",
+            "licenses": [
+                "Apache-2.0"
+            ]
+        },
+        {
+            "uniqueId": "org.jetbrains.kotlinx:kotlinx-serialization-json-io-jvm",
+            "funding": [
+                
+            ],
+            "developers": [
+                {
+                    "organisationUrl": "https://www.jetbrains.com",
+                    "name": "JetBrains Team"
+                }
+            ],
+            "artifactVersion": "1.7.3",
+            "description": "Kotlin multiplatform serialization runtime library",
+            "scm": {
+                "url": "https://github.com/Kotlin/kotlinx.serialization"
+            },
+            "name": "kotlinx-serialization-json-io",
             "website": "https://github.com/Kotlin/kotlinx.serialization",
             "licenses": [
                 "Apache-2.0"
@@ -5808,7 +5897,7 @@
                     "name": "JetBrains Team"
                 }
             ],
-            "artifactVersion": "1.6.3",
+            "artifactVersion": "1.7.3",
             "description": "Kotlin multiplatform serialization runtime library",
             "scm": {
                 "url": "https://github.com/Kotlin/kotlinx.serialization"
@@ -5830,7 +5919,7 @@
                     "name": "JetBrains Team"
                 }
             ],
-            "artifactVersion": "1.6.3",
+            "artifactVersion": "1.7.3",
             "description": "Kotlin multiplatform serialization runtime library",
             "scm": {
                 "url": "https://github.com/Kotlin/kotlinx.serialization"
@@ -5965,10 +6054,10 @@
             "developers": [
                 
             ],
-            "artifactVersion": "1.7.36",
+            "artifactVersion": "2.0.16",
             "description": "The slf4j API",
             "scm": {
-                "connection": "git@github.com:qos-ch/slf4j.git",
+                "connection": "scm:git:https://github.com/qos-ch/slf4j.git",
                 "url": "https://github.com/qos-ch/slf4j"
             },
             "name": "SLF4J API Module",
