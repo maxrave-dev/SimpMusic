@@ -33,7 +33,6 @@ import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.maxrave.simpmusic.BuildConfig
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.FIRST_TIME_MIGRATION
@@ -48,6 +47,7 @@ import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.ui.screen.MiniPlayer
 import com.maxrave.simpmusic.ui.theme.AppTheme
+import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.delay
@@ -111,6 +111,7 @@ class MainActivity : AppCompatActivity() {
 //        if (viewModel.simpleMediaServiceHandler == null) {
 //            startMusicService()
 //        }
+        VersionManager.initialize(applicationContext)
         checkForUpdate()
         if (viewModel.recreateActivity.value == true) {
             viewModel.activityRecreateDone()
@@ -687,7 +688,7 @@ class MainActivity : AppCompatActivity() {
         viewModel.checkForUpdate()
         viewModel.githubResponse.observe(this) { response ->
             if (response != null && !this.isInPictureInPictureMode && !viewModel.showedUpdateDialog) {
-                if (response.tagName != getString(R.string.version_format, BuildConfig.VERSION_NAME)) {
+                if (response.tagName != getString(R.string.version_format, VersionManager.getVersionName())) {
                     viewModel.showedUpdateDialog = true
                     val inputFormat =
                         SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())

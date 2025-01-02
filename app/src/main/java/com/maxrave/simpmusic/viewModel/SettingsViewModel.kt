@@ -17,7 +17,6 @@ import androidx.media3.datasource.cache.SimpleCache
 import coil3.annotation.ExperimentalCoilApi
 import coil3.imageLoader
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
-import com.maxrave.simpmusic.BuildConfig
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.DB_NAME
@@ -36,6 +35,7 @@ import com.maxrave.simpmusic.extension.zipOutputStream
 import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.utils.LocalResource
+import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -394,7 +394,7 @@ class SettingsViewModel(
                     "CheckForUpdateAt",
                     System.currentTimeMillis().toString(),
                 )
-                if (response?.tagName == String.format(getString(R.string.version_format), BuildConfig.VERSION_NAME)) {
+                if (response?.tagName == String.format(getString(R.string.version_format), VersionManager.getVersionName())) {
                     makeToast(getString(R.string.no_update))
                 }
                 _githubResponse.emit(response)

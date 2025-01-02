@@ -17,8 +17,8 @@ android {
         applicationId = "com.maxrave.simpmusic"
         minSdk = 26
         targetSdk = 35
-        versionCode = 25
-        versionName = "0.2.8"
+        versionCode = project.property("VERSION_CODE").toString().toInt()
+        versionName = project.property("VERSION_NAME").toString()
         vectorDrawables.useSupportLibrary = true
 
         ksp {

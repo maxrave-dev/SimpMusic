@@ -9,9 +9,9 @@ import android.view.ViewGroup
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
-import com.maxrave.simpmusic.BuildConfig
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.databinding.FragmentCreditBinding
+import com.maxrave.simpmusic.utils.VersionManager
 import dev.chrisbanes.insetter.Insetter
 
 class CreditFragment : Fragment() {
@@ -38,7 +38,7 @@ class CreditFragment : Fragment() {
     ) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.versionTextBox.text = getString(R.string.version_format, BuildConfig.VERSION_NAME)
+        binding.versionTextBox.text = getString(R.string.version_format, VersionManager.getVersionName())
         binding.btGithub.setOnClickListener {
             val urlIntent =
                 Intent(

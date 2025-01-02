@@ -85,7 +85,6 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.maxrave.kotlinytmusicscraper.extension.isTwoLetterCode
-import com.maxrave.simpmusic.BuildConfig
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.LIMIT_CACHE_SIZE
 import com.maxrave.simpmusic.common.QUALITY
@@ -106,6 +105,7 @@ import com.maxrave.simpmusic.ui.theme.DarkColors
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_primary
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.utils.LocalResource
+import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.SettingAlertState
 import com.maxrave.simpmusic.viewModel.SettingBasicAlertState
 import com.maxrave.simpmusic.viewModel.SettingsViewModel
@@ -215,7 +215,7 @@ fun SettingScreen(
 
     LaunchedEffect(githubResponse) {
         val res = githubResponse
-        if (res != null && res.tagName != context.getString(R.string.version_format, BuildConfig.VERSION_NAME)) {
+        if (res != null && res.tagName != context.getString(R.string.version_format, VersionManager.getVersionName())) {
             val inputFormat =
                 SimpleDateFormat(
                     "yyyy-MM-dd'T'HH:mm:ss'Z'",
@@ -1122,7 +1122,7 @@ fun SettingScreen(
                 Text(text = stringResource(R.string.about_us), style = typo.labelMedium, modifier = Modifier.padding(vertical = 8.dp))
                 SettingItem(
                     title = stringResource(R.string.version),
-                    subtitle = stringResource(R.string.version_format, BuildConfig.VERSION_NAME),
+                    subtitle = stringResource(R.string.version_format, VersionManager.getVersionName()),
                     onClick = {
                         navController.navigateSafe(R.id.action_global_creditFragment)
                     },
