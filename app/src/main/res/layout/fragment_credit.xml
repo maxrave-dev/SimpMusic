@@ -1,42 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    tools:context=".ui.fragment.library.FavoriteFragment"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:context=".ui.fragment.library.FavoriteFragment">
+
     <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/topAppBarLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:id="@+id/topAppBarLayout"
         android:background="@android:color/transparent">
 
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/topAppBar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:title="@string/app_name"
+            app:layout_scrollFlags="scroll|enterAlways|snap"
             app:navigationIcon="@drawable/baseline_arrow_back_ios_new_24"
             app:navigationIconTint="@android:color/white"
-            app:titleTextAppearance="@style/TextAppearance.Material3.TitleMedium"
-            app:layout_scrollFlags="scroll|enterAlways|snap"/>
+            app:title="@string/app_name"
+            app:titleTextAppearance="@style/TextAppearance.Material3.TitleMedium" />
     </com.google.android.material.appbar.AppBarLayout>
+
     <androidx.core.widget.NestedScrollView
-        android:layout_below="@id/topAppBarLayout"
-        android:padding="10sp"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:layout_below="@id/topAppBarLayout"
+        android:padding="10sp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical">
+
             <RelativeLayout
-                android:layout_marginVertical="30dp"
                 android:layout_width="150dp"
                 android:layout_height="150dp"
-                android:layout_gravity="center_horizontal">
+                android:layout_gravity="center_horizontal"
+                android:layout_marginVertical="30dp">
+
                 <com.google.android.material.imageview.ShapeableImageView
                     android:layout_width="150dp"
                     android:layout_height="150dp"
@@ -46,39 +49,43 @@
 
                 </com.google.android.material.imageview.ShapeableImageView>
             </RelativeLayout>
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
+                android:text="@string/app_name"
                 android:textColor="@android:color/white"
                 android:textSize="22sp"
-                android:textStyle="bold"
-                android:text="@string/app_name">
+                android:textStyle="bold">
 
             </TextView>
+
             <TextView
+                android:id="@+id/version_text_box"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_horizontal"
                 android:textColor="@android:color/white"
-                android:textSize="13sp"
-                android:text="@string/version_name">
+                android:textSize="13sp">
 
             </TextView>
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/maxrave_dev"
                 android:layout_gravity="center_horizontal"
-                android:layout_marginBottom="20dp">
+                android:layout_marginBottom="20dp"
+                android:text="@string/maxrave_dev">
 
             </TextView>
+
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/credit_app"
                 android:layout_marginHorizontal="25dp"
-                android:layout_marginBottom="5dp">
+                android:layout_marginBottom="5dp"
+                android:text="@string/credit_app">
 
             </TextView>
 
@@ -95,6 +102,7 @@
                 android:text="@string/github">
 
             </Button>
+
             <Button
                 android:id="@+id/btIssue"
                 style="@style/Widget.Material3.Button.TextButton"
@@ -108,6 +116,7 @@
                 android:text="@string/issue_tracker">
 
             </Button>
+
             <Button
                 android:id="@+id/btBuyMeACoffee"
                 style="@style/Widget.Material3.Button.TextButton"
@@ -121,15 +130,17 @@
                 android:text="@string/buy_me_a_coffee">
 
             </Button>
+
             <TextView
-                android:layout_marginVertical="5dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/copyright"
                 android:layout_marginHorizontal="25dp"
+                android:layout_marginVertical="5dp"
+                android:text="@string/copyright"
                 android:textSize="11sp">
 
             </TextView>
+
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="200dp">

@@ -12,6 +12,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.maxrave.simpmusic.BuildConfig
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.ui.theme.typo
 
@@ -19,20 +20,21 @@ import com.maxrave.simpmusic.ui.theme.typo
 fun EndOfPage() {
     Box(
         modifier =
-            Modifier
-                .fillMaxWidth()
-                .height(280.dp),
+        Modifier
+            .fillMaxWidth()
+            .height(280.dp),
         contentAlignment = Alignment.TopCenter,
     ) {
         Text(
-            "@2024 " + stringResource(R.string.app_name) + " " + stringResource(R.string.version_name) + "\nmaxrave-dev",
+            "@2024 " + stringResource(R.string.app_name) + " " + stringResource(R.string.version_format, BuildConfig.VERSION_NAME) + "\nmaxrave-dev",
             style = typo.bodySmall,
             textAlign = TextAlign.Center,
             modifier =
-                Modifier
-                    .padding(
-                        top = 20.dp,
-                    ).alpha(0.8f),
+            Modifier
+                .padding(
+                    top = 20.dp,
+                )
+                .alpha(0.8f),
         )
     }
 }
