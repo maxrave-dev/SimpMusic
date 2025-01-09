@@ -85,6 +85,7 @@ import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import com.maxrave.kotlinytmusicscraper.extension.isTwoLetterCode
+import com.maxrave.kotlinytmusicscraper.extension.isValidProxyHost
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.LIMIT_CACHE_SIZE
 import com.maxrave.simpmusic.common.QUALITY
@@ -480,11 +481,20 @@ fun SettingScreen(
                                         title = context.getString(R.string.proxy_host),
                                         message = context.getString(R.string.proxy_host_message),
                                         textField =
-                                        SettingAlertState.TextFieldData(
-                                            label = context.getString(R.string.proxy_host),
-                                            value = proxyHost,
-                                            verifyCodeBlock = {
-                                                (it.toHttpUrlOrNull() != null) to context.getString(R.string.invalid_host)
+                                            SettingAlertState.TextFieldData(
+                                                label = context.getString(R.string.proxy_host),
+                                                value = proxyHost,
+                                                verifyCodeBlock = {
+                                                    isValidProxyHost(it) to context.getString(R.string.invalid_host)
+                                                },
+                                            ),
+                                        confirm =
+                                            context.getString(R.string.change) to { state ->
+                                                viewModel.setProxy(
+                                                    proxyType,
+                                                    state.textField?.value ?: "",
+                                                    proxyPort,
+                                                )
                                             },
                                         ),
                                         confirm =
