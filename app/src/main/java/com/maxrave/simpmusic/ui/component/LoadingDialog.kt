@@ -40,7 +40,8 @@ fun LoadingDialog(
                 onDismissRequest = { },
                 modifier = Modifier.wrapContentSize(),
             ) {
-                Surface(modifier = Modifier.fillMaxWidth(),
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
                     shape = MaterialTheme.shapes.large,
                     color = Color(0xFF242424),
                     tonalElevation = AlertDialogDefaults.TonalElevation,
@@ -49,12 +50,12 @@ fun LoadingDialog(
                     Column(
                         Modifier.padding(
                             horizontal = 20.dp,
-                            vertical = 20.dp
-                        )
+                            vertical = 20.dp,
+                        ),
                     ) {
                         Text(
                             context.getString(R.string.loading),
-                            style = typo.headlineMedium
+                            style = typo.headlineMedium,
                         )
                         Row(Modifier.padding(top = 20.dp), verticalAlignment = Alignment.CenterVertically) {
                             CircularProgressIndicator()
@@ -69,7 +70,8 @@ fun LoadingDialog(
 }
 
 @Preview(
-    showSystemUi = true, uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL,
+    showSystemUi = true,
+    uiMode = Configuration.UI_MODE_NIGHT_YES or Configuration.UI_MODE_TYPE_NORMAL,
 )
 @Composable
 fun LoadingDialogPreview() {

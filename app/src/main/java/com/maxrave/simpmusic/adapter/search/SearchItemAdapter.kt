@@ -31,15 +31,25 @@ import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.toListName
 import com.maxrave.simpmusic.extension.toVideoIdList
 
-class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var context: Context): RecyclerView.Adapter<RecyclerView.ViewHolder>() {
+class SearchItemAdapter(
+    private var searchResultList: ArrayList<Any>,
+    var context: Context,
+) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     private lateinit var mListener: onItemClickListener
 
     private var downloadedList = arrayListOf<SongEntity>()
     private var playingTrackVideoId: String? = null
 
     interface onItemClickListener {
-        fun onItemClick(position: Int, type: String)
-        fun onOptionsClick(position: Int, type: String)
+        fun onItemClick(
+            position: Int,
+            type: String,
+        )
+
+        fun onOptionsClick(
+            position: Int,
+            type: String,
+        )
     }
 
     fun setOnClickListener(listener: onItemClickListener) {
@@ -54,19 +64,24 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
         this.downloadedList = downloadedList ?: arrayListOf()
         searchResultList.mapIndexed { index, result ->
             if (result is SongsResult || result is SongEntity || result is VideosResult) {
-                val videoId = when (result) {
-                    is SongsResult -> result.videoId
-                    is SongEntity -> result.videoId
-                    is VideosResult -> result.videoId
-                    else -> null
-                }
+                val videoId =
+                    when (result) {
+                        is SongsResult -> result.videoId
+                        is SongEntity -> result.videoId
+                        is VideosResult -> result.videoId
+                        else -> null
+                    }
                 if (downloadedList != null) {
-                    if (downloadedList.toVideoIdList().contains(videoId) && !oldList.toVideoIdList()
+                    if (downloadedList.toVideoIdList().contains(videoId) &&
+                        !oldList
+                            .toVideoIdList()
                             .contains(videoId)
                     ) {
                         notifyItemChanged(index)
-                    } else if (!downloadedList.toVideoIdList()
-                            .contains(videoId) && oldList.toVideoIdList().contains(videoId)
+                    } else if (!downloadedList
+                            .toVideoIdList()
+                            .contains(videoId) &&
+                        oldList.toVideoIdList().contains(videoId)
                     ) {
                         notifyItemChanged(index)
                     }
@@ -80,26 +95,25 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
         playingTrackVideoId = it
         searchResultList.mapIndexed { index, result ->
             if (result is SongsResult || result is SongEntity || result is VideosResult) {
-                val videoId = when (result) {
-                    is SongsResult -> result.videoId
-                    is SongEntity -> result.videoId
-                    is VideosResult -> result.videoId
-                    else -> null
-                }
+                val videoId =
+                    when (result) {
+                        is SongsResult -> result.videoId
+                        is SongEntity -> result.videoId
+                        is VideosResult -> result.videoId
+                        else -> null
+                    }
                 if (videoId == playingTrackVideoId) {
                     notifyItemChanged(index)
                 } else if (videoId == oldPlayingTrackVideoId) {
                     notifyItemChanged(index)
                 }
-
             }
         }
     }
 
-
     inner class SongViewHolder(
         val binding: ItemSongsSearchResultBinding,
-        listener: onItemClickListener
+        listener: onItemClickListener,
     ) : RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
@@ -109,16 +123,16 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
                 listener.onOptionsClick(bindingAdapterPosition, SONG_CLICK)
             }
         }
-        fun bind(song: SongsResult){
-            with(binding){
+
+        fun bind(song: SongsResult) {
+            with(binding) {
                 if (song.thumbnails != null) {
-                    if (song.thumbnails.size > 1){
+                    if (song.thumbnails.size > 1) {
                         ivThumbnail.load(song.thumbnails[1].url) {
                             crossfade(true)
                             placeholder(R.drawable.holder)
                         }
-                    }
-                    else {
+                    } else {
                         ivThumbnail.load(song.thumbnails[0].url) {
                             crossfade(true)
                             placeholder(R.drawable.holder)
@@ -147,7 +161,11 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
             }
         }
     }
-    inner class SongEntityViewHolder(val binding: ItemSongsSearchResultBinding, listener: onItemClickListener): RecyclerView.ViewHolder(binding.root) {
+
+    inner class SongEntityViewHolder(
+        val binding: ItemSongsSearchResultBinding,
+        listener: onItemClickListener,
+    ) : RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
                 listener.onItemClick(bindingAdapterPosition, SONG_CLICK)
@@ -156,17 +174,19 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
                 listener.onOptionsClick(bindingAdapterPosition, SONG_CLICK)
             }
         }
-        fun bind(song: SongEntity){
+
+        fun bind(song: SongEntity) {
             with(binding) {
                 ivThumbnail.load(song.thumbnails) {
                     crossfade(true)
                     placeholder(R.drawable.holder)
                 }
                 tvSongTitle.text = song.title
-                tvSongArtist.text = context.getString(
-                    R.string.Song_and_artist_name,
-                    song.artistName?.connectArtists()
-                )
+                tvSongArtist.text =
+                    context.getString(
+                        R.string.Song_and_artist_name,
+                        song.artistName?.connectArtists(),
+                    )
                 tvSongAlbum.text = song.albumName
                 tvSongTitle.isSelected = true
                 tvSongArtist.isSelected = true
@@ -186,7 +206,11 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
             }
         }
     }
-    inner class VideoViewHolder(val binding: ItemsVideosSearchResultBinding, listener: onItemClickListener): RecyclerView.ViewHolder(binding.root) {
+
+    inner class VideoViewHolder(
+        val binding: ItemsVideosSearchResultBinding,
+        listener: onItemClickListener,
+    ) : RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
                 listener.onItemClick(bindingAdapterPosition, VIDEO_CLICK)
@@ -195,8 +219,9 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
                 listener.onOptionsClick(bindingAdapterPosition, VIDEO_CLICK)
             }
         }
-        fun bind(video: VideosResult){
-            with (binding) {
+
+        fun bind(video: VideosResult) {
+            with(binding) {
                 ivThumbnail.load(video.thumbnails?.get(0)?.url) {
                     crossfade(true)
                     placeholder(R.drawable.holder_video)
@@ -225,13 +250,18 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
             }
         }
     }
-    inner class ArtistViewHolder(val binding: ItemArtistSearchResultBinding, listener: onItemClickListener): RecyclerView.ViewHolder(binding.root) {
+
+    inner class ArtistViewHolder(
+        val binding: ItemArtistSearchResultBinding,
+        listener: onItemClickListener,
+    ) : RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
                 listener.onItemClick(bindingAdapterPosition, "artist")
             }
         }
-        fun bind(artist: ArtistsResult){
+
+        fun bind(artist: ArtistsResult) {
             with(binding) {
                 ivThumbnail.load(artist.thumbnails[0].url) {
                     crossfade(true)
@@ -241,25 +271,35 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
             }
         }
     }
-    inner class ArtistEntityViewHolder(val binding: ItemArtistSearchResultBinding, listener: onItemClickListener): RecyclerView.ViewHolder(binding.root) {
+
+    inner class ArtistEntityViewHolder(
+        val binding: ItemArtistSearchResultBinding,
+        listener: onItemClickListener,
+    ) : RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
                 listener.onItemClick(bindingAdapterPosition, "artist")
             }
         }
-        fun bind(artist: ArtistEntity){
-            with(binding){
+
+        fun bind(artist: ArtistEntity) {
+            with(binding) {
                 ivThumbnail.load(artist.thumbnails)
                 tvArtistName.text = artist.name
             }
         }
     }
-    inner class PlaylistViewHolder(val binding: ItemPlaylistSearchResultBinding, listener: onItemClickListener): RecyclerView.ViewHolder(binding.root) {
+
+    inner class PlaylistViewHolder(
+        val binding: ItemPlaylistSearchResultBinding,
+        listener: onItemClickListener,
+    ) : RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
                 listener.onItemClick(bindingAdapterPosition, PLAYLIST_CLICK)
             }
         }
+
         fun bind(playlist: PlaylistsResult) {
             with(binding) {
                 if (playlist.thumbnails.size > 1) {
@@ -267,8 +307,7 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
                         crossfade(true)
                         placeholder(R.drawable.holder)
                     }
-                }
-                else {
+                } else {
                     ivThumbnail.load(playlist.thumbnails[0].url) {
                         crossfade(true)
                         placeholder(R.drawable.holder)
@@ -281,12 +320,17 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
             }
         }
     }
-    inner class PlaylistEntityViewHolder(val binding: ItemPlaylistSearchResultBinding, listener: onItemClickListener): RecyclerView.ViewHolder(binding.root) {
+
+    inner class PlaylistEntityViewHolder(
+        val binding: ItemPlaylistSearchResultBinding,
+        listener: onItemClickListener,
+    ) : RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
                 listener.onItemClick(bindingAdapterPosition, PLAYLIST_CLICK)
             }
         }
+
         fun bind(playlist: PlaylistEntity) {
             with(binding) {
                 ivThumbnail.load(playlist.thumbnails) {
@@ -301,21 +345,25 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
             }
         }
     }
-    inner class AlbumViewHolder(val binding: ItemAlbumSearchResultBinding, listener: onItemClickListener): RecyclerView.ViewHolder(binding.root){
+
+    inner class AlbumViewHolder(
+        val binding: ItemAlbumSearchResultBinding,
+        listener: onItemClickListener,
+    ) : RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
                 listener.onItemClick(bindingAdapterPosition, ALBUM_CLICK)
             }
         }
-        fun bind(album: AlbumsResult){
-            with(binding){
+
+        fun bind(album: AlbumsResult) {
+            with(binding) {
                 if (album.thumbnails.size > 1) {
                     ivThumbnail.load(album.thumbnails[1].url) {
                         crossfade(true)
                         placeholder(R.drawable.holder)
                     }
-                }
-                else {
+                } else {
                     ivThumbnail.load(album.thumbnails[0].url) {
                         crossfade(true)
                         placeholder(R.drawable.holder)
@@ -333,13 +381,18 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
             }
         }
     }
-    inner class AlbumEntityViewHolder(val binding: ItemAlbumSearchResultBinding, listener: onItemClickListener): RecyclerView.ViewHolder(binding.root){
+
+    inner class AlbumEntityViewHolder(
+        val binding: ItemAlbumSearchResultBinding,
+        listener: onItemClickListener,
+    ) : RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
                 listener.onItemClick(bindingAdapterPosition, ALBUM_CLICK)
             }
         }
-        fun bind(album: AlbumEntity){
+
+        fun bind(album: AlbumEntity) {
             with(binding) {
                 ivThumbnail.load(album.thumbnails) {
                     crossfade(true)
@@ -355,14 +408,15 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
             }
         }
     }
-    fun updateList(newList: ArrayList<Any>){
+
+    fun updateList(newList: ArrayList<Any>) {
         searchResultList.clear()
         searchResultList.addAll(newList)
         notifyDataSetChanged()
     }
 
-    override fun getItemViewType(position: Int): Int {
-        return when (searchResultList[position]) {
+    override fun getItemViewType(position: Int): Int =
+        when (searchResultList[position]) {
             is SongsResult -> VIEW_TYPE_SONG
             is ArtistsResult -> VIEW_TYPE_ARTIST
             is PlaylistsResult -> VIEW_TYPE_PLAYLIST
@@ -374,8 +428,11 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
             is AlbumEntity -> VIEW_TYPE_ALBUM_ENTITY
             else -> throw IllegalArgumentException("Unknown view type")
         }
-    }
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int,
+    ): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         return when (viewType) {
             VIEW_TYPE_SONG -> {
@@ -418,11 +475,12 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
         }
     }
 
-    override fun getItemCount(): Int {
-        return searchResultList.size
-    }
+    override fun getItemCount(): Int = searchResultList.size
 
-    override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
+    override fun onBindViewHolder(
+        holder: RecyclerView.ViewHolder,
+        position: Int,
+    ) {
         when (holder) {
             is SongViewHolder -> {
                 holder.bind(searchResultList[position] as SongsResult)
@@ -453,6 +511,7 @@ class SearchItemAdapter(private var searchResultList: ArrayList<Any>, var contex
             }
         }
     }
+
     companion object {
         private const val VIEW_TYPE_SONG = 0
         private const val VIEW_TYPE_ARTIST = 1

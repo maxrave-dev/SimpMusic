@@ -34,6 +34,7 @@ import coil3.request.placeholder
 import coil3.toBitmap
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.snackbar.Snackbar
+import com.maxrave.kotlinytmusicscraper.extension.verifyYouTubePlaylistId
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.adapter.artist.SeeArtistOfNowPlayingAdapter
 import com.maxrave.simpmusic.adapter.playlist.AddToAPlaylistAdapter
@@ -218,7 +219,7 @@ class PlaylistFragment : Fragment() {
 //        }
 
         binding.topAppBar.setNavigationOnClickListener {
-            findNavController().popBackStack()
+            findNavController().navigateUp()
         }
         binding.cbLove.setOnCheckedChangeListener { _, isChecked ->
             if (!isChecked) {
@@ -296,8 +297,8 @@ class PlaylistFragment : Fragment() {
                         Log.w(tag, "ytPlaylist: ${ytPlaylist?.youtubePlaylistId}")
                         Log.w(tag, "id: $id")
                         if (ytPlaylist != null) {
-                            val tempId = ytPlaylist.youtubePlaylistId
-                            if (tempId == id) {
+                            val tempId = ytPlaylist.youtubePlaylistId?.verifyYouTubePlaylistId()
+                            if (tempId == id?.verifyYouTubePlaylistId()) {
                                 moreView.tvSync.text =
                                     context?.getString(R.string.saved_to_local_playlist)
                                 setEnabledAll(moreView.btSync, false)
@@ -1156,7 +1157,7 @@ class PlaylistFragment : Fragment() {
 //                Snackbar
 //                    .make(binding.root, response.message.toString(), Snackbar.LENGTH_LONG)
 //                    .show()
-//                findNavController().popBackStack()
+//                findNavController().navigateUp()
 //            }
 //
 //            else -> {}
@@ -1519,7 +1520,7 @@ class PlaylistFragment : Fragment() {
 //                    Snackbar
 //                        .make(binding.root, response.message.toString(), Snackbar.LENGTH_LONG)
 //                        .show()
-//                    findNavController().popBackStack()
+//                    findNavController().navigateUp()
 //                }
 //
 //                else -> {}
@@ -1635,7 +1636,7 @@ class PlaylistFragment : Fragment() {
 //                                response.message.toString(),
 //                                Snackbar.LENGTH_LONG,
 //                            ).show()
-//                        findNavController().popBackStack()
+//                        findNavController().navigateUp()
 //                    }
 //
 //                    else -> {}

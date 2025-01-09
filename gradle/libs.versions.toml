@@ -1,9 +1,13 @@
 [versions]
-android = "8.7.2"
-kotlin = "2.0.0"
-serialization = "2.0.0"
-ksp = "2.0.0-1.0.22"
-compose-bom = "2024.11.00"
+# App version
+version-name="0.2.8"
+version-code="25"
+
+android = "8.7.3"
+kotlin = "2.1.0"
+serialization = "2.1.0"
+ksp = "2.1.0-1.0.29"
+compose-bom = "2024.12.01"
 constraintlayout-compose = "1.1.0"
 activity-compose = "1.9.3"
 lifecycle-viewmodel-compose = "2.8.7"
@@ -15,8 +19,9 @@ material = "1.12.0"
 startup-runtime = "1.2.0"
 lifecycle-livedata-ktx = "2.8.7"
 lifecycle-viewmodel-ktx = "2.8.7"
-ui-tooling = "1.7.5"
-media3 = "1.5.0"
+ui-tooling = "1.7.6"
+media3 = "1.5.1"
+okhttp3 = "4.12.0"
 palette-ktx = "1.0.0"
 expandable-text = "2.0.0"
 constraintlayout = "2.2.0"
@@ -27,7 +32,7 @@ room = "2.6.1"
 legacy-support-v4 = "1.0.0"
 coroutines-android = "1.9.0"
 coroutines-guava = "1.9.0"
-navigation = "2.8.4"
+navigation = "2.8.5"
 gson = "2.10.1"
 coil3 = "3.0.4"
 kmpalette = "3.1.0"
@@ -39,7 +44,7 @@ swiperefreshlayout = "1.2.0-alpha01"
 insetter = "0.6.1"
 shimmer = "0.5.0"
 lottie = "6.4.0"
-paging = "3.3.4"
+paging = "3.3.5"
 customactivityoncrash = "2.4.0"
 sdp-android = "1.1.0"
 ssp-android = "1.1.0"
@@ -47,12 +52,11 @@ aboutlibraries = "10.10.0"
 flexbox = "3.0.0"
 balloon = "1.6.4"
 insetsx = "0.1.0-alpha10"
-ktor = "2.3.12"
+ktor = "3.0.3"
 brotli = "0.1.2"
 ksoup = "0.3.1"
-desugaring = "2.1.3"
+desugaring = "2.1.4"
 koin-bom = "4.0.0-RC1"
-koin-annotations = "1.4.0-RC4"
 store = "5.1.0-alpha05"
 
 [libraries]
@@ -64,6 +68,7 @@ compose-ui = { group = "androidx.compose.ui", name = "ui" }
 compose-material-ripple = { group = "androidx.compose.material", name = "material-ripple" }
 compose-material-icons-core = { group = "androidx.compose.material", name = "material-icons-core" }
 compose-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
+compose-ui-viewbinding = { group = "androidx.compose.ui", name = "ui-viewbinding" }
 constraintlayout-compose = { group = "androidx.constraintlayout", name = "constraintlayout-compose", version.ref = "constraintlayout-compose" }
 ui-tooling-preview = { group = "androidx.compose.ui", name = "ui-tooling-preview" }
 activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activity-compose" }
@@ -87,6 +92,7 @@ media3-exoplayer-rtsp = { group = "androidx.media3", name = "media3-exoplayer-rt
 media3-exoplayer-smoothstreaming = { group = "androidx.media3", name = "media3-exoplayer-smoothstreaming", version.ref = "media3" }
 media3-exoplayer-workmanager = { group = "androidx.media3", name = "media3-exoplayer-workmanager", version.ref = "media3" }
 media3-datasource-okhttp = { group = "androidx.media3", name = "media3-datasource-okhttp", version.ref = "media3" }
+okhttp3-logging-interceptor = { group = "com.squareup.okhttp3", name = "logging-interceptor", version.ref = "okhttp3" }
 palette-ktx = { group = "androidx.palette", name = "palette-ktx", version.ref = "palette-ktx" }
 expandable-text = { group = "com.github.giangpham96", name = "expandable-text", version.ref = "expandable-text" }
 constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
@@ -119,6 +125,7 @@ customactivityoncrash = { group = "cat.ereza", name = "customactivityoncrash", v
 sdp-android = { group = "com.intuit.sdp", name = "sdp-android", version.ref = "sdp-android" }
 ssp-android = { group = "com.intuit.ssp", name = "ssp-android", version.ref = "ssp-android" }
 aboutlibraries = { group = "com.mikepenz", name = "aboutlibraries", version.ref = "aboutlibraries" }
+aboutlibraries-compose-m3 = { group = "com.mikepenz", name = "aboutlibraries-compose-m3", version.ref = "aboutlibraries" }
 flexbox = { group = "com.google.android.flexbox", name = "flexbox", version.ref = "flexbox" }
 balloon = { group = "com.github.skydoves", name = "balloon", version.ref = "balloon" }
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil3" }
@@ -145,8 +152,6 @@ koin-core = { module = "io.insert-koin:koin-core" }
 koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose" }
 koin-android = { module = "io.insert-koin:koin-android" }
 koin-workmanager = { module = "io.insert-koin:koin-androidx-workmanager" }
-koin-annotations = { module = "io.insert-koin:koin-annotations", version.ref = "koin-annotations" }
-koin-ksp = { module = "io.insert-koin:koin-ksp-compiler", version.ref = "koin-annotations" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "android" }

@@ -323,7 +323,7 @@ class SimpleMediaServiceHandler(
                     if (songEntity != null) {
                         _controlState.update { it.copy(isLiked = songEntity.liked) }
                         var thumbUrl =
-                            track?.thumbnails?.last()?.url
+                            track?.thumbnails?.lastOrNull()?.url
                                 ?: "http://i.ytimg.com/vi/${songEntity.videoId}/maxresdefault.jpg"
                         if (thumbUrl.contains("w120")) {
                             thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
@@ -339,11 +339,13 @@ class SimpleMediaServiceHandler(
                         mainRepository.updateListenCount(songEntity.videoId)
                     } else {
                         _controlState.update { it.copy(isLiked = false) }
-                        mainRepository.insertSong(
-                            track?.toSongEntity() ?: mediaItem.toSongEntity()!!,
-                        ).singleOrNull()?.let {
-                            Log.w(TAG, "getDataOfNowPlayingState: $it")
-                        }
+                        mainRepository
+                            .insertSong(
+                                track?.toSongEntity() ?: mediaItem.toSongEntity()!!,
+                            ).singleOrNull()
+                            ?.let {
+                                Log.w(TAG, "getDataOfNowPlayingState: $it")
+                            }
                     }
                     Log.w(TAG, "getDataOfNowPlayingState: $songEntity")
                     Log.w(TAG, "getDataOfNowPlayingState: $track")
@@ -440,49 +442,48 @@ class SimpleMediaServiceHandler(
             jobWatchtime =
                 launch {
                     simpleMediaState.collect { state ->
-                        if (state is SimpleMediaState.Progress)
-                            {
-                                val value = state.progress
-                                if (value > 0 && watchTimeList.isNotEmpty()) {
-                                    val second = (value / 1000).toFloat()
-                                    if (second in watchTimeList.last()..watchTimeList.last() + 1.2f) {
-                                        val watchTimeUrl =
-                                            _format.value?.playbackTrackingVideostatsWatchtimeUrl
-                                        val cpn = _format.value?.cpn
-                                        if (second + 20.23f < (player.duration / 1000).toFloat()) {
-                                            watchTimeList.add(second + 20.23f)
-                                            if (watchTimeUrl != null && cpn != null) {
-                                                mainRepository
-                                                    .updateWatchTime(
-                                                        watchTimeUrl,
-                                                        watchTimeList,
-                                                        cpn,
-                                                        queueData.value?.playlistId,
-                                                    ).collect { response ->
-                                                        if (response == 204) {
-                                                            Log.d("Check updateWatchTime", "Success")
-                                                        }
+                        if (state is SimpleMediaState.Progress) {
+                            val value = state.progress
+                            if (value > 0 && watchTimeList.isNotEmpty()) {
+                                val second = (value / 1000).toFloat()
+                                if (second in watchTimeList.last()..watchTimeList.last() + 1.2f) {
+                                    val watchTimeUrl =
+                                        _format.value?.playbackTrackingVideostatsWatchtimeUrl
+                                    val cpn = _format.value?.cpn
+                                    if (second + 20.23f < (player.duration / 1000).toFloat()) {
+                                        watchTimeList.add(second + 20.23f)
+                                        if (watchTimeUrl != null && cpn != null) {
+                                            mainRepository
+                                                .updateWatchTime(
+                                                    watchTimeUrl,
+                                                    watchTimeList,
+                                                    cpn,
+                                                    queueData.value?.playlistId,
+                                                ).collect { response ->
+                                                    if (response == 204) {
+                                                        Log.d("Check updateWatchTime", "Success")
                                                     }
-                                            }
-                                        } else {
-                                            watchTimeList.clear()
-                                            if (watchTimeUrl != null && cpn != null) {
-                                                mainRepository
-                                                    .updateWatchTimeFull(
-                                                        watchTimeUrl,
-                                                        cpn,
-                                                        queueData.value?.playlistId,
-                                                    ).collect { response ->
-                                                        if (response == 204) {
-                                                            Log.d("Check updateWatchTimeFull", "Success")
-                                                        }
-                                                    }
-                                            }
+                                                }
                                         }
-                                        Log.w("Check updateWatchTime", watchTimeList.toString())
+                                    } else {
+                                        watchTimeList.clear()
+                                        if (watchTimeUrl != null && cpn != null) {
+                                            mainRepository
+                                                .updateWatchTimeFull(
+                                                    watchTimeUrl,
+                                                    cpn,
+                                                    queueData.value?.playlistId,
+                                                ).collect { response ->
+                                                    if (response == 204) {
+                                                        Log.d("Check updateWatchTimeFull", "Success")
+                                                    }
+                                                }
+                                        }
                                     }
+                                    Log.w("Check updateWatchTime", watchTimeList.toString())
                                 }
                             }
+                        }
                     }
                 }
             jobWatchtime?.join()
@@ -795,6 +796,22 @@ class SimpleMediaServiceHandler(
 
     override fun onPlaybackStateChanged(playbackState: Int) {
         super.onPlaybackStateChanged(playbackState)
+        val loaded =
+            player.bufferedPosition.let {
+                if (it > 0) {
+                    it
+                } else {
+                    0
+                }
+            }
+        val current =
+            player.currentPosition.let {
+                if (it > 0) {
+                    it
+                } else {
+                    0
+                }
+            }
         when (playbackState) {
             Player.STATE_IDLE -> {
                 _simpleMediaState.value = SimpleMediaState.Initial
@@ -804,18 +821,15 @@ class SimpleMediaServiceHandler(
                 _simpleMediaState.value = SimpleMediaState.Ended
                 Log.d(TAG, "onPlaybackStateChanged: Ended")
             }
-            Player.STATE_BUFFERING -> {
-                _simpleMediaState.value = SimpleMediaState.Buffering(player.currentPosition)
-                Log.d(TAG, "onPlaybackStateChanged: Buffering")
-            }
             Player.STATE_READY -> {
                 Log.d(TAG, "onPlaybackStateChanged: Ready")
                 _simpleMediaState.value = SimpleMediaState.Ready(player.duration)
             }
             else -> {
-                Log.d(TAG, "onPlaybackStateChanged: $playbackState")
-                _simpleMediaState.value =
-                    SimpleMediaState.Buffering(player.currentPosition)
+                if (current >= loaded) {
+                    _simpleMediaState.value = SimpleMediaState.Buffering(player.currentPosition)
+                    Log.d(TAG, "onPlaybackStateChanged: Buffering")
+                }
             }
         }
     }
@@ -854,6 +868,7 @@ class SimpleMediaServiceHandler(
         } else {
             stopProgressUpdate()
             mayBeSaveRecentSong()
+            mayBeSavePlaybackState()
         }
         updateNextPreviousTrackAvailability()
     }
@@ -898,14 +913,15 @@ class SimpleMediaServiceHandler(
                 if (localPlaylist != null) {
                     Log.w(TAG, "shufflePlaylist: Local playlist track size ${localPlaylist.tracks?.size}")
                     val trackCount = localPlaylist.tracks?.size ?: return@launch
-                    val listPosition = (0 until trackCount).toMutableList().apply {
-                        remove(randomTrackIndex)
-                    }
+                    val listPosition =
+                        (0 until trackCount).toMutableList().apply {
+                            remove(randomTrackIndex)
+                        }
                     if (listPosition.size <= 0) return@launch
                     listPosition.shuffle()
                     _queueData.update {
                         it?.copy(
-                            //After shuffle prefix is offset and list position
+                            // After shuffle prefix is offset and list position
                             continuation = "SHUFFLE0_${converter.fromListIntToString(listPosition)}",
                         )
                     }
@@ -934,31 +950,33 @@ class SimpleMediaServiceHandler(
                         var offset = regex.find(continuation)?.value?.toInt() ?: return@launch
                         val posString = continuation.removePrefix("SHUFFLE${offset}_")
                         val listPosition = converter.fromStringToListInt(posString) ?: return@launch
-                        val theLastLoad = 50*(offset + 1) >= listPosition.size
-                        mainRepository.getPlaylistPairSongByListPosition(
-                            longId,
-                            listPosition.subList(50*offset, if (theLastLoad) listPosition.size else 50*(offset + 1)),
-                        ).singleOrNull()?.let { pair ->
-                            Log.w("Check loadMore response", pair.size.toString())
-                            mainRepository.getSongsByListVideoId(pair.map { it.songId }).single().let { songs ->
-                                if (songs.isNotEmpty()) {
-                                    delay(300)
-                                    loadMoreCatalog(songs.toArrayListTrack())
-                                    offset++
-                                    _queueData.update {
-                                        if (!theLastLoad){
-                                            it?.copy(
-                                                continuation = "SHUFFLE${offset}_$posString",
-                                            )
-                                        } else {
-                                            it?.copy(
-                                                continuation = null
-                                            )
+                        val theLastLoad = 50 * (offset + 1) >= listPosition.size
+                        mainRepository
+                            .getPlaylistPairSongByListPosition(
+                                longId,
+                                listPosition.subList(50 * offset, if (theLastLoad) listPosition.size else 50 * (offset + 1)),
+                            ).singleOrNull()
+                            ?.let { pair ->
+                                Log.w("Check loadMore response", pair.size.toString())
+                                mainRepository.getSongsByListVideoId(pair.map { it.songId }).single().let { songs ->
+                                    if (songs.isNotEmpty()) {
+                                        delay(300)
+                                        loadMoreCatalog(songs.toArrayListTrack())
+                                        offset++
+                                        _queueData.update {
+                                            if (!theLastLoad) {
+                                                it?.copy(
+                                                    continuation = "SHUFFLE${offset}_$posString",
+                                                )
+                                            } else {
+                                                it?.copy(
+                                                    continuation = null,
+                                                )
+                                            }
                                         }
                                     }
                                 }
                             }
-                        }
                     } else {
                         val filter = if (continuation.startsWith(ASC)) FilterState.OlderFirst else FilterState.NewerFirst
                         val offset =
@@ -992,13 +1010,13 @@ class SimpleMediaServiceHandler(
                                         _queueData.value =
                                             _queueData.value?.copy(
                                                 continuation =
-                                                if (filter ==
-                                                    FilterState.OlderFirst
-                                                ) {
-                                                    ASC + (offset + 1)
-                                                } else {
-                                                    DESC + (offset + 1).toString()
-                                                },
+                                                    if (filter ==
+                                                        FilterState.OlderFirst
+                                                    ) {
+                                                        ASC + (offset + 1)
+                                                    } else {
+                                                        DESC + (offset + 1).toString()
+                                                    },
                                             )
                                     } else {
                                         _stateFlow.value = StateSource.STATE_INITIALIZED
@@ -1222,7 +1240,7 @@ class SimpleMediaServiceHandler(
         coroutineScope.launch {
             if (dataStoreManager.saveRecentSongAndQueue.first() == TRUE) {
                 dataStoreManager.saveRecentSong(
-                    player.currentMediaItem?.mediaId ?: "",
+                    nowPlayingState.value.songEntity?.videoId ?: "",
                     player.contentPosition,
                 )
                 dataStoreManager.setPlaylistFromSaved(queueData.value?.playlistName ?: "")
@@ -1353,14 +1371,14 @@ class SimpleMediaServiceHandler(
                         CommandButton
                             .Builder()
                             .setDisplayName(
-                                if (liked == true) {
+                                if (liked) {
                                     context.getString(R.string.liked)
                                 } else {
                                     context.getString(
                                         R.string.like,
                                     )
                                 },
-                            ).setIconResId(if (liked == true) R.drawable.baseline_favorite_24 else R.drawable.baseline_favorite_border_24)
+                            ).setIconResId(if (liked) R.drawable.baseline_favorite_24 else R.drawable.baseline_favorite_border_24)
                             .setSessionCommand(SessionCommand(MEDIA_CUSTOM_COMMAND.LIKE, Bundle()))
                             .build(),
                         CommandButton
@@ -1463,14 +1481,17 @@ class SimpleMediaServiceHandler(
         }
     }
 
-    suspend fun loadMoreCatalog(listTrack: ArrayList<Track>, isAddToQueue: Boolean = false) {
+    suspend fun loadMoreCatalog(
+        listTrack: ArrayList<Track>,
+        isAddToQueue: Boolean = false,
+    ) {
         Log.d("Queue", listTrack.map { it.title }.toString())
         _stateFlow.value = StateSource.STATE_INITIALIZING
         val catalogMetadata: ArrayList<Track> = arrayListOf()
         for (i in 0 until listTrack.size) {
             val track = listTrack[i]
             var thumbUrl =
-                track.thumbnails?.last()?.url
+                track.thumbnails?.lastOrNull()?.url
                     ?: "http://i.ytimg.com/vi/${track.videoId}/maxresdefault.jpg"
             if (thumbUrl.contains("w120")) {
                 thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
@@ -1478,19 +1499,16 @@ class SimpleMediaServiceHandler(
             val artistName: String = track.artists.toListName().connectArtists()
             val isSong =
                 (
-                    track.thumbnails?.last()?.height != 0 &&
-                        track.thumbnails?.last()?.height == track.thumbnails?.last()?.width &&
-                        track.thumbnails?.last()?.height != null
+                    track.thumbnails?.lastOrNull()?.height != 0 &&
+                        track.thumbnails?.lastOrNull()?.height == track.thumbnails?.lastOrNull()?.width &&
+                        track.thumbnails?.lastOrNull()?.height != null
                 ) &&
                     (
-                        track.thumbnails
-                            .lastOrNull()
-                            ?.url
-                            ?.contains("hq720") == false &&
-                            track.thumbnails
-                                .lastOrNull()
-                                ?.url
-                                ?.contains("maxresdefault") == false
+                        !thumbUrl
+                            .contains("hq720") &&
+                            !thumbUrl
+                                .contains("maxresdefault") &&
+                            !thumbUrl.contains("sddefault")
                     )
             if (track.artists.isNullOrEmpty()) {
                 mainRepository
@@ -1608,26 +1626,23 @@ class SimpleMediaServiceHandler(
                 val track = list[i]
                 if (track == current) continue
                 var thumbUrl =
-                    track.thumbnails?.last()?.url
+                    track.thumbnails?.lastOrNull()?.url
                         ?: "http://i.ytimg.com/vi/${track.videoId}/maxresdefault.jpg"
                 if (thumbUrl.contains("w120")) {
                     thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
                 }
                 val isSong =
                     (
-                        track.thumbnails?.last()?.height != 0 &&
-                            track.thumbnails?.last()?.height == track.thumbnails?.last()?.width &&
-                            track.thumbnails?.last()?.height != null
+                        track.thumbnails?.lastOrNull()?.height != 0 &&
+                            track.thumbnails?.lastOrNull()?.height == track.thumbnails?.lastOrNull()?.width &&
+                            track.thumbnails?.lastOrNull()?.height != null
                     ) &&
                         (
-                            track.thumbnails
-                                .lastOrNull()
-                                ?.url
-                                ?.contains("hq720") == false &&
-                                track.thumbnails
-                                    .lastOrNull()
-                                    ?.url
-                                    ?.contains("maxresdefault") == false
+                            !thumbUrl
+                                .contains("hq720") &&
+                                !thumbUrl
+                                    .contains("maxresdefault") &&
+                                !thumbUrl.contains("sddefault")
                         )
                 if (downloaded == 1) {
                     if (track.artists.isNullOrEmpty()) {
@@ -1864,7 +1879,7 @@ class SimpleMediaServiceHandler(
         _stateFlow.value = StateSource.STATE_INITIALIZING
         val catalogMetadata: ArrayList<Track> = queueData.first()?.listTracks ?: arrayListOf()
         var thumbUrl =
-            track.thumbnails?.last()?.url
+            track.thumbnails?.lastOrNull()?.url
                 ?: "http://i.ytimg.com/vi/${track.videoId}/maxresdefault.jpg"
         if (thumbUrl.contains("w120")) {
             thumbUrl = Regex("([wh])120").replace(thumbUrl, "$1544")
@@ -1872,19 +1887,16 @@ class SimpleMediaServiceHandler(
         val artistName: String = track.artists.toListName().connectArtists()
         val isSong =
             (
-                track.thumbnails?.last()?.height != 0 &&
-                    track.thumbnails?.last()?.height == track.thumbnails?.last()?.width &&
-                    track.thumbnails?.last()?.height != null
+                track.thumbnails?.lastOrNull()?.height != 0 &&
+                    track.thumbnails?.lastOrNull()?.height == track.thumbnails?.lastOrNull()?.width &&
+                    track.thumbnails?.lastOrNull()?.height != null
             ) &&
                 (
-                    track.thumbnails
-                        .lastOrNull()
-                        ?.url
-                        ?.contains("hq720") == false &&
-                        track.thumbnails
-                            .lastOrNull()
-                            ?.url
-                            ?.contains("maxresdefault") == false
+                    !thumbUrl
+                        .contains("hq720") &&
+                        !thumbUrl
+                            .contains("maxresdefault") &&
+                        !thumbUrl.contains("sddefault")
                 )
         if ((player.currentMediaItemIndex + 1 in 0..(queueData.first()?.listTracks?.size ?: 0))) {
             if (track.artists.isNullOrEmpty()) {

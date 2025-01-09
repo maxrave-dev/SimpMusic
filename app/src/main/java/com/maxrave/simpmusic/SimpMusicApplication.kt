@@ -28,26 +28,27 @@ import org.koin.core.logger.Level
 
 class SimpMusicApplication :
     Application(),
-    KoinComponent, SingletonImageLoader.Factory {
-
-    override fun newImageLoader(context: PlatformContext): ImageLoader {
-        return ImageLoader.Builder(context)
+    KoinComponent,
+    SingletonImageLoader.Factory {
+    override fun newImageLoader(context: PlatformContext): ImageLoader =
+        ImageLoader
+            .Builder(context)
             .components {
                 add(
                     OkHttpNetworkFetcherFactory(
                         callFactory = {
                             OkHttpClient()
-                        }
-                    )
+                        },
+                    ),
                 )
-            }
-            .logger(DebugLogger())
+            }.logger(DebugLogger())
             .allowHardware(false)
-            .diskCachePolicy(CachePolicy.ENABLED).networkCachePolicy(CachePolicy.ENABLED)
+            .diskCachePolicy(CachePolicy.ENABLED)
+            .networkCachePolicy(CachePolicy.ENABLED)
             .diskCache(newDiskCache())
             .crossfade(true)
             .build()
-    }
+
     @UnstableApi
     override fun onCreate() {
         super.onCreate()
@@ -58,7 +59,7 @@ class SimpMusicApplication :
             modules(
                 databaseModule,
                 mediaServiceModule,
-                viewModelModule
+                viewModelModule,
             )
             workManagerFactory()
         }

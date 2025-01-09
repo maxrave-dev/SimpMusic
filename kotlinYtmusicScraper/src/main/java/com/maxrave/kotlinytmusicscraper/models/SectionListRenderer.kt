@@ -57,7 +57,7 @@ data class SectionListRenderer(
             val thumbnail: ThumbnailRenderer?,
             val title: Title?,
             val secondSubtitle: MusicShelfRenderer.Content.MusicMultiRowListItemRenderer.Subtitle?,
-            val facepile: Facepile?
+            val facepile: Facepile?,
         ) {
             @Serializable
             data class Facepile(
@@ -67,52 +67,55 @@ data class SectionListRenderer(
                 data class AvatarStackViewModel(
                     val avatars: List<Avatar>?,
                     val rendererContext: RendererContext?,
-                    val text: Text?
+                    val text: Text?,
                 ) {
                     @Serializable
                     data class Text(
-                        val content: String?
+                        val content: String?,
                     )
+
                     @Serializable
                     data class RendererContext(
-                        val commandContext: CommandContext?
+                        val commandContext: CommandContext?,
                     ) {
                         @Serializable
                         data class CommandContext(
-                            val onTap: OnTap?
+                            val onTap: OnTap?,
                         ) {
                             @Serializable
                             data class OnTap(
-                                val innertubeCommand: InnertubeCommand?
+                                val innertubeCommand: InnertubeCommand?,
                             ) {
                                 @Serializable
                                 data class InnertubeCommand(
-                                    val browseEndpoint: BrowseEndpoint?
+                                    val browseEndpoint: BrowseEndpoint?,
                                 )
                             }
                         }
                     }
+
                     @Serializable
                     data class Avatar(
-                        val avatarViewModel: AvatarViewModel?
+                        val avatarViewModel: AvatarViewModel?,
                     ) {
                         @Serializable
                         data class AvatarViewModel(
-                            val image: Image?
+                            val image: Image?,
                         ) {
                             @Serializable
                             data class Image(
-                                val sources: List<Source>?
+                                val sources: List<Source>?,
                             ) {
                                 @Serializable
                                 data class Source(
-                                    val url: String?
+                                    val url: String?,
                                 )
                             }
                         }
                     }
                 }
             }
+
             @Serializable
             data class Description(
                 val musicDescriptionShelfRenderer: MusicDescriptionShelfRenderer?,

@@ -6,26 +6,47 @@ import com.maxrave.simpmusic.data.model.browse.album.Track
 import com.maxrave.simpmusic.data.model.searchResult.songs.Album
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 
-fun parseRelated(data:  List<PlaylistPanelRenderer.Content>?): ArrayList<Track>? {
-    if (!data.isNullOrEmpty()){
+fun parseRelated(data: List<PlaylistPanelRenderer.Content>?): ArrayList<Track>? {
+    if (!data.isNullOrEmpty()) {
         val listTrack: ArrayList<Track> = arrayListOf()
         data.forEach { track ->
-            val title = track.playlistPanelVideoRenderer?.title?.runs?.get(0)?.text
-            val duration = track.playlistPanelVideoRenderer?.lengthText?.runs?.get(0)?.text
-            val durationSeconds = track.playlistPanelVideoRenderer?.lengthText?.runs?.firstOrNull()?.text?.parseTime()
+            val title =
+                track.playlistPanelVideoRenderer
+                    ?.title
+                    ?.runs
+                    ?.get(0)
+                    ?.text
+            val duration =
+                track.playlistPanelVideoRenderer
+                    ?.lengthText
+                    ?.runs
+                    ?.get(0)
+                    ?.text
+            val durationSeconds =
+                track.playlistPanelVideoRenderer
+                    ?.lengthText
+                    ?.runs
+                    ?.firstOrNull()
+                    ?.text
+                    ?.parseTime()
             val longByTextRuns = track.playlistPanelVideoRenderer?.longBylineText?.runs
             val artist: ArrayList<Artist> = arrayListOf()
             val album: ArrayList<Album> = arrayListOf()
-            if (!longByTextRuns.isNullOrEmpty()){
-                for (i in longByTextRuns.indices){
+            if (!longByTextRuns.isNullOrEmpty()) {
+                for (i in longByTextRuns.indices) {
                     if (longByTextRuns[i].navigationEndpoint?.browseEndpoint?.browseId != null) {
-                        if (longByTextRuns[i].navigationEndpoint?.browseEndpoint?.browseId?.startsWith("UC") == true){
+                        if (longByTextRuns[i]
+                                .navigationEndpoint
+                                ?.browseEndpoint
+                                ?.browseId
+                                ?.startsWith("UC") == true
+                        ) {
                             val artistName = longByTextRuns[i].text
                             val artistId =
                                 longByTextRuns[i].navigationEndpoint?.browseEndpoint?.browseId
                             artist.add(Artist(artistId ?: "", artistName))
                         } else if (longByTextRuns[i].navigationEndpoint?.browseEndpoint?.browseId?.startsWith(
-                                "MP"
+                                "MP",
                             ) == true
                         ) {
                             val albumName = longByTextRuns[i].text
@@ -41,29 +62,38 @@ fun parseRelated(data:  List<PlaylistPanelRenderer.Content>?): ArrayList<Track>?
                     artist.add(Artist(artistId ?: "", artistName))
                 }
             }
-            val videoId = track.playlistPanelVideoRenderer?.navigationEndpoint?.watchEndpoint?.videoId
-            val thumbnail = track.playlistPanelVideoRenderer?.thumbnail?.thumbnails?.toListThumbnail()
-            listTrack.add(Track(
-                album = album.firstOrNull(),
-                artists = artist,
-                duration = duration ?: "",
-                durationSeconds = durationSeconds,
-                isAvailable = true,
-                isExplicit = false,
-                likeStatus = "INDIFFERENT",
-                thumbnails = thumbnail,
-                title = title ?: "",
-                videoId = videoId ?: "",
-                videoType = "MUSIC_VIDEO",
-                category = "MUSIC",
-                feedbackTokens = null,
-                resultType = null,
-                year = null
-            ))
+            val videoId =
+                track.playlistPanelVideoRenderer
+                    ?.navigationEndpoint
+                    ?.watchEndpoint
+                    ?.videoId
+            val thumbnail =
+                track.playlistPanelVideoRenderer
+                    ?.thumbnail
+                    ?.thumbnails
+                    ?.toListThumbnail()
+            listTrack.add(
+                Track(
+                    album = album.firstOrNull(),
+                    artists = artist,
+                    duration = duration ?: "",
+                    durationSeconds = durationSeconds,
+                    isAvailable = true,
+                    isExplicit = false,
+                    likeStatus = "INDIFFERENT",
+                    thumbnails = thumbnail,
+                    title = title ?: "",
+                    videoId = videoId ?: "",
+                    videoType = "MUSIC_VIDEO",
+                    category = "MUSIC",
+                    feedbackTokens = null,
+                    resultType = null,
+                    year = null,
+                ),
+            )
         }
         return listTrack
-    }
-    else {
+    } else {
         return null
     }
 }

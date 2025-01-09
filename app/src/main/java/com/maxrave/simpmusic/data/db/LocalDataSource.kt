@@ -22,6 +22,8 @@ import java.time.LocalDateTime
 class LocalDataSource(
     private val databaseDao: DatabaseDao,
 ) {
+    fun checkpoint() = databaseDao.checkpoint()
+
     suspend fun getAllRecentData() = databaseDao.getAllRecentData()
 
     suspend fun getAllDownloadedPlaylist() = databaseDao.getAllDownloadedPlaylist()
@@ -54,7 +56,7 @@ class LocalDataSource(
 
     suspend fun getDownloadingSongs() = databaseDao.getDownloadingSongs()
 
-    suspend fun getLikedSongs() = databaseDao.getLikedSongs()
+    fun getLikedSongs() = databaseDao.getLikedSongs()
 
     suspend fun getLibrarySongs() = databaseDao.getLibrarySongs()
 
@@ -86,7 +88,7 @@ class LocalDataSource(
         videoId: String,
     ) = databaseDao.updateSongInLibrary(inLibrary, videoId)
 
-    suspend fun getMostPlayedSongs() = databaseDao.getMostPlayedSongs()
+    fun getMostPlayedSongs() = databaseDao.getMostPlayedSongs()
 
     suspend fun updateDownloadState(
         downloadState: Int,
@@ -104,7 +106,7 @@ class LocalDataSource(
 
     suspend fun getArtist(channelId: String) = databaseDao.getArtist(channelId)
 
-    suspend fun getFollowedArtists() = databaseDao.getFollowedArtists()
+    fun getFollowedArtists() = databaseDao.getFollowedArtists()
 
     suspend fun updateArtistInLibrary(
         inLibrary: LocalDateTime,
@@ -121,6 +123,8 @@ class LocalDataSource(
     ) = databaseDao.updateAlbumLiked(liked, albumId)
 
     suspend fun getAlbum(albumId: String) = databaseDao.getAlbum(albumId)
+
+    fun getAlbumAsFlow(albumId: String) = databaseDao.getAlbumAsFlow(albumId)
 
     suspend fun getLikedAlbums() = databaseDao.getLikedAlbums()
 

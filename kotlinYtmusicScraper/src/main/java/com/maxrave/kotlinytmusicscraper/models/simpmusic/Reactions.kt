@@ -1,6 +1,5 @@
 package com.maxrave.kotlinytmusicscraper.models.simpmusic
 
-
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -25,5 +24,5 @@ data class Reactions(
     @SerialName("+1")
     val x1: Int?,
     @SerialName("-1")
-    val x2: Int?
+    val x2: Int?,
 )

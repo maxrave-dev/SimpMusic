@@ -38,6 +38,7 @@ import java.time.LocalDateTime
 
 class LocalPlaylistManager(
     context: Context,
+    private val youTube: YouTube
 ) : BaseManager(context) {
     override val tag: String = this.javaClass.simpleName
 
@@ -48,8 +49,10 @@ class LocalPlaylistManager(
 
     fun downloadStateFlow(id: Long): Flow<Int> = localDataSource.getDownloadStateFlowOfLocalPlaylist(id)
 
-    fun listTrackFlow(id: Long): Flow<List<String>> = localDataSource.getListTracksFlowOfLocalPlaylist(id)
-        .map { Converters().fromString(it?.firstOrNull()) ?: emptyList() }
+    fun listTrackFlow(id: Long): Flow<List<String>> =
+        localDataSource
+            .getListTracksFlowOfLocalPlaylist(id)
+            .map { Converters().fromString(it?.firstOrNull()) ?: emptyList() }
 
     fun getTracksPaging(
         id: Long,
@@ -132,7 +135,7 @@ class LocalPlaylistManager(
                 emit(LocalResource.Success(getString(R.string.updated)))
                 val localPlaylist = localDataSource.getLocalPlaylist(id)
                 if (localPlaylist.youtubePlaylistId != null) {
-                    YouTube
+                    youTube
                         .editPlaylist(localPlaylist.youtubePlaylistId, newTitle)
                         .onSuccess {
                             emit(LocalResource.Success(getString(R.string.updated_to_youtube_playlist)))
@@ -196,7 +199,7 @@ class LocalPlaylistManager(
             }
             val ytPlaylistId = playlist.id
             val id = ytPlaylistId.verifyYouTubePlaylistId()
-            YouTube
+            youTube
                 .customQuery(browseId = id, setLogin = true)
                 .onSuccess { res ->
                     val listContent: ArrayList<MusicShelfRenderer.Content> = arrayListOf()
@@ -220,7 +223,7 @@ class LocalPlaylistManager(
                             ?.nextContinuationData
                             ?.continuation
                     while (continueParam != null) {
-                        YouTube
+                        youTube
                             .customQuery(
                                 "",
                                 continuation = continueParam,
@@ -277,15 +280,18 @@ class LocalPlaylistManager(
         flow<LocalResource<String>> {
             emit(LocalResource.Loading())
             val playlist = localDataSource.getLocalPlaylist(playlistId)
-            val res = YouTube.createPlaylist(
+            val res =
+                youTube.createPlaylist(
                     playlist.title,
                     playlist.tracks,
                 )
             val value = res.getOrNull()
             if (res.isSuccess && value != null) {
-                    val ytId = value.playlistId
-                    Log.d(tag, "syncLocalPlaylistToYouTubePlaylist: $ytId")
-                    YouTube.getYouTubePlaylistFullTracksWithSetVideoId(ytId).onSuccess { list ->
+                val ytId = value.playlistId
+                Log.d(tag, "syncLocalPlaylistToYouTubePlaylist: $ytId")
+                youTube
+                    .getYouTubePlaylistFullTracksWithSetVideoId(ytId)
+                    .onSuccess { list ->
                         Log.d(tag, "syncLocalPlaylistToYouTubePlaylist: onSuccess song ${list.map { it.first.title }}")
                         Log.d(tag, "syncLocalPlaylistToYouTubePlaylist: onSuccess setVideoId ${list.map { it.second }}")
                         list.forEach { new ->
@@ -294,8 +300,8 @@ class LocalPlaylistManager(
                                 SetVideoIdEntity(
                                     videoId = new.first.id,
                                     setVideoId = new.second,
-                                    youtubePlaylistId = ytId
-                                )
+                                    youtubePlaylistId = ytId,
+                                ),
                             )
                         }
                         if (list.isEmpty()) Log.w(tag, "syncLocalPlaylistToYouTubePlaylist: SetVideoIds Empty list")
@@ -306,11 +312,11 @@ class LocalPlaylistManager(
                     }.onFailure {
                         emit(LocalResource.Error(it.message ?: getString(R.string.error)))
                     }
-                } else {
-                    val e = res.exceptionOrNull()
-                    e?.printStackTrace()
-                    emit(LocalResource.Error(e?.message ?: getString(R.string.error)))
-                }
+            } else {
+                val e = res.exceptionOrNull()
+                e?.printStackTrace()
+                emit(LocalResource.Error(e?.message ?: getString(R.string.error)))
+            }
         }
 
     suspend fun unsyncLocalPlaylist(id: Long) =
@@ -345,37 +351,47 @@ class LocalPlaylistManager(
             val currentTracks = tracks.toMutableList()
             localPlaylist.youtubePlaylistId?.let { ytId ->
                 Log.d(tag, "updateListTrackSynced: $ytId")
-                YouTube.getYouTubePlaylistFullTracksWithSetVideoId(ytId).onSuccess { list ->
-                    Log.d(tag, "updateListTrackSynced: onSuccess ${list.map { it.first.title }}")
-                    val newTrack = list.map { it.first }.toListTrack().map { it.videoId }.toMutableSet().subtract(tracks.toMutableSet())
-                    val newTrackList = list.filter { newTrack.contains(it.first.id) }
-                    Log.w(tag, "updateListTrackSynced: newTrackList ${newTrackList.map { it.first.title }}")
-                    newTrackList.forEach { new ->
-                        localDataSource.insertSong(new.first.toTrack().toSongEntity())
-                        Log.i(tag, "insertSong: ${new.first.toTrack().toSongEntity()}")
-                        localDataSource.insertPairSongLocalPlaylist(
-                            PairSongLocalPlaylist(
-                                playlistId = id,
-                                songId = new.first.id,
-                                position = currentTracks.size,
-                                inPlaylist = LocalDateTime.now()
+                youTube
+                    .getYouTubePlaylistFullTracksWithSetVideoId(ytId)
+                    .onSuccess { list ->
+                        Log.d(tag, "updateListTrackSynced: onSuccess ${list.map { it.first.title }}")
+                        val newTrack =
+                            list
+                                .map { it.first }
+                                .toListTrack()
+                                .map { it.videoId }
+                                .toMutableSet()
+                                .subtract(tracks.toMutableSet())
+                        val newTrackList = list.filter { newTrack.contains(it.first.id) }
+                        Log.w(tag, "updateListTrackSynced: newTrackList ${newTrackList.map { it.first.title }}")
+                        newTrackList.forEach { new ->
+                            localDataSource.insertSong(new.first.toTrack().toSongEntity())
+                            Log.i(tag, "insertSong: ${new.first.toTrack().toSongEntity()}")
+                            localDataSource.insertPairSongLocalPlaylist(
+                                PairSongLocalPlaylist(
+                                    playlistId = id,
+                                    songId = new.first.id,
+                                    position = currentTracks.size,
+                                    inPlaylist = LocalDateTime.now(),
+                                ),
                             )
-                        )
-                        localDataSource.insertSetVideoId(
-                            SetVideoIdEntity(
-                                videoId = new.first.id, setVideoId = new.second, youtubePlaylistId = ytId
+                            localDataSource.insertSetVideoId(
+                                SetVideoIdEntity(
+                                    videoId = new.first.id,
+                                    setVideoId = new.second,
+                                    youtubePlaylistId = ytId,
+                                ),
                             )
-                        )
-                        currentTracks.add(new.first.id)
+                            currentTracks.add(new.first.id)
+                        }
+                        localDataSource.updateLocalPlaylistTracks(currentTracks, id).let {
+                            emit(true)
+                        }
+                    }.onFailure { e ->
+                        Log.e(tag, "updateListTrackSynced: onFailure ${e.message}")
+                        e.printStackTrace()
+                        emit(false)
                     }
-                    localDataSource.updateLocalPlaylistTracks(currentTracks, id).let {
-                        emit(true)
-                    }
-                }.onFailure { e ->
-                    Log.e(tag, "updateListTrackSynced: onFailure ${e.message}")
-                    e.printStackTrace()
-                    emit(false)
-                }
             }
             emit(false)
         }
@@ -412,7 +428,7 @@ class LocalPlaylistManager(
 
             // Add to YouTube playlist
             if (localPlaylist.youtubePlaylistId != null) {
-                YouTube
+                youTube
                     .addPlaylistItem(localPlaylist.youtubePlaylistId, song.videoId)
                     .onSuccess {
                         val data = it.playlistEditResults
@@ -450,7 +466,7 @@ class LocalPlaylistManager(
             if (localPlaylist.youtubePlaylistId != null) {
                 val setVideoId = localDataSource.getSetVideoId(song.videoId)
                 if (setVideoId?.setVideoId != null) {
-                    YouTube
+                    youTube
                         .removeItemYouTubePlaylist(localPlaylist.youtubePlaylistId, song.videoId, setVideoId.setVideoId)
                         .onSuccess {
                             emit(LocalResource.Success(getString(R.string.removed_from_YouTube_playlist)))
@@ -463,27 +479,30 @@ class LocalPlaylistManager(
             }
         }.flowOn(Dispatchers.IO)
 
-    suspend fun getSuggestionsTrackForPlaylist(
-        id: Long
-    ): Flow<LocalResource<Pair<String?, List<Track>>>> = flow {
-        val localPlaylist = localDataSource.getLocalPlaylist(id)
-        val ytPlaylistId = localPlaylist.youtubePlaylistId ?: return@flow
+    suspend fun getSuggestionsTrackForPlaylist(id: Long): Flow<LocalResource<Pair<String?, List<Track>>>> =
+        flow {
+            val localPlaylist = localDataSource.getLocalPlaylist(id)
+            val ytPlaylistId = localPlaylist.youtubePlaylistId ?: return@flow
 
-        YouTube.getSuggestionsTrackForPlaylist(ytPlaylistId).onSuccess { data ->
-            val listSongItem = data?.second?.map { it.toTrack() }
-            if (data != null && !listSongItem.isNullOrEmpty()) {
-                emit(LocalResource.Success(
-                    Pair(
-                        data.first,
-                        listSongItem
-                    )
-                ))
-            } else {
-                emit(LocalResource.Error("List suggestions is null"))
-            }
-        }.onFailure { e ->
-            e.printStackTrace()
-            emit(LocalResource.Error(e.message ?: "Error"))
+            youTube
+                .getSuggestionsTrackForPlaylist(ytPlaylistId)
+                .onSuccess { data ->
+                    val listSongItem = data?.second?.map { it.toTrack() }
+                    if (data != null && !listSongItem.isNullOrEmpty()) {
+                        emit(
+                            LocalResource.Success(
+                                Pair(
+                                    data.first,
+                                    listSongItem,
+                                ),
+                            ),
+                        )
+                    } else {
+                        emit(LocalResource.Error("List suggestions is null"))
+                    }
+                }.onFailure { e ->
+                    e.printStackTrace()
+                    emit(LocalResource.Error(e.message ?: "Error"))
+                }
         }
-    }
 }

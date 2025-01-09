@@ -20,7 +20,6 @@ import com.maxrave.simpmusic.data.model.home.HomeDataCombine
 import com.maxrave.simpmusic.data.model.home.HomeItem
 import com.maxrave.simpmusic.data.model.home.chart.Chart
 import com.maxrave.simpmusic.extension.toSongEntity
-import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Job
@@ -32,24 +31,19 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.koin.android.annotation.KoinViewModel
-import org.koin.core.component.inject
+
 import java.time.LocalDateTime
 
 @UnstableApi
-@KoinViewModel
-class HomeViewModel(
-    private val application: Application
-) : BaseViewModel(application) {
 
+class HomeViewModel(
+    private val application: Application,
+) : BaseViewModel(application) {
     override val tag: String
         get() = "HomeViewModel"
-
-    private val downloadUtils: DownloadUtils by inject()
 
     private val _homeItemList: MutableStateFlow<ArrayList<HomeItem>> =
         MutableStateFlow(arrayListOf())
@@ -71,7 +65,6 @@ class HomeViewModel(
 
     val loading = MutableStateFlow<Boolean>(false)
     val loadingChart = MutableStateFlow<Boolean>(false)
-    val errorMessage = MutableLiveData<String>()
     private var regionCode: String = ""
     private var language: String = ""
 
@@ -86,7 +79,7 @@ class HomeViewModel(
     val showLogInAlert: StateFlow<Boolean> = _showLogInAlert
 
     init {
-        if (runBlocking{ dataStoreManager.cookie.first() }.isEmpty()) {
+        if (runBlocking { dataStoreManager.cookie.first() }.isEmpty()) {
             _showLogInAlert.update { true }
         }
         homeJob = Job()
@@ -122,11 +115,12 @@ class HomeViewModel(
                         )
                     }
                 }
-            val job4 = launch {
-                params.collectLatest {
-                    getHomeItemList(it)
+            val job4 =
+                launch {
+                    params.collectLatest {
+                        getHomeItemList(it)
+                    }
                 }
-            }
             job1.join()
             job2.join()
             job3.join()
@@ -139,121 +133,114 @@ class HomeViewModel(
     }
 
     fun getHomeItemList(params: String? = null) {
+        loading.value = true
         language =
             runBlocking {
                 dataStoreManager.getString(SELECTED_LANGUAGE).first()
                     ?: SUPPORTED_LANGUAGE.codes.first()
             }
         regionCode = runBlocking { dataStoreManager.location.first() }
-        loading.value = true
         homeJob?.cancel()
-        homeJob = viewModelScope.launch {
-            combine(
-//                mainRepository.getHome(
-//                    regionCode,
-//                    SUPPORTED_LANGUAGE.serverCodes[SUPPORTED_LANGUAGE.codes.indexOf(language)]
-//                ),
-                mainRepository.getHomeData(params),
-                mainRepository.getMoodAndMomentsData(),
-                mainRepository.getChartData(dataStoreManager.chartKey.first()),
-                mainRepository.getNewRelease(),
-            ) { home, exploreMood, exploreChart, newRelease ->
-                HomeDataCombine(home, exploreMood, exploreChart, newRelease)
-            }.collect { result ->
-                val home = result.home
-                Log.d("home size", "${home.data?.size}")
-                val exploreMoodItem = result.mood
-                val chart = result.chart
-                val newRelease = result.newRelease
-                when (home) {
-                    is Resource.Success -> {
-                        _homeItemList.value = home.data ?: arrayListOf()
-                    }
+        homeJob =
+            viewModelScope.launch {
+                combine(
+                    mainRepository.getHomeData(params),
+                    mainRepository.getMoodAndMomentsData(),
+                    mainRepository.getChartData(dataStoreManager.chartKey.first()),
+                    mainRepository.getNewRelease(),
+                ) { home, exploreMood, exploreChart, newRelease ->
+                    HomeDataCombine(home, exploreMood, exploreChart, newRelease)
+                }.collect { result ->
+                    val home = result.home
+                    Log.d("home size", "${home.data?.size}")
+                    val exploreMoodItem = result.mood
+                    val chart = result.chart
+                    val newRelease = result.newRelease
+                    when (home) {
+                        is Resource.Success -> {
+                            _homeItemList.value = home.data ?: arrayListOf()
+                        }
 
-                    else -> {
-                        _homeItemList.value = arrayListOf()
+                        else -> {
+                            _homeItemList.value = arrayListOf()
+                        }
                     }
-                }
-                when (chart) {
-                    is Resource.Success -> {
-                        _chart.value = chart.data
-                    }
+                    when (chart) {
+                        is Resource.Success -> {
+                            _chart.value = chart.data
+                        }
 
-                    else -> {
-                        _chart.value = null
+                        else -> {
+                            _chart.value = null
+                        }
                     }
-                }
-                when (newRelease) {
-                    is Resource.Success -> {
-                        _newRelease.value = newRelease.data ?: arrayListOf()
-                    }
+                    when (newRelease) {
+                        is Resource.Success -> {
+                            _newRelease.value = newRelease.data ?: arrayListOf()
+                        }
 
-                    else -> {
-                        _newRelease.value = arrayListOf()
+                        else -> {
+                            _newRelease.value = arrayListOf()
+                        }
                     }
-                }
-                when (exploreMoodItem) {
-                    is Resource.Success -> {
-                        _exploreMoodItem.value = exploreMoodItem.data
-                    }
+                    when (exploreMoodItem) {
+                        is Resource.Success -> {
+                            _exploreMoodItem.value = exploreMoodItem.data
+                        }
 
-                    else -> {
-                        _exploreMoodItem.value = null
+                        else -> {
+                            _exploreMoodItem.value = null
+                        }
                     }
-                }
-                regionCodeChart.value = dataStoreManager.chartKey.first()
-                Log.d("HomeViewModel", "getHomeItemList: $result")
-                dataStoreManager.cookie.first().let {
-                    if (it != "") {
-                        _accountInfo.emit(
-                            Pair(
-                                dataStoreManager.getString("AccountName").first(),
-                                dataStoreManager.getString("AccountThumbUrl").first(),
-                            ),
-                        )
+                    regionCodeChart.value = dataStoreManager.chartKey.first()
+                    Log.d("HomeViewModel", "getHomeItemList: $result")
+                    dataStoreManager.cookie.first().let {
+                        if (it != "") {
+                            _accountInfo.emit(
+                                Pair(
+                                    dataStoreManager.getString("AccountName").first(),
+                                    dataStoreManager.getString("AccountThumbUrl").first(),
+                                ),
+                            )
+                        }
                     }
+                    when {
+                        home is Resource.Error -> home.message
+                        exploreMoodItem is Resource.Error -> exploreMoodItem.message
+                        chart is Resource.Error -> chart.message
+                        else -> null
+                    }?.let {
+                        showSnackBarErrorState.emit(it)
+                        Log.w("Error", "getHomeItemList: ${home.message}")
+                        Log.w("Error", "getHomeItemList: ${exploreMoodItem.message}")
+                        Log.w("Error", "getHomeItemList: ${chart.message}")
+                    }
+                    loading.value = false
                 }
-                when {
-                    home is Resource.Error -> home.message
-                    exploreMoodItem is Resource.Error -> exploreMoodItem.message
-                    chart is Resource.Error -> chart.message
-                    else -> null
-                }?.let {
-                    showSnackBarErrorState.emit(it)
-                    Log.w("Error", "getHomeItemList: ${home.message}")
-                    Log.w("Error", "getHomeItemList: ${exploreMoodItem.message}")
-                    Log.w("Error", "getHomeItemList: ${chart.message}")
-                }
-                loading.value = false
             }
-        }
     }
 
     fun exploreChart(region: String) {
         viewModelScope.launch {
             loadingChart.value = true
-            mainRepository.getChartData(
-                region,
-            ).collect { values ->
-                regionCodeChart.value = region
-                dataStoreManager.setChartKey(region)
-                when (values) {
-                    is Resource.Success -> {
-                        _chart.value = values.data
-                    }
+            mainRepository
+                .getChartData(
+                    region,
+                ).collect { values ->
+                    regionCodeChart.value = region
+                    dataStoreManager.setChartKey(region)
+                    when (values) {
+                        is Resource.Success -> {
+                            _chart.value = values.data
+                        }
 
-                    else -> {
-                        _chart.value = null
+                        else -> {
+                            _chart.value = null
+                        }
                     }
+                    loadingChart.value = false
                 }
-                loadingChart.value = false
-            }
         }
-    }
-
-    private fun onError(message: String) {
-        errorMessage.value = message
-        loading.value = false
     }
 
     fun updateLikeStatus(
@@ -312,50 +299,6 @@ class HomeViewModel(
 
     @UnstableApi
     fun getDownloadStateFromService(videoId: String) {
-        viewModelScope.launch {
-            downloadState = downloadUtils.getDownload(videoId).stateIn(viewModelScope)
-            downloadState.collect { down ->
-                if (down != null) {
-                    when (down.state) {
-                        Download.STATE_COMPLETED -> {
-                            mainRepository.getSongById(videoId).collect { song ->
-                                if (song?.downloadState != DownloadState.STATE_DOWNLOADED) {
-                                    mainRepository.updateDownloadState(
-                                        videoId,
-                                        DownloadState.STATE_DOWNLOADED,
-                                    )
-                                }
-                            }
-                            Log.d("Check Downloaded", "Downloaded")
-                        }
-
-                        Download.STATE_FAILED -> {
-                            mainRepository.getSongById(videoId).collect { song ->
-                                if (song?.downloadState != DownloadState.STATE_NOT_DOWNLOADED) {
-                                    mainRepository.updateDownloadState(
-                                        videoId,
-                                        DownloadState.STATE_NOT_DOWNLOADED,
-                                    )
-                                }
-                            }
-                            Log.d("Check Downloaded", "Failed")
-                        }
-
-                        Download.STATE_DOWNLOADING -> {
-                            mainRepository.getSongById(videoId).collect { song ->
-                                if (song?.downloadState != DownloadState.STATE_DOWNLOADING) {
-                                    mainRepository.updateDownloadState(
-                                        videoId,
-                                        DownloadState.STATE_DOWNLOADING,
-                                    )
-                                }
-                            }
-                            Log.d("Check Downloaded", "Downloading ${down.percentDownloaded}")
-                        }
-                    }
-                }
-            }
-        }
     }
 
     fun updateLocalPlaylistTracks(
@@ -371,11 +314,12 @@ class HomeViewModel(
                     }
                 }
                 mainRepository.updateLocalPlaylistTracks(list, id)
-                Toast.makeText(
-                    getApplication(),
-                    application.getString(R.string.added_to_playlist),
-                    Toast.LENGTH_SHORT,
-                ).show()
+                Toast
+                    .makeText(
+                        getApplication(),
+                        application.getString(R.string.added_to_playlist),
+                        Toast.LENGTH_SHORT,
+                    ).show()
                 if (count == values.size) {
                     mainRepository.updateLocalPlaylistDownloadState(
                         DownloadState.STATE_DOWNLOADED,
@@ -407,21 +351,23 @@ class HomeViewModel(
                         localPlaylistId,
                         LocalPlaylistEntity.YouTubeSyncState.Synced,
                     )
-                    Toast.makeText(
-                        getApplication(),
-                        application.getString(R.string.added_to_youtube_playlist),
-                        Toast.LENGTH_SHORT,
-                    ).show()
+                    Toast
+                        .makeText(
+                            getApplication(),
+                            application.getString(R.string.added_to_youtube_playlist),
+                            Toast.LENGTH_SHORT,
+                        ).show()
                 } else {
                     mainRepository.updateLocalPlaylistYouTubePlaylistSyncState(
                         localPlaylistId,
                         LocalPlaylistEntity.YouTubeSyncState.NotSynced,
                     )
-                    Toast.makeText(
-                        getApplication(),
-                        application.getString(R.string.error),
-                        Toast.LENGTH_SHORT,
-                    ).show()
+                    Toast
+                        .makeText(
+                            getApplication(),
+                            application.getString(R.string.error),
+                            Toast.LENGTH_SHORT,
+                        ).show()
                 }
             }
         }

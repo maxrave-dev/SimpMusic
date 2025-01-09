@@ -18,7 +18,7 @@ fun NormalAppBar(
     title: @Composable (() -> Unit),
     modifier: Modifier = Modifier,
     leftIcon: @Composable (() -> Unit)? = null,
-    rightIcon: @Composable (RowScope.() -> Unit)? = null
+    rightIcon: @Composable (RowScope.() -> Unit)? = null,
 ) {
     TopAppBar(
         title = title,
@@ -39,7 +39,7 @@ fun NormalAppBarPreview() {
             IconButton(onClick = { }) {
                 Icon(
                     painterResource(id = R.drawable.baseline_arrow_back_ios_new_24),
-                    contentDescription = "Back"
+                    contentDescription = "Back",
                 )
             }
         },
@@ -47,9 +47,9 @@ fun NormalAppBarPreview() {
             IconButton(onClick = { }) {
                 Icon(
                     painterResource(id = R.drawable.baseline_more_vert_24),
-                    contentDescription = "Back"
+                    contentDescription = "Back",
                 )
             }
-        }
+        },
     )
 }

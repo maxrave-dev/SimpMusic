@@ -153,7 +153,7 @@ class ArtistFragment : Fragment() {
         }
 
         binding.toolBar.setNavigationOnClickListener {
-            findNavController().popBackStack()
+            findNavController().navigateUp()
         }
         binding.btShuffle.setOnClickListener {
             val id =
@@ -260,9 +260,8 @@ class ArtistFragment : Fragment() {
                             "RDAMVM$videoId",
                             "\"${viewModel.artistBrowse.value?.data?.name}\" ${getString(R.string.popular)}",
                             PlaylistType.RADIO,
-                            continuation = null
-
-                        )
+                            continuation = null,
+                        ),
                     )
                     viewModel.loadMediaItem(
                         firstQueue,
@@ -301,8 +300,8 @@ class ArtistFragment : Fragment() {
                             "RDAMVM$videoId",
                             "\"${viewModel.artistBrowse.value?.data?.name}\" ${getString(R.string.videos)}",
                             PlaylistType.RADIO,
-                            continuation = null
-                        )
+                            continuation = null,
+                        ),
                     )
                     viewModel.loadMediaItem(
                         firstQueue,
@@ -497,7 +496,7 @@ class ArtistFragment : Fragment() {
                             viewModel.gradientDrawable.value
                                 ?.colors!!
                                 .first(),
-                            requireActivity()
+                            requireActivity(),
                         )
                     }
                 }
@@ -668,7 +667,7 @@ class ArtistFragment : Fragment() {
                                                 fetchData(channelId)
                                             }
                                         }.show()
-                                    findNavController().popBackStack()
+                                    findNavController().navigateUp()
                                 }
 
                                 else -> {

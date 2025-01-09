@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.data.model.searchResult.albums
 
-
 import com.google.gson.annotations.SerializedName
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
@@ -25,5 +24,5 @@ data class AlbumsResult(
     @SerializedName("type")
     val type: String,
     @SerializedName("year")
-    val year: String
+    val year: String,
 )

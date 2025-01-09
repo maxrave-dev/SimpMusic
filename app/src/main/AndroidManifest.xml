@@ -49,7 +49,9 @@
         android:localeConfig="@xml/locale_config"
         android:networkSecurityConfig="@xml/network_security_config"
         android:supportsRtl="true"
-        android:theme="@style/Theme.SimpMusic">
+        android:theme="@style/Theme.SimpMusic"
+        android:enableOnBackInvokedCallback="true"
+        tools:targetApi="tiramisu">
         <receiver
             android:name=".ui.widget.BasicWidget"
             android:exported="false">
@@ -66,6 +68,8 @@
             android:name=".ui.MainActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:exported="true"
+            android:supportsPictureInPicture="true"
+            android:enableOnBackInvokedCallback="true"
             android:launchMode="singleTask">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -191,7 +195,7 @@
         </service>
         <service
             android:name=".service.test.download.MusicDownloadService"
-            android:exported="false"
+            android:exported="true"
             android:foregroundServiceType="dataSync">
             <intent-filter>
                 <action android:name="androidx.media3.exoplayer.downloadService.action.RESTART" />

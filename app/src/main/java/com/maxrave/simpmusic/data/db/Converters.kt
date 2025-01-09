@@ -86,12 +86,14 @@ class Converters {
 
     @TypeConverter
     fun fromTimestamp(value: Long?): LocalDateTime? =
-        if (value != null) LocalDateTime.ofInstant(Instant.ofEpochMilli(value), ZoneOffset.UTC)
-        else null
+        if (value != null) {
+            LocalDateTime.ofInstant(Instant.ofEpochMilli(value), ZoneOffset.UTC)
+        } else {
+            null
+        }
 
     @TypeConverter
-    fun dateToTimestamp(date: LocalDateTime?): Long? =
-        date?.atZone(ZoneOffset.UTC)?.toInstant()?.toEpochMilli()
+    fun dateToTimestamp(date: LocalDateTime?): Long? = date?.atZone(ZoneOffset.UTC)?.toInstant()?.toEpochMilli()
 
     @TypeConverter
     fun fromListMapToString(list: List<Map<String, String>>): String {

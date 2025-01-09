@@ -21,4 +21,6 @@
     <locale android:name="az" />
     <locale android:name="hi" />
     <locale android:name="th" />
+    <locale android:name="nl" />
+    <locale android:name="ko"/>
 </locale-config>

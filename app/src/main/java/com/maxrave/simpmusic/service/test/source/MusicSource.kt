@@ -1,31 +1,31 @@
-//package com.maxrave.simpmusic.service.test.source
+// package com.maxrave.simpmusic.service.test.source
 //
-//import android.util.Log
-//import androidx.core.net.toUri
-//import androidx.media3.common.MediaItem
-//import androidx.media3.common.MediaMetadata
-//import androidx.media3.common.util.UnstableApi
-//import com.maxrave.simpmusic.data.model.browse.album.Track
-//import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
-//import com.maxrave.simpmusic.data.queue.Queue
-//import com.maxrave.simpmusic.data.repository.MainRepository
-//import com.maxrave.simpmusic.extension.connectArtists
-//import com.maxrave.simpmusic.extension.toListName
-//import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
-//import com.maxrave.simpmusic.service.test.source.StateSource.STATE_CREATED
-//import com.maxrave.simpmusic.service.test.source.StateSource.STATE_ERROR
-//import com.maxrave.simpmusic.service.test.source.StateSource.STATE_INITIALIZED
-//import com.maxrave.simpmusic.service.test.source.StateSource.STATE_INITIALIZING
-//import kotlinx.coroutines.flow.MutableStateFlow
-//import kotlinx.coroutines.flow.asStateFlow
-//import javax.inject.Inject
-//import javax.inject.Singleton
+// import android.util.Log
+// import androidx.core.net.toUri
+// import androidx.media3.common.MediaItem
+// import androidx.media3.common.MediaMetadata
+// import androidx.media3.common.util.UnstableApi
+// import com.maxrave.simpmusic.data.model.browse.album.Track
+// import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
+// import com.maxrave.simpmusic.data.queue.Queue
+// import com.maxrave.simpmusic.data.repository.MainRepository
+// import com.maxrave.simpmusic.extension.connectArtists
+// import com.maxrave.simpmusic.extension.toListName
+// import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
+// import com.maxrave.simpmusic.service.test.source.StateSource.STATE_CREATED
+// import com.maxrave.simpmusic.service.test.source.StateSource.STATE_ERROR
+// import com.maxrave.simpmusic.service.test.source.StateSource.STATE_INITIALIZED
+// import com.maxrave.simpmusic.service.test.source.StateSource.STATE_INITIALIZING
+// import kotlinx.coroutines.flow.MutableStateFlow
+// import kotlinx.coroutines.flow.asStateFlow
+// import javax.inject.Inject
+// import javax.inject.Singleton
 //
-//@Singleton
-//class MusicSource @Inject constructor(
+// @Singleton
+// class MusicSource @Inject constructor(
 //    private val simpleMediaServiceHandler: SimpleMediaServiceHandler,
 //    private val mainRepository: MainRepository
-//) {
+// ) {
 //
 //    var catalogMetadata: ArrayList<Track> = (arrayListOf())
 //
@@ -265,12 +265,12 @@
 //        catalogMetadata.removeAt(position)
 //        _currentSongIndex.value = simpleMediaServiceHandler.currentIndex()
 //    }
-//}
+// }
 //
-//enum class StateSource {
+// enum class StateSource {
 //    STATE_CREATED,
 //    STATE_INITIALIZING,
 //    STATE_INITIALIZED,
 //    STATE_ERROR
-//}
+// }
 //

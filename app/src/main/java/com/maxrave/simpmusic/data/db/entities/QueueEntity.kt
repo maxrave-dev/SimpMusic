@@ -8,5 +8,5 @@ import com.maxrave.simpmusic.data.model.browse.album.Track
 data class QueueEntity(
     @PrimaryKey(autoGenerate = false)
     val queueId: Long = 0,
-    val listTrack: List<Track>
+    val listTrack: List<Track>,
 )

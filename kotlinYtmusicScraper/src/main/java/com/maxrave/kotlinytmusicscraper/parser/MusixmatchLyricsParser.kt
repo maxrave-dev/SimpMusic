@@ -20,16 +20,17 @@ fun parseMusixmatchLyrics(data: String): Lyrics {
                     endTimeMs = "0",
                     startTimeMs = timeInMillis.toString(),
                     syllables = listOf(),
-                    words = content
-                )
+                    words = content,
+                ),
             )
         }
     }
     return Lyrics(
-        lyrics = Lyrics.LyricsX(
-            lines = linesLyrics,
-            syncType = "LINE_SYNCED"
-        )
+        lyrics =
+            Lyrics.LyricsX(
+                lines = linesLyrics,
+                syncType = "LINE_SYNCED",
+            ),
     )
 }
 
@@ -42,14 +43,15 @@ fun parseUnsyncedLyrics(data: String): Lyrics {
                 endTimeMs = "0",
                 startTimeMs = "0",
                 syllables = listOf(),
-                words = line
-            )
+                words = line,
+            ),
         )
     }
     return Lyrics(
-        lyrics = Lyrics.LyricsX(
-            lines = linesLyrics,
-            syncType = "UNSYNCED"
-        )
+        lyrics =
+            Lyrics.LyricsX(
+                lines = linesLyrics,
+                syncType = "UNSYNCED",
+            ),
     )
 }

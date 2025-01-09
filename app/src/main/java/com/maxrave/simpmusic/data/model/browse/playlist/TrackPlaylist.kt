@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.data.model.browse.playlist
 
-
 import androidx.compose.runtime.Immutable
 import com.google.gson.annotations.SerializedName
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
@@ -29,5 +28,5 @@ data class TrackPlaylist(
     @SerializedName("videoId")
     val videoId: String,
     @SerializedName("videoType")
-    val videoType: String
+    val videoType: String,
 )

@@ -7,11 +7,12 @@ import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import org.koin.android.annotation.KoinViewModel
 
-@KoinViewModel
-class MoreAlbumsViewModel(application: Application) : BaseViewModel(application) {
 
+
+class MoreAlbumsViewModel(
+    application: Application,
+) : BaseViewModel(application) {
     override val tag: String
         get() = "MoreAlbumsViewModel"
 
@@ -26,6 +27,7 @@ class MoreAlbumsViewModel(application: Application) : BaseViewModel(application)
             }
         }
     }
+
     fun getSingleMore(id: String) {
         viewModelScope.launch {
             _browseResult.value = null

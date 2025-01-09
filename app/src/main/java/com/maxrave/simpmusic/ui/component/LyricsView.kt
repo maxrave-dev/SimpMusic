@@ -73,6 +73,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -255,6 +256,8 @@ fun FullscreenLyricsSheet(
     color: Color = Color(0xFF242424),
     onDismiss: () -> Unit,
 ) {
+    val context = LocalContext.current
+
     val screenDataState by sharedViewModel.nowPlayingScreenData.collectAsState()
     val timelineState by sharedViewModel.timeline.collectAsState()
     val controllerState by sharedViewModel.controllerState.collectAsState()
@@ -346,9 +349,8 @@ fun FullscreenLyricsSheet(
                                         .wrapContentHeight(align = Alignment.CenterVertically)
                                         .basicMarquee(
                                             iterations = Int.MAX_VALUE,
-                                            animationMode = MarqueeAnimationMode.Immediately
-                                        )
-                                        .focusable(),
+                                            animationMode = MarqueeAnimationMode.Immediately,
+                                        ).focusable(),
                             )
                         }
                     },
@@ -529,18 +531,13 @@ fun FullscreenLyricsSheet(
                                 .padding(horizontal = 40.dp),
                         ) {
                             Text(
-                                text =
-                                    if (timelineState.current >= 0L) {
-                                        formatDuration(timelineState.current)
-                                    } else {
-                                        stringResource(id = R.string.na_na)
-                                    },
+                                text = formatDuration(timelineState.current, context),
                                 style = typo.bodyMedium,
                                 modifier = Modifier.weight(1f),
                                 textAlign = TextAlign.Left,
                             )
                             Text(
-                                text = if (timelineState.total >= 0L) formatDuration(timelineState.total) else stringResource(id = R.string.na_na),
+                                text = formatDuration(timelineState.total, context),
                                 style = typo.bodyMedium,
                                 modifier = Modifier.weight(1f),
                                 textAlign = TextAlign.Right,
@@ -556,7 +553,7 @@ fun FullscreenLyricsSheet(
                         // Control Button Layout
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween,
+                            horizontalArrangement = Arrangement.Center,
                             modifier =
                                 Modifier
                                     .fillMaxWidth()
@@ -570,7 +567,7 @@ fun FullscreenLyricsSheet(
                                     ),
                                 modifier =
                                     Modifier
-                                        .size(48.dp)
+                                        .weight(1f) // Distribute equal weight
                                         .aspectRatio(1f)
                                         .clip(
                                             CircleShape,
@@ -583,14 +580,14 @@ fun FullscreenLyricsSheet(
                                     if (isShuffle) {
                                         Icon(
                                             imageVector = Icons.Filled.Shuffle,
-                                            tint = Color.White,
+                                            tint = seed, // Accent color when shuffle is ON
                                             contentDescription = "",
                                             modifier = Modifier.size(32.dp),
                                         )
                                     } else {
                                         Icon(
                                             imageVector = Icons.Filled.Shuffle,
-                                            tint = seed,
+                                            tint = Color.White, // White when shuffle is OFF
                                             contentDescription = "",
                                             modifier = Modifier.size(32.dp),
                                         )
@@ -604,7 +601,7 @@ fun FullscreenLyricsSheet(
                                     ),
                                 modifier =
                                     Modifier
-                                        .size(72.dp)
+                                        .weight(1f)
                                         .aspectRatio(1f)
                                         .clip(
                                             CircleShape,
@@ -629,7 +626,7 @@ fun FullscreenLyricsSheet(
                                     ),
                                 modifier =
                                     Modifier
-                                        .size(96.dp)
+                                        .weight(1f)
                                         .aspectRatio(1f)
                                         .clip(
                                             CircleShape,
@@ -663,7 +660,7 @@ fun FullscreenLyricsSheet(
                                     ),
                                 modifier =
                                     Modifier
-                                        .size(72.dp)
+                                        .weight(1f)
                                         .aspectRatio(1f)
                                         .clip(
                                             CircleShape,
@@ -688,7 +685,7 @@ fun FullscreenLyricsSheet(
                                     ),
                                 modifier =
                                     Modifier
-                                        .size(48.dp)
+                                        .weight(1f)
                                         .aspectRatio(1f)
                                         .clip(
                                             CircleShape,

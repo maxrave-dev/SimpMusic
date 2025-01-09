@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.data.model.streams
 
-
 import com.google.gson.annotations.SerializedName
 
 data class PreviewFrame(
@@ -17,5 +16,5 @@ data class PreviewFrame(
     @SerializedName("totalCount")
     val totalCount: Int?,
     @SerializedName("urls")
-    val urls: List<String?>?
+    val urls: List<String?>?,
 )

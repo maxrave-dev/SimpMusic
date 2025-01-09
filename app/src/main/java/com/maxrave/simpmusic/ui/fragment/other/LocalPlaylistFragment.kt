@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -34,11 +35,10 @@ class LocalPlaylistFragment : Fragment() {
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?,
-    ): View {
-        return ComposeView(requireContext()).also {
+    ): View =
+        ComposeView(requireContext()).also {
             composeView = it
         }
-    }
 
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     @UnstableApi
@@ -50,6 +50,7 @@ class LocalPlaylistFragment : Fragment() {
 
         playlistId = arguments?.getLong("id")
         composeView.apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 AppTheme {
                     Scaffold {
@@ -468,7 +469,7 @@ class LocalPlaylistFragment : Fragment() {
 //        )
 //
 //        binding.topAppBar.setNavigationOnClickListener {
-//            findNavController().popBackStack()
+//            findNavController().navigateUp()
 //        }
 //        binding.topAppBarLayout.addOnOffsetChangedListener { it, verticalOffset ->
 //            Log.d("Local Fragment", "Offset: $verticalOffset" + "Total: ${it.totalScrollRange}")
@@ -798,7 +799,7 @@ class LocalPlaylistFragment : Fragment() {
 //                viewModel.deletePlaylist(id!!)
 //                moreDialog.dismiss()
 //                Toast.makeText(requireContext(), "Playlist deleted", Toast.LENGTH_SHORT).show()
-//                findNavController().popBackStack()
+//                findNavController().navigateUp()
 //            }
 //
 //            moreDialogView.btEditThumbnail.setOnClickListener {
@@ -985,7 +986,7 @@ class LocalPlaylistFragment : Fragment() {
         super.onDestroyView()
         setStatusBarsColor(
             ContextCompat.getColor(requireContext(), R.color.colorPrimaryDark),
-            requireActivity()
+            requireActivity(),
         )
     }
 }

@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.data.model.home
 
-
 import androidx.compose.runtime.Immutable
 import com.google.gson.annotations.SerializedName
 import com.maxrave.simpmusic.data.model.searchResult.songs.Album
@@ -33,4 +32,4 @@ data class Content(
     @SerializedName("durationSeconds")
     val durationSeconds: Int? = null,
     val radio: String? = null,
-): HomeContentType
+) : HomeContentType

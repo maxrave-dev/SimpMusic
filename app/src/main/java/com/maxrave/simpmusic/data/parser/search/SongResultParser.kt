@@ -12,16 +12,22 @@ fun parseSearchSong(result: SearchResult): ArrayList<SongsResult> {
         val song = it as SongItem
         songsResult.add(
             SongsResult(
-                album = if (song.album != null) Album(
-                    id = song.album!!.id,
-                    name = song.album!!.name
-                ) else null,
-                artists = song.artists.map { artistItem ->
-                    com.maxrave.simpmusic.data.model.searchResult.songs.Artist(
-                        id = artistItem.id,
-                        name = artistItem.name
-                    )
-                },
+                album =
+                    if (song.album != null) {
+                        Album(
+                            id = song.album!!.id,
+                            name = song.album!!.name,
+                        )
+                    } else {
+                        null
+                    },
+                artists =
+                    song.artists.map { artistItem ->
+                        com.maxrave.simpmusic.data.model.searchResult.songs.Artist(
+                            id = artistItem.id,
+                            name = artistItem.name,
+                        )
+                    },
                 category = "Song",
                 duration = if (song.duration != null) "%02d:%02d".format(song.duration!! / 60, song.duration!! % 60) else "",
                 durationSeconds = song.duration ?: 0,
@@ -32,8 +38,8 @@ fun parseSearchSong(result: SearchResult): ArrayList<SongsResult> {
                 title = song.title,
                 videoId = song.id,
                 videoType = "Song",
-                year = ""
-            )
+                year = "",
+            ),
         )
     }
     return songsResult

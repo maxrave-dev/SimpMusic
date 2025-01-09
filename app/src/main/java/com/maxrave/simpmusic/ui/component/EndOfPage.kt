@@ -14,18 +14,30 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.ui.theme.typo
+import com.maxrave.simpmusic.utils.VersionManager
 
 @Composable
 fun EndOfPage() {
     Box(
-        modifier = Modifier
+        modifier =
+        Modifier
             .fillMaxWidth()
             .height(280.dp),
-        contentAlignment = Alignment.TopCenter
+        contentAlignment = Alignment.TopCenter,
     ) {
-        Text("@2024 "+ stringResource(R.string.app_name) + " " + stringResource(R.string.version_name) + "\nmaxrave-dev",
-            style = typo.bodySmall, textAlign = TextAlign.Center, modifier = Modifier.padding(
-                top = 20.dp
-            ).alpha(0.8f))
+        Text(
+            "@2024 " + stringResource(R.string.app_name) + " " + stringResource(
+                R.string.version_format,
+                VersionManager.getVersionName()
+            ) + "\nmaxrave-dev",
+            style = typo.bodySmall,
+            textAlign = TextAlign.Center,
+            modifier =
+            Modifier
+                .padding(
+                    top = 20.dp,
+                )
+                .alpha(0.8f),
+        )
     }
 }

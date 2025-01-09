@@ -26,7 +26,7 @@ data class PlaylistPanelRenderer(
         ) {
             @Serializable
             data class PrimaryRenderer(
-                val playlistPanelVideoRenderer: PlaylistPanelVideoRenderer?
+                val playlistPanelVideoRenderer: PlaylistPanelVideoRenderer?,
             )
         }
     }

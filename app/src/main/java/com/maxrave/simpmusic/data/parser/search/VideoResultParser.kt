@@ -12,12 +12,13 @@ fun parseSearchVideo(result: SearchResult): ArrayList<VideosResult> {
         val song = it as SongItem
         songsResult.add(
             VideosResult(
-                artists = song.artists.map { artistItem ->
-                    Artist(
-                        id = artistItem.id,
-                        name = artistItem.name
-                    )
-                },
+                artists =
+                    song.artists.map { artistItem ->
+                        Artist(
+                            id = artistItem.id,
+                            name = artistItem.name,
+                        )
+                    },
                 category = "Video",
                 duration = if (song.duration != null) "%02d:%02d".format(song.duration!! / 60, song.duration!! % 60) else "",
                 durationSeconds = song.duration ?: 0,
@@ -27,8 +28,8 @@ fun parseSearchVideo(result: SearchResult): ArrayList<VideosResult> {
                 videoId = song.id,
                 videoType = "Video",
                 views = null,
-                year = ""
-            )
+                year = "",
+            ),
         )
     }
     return songsResult

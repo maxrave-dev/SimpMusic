@@ -13,11 +13,12 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import org.koin.android.annotation.KoinViewModel
 
-@KoinViewModel
-class GenreViewModel(application: Application) : BaseViewModel(application)  {
 
+
+class GenreViewModel(
+    application: Application,
+) : BaseViewModel(application) {
     override val tag: String
         get() = "GenreViewModel"
 
@@ -27,18 +28,19 @@ class GenreViewModel(application: Application) : BaseViewModel(application)  {
 
     private var regionCode: String? = null
     private var language: String? = null
+
     init {
         regionCode = runBlocking { dataStoreManager.location.first() }
         language = runBlocking { dataStoreManager.getString(SELECTED_LANGUAGE).first() }
     }
 
-    fun getGenre(params: String){
+    fun getGenre(params: String) {
         loading.value = true
         viewModelScope.launch {
             mainRepository.getGenreData(params).collect { values ->
                 _genreObject.value = values
             }
-            withContext(Dispatchers.Main){
+            withContext(Dispatchers.Main) {
                 loading.value = false
             }
         }

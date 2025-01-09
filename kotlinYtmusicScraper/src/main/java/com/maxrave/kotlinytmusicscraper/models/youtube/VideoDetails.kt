@@ -1,6 +1,5 @@
 package com.maxrave.kotlinytmusicscraper.models.youtube
 
-
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -35,5 +34,5 @@ data class VideoDetails(
     @SerialName("videoId")
     val videoId: String? = null,
     @SerialName("viewCount")
-    val viewCount: String?  = null
+    val viewCount: String? = null,
 )

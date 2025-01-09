@@ -12,14 +12,13 @@ import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
 
 abstract class BaseAppWidget : AppWidgetProvider() {
-
     /**
      * {@inheritDoc}
      */
     override fun onUpdate(
         context: Context,
         appWidgetManager: AppWidgetManager,
-        appWidgetIds: IntArray
+        appWidgetIds: IntArray,
     ) {
         defaultAppWidget(context, appWidgetIds)
     }
@@ -27,7 +26,11 @@ abstract class BaseAppWidget : AppWidgetProvider() {
     /**
      * Handle a change notification coming over from [MusicService]
      */
-    fun notifyChange(context: Context, handler: SimpleMediaServiceHandler, what: String) {
+    fun notifyChange(
+        context: Context,
+        handler: SimpleMediaServiceHandler,
+        what: String,
+    ) {
         if (hasInstances(context)) {
             if (META_CHANGED == what || PLAY_STATE_CHANGED == what || REPEAT_MODE_CHANGED == what || SHUFFLE_MODE_CHANGED == what) {
                 performUpdate(context, handler, null)
@@ -38,7 +41,7 @@ abstract class BaseAppWidget : AppWidgetProvider() {
     protected fun pushUpdate(
         context: Context,
         appWidgetIds: IntArray?,
-        views: RemoteViews
+        views: RemoteViews,
     ) {
         val appWidgetManager = AppWidgetManager.getInstance(context)
         if (appWidgetIds != null) {
@@ -50,12 +53,12 @@ abstract class BaseAppWidget : AppWidgetProvider() {
 
     protected fun pushUpdatePartially(
         context: Context,
-        views: RemoteViews
+        views: RemoteViews,
     ) {
         val appWidgetManager = AppWidgetManager.getInstance(context)
         appWidgetManager.partiallyUpdateAppWidget(
             appWidgetManager.getAppWidgetIds(ComponentName(context, javaClass)),
-            views
+            views,
         )
     }
 
@@ -64,11 +67,13 @@ abstract class BaseAppWidget : AppWidgetProvider() {
      */
     private fun hasInstances(context: Context): Boolean {
         val appWidgetManager = AppWidgetManager.getInstance(context)
-        val mAppWidgetIds = appWidgetManager.getAppWidgetIds(
-            ComponentName(
-                context, javaClass
+        val mAppWidgetIds =
+            appWidgetManager.getAppWidgetIds(
+                ComponentName(
+                    context,
+                    javaClass,
+                ),
             )
-        )
         return mAppWidgetIds.isNotEmpty()
     }
 
@@ -77,23 +82,25 @@ abstract class BaseAppWidget : AppWidgetProvider() {
         context: Context,
         action: String,
     ): PendingIntent {
-        val intent = Intent(context, SimpleMediaService::class.java).apply {
-            this.action = action
-        }
+        val intent =
+            Intent(context, SimpleMediaService::class.java).apply {
+                this.action = action
+            }
         return PendingIntent.getForegroundService(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
     }
 
-    protected abstract fun defaultAppWidget(context: Context, appWidgetIds: IntArray)
+    protected abstract fun defaultAppWidget(
+        context: Context,
+        appWidgetIds: IntArray,
+    )
 
     abstract fun performUpdate(
         context: Context,
         handler: SimpleMediaServiceHandler,
-        appWidgetIds: IntArray?
+        appWidgetIds: IntArray?,
     )
 
-
     companion object {
-
         const val NAME: String = "app_widget"
         const val APP_WIDGET_UPDATE: String = "app_widget_update"
         const val EXTRA_APP_WIDGET_NAME: String = "app_widget_name"

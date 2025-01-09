@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,23 +38,33 @@ fun DescriptionView(
     onTimeClicked: (time: String) -> Unit,
     onURLClicked: (url: String) -> Unit,
 ) {
-
     var expanded by rememberSaveable {
         mutableStateOf(false)
     }
+    var shouldHideExpandButton by rememberSaveable {
+        mutableStateOf(false)
+    }
     val maxLineAnimated by animateIntAsState(
-        targetValue = if (expanded) 1000 else limitLine
+        targetValue = if (expanded) 1000 else limitLine,
     )
     var layoutResult by remember { mutableStateOf<TextLayoutResult?>(null) }
 
+    LaunchedEffect(layoutResult) {
+        val lineCount = layoutResult?.lineCount ?: 0
+        if (lineCount < limitLine) {
+            shouldHideExpandButton = true
+        }
+    }
 
     val timeRegex = Regex("""(\d+):(\d+)(?::(\d+))?""")
     val urlRegex = Regex("""https?://\S+""")
     val annotatedString = AnnotatedString.Builder()
     var currentIndex = 0
-    val style = SpanStyle(
-        color = Color(0xFF00B0FF), fontWeight = FontWeight.Normal
-    )
+    val style =
+        SpanStyle(
+            color = Color(0xFF00B0FF),
+            fontWeight = FontWeight.Normal,
+        )
     val combinedRegex = Regex("${timeRegex.pattern}|${urlRegex.pattern}")
     val matchedWords = combinedRegex.findAll(text)
     matchedWords.forEachIndexed { index, matchResult ->
@@ -88,52 +99,54 @@ fun DescriptionView(
     Column(modifier.animateContentSize()) {
         Text(
             text = annotatedString.toAnnotatedString(),
-            modifier = Modifier
-                .fillMaxWidth()
-                .animateContentSize()
-                .pointerInput(Unit) {
-                    detectTapGestures { offset ->
-                        layoutResult?.let { layoutResult ->
-                            val position = layoutResult.getOffsetForPosition(offset)
-                            Log.w("DescriptionView", "Position: $position")
-                            annotatedString
-                                .toAnnotatedString()
-                                .getStringAnnotations(
-                                    start = position,
-                                    end = position,
-                                )
-                                .firstOrNull { annotation ->
-                                    Log.w("DescriptionView", "Annotation: ${annotation.tag}")
-                                    annotation.tag.startsWith("CLICKABLE_USER_")
-                                }
-                                ?.let { annotation ->
-                                    when (annotation.tag) {
-                                        "CLICKABLE_USER_TIME" -> {
-                                            Log.w("DescriptionView", "Time clicked: ${annotation.item}")
-                                            onTimeClicked(annotation.item)
-                                        }
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .animateContentSize()
+                    .pointerInput(Unit) {
+                        detectTapGestures { offset ->
+                            layoutResult?.let { layoutResult ->
+                                val position = layoutResult.getOffsetForPosition(offset)
+                                Log.w("DescriptionView", "Position: $position")
+                                annotatedString
+                                    .toAnnotatedString()
+                                    .getStringAnnotations(
+                                        start = position,
+                                        end = position,
+                                    ).firstOrNull { annotation ->
+                                        Log.w("DescriptionView", "Annotation: ${annotation.tag}")
+                                        annotation.tag.startsWith("CLICKABLE_USER_")
+                                    }?.let { annotation ->
+                                        when (annotation.tag) {
+                                            "CLICKABLE_USER_TIME" -> {
+                                                Log.w("DescriptionView", "Time clicked: ${annotation.item}")
+                                                onTimeClicked(annotation.item)
+                                            }
 
-                                        "CLICKABLE_USER_URL" -> {
-                                            Log.w("DescriptionView", "URL clicked: ${annotation.item}")
-                                            onURLClicked(annotation.item)
+                                            "CLICKABLE_USER_URL" -> {
+                                                Log.w("DescriptionView", "URL clicked: ${annotation.item}")
+                                                onURLClicked(annotation.item)
+                                            }
                                         }
                                     }
-                                }
+                            }
                         }
-                    }
-                },
+                    },
             maxLines = maxLineAnimated,
             onTextLayout = { layoutResult = it },
-            style = typo.bodyMedium
+            style = typo.bodyMedium,
         )
-        Spacer(modifier = Modifier.height(5.dp))
-        Text(
-            text = if (expanded) stringResource(id = R.string.less) else stringResource(id = R.string.more),
-            color = Color.LightGray,
-            modifier = Modifier.clickable {
-                expanded = !expanded
-            },
-            style = typo.labelSmall
-        )
+        Spacer(modifier = Modifier.height(8.dp))
+        androidx.compose.animation.AnimatedVisibility(!shouldHideExpandButton) {
+            Text(
+                text = if (expanded) stringResource(id = R.string.less) else stringResource(id = R.string.more),
+                color = Color.LightGray,
+                modifier =
+                    Modifier.clickable {
+                        expanded = !expanded
+                    },
+                style = typo.labelSmall,
+            )
+        }
     }
 }

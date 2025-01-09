@@ -19,7 +19,7 @@ data class NewFormatEntity(
     val playbackTrackingVideostatsPlaybackUrl: String?,
     val playbackTrackingAtrUrl: String?,
     val playbackTrackingVideostatsWatchtimeUrl: String?,
-    @ColumnInfo(name= "expired_time", defaultValue = "0")
+    @ColumnInfo(name = "expired_time", defaultValue = "0")
     val expiredTime: LocalDateTime = LocalDateTime.now(),
     val cpn: String?,
 )

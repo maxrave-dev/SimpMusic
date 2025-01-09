@@ -1,18 +1,21 @@
 package com.maxrave.simpmusic.viewModel
 
 import android.app.Application
-import android.content.Context
+import android.app.usage.StorageStatsManager
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
+import android.os.storage.StorageManager
 import android.util.Log
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.os.LocaleListCompat
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.cache.SimpleCache
 import coil3.annotation.ExperimentalCoilApi
 import coil3.imageLoader
-import com.maxrave.kotlinytmusicscraper.YouTube
-import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
@@ -23,41 +26,45 @@ import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.common.SETTINGS_FILENAME
 import com.maxrave.simpmusic.common.VIDEO_QUALITY
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
-import com.maxrave.simpmusic.data.db.DatabaseDao
-import com.maxrave.simpmusic.data.db.MusicDatabase
 import com.maxrave.simpmusic.data.db.entities.GoogleAccountEntity
+import com.maxrave.simpmusic.extension.bytesToMB
 import com.maxrave.simpmusic.extension.div
+import com.maxrave.simpmusic.extension.getSizeOfFile
 import com.maxrave.simpmusic.extension.zipInputStream
 import com.maxrave.simpmusic.extension.zipOutputStream
 import com.maxrave.simpmusic.service.SimpleMediaService
-import com.maxrave.simpmusic.ui.MainActivity
+import com.maxrave.simpmusic.service.test.download.DownloadUtils
+import com.maxrave.simpmusic.utils.LocalResource
+import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.singleOrNull
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import org.koin.android.annotation.KoinViewModel
+import kotlinx.coroutines.withContext
 import org.koin.core.component.inject
 import org.koin.core.qualifier.named
 import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.util.zip.ZipEntry
-import kotlin.system.exitProcess
 
 @UnstableApi
-@KoinViewModel
 class SettingsViewModel(
     private val application: Application,
 ) : BaseViewModel(application) {
     override val tag: String = "SettingsViewModel"
 
-    private val database: MusicDatabase by inject()
-    private val databaseDao: DatabaseDao by inject()
-    val playerCache: SimpleCache by inject(named(Config.PLAYER_CACHE))
-    val downloadCache: SimpleCache by inject(named(Config.DOWNLOAD_CACHE))
+    private val databasePath: String? = mainRepository.getDatabasePath()
+    private val playerCache: SimpleCache by inject(qualifier = named(Config.PLAYER_CACHE))
+    private val downloadCache: SimpleCache by inject(qualifier = named(Config.DOWNLOAD_CACHE))
+    private val canvasCache: SimpleCache by inject(qualifier = named(Config.CANVAS_CACHE))
+    private val downloadUtils: DownloadUtils by inject()
 
     private var _location: MutableStateFlow<String?> = MutableStateFlow(null)
     val location: StateFlow<String?> = _location
@@ -69,8 +76,6 @@ class SettingsViewModel(
     val normalizeVolume: StateFlow<String?> = _normalizeVolume
     private var _skipSilent: MutableStateFlow<String?> = MutableStateFlow(null)
     val skipSilent: StateFlow<String?> = _skipSilent
-    private var _pipedInstance: MutableStateFlow<String?> = MutableStateFlow(null)
-    val pipedInstance: StateFlow<String?> = _pipedInstance
     private var _savedPlaybackState: MutableStateFlow<String?> = MutableStateFlow(null)
     val savedPlaybackState: StateFlow<String?> = _savedPlaybackState
     private var _saveRecentSongAndQueue: MutableStateFlow<String?> = MutableStateFlow(null)
@@ -102,12 +107,192 @@ class SettingsViewModel(
     val videoQuality: StateFlow<String?> = _videoQuality
     private var _thumbCacheSize = MutableStateFlow<Long?>(null)
     val thumbCacheSize: StateFlow<Long?> = _thumbCacheSize
+    private var _canvasCacheSize: MutableStateFlow<Long?> = MutableStateFlow(null)
+    val canvasCacheSize: StateFlow<Long?> = _canvasCacheSize
     private var _homeLimit = MutableStateFlow<Int?>(null)
     val homeLimit: StateFlow<Int?> = _homeLimit
     private var _translucentBottomBar: MutableStateFlow<String?> = MutableStateFlow(null)
     val translucentBottomBar: StateFlow<String?> = _translucentBottomBar
+    private var _usingProxy = MutableStateFlow(false)
+    val usingProxy: StateFlow<Boolean> = _usingProxy
+    private var _proxyType = MutableStateFlow(DataStoreManager.Settings.ProxyType.PROXY_TYPE_HTTP)
+    val proxyType: StateFlow<DataStoreManager.Settings.ProxyType> = _proxyType
+    private var _proxyHost = MutableStateFlow("")
+    val proxyHost: StateFlow<String> = _proxyHost
+    private var _proxyPort = MutableStateFlow(8000)
+    val proxyPort: StateFlow<Int> = _proxyPort
+
+    private var _alertData: MutableStateFlow<SettingAlertState?> = MutableStateFlow(null)
+    val alertData: StateFlow<SettingAlertState?> = _alertData
+
+    private var _basicAlertData: MutableStateFlow<SettingBasicAlertState?> = MutableStateFlow(null)
+    val basicAlertData: StateFlow<SettingBasicAlertState?> = _basicAlertData
+
+    // Fraction of storage
+    private var _fraction: MutableStateFlow<SettingsStorageSectionFraction> =
+        MutableStateFlow(
+            SettingsStorageSectionFraction(),
+        )
+    val fraction: StateFlow<SettingsStorageSectionFraction> = _fraction
 
     fun getAudioSessionId() = simpleMediaServiceHandler.player.audioSessionId
+
+    fun getData() {
+        getLocation()
+        getLanguage()
+        getQuality()
+        getPlayerCacheSize()
+        getDownloadedCacheSize()
+        getPlayerCacheLimit()
+        getLoggedIn()
+        getNormalizeVolume()
+        getSkipSilent()
+        getSavedPlaybackState()
+        getSendBackToGoogle()
+        getSaveRecentSongAndQueue()
+        getLastCheckForUpdate()
+        getSponsorBlockEnabled()
+        getSponsorBlockCategories()
+        getTranslationLanguage()
+        getLyricsProvider()
+        getUseTranslation()
+        getMusixmatchLoggedIn()
+        getHomeLimit()
+        getPlayVideoInsteadOfAudio()
+        getVideoQuality()
+        getThumbCacheSize()
+        getSpotifyLogIn()
+        getSpotifyLyrics()
+        getSpotifyCanvas()
+        getUsingProxy()
+        getCanvasCache()
+        getTranslucentBottomBar()
+        viewModelScope.launch {
+            calculateDataFraction()
+        }
+    }
+
+    private fun getCanvasCache() {
+        _canvasCacheSize.value = canvasCache.cacheSpace
+    }
+
+    fun setAlertData(alertData: SettingAlertState?) {
+        _alertData.value = alertData
+    }
+
+    fun setBasicAlertData(alertData: SettingBasicAlertState?) {
+        _basicAlertData.value = alertData
+    }
+
+    private fun getUsingProxy() {
+        viewModelScope.launch {
+            dataStoreManager.usingProxy.collectLatest { usingProxy ->
+                if (usingProxy == DataStoreManager.TRUE) {
+                    getProxy()
+                }
+                _usingProxy.value = usingProxy == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setUsingProxy(usingProxy: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setUsingProxy(usingProxy)
+            getUsingProxy()
+            getProxy()
+        }
+    }
+
+    private fun getProxy() {
+        viewModelScope.launch {
+            val host =
+                launch {
+                    dataStoreManager.proxyHost.collect {
+                        _proxyHost.value = it
+                    }
+                }
+            val port =
+                launch {
+                    dataStoreManager.proxyPort.collect {
+                        _proxyPort.value = it
+                    }
+                }
+            val type =
+                launch {
+                    dataStoreManager.proxyType.collect {
+                        _proxyType.value = it
+                        log("getProxy: $it", Log.DEBUG)
+                    }
+                }
+            host.join()
+            port.join()
+            type.join()
+        }
+    }
+
+    fun setProxy(
+        proxyType: DataStoreManager.Settings.ProxyType,
+        host: String,
+        port: Int,
+    ) {
+        log("setProxy: $proxyType, $host, $port", Log.DEBUG)
+        viewModelScope.launch {
+            dataStoreManager.setProxyType(proxyType)
+            dataStoreManager.setProxyHost(host)
+            dataStoreManager.setProxyPort(port)
+        }
+    }
+
+    private suspend fun calculateDataFraction() {
+        withContext(Dispatchers.Default) {
+            val mStorageStatsManager =
+                application.getSystemService(StorageStatsManager::class.java)
+            if (mStorageStatsManager != null) {
+                val totalByte =
+                    mStorageStatsManager.getTotalBytes(StorageManager.UUID_DEFAULT).bytesToMB()
+                val freeSpace =
+                    mStorageStatsManager.getFreeBytes(StorageManager.UUID_DEFAULT).bytesToMB()
+                val usedSpace = totalByte - freeSpace
+                val simpMusicSize = getSizeOfFile(application.filesDir).bytesToMB()
+                val thumbSize = (application.imageLoader.diskCache?.size ?: 0L).bytesToMB()
+                val otherApp = simpMusicSize.let { usedSpace.minus(it) - thumbSize }
+                val databaseSize =
+                    simpMusicSize - playerCache.cacheSpace.bytesToMB() - downloadCache.cacheSpace.bytesToMB() - canvasCache.cacheSpace.bytesToMB()
+                if (totalByte ==
+                    freeSpace + otherApp + simpMusicSize + thumbSize
+                ) {
+                    withContext(Dispatchers.Main) {
+                        _fraction.update {
+                            it.copy(
+                                otherApp = otherApp.toFloat().div(totalByte.toFloat()),
+                                downloadCache =
+                                downloadCache.cacheSpace
+                                    .bytesToMB()
+                                    .toFloat()
+                                    .div(totalByte.toFloat()),
+                                playerCache =
+                                playerCache.cacheSpace
+                                    .bytesToMB()
+                                    .toFloat()
+                                    .div(totalByte.toFloat()),
+                                canvasCache =
+                                canvasCache.cacheSpace
+                                    .bytesToMB()
+                                    .toFloat()
+                                    .div(totalByte.toFloat()),
+                                thumbCache = thumbSize.toFloat().div(totalByte.toFloat()),
+                                freeSpace = freeSpace.toFloat().div(totalByte.toFloat()),
+                                appDatabase = databaseSize.toFloat().div(totalByte.toFloat()),
+                            )
+                        }
+                        log("calculateDataFraction: $totalByte, $freeSpace, $usedSpace, $simpMusicSize, $otherApp, $databaseSize", Log.WARN)
+                        log("calculateDataFraction: ${_fraction.value}", Log.WARN)
+                        log("calculateDataFraction: ${_fraction.value.combine()}", Log.WARN)
+                    }
+                }
+            }
+        }
+    }
 
     fun getTranslucentBottomBar() {
         viewModelScope.launch {
@@ -209,6 +394,9 @@ class SettingsViewModel(
                     "CheckForUpdateAt",
                     System.currentTimeMillis().toString(),
                 )
+                if (response?.tagName == String.format(getString(R.string.version_format), VersionManager.getVersionName())) {
+                    makeToast(getString(R.string.no_update))
+                }
                 _githubResponse.emit(response)
             }
         }
@@ -233,7 +421,6 @@ class SettingsViewModel(
     fun changeLocation(location: String) {
         viewModelScope.launch {
             dataStoreManager.setLocation(location)
-            YouTube.locale = YouTubeLocale(location, language.value!!)
             getLocation()
         }
     }
@@ -249,6 +436,7 @@ class SettingsViewModel(
     fun getLastCheckForUpdate() {
         viewModelScope.launch {
             dataStoreManager.getString("CheckForUpdateAt").first().let { lastCheckForUpdate ->
+                _githubResponse.emit(null)
                 _lastCheckForUpdate.emit(lastCheckForUpdate)
             }
         }
@@ -287,14 +475,18 @@ class SettingsViewModel(
     fun getSponsorBlockCategories() {
         viewModelScope.launch {
             dataStoreManager.getSponsorBlockCategories().let {
+                log("getSponsorBlockCategories: $it", Log.WARN)
                 _sponsorBlockCategories.emit(it)
             }
         }
     }
 
     fun setSponsorBlockCategories(list: ArrayList<String>) {
+        log("setSponsorBlockCategories: $list", Log.WARN)
         viewModelScope.launch {
-            dataStoreManager.setSponsorBlockCategories(list)
+            runBlocking(Dispatchers.IO) {
+                dataStoreManager.setSponsorBlockCategories(list)
+            }
             getSponsorBlockCategories()
         }
     }
@@ -313,22 +505,18 @@ class SettingsViewModel(
         }
     }
 
-    fun changeVideoQuality(checkedIndex: Int) {
+    fun changeVideoQuality(item: String) {
         viewModelScope.launch {
-            when (checkedIndex) {
-                0 -> dataStoreManager.setVideoQuality(VIDEO_QUALITY.items[0].toString())
-                1 -> dataStoreManager.setVideoQuality(VIDEO_QUALITY.items[1].toString())
+            if (VIDEO_QUALITY.items.contains(item)) {
+                dataStoreManager.setVideoQuality(item)
             }
             getVideoQuality()
         }
     }
 
-    fun changeQuality(checkedIndex: Int) {
+    fun changeQuality(qualityItem: String?) {
         viewModelScope.launch {
-            when (checkedIndex) {
-                0 -> dataStoreManager.setQuality(QUALITY.items[0].toString())
-                1 -> dataStoreManager.setQuality(QUALITY.items[1].toString())
-            }
+            dataStoreManager.setQuality(qualityItem ?: QUALITY.items.first().toString())
             getQuality()
         }
     }
@@ -347,7 +535,7 @@ class SettingsViewModel(
             playerCache.keys.forEach { key ->
                 playerCache.removeResource(key)
             }
-            Toast.makeText(getApplication(), "Player cache cleared", Toast.LENGTH_SHORT).show()
+            makeToast(getString(R.string.clear_player_cache))
             _cacheSize.value = playerCache.cacheSpace
         }
     }
@@ -366,78 +554,79 @@ class SettingsViewModel(
             downloadCache.keys.forEach { key ->
                 downloadCache.removeResource(key)
             }
-            mainRepository.getDownloadedSongs().collect { songs ->
-                songs?.forEach { song ->
+            mainRepository.getDownloadedSongs().singleOrNull()?.let { songs ->
+                songs.forEach { song ->
                     mainRepository.updateDownloadState(song.videoId, DownloadState.STATE_NOT_DOWNLOADED)
                 }
             }
-            Toast.makeText(getApplication(), "Download cache cleared", Toast.LENGTH_SHORT).show()
+            makeToast(getString(R.string.clear_downloaded_cache))
             _cacheSize.value = playerCache.cacheSpace
+            downloadUtils.removeAllDownloads()
         }
     }
 
-    fun backup(
-        context: Context,
-        uri: Uri,
-    ) {
+    @UnstableApi
+    fun clearCanvasCache() {
+        viewModelScope.launch {
+            canvasCache.keys.forEach { key ->
+                canvasCache.removeResource(key)
+            }
+            makeToast(getString(R.string.clear_canvas_cache))
+            _canvasCacheSize.value = canvasCache.cacheSpace
+        }
+    }
+
+    fun backup(uri: Uri) {
         runCatching {
-            context.applicationContext.contentResolver.openOutputStream(uri)?.use {
+            application.applicationContext.contentResolver.openOutputStream(uri)?.use {
                 it.buffered().zipOutputStream().use { outputStream ->
-                    (context.filesDir / "datastore" / "$SETTINGS_FILENAME.preferences_pb").inputStream().buffered().use { inputStream ->
+                    (application.filesDir / "datastore" / "$SETTINGS_FILENAME.preferences_pb").inputStream().buffered().use { inputStream ->
                         outputStream.putNextEntry(ZipEntry("$SETTINGS_FILENAME.preferences_pb"))
                         inputStream.copyTo(outputStream)
                     }
                     runBlocking(Dispatchers.IO) {
-                        databaseDao.checkpoint()
+                        mainRepository.databaseDaoCheckpoint()
                     }
-                    FileInputStream(database.openHelper.writableDatabase.path).use { inputStream ->
+                    FileInputStream(databasePath).use { inputStream ->
                         outputStream.putNextEntry(ZipEntry(DB_NAME))
                         inputStream.copyTo(outputStream)
                     }
                 }
             }
         }.onSuccess {
-            Toast
-                .makeText(
-                    context,
-                    context.getString(R.string.backup_create_success),
-                    Toast.LENGTH_SHORT,
-                ).show()
+            makeToast(getString(R.string.backup_create_success))
         }.onFailure {
             it.printStackTrace()
-            Toast
-                .makeText(
-                    context,
-                    context.getString(R.string.backup_create_failed),
-                    Toast.LENGTH_SHORT,
-                ).show()
+            makeToast(getString(R.string.backup_create_failed))
         }
     }
 
     @UnstableApi
-    fun restore(
-        context: Context,
-        uri: Uri,
-    ) {
+    fun restore(uri: Uri) {
         runCatching {
-            context.applicationContext.contentResolver.openInputStream(uri)?.use {
+            application.applicationContext.contentResolver.openInputStream(uri)?.use {
                 it.zipInputStream().use { inputStream ->
-                    var entry = inputStream.nextEntry
+                    var entry =
+                        try {
+                            inputStream.nextEntry
+                        } catch (e: Exception) {
+                            null
+                        }
                     var count = 0
                     while (entry != null && count < 2) {
                         when (entry.name) {
                             "$SETTINGS_FILENAME.preferences_pb" -> {
-                                (context.filesDir / "datastore" / "$SETTINGS_FILENAME.preferences_pb").outputStream().use { outputStream ->
+                                (application.filesDir / "datastore" / "$SETTINGS_FILENAME.preferences_pb").outputStream().use { outputStream ->
                                     inputStream.copyTo(outputStream)
                                 }
                             }
 
                             DB_NAME -> {
                                 runBlocking(Dispatchers.IO) {
-                                    databaseDao.checkpoint()
+                                    mainRepository.databaseDaoCheckpoint()
+                                    mainRepository.closeDatabase()
                                 }
-                                database.close()
-                                FileOutputStream(database.openHelper.writableDatabase.path).use { outputStream ->
+                                FileOutputStream(databasePath).use { outputStream ->
                                     inputStream.copyTo(outputStream)
                                 }
                             }
@@ -447,18 +636,18 @@ class SettingsViewModel(
                     }
                 }
             }
-            Toast
-                .makeText(
-                    context,
-                    context.getString(R.string.restore_success),
-                    Toast.LENGTH_SHORT,
-                ).show()
-            context.stopService(Intent(context, SimpleMediaService::class.java))
-            context.startActivity(Intent(context, MainActivity::class.java))
-            exitProcess(0)
+            makeToast(getString(R.string.restore_success))
+            application.stopService(Intent(application, SimpleMediaService::class.java))
+            getData()
+            val ctx = application.applicationContext
+            val pm: PackageManager = ctx.packageManager
+            val intent = pm.getLaunchIntentForPackage(ctx.packageName)
+            val mainIntent = Intent.makeRestartActivityTask(intent?.component)
+            ctx.startActivity(mainIntent)
+            Runtime.getRuntime().exit(0)
         }.onFailure {
             it.printStackTrace()
-            Toast.makeText(context, context.getString(R.string.restore_failed), Toast.LENGTH_SHORT).show()
+            makeToast(getString(R.string.restore_failed))
         }
     }
 
@@ -475,15 +664,27 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.putString(SELECTED_LANGUAGE, code)
             Log.w("SettingsViewModel", "changeLanguage: $code")
-            YouTube.locale = YouTubeLocale(location.value!!, code.substring(0..1))
             getLanguage()
+            val localeList =
+                LocaleListCompat.forLanguageTags(
+                    if (code == "id-ID") {
+                        if (Build.VERSION.SDK_INT >= 35) {
+                            "id-ID"
+                        } else {
+                            "in-ID"
+                        }
+                    } else {
+                        code
+                    },
+                )
+            Log.d("Language", localeList.toString())
+            AppCompatDelegate.setApplicationLocales(localeList)
         }
     }
 
     fun clearCookie() {
         viewModelScope.launch {
             dataStoreManager.setCookie("")
-            YouTube.cookie = null
             dataStoreManager.setLoggedIn(false)
         }
     }
@@ -560,8 +761,8 @@ class SettingsViewModel(
     fun clearMusixmatchCookie() {
         viewModelScope.launch {
             dataStoreManager.setMusixmatchCookie("")
-            YouTube.musixMatchCookie = null
             dataStoreManager.setMusixmatchLoggedIn(false)
+            makeToast(getString(R.string.logged_out))
         }
     }
 
@@ -580,22 +781,18 @@ class SettingsViewModel(
         }
     }
 
-    private var _googleAccounts: MutableStateFlow<ArrayList<GoogleAccountEntity>?> =
-        MutableStateFlow(null)
-    val googleAccounts: MutableStateFlow<ArrayList<GoogleAccountEntity>?> = _googleAccounts
-
-    private var _loading: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    val loading: MutableStateFlow<Boolean> = _loading
+    private var _googleAccounts: MutableStateFlow<LocalResource<List<GoogleAccountEntity>>> =
+        MutableStateFlow(LocalResource.Loading())
+    val googleAccounts: StateFlow<LocalResource<List<GoogleAccountEntity>>> = _googleAccounts
 
     fun getAllGoogleAccount() {
         Log.w("getAllGoogleAccount", "getAllGoogleAccount: Go to function")
         viewModelScope.launch {
-            _loading.value = true
-            mainRepository.getGoogleAccounts().collect { accounts ->
+            _googleAccounts.emit(LocalResource.Loading())
+            mainRepository.getGoogleAccounts().collectLatest { accounts ->
                 Log.w("getAllGoogleAccount", "getAllGoogleAccount: $accounts")
                 if (!accounts.isNullOrEmpty()) {
-                    _googleAccounts.value = accounts as ArrayList<GoogleAccountEntity>
-                    _loading.value = false
+                    _googleAccounts.emit(LocalResource.Success(accounts))
                 } else {
                     if (loggedIn.value == DataStoreManager.TRUE) {
                         mainRepository.getAccountInfo().collect {
@@ -611,32 +808,41 @@ class SettingsViewModel(
                                         email = it.email,
                                         name = it.name,
                                         thumbnailUrl = it.thumbnails.lastOrNull()?.url ?: "",
-                                        cache = YouTube.cookie,
+                                        cache = mainRepository.getYouTubeCookie(),
                                         isUsed = true,
                                     ),
                                 )
                                 delay(500)
                                 getAllGoogleAccount()
                             } else {
-                                _googleAccounts.value = null
-                                _loading.value = false
+                                _googleAccounts.emit(LocalResource.Success(emptyList()))
                             }
                         }
                     } else {
-                        _googleAccounts.value = null
-                        _loading.value = false
+                        _googleAccounts.emit(LocalResource.Success(emptyList()))
                     }
                 }
             }
         }
     }
 
-    fun addAccount() {
+    fun addAccount(cookie: String) {
         viewModelScope.launch {
+            dataStoreManager.setCookie(cookie)
+            dataStoreManager.setLoggedIn(true)
             mainRepository.getAccountInfo().collect { accountInfo ->
+                Log.d("getAllGoogleAccount", "addAccount: $accountInfo")
                 if (accountInfo != null) {
-                    googleAccounts.value?.forEach {
-                        mainRepository.updateGoogleAccountUsed(it.email, false)
+                    runBlocking {
+                        mainRepository.getGoogleAccounts().singleOrNull()?.forEach {
+                            Log.d("getAllGoogleAccount", "set used: $it start")
+                            mainRepository
+                                .updateGoogleAccountUsed(it.email, false)
+                                .singleOrNull()
+                                ?.let {
+                                    Log.w("getAllGoogleAccount", "set used: $it")
+                                }
+                        }
                     }
                     dataStoreManager.putString("AccountName", accountInfo.name)
                     dataStoreManager.putString(
@@ -648,12 +854,12 @@ class SettingsViewModel(
                             email = accountInfo.email,
                             name = accountInfo.name,
                             thumbnailUrl = accountInfo.thumbnails.lastOrNull()?.url ?: "",
-                            cache = YouTube.cookie,
+                            cache = mainRepository.getYouTubeCookie(),
                             isUsed = true,
                         ),
                     )
                     dataStoreManager.setLoggedIn(true)
-                    dataStoreManager.setCookie(YouTube.cookie ?: "")
+                    dataStoreManager.setCookie(mainRepository.getYouTubeCookie() ?: "")
                     delay(500)
                     getAllGoogleAccount()
                     getLoggedIn()
@@ -665,27 +871,40 @@ class SettingsViewModel(
     fun setUsedAccount(acc: GoogleAccountEntity?) {
         viewModelScope.launch {
             if (acc != null) {
-                googleAccounts.value?.forEach {
-                    mainRepository.updateGoogleAccountUsed(it.email, false)
+                googleAccounts.value.data?.forEach {
+                    mainRepository
+                        .updateGoogleAccountUsed(it.email, false)
+                        .singleOrNull()
+                        ?.let {
+                            Log.w("getAllGoogleAccount", "set used: $it")
+                        }
                 }
                 dataStoreManager.putString("AccountName", acc.name)
                 dataStoreManager.putString("AccountThumbUrl", acc.thumbnailUrl)
-                mainRepository.updateGoogleAccountUsed(acc.email, true)
-                YouTube.cookie = acc.cache
+                mainRepository
+                    .updateGoogleAccountUsed(acc.email, true)
+                    .singleOrNull()
+                    ?.let {
+                        Log.w("getAllGoogleAccount", "set used: $it")
+                    }
                 dataStoreManager.setCookie(acc.cache ?: "")
                 dataStoreManager.setLoggedIn(true)
                 delay(500)
                 getAllGoogleAccount()
                 getLoggedIn()
             } else {
-                googleAccounts.value?.forEach {
-                    mainRepository.updateGoogleAccountUsed(it.email, false)
+                googleAccounts.value.data?.forEach {
+                    mainRepository
+                        .updateGoogleAccountUsed(it.email, false)
+                        .singleOrNull()
+                        ?.let {
+                            Log.w("getAllGoogleAccount", "set used: $it")
+                        }
                 }
                 dataStoreManager.putString("AccountName", "")
                 dataStoreManager.putString("AccountThumbUrl", "")
                 dataStoreManager.setLoggedIn(false)
                 dataStoreManager.setCookie("")
-                YouTube.cookie = null
                 delay(500)
                 getAllGoogleAccount()
                 getLoggedIn()
@@ -695,14 +914,13 @@ class SettingsViewModel(
 
     fun logOutAllYouTube() {
         viewModelScope.launch {
-            googleAccounts.value?.forEach { account ->
+            googleAccounts.value.data?.forEach { account ->
                 mainRepository.deleteGoogleAccount(account.email)
             }
             dataStoreManager.putString("AccountName", "")
             dataStoreManager.putString("AccountThumbUrl", "")
             dataStoreManager.setLoggedIn(false)
             dataStoreManager.setCookie("")
-            YouTube.cookie = null
             delay(500)
             getAllGoogleAccount()
             getLoggedIn()
@@ -808,3 +1026,48 @@ class SettingsViewModel(
         }
     }
 }
+
+data class SettingsStorageSectionFraction(
+    val otherApp: Float = 0f,
+    val downloadCache: Float = 0f,
+    val playerCache: Float = 0f,
+    val canvasCache: Float = 0f,
+    val thumbCache: Float = 0f,
+    val appDatabase: Float = 0f,
+    val freeSpace: Float = 0f,
+) {
+    fun combine(): Float = otherApp + downloadCache + playerCache + canvasCache + thumbCache + appDatabase + freeSpace
+}
+
+data class SettingAlertState(
+    val title: String,
+    val message: String? = null,
+    val textField: TextFieldData? = null,
+    val selectOne: SelectData? = null,
+    val multipleSelect: SelectData? = null,
+    val confirm: Pair<String, (SettingAlertState) -> Unit>,
+    val dismiss: String = "Cancel",
+) {
+    data class TextFieldData(
+        val label: String,
+        val value: String = "",
+        // User typing string -> (true or false, If false, show error message)
+        val verifyCodeBlock: ((String) -> Pair<Boolean, String?>)? = null,
+    )
+
+    data class SelectData(
+        // Selected / Data
+        val listSelect: List<Pair<Boolean, String>>,
+    ) {
+        fun getSelected(): String = listSelect.firstOrNull { it.first }?.second ?: ""
+
+        fun getListSelected(): List<String> = listSelect.filter { it.first }.map { it.second }
+    }
+}
+
+data class SettingBasicAlertState(
+    val title: String,
+    val message: String? = null,
+    val confirm: Pair<String, () -> Unit>,
+    val dismiss: String = "Cancel",
+)

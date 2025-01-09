@@ -129,7 +129,7 @@ interface DatabaseDao {
     suspend fun getAllSongs(): List<SongEntity>
 
     @Query("SELECT * FROM song WHERE liked = 1")
-    suspend fun getLikedSongs(): List<SongEntity>
+    fun getLikedSongs(): Flow<List<SongEntity>>
 
     @Query("SELECT * FROM song WHERE inLibrary IS NOT NULL")
     suspend fun getLibrarySongs(): List<SongEntity>
@@ -164,8 +164,8 @@ interface DatabaseDao {
         videoId: String,
     ): Int
 
-    @Query("SELECT * FROM song WHERE totalPlayTime > 1 ORDER BY totalPlayTime DESC LIMIT 20")
-    suspend fun getMostPlayedSongs(): List<SongEntity>
+    @Query("SELECT * FROM song WHERE totalPlayTime > 1 ORDER BY totalPlayTime DESC LIMIT 50")
+    fun getMostPlayedSongs(): Flow<List<SongEntity>>
 
     @Query("UPDATE song SET downloadState = :downloadState WHERE videoId = :videoId")
     suspend fun updateDownloadState(
@@ -208,7 +208,7 @@ interface DatabaseDao {
     suspend fun getArtist(channelId: String): ArtistEntity
 
     @Query("SELECT * FROM artist WHERE followed = 1")
-    suspend fun getFollowedArtists(): List<ArtistEntity>
+    fun getFollowedArtists(): Flow<List<ArtistEntity>>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertArtist(artist: ArtistEntity)
@@ -232,11 +232,14 @@ interface DatabaseDao {
     @Query("SELECT * FROM album WHERE browseId = :browseId")
     suspend fun getAlbum(browseId: String): AlbumEntity
 
+    @Query("SELECT * FROM album WHERE browseId = :browseId")
+    fun getAlbumAsFlow(browseId: String): Flow<AlbumEntity?>
+
     @Query("SELECT * FROM album WHERE liked = 1")
     suspend fun getLikedAlbums(): List<AlbumEntity>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertAlbum(album: AlbumEntity)
+    suspend fun insertAlbum(album: AlbumEntity): Long
 
     @Query("UPDATE album SET liked = :liked WHERE browseId = :browseId")
     suspend fun updateAlbumLiked(
@@ -423,7 +426,10 @@ interface DatabaseDao {
     suspend fun getPlaylistPairSong(playlistId: Long): List<PairSongLocalPlaylist>?
 
     @Query("SELECT * FROM pair_song_local_playlist WHERE playlistId = :playlistId AND position in (:positionList)")
-    suspend fun getPlaylistPairSongByListPosition(playlistId: Long, positionList: List<Int>): List<PairSongLocalPlaylist>?
+    suspend fun getPlaylistPairSongByListPosition(
+        playlistId: Long,
+        positionList: List<Int>,
+    ): List<PairSongLocalPlaylist>?
 
     @Query(
         "SELECT * FROM pair_song_local_playlist WHERE playlistId = :playlistId ORDER BY position " +
@@ -475,7 +481,7 @@ interface DatabaseDao {
     suspend fun updateGoogleAccountUsed(
         isUsed: Boolean,
         email: String,
-    )
+    ): Int
 
     @Query("DELETE FROM googleaccountentity WHERE email = :email")
     suspend fun deleteGoogleAccount(email: String)

@@ -27,6 +27,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
@@ -43,6 +45,14 @@ abstract class BaseViewModel(
     // I want I can play track from any viewModel instead of calling from UI to sharedViewModel
     protected val simpleMediaServiceHandler: SimpleMediaServiceHandler by inject()
 
+    private val _nowPlayingVideoId: MutableStateFlow<String> = MutableStateFlow("")
+
+    /**
+     * Get now playing video id
+     * If empty, no video is playing
+     */
+    val nowPlayingVideoId: StateFlow<String> get() = _nowPlayingVideoId
+
     /**
      * Tag for logging
      */
@@ -51,7 +61,10 @@ abstract class BaseViewModel(
     /**
      * Log with viewModel tag
      */
-    protected fun log(message: String, logType: Int) {
+    protected fun log(
+        message: String,
+        logType: Int,
+    ) {
         when (logType) {
             Log.ASSERT -> Log.wtf(tag, message)
             Log.VERBOSE -> Log.v(tag, message)
@@ -71,6 +84,10 @@ abstract class BaseViewModel(
         viewModelScope.cancel()
     }
 
+    init {
+        getNowPlayingVideoId()
+    }
+
     protected fun makeToast(message: String?) {
         Toast.makeText(application, message ?: "NO MESSAGE", Toast.LENGTH_SHORT).show()
     }
@@ -84,8 +101,23 @@ abstract class BaseViewModel(
     fun showLoadingDialog(message: String? = null) {
         _showLoadingDialog.value = true to (message ?: getString(R.string.loading))
     }
+
     fun hideLoadingDialog() {
         _showLoadingDialog.value = false to getString(R.string.loading)
+    }
+
+    private fun getNowPlayingVideoId() {
+        viewModelScope.launch {
+            combine(simpleMediaServiceHandler.nowPlayingState, simpleMediaServiceHandler.controlState) { nowPlayingState, controlState ->
+                Pair(nowPlayingState, controlState)
+            }.collect { (nowPlayingState, controlState) ->
+                if (controlState.isPlaying) {
+                    _nowPlayingVideoId.value = nowPlayingState.songEntity?.videoId ?: ""
+                } else {
+                    _nowPlayingVideoId.value = ""
+                }
+            }
+        }
     }
 
     /**
@@ -98,16 +130,17 @@ abstract class BaseViewModel(
     fun <T> loadMediaItem(
         anyTrack: T,
         type: String,
-        index: Int? = null
+        index: Int? = null,
     ) {
-        val track = when (anyTrack) {
-            is Track -> anyTrack
-            is SongItem -> anyTrack.toTrack()
-            is SongEntity -> anyTrack.toTrack()
-            else -> return
-        }
+        val track =
+            when (anyTrack) {
+                is Track -> anyTrack
+                is SongItem -> anyTrack.toTrack()
+                is SongEntity -> anyTrack.toTrack()
+                else -> return
+            }
         viewModelScope.launch {
-            mainRepository.insertSong(track.toSongEntity()).collect {
+            mainRepository.insertSong(track.toSongEntity()).singleOrNull()?.let {
                 log("Inserted song: ${track.title}", Log.DEBUG)
             }
             simpleMediaServiceHandler.clearMediaItems()

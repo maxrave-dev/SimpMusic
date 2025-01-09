@@ -63,7 +63,7 @@ sealed class LocalResource<T>(
 sealed class NoResponseResource(
     val message: String? = null,
 ) {
-    class Success() : NoResponseResource()
+    class Success : NoResponseResource()
 
     class Error(
         message: String,

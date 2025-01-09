@@ -110,8 +110,12 @@ import java.util.Calendar
 @UnstableApi
 @Composable
 fun HomeScreen(
-    viewModel: HomeViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
-    sharedViewModel: SharedViewModel = androidx.lifecycle.viewmodel.compose.viewModel(),
+    viewModel: HomeViewModel =
+        androidx.lifecycle.viewmodel.compose
+            .viewModel(),
+    sharedViewModel: SharedViewModel =
+        androidx.lifecycle.viewmodel.compose
+            .viewModel(),
     navController: NavController,
 ) {
     val context = LocalContext.current
@@ -191,7 +195,7 @@ fun HomeScreen(
             },
             onDismissRequest = {
                 viewModel.doneShowLogInAlert()
-            }
+            },
         )
     }
 
@@ -199,45 +203,48 @@ fun HomeScreen(
         AnimatedVisibility(
             visible = scrollState.isScrollingUp(),
             enter = fadeIn() + expandVertically(),
-            exit = fadeOut() + shrinkVertically()
+            exit = fadeOut() + shrinkVertically(),
         ) {
             HomeTopAppBar(navController)
         }
         AnimatedVisibility(
             visible = !scrollState.isScrollingUp(),
             enter = fadeIn() + expandVertically(),
-            exit = fadeOut() + shrinkVertically()
+            exit = fadeOut() + shrinkVertically(),
         ) {
             Spacer(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .windowInsetsPadding(
-                        WindowInsets.statusBars
-                    )
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .windowInsetsPadding(
+                            WindowInsets.statusBars,
+                        ),
             )
         }
         Row(
-            modifier = Modifier
-                .horizontalScroll(chipRowState)
-                .padding(vertical = 8.dp, horizontal = 15.dp),
+            modifier =
+                Modifier
+                    .horizontalScroll(chipRowState)
+                    .padding(vertical = 8.dp, horizontal = 15.dp),
         ) {
             Config.listOfHomeChip.forEach { id ->
                 Spacer(modifier = Modifier.width(4.dp))
                 Chip(
                     isSelected =
-                    when (params) {
-                        Constants.HOME_PARAMS_RELAX -> id == R.string.relax
-                        Constants.HOME_PARAMS_SLEEP -> id == R.string.sleep
-                        Constants.HOME_PARAMS_ENERGIZE -> id == R.string.energize
-                        Constants.HOME_PARAMS_SAD -> id == R.string.sad
-                        Constants.HOME_PARAMS_ROMANCE -> id == R.string.romance
-                        Constants.HOME_PARAMS_FEEL_GOOD -> id == R.string.feel_good
-                        Constants.HOME_PARAMS_WORKOUT -> id == R.string.workout
-                        Constants.HOME_PARAMS_PARTY -> id == R.string.party
-                        Constants.HOME_PARAMS_COMMUTE -> id == R.string.commute
-                        Constants.HOME_PARAMS_FOCUS -> id == R.string.focus
-                        else -> id == R.string.all
-                    }, text = stringResource(id = id)
+                        when (params) {
+                            Constants.HOME_PARAMS_RELAX -> id == R.string.relax
+                            Constants.HOME_PARAMS_SLEEP -> id == R.string.sleep
+                            Constants.HOME_PARAMS_ENERGIZE -> id == R.string.energize
+                            Constants.HOME_PARAMS_SAD -> id == R.string.sad
+                            Constants.HOME_PARAMS_ROMANCE -> id == R.string.romance
+                            Constants.HOME_PARAMS_FEEL_GOOD -> id == R.string.feel_good
+                            Constants.HOME_PARAMS_WORKOUT -> id == R.string.workout
+                            Constants.HOME_PARAMS_PARTY -> id == R.string.party
+                            Constants.HOME_PARAMS_COMMUTE -> id == R.string.commute
+                            Constants.HOME_PARAMS_FOCUS -> id == R.string.focus
+                            else -> id == R.string.all
+                        },
+                    text = stringResource(id = id),
                 ) {
                     when (id) {
                         R.string.all -> viewModel.setParams(null)
@@ -258,8 +265,8 @@ fun HomeScreen(
         }
         PullToRefreshBox(
             modifier =
-            Modifier
-                .padding(vertical = 8.dp),
+                Modifier
+                    .padding(vertical = 8.dp),
             state = pullToRefreshState,
             onRefresh = onRefresh,
             isRefreshing = isRefreshing,
@@ -270,9 +277,9 @@ fun HomeScreen(
                     modifier = Modifier.align(Alignment.TopCenter),
                     containerColor = PullToRefreshDefaults.containerColor,
                     color = PullToRefreshDefaults.indicatorColor,
-                    threshold = PullToRefreshDefaults.PositionalThreshold
+                    threshold = PullToRefreshDefaults.PositionalThreshold,
                 )
-            }
+            },
         ) {
             Spacer(modifier = Modifier.height(8.dp))
             Crossfade(targetState = loading, label = "Home Shimmer") { loading ->
@@ -294,21 +301,21 @@ fun HomeScreen(
                         item {
                             androidx.compose.animation.AnimatedVisibility(
                                 visible =
-                                homeData.find {
-                                    it.title ==
-                                        context.getString(
-                                            R.string.quick_picks,
-                                        )
-                                } != null,
-                            ) {
-                                QuickPicks(
-                                    homeItem =
                                     homeData.find {
                                         it.title ==
                                             context.getString(
                                                 R.string.quick_picks,
                                             )
-                                    } ?: return@AnimatedVisibility,
+                                    } != null,
+                            ) {
+                                QuickPicks(
+                                    homeItem =
+                                        homeData.find {
+                                            it.title ==
+                                                context.getString(
+                                                    R.string.quick_picks,
+                                                )
+                                        } ?: return@AnimatedVisibility,
                                     viewModel = viewModel,
                                 )
                             }
@@ -359,10 +366,10 @@ fun HomeScreen(
                                         DropdownButton(
                                             items = CHART_SUPPORTED_COUNTRY.itemsData.toList(),
                                             defaultSelected =
-                                            CHART_SUPPORTED_COUNTRY.itemsData.getOrNull(
-                                                CHART_SUPPORTED_COUNTRY.items.indexOf(it),
-                                            )
-                                                ?: CHART_SUPPORTED_COUNTRY.itemsData[1],
+                                                CHART_SUPPORTED_COUNTRY.itemsData.getOrNull(
+                                                    CHART_SUPPORTED_COUNTRY.items.indexOf(it),
+                                                )
+                                                    ?: CHART_SUPPORTED_COUNTRY.itemsData[1],
                                         ) {
                                             viewModel.exploreChart(
                                                 CHART_SUPPORTED_COUNTRY.items[
@@ -391,9 +398,9 @@ fun HomeScreen(
                                     } else {
                                         CenterLoadingBox(
                                             modifier =
-                                            Modifier
-                                                .fillMaxWidth()
-                                                .height(400.dp),
+                                                Modifier
+                                                    .fillMaxWidth()
+                                                    .height(400.dp),
                                         )
                                     }
                                 }
@@ -431,23 +438,23 @@ fun HomeTopAppBar(navController: NavController) {
                 )
                 Text(
                     text =
-                    when (hour) {
-                        in 6..12 -> {
-                            stringResource(R.string.good_morning)
-                        }
+                        when (hour) {
+                            in 6..12 -> {
+                                stringResource(R.string.good_morning)
+                            }
 
-                        in 13..17 -> {
-                            stringResource(R.string.good_afternoon)
-                        }
+                            in 13..17 -> {
+                                stringResource(R.string.good_afternoon)
+                            }
 
-                        in 18..23 -> {
-                            stringResource(R.string.good_evening)
-                        }
+                            in 18..23 -> {
+                                stringResource(R.string.good_evening)
+                            }
 
-                        else -> {
-                            stringResource(R.string.good_night)
-                        }
-                    },
+                            else -> {
+                                stringResource(R.string.good_night)
+                            }
+                        },
                     style = typo.bodySmall,
                 )
             }
@@ -487,30 +494,32 @@ fun AccountLayout(
             modifier = Modifier.padding(horizontal = 5.dp, vertical = 5.dp),
         ) {
             AsyncImage(
-                model = ImageRequest.Builder(LocalContext.current)
-                    .data(url)
-                    .diskCachePolicy(CachePolicy.ENABLED)
-                    .diskCacheKey(url)
-                    .crossfade(true)
-                    .build(),
+                model =
+                    ImageRequest
+                        .Builder(LocalContext.current)
+                        .data(url)
+                        .diskCachePolicy(CachePolicy.ENABLED)
+                        .diskCacheKey(url)
+                        .crossfade(true)
+                        .build(),
                 placeholder = painterResource(R.drawable.holder),
                 error = painterResource(R.drawable.holder),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier =
-                Modifier
-                    .size(40.dp)
-                    .clip(
-                        CircleShape,
-                    ),
+                    Modifier
+                        .size(40.dp)
+                        .clip(
+                            CircleShape,
+                        ),
             )
             Text(
                 text = accountName,
                 style = typo.headlineMedium,
                 color = Color.White,
                 modifier =
-                Modifier
-                    .padding(start = 8.dp),
+                    Modifier
+                        .padding(start = 8.dp),
             )
         }
     }
@@ -521,7 +530,7 @@ fun AccountLayout(
 @Composable
 fun QuickPicks(
     homeItem: HomeItem,
-    viewModel: HomeViewModel
+    viewModel: HomeViewModel,
 ) {
     val lazyListState = rememberLazyGridState()
     val snapperFlingBehavior = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyGridState = lazyListState, snapPosition = SnapPosition.Start))
@@ -547,9 +556,9 @@ fun QuickPicks(
             style = typo.headlineMedium,
             maxLines = 1,
             modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(vertical = 5.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 5.dp),
         )
         LazyHorizontalGrid(
             rows = GridCells.Fixed(4),
@@ -569,8 +578,8 @@ fun QuickPicks(
                                     playlistId = "RDAMVM${it.videoId}",
                                     playlistName = "\"${it.title}\" Radio",
                                     playlistType = PlaylistType.RADIO,
-                                    continuation = null
-                                )
+                                    continuation = null,
+                                ),
                             )
                             viewModel.loadMediaItem(
                                 firstQueue,
@@ -591,7 +600,6 @@ fun MoodMomentAndGenre(
     mood: Mood,
     navController: NavController,
 ) {
-
     val lazyListState1 = rememberLazyGridState()
     val snapperFlingBehavior1 = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyGridState = lazyListState1))
 
@@ -611,9 +619,9 @@ fun MoodMomentAndGenre(
             style = typo.headlineMedium,
             maxLines = 1,
             modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(vertical = 5.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 5.dp),
         )
         LazyHorizontalGrid(
             rows = GridCells.Fixed(3),
@@ -637,12 +645,13 @@ fun MoodMomentAndGenre(
             style = typo.headlineMedium,
             maxLines = 1,
             modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(vertical = 5.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 5.dp),
         )
         LazyHorizontalGrid(
-            rows = GridCells.Fixed(3), modifier = Modifier.height(210.dp),
+            rows = GridCells.Fixed(3),
+            modifier = Modifier.height(210.dp),
             state = lazyListState2,
             flingBehavior = snapperFlingBehavior2,
         ) {
@@ -672,9 +681,9 @@ fun ChartTitle() {
             style = typo.headlineMedium,
             maxLines = 1,
             modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(vertical = 5.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 5.dp),
         )
     }
 }
@@ -709,7 +718,7 @@ fun ChartData(
             with(density) {
                 gridWidthDp = (coordinates.size.width).toDp()
             }
-        }
+        },
     ) {
         AnimatedVisibility(
             visible = !chart.songs.isNullOrEmpty(),
@@ -722,9 +731,9 @@ fun ChartData(
                     style = typo.headlineMedium,
                     maxLines = 1,
                     modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 10.dp),
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 10.dp),
                 )
                 if (!chart.songs.isNullOrEmpty()) {
                     LazyHorizontalGrid(
@@ -742,8 +751,8 @@ fun ChartData(
                                         playlistName = "\"${it.title}\" ${context.getString(R.string.in_charts)}",
                                         playlistType = PlaylistType.RADIO,
                                         playlistId = "RDAMVM${it.videoId}",
-                                        continuation = null
-                                    )
+                                        continuation = null,
+                                    ),
                                 )
                                 viewModel.loadMediaItem(
                                     data,
@@ -760,13 +769,13 @@ fun ChartData(
             style = typo.headlineMedium,
             maxLines = 1,
             modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(vertical = 10.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 10.dp),
         )
         LazyRow(
             state = lazyListState,
-            flingBehavior = snapperFlingBehavior
+            flingBehavior = snapperFlingBehavior,
         ) {
             items(chart.videos.items.size, key = { index -> chart.videos.items[index].videoId }) {
                 val data = chart.videos.items[it]
@@ -780,8 +789,8 @@ fun ChartData(
                                 playlistName = "\"${data.title}\" ${context.getString(R.string.in_charts)}",
                                 playlistType = PlaylistType.RADIO,
                                 playlistId = "RDAMVM${data.videoId}",
-                                continuation = null
-                            )
+                                continuation = null,
+                            ),
                         )
                         viewModel.loadMediaItem(
                             firstQueue,
@@ -798,12 +807,13 @@ fun ChartData(
             style = typo.headlineMedium,
             maxLines = 1,
             modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(vertical = 10.dp),
+                Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 10.dp),
         )
         LazyHorizontalGrid(
-            rows = GridCells.Fixed(3), modifier = Modifier.height(240.dp),
+            rows = GridCells.Fixed(3),
+            modifier = Modifier.height(240.dp),
             state = lazyListState2,
             flingBehavior = snapperFlingBehavior2,
         ) {
@@ -826,9 +836,9 @@ fun ChartData(
                     style = typo.headlineMedium,
                     maxLines = 1,
                     modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 10.dp),
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 10.dp),
                 )
                 if (!chart.trending.isNullOrEmpty()) {
                     LazyHorizontalGrid(
@@ -850,8 +860,8 @@ fun ChartData(
                                         playlistName = "\"${data.title}\" ${context.getString(R.string.in_charts)}",
                                         playlistType = PlaylistType.RADIO,
                                         playlistId = "RDAMVM${data.videoId}",
-                                        continuation = null
-                                    )
+                                        continuation = null,
+                                    ),
                                 )
                                 viewModel.loadMediaItem(
                                     data,

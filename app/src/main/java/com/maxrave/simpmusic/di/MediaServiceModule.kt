@@ -1,6 +1,7 @@
 package com.maxrave.simpmusic.di
 
 import android.content.Context
+import java.net.Proxy
 import android.util.Log
 import androidx.annotation.OptIn
 import androidx.core.net.toUri
@@ -12,18 +13,20 @@ import androidx.media3.database.DatabaseProvider
 import androidx.media3.database.StandaloneDatabaseProvider
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DataSpec
-import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.datasource.DefaultDataSource
 import androidx.media3.datasource.ResolvingDataSource
 import androidx.media3.datasource.cache.CacheDataSource
 import androidx.media3.datasource.cache.LeastRecentlyUsedCacheEvictor
 import androidx.media3.datasource.cache.NoOpCacheEvictor
 import androidx.media3.datasource.cache.SimpleCache
+import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.audio.AudioSink
 import androidx.media3.exoplayer.audio.DefaultAudioSink
 import androidx.media3.exoplayer.audio.SilenceSkippingAudioProcessor
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
+import androidx.media3.exoplayer.util.EventLogger
 import androidx.media3.extractor.ExtractorsFactory
 import androidx.media3.extractor.mkv.MatroskaExtractor
 import androidx.media3.extractor.mp4.FragmentedMp4Extractor
@@ -42,10 +45,13 @@ import com.maxrave.simpmusic.service.test.source.MergingMediaSourceFactory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
@@ -54,11 +60,11 @@ import org.koin.dsl.module
 val mediaServiceModule =
     module {
         // Cache
-        single<DatabaseProvider>(createdAtStart = true) {
+        single<DatabaseProvider> {
             StandaloneDatabaseProvider(androidContext())
         }
         // Player Cache
-        single<SimpleCache>(createdAtStart = true, qualifier = named(PLAYER_CACHE)) {
+        single<SimpleCache>(qualifier = named(PLAYER_CACHE)) {
             SimpleCache(
                 androidContext().filesDir.resolve("exoplayer"),
                 when (val cacheSize = runBlocking { get<DataStoreManager>().maxSongCacheSize.first() }) {
@@ -69,7 +75,7 @@ val mediaServiceModule =
             )
         }
         // Download Cache
-        single<SimpleCache>(createdAtStart = true, qualifier = named(DOWNLOAD_CACHE)) {
+        single<SimpleCache>(qualifier = named(DOWNLOAD_CACHE)) {
             SimpleCache(
                 androidContext().filesDir.resolve("download"),
                 NoOpCacheEvictor(),
@@ -77,7 +83,7 @@ val mediaServiceModule =
             )
         }
         // Spotify Canvas Cache
-        single<SimpleCache>(createdAtStart = true, qualifier = named(CANVAS_CACHE)) {
+        single<SimpleCache>(qualifier = named(CANVAS_CACHE)) {
             SimpleCache(
                 androidContext().filesDir.resolve("spotifyCanvas"),
                 NoOpCacheEvictor(),
@@ -85,11 +91,11 @@ val mediaServiceModule =
             )
         }
         // MediaSession Callback for main player
-        single(createdAtStart = true) {
+        single() {
             SimpleMediaSessionCallback(androidContext(), get<MainRepository>())
         }
         // DownloadUtils
-        single(createdAtStart = true) {
+        single() {
             DownloadUtils(
                 context = androidContext(),
                 playerCache = get(named(PLAYER_CACHE)),
@@ -101,12 +107,12 @@ val mediaServiceModule =
 
         // Service
         // CoroutineScope for service
-        single<CoroutineScope>(createdAtStart = true, qualifier = named(SERVICE_SCOPE)) {
+        single<CoroutineScope>(qualifier = named(SERVICE_SCOPE)) {
             CoroutineScope(Dispatchers.Main + SupervisorJob())
         }
 
         // AudioAttributes
-        single<AudioAttributes>(createdAtStart = true) {
+        single<AudioAttributes>() {
             AudioAttributes
                 .Builder()
                 .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
@@ -115,7 +121,7 @@ val mediaServiceModule =
         }
 
         // ExoPlayer
-        single<ExoPlayer>(createdAtStart = true) {
+        single<ExoPlayer>() {
             ExoPlayer
                 .Builder(androidContext())
                 .setAudioAttributes(get(), true)
@@ -125,6 +131,7 @@ val mediaServiceModule =
                 .setSeekBackIncrementMs(5000)
                 .setMediaSourceFactory(
                     provideMergingMediaSource(
+                        androidContext(),
                         get(named(DOWNLOAD_CACHE)),
                         get(named(PLAYER_CACHE)),
                         get(),
@@ -133,21 +140,24 @@ val mediaServiceModule =
                     ),
                 ).setRenderersFactory(provideRendererFactory(androidContext()))
                 .build()
+                .also {
+                    it.addAnalyticsListener(EventLogger())
+                }
         }
         // CoilBitmapLoader
-        single<CoilBitmapLoader>(createdAtStart = true) {
+        single<CoilBitmapLoader>() {
             provideCoilBitmapLoader(androidContext(), get(named(SERVICE_SCOPE)))
         }
 
         // MediaSessionCallback
-        single<SimpleMediaSessionCallback>(createdAtStart = true) {
+        single<SimpleMediaSessionCallback>() {
             SimpleMediaSessionCallback(
                 androidContext(),
                 get(),
             )
         }
         // MediaServiceHandler
-        single<SimpleMediaServiceHandler>(createdAtStart = true) {
+        single<SimpleMediaServiceHandler>() {
             SimpleMediaServiceHandler(
                 player = get(),
                 dataStoreManager = get(),
@@ -167,17 +177,17 @@ private fun provideResolvingDataSourceFactory(
     mainRepository: MainRepository,
     coroutineScope: CoroutineScope,
 ): DataSource.Factory {
+    val CHUNK_LENGTH = 8 * 512 * 1024L
     return ResolvingDataSource.Factory(cacheDataSourceFactory) { dataSpec ->
         val mediaId = dataSpec.key ?: error("No media id")
         Log.w("Stream", mediaId)
         Log.w("Stream", mediaId.startsWith(MergingMediaSourceFactory.isVideo).toString())
-        val chunkLength = 512 * 1024L
+        val length = if (dataSpec.length >= 0) dataSpec.length else 1
         if (downloadCache.isCached(
                 mediaId,
                 dataSpec.position,
-                if (dataSpec.length >= 0) dataSpec.length else 1,
-            ) ||
-            playerCache.isCached(mediaId, dataSpec.position, chunkLength)
+                length,
+            )
         ) {
             coroutineScope.launch(Dispatchers.IO) {
                 mainRepository.updateFormat(
@@ -188,6 +198,20 @@ private fun provideResolvingDataSourceFactory(
                     },
                 )
             }
+            Log.w("Stream", "Downloaded $mediaId")
+            return@Factory dataSpec
+        }
+        if (playerCache.isCached(mediaId, dataSpec.position, CHUNK_LENGTH)) {
+            coroutineScope.launch(Dispatchers.IO) {
+                mainRepository.updateFormat(
+                    if (mediaId.contains(MergingMediaSourceFactory.isVideo)) {
+                        mediaId.removePrefix(MergingMediaSourceFactory.isVideo)
+                    } else {
+                        mediaId
+                    },
+                )
+            }
+            Log.w("Stream", "Cached $mediaId")
             return@Factory dataSpec
         }
         var dataSpecReturn: DataSpec = dataSpec
@@ -198,22 +222,22 @@ private fun provideResolvingDataSourceFactory(
                     .getStream(
                         id,
                         true,
-                    ).cancellable()
-                    .collect {
-                        if (it != null) {
-                            dataSpecReturn = dataSpec.withUri(it.toUri())
-                        }
+                    ).singleOrNull()
+                    ?.let {
+                        Log.d("Stream", it)
+                        Log.w("Stream", "Video")
+                        dataSpecReturn = dataSpec.withUri(it.toUri()).subrange(dataSpec.uriPositionOffset, CHUNK_LENGTH)
                     }
             } else {
                 mainRepository
                     .getStream(
                         mediaId,
                         isVideo = false,
-                    ).cancellable()
-                    .collect {
-                        if (it != null) {
-                            dataSpecReturn = dataSpec.withUri(it.toUri())
-                        }
+                    ).singleOrNull()
+                    ?.let {
+                        Log.d("Stream", it)
+                        Log.w("Stream", "Audio")
+                        dataSpecReturn = dataSpec.withUri(it.toUri()).subrange(dataSpec.uriPositionOffset, CHUNK_LENGTH)
                     }
             }
         }
@@ -239,14 +263,21 @@ private fun provideExtractorFactory(): ExtractorsFactory =
 
 @UnstableApi
 private fun provideMediaSourceFactory(
+    context: Context,
     downloadCache: SimpleCache,
     playerCache: SimpleCache,
     mainRepository: MainRepository,
+    dataStoreManager: DataStoreManager,
     coroutineScope: CoroutineScope,
 ): DefaultMediaSourceFactory =
     DefaultMediaSourceFactory(
         provideResolvingDataSourceFactory(
-            provideCacheDataSource(downloadCache, playerCache),
+            provideCacheDataSource(
+                downloadCache,
+                playerCache,
+                context,
+                dataStoreManager.getJVMProxy()
+            ),
             downloadCache,
             playerCache,
             mainRepository,
@@ -257,6 +288,7 @@ private fun provideMediaSourceFactory(
 
 @OptIn(UnstableApi::class)
 private fun provideMergingMediaSource(
+    context: Context,
     downloadCache: SimpleCache,
     playerCache: SimpleCache,
     mainRepository: MainRepository,
@@ -265,10 +297,12 @@ private fun provideMergingMediaSource(
 ): MergingMediaSourceFactory =
     MergingMediaSourceFactory(
         provideMediaSourceFactory(
+            context,
             downloadCache,
             playerCache,
             mainRepository,
-            coroutineScope,
+            dataStoreManager,
+            coroutineScope
         ),
         dataStoreManager,
     )
@@ -310,6 +344,8 @@ private fun provideCoilBitmapLoader(
 private fun provideCacheDataSource(
     downloadCache: SimpleCache,
     playerCache: SimpleCache,
+    context: Context,
+    proxy: Proxy? = null,
 ): CacheDataSource.Factory =
     CacheDataSource
         .Factory()
@@ -319,11 +355,23 @@ private fun provideCacheDataSource(
                 .Factory()
                 .setCache(playerCache)
                 .setUpstreamDataSourceFactory(
-                    DefaultHttpDataSource
-                        .Factory()
-                        .setAllowCrossProtocolRedirects(true)
-                        .setUserAgent("Mozilla/5.0 (Windows NT 10.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36")
-                        .setConnectTimeoutMs(5000),
+                    DefaultDataSource
+                        .Factory(
+                            context,
+                            OkHttpDataSource.Factory(
+                                OkHttpClient
+                                    .Builder()
+                                    .proxy(
+                                        proxy
+                                    )
+                                    .addInterceptor(
+                                        HttpLoggingInterceptor()
+                                            .apply {
+                                                level = HttpLoggingInterceptor.Level.HEADERS
+                                            },
+                                    ).build(),
+                            ),
+                        ),
                 ),
         ).setCacheWriteDataSinkFactory(null)
         .setFlags(CacheDataSource.FLAG_IGNORE_CACHE_ON_ERROR)

@@ -5,7 +5,7 @@ import com.maxrave.simpmusic.data.model.searchResult.songs.Album
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 
-data class Song (
+data class Song(
     val title: String?,
     val artists: List<Artist>?,
     val duration: Long,
@@ -14,5 +14,5 @@ data class Song (
     val videoId: String,
     val thumbnail: Thumbnail?,
     val thumbnailBitmap: Bitmap?,
-    val isLocal: Boolean
+    val isLocal: Boolean,
 )

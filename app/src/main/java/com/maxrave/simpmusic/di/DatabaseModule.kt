@@ -11,6 +11,7 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.simpmusic.common.DB_NAME
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.Converters
@@ -24,6 +25,7 @@ import com.maxrave.simpmusic.data.repository.MainRepository
 import com.maxrave.simpmusic.extension.dataStore
 import com.maxrave.simpmusic.extension.toSQLiteQuery
 import com.maxrave.simpmusic.service.test.notification.NotifyWork
+import com.maxrave.spotify.Spotify
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.workmanager.dsl.workerOf
 import org.koin.dsl.module
@@ -41,7 +43,6 @@ val databaseModule =
                     object : Migration(5, 6) {
                         override fun migrate(db: SupportSQLiteDatabase) {
                             val playlistSongMaps = mutableListOf<PairSongLocalPlaylist>()
-                            db
                             db.query("SELECT * FROM local_playlist".toSQLiteQuery()).use { cursor ->
                                 while (cursor.moveToNext()) {
                                     val input = cursor.getString(8)
@@ -174,14 +175,24 @@ val databaseModule =
         single(createdAtStart = true) {
             DataStoreManager(get<DataStore<Preferences>>())
         }
+
+        // Move YouTube from Singleton to Koin DI
+        single(createdAtStart = true) {
+            YouTube()
+        }
+
+        single(createdAtStart = true) {
+            Spotify()
+        }
+
         // MainRepository
         single(createdAtStart = true) {
-            MainRepository(get<LocalDataSource>(), get<DataStoreManager>(), androidContext())
+            MainRepository(get<LocalDataSource>(), get<DataStoreManager>(), get<YouTube>(), get<Spotify>(), get<MusicDatabase>(), androidContext())
         }
         // List of managers
 
         single(createdAtStart = true) {
-            LocalPlaylistManager(androidContext())
+            LocalPlaylistManager(androidContext(), get<YouTube>())
         }
 
         // Notification Worker

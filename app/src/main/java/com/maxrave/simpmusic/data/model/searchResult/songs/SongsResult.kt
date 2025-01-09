@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.data.model.searchResult.songs
 
-
 import com.google.gson.annotations.SerializedName
 
 data class SongsResult(
@@ -29,8 +28,5 @@ data class SongsResult(
     @SerializedName("videoType")
     val videoType: String?,
     @SerializedName("year")
-    val year: Any
+    val year: Any,
 )
-
-
-

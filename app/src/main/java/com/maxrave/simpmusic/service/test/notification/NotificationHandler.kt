@@ -38,31 +38,35 @@ object NotificationHandler {
         action.data = "simpmusic://notification".toUri()
         val pendingIntent =
             PendingIntent.getActivity(
-                context, 0, action,
-                PendingIntent.FLAG_IMMUTABLE
+                context,
+                0,
+                action,
+                PendingIntent.FLAG_IMMUTABLE,
             )
 
         val bitmap =
             runBlocking {
                 val loader = ImageLoader(context)
                 val request =
-                    ImageRequest.Builder(context)
+                    ImageRequest
+                        .Builder(context)
                         .data(
                             noti.single.firstOrNull()?.thumbnail
-                                ?: noti.album.firstOrNull()?.thumbnail
-                        )
-                        .allowHardware(false) // Disable hardware bitmaps.
+                                ?: noti.album.firstOrNull()?.thumbnail,
+                        ).allowHardware(false) // Disable hardware bitmaps.
                         .build()
 
                 return@runBlocking when (val result = loader.execute(request)) {
                     is SuccessResult -> result.image.toBitmap()
                     else ->
-                        AppCompatResources.getDrawable(context, R.drawable.holder)
+                        AppCompatResources
+                            .getDrawable(context, R.drawable.holder)
                             ?.toBitmap(128, 128)
                 }
             }
         val builder =
-            NotificationCompat.Builder(context, CHANNEL_ID)
+            NotificationCompat
+                .Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.mono)
                 .setContentTitle(noti.name)
                 .setContentText(
@@ -71,8 +75,7 @@ object NotificationHandler {
                     } else {
                         "${context.getString(R.string.new_albums)}: ${noti.album.joinToString { it.title }}"
                     },
-                )
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                ).setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setLargeIcon(bitmap)
                 .setContentIntent(pendingIntent) // For launching the MainActivity
                 .setAutoCancel(true) // Remove notification when tapped

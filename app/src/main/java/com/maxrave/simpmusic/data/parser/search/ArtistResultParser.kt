@@ -5,7 +5,7 @@ import com.maxrave.kotlinytmusicscraper.pages.SearchResult
 import com.maxrave.simpmusic.data.model.searchResult.artists.ArtistsResult
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 
-fun parseSearchArtist(result: SearchResult): ArrayList<ArtistsResult>{
+fun parseSearchArtist(result: SearchResult): ArrayList<ArtistsResult> {
     val artistsResult: ArrayList<ArtistsResult> = arrayListOf()
     result.items.forEach {
         val artist = it as ArtistItem
@@ -17,8 +17,8 @@ fun parseSearchArtist(result: SearchResult): ArrayList<ArtistsResult>{
                 radioId = artist.radioEndpoint?.playlistId ?: "",
                 resultType = "Artist",
                 shuffleId = artist.shuffleEndpoint?.playlistId ?: "",
-                thumbnails = listOf(Thumbnail(544, Regex("([wh])120").replace(artist.thumbnail, "$1544"), 544))
-            )
+                thumbnails = listOf(Thumbnail(544, Regex("([wh])120").replace(artist.thumbnail, "$1544"), 544)),
+            ),
         )
     }
     return artistsResult

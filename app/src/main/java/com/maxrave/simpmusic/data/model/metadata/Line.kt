@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.data.model.metadata
 
-
 import com.google.gson.annotations.SerializedName
 
 data class Line(
@@ -11,5 +10,5 @@ data class Line(
     @SerializedName("syllables")
     val syllables: List<Any>,
     @SerializedName("words")
-    val words: String
+    val words: String,
 )

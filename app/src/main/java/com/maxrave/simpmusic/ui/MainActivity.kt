@@ -2,14 +2,11 @@ package com.maxrave.simpmusic.ui
 
 import android.Manifest
 import android.content.ComponentName
-import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.content.res.Configuration
 import android.graphics.Rect
 import android.graphics.drawable.ColorDrawable
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -36,8 +33,6 @@ import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.maxrave.kotlinytmusicscraper.YouTube
-import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.FIRST_TIME_MIGRATION
@@ -52,6 +47,7 @@ import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.ui.screen.MiniPlayer
 import com.maxrave.simpmusic.ui.theme.AppTheme
+import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.delay
@@ -59,12 +55,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import okhttp3.CacheControl
-import okhttp3.Interceptor
-import okhttp3.Request
-import okhttp3.Response
 import pub.devrel.easypermissions.EasyPermissions
-import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -120,6 +111,7 @@ class MainActivity : AppCompatActivity() {
 //        if (viewModel.simpleMediaServiceHandler == null) {
 //            startMusicService()
 //        }
+        VersionManager.initialize(applicationContext)
         checkForUpdate()
         if (viewModel.recreateActivity.value == true) {
             viewModel.activityRecreateDone()
@@ -152,18 +144,8 @@ class MainActivity : AppCompatActivity() {
                 } else {
                     putString("location", "US")
                 }
-                YouTube.locale =
-                    YouTubeLocale(
-                        gl = getString("location") ?: "US",
-                        hl = Locale.getDefault().toLanguageTag().substring(0..1),
-                    )
             } else {
                 putString(SELECTED_LANGUAGE, "en-US")
-                YouTube.locale =
-                    YouTubeLocale(
-                        gl = getString("location") ?: "US",
-                        hl = "en-US".substring(0..1),
-                    )
             }
             // Fetch the selected language from wherever it was stored. In this case its SharedPref
             getString(SELECTED_LANGUAGE)?.let {
@@ -185,21 +167,16 @@ class MainActivity : AppCompatActivity() {
                 "onCreate: ${AppCompatDelegate.getApplicationLocales().toLanguageTags()}",
             )
             putString(SELECTED_LANGUAGE, AppCompatDelegate.getApplicationLocales().toLanguageTags())
-            YouTube.locale =
-                YouTubeLocale(
-                    gl = getString("location") ?: "US",
-                    hl = AppCompatDelegate.getApplicationLocales().toLanguageTags().substring(0..1),
-                )
         }
 //
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
 //            WindowCompat.setDecorFitsSystemWindows(window, false)
         enableEdgeToEdge(
             navigationBarStyle =
-                SystemBarStyle.auto(
-                    lightScrim = Color.Transparent.toArgb(),
-                    darkScrim = Color.Transparent.toArgb(),
-                ),
+            SystemBarStyle.auto(
+                lightScrim = Color.Transparent.toArgb(),
+                darkScrim = Color.Transparent.toArgb(),
+            ),
         )
         viewModel.checkIsRestoring()
         viewModel.runWorker()
@@ -217,36 +194,7 @@ class MainActivity : AppCompatActivity() {
                 )
             }
         }
-        YouTube.cacheControlInterceptor =
-            object : Interceptor {
-                override fun intercept(chain: Interceptor.Chain): Response {
-                    val originalResponse = chain.proceed(chain.request())
-                    if (isNetworkAvailable(applicationContext)) {
-                        val maxAge = 60 // read from cache for 1 minute
-                        return originalResponse
-                            .newBuilder()
-                            .header("Cache-Control", "public, max-age=$maxAge")
-                            .build()
-                    } else {
-                        val maxStale = 60 * 60 * 24 * 28 // tolerate 4-weeks stale
-                        return originalResponse
-                            .newBuilder()
-                            .header("Cache-Control", "public, only-if-cached, max-stale=$maxStale")
-                            .build()
-                    }
-                }
-            }
-        YouTube.forceCacheInterceptor =
-            Interceptor { chain ->
-                val builder: Request.Builder = chain.request().newBuilder()
-                if (!isNetworkAvailable(applicationContext)) {
-                    builder.cacheControl(CacheControl.FORCE_CACHE)
-                }
-                chain.proceed(builder.build())
-            }
-        YouTube.cachePath = File(application.cacheDir, "http-cache")
         viewModel.getLocation()
-        viewModel.checkAuth()
         viewModel.checkAllDownloadingSongs()
         runBlocking { delay(500) }
 
@@ -344,10 +292,9 @@ class MainActivity : AppCompatActivity() {
                         true
                 }
 
-                R.id.bottom_navigation_item_library, R.id.downloadedFragment,
-                R.id.mostPlayedFragment, R.id.followedFragment,
+                R.id.bottom_navigation_item_library,
                 R.id.favoriteFragment, R.id.localPlaylistFragment,
-                -> {
+                    -> {
                     binding.bottomNavigationView.menu
                         .findItem(
                             R.id.bottom_navigation_item_library,
@@ -358,9 +305,9 @@ class MainActivity : AppCompatActivity() {
                 R.id.playlistFragment, R.id.artistFragment, R.id.albumFragment -> {
                     val currentBackStack = nav.previousBackStackEntry?.destination?.id
                     when (currentBackStack) {
-                        R.id.bottom_navigation_item_library, R.id.downloadedFragment,
-                        R.id.mostPlayedFragment, R.id.followedFragment,
-                        R.id.favoriteFragment, R.id.localPlaylistFragment -> {
+                        R.id.bottom_navigation_item_library,
+                        R.id.favoriteFragment, R.id.localPlaylistFragment,
+                            -> {
                             binding.bottomNavigationView.menu
                                 .findItem(
                                     R.id.bottom_navigation_item_library,
@@ -399,7 +346,7 @@ class MainActivity : AppCompatActivity() {
                         "fragment_log_in",
                         "MusixmatchFragment",
                     )
-                ).contains(destination.label)
+                    ).contains(destination.label)
             ) {
                 lifecycleScope.launch { viewModel.showOrHideMiniplayer.emit(false) }
                 Log.w("MainActivity", "onCreate: HIDE MINIPLAYER")
@@ -599,7 +546,7 @@ class MainActivity : AppCompatActivity() {
                                         "fragment_log_in",
                                         "MusixmatchFragment",
                                     )
-                                ).contains(navController.currentDestination?.label) &&
+                                    ).contains(navController.currentDestination?.label) &&
                                 it.nowPlayingTitle.isNotEmpty() &&
                                 binding.miniplayer.visibility != View.VISIBLE
                             ) {
@@ -676,29 +623,6 @@ class MainActivity : AppCompatActivity() {
 //        }
     }
 
-    private fun isNetworkAvailable(context: Context?): Boolean {
-        val connectivityManager = context?.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        // Returns a Network object corresponding to
-        // the currently active default data network.
-        val network = connectivityManager.activeNetwork ?: return false
-
-        // Representation of the capabilities of an active network.
-        val activeNetwork = connectivityManager.getNetworkCapabilities(network) ?: return false
-
-        return when {
-            // Indicates this network uses a Wi-Fi transport,
-            // or WiFi has network connectivity
-            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) -> true
-
-            // Indicates this network uses a Cellular transport. or
-            // Cellular has network connectivity
-            activeNetwork.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) -> true
-
-            // else return false
-            else -> false
-        }
-    }
-
     override fun onDestroy() {
         super.onDestroy()
 //        stopService()
@@ -763,8 +687,9 @@ class MainActivity : AppCompatActivity() {
     private fun checkForUpdate() {
         viewModel.checkForUpdate()
         viewModel.githubResponse.observe(this) { response ->
-            if (response != null) {
-                if (response.tagName != getString(R.string.version_name)) {
+            if (response != null && !this.isInPictureInPictureMode && !viewModel.showedUpdateDialog) {
+                if (response.tagName != getString(R.string.version_format, VersionManager.getVersionName())) {
+                    viewModel.showedUpdateDialog = true
                     val inputFormat =
                         SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
                     val outputFormat = SimpleDateFormat("dd MMM yyyy HH:mm:ss", Locale.getDefault())

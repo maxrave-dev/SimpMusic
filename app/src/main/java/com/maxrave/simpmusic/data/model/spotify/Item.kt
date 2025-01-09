@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.data.model.spotify
 
-
 import com.google.gson.annotations.SerializedName
 
 data class Item(
@@ -37,5 +36,5 @@ data class Item(
     @SerializedName("type")
     val type: String?,
     @SerializedName("uri")
-    val uri: String?
+    val uri: String?,
 )

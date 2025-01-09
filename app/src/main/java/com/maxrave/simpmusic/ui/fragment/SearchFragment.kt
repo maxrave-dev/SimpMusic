@@ -8,6 +8,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.appcompat.widget.SearchView
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.viewinterop.AndroidViewBinding
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
@@ -21,8 +23,6 @@ import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import coil3.load
-import coil3.request.crossfade
-import coil3.request.placeholder
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.snackbar.Snackbar
@@ -53,6 +53,7 @@ import com.maxrave.simpmusic.databinding.BottomSheetAddToAPlaylistBinding
 import com.maxrave.simpmusic.databinding.BottomSheetNowPlayingBinding
 import com.maxrave.simpmusic.databinding.BottomSheetSeeArtistOfNowPlayingBinding
 import com.maxrave.simpmusic.databinding.FragmentSearchBinding
+import com.maxrave.simpmusic.extension.IntermediaryMigrateApi
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.removeConflicts
@@ -75,7 +76,7 @@ class SearchFragment : Fragment() {
     private var _binding: FragmentSearchBinding? = null
     private val binding get() = _binding!!
 
-    //Data Saved
+    // Data Saved
     private lateinit var searchHistory: ArrayList<String>
     private lateinit var resultList: ArrayList<Any>
     private lateinit var suggestList: ArrayList<String>
@@ -90,7 +91,8 @@ class SearchFragment : Fragment() {
     private lateinit var suggestYTItemAdapter: SuggestYTItemAdapter
 
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
+        inflater: LayoutInflater,
+        container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View {
         Log.d("SearchFragment", "onCreateView")
@@ -111,132 +113,131 @@ class SearchFragment : Fragment() {
 
     override fun onResume() {
         super.onResume()
-        if (viewModel.loading.value == true){
+        if (viewModel.loading.value == true) {
             binding.shimmerLayout.startShimmer()
             binding.shimmerLayout.visibility = View.VISIBLE
-        }
-        else {
+        } else {
             binding.shimmerLayout.stopShimmer()
             binding.shimmerLayout.visibility = View.GONE
         }
         Log.d("SearchFragment", "onResume")
 //        binding.svSearch.setQuery("", false)
 //        binding.svSearch.clearFocus()
-        binding.svSearch.setOnQueryTextListener(object : SearchView.OnQueryTextListener{
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                if (query != null) {
+        binding.svSearch.setOnQueryTextListener(
+            object : SearchView.OnQueryTextListener {
+                override fun onQueryTextSubmit(query: String?): Boolean {
+                    if (query != null) {
 //                    fetchSearchAll(query)
-                    resultList.clear()
-                    resultAdapter.updateList(resultList)
-                    setEnabledAll(binding.chipGroupTypeSearch, false)
-                    binding.svSearch.clearFocus()
-                    binding.suggestList.visibility = View.GONE
-                    binding.suggestListYtItem.visibility = View.GONE
-                    binding.recentlyQueryView.visibility = View.GONE
-                    binding.defaultLayout.visibility = View.GONE
-                    binding.resultView.visibility = View.VISIBLE
-                    viewModel.insertSearchHistory(query)
-                    viewModel.getSearchHistory()
-                    observeSearchHistory()
-                    Log.d("Check History", searchHistory.toString())
-                    viewModel.searchHistory.postValue(searchHistory)
-                    searchHistoryAdapter.updateData(searchHistory)
-                    viewModel.searchType.value.let {searchType ->
-                        when (searchType) {
-                            "all" -> {
-                                resultList.clear()
-                                resultAdapter.updateList(resultList)
-                                fetchSearchAll(query)
-                                Log.d("Check All", "All is checked")
-                            }
-                            "videos" -> {
-                                resultList.clear()
-                                resultAdapter.updateList(resultList)
-                                fetchSearchVideos(query)
-                                binding.chipGroupTypeSearch.isClickable = true
-                                Log.d("Check Video", "Video is checked")
-                            }
-                            "songs" -> {
-                                resultList.clear()
-                                Log.d("Check ResultList", resultList.toString())
-                                resultAdapter.updateList(resultList)
-                                fetchSearchSongs(query)
-                                binding.chipGroupTypeSearch.isClickable = true
-                                Log.d("Check Song", "Song is checked")
-                            }
-                            "albums" -> {
-                                resultList.clear()
-                                resultAdapter.updateList(resultList)
-                                fetchSearchAlbums(query)
-                                binding.chipGroupTypeSearch.isClickable = true
-                                Log.d("Check Album", "Album is checked")
-                            }
-                            "artists" -> {
-                                resultList.clear()
-                                resultAdapter.updateList(resultList)
-                                fetchSearchArtists(query)
-                                binding.chipGroupTypeSearch.isClickable = true
-                                Log.d("Check Artist", "Artist is checked")
-                            }
+                        resultList.clear()
+                        resultAdapter.updateList(resultList)
+                        setEnabledAll(binding.chipGroupTypeSearch, false)
+                        binding.svSearch.clearFocus()
+                        binding.suggestList.visibility = View.GONE
+                        binding.suggestListYtItem.visibility = View.GONE
+                        binding.recentlyQueryView.visibility = View.GONE
+                        binding.defaultLayout.visibility = View.GONE
+                        binding.resultView.visibility = View.VISIBLE
+                        viewModel.insertSearchHistory(query)
+                        viewModel.getSearchHistory()
+                        observeSearchHistory()
+                        Log.d("Check History", searchHistory.toString())
+                        viewModel.searchHistory.postValue(searchHistory)
+                        searchHistoryAdapter.updateData(searchHistory)
+                        viewModel.searchType.value.let { searchType ->
+                            when (searchType) {
+                                "all" -> {
+                                    resultList.clear()
+                                    resultAdapter.updateList(resultList)
+                                    fetchSearchAll(query)
+                                    Log.d("Check All", "All is checked")
+                                }
+                                "videos" -> {
+                                    resultList.clear()
+                                    resultAdapter.updateList(resultList)
+                                    fetchSearchVideos(query)
+                                    binding.chipGroupTypeSearch.isClickable = true
+                                    Log.d("Check Video", "Video is checked")
+                                }
+                                "songs" -> {
+                                    resultList.clear()
+                                    Log.d("Check ResultList", resultList.toString())
+                                    resultAdapter.updateList(resultList)
+                                    fetchSearchSongs(query)
+                                    binding.chipGroupTypeSearch.isClickable = true
+                                    Log.d("Check Song", "Song is checked")
+                                }
+                                "albums" -> {
+                                    resultList.clear()
+                                    resultAdapter.updateList(resultList)
+                                    fetchSearchAlbums(query)
+                                    binding.chipGroupTypeSearch.isClickable = true
+                                    Log.d("Check Album", "Album is checked")
+                                }
+                                "artists" -> {
+                                    resultList.clear()
+                                    resultAdapter.updateList(resultList)
+                                    fetchSearchArtists(query)
+                                    binding.chipGroupTypeSearch.isClickable = true
+                                    Log.d("Check Artist", "Artist is checked")
+                                }
 
-                            "playlists" -> {
-                                resultList.clear()
-                                resultAdapter.updateList(resultList)
-                                fetchSearchPlaylists(query)
-                                binding.chipGroupTypeSearch.isClickable = true
-                                Log.d("Check Playlist", "Playlist is checked")
-                            }
+                                "playlists" -> {
+                                    resultList.clear()
+                                    resultAdapter.updateList(resultList)
+                                    fetchSearchPlaylists(query)
+                                    binding.chipGroupTypeSearch.isClickable = true
+                                    Log.d("Check Playlist", "Playlist is checked")
+                                }
 
-                            "featured_playlists" -> {
-                                resultList.clear()
-                                resultAdapter.updateList(resultList)
-                                fetchSearchFeaturedPlaylists(query)
-                                binding.chipGroupTypeSearch.isClickable = true
-                                Log.d("Check Search Type", "Search Type is featured_playlists")
-                            }
+                                "featured_playlists" -> {
+                                    resultList.clear()
+                                    resultAdapter.updateList(resultList)
+                                    fetchSearchFeaturedPlaylists(query)
+                                    binding.chipGroupTypeSearch.isClickable = true
+                                    Log.d("Check Search Type", "Search Type is featured_playlists")
+                                }
 
-                            "podcasts" -> {
-                                resultList.clear()
-                                resultAdapter.updateList(resultList)
-                                fetchSearchPodcasts(query)
-                                binding.chipGroupTypeSearch.isClickable = true
-                                Log.d("Check Search Type", "Search Type is featured_playlists")
-                                Log.d("Check Search Type", "Search Type is podcasts")
-                            }
+                                "podcasts" -> {
+                                    resultList.clear()
+                                    resultAdapter.updateList(resultList)
+                                    fetchSearchPodcasts(query)
+                                    binding.chipGroupTypeSearch.isClickable = true
+                                    Log.d("Check Search Type", "Search Type is featured_playlists")
+                                    Log.d("Check Search Type", "Search Type is podcasts")
+                                }
 
-                            else -> {
-                                Log.d("Check Search Type", "Search Type is null")
+                                else -> {
+                                    Log.d("Check Search Type", "Search Type is null")
+                                }
                             }
                         }
                     }
+                    return false
                 }
-                return false
-            }
 
-            override fun onQueryTextChange(newText: String?): Boolean {
-                if (newText.isNullOrEmpty())
-                {
-                    observeSearchHistory()
-                    binding.suggestList.visibility = View.GONE
-                    binding.suggestListYtItem.visibility = View.GONE
-                    binding.recentlyQueryView.visibility = View.VISIBLE
-                    binding.resultView.visibility = View.GONE
-                    binding.defaultLayout.visibility = View.GONE
+                override fun onQueryTextChange(newText: String?): Boolean {
+                    if (newText.isNullOrEmpty()) {
+                        observeSearchHistory()
+                        binding.suggestList.visibility = View.GONE
+                        binding.suggestListYtItem.visibility = View.GONE
+                        binding.recentlyQueryView.visibility = View.VISIBLE
+                        binding.resultView.visibility = View.GONE
+                        binding.defaultLayout.visibility = View.GONE
+                    } else {
+                        binding.suggestList.visibility = View.VISIBLE
+                        binding.suggestListYtItem.visibility = View.VISIBLE
+                        binding.recentlyQueryView.visibility = View.GONE
+                        binding.defaultLayout.visibility = View.GONE
+                        binding.resultView.visibility = View.GONE
+                        Log.d("Gọi suggest", "onQueryTextChange: $newText")
+                        fetchSuggestList(newText)
+                    }
+                    return false
                 }
-                else {
-                    binding.suggestList.visibility = View.VISIBLE
-                    binding.suggestListYtItem.visibility = View.VISIBLE
-                    binding.recentlyQueryView.visibility = View.GONE
-                    binding.defaultLayout.visibility = View.GONE
-                    binding.resultView.visibility = View.GONE
-                    Log.d("Gọi suggest", "onQueryTextChange: $newText")
-                    fetchSuggestList(newText)
-                }
-                return false
-            }
-
-        })
+            },
+        )
     }
+
     override fun onDestroyView() {
         super.onDestroyView()
 //        binding.svSearch.setQuery("", false)
@@ -244,7 +245,11 @@ class SearchFragment : Fragment() {
         _binding = null
         Log.d("Xoá Fragment", "onDestroyView")
     }
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
         super.onViewCreated(view, savedInstanceState)
         viewModel.getSearchHistory()
         Log.d("SearchFragment", "onViewCreated")
@@ -277,18 +282,16 @@ class SearchFragment : Fragment() {
 
         binding.suggestList.visibility = View.GONE
         binding.suggestListYtItem.visibility = View.GONE
-        if (viewModel.searchAllResult.value == null || viewModel.searchAllResult.value!!.isEmpty()){
+        if (viewModel.searchAllResult.value == null || viewModel.searchAllResult.value!!.isEmpty()) {
             if (searchHistory.isEmpty()) {
                 binding.recentlyQueryView.visibility = View.GONE
                 binding.defaultLayout.visibility = View.VISIBLE
-            }
-            else {
+            } else {
                 binding.recentlyQueryView.visibility = View.VISIBLE
                 binding.defaultLayout.visibility = View.GONE
                 binding.resultView.visibility = View.GONE
             }
-        }
-        else {
+        } else {
             searchAllResult.addAll(viewModel.searchAllResult.value!!)
             resultAdapter.updateList(searchAllResult)
             binding.recentlyQueryView.visibility = View.GONE
@@ -296,8 +299,8 @@ class SearchFragment : Fragment() {
             binding.resultView.visibility = View.VISIBLE
         }
 
-        binding.svSearch.setOnQueryTextFocusChangeListener{ v, hasFocus ->
-            if (hasFocus){
+        binding.svSearch.setOnQueryTextFocusChangeListener { v, hasFocus ->
+            if (hasFocus) {
                 Log.d("Check History in ViewModel", viewModel.searchHistory.value.toString())
                 if (binding.svSearch.query.isNullOrEmpty()) {
                     observeSearchHistory()
@@ -309,140 +312,153 @@ class SearchFragment : Fragment() {
                 }
             }
         }
-        suggestYTItemAdapter.setOnClickListener(object : SuggestYTItemAdapter.onItemClickListener{
-            override fun onItemClick(position: Int, type: String) {
-                if (type == "artist"){
-                    val channelId = (suggestYTItemAdapter.getCurrentList()[position] as ArtistItem).id
-                    val args = Bundle()
-                    args.putString("channelId", channelId)
-                    findNavController().navigateSafe(R.id.action_bottom_navigation_item_search_to_artistFragment, args)
-                }
-                if (type == Config.ALBUM_CLICK){
-                    val browseId = (suggestYTItemAdapter.getCurrentList()[position] as AlbumItem).browseId
-                    val args = Bundle()
-                    args.putString("browseId", browseId)
-                    findNavController().navigateSafe(R.id.action_global_albumFragment, args)
-                }
-                if (type == Config.PLAYLIST_CLICK){
-                    val id = (suggestYTItemAdapter.getCurrentList()[position] as PlaylistItem).id
-                    val args = Bundle()
-                    args.putString("id", id)
-                    findNavController().navigateSafe(R.id.action_global_playlistFragment, args)
-                }
-                if (type == Config.SONG_CLICK){
-                    val songClicked = suggestYTItemAdapter.getCurrentList()[position] as SongItem
-                    val videoId = (suggestYTItemAdapter.getCurrentList()[position] as SongItem).id
-                    val firstQueue: Track = songClicked.toTrack()
-                    viewModel.setQueueData(
-                        QueueData(
-                            listTracks = arrayListOf(firstQueue),
-                            firstPlayedTrack = firstQueue,
-                            playlistId = "RDAMVM$videoId",
-                            playlistName = "\"${binding.svSearch.query}\" ${getString(R.string.in_search)}",
-                            playlistType = PlaylistType.RADIO,
-                            continuation = null
-                        )
-                    )
-                    viewModel.loadMediaItem(
-                        firstQueue,
-                        type = Config.SONG_CLICK
-                    )
-                }
-                if (type == Config.VIDEO_CLICK) {
-                    val videoClicked = suggestYTItemAdapter.getCurrentList()[position] as VideoItem
-                    val videoId = videoClicked.id
-                    val firstQueue = videoClicked.toTrack()
-                    viewModel.setQueueData(
-                        QueueData(
-                            listTracks = arrayListOf(firstQueue),
-                            firstPlayedTrack = firstQueue,
-                            playlistId = "RDAMVM$videoId",
-                            playlistName = "\"${binding.svSearch.query}\" ${getString(R.string.in_search)}",
-                            playlistType = PlaylistType.RADIO,
-                            continuation = null
-                        )
-                    )
-                    viewModel.loadMediaItem(
-                        firstQueue,
-                        type = Config.VIDEO_CLICK
-                    )
-                }
-            }
-        })
-
-        resultAdapter.setOnClickListener(object : SearchItemAdapter.onItemClickListener{
-            override fun onItemClick(position: Int, type: String) {
-                if (type == "artist"){
-                    val channelId = (resultAdapter.getCurrentList()[position] as ArtistsResult).browseId
-                    val args = Bundle()
-                    args.putString("channelId", channelId)
-                    findNavController().navigateSafe(R.id.action_bottom_navigation_item_search_to_artistFragment, args)
-                }
-                if (type == Config.ALBUM_CLICK){
-                    val browseId = (resultAdapter.getCurrentList()[position] as AlbumsResult).browseId
-                    val args = Bundle()
-                    args.putString("browseId", browseId)
-                    findNavController().navigateSafe(R.id.action_global_albumFragment, args)
-                }
-                if (type == Config.PLAYLIST_CLICK) {
-                    val data = (resultAdapter.getCurrentList()[position] as PlaylistsResult)
-                    val id = (resultAdapter.getCurrentList()[position] as PlaylistsResult).browseId
-                    if (data.resultType == "Podcast") {
+        suggestYTItemAdapter.setOnClickListener(
+            object : SuggestYTItemAdapter.onItemClickListener {
+                override fun onItemClick(
+                    position: Int,
+                    type: String,
+                ) {
+                    if (type == "artist") {
+                        val channelId = (suggestYTItemAdapter.getCurrentList()[position] as ArtistItem).id
                         val args = Bundle()
-                        args.putString("id", id)
-                        findNavController().navigateSafe(R.id.action_global_podcastFragment, args)
-                    } else {
+                        args.putString("channelId", channelId)
+                        findNavController().navigateSafe(R.id.action_bottom_navigation_item_search_to_artistFragment, args)
+                    }
+                    if (type == Config.ALBUM_CLICK) {
+                        val browseId = (suggestYTItemAdapter.getCurrentList()[position] as AlbumItem).browseId
+                        val args = Bundle()
+                        args.putString("browseId", browseId)
+                        findNavController().navigateSafe(R.id.action_global_albumFragment, args)
+                    }
+                    if (type == Config.PLAYLIST_CLICK) {
+                        val id = (suggestYTItemAdapter.getCurrentList()[position] as PlaylistItem).id
                         val args = Bundle()
                         args.putString("id", id)
                         findNavController().navigateSafe(R.id.action_global_playlistFragment, args)
                     }
-                }
-                if (type == Config.SONG_CLICK){
-                    val songClicked = resultAdapter.getCurrentList()[position] as SongsResult
-                    val videoId = (resultAdapter.getCurrentList()[position] as SongsResult).videoId
-                    viewModel.setQueueData(
-                        QueueData(
-                            listTracks = arrayListOf(songClicked.toTrack()),
-                            firstPlayedTrack = songClicked.toTrack(),
-                            playlistId = "RDAMVM$videoId",
-                            playlistName = "\"${binding.svSearch.query}\" ${getString(R.string.in_search)}",
-                            playlistType = PlaylistType.RADIO,
-                            continuation = null
+                    if (type == Config.SONG_CLICK) {
+                        val songClicked = suggestYTItemAdapter.getCurrentList()[position] as SongItem
+                        val videoId = (suggestYTItemAdapter.getCurrentList()[position] as SongItem).id
+                        val firstQueue: Track = songClicked.toTrack()
+                        viewModel.setQueueData(
+                            QueueData(
+                                listTracks = arrayListOf(firstQueue),
+                                firstPlayedTrack = firstQueue,
+                                playlistId = "RDAMVM$videoId",
+                                playlistName = "\"${binding.svSearch.query}\" ${getString(R.string.in_search)}",
+                                playlistType = PlaylistType.RADIO,
+                                continuation = null,
+                            ),
                         )
-                    )
-                    viewModel.loadMediaItem(
-                        songClicked.toTrack(),
-                        type = Config.SONG_CLICK
-                    )
-                }
-                if (type == Config.VIDEO_CLICK) {
-                    val videoClicked = resultAdapter.getCurrentList()[position] as VideosResult
-                    val videoId = videoClicked.videoId
-                    val firstQueue = videoClicked.toTrack()
-                    viewModel.setQueueData(
-                        QueueData(
-                            listTracks = arrayListOf(firstQueue),
-                            firstPlayedTrack = firstQueue,
-                            playlistId = "RDAMVM$videoId",
-                            playlistName = "\"${binding.svSearch.query}\" ${getString(R.string.in_search)}",
-                            playlistType = PlaylistType.RADIO,
-                            continuation = null
+                        viewModel.loadMediaItem(
+                            firstQueue,
+                            type = Config.SONG_CLICK,
                         )
-                    )
-                    viewModel.loadMediaItem(
-                        firstQueue,
-                        type = Config.VIDEO_CLICK
-                    )
-                }
-            }
-
-            @UnstableApi
-            override fun onOptionsClick(position: Int, type: String) {
-                    val song = if (type == Config.SONG_CLICK) {
-                        resultAdapter.getCurrentList()[position] as SongsResult
-                    } else {
-                        resultAdapter.getCurrentList()[position] as VideosResult
                     }
+                    if (type == Config.VIDEO_CLICK) {
+                        val videoClicked = suggestYTItemAdapter.getCurrentList()[position] as VideoItem
+                        val videoId = videoClicked.id
+                        val firstQueue = videoClicked.toTrack()
+                        viewModel.setQueueData(
+                            QueueData(
+                                listTracks = arrayListOf(firstQueue),
+                                firstPlayedTrack = firstQueue,
+                                playlistId = "RDAMVM$videoId",
+                                playlistName = "\"${binding.svSearch.query}\" ${getString(R.string.in_search)}",
+                                playlistType = PlaylistType.RADIO,
+                                continuation = null,
+                            ),
+                        )
+                        viewModel.loadMediaItem(
+                            firstQueue,
+                            type = Config.VIDEO_CLICK,
+                        )
+                    }
+                }
+            },
+        )
+
+        resultAdapter.setOnClickListener(
+            object : SearchItemAdapter.onItemClickListener {
+                override fun onItemClick(
+                    position: Int,
+                    type: String,
+                ) {
+                    if (type == "artist") {
+                        val channelId = (resultAdapter.getCurrentList()[position] as ArtistsResult).browseId
+                        val args = Bundle()
+                        args.putString("channelId", channelId)
+                        findNavController().navigateSafe(R.id.action_bottom_navigation_item_search_to_artistFragment, args)
+                    }
+                    if (type == Config.ALBUM_CLICK) {
+                        val browseId = (resultAdapter.getCurrentList()[position] as AlbumsResult).browseId
+                        val args = Bundle()
+                        args.putString("browseId", browseId)
+                        findNavController().navigateSafe(R.id.action_global_albumFragment, args)
+                    }
+                    if (type == Config.PLAYLIST_CLICK) {
+                        val data = (resultAdapter.getCurrentList()[position] as PlaylistsResult)
+                        val id = (resultAdapter.getCurrentList()[position] as PlaylistsResult).browseId
+                        if (data.resultType == "Podcast") {
+                            val args = Bundle()
+                            args.putString("id", id)
+                            findNavController().navigateSafe(R.id.action_global_podcastFragment, args)
+                        } else {
+                            val args = Bundle()
+                            args.putString("id", id)
+                            findNavController().navigateSafe(R.id.action_global_playlistFragment, args)
+                        }
+                    }
+                    if (type == Config.SONG_CLICK) {
+                        val songClicked = resultAdapter.getCurrentList()[position] as SongsResult
+                        val videoId = (resultAdapter.getCurrentList()[position] as SongsResult).videoId
+                        viewModel.setQueueData(
+                            QueueData(
+                                listTracks = arrayListOf(songClicked.toTrack()),
+                                firstPlayedTrack = songClicked.toTrack(),
+                                playlistId = "RDAMVM$videoId",
+                                playlistName = "\"${binding.svSearch.query}\" ${getString(R.string.in_search)}",
+                                playlistType = PlaylistType.RADIO,
+                                continuation = null,
+                            ),
+                        )
+                        viewModel.loadMediaItem(
+                            songClicked.toTrack(),
+                            type = Config.SONG_CLICK,
+                        )
+                    }
+                    if (type == Config.VIDEO_CLICK) {
+                        val videoClicked = resultAdapter.getCurrentList()[position] as VideosResult
+                        val videoId = videoClicked.videoId
+                        val firstQueue = videoClicked.toTrack()
+                        viewModel.setQueueData(
+                            QueueData(
+                                listTracks = arrayListOf(firstQueue),
+                                firstPlayedTrack = firstQueue,
+                                playlistId = "RDAMVM$videoId",
+                                playlistName = "\"${binding.svSearch.query}\" ${getString(R.string.in_search)}",
+                                playlistType = PlaylistType.RADIO,
+                                continuation = null,
+                            ),
+                        )
+                        viewModel.loadMediaItem(
+                            firstQueue,
+                            type = Config.VIDEO_CLICK,
+                        )
+                    }
+                }
+
+                @UnstableApi
+                override fun onOptionsClick(
+                    position: Int,
+                    type: String,
+                ) {
+                    val song =
+                        if (type == Config.SONG_CLICK) {
+                            resultAdapter.getCurrentList()[position] as SongsResult
+                        } else {
+                            resultAdapter.getCurrentList()[position] as VideosResult
+                        }
                     val track = if (song is SongsResult) song.toTrack() else (song as VideosResult).toTrack()
                     viewModel.getSongEntity(track)
                     val dialog = BottomSheetDialog(requireContext())
@@ -505,14 +521,16 @@ class SearchFragment : Fragment() {
                                     R.id.action_global_albumFragment,
                                     Bundle().apply {
                                         putString("browseId", albumId)
-                                    })
+                                    },
+                                )
                                 dialog.dismiss()
                             } else {
-                                Toast.makeText(
-                                    requireContext(),
-                                    getString(R.string.no_album),
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                                Toast
+                                    .makeText(
+                                        requireContext(),
+                                        getString(R.string.no_album),
+                                        Toast.LENGTH_SHORT,
+                                    ).show()
                             }
                         }
                         btAddQueue.setOnClickListener {
@@ -526,12 +544,12 @@ class SearchFragment : Fragment() {
                             args.putString("radioId", "RDAMVM${track.videoId}")
                             args.putString(
                                 "videoId",
-                                track.videoId
+                                track.videoId,
                             )
                             dialog.dismiss()
                             findNavController().navigateSafe(
                                 R.id.action_global_playlistFragment,
-                                args
+                                args,
                             )
                         }
                         btLike.setOnClickListener {
@@ -555,19 +573,23 @@ class SearchFragment : Fragment() {
                                     adapter = artistAdapter
                                     layoutManager = LinearLayoutManager(requireContext())
                                 }
-                                artistAdapter.setOnClickListener(object : SeeArtistOfNowPlayingAdapter.OnItemClickListener {
-                                    override fun onItemClick(position: Int) {
-                                        val artist = track.artists[position]
-                                        if (artist.id != null) {
-                                            findNavController().navigateSafe(R.id.action_global_artistFragment, Bundle().apply {
-                                                putString("channelId", artist.id)
-                                            })
-                                            subDialog.dismiss()
-                                            dialog.dismiss()
+                                artistAdapter.setOnClickListener(
+                                    object : SeeArtistOfNowPlayingAdapter.OnItemClickListener {
+                                        override fun onItemClick(position: Int) {
+                                            val artist = track.artists[position]
+                                            if (artist.id != null) {
+                                                findNavController().navigateSafe(
+                                                    R.id.action_global_artistFragment,
+                                                    Bundle().apply {
+                                                        putString("channelId", artist.id)
+                                                    },
+                                                )
+                                                subDialog.dismiss()
+                                                dialog.dismiss()
+                                            }
                                         }
-                                    }
-
-                                })
+                                    },
+                                )
                             }
                             subDialog.setCancelable(true)
                             subDialog.setContentView(subBottomSheetView.root)
@@ -598,63 +620,69 @@ class SearchFragment : Fragment() {
                                 listLocalPlaylist.addAll(list)
                                 addToAPlaylistAdapter.updateList(listLocalPlaylist)
                             }
-                            addToAPlaylistAdapter.setOnItemClickListener(object : AddToAPlaylistAdapter.OnItemClickListener{
-                                override fun onItemClick(position: Int) {
-                                    val playlist = listLocalPlaylist[position]
-                                    val tempTrack = ArrayList<String>()
-                                    viewModel.updateInLibrary(track.videoId)
-                                    if (playlist.tracks != null) {
-                                        tempTrack.addAll(playlist.tracks)
-                                    }
-                                    if (!tempTrack.contains(track.videoId) && playlist.syncState == LocalPlaylistEntity.YouTubeSyncState.Synced && playlist.youtubePlaylistId != null) {
-                                        viewModel.addToYouTubePlaylist(playlist.id, playlist.youtubePlaylistId, track.videoId)
-                                    }
-                                    if (!tempTrack.contains(track.videoId)) {
-                                        viewModel.insertPairSongLocalPlaylist(
-                                            PairSongLocalPlaylist(
-                                                playlistId = playlist.id,
-                                                songId = track.videoId,
-                                                position = playlist.tracks?.size ?: 0,
-                                                inPlaylist = LocalDateTime.now()
+                            addToAPlaylistAdapter.setOnItemClickListener(
+                                object : AddToAPlaylistAdapter.OnItemClickListener {
+                                    override fun onItemClick(position: Int) {
+                                        val playlist = listLocalPlaylist[position]
+                                        val tempTrack = ArrayList<String>()
+                                        viewModel.updateInLibrary(track.videoId)
+                                        if (playlist.tracks != null) {
+                                            tempTrack.addAll(playlist.tracks)
+                                        }
+                                        if (!tempTrack.contains(track.videoId) &&
+                                            playlist.syncState == LocalPlaylistEntity.YouTubeSyncState.Synced &&
+                                            playlist.youtubePlaylistId != null
+                                        ) {
+                                            viewModel.addToYouTubePlaylist(playlist.id, playlist.youtubePlaylistId, track.videoId)
+                                        }
+                                        if (!tempTrack.contains(track.videoId)) {
+                                            viewModel.insertPairSongLocalPlaylist(
+                                                PairSongLocalPlaylist(
+                                                    playlistId = playlist.id,
+                                                    songId = track.videoId,
+                                                    position = playlist.tracks?.size ?: 0,
+                                                    inPlaylist = LocalDateTime.now(),
+                                                ),
                                             )
+                                            tempTrack.add(track.videoId)
+                                        }
+                                        viewModel.updateLocalPlaylistTracks(
+                                            tempTrack.removeConflicts(),
+                                            playlist.id,
                                         )
-                                        tempTrack.add(track.videoId)
+                                        addPlaylistDialog.dismiss()
+                                        dialog.dismiss()
                                     }
-                                    viewModel.updateLocalPlaylistTracks(
-                                        tempTrack.removeConflicts(),
-                                        playlist.id
-                                    )
-                                    addPlaylistDialog.dismiss()
-                                    dialog.dismiss()
-                                }
-                            })
+                                },
+                            )
                             addPlaylistDialog.setContentView(viewAddPlaylist.root)
                             addPlaylistDialog.setCancelable(true)
                             addPlaylistDialog.show()
                         }
                         btSleepTimer.visibility = View.GONE
                         btDownload.setOnClickListener {
-                            if (tvDownload.text == getString(R.string.download)){
+                            if (tvDownload.text == getString(R.string.download)) {
                                 Log.d("Download", "onClick: ${track.videoId}")
                                 viewModel.updateDownloadState(
                                     track.videoId,
-                                    DownloadState.STATE_PREPARING
+                                    DownloadState.STATE_PREPARING,
                                 )
                                 val downloadRequest =
-                                    DownloadRequest.Builder(track.videoId, track.videoId.toUri())
+                                    DownloadRequest
+                                        .Builder(track.videoId, track.videoId.toUri())
                                         .setData(track.title.toByteArray())
                                         .setCustomCacheKey(track.videoId)
                                         .build()
                                 viewModel.updateDownloadState(
                                     track.videoId,
-                                    DownloadState.STATE_DOWNLOADING
+                                    DownloadState.STATE_DOWNLOADING,
                                 )
                                 viewModel.getDownloadStateFromService(track.videoId)
                                 DownloadService.sendAddDownload(
                                     requireContext(),
                                     MusicDownloadService::class.java,
                                     downloadRequest,
-                                    false
+                                    false,
                                 )
                                 lifecycleScope.launch {
                                     viewModel.downloadState.collect { download ->
@@ -663,7 +691,7 @@ class SearchFragment : Fragment() {
                                                 Download.STATE_DOWNLOADING -> {
                                                     viewModel.updateDownloadState(
                                                         track.videoId,
-                                                        DownloadState.STATE_DOWNLOADING
+                                                        DownloadState.STATE_DOWNLOADING,
                                                     )
                                                     tvDownload.text = getString(R.string.downloading)
                                                     ivDownload.setImageResource(R.drawable.baseline_downloading_white)
@@ -673,28 +701,30 @@ class SearchFragment : Fragment() {
                                                 Download.STATE_FAILED -> {
                                                     viewModel.updateDownloadState(
                                                         track.videoId,
-                                                        DownloadState.STATE_NOT_DOWNLOADED
+                                                        DownloadState.STATE_NOT_DOWNLOADED,
                                                     )
                                                     tvDownload.text = getString(R.string.download)
                                                     ivDownload.setImageResource(R.drawable.outline_download_for_offline_24)
                                                     setEnabledAll(btDownload, true)
-                                                    Toast.makeText(
-                                                        requireContext(),
-                                                        getString(androidx.media3.exoplayer.R.string.exo_download_failed),
-                                                        Toast.LENGTH_SHORT
-                                                    ).show()
+                                                    Toast
+                                                        .makeText(
+                                                            requireContext(),
+                                                            getString(androidx.media3.exoplayer.R.string.exo_download_failed),
+                                                            Toast.LENGTH_SHORT,
+                                                        ).show()
                                                 }
 
                                                 Download.STATE_COMPLETED -> {
                                                     viewModel.updateDownloadState(
                                                         track.videoId,
-                                                        DownloadState.STATE_DOWNLOADED
+                                                        DownloadState.STATE_DOWNLOADED,
                                                     )
-                                                    Toast.makeText(
-                                                        requireContext(),
-                                                        getString(R.string.downloaded),
-                                                        Toast.LENGTH_SHORT
-                                                    ).show()
+                                                    Toast
+                                                        .makeText(
+                                                            requireContext(),
+                                                            getString(R.string.downloaded),
+                                                            Toast.LENGTH_SHORT,
+                                                        ).show()
                                                     tvDownload.text = getString(R.string.downloaded)
                                                     ivDownload.setImageResource(R.drawable.baseline_downloaded)
                                                     setEnabledAll(btDownload, true)
@@ -707,26 +737,26 @@ class SearchFragment : Fragment() {
                                         }
                                     }
                                 }
-                            }
-                            else if (tvDownload.text == getString(R.string.downloaded) || tvDownload.text == getString(R.string.downloading)){
+                            } else if (tvDownload.text == getString(R.string.downloaded) || tvDownload.text == getString(R.string.downloading)) {
                                 DownloadService.sendRemoveDownload(
                                     requireContext(),
                                     MusicDownloadService::class.java,
                                     track.videoId,
-                                    false
+                                    false,
                                 )
                                 viewModel.updateDownloadState(
                                     track.videoId,
-                                    DownloadState.STATE_NOT_DOWNLOADED
+                                    DownloadState.STATE_NOT_DOWNLOADED,
                                 )
                                 tvDownload.text = getString(R.string.download)
                                 ivDownload.setImageResource(R.drawable.outline_download_for_offline_24)
                                 setEnabledAll(btDownload, true)
-                                Toast.makeText(
-                                    requireContext(),
-                                    getString(R.string.removed_download),
-                                    Toast.LENGTH_SHORT
-                                ).show()
+                                Toast
+                                    .makeText(
+                                        requireContext(),
+                                        getString(R.string.removed_download),
+                                        Toast.LENGTH_SHORT,
+                                    ).show()
                             }
                         }
                     }
@@ -734,20 +764,24 @@ class SearchFragment : Fragment() {
                     dialog.setContentView(bottomSheetView.root)
                     dialog.show()
                 }
-
-        })
-        searchHistoryAdapter.setOnClickListener(object: SearchHistoryItemAdapter.onItemClickListener{
-            override fun onItemClick(position: Int) {
-                binding.svSearch.setQuery(searchHistoryAdapter.getCurrentList()[position], true)
-            }
-        })
-        searchHistoryAdapter.setOnDeleteClickListener(object: SearchHistoryItemAdapter.onDeleteClickListener{
-            override fun onDeleteClick(position: Int) {
-                searchHistory.remove(searchHistoryAdapter.getCurrentList()[position])
-                viewModel.searchHistory.value?.remove(searchHistoryAdapter.getCurrentList()[position])
-                observeSearchHistory()
-            }
-        })
+            },
+        )
+        searchHistoryAdapter.setOnClickListener(
+            object : SearchHistoryItemAdapter.onItemClickListener {
+                override fun onItemClick(position: Int) {
+                    binding.svSearch.setQuery(searchHistoryAdapter.getCurrentList()[position], true)
+                }
+            },
+        )
+        searchHistoryAdapter.setOnDeleteClickListener(
+            object : SearchHistoryItemAdapter.onDeleteClickListener {
+                override fun onDeleteClick(position: Int) {
+                    searchHistory.remove(searchHistoryAdapter.getCurrentList()[position])
+                    viewModel.searchHistory.value?.remove(searchHistoryAdapter.getCurrentList()[position])
+                    observeSearchHistory()
+                }
+            },
+        )
         binding.btClearSearchHistory.setOnClickListener {
             viewModel.searchHistory.value?.clear()
             searchHistory.clear()
@@ -757,22 +791,17 @@ class SearchFragment : Fragment() {
         binding.refreshSearch.setOnRefreshListener {
             resultList.clear()
             resultAdapter.updateList(resultList)
-            if (binding.chipAll.isChecked){
+            if (binding.chipAll.isChecked) {
                 fetchSearchAll(binding.svSearch.query.toString())
-            }
-            else if (binding.chipVideo.isChecked){
+            } else if (binding.chipVideo.isChecked) {
                 fetchSearchVideos(binding.svSearch.query.toString())
-            }
-            else if (binding.chipSong.isChecked){
+            } else if (binding.chipSong.isChecked) {
                 fetchSearchSongs(binding.svSearch.query.toString())
-            }
-            else if (binding.chipAlbum.isChecked){
+            } else if (binding.chipAlbum.isChecked) {
                 fetchSearchAlbums(binding.svSearch.query.toString())
-            }
-            else if (binding.chipArtists.isChecked){
+            } else if (binding.chipArtists.isChecked) {
                 fetchSearchArtists(binding.svSearch.query.toString())
-            }
-            else if (binding.chipPlaylist.isChecked) {
+            } else if (binding.chipPlaylist.isChecked) {
                 fetchSearchPlaylists(binding.svSearch.query.toString())
             } else if (binding.chipFeaturedPlaylist.isChecked) {
                 fetchSearchFeaturedPlaylists(binding.svSearch.query.toString())
@@ -781,53 +810,44 @@ class SearchFragment : Fragment() {
             }
         }
         binding.chipGroupTypeSearch.setOnCheckedStateChangeListener { _, checkedIds ->
-            if (checkedIds.contains(binding.chipSong.id))
-            {
+            if (checkedIds.contains(binding.chipSong.id)) {
                 viewModel.searchType.postValue("songs")
                 resultList.clear()
                 val temp = viewModel.songsSearchResult.value?.data
-                for (i in temp ?: emptyList<SongsResult>()){
+                for (i in temp ?: emptyList<SongsResult>()) {
                     resultList.add(i)
                 }
                 resultAdapter.updateList(resultList)
-            }
-            else if (checkedIds.contains(binding.chipVideo.id)){
+            } else if (checkedIds.contains(binding.chipVideo.id)) {
                 viewModel.searchType.postValue("videos")
                 resultList.clear()
                 val temp = viewModel.videoSearchResult.value?.data
-                for (i in temp ?: emptyList<VideosResult>()){
+                for (i in temp ?: emptyList<VideosResult>()) {
                     resultList.add(i)
                 }
                 resultAdapter.updateList(resultList)
-            }
-            else if (checkedIds.contains(binding.chipAll.id))
-            {
+            } else if (checkedIds.contains(binding.chipAll.id)) {
                 viewModel.searchType.postValue("all")
                 resultList.clear()
                 resultList.addAll(searchAllResult)
                 resultAdapter.updateList(resultList)
-            }
-            else if (checkedIds.contains(binding.chipAlbum.id))
-            {
+            } else if (checkedIds.contains(binding.chipAlbum.id)) {
                 viewModel.searchType.postValue("albums")
                 resultList.clear()
                 val temp = viewModel.albumsSearchResult.value?.data
-                for (i in temp ?: emptyList<AlbumsResult>()){
+                for (i in temp ?: emptyList<AlbumsResult>()) {
                     resultList.add(i)
                 }
                 resultAdapter.updateList(resultList)
-            }
-            else if (checkedIds.contains(binding.chipArtists.id))
-            {
+            } else if (checkedIds.contains(binding.chipArtists.id)) {
                 viewModel.searchType.postValue("artists")
                 resultList.clear()
                 val temp = viewModel.artistsSearchResult.value?.data
-                for (i in temp ?: emptyList<ArtistsResult>()){
+                for (i in temp ?: emptyList<ArtistsResult>()) {
                     resultList.add(i)
                 }
                 resultAdapter.updateList(resultList)
-            }
-            else if (checkedIds.contains(binding.chipPlaylist.id)) {
+            } else if (checkedIds.contains(binding.chipPlaylist.id)) {
                 viewModel.searchType.postValue("playlists")
                 resultList.clear()
                 val temp = viewModel.playlistSearchResult.value?.data
@@ -853,52 +873,62 @@ class SearchFragment : Fragment() {
                 resultAdapter.updateList(resultList)
             }
         }
-        suggestAdapter.setOnClickListener(object : SuggestQueryAdapter.onItemClickListener {
-            override fun onItemClick(position: Int) {
-                binding.svSearch.setQuery(suggestList[position], true)
-            }
-        })
-        suggestAdapter.setOnCopyClickListener(object : SuggestQueryAdapter.OnCopyClickListener {
-            override fun onCopyClick(position: Int) {
-                binding.svSearch.setQuery(suggestList[position], false)
-            }
-        })
+        suggestAdapter.setOnClickListener(
+            object : SuggestQueryAdapter.onItemClickListener {
+                override fun onItemClick(position: Int) {
+                    binding.svSearch.setQuery(suggestList[position], true)
+                }
+            },
+        )
+        suggestAdapter.setOnCopyClickListener(
+            object : SuggestQueryAdapter.OnCopyClickListener {
+                override fun onCopyClick(position: Int) {
+                    binding.svSearch.setQuery(suggestList[position], false)
+                }
+            },
+        )
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                val job1 = launch {
-                    sharedViewModel.downloadList.collect {
-                        resultAdapter.setDownloadedList(it)
-                    }
-                }
-                val job2 = launch {
-                    combine(sharedViewModel.nowPlayingState.distinctUntilChangedBy {
-                        it?.songEntity?.videoId
-                    }, sharedViewModel.controllerState.distinctUntilChangedBy {
-                        it.isPlaying
-                    }) { nowPlaying, controllerState ->
-                        Pair(nowPlaying, controllerState)
-                    }.collect {
-                        val songEntity = it.first?.songEntity
-                        if (songEntity != null && it.second.isPlaying) {
-                            resultAdapter.setNowPlaying(songEntity.videoId)
-                        } else {
-                            resultAdapter.setNowPlaying(null)
+                val job1 =
+                    launch {
+                        sharedViewModel.downloadList.collect {
+                            resultAdapter.setDownloadedList(it)
                         }
                     }
-                }
-                val job3 = launch {
-                    viewModel.loading.observe(viewLifecycleOwner) { loading ->
-                        if (loading) {
-                            if (binding.chipGroupTypeSearch.isEnabled) {
-                                setEnabledAll(binding.chipGroupTypeSearch, false)
-                            }
-                        } else {
-                            if (!binding.chipGroupTypeSearch.isEnabled) {
-                                setEnabledAll(binding.chipGroupTypeSearch, true)
+                val job2 =
+                    launch {
+                        combine(
+                            sharedViewModel.nowPlayingState.distinctUntilChangedBy {
+                                it?.songEntity?.videoId
+                            },
+                            sharedViewModel.controllerState.distinctUntilChangedBy {
+                                it.isPlaying
+                            },
+                        ) { nowPlaying, controllerState ->
+                            Pair(nowPlaying, controllerState)
+                        }.collect {
+                            val songEntity = it.first?.songEntity
+                            if (songEntity != null && it.second.isPlaying) {
+                                resultAdapter.setNowPlaying(songEntity.videoId)
+                            } else {
+                                resultAdapter.setNowPlaying(null)
                             }
                         }
                     }
-                }
+                val job3 =
+                    launch {
+                        viewModel.loading.observe(viewLifecycleOwner) { loading ->
+                            if (loading) {
+                                if (binding.chipGroupTypeSearch.isEnabled) {
+                                    setEnabledAll(binding.chipGroupTypeSearch, false)
+                                }
+                            } else {
+                                if (!binding.chipGroupTypeSearch.isEnabled) {
+                                    setEnabledAll(binding.chipGroupTypeSearch, true)
+                                }
+                            }
+                        }
+                    }
                 job1.join()
                 job2.join()
                 job3.join()
@@ -907,10 +937,10 @@ class SearchFragment : Fragment() {
     }
 
     private fun observeSearchHistory() {
-        viewModel.searchHistory.observe(viewLifecycleOwner){ searchHistoryList ->
-            if (searchHistoryList != null){
+        viewModel.searchHistory.observe(viewLifecycleOwner) { searchHistoryList ->
+            if (searchHistoryList != null) {
                 searchHistory.clear()
-                for (i in searchHistoryList.size - 1 downTo 0){
+                for (i in searchHistoryList.size - 1 downTo 0) {
                     searchHistory.add(searchHistoryList[i])
                 }
                 searchHistoryAdapter.updateData(searchHistory)
@@ -924,8 +954,8 @@ class SearchFragment : Fragment() {
         binding.shimmerLayout.startShimmer()
         binding.shimmerLayout.visibility = View.VISIBLE
         viewModel.searchVideos(query)
-        viewModel.loading.observe(viewLifecycleOwner){
-            viewModel.videoSearchResult.observe(viewLifecycleOwner){response ->
+        viewModel.loading.observe(viewLifecycleOwner) {
+            viewModel.videoSearchResult.observe(viewLifecycleOwner) { response ->
                 when (response) {
                     is Resource.Success -> {
                         response.data.let {
@@ -947,11 +977,11 @@ class SearchFragment : Fragment() {
                     }
                     is Resource.Error -> {
                         response.message?.let { message ->
-                            Snackbar.make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
+                            Snackbar
+                                .make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
                                 .setAction("Retry") {
                                     fetchSearchVideos(query)
-                                }
-                                .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
+                                }.setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
                                 .setDuration(3000)
                                 .show()
                         }
@@ -963,13 +993,14 @@ class SearchFragment : Fragment() {
             }
         }
     }
+
     private fun fetchSearchAlbums(query: String) {
         setEnabledAll(binding.chipGroupTypeSearch, false)
         binding.refreshSearch.isRefreshing = true
         binding.shimmerLayout.startShimmer()
         binding.shimmerLayout.visibility = View.VISIBLE
         viewModel.searchAlbums(query)
-        viewModel.loading.observe(viewLifecycleOwner){
+        viewModel.loading.observe(viewLifecycleOwner) {
             viewModel.albumsSearchResult.observe(viewLifecycleOwner) { response ->
                 when (response) {
                     is Resource.Success -> {
@@ -993,11 +1024,11 @@ class SearchFragment : Fragment() {
                     }
                     is Resource.Error -> {
                         response.message?.let { message ->
-                            Snackbar.make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
+                            Snackbar
+                                .make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
                                 .setAction(getString(R.string.retry)) {
                                     fetchSearchAlbums(query)
-                                }
-                                .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
+                                }.setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
                                 .setDuration(3000)
                                 .show()
                         }
@@ -1024,7 +1055,7 @@ class SearchFragment : Fragment() {
                             response.data.let { playlistsResultArrayList ->
                                 Log.d(
                                     "SearchFragment",
-                                    "observePlaylistsList: $playlistsResultArrayList"
+                                    "observePlaylistsList: $playlistsResultArrayList",
                                 )
                                 resultList.clear()
                                 if (playlistsResultArrayList != null) {
@@ -1045,15 +1076,14 @@ class SearchFragment : Fragment() {
 
                         is Resource.Error -> {
                             response.message?.let { message ->
-                                Snackbar.make(
-                                    requireActivity().findViewById(R.id.mini_player_container),
-                                    message,
-                                    Snackbar.LENGTH_LONG
-                                )
-                                    .setAction(R.string.retry) {
+                                Snackbar
+                                    .make(
+                                        requireActivity().findViewById(R.id.mini_player_container),
+                                        message,
+                                        Snackbar.LENGTH_LONG,
+                                    ).setAction(R.string.retry) {
                                         fetchSearchFeaturedPlaylists(query)
-                                    }
-                                    .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
+                                    }.setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
                                     .setDuration(3000)
                                     .show()
                             }
@@ -1099,15 +1129,14 @@ class SearchFragment : Fragment() {
 
                         is Resource.Error -> {
                             response.message?.let { message ->
-                                Snackbar.make(
-                                    requireActivity().findViewById(R.id.mini_player_container),
-                                    message,
-                                    Snackbar.LENGTH_LONG
-                                )
-                                    .setAction(R.string.retry) {
+                                Snackbar
+                                    .make(
+                                        requireActivity().findViewById(R.id.mini_player_container),
+                                        message,
+                                        Snackbar.LENGTH_LONG,
+                                    ).setAction(R.string.retry) {
                                         fetchSearchPodcasts(query)
-                                    }
-                                    .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
+                                    }.setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
                                     .setDuration(3000)
                                     .show()
                             }
@@ -1135,7 +1164,7 @@ class SearchFragment : Fragment() {
                             response.data.let { playlistsResultArrayList ->
                                 Log.d(
                                     "SearchFragment",
-                                    "observePlaylistsList: $playlistsResultArrayList"
+                                    "observePlaylistsList: $playlistsResultArrayList",
                                 )
                                 resultList.clear()
                                 if (playlistsResultArrayList != null) {
@@ -1155,11 +1184,11 @@ class SearchFragment : Fragment() {
                         }
                         is Resource.Error -> {
                             response.message?.let { message ->
-                                Snackbar.make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
+                                Snackbar
+                                    .make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
                                     .setAction(R.string.retry) {
                                         fetchSearchPlaylists(query)
-                                    }
-                                    .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
+                                    }.setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
                                     .setDuration(3000)
                                     .show()
                             }
@@ -1172,21 +1201,22 @@ class SearchFragment : Fragment() {
             }
         }
     }
+
     private fun fetchSearchArtists(query: String) {
         setEnabledAll(binding.chipGroupTypeSearch, false)
         binding.shimmerLayout.startShimmer()
         binding.shimmerLayout.visibility = View.VISIBLE
         binding.refreshSearch.isRefreshing = true
         viewModel.searchArtists(query)
-        viewModel.loading.observe(viewLifecycleOwner){
-            if (it == false){
+        viewModel.loading.observe(viewLifecycleOwner) {
+            if (it == false) {
                 viewModel.artistsSearchResult.observe(viewLifecycleOwner) { response ->
                     when (response) {
                         is Resource.Success -> {
                             response.data.let { artistsResultArrayList ->
                                 Log.d(
                                     "SearchFragment",
-                                    "observeArtistList: $artistsResultArrayList"
+                                    "observeArtistList: $artistsResultArrayList",
                                 )
                                 resultList.clear()
                                 if (artistsResultArrayList != null) {
@@ -1206,11 +1236,11 @@ class SearchFragment : Fragment() {
                         }
                         is Resource.Error -> {
                             response.message?.let { message ->
-                                Snackbar.make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
+                                Snackbar
+                                    .make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
                                     .setAction(R.string.retry) {
                                         fetchSearchArtists(query)
-                                    }
-                                    .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
+                                    }.setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
                                     .setDuration(3000)
                                     .show()
                             }
@@ -1223,14 +1253,15 @@ class SearchFragment : Fragment() {
             }
         }
     }
+
     private fun fetchSearchSongs(query: String) {
         setEnabledAll(binding.chipGroupTypeSearch, false)
         binding.shimmerLayout.startShimmer()
         binding.shimmerLayout.visibility = View.VISIBLE
         binding.refreshSearch.isRefreshing = true
         viewModel.searchSongs(query)
-        viewModel.loading.observe(viewLifecycleOwner){
-            if (it == false){
+        viewModel.loading.observe(viewLifecycleOwner) {
+            if (it == false) {
                 viewModel.songsSearchResult.observe(viewLifecycleOwner) { response ->
                     when (response) {
                         is Resource.Success -> {
@@ -1254,11 +1285,11 @@ class SearchFragment : Fragment() {
                         }
                         is Resource.Error -> {
                             response.message?.let { message ->
-                                Snackbar.make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
+                                Snackbar
+                                    .make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
                                     .setAction(getString(R.string.retry)) {
                                         fetchSearchSongs(query)
-                                    }
-                                    .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
+                                    }.setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
                                     .setDuration(5000)
                                     .show()
                             }
@@ -1272,6 +1303,7 @@ class SearchFragment : Fragment() {
             }
         }
     }
+
     private fun fetchSearchAll(query: String) {
         setEnabledAll(binding.chipGroupTypeSearch, false)
         binding.shimmerLayout.startShimmer()
@@ -1299,34 +1331,34 @@ class SearchFragment : Fragment() {
 
                         is Resource.Error -> {
                             response.message?.let { message ->
-                                Snackbar.make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
+                                Snackbar
+                                    .make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
                                     .setAction(getString(R.string.retry)) {
                                         fetchSearchAll(query)
-                                    }
-                                    .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
+                                    }.setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
                                     .setDuration(3000)
                                     .show()
                             }
                         }
                     }
                 }
-                viewModel.videoSearchResult.observe(viewLifecycleOwner){ response ->
+                viewModel.videoSearchResult.observe(viewLifecycleOwner) { response ->
                     when (response) {
                         is Resource.Success -> {
                             response.data.let { videoResultArrayList ->
                                 Log.d("SearchFragment", "observeResultList: $videoResultArrayList")
-                                for (i in videoResultArrayList!!){
+                                for (i in videoResultArrayList!!) {
                                     video += i
                                 }
                             }
                         }
                         is Resource.Error -> {
                             response.message?.let { message ->
-                                Snackbar.make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
+                                Snackbar
+                                    .make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
                                     .setAction(getString(R.string.retry)) {
                                         fetchSearchAll(query)
-                                    }
-                                    .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
+                                    }.setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
                                     .setDuration(3000)
                                     .show()
                             }
@@ -1343,11 +1375,11 @@ class SearchFragment : Fragment() {
                         }
                         is Resource.Error -> {
                             response.message?.let { message ->
-                                Snackbar.make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
+                                Snackbar
+                                    .make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
                                     .setAction(getString(R.string.retry)) {
                                         fetchSearchAll(query)
-                                    }
-                                    .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
+                                    }.setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
                                     .setDuration(3000)
                                     .show()
                             }
@@ -1364,11 +1396,11 @@ class SearchFragment : Fragment() {
                         }
                         is Resource.Error -> {
                             response.message?.let { message ->
-                                Snackbar.make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
+                                Snackbar
+                                    .make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
                                     .setAction(getString(R.string.retry)) {
                                         fetchSearchAll(query)
-                                    }
-                                    .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
+                                    }.setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
                                     .setDuration(3000)
                                     .show()
                             }
@@ -1385,11 +1417,11 @@ class SearchFragment : Fragment() {
                         }
                         is Resource.Error -> {
                             response.message?.let { message ->
-                                Snackbar.make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
+                                Snackbar
+                                    .make(requireActivity().findViewById(R.id.mini_player_container), message, Snackbar.LENGTH_LONG)
                                     .setAction(getString(R.string.retry)) {
                                         fetchSearchAll(query)
-                                    }
-                                    .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
+                                    }.setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
                                     .setDuration(3000)
                                     .show()
                             }
@@ -1407,15 +1439,14 @@ class SearchFragment : Fragment() {
 
                         is Resource.Error -> {
                             response.message?.let { message ->
-                                Snackbar.make(
-                                    requireActivity().findViewById(R.id.mini_player_container),
-                                    message,
-                                    Snackbar.LENGTH_LONG
-                                )
-                                    .setAction(getString(R.string.retry)) {
+                                Snackbar
+                                    .make(
+                                        requireActivity().findViewById(R.id.mini_player_container),
+                                        message,
+                                        Snackbar.LENGTH_LONG,
+                                    ).setAction(getString(R.string.retry)) {
                                         fetchSearchAll(query)
-                                    }
-                                    .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
+                                    }.setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
                                     .setDuration(3000)
                                     .show()
                             }
@@ -1433,15 +1464,14 @@ class SearchFragment : Fragment() {
 
                         is Resource.Error -> {
                             response.message?.let { message ->
-                                Snackbar.make(
-                                    requireActivity().findViewById(R.id.mini_player_container),
-                                    message,
-                                    Snackbar.LENGTH_LONG
-                                )
-                                    .setAction(getString(R.string.retry)) {
+                                Snackbar
+                                    .make(
+                                        requireActivity().findViewById(R.id.mini_player_container),
+                                        message,
+                                        Snackbar.LENGTH_LONG,
+                                    ).setAction(getString(R.string.retry)) {
                                         fetchSearchAll(query)
-                                    }
-                                    .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
+                                    }.setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
                                     .setDuration(3000)
                                     .show()
                             }
@@ -1457,12 +1487,10 @@ class SearchFragment : Fragment() {
                                 for (i in 0..2) {
                                     temp += artist[i]
                                 }
-                                for (i in 0 until song.size)
-                                {
+                                for (i in 0 until song.size) {
                                     temp += song[i]
                                 }
-                                for (i in 0 until video.size)
-                                {
+                                for (i in 0 until video.size) {
                                     temp += video[i]
                                 }
                                 for (i in 0 until album.size) {
@@ -1477,8 +1505,7 @@ class SearchFragment : Fragment() {
                                 for (i in 0 until podcast.size) {
                                     temp += podcast[i]
                                 }
-                            }
-                            else {
+                            } else {
                                 temp.addAll(song)
                                 temp.addAll(video)
                                 temp.addAll(artist)
@@ -1488,15 +1515,14 @@ class SearchFragment : Fragment() {
                                 temp.addAll(podcast)
                             }
                         } catch (e: Exception) {
-                            Snackbar.make(
-                                requireActivity().findViewById(R.id.mini_player_container),
-                                e.message.toString(),
-                                Snackbar.LENGTH_LONG
-                            )
-                                .setAction(getString(R.string.retry)) {
+                            Snackbar
+                                .make(
+                                    requireActivity().findViewById(R.id.mini_player_container),
+                                    e.message.toString(),
+                                    Snackbar.LENGTH_LONG,
+                                ).setAction(getString(R.string.retry)) {
                                     fetchSearchAll(query)
-                                }
-                                .setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
+                                }.setAnchorView(activity?.findViewById<BottomNavigationView>(R.id.bottom_navigation_view))
                                 .setDuration(3000)
                                 .show()
                         }
@@ -1534,9 +1560,14 @@ class SearchFragment : Fragment() {
                     }
                 }
                 is Resource.Error -> {
-
                 }
             }
         }
     }
+}
+
+@Composable
+@IntermediaryMigrateApi
+fun SearchFragmentComposable() {
+    AndroidViewBinding(FragmentSearchBinding::inflate)
 }

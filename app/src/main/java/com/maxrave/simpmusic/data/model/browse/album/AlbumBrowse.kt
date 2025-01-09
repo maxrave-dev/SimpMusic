@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.data.model.browse.album
 
-
 import androidx.compose.runtime.Immutable
 import com.google.gson.annotations.SerializedName
 import com.maxrave.simpmusic.data.model.searchResult.songs.Artist
@@ -29,5 +28,5 @@ data class AlbumBrowse(
     @SerializedName("type")
     val type: String,
     @SerializedName("year")
-    val year: String?
+    val year: String?,
 )

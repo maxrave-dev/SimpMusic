@@ -1,12 +1,15 @@
 package com.maxrave.simpmusic.extension
 
 import android.app.Activity
+import android.app.PictureInPictureParams
 import android.content.Context
 import android.content.ContextWrapper
 import android.graphics.Point
 import android.os.Build
 import android.util.Log
-import android.view.View
+import android.util.Rational
+import android.view.WindowManager
+import androidx.activity.ComponentActivity
 import androidx.annotation.ColorInt
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -21,6 +24,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.lazy.LazyListItemInfo
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -42,13 +46,15 @@ import androidx.compose.ui.graphics.ColorMatrix
 import androidx.compose.ui.graphics.Paint
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.toAndroidRectF
+import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.graphics.ColorUtils
+import androidx.core.graphics.toRect
 import com.kmpalette.palette.graphics.Palette
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.ui.theme.shimmerBackground
@@ -98,10 +104,9 @@ fun Modifier.shimmer(): Modifier =
                     start = Offset(startOffsetX, 0f),
                     end = Offset(startOffsetX + size.width.toFloat(), size.height.toFloat()),
                 ),
-        )
-            .onGloballyPositioned {
-                size = it.size
-            }
+        ).onGloballyPositioned {
+            size = it.size
+        }
     }
 
 class GreyScaleModifier : DrawModifier {
@@ -216,50 +221,67 @@ fun Modifier.angledGradientBackground(
 )
 
 // Angle Gradient Background without size
-fun GradientOffset(angle: GradientAngle): GradientOffset {
-    return when (angle) {
-        GradientAngle.CW45 -> GradientOffset(
-            start = Offset.Zero,
-            end = Offset.Infinite
-        )
-        GradientAngle.CW90 -> GradientOffset(
-            start = Offset.Zero,
-            end = Offset(0f, Float.POSITIVE_INFINITY)
-        )
-        GradientAngle.CW135 -> GradientOffset(
-            start = Offset(Float.POSITIVE_INFINITY, 0f),
-            end = Offset(0f, Float.POSITIVE_INFINITY)
-        )
-        GradientAngle.CW180 -> GradientOffset(
-            start = Offset(Float.POSITIVE_INFINITY, 0f),
-            end = Offset.Zero,
-        )
-        GradientAngle.CW225 -> GradientOffset(
-            start = Offset.Infinite,
-            end = Offset.Zero
-        )
-        GradientAngle.CW270 -> GradientOffset(
-            start = Offset(0f, Float.POSITIVE_INFINITY),
-            end = Offset.Zero
-        )
-        GradientAngle.CW315 -> GradientOffset(
-            start = Offset(0f, Float.POSITIVE_INFINITY),
-            end = Offset(Float.POSITIVE_INFINITY, 0f)
-        )
-        else -> GradientOffset(
-            start = Offset.Zero,
-            end = Offset(Float.POSITIVE_INFINITY, 0f)
-        )
+fun GradientOffset(angle: GradientAngle): GradientOffset =
+    when (angle) {
+        GradientAngle.CW45 ->
+            GradientOffset(
+                start = Offset.Zero,
+                end = Offset.Infinite,
+            )
+        GradientAngle.CW90 ->
+            GradientOffset(
+                start = Offset.Zero,
+                end = Offset(0f, Float.POSITIVE_INFINITY),
+            )
+        GradientAngle.CW135 ->
+            GradientOffset(
+                start = Offset(Float.POSITIVE_INFINITY, 0f),
+                end = Offset(0f, Float.POSITIVE_INFINITY),
+            )
+        GradientAngle.CW180 ->
+            GradientOffset(
+                start = Offset(Float.POSITIVE_INFINITY, 0f),
+                end = Offset.Zero,
+            )
+        GradientAngle.CW225 ->
+            GradientOffset(
+                start = Offset.Infinite,
+                end = Offset.Zero,
+            )
+        GradientAngle.CW270 ->
+            GradientOffset(
+                start = Offset(0f, Float.POSITIVE_INFINITY),
+                end = Offset.Zero,
+            )
+        GradientAngle.CW315 ->
+            GradientOffset(
+                start = Offset(0f, Float.POSITIVE_INFINITY),
+                end = Offset(Float.POSITIVE_INFINITY, 0f),
+            )
+        else ->
+            GradientOffset(
+                start = Offset.Zero,
+                end = Offset(Float.POSITIVE_INFINITY, 0f),
+            )
     }
-}
 
 /**
  * Offset for [Brush.linearGradient] to rotate gradient depending on [start] and [end] offsets.
  */
-data class GradientOffset(val start: Offset, val end: Offset)
+data class GradientOffset(
+    val start: Offset,
+    val end: Offset,
+)
 
 enum class GradientAngle {
-    CW0, CW45, CW90, CW135, CW180, CW225, CW270, CW315
+    CW0,
+    CW45,
+    CW90,
+    CW135,
+    CW180,
+    CW225,
+    CW270,
+    CW315,
 }
 
 fun Context.getActivityOrNull(): Activity? {
@@ -288,17 +310,29 @@ fun getScreenSizeInfo(): ScreenSizeInfo {
                 hDP = with(localDensity) { (windowMetrics?.bounds?.height())?.toDp()?.value?.toInt() ?: 0 },
                 wDP = with(localDensity) { (windowMetrics?.bounds?.height())?.toDp()?.value?.toInt() ?: 0 },
                 hPX = windowMetrics?.bounds?.height() ?: 0,
-                wPX = windowMetrics?.bounds?.width() ?: 0
+                wPX = windowMetrics?.bounds?.width() ?: 0,
             )
         } else {
             val point = Point()
             activity?.windowManager?.defaultDisplay?.getRealSize(point)
             Log.w("getScreenSizeInfo", "WindowMetrics: ${point.y}")
             ScreenSizeInfo(
-                hDP = with(localDensity) { point.y.toDp().value.toInt() },
-                wDP = with(localDensity) { point.x.toDp().value.toInt() },
+                hDP =
+                    with(localDensity) {
+                        point.y
+                            .toDp()
+                            .value
+                            .toInt()
+                    },
+                wDP =
+                    with(localDensity) {
+                        point.x
+                            .toDp()
+                            .value
+                            .toInt()
+                    },
                 hPX = point.y,
-                wPX = point.x
+                wPX = point.x,
             )
         }
     }
@@ -308,7 +342,7 @@ data class ScreenSizeInfo(
     val hDP: Int,
     val wDP: Int,
     val hPX: Int,
-    val wPX: Int
+    val wPX: Int,
 )
 
 @Composable
@@ -316,7 +350,9 @@ fun NonLazyGrid(
     columns: Int,
     itemCount: Int,
     modifier: Modifier = Modifier,
-    content: @Composable() (Int) -> Unit
+    content:
+        @Composable()
+        (Int) -> Unit,
 ) {
     Column(modifier = modifier) {
         var rows = (itemCount / columns)
@@ -331,9 +367,10 @@ fun NonLazyGrid(
                 for (columnId in 0 until columns) {
                     val index = firstIndex + columnId
                     Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .weight(1f),
                     ) {
                         if (index < itemCount) {
                             content(index)
@@ -345,7 +382,10 @@ fun NonLazyGrid(
     }
 }
 
-fun LazyListState.animateScrollAndCentralizeItem(index: Int, scope: CoroutineScope) {
+fun LazyListState.animateScrollAndCentralizeItem(
+    index: Int,
+    scope: CoroutineScope,
+) {
     val itemInfo = this.layoutInfo.visibleItemsInfo.firstOrNull { it.index == index }
     scope.launch {
         if (itemInfo != null) {
@@ -357,8 +397,18 @@ fun LazyListState.animateScrollAndCentralizeItem(index: Int, scope: CoroutineSco
         }
     }
 }
+
 @Composable
-fun KeepScreenOn() = AndroidView({ View(it).apply { keepScreenOn = true } })
+fun KeepScreenOn() {
+    val context = LocalContext.current
+    DisposableEffect(Unit) {
+        val window = context.findActivity().window
+        window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        onDispose {
+            window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+        }
+    }
+}
 
 @Composable
 fun LazyListState.isScrollingUp(): Boolean {
@@ -375,7 +425,7 @@ fun LazyListState.isScrollingUp(): Boolean {
 
     return remember(this) {
         derivedStateOf {
-            if (firstVisibleItemIndex > 0)  {
+            if (firstVisibleItemIndex > 0) {
                 if (previousIndex != firstVisibleItemIndex) {
                     previousIndex > firstVisibleItemIndex
                 } else {
@@ -384,8 +434,7 @@ fun LazyListState.isScrollingUp(): Boolean {
                     previousIndex = firstVisibleItemIndex
                     previousScrollOffset = firstVisibleItemScrollOffset
                 }
-            }
-            else {
+            } else {
                 true
             }
         }
@@ -393,12 +442,14 @@ fun LazyListState.isScrollingUp(): Boolean {
 }
 
 @Suppress("DEPRECATION")
-fun setStatusBarsColor(@ColorInt color: Int, activity: Activity) {
+fun setStatusBarsColor(
+    @ColorInt color: Int,
+    activity: Activity,
+) {
     if (Build.VERSION.SDK_INT < 35) {
         activity.window.statusBarColor = color
     }
 }
-
 
 fun Palette?.getColorFromPalette(): Color {
     val p = this ?: return md_theme_dark_background
@@ -428,3 +479,64 @@ fun Palette?.getColorFromPalette(): Color {
     }
     return Color(ColorUtils.setAlphaComponent(startColor, 255))
 }
+
+fun Context.findActivity(): ComponentActivity {
+    var context = this
+    while (context is ContextWrapper) {
+        if (context is ComponentActivity) return context
+        context = context.baseContext
+    }
+    throw IllegalStateException("Picture in picture should be called in the context of an Activity")
+}
+
+@Composable
+fun PipListenerPreAPI12() {
+    // [START android_compose_pip_pre12_listener]
+    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
+        val context = LocalContext.current
+        DisposableEffect(context) {
+            val onUserLeaveBehavior: () -> Unit = {
+                context
+                    .findActivity()
+                    .enterPictureInPictureMode(PictureInPictureParams.Builder().build())
+            }
+            context.findActivity().addOnUserLeaveHintListener(
+                onUserLeaveBehavior,
+            )
+            onDispose {
+                context.findActivity().removeOnUserLeaveHintListener(
+                    onUserLeaveBehavior,
+                )
+            }
+        }
+    } else {
+        Log.i("PiP info", "API does not support PiP")
+    }
+    // [END android_compose_pip_pre12_listener]
+}
+
+/**
+ * Android 12 and above Picture in Picture mode
+ */
+fun Modifier.pipModifier(context: Context) =
+    this.onGloballyPositioned { layoutCoordinates ->
+        val builder = PictureInPictureParams.Builder()
+        val sourceRect = layoutCoordinates.boundsInWindow().toAndroidRectF().toRect()
+        builder.setSourceRectHint(sourceRect)
+        builder.setAspectRatio(
+            Rational(16, 9),
+        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            builder.setAutoEnterEnabled(true)
+        }
+        Log.w("PiP info", "layoutCoordinates: $layoutCoordinates")
+        context.findActivity().setPictureInPictureParams(builder.build())
+    }
+
+@RequiresOptIn(
+    level = RequiresOptIn.Level.WARNING,
+    message = "This will be migrate to Compose. I use this to mark which fragment need to be migrate to Compose",
+)
+@Retention(AnnotationRetention.BINARY)
+@Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION)
+annotation class IntermediaryMigrateApi

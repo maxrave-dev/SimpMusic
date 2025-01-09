@@ -42,7 +42,7 @@ import com.maxrave.simpmusic.data.db.entities.SongInfoEntity
             spec = AutoMigration7_8::class,
         ), AutoMigration(8, 9),
         AutoMigration(9, 10),
-        AutoMigration(from = 11, to = 12, spec = AutoMigration11_12::class)
+        AutoMigration(from = 11, to = 12, spec = AutoMigration11_12::class),
     ],
 )
 @TypeConverters(Converters::class)

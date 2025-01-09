@@ -1,4 +1,5 @@
 import com.android.build.gradle.internal.tasks.CompileArtProfileTask
+import org.jetbrains.kotlin.compose.compiler.gradle.ComposeFeatureFlag
 
 plugins {
     alias(libs.plugins.android.application)
@@ -17,8 +18,8 @@ android {
         applicationId = "com.maxrave.simpmusic"
         minSdk = 26
         targetSdk = 35
-        versionCode = 21
-        versionName = "0.2.4"
+        versionCode = libs.versions.version.code.get().toInt()
+        versionName = libs.versions.version.name.get()
         vectorDrawables.useSupportLibrary = true
 
         ksp {
@@ -49,7 +50,9 @@ android {
                 "iw",
                 "az",
                 "hi",
-                "th"
+                "th",
+                "nl",
+                "ko",
             )
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -87,7 +90,9 @@ android {
         compose = true
     }
     composeCompiler {
-        enableStrongSkippingMode = true
+        featureFlags = setOf(
+            ComposeFeatureFlag.StrongSkipping
+        )
     }
     packaging {
         jniLibs.useLegacyPackaging = true
@@ -189,6 +194,7 @@ dependencies {
     implementation(libs.compose.material.ripple)
     implementation(libs.compose.material.icons.core)
     implementation(libs.compose.material.icons.extended)
+    implementation(libs.compose.ui.viewbinding)
     implementation(libs.constraintlayout.compose)
 
     // Android Studio Preview support
@@ -208,7 +214,10 @@ dependencies {
     implementation(libs.material)
     // Runtime
     implementation(libs.startup.runtime)
+    // Other module
     implementation(project(mapOf("path" to ":kotlinYtmusicScraper")))
+    implementation(project(mapOf("path" to ":spotify")))
+
     implementation(libs.lifecycle.livedata.ktx)
     implementation(libs.lifecycle.viewmodel.ktx)
     debugImplementation(libs.ui.tooling)
@@ -223,6 +232,7 @@ dependencies {
     implementation(libs.media3.exoplayer.smoothstreaming)
     implementation(libs.media3.exoplayer.workmanager)
     implementation(libs.media3.datasource.okhttp)
+    implementation(libs.okhttp3.logging.interceptor)
 
     // Palette Color
     implementation(libs.palette.ktx)
@@ -289,6 +299,7 @@ dependencies {
     implementation(libs.ssp.android)
 
     implementation(libs.aboutlibraries)
+    implementation(libs.aboutlibraries.compose.m3)
 
     implementation(libs.flexbox)
     implementation(libs.balloon)
@@ -304,8 +315,6 @@ dependencies {
     implementation(libs.koin.android)
     implementation(libs.koin.workmanager)
     implementation(libs.koin.androidx.compose)
-    implementation(libs.koin.annotations)
-    ksp(libs.koin.ksp)
 
     // Store5
     implementation(libs.store)

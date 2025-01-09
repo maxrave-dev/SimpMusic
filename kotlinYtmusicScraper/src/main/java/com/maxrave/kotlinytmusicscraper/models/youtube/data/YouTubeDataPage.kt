@@ -7,27 +7,27 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class YouTubeDataPage(
     @SerialName("contents")
-    val contents: Contents? = null
+    val contents: Contents? = null,
 ) {
     @Serializable
     data class Contents(
         @SerialName("twoColumnWatchNextResults")
-        val twoColumnWatchNextResults: TwoColumnWatchNextResults? = null
+        val twoColumnWatchNextResults: TwoColumnWatchNextResults? = null,
     ) {
         @Serializable
         data class TwoColumnWatchNextResults(
             @SerialName("results")
-            val results: Results? = null
+            val results: Results? = null,
         ) {
             @Serializable
             data class Results(
                 @SerialName("results")
-                val results: Results? = null
+                val results: Results? = null,
             ) {
                 @Serializable
                 data class Results(
                     @SerialName("contents")
-                    val content: List<Content?>? = null
+                    val content: List<Content?>? = null,
                 ) {
                     @Serializable
                     data class Content(
@@ -36,12 +36,12 @@ data class YouTubeDataPage(
                         @SerialName("videoSecondaryInfoRenderer")
                         val videoSecondaryInfoRenderer: VideoSecondaryInfoRenderer? = null,
                         @SerialName("itemSectionRenderer")
-                        val itemSectionRenderer: ItemSectionRenderer? = null
+                        val itemSectionRenderer: ItemSectionRenderer? = null,
                     ) {
                         @Serializable
                         data class ItemSectionRenderer(
                             @SerialName("contents")
-                            val contents: List<Content?>? = null
+                            val contents: List<Content?>? = null,
                         ) {
                             @Serializable
                             data class Content(
@@ -53,21 +53,21 @@ data class YouTubeDataPage(
                                     @SerialName("trigger")
                                     val trigger: String? = null,
                                     @SerialName("continuationEndpoint")
-                                    val continuationEndpoint: ContinuationEndpoint? = null
+                                    val continuationEndpoint: ContinuationEndpoint? = null,
                                 ) {
                                     @Serializable
                                     data class ContinuationEndpoint(
                                         @SerialName("clickTrackingParams")
                                         val clickTrackingParams: String? = null,
                                         @SerialName("continuationCommand")
-                                        val continuationCommand: ContinuationCommand? = null
+                                        val continuationCommand: ContinuationCommand? = null,
                                     ) {
                                         @Serializable
                                         data class ContinuationCommand(
                                             @SerialName("token")
                                             val token: String? = null,
                                             @SerialName("request")
-                                            val request: String? = null
+                                            val request: String? = null,
                                         )
                                     }
                                 }
@@ -81,34 +81,34 @@ data class YouTubeDataPage(
                             @SerialName("viewCount")
                             val viewCount: ViewCount? = null,
                             @SerialName("dateText")
-                            val dateText: DateText? = null
+                            val dateText: DateText? = null,
                         ) {
                             @Serializable
                             data class Title(
                                 @SerialName("runs")
-                                val runs: List<Run>? = null
+                                val runs: List<Run>? = null,
                             ) {
                                 @Serializable
                                 data class Run(
                                     @SerialName("text")
-                                    val text: String? = null
+                                    val text: String? = null,
                                 )
                             }
 
                             @Serializable
                             data class ViewCount(
                                 @SerialName("videoViewCountRenderer")
-                                val videoViewCountRenderer: VideoViewCountRenderer? = null
+                                val videoViewCountRenderer: VideoViewCountRenderer? = null,
                             ) {
                                 @Serializable
                                 data class VideoViewCountRenderer(
                                     @SerialName("viewCount")
-                                    val viewCount: VideoViewCountRenderer.ViewCount? = null
+                                    val viewCount: VideoViewCountRenderer.ViewCount? = null,
                                 ) {
                                     @Serializable
                                     data class ViewCount(
                                         @SerialName("simpleText")
-                                        val simpleText: String? = null
+                                        val simpleText: String? = null,
                                     )
                                 }
                             }
@@ -116,7 +116,7 @@ data class YouTubeDataPage(
                             @Serializable
                             data class DateText(
                                 @SerialName("simpleText")
-                                val simpleText: String? = null
+                                val simpleText: String? = null,
                             )
                         }
 
@@ -125,18 +125,18 @@ data class YouTubeDataPage(
                             @SerialName("owner")
                             val owner: Owner? = null,
                             @SerialName("attributedDescription")
-                            val attributedDescription: AttributedDescription? = null
+                            val attributedDescription: AttributedDescription? = null,
                         ) {
                             @Serializable
                             data class AttributedDescription(
                                 @SerialName("content")
-                                val content: String? = null
+                                val content: String? = null,
                             )
 
                             @Serializable
                             data class Owner(
                                 @SerialName("videoOwnerRenderer")
-                                val videoOwnerRenderer: VideoOwnerRenderer? = null
+                                val videoOwnerRenderer: VideoOwnerRenderer? = null,
                             ) {
                                 @Serializable
                                 data class VideoOwnerRenderer(
@@ -147,27 +147,29 @@ data class YouTubeDataPage(
                                     @SerialName("title")
                                     val title: Title? = null,
                                     @SerialName("navigationEndpoint")
-                                    val navigationEndpoint: NavigationEndpoint? = null
+                                    val navigationEndpoint: NavigationEndpoint? = null,
                                 ) {
                                     @Serializable
                                     data class Thumbnail(
                                         @SerialName("thumbnails")
-                                        val thumbnails: List<com.maxrave.kotlinytmusicscraper.models.Thumbnail>? = null
+                                        val thumbnails: List<com.maxrave.kotlinytmusicscraper.models.Thumbnail>? = null,
                                     )
+
                                     @Serializable
                                     data class SubscriberCountText(
                                         @SerialName("simpleText")
-                                        val simpleText: String? = null
+                                        val simpleText: String? = null,
                                     )
+
                                     @Serializable
                                     data class Title(
                                         @SerialName("runs")
-                                        val runs: List<Run>? = null
+                                        val runs: List<Run>? = null,
                                     ) {
                                         @Serializable
                                         data class Run(
                                             @SerialName("text")
-                                            val text: String? = null
+                                            val text: String? = null,
                                         )
                                     }
                                 }
@@ -175,7 +177,6 @@ data class YouTubeDataPage(
                         }
                     }
                 }
-
             }
         }
     }

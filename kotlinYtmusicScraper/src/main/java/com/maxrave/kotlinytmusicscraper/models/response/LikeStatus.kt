@@ -3,13 +3,12 @@ package com.maxrave.kotlinytmusicscraper.models.response
 enum class LikeStatus {
     LIKE,
     DISLIKE,
-    INDIFFERENT
+    INDIFFERENT,
 }
 
-fun String?.toLikeStatus(): LikeStatus {
-    return when (this) {
+fun String?.toLikeStatus(): LikeStatus =
+    when (this) {
         "LIKE" -> LikeStatus.LIKE
         "DISLIKE" -> LikeStatus.DISLIKE
         else -> LikeStatus.INDIFFERENT
     }
-}

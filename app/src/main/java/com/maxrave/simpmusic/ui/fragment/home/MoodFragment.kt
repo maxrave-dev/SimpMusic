@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.compose.material3.Scaffold
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
@@ -13,17 +14,15 @@ import com.maxrave.simpmusic.ui.screen.home.MoodScreen
 import com.maxrave.simpmusic.ui.theme.AppTheme
 import com.maxrave.simpmusic.viewModel.MoodViewModel
 
-class MoodFragment: Fragment() {
+class MoodFragment : Fragment() {
     private val viewModel by viewModels<MoodViewModel>()
 
     private lateinit var composeView: ComposeView
 
-
-
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
-        savedInstanceState: Bundle?
+        savedInstanceState: Bundle?,
     ): View {
 //        _binding = MoodMomentDialogBinding.inflate(inflater, container, false)
 //        binding.topAppBarLayout.applyInsetter {
@@ -41,7 +40,10 @@ class MoodFragment: Fragment() {
         super.onDestroyView()
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
         super.onViewCreated(view, savedInstanceState)
 //        binding.contentLayout.visibility = View.GONE
 //        binding.loadingLayout.visibility = View.VISIBLE
@@ -64,14 +66,15 @@ class MoodFragment: Fragment() {
 //        }
 //
 //        binding.topAppBar.setNavigationOnClickListener {
-//            findNavController().popBackStack()
+//            findNavController().navigateUp()
 //        }
         val params = requireArguments().getString("params")
 
         composeView.apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 AppTheme {
-                    Scaffold() {
+                    Scaffold {
                         MoodScreen(findNavController(), viewModel, params)
                     }
                 }
@@ -97,7 +100,7 @@ class MoodFragment: Fragment() {
 //                    binding.contentLayout.visibility = View.GONE
 //                    binding.loadingLayout.visibility = View.GONE
 //                    Snackbar.make(binding.root, response.message.toString(), Snackbar.LENGTH_LONG).show()
-//                    findNavController().popBackStack()
+//                    findNavController().navigateUp()
 //                }
 //            }
 //        })

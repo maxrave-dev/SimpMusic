@@ -5,13 +5,12 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import coil3.load
-import coil3.request.crossfade
-import coil3.request.placeholder
 import com.maxrave.simpmusic.data.model.podcast.PodcastBrowse
 import com.maxrave.simpmusic.databinding.ItemPodcastBinding
 
-class PodcastAdapter(private var podcastList: ArrayList<PodcastBrowse.EpisodeItem>) :
-    RecyclerView.Adapter<PodcastAdapter.ViewHolder>() {
+class PodcastAdapter(
+    private var podcastList: ArrayList<PodcastBrowse.EpisodeItem>,
+) : RecyclerView.Adapter<PodcastAdapter.ViewHolder>() {
     interface OnItemClickListener {
         fun onItemClick(position: Int)
     }
@@ -22,9 +21,10 @@ class PodcastAdapter(private var podcastList: ArrayList<PodcastBrowse.EpisodeIte
         mListener = onItemClickListener
     }
 
-    inner class ViewHolder(val binding: ItemPodcastBinding, listener: OnItemClickListener) :
-        RecyclerView.ViewHolder(binding.root) {
-
+    inner class ViewHolder(
+        val binding: ItemPodcastBinding,
+        listener: OnItemClickListener,
+    ) : RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
                 listener.onItemClick(bindingAdapterPosition)
@@ -42,16 +42,20 @@ class PodcastAdapter(private var podcastList: ArrayList<PodcastBrowse.EpisodeIte
         }
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int,
+    ): ViewHolder {
         val binding = ItemPodcastBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ViewHolder(binding, mListener)
     }
 
-    override fun getItemCount(): Int {
-        return podcastList.size
-    }
+    override fun getItemCount(): Int = podcastList.size
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int) {
+    override fun onBindViewHolder(
+        holder: ViewHolder,
+        position: Int,
+    ) {
         holder.bind(podcastList[position])
     }
 

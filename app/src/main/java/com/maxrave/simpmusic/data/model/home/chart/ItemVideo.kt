@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.data.model.home.chart
 
-
 import androidx.compose.runtime.Immutable
 import com.google.gson.annotations.SerializedName
 import com.maxrave.simpmusic.data.model.browse.album.Track
@@ -20,11 +19,11 @@ data class ItemVideo(
     @SerializedName("videoId")
     val videoId: String,
     @SerializedName("views")
-    val views: String
+    val views: String,
 )
 
-fun ItemVideo.toTrack(): Track {
-    return Track(
+fun ItemVideo.toTrack(): Track =
+    Track(
         album = null,
         artists = artists,
         duration = "",
@@ -39,7 +38,5 @@ fun ItemVideo.toTrack(): Track {
         category = null,
         feedbackTokens = null,
         resultType = null,
-        year = ""
-
+        year = "",
     )
-}

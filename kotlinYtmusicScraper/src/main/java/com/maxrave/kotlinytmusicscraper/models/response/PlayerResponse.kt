@@ -81,8 +81,9 @@ data class PlayerResponse(
         val musicVideoType: String?,
         val viewCount: String,
         val thumbnail: Thumbnails,
-        val description: String?
+        val description: String?,
     )
+
     @Serializable
     data class PlaybackTracking(
         @SerialName("videostatsPlaybackUrl")
@@ -103,11 +104,11 @@ data class PlayerResponse(
             @SerialName("baseUrl")
             val baseUrl: String?,
         )
+
         @Serializable
         data class AtrUrl(
             @SerialName("baseUrl")
             val baseUrl: String?,
         )
     }
-
 }

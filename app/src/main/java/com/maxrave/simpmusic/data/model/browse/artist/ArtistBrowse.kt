@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.data.model.browse.artist
 
-
 import com.google.gson.annotations.SerializedName
 import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 
@@ -34,5 +33,5 @@ data class ArtistBrowse(
     @SerializedName("thumbnails")
     val thumbnails: List<Thumbnail>?,
     @SerializedName("views")
-    val views: Any?
+    val views: Any?,
 )

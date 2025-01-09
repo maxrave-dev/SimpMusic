@@ -22,7 +22,6 @@ import com.maxrave.kotlinytmusicscraper.models.VideoItem
 import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
 import com.maxrave.kotlinytmusicscraper.models.YTItemType
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.ANDROID_MUSIC
-import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.IOS
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.WEB
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.WEB_REMIX
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
@@ -46,13 +45,10 @@ import com.maxrave.kotlinytmusicscraper.models.response.NextResponse
 import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
 import com.maxrave.kotlinytmusicscraper.models.response.PlayerResponse
 import com.maxrave.kotlinytmusicscraper.models.response.SearchResponse
-import com.maxrave.kotlinytmusicscraper.models.response.spotify.CanvasResponse
-import com.maxrave.kotlinytmusicscraper.models.response.spotify.PersonalTokenResponse
-import com.maxrave.kotlinytmusicscraper.models.response.spotify.SpotifyLyricsResponse
-import com.maxrave.kotlinytmusicscraper.models.response.spotify.search.SpotifySearchResponse
 import com.maxrave.kotlinytmusicscraper.models.response.toLikeStatus
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
+import com.maxrave.kotlinytmusicscraper.models.youtube.GhostResponse
 import com.maxrave.kotlinytmusicscraper.models.youtube.Transcript
 import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
 import com.maxrave.kotlinytmusicscraper.pages.AlbumPage
@@ -82,6 +78,8 @@ import com.maxrave.kotlinytmusicscraper.parser.parseUnsyncedLyrics
 import com.mohamedrejeb.ksoup.html.parser.KsoupHtmlHandler
 import com.mohamedrejeb.ksoup.html.parser.KsoupHtmlParser
 import io.ktor.client.call.body
+import io.ktor.client.engine.ProxyBuilder
+import io.ktor.client.engine.http
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
@@ -91,7 +89,6 @@ import kotlinx.serialization.json.jsonPrimitive
 import okhttp3.Interceptor
 import org.json.JSONArray
 import java.io.File
-import java.net.Proxy
 import kotlin.math.abs
 import kotlin.random.Random
 
@@ -129,10 +126,10 @@ private fun List<PipedResponse.AudioStream>.toListFormat(): List<PlayerResponse.
  * This library is from [z-huang/InnerTune] and I just modified it to comply with SimpMusic
  *
  * Here is the object that can create all request to YouTube Music and Spotify in SimpMusic
- * Using YouTube Internal API, Spotify Web API and Spotify Internal API for get lyrics
+ * Using YouTube Internal API
  * @author maxrave-dev
  */
-object YouTube {
+class YouTube {
     private val ytMusic = Ytmusic()
 
     var cachePath: File?
@@ -193,24 +190,65 @@ object YouTube {
         }
 
     /**
+     * Json deserializer for PO token request
+     */
+    private val poTokenJsonDeserializer = Json {
+        ignoreUnknownKeys = true
+        encodeDefaults = true
+        coerceInputValues = true
+        useArrayPolymorphism = true
+    }
+
+    private fun String.getPoToken(): String? {
+        return this.replace("[", "").replace("]", "")
+            .split(",")
+            .findLast { it.contains("\"") }
+            ?.replace("\"", "")
+    }
+
+    private var poTokenObject: Pair<String?, Long> = Pair(null, 0)
+
+    /**
+     * Remove proxy for client
+     */
+    fun removeProxy() {
+        ytMusic.proxy = null
+    }
+
+    /**
      * Set the proxy for client
      */
-    var proxy: Proxy?
-        get() = ytMusic.proxy
-        set(value) {
-            ytMusic.proxy = value
+    fun setProxy(
+        isHttp: Boolean,
+        host: String,
+        port: Int,
+    ) {
+        val verifiedHost =
+            if (!host.contains("http")) {
+                "http://$host"
+            } else {
+                host
+            }
+        runCatching {
+            if (isHttp) ProxyBuilder.http("$verifiedHost:$port") else ProxyBuilder.socks(verifiedHost, port)
+        }.onSuccess {
+            ytMusic.proxy = it
+        }.onFailure {
+            it.printStackTrace()
         }
+    }
 
-    private val listPipedInstances = listOf(
-        "https://pipedapi.nosebs.ru",
-        "https://pipedapi.kavin.rocks",
-        "https://pipedapi.tokhmi.xyz",
-        "https://pipedapi.syncpundit.io",
-        "https://pipedapi.leptons.xyz",
-        "https://pipedapi.r4fo.com",
-        "https://yapi.vyper.me",
-        "https://pipedapi-libre.kavin.rocks"
-    )
+    private val listPipedInstances =
+        listOf(
+            "https://pipedapi.nosebs.ru",
+            "https://pipedapi.kavin.rocks",
+            "https://pipedapi.tokhmi.xyz",
+            "https://pipedapi.syncpundit.io",
+            "https://pipedapi.leptons.xyz",
+            "https://pipedapi.r4fo.com",
+            "https://yapi.vyper.me",
+            "https://pipedapi-libre.kavin.rocks",
+        )
 
     /**
      * Search for a song, album, artist, playlist, etc.
@@ -590,18 +628,20 @@ object YouTube {
             val listPair = mutableListOf<Pair<SongItem, String>>()
             val response = ytMusic.playlist(plId).body<BrowseResponse>()
             listPair.addAll(
-                response.fromPlaylistToTrackWithSetVideoId()
+                response.fromPlaylistToTrackWithSetVideoId(),
             )
             var continuation = response.getPlaylistContinuation()
             while (continuation != null) {
-                val continuationResponse = ytMusic.browse(
-                    client = WEB_REMIX,
-                    setLogin = true,
-                    params = null,
-                    continuation = continuation
-                ).body<BrowseResponse>()
+                val continuationResponse =
+                    ytMusic
+                        .browse(
+                            client = WEB_REMIX,
+                            setLogin = true,
+                            params = null,
+                            continuation = continuation,
+                        ).body<BrowseResponse>()
                 listPair.addAll(
-                    continuationResponse.fromPlaylistToTrackWithSetVideoId()
+                    continuationResponse.fromPlaylistToTrackWithSetVideoId(),
                 )
                 continuation = continuationResponse.getContinuePlaylistContinuation()
             }
@@ -611,18 +651,22 @@ object YouTube {
 
     suspend fun getSuggestionsTrackForPlaylist(playlistId: String): Result<Pair<String?, List<SongItem>?>?> =
         runCatching {
-            val initialResponse = ytMusic.playlist(
-                if (playlistId.startsWith("VL")) playlistId else "VL$playlistId"
-            ).body<BrowseResponse>()
+            val initialResponse =
+                ytMusic
+                    .playlist(
+                        if (playlistId.startsWith("VL")) playlistId else "VL$playlistId",
+                    ).body<BrowseResponse>()
             var continuation = initialResponse.getPlaylistContinuation()
             println("YouTube: getSuggestionsTrackForPlaylist: $continuation")
             while (continuation != null) {
-                val continuationResponse = ytMusic.browse(
-                    client = WEB_REMIX,
-                    setLogin = true,
-                    params = "wAEB",
-                    continuation = continuation
-                ).body<BrowseResponse>()
+                val continuationResponse =
+                    ytMusic
+                        .browse(
+                            client = WEB_REMIX,
+                            setLogin = true,
+                            params = "wAEB",
+                            continuation = continuation,
+                        ).body<BrowseResponse>()
                 println("YouTube: getSuggestionsTrackForPlaylist: ${continuationResponse.getReloadParams()}")
                 if (continuationResponse.hasReloadParams()) {
                     return@runCatching Pair(continuationResponse.getReloadParams(), continuationResponse.getSuggestionSongItems())
@@ -638,18 +682,20 @@ object YouTube {
             val songs = mutableListOf<SongItem>()
             val response = ytMusic.playlist(playlistId).body<BrowseResponse>()
             songs.addAll(
-                response.fromPlaylistToTrack()
+                response.fromPlaylistToTrack(),
             )
             var continuation = response.getPlaylistContinuation()
             while (continuation != null) {
-                val continuationResponse = ytMusic.browse(
-                    client = WEB_REMIX,
-                    setLogin = true,
-                    params = null,
-                    continuation = continuation
-                ).body<BrowseResponse>()
+                val continuationResponse =
+                    ytMusic
+                        .browse(
+                            client = WEB_REMIX,
+                            setLogin = true,
+                            params = null,
+                            continuation = continuation,
+                        ).body<BrowseResponse>()
                 songs.addAll(
-                    continuationResponse.fromPlaylistContinuationToTracks()
+                    continuationResponse.fromPlaylistContinuationToTracks(),
                 )
                 continuation = continuationResponse.getContinuePlaylistContinuation()
             }
@@ -1231,12 +1277,75 @@ object YouTube {
             // Get author thumbnails, subscribers, description, like count
         }
 
+    private suspend fun getVisitorData(videoId: String, playlistId: String?): Triple<String, String, PlayerResponse.PlaybackTracking?> {
+        try {
+            val pId = if (playlistId?.startsWith("VL") == true) playlistId.removeRange(0..1) else playlistId
+            val ghostRequest = ytMusic.ghostRequest(videoId, pId)
+            val cookie =
+                "PREF=hl=en&tz=UTC; SOCS=CAI; ${ghostRequest.headers
+                    .getAll("set-cookie")
+                    ?.map {
+                        it.split(";").first()
+                    }?.filter {
+                        it.lastOrNull() != '='
+                    }?.joinToString("; ")}"
+            var response = ""
+            var data = ""
+            val ksoupHtmlParser =
+                KsoupHtmlParser(
+                    object : KsoupHtmlHandler {
+                        override fun onText(text: String) {
+                            super.onText(text)
+                            if (text.contains("var ytInitialPlayerResponse")) {
+                                val temp = text.replace("var ytInitialPlayerResponse = ", "").split(";var").firstOrNull()
+                                temp?.let {
+                                    response = it.trimIndent()
+                                }
+                            } else if (text.contains("var ytInitialData = ")) {
+                                val temp = text.replace("var ytInitialData = ", "").dropLast(1)
+                                temp.let {
+                                    data = it.trimIndent()
+                                }
+                            }
+                        }
+                    },
+                )
+            ksoupHtmlParser.write(ghostRequest.bodyAsText())
+            ksoupHtmlParser.end()
+            val ytInitialData = poTokenJsonDeserializer.decodeFromString<GhostResponse>(data)
+            val ytInitialPlayerResponse = poTokenJsonDeserializer.decodeFromString<GhostResponse>(response)
+            val playbackTracking = ytInitialPlayerResponse.playbackTracking
+            val loggedIn = ytInitialData.responseContext.serviceTrackingParams
+                ?.find { it.service == "GFEEDBACK" }
+                ?.params
+                ?.find { it.key == "logged_in" }?.value == "1"
+            println("Logged In $loggedIn")
+            val visitorData =
+                ytInitialPlayerResponse.responseContext.serviceTrackingParams
+                    ?.find { it.service == "GFEEDBACK" }
+                    ?.params
+                    ?.find { it.key == "visitor_data" }
+                    ?.value
+                    ?: ytInitialData.responseContext.webResponseContextExtensionData
+                        ?.ytConfigData
+                        ?.visitorData
+            println("Visitor Data $visitorData")
+            println("New Cookie $cookie")
+            println("Playback Tracking $playbackTracking")
+            if (!visitorData.isNullOrEmpty()) this@YouTube.visitorData = visitorData
+            return Triple(cookie, visitorData ?: this@YouTube.visitorData, playbackTracking)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return Triple("", "", null)
+        }
+    }
+
     suspend fun player(
         videoId: String,
         playlistId: String? = null,
     ): Result<Triple<String?, PlayerResponse, MediaType>> =
         runCatching {
-            var error: String? = null
+            val (tempCookie, visitorData, playbackTracking) = getVisitorData(videoId, playlistId)
             val cpn =
                 (1..16)
                     .map {
@@ -1247,11 +1356,43 @@ object YouTube {
                             ),
                         ]
                     }.joinToString("")
-            val playerResponse =
-                ytMusic.player( if (cookie != null) ANDROID_MUSIC else IOS, videoId, playlistId, cpn).body<PlayerResponse>()
-            println("Player Response " + playerResponse)
-//        val ytScrapeInitial: YouTubeInitialPage = ytMusic.player(WEB, videoId, playlistId, cpn).body<YouTubeInitialPage>()
+            val now = System.currentTimeMillis()
+            val poToken = if (now < poTokenObject.second) {
+                println("Use saved PoToken")
+                poTokenObject.first
+            }
+            else
+                ytMusic.createPoTokenChallenge().bodyAsText().let { challenge ->
+                    val listChallenge = poTokenJsonDeserializer.decodeFromString<List<String?>>(challenge)
+                    listChallenge.filterIsInstance<String>().firstOrNull()
+                }?.let { poTokenChallenge ->
+                    ytMusic.generatePoToken(poTokenChallenge).bodyAsText().getPoToken().also { poToken ->
+                        if (poToken != null) {
+                            poTokenObject = Pair(poToken, now + 21600000)
+                        }
+                    }
+                }
+            println("PoToken $poToken")
+            val playerResponse = ytMusic.noLogInPlayer(videoId, tempCookie, visitorData, poToken ?: "").body<PlayerResponse>()
+//                try {
+//                    println("Start logged in request")
+//                    ytMusic.player(
+//                        IOS,
+//                        videoId,
+//                        playlistId,
+//                        cpn,
+//                        poToken
+//                    ).body<PlayerResponse>().also {
+//                        if (it.playabilityStatus.status != "OK") throw Exception(it.playabilityStatus.status)
+//                    }
+//                } catch (e: Exception) {
+//                    println("Player Response Error $e")
+//                    println("Start no logged in request")
+//                    ytMusic.noLogInPlayer(videoId, tempCookie, visitorData, poToken ?: "").body<PlayerResponse>()
+//                }
+            println("Player Response $playerResponse")
             println("Thumbnails " + playerResponse.videoDetails?.thumbnail)
+            println("Player Response status: ${playerResponse.playabilityStatus.status}")
             val firstThumb =
                 playerResponse.videoDetails
                     ?.thumbnail
@@ -1260,16 +1401,16 @@ object YouTube {
             val thumbnails =
                 if (firstThumb?.height == firstThumb?.width && firstThumb != null) MediaType.Song else MediaType.Video
             val formatList = playerResponse.streamingData?.formats?.map { Pair(it.itag, it.isAudio) }
-            println("Player Response " + formatList)
+            println("Player Response formatList $formatList")
             val adaptiveFormatsList = playerResponse.streamingData?.adaptiveFormats?.map { Pair(it.itag, it.isAudio) }
-            println("Player Response " + adaptiveFormatsList)
+            println("Player Response adaptiveFormat $adaptiveFormatsList")
 
-//        println( playerResponse.streamingData?.adaptiveFormats?.findLast { it.itag == 251 }?.mimeType.toString())
             if (playerResponse.playabilityStatus.status == "OK" && (formatList != null || adaptiveFormatsList != null)) {
                 return@runCatching Triple(
                     cpn,
                     playerResponse.copy(
                         videoDetails = playerResponse.videoDetails?.copy(),
+                        playbackTracking = playbackTracking ?: playerResponse.playbackTracking,
                     ),
                     thumbnails,
                 )
@@ -1284,23 +1425,23 @@ object YouTube {
                             null,
                             playerResponse.copy(
                                 streamingData =
-                                PlayerResponse.StreamingData(
-                                    formats = stream.toListFormat(),
-                                    adaptiveFormats = stream.toListFormat(),
-                                    expiresInSeconds = 0,
-                                ),
+                                    PlayerResponse.StreamingData(
+                                        formats = stream.toListFormat(),
+                                        adaptiveFormats = stream.toListFormat(),
+                                        expiresInSeconds = 0,
+                                    ),
                                 videoDetails = playerResponse.videoDetails?.copy(),
-                            ),
+                                playbackTracking = playbackTracking ?: playerResponse.playbackTracking,
+                                ),
                             thumbnails,
                         )
                     } catch (e: Exception) {
                         e.printStackTrace()
-                        error = e.message
                         continue
                     }
                 }
             }
-            throw Exception(error ?: "Unknown error")
+            throw Exception(playerResponse.playabilityStatus.status ?: "Unknown error")
         }
 
     suspend fun updateWatchTime(
@@ -1700,43 +1841,6 @@ object YouTube {
         ytMusic.createYouTubePlaylist(title, listVideoId).body<CreatePlaylistResponse>()
     }
 
-    suspend fun getNotification() =
-        runCatching {
-            ytMusic.getNotification().bodyAsText()
-        }
-
-    /***
-     * Spotify Implementation
-     */
-
-    suspend fun getPersonalToken(spdc: String) =
-        runCatching {
-            ytMusic.getSpotifyLyricsToken(spdc).body<PersonalTokenResponse>()
-        }
-
-    suspend fun searchSpotifyTrack(
-        query: String,
-        authToken: String
-    ) = runCatching {
-        ytMusic
-            .searchSpotifyTrack(query, authToken)
-            .body<SpotifySearchResponse>()
-    }
-
-    suspend fun getSpotifyLyrics(
-        trackId: String,
-        token: String,
-    ) = runCatching {
-        ytMusic.getSpotifyLyrics(token, trackId).body<SpotifyLyricsResponse>()
-    }
-
-    suspend fun getSpotifyCanvas(
-        trackId: String,
-        token: String,
-    ) = runCatching {
-        ytMusic.getSpotifyCanvas(trackId, token).body<CanvasResponse>()
-    }
-
     suspend fun addToLiked(mediaId: String) =
         runCatching {
             ytMusic.addToLiked(mediaId).status.value
@@ -1747,9 +1851,11 @@ object YouTube {
             ytMusic.removeFromLiked(mediaId).status.value
         }
 
-    const val MAX_GET_QUEUE_SIZE = 1000
+    companion object {
+        const val MAX_GET_QUEUE_SIZE = 1000
 
-    private const val VISITOR_DATA_PREFIX = "Cgt"
+        private const val VISITOR_DATA_PREFIX = "Cgt"
 
-    const val DEFAULT_VISITOR_DATA = "CgtsZG1ySnZiQWtSbyiMjuGSBg%3D%3D"
+        const val DEFAULT_VISITOR_DATA = "CgtsZG1ySnZiQWtSbyiMjuGSBg%3D%3D"
+    }
 }

@@ -22,11 +22,20 @@ data class RelatedPage(
             return SongItem(
                 id = renderer.playlistItemData?.videoId ?: return null,
                 title =
-                    renderer.flexColumns.firstOrNull()
-                        ?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()
+                    renderer.flexColumns
+                        .firstOrNull()
+                        ?.musicResponsiveListItemFlexColumnRenderer
+                        ?.text
+                        ?.runs
+                        ?.firstOrNull()
                         ?.text ?: return null,
                 artists =
-                    renderer.flexColumns.getOrNull(1)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.oddElements()
+                    renderer.flexColumns
+                        .getOrNull(1)
+                        ?.musicResponsiveListItemFlexColumnRenderer
+                        ?.text
+                        ?.runs
+                        ?.oddElements()
                         ?.map {
                             Artist(
                                 name = it.text,
@@ -34,7 +43,12 @@ data class RelatedPage(
                             )
                         } ?: return null,
                 album =
-                    renderer.flexColumns.getOrNull(2)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()
+                    renderer.flexColumns
+                        .getOrNull(2)
+                        ?.musicResponsiveListItemFlexColumnRenderer
+                        ?.text
+                        ?.runs
+                        ?.firstOrNull()
                         ?.let {
                             Album(
                                 name = it.text,
@@ -60,16 +74,33 @@ data class RelatedPage(
                             renderer.navigationEndpoint.browseEndpoint?.browseId
                                 ?: return null,
                         playlistId =
-                            renderer.thumbnailOverlay?.musicItemThumbnailOverlayRenderer
-                                ?.content?.musicPlayButtonRenderer?.playNavigationEndpoint
-                                ?.watchPlaylistEndpoint?.playlistId
-                                ?: renderer.thumbnailOverlay?.musicItemThumbnailOverlayRenderer
-                                    ?.content?.musicPlayButtonRenderer?.playNavigationEndpoint
-                                    ?.watchEndpoint?.playlistId
-                                ?: renderer.navigationEndpoint.browseEndpoint.browseId.removePrefix("VL"),
-                        title = renderer.title.runs?.firstOrNull()?.text ?: return null,
+                            renderer.thumbnailOverlay
+                                ?.musicItemThumbnailOverlayRenderer
+                                ?.content
+                                ?.musicPlayButtonRenderer
+                                ?.playNavigationEndpoint
+                                ?.watchPlaylistEndpoint
+                                ?.playlistId
+                                ?: renderer.thumbnailOverlay
+                                    ?.musicItemThumbnailOverlayRenderer
+                                    ?.content
+                                    ?.musicPlayButtonRenderer
+                                    ?.playNavigationEndpoint
+                                    ?.watchEndpoint
+                                    ?.playlistId
+                                ?: renderer.navigationEndpoint.browseEndpoint.browseId
+                                    .removePrefix("VL"),
+                        title =
+                            renderer.title.runs
+                                ?.firstOrNull()
+                                ?.text ?: return null,
                         artists = null,
-                        year = renderer.subtitle?.runs?.lastOrNull()?.text?.toIntOrNull(),
+                        year =
+                            renderer.subtitle
+                                ?.runs
+                                ?.lastOrNull()
+                                ?.text
+                                ?.toIntOrNull(),
                         thumbnail =
                             renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
                                 ?: return null,
@@ -82,9 +113,14 @@ data class RelatedPage(
                 renderer.isPlaylist ->
                     PlaylistItem(
                         id =
-                            renderer.navigationEndpoint.browseEndpoint?.browseId?.removePrefix("VL")
+                            renderer.navigationEndpoint.browseEndpoint
+                                ?.browseId
+                                ?.removePrefix("VL")
                                 ?: return null,
-                        title = renderer.title.runs?.firstOrNull()?.text ?: return null,
+                        title =
+                            renderer.title.runs
+                                ?.firstOrNull()
+                                ?.text ?: return null,
                         author =
                             renderer.subtitle?.runs?.getOrNull(2)?.let {
                                 Artist(
@@ -92,42 +128,77 @@ data class RelatedPage(
                                     id = it.navigationEndpoint?.browseEndpoint?.browseId,
                                 )
                             },
-                        songCountText = renderer.subtitle?.runs?.getOrNull(4)?.text,
+                        songCountText =
+                            renderer.subtitle
+                                ?.runs
+                                ?.getOrNull(4)
+                                ?.text,
                         thumbnail =
                             renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
                                 ?: return null,
                         playEndpoint =
                             renderer.thumbnailOverlay
-                                ?.musicItemThumbnailOverlayRenderer?.content
-                                ?.musicPlayButtonRenderer?.playNavigationEndpoint
+                                ?.musicItemThumbnailOverlayRenderer
+                                ?.content
+                                ?.musicPlayButtonRenderer
+                                ?.playNavigationEndpoint
                                 ?.watchPlaylistEndpoint ?: return null,
+                        // If the playlist is radio, shuffle is not available
                         shuffleEndpoint =
-                            renderer.menu?.menuRenderer?.items?.find {
-                                it.menuNavigationItemRenderer?.icon?.iconType == "MUSIC_SHUFFLE"
-                            }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint
-                                ?: return null,
+                            renderer.menu
+                                ?.menuRenderer
+                                ?.items
+                                ?.find {
+                                    it.menuNavigationItemRenderer?.icon?.iconType == "MUSIC_SHUFFLE"
+                                }?.menuNavigationItemRenderer
+                                ?.navigationEndpoint
+                                ?.watchPlaylistEndpoint
+                                ?: renderer.thumbnailOverlay
+                                    .musicItemThumbnailOverlayRenderer.content
+                                    .musicPlayButtonRenderer.playNavigationEndpoint
+                                    .watchPlaylistEndpoint,
                         radioEndpoint =
-                            renderer.menu.menuRenderer.items.find {
-                                it.menuNavigationItemRenderer?.icon?.iconType == "MIX"
-                            }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint,
+                            renderer.menu
+                                ?.menuRenderer
+                                ?.items
+                                ?.find {
+                                    it.menuNavigationItemRenderer?.icon?.iconType == "MIX"
+                                }?.menuNavigationItemRenderer
+                                ?.navigationEndpoint
+                                ?.watchPlaylistEndpoint
+                                ?: renderer.thumbnailOverlay
+                                    .musicItemThumbnailOverlayRenderer.content
+                                    .musicPlayButtonRenderer.playNavigationEndpoint
+                                    .watchPlaylistEndpoint,
                     )
 
                 renderer.isArtist -> {
                     ArtistItem(
                         id = renderer.navigationEndpoint.browseEndpoint?.browseId ?: return null,
-                        title = renderer.title.runs?.firstOrNull()?.text ?: return null,
+                        title =
+                            renderer.title.runs
+                                ?.firstOrNull()
+                                ?.text ?: return null,
                         thumbnail =
                             renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
                                 ?: return null,
                         shuffleEndpoint =
-                            renderer.menu?.menuRenderer?.items?.find {
-                                it.menuNavigationItemRenderer?.icon?.iconType == "MUSIC_SHUFFLE"
-                            }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint
+                            renderer.menu
+                                ?.menuRenderer
+                                ?.items
+                                ?.find {
+                                    it.menuNavigationItemRenderer?.icon?.iconType == "MUSIC_SHUFFLE"
+                                }?.menuNavigationItemRenderer
+                                ?.navigationEndpoint
+                                ?.watchPlaylistEndpoint
                                 ?: return null,
                         radioEndpoint =
-                            renderer.menu.menuRenderer.items.find {
-                                it.menuNavigationItemRenderer?.icon?.iconType == "MIX"
-                            }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint
+                            renderer.menu.menuRenderer.items
+                                .find {
+                                    it.menuNavigationItemRenderer?.icon?.iconType == "MIX"
+                                }?.menuNavigationItemRenderer
+                                ?.navigationEndpoint
+                                ?.watchPlaylistEndpoint
                                 ?: return null,
                     )
                 }
