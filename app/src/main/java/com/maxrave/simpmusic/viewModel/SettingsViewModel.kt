@@ -35,6 +35,7 @@ import com.maxrave.simpmusic.extension.zipOutputStream
 import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.utils.LocalResource
+import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -265,20 +266,20 @@ class SettingsViewModel(
                             it.copy(
                                 otherApp = otherApp.toFloat().div(totalByte.toFloat()),
                                 downloadCache =
-                                    downloadCache.cacheSpace
-                                        .bytesToMB()
-                                        .toFloat()
-                                        .div(totalByte.toFloat()),
+                                downloadCache.cacheSpace
+                                    .bytesToMB()
+                                    .toFloat()
+                                    .div(totalByte.toFloat()),
                                 playerCache =
-                                    playerCache.cacheSpace
-                                        .bytesToMB()
-                                        .toFloat()
-                                        .div(totalByte.toFloat()),
+                                playerCache.cacheSpace
+                                    .bytesToMB()
+                                    .toFloat()
+                                    .div(totalByte.toFloat()),
                                 canvasCache =
-                                    canvasCache.cacheSpace
-                                        .bytesToMB()
-                                        .toFloat()
-                                        .div(totalByte.toFloat()),
+                                canvasCache.cacheSpace
+                                    .bytesToMB()
+                                    .toFloat()
+                                    .div(totalByte.toFloat()),
                                 thumbCache = thumbSize.toFloat().div(totalByte.toFloat()),
                                 freeSpace = freeSpace.toFloat().div(totalByte.toFloat()),
                                 appDatabase = databaseSize.toFloat().div(totalByte.toFloat()),
@@ -393,7 +394,7 @@ class SettingsViewModel(
                     "CheckForUpdateAt",
                     System.currentTimeMillis().toString(),
                 )
-                if (response?.tagName == getString(R.string.version_name)) {
+                if (response?.tagName == String.format(getString(R.string.version_format), VersionManager.getVersionName())) {
                     makeToast(getString(R.string.no_update))
                 }
                 _githubResponse.emit(response)
