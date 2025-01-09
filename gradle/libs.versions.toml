@@ -1,4 +1,8 @@
 [versions]
+# App version
+version-name="0.2.8"
+version-code="25"
+
 android = "8.7.3"
 kotlin = "2.1.0"
 serialization = "2.1.0"

@@ -481,20 +481,11 @@ fun SettingScreen(
                                         title = context.getString(R.string.proxy_host),
                                         message = context.getString(R.string.proxy_host_message),
                                         textField =
-                                            SettingAlertState.TextFieldData(
-                                                label = context.getString(R.string.proxy_host),
-                                                value = proxyHost,
-                                                verifyCodeBlock = {
-                                                    isValidProxyHost(it) to context.getString(R.string.invalid_host)
-                                                },
-                                            ),
-                                        confirm =
-                                            context.getString(R.string.change) to { state ->
-                                                viewModel.setProxy(
-                                                    proxyType,
-                                                    state.textField?.value ?: "",
-                                                    proxyPort,
-                                                )
+                                        SettingAlertState.TextFieldData(
+                                            label = context.getString(R.string.proxy_host),
+                                            value = proxyHost,
+                                            verifyCodeBlock = {
+                                                isValidProxyHost(it) to context.getString(R.string.invalid_host)
                                             },
                                         ),
                                         confirm =
