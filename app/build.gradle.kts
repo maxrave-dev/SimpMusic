@@ -1,4 +1,5 @@
 import com.android.build.gradle.internal.tasks.CompileArtProfileTask
+import org.jetbrains.kotlin.compose.compiler.gradle.ComposeFeatureFlag
 
 plugins {
     alias(libs.plugins.android.application)
@@ -17,8 +18,8 @@ android {
         applicationId = "com.maxrave.simpmusic"
         minSdk = 26
         targetSdk = 35
-        versionCode = 25
-        versionName = "0.2.8"
+        versionCode = libs.versions.version.code.get().toInt()
+        versionName = libs.versions.version.name.get()
         vectorDrawables.useSupportLibrary = true
 
         ksp {
@@ -89,7 +90,9 @@ android {
         compose = true
     }
     composeCompiler {
-        enableStrongSkippingMode = true
+        featureFlags = setOf(
+            ComposeFeatureFlag.StrongSkipping
+        )
     }
     packaging {
         jniLibs.useLegacyPackaging = true
