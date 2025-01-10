@@ -688,6 +688,8 @@ class MainActivity : AppCompatActivity() {
         viewModel.checkForUpdate()
         viewModel.githubResponse.observe(this) { response ->
             if (response != null && !this.isInPictureInPictureMode && !viewModel.showedUpdateDialog) {
+                Log.w("MainActivity", "Check for update")
+                Log.w("MainActivity", "Current version: ${getString(R.string.version_format, VersionManager.getVersionName())}")
                 if (response.tagName != getString(R.string.version_format, VersionManager.getVersionName())) {
                     viewModel.showedUpdateDialog = true
                     val inputFormat =
