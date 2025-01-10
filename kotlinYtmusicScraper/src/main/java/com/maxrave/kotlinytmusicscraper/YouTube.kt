@@ -1197,7 +1197,7 @@ class YouTube {
             val response =
                 ytMusic
                     .next(
-                        ANDROID_MUSIC,
+                        WEB_REMIX,
                         videoId,
                         null,
                         null,
