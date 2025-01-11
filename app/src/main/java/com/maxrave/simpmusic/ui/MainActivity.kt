@@ -47,6 +47,7 @@ import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.ui.screen.MiniPlayer
 import com.maxrave.simpmusic.ui.theme.AppTheme
+import com.maxrave.simpmusic.utils.VersionManager
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import dev.chrisbanes.insetter.applyInsetter
 import kotlinx.coroutines.delay
@@ -110,6 +111,7 @@ class MainActivity : AppCompatActivity() {
 //        if (viewModel.simpleMediaServiceHandler == null) {
 //            startMusicService()
 //        }
+        VersionManager.initialize(applicationContext)
         checkForUpdate()
         if (viewModel.recreateActivity.value == true) {
             viewModel.activityRecreateDone()
@@ -171,10 +173,10 @@ class MainActivity : AppCompatActivity() {
 //            WindowCompat.setDecorFitsSystemWindows(window, false)
         enableEdgeToEdge(
             navigationBarStyle =
-                SystemBarStyle.auto(
-                    lightScrim = Color.Transparent.toArgb(),
-                    darkScrim = Color.Transparent.toArgb(),
-                ),
+            SystemBarStyle.auto(
+                lightScrim = Color.Transparent.toArgb(),
+                darkScrim = Color.Transparent.toArgb(),
+            ),
         )
         viewModel.checkIsRestoring()
         viewModel.runWorker()
@@ -214,15 +216,15 @@ class MainActivity : AppCompatActivity() {
             binding.miniplayer.visibility = View.GONE
         }
         binding.root.addOnLayoutChangeListener {
-            _,
-            left,
-            top,
-            right,
-            bottom,
-            oldLeft,
-            oldTop,
-            oldRight,
-            oldBottom,
+                _,
+                left,
+                top,
+                right,
+                bottom,
+                oldLeft,
+                oldTop,
+                oldRight,
+                oldBottom,
             ->
             val rect = Rect(left, top, right, bottom)
             val oldRect = Rect(oldLeft, oldTop, oldRight, oldBottom)
@@ -292,7 +294,7 @@ class MainActivity : AppCompatActivity() {
 
                 R.id.bottom_navigation_item_library,
                 R.id.favoriteFragment, R.id.localPlaylistFragment,
-                -> {
+                    -> {
                     binding.bottomNavigationView.menu
                         .findItem(
                             R.id.bottom_navigation_item_library,
@@ -305,7 +307,7 @@ class MainActivity : AppCompatActivity() {
                     when (currentBackStack) {
                         R.id.bottom_navigation_item_library,
                         R.id.favoriteFragment, R.id.localPlaylistFragment,
-                        -> {
+                            -> {
                             binding.bottomNavigationView.menu
                                 .findItem(
                                     R.id.bottom_navigation_item_library,
@@ -344,7 +346,7 @@ class MainActivity : AppCompatActivity() {
                         "fragment_log_in",
                         "MusixmatchFragment",
                     )
-                ).contains(destination.label)
+                    ).contains(destination.label)
             ) {
                 lifecycleScope.launch { viewModel.showOrHideMiniplayer.emit(false) }
                 Log.w("MainActivity", "onCreate: HIDE MINIPLAYER")
@@ -544,7 +546,7 @@ class MainActivity : AppCompatActivity() {
                                         "fragment_log_in",
                                         "MusixmatchFragment",
                                     )
-                                ).contains(navController.currentDestination?.label) &&
+                                    ).contains(navController.currentDestination?.label) &&
                                 it.nowPlayingTitle.isNotEmpty() &&
                                 binding.miniplayer.visibility != View.VISIBLE
                             ) {
@@ -686,7 +688,9 @@ class MainActivity : AppCompatActivity() {
         viewModel.checkForUpdate()
         viewModel.githubResponse.observe(this) { response ->
             if (response != null && !this.isInPictureInPictureMode && !viewModel.showedUpdateDialog) {
-                if (response.tagName != getString(R.string.version_name)) {
+                Log.w("MainActivity", "Check for update")
+                Log.w("MainActivity", "Current version: ${getString(R.string.version_format, VersionManager.getVersionName())}")
+                if (response.tagName != getString(R.string.version_format, VersionManager.getVersionName())) {
                     viewModel.showedUpdateDialog = true
                     val inputFormat =
                         SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())

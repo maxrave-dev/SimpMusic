@@ -6,7 +6,9 @@ import com.maxrave.kotlinytmusicscraper.encoder.brotli
 import com.maxrave.kotlinytmusicscraper.models.Context
 import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient
+import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.ANDROID_MUSIC
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.IOS
+import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.TVHTML5
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.WEB_REMIX
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
 import com.maxrave.kotlinytmusicscraper.models.body.AccountMenuBody
@@ -406,7 +408,7 @@ class Ytmusic {
             PlayerBody(
                 context =
                     client.toContext(locale, visitorData).let {
-                        if (client == YouTubeClient.TVHTML5) {
+                        if (client == TVHTML5) {
                             it.copy(
                                 thirdParty =
                                     Context.ThirdParty(
@@ -709,10 +711,10 @@ class Ytmusic {
         title: String,
         listVideoId: List<String>?,
     ) = httpClient.post("playlist/create") {
-        ytClient(YouTubeClient.WEB_REMIX, setLogin = true)
+        ytClient(WEB_REMIX, setLogin = true)
         setBody(
             CreatePlaylistBody(
-                context = YouTubeClient.WEB_REMIX.toContext(locale, visitorData),
+                context = WEB_REMIX.toContext(locale, visitorData),
                 title = title,
                 videoIds = listVideoId,
             ),
@@ -723,10 +725,10 @@ class Ytmusic {
         playlistId: String,
         title: String? = null,
     ) = httpClient.post("browse/edit_playlist") {
-        ytClient(YouTubeClient.WEB_REMIX, setLogin = true)
+        ytClient(WEB_REMIX, setLogin = true)
         setBody(
             EditPlaylistBody(
-                context = YouTubeClient.WEB_REMIX.toContext(locale, visitorData),
+                context = WEB_REMIX.toContext(locale, visitorData),
                 playlistId = playlistId.removePrefix("VL"),
                 actions =
                     listOf(
@@ -743,10 +745,10 @@ class Ytmusic {
         playlistId: String,
         videoId: String,
     ) = httpClient.post("browse/edit_playlist") {
-        ytClient(YouTubeClient.WEB_REMIX, setLogin = true)
+        ytClient(WEB_REMIX, setLogin = true)
         setBody(
             EditPlaylistBody(
-                context = YouTubeClient.WEB_REMIX.toContext(locale, visitorData),
+                context = WEB_REMIX.toContext(locale, visitorData),
                 playlistId = playlistId.removePrefix("VL"),
                 actions =
                     listOf(
@@ -765,10 +767,10 @@ class Ytmusic {
         videoId: String,
         setVideoId: String,
     ) = httpClient.post("browse/edit_playlist") {
-        ytClient(YouTubeClient.WEB_REMIX, setLogin = true)
+        ytClient(WEB_REMIX, setLogin = true)
         setBody(
             EditPlaylistBody(
-                context = YouTubeClient.WEB_REMIX.toContext(locale, visitorData),
+                context = WEB_REMIX.toContext(locale, visitorData),
                 playlistId = playlistId.removePrefix("VL"),
                 actions =
                     listOf(
@@ -811,11 +813,11 @@ class Ytmusic {
 
     suspend fun playlist(playlistId: String) =
         httpClient.post("browse") {
-            ytClient(YouTubeClient.WEB_REMIX, !cookie.isNullOrEmpty())
+            ytClient(WEB_REMIX, !cookie.isNullOrEmpty())
             setBody(
                 BrowseBody(
                     context =
-                        YouTubeClient.WEB_REMIX.toContext(
+                        WEB_REMIX.toContext(
                             locale,
                             visitorData,
                         ),
@@ -960,7 +962,7 @@ class Ytmusic {
         customParams: Map<String, String>? = null,
         playlistId: String?,
     ) = httpClient.get(url) {
-        ytClient(YouTubeClient.ANDROID_MUSIC, true)
+        ytClient(ANDROID_MUSIC, true)
         parameter("ver", "2")
         parameter("c", "ANDROID_MUSIC")
         parameter("cpn", cpn)
@@ -979,7 +981,7 @@ class Ytmusic {
         customParams: Map<String, String>? = null,
         playlistId: String?,
     ) = httpClient.post(url) {
-        ytClient(YouTubeClient.ANDROID_MUSIC, true)
+        ytClient(ANDROID_MUSIC, true)
         parameter("c", "ANDROID_MUSIC")
         parameter("cpn", cpn)
         customParams?.forEach { (key, value) ->
@@ -993,10 +995,10 @@ class Ytmusic {
 
     suspend fun addToLiked(videoId: String) =
         httpClient.post("like/like") {
-            ytClient(YouTubeClient.WEB_REMIX, true)
+            ytClient(WEB_REMIX, true)
             setBody(
                 LikeBody(
-                    context = YouTubeClient.WEB_REMIX.toContext(locale, visitorData),
+                    context = WEB_REMIX.toContext(locale, visitorData),
                     target = LikeBody.Target(videoId),
                 ),
             )
@@ -1004,10 +1006,10 @@ class Ytmusic {
 
     suspend fun removeFromLiked(videoId: String) =
         httpClient.post("like/removelike") {
-            ytClient(YouTubeClient.WEB_REMIX, true)
+            ytClient(WEB_REMIX, true)
             setBody(
                 LikeBody(
-                    context = YouTubeClient.WEB_REMIX.toContext(locale, visitorData),
+                    context = WEB_REMIX.toContext(locale, visitorData),
                     target = LikeBody.Target(videoId),
                 ),
             )

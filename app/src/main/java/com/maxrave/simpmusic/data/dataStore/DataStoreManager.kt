@@ -618,20 +618,25 @@ class DataStoreManager(
         }
     }
 
-    fun getProxy(): Proxy? =
+    fun getJVMProxy(): Proxy? =
         runBlocking {
-            if (usingProxy.first() == TRUE) {
-                val proxyType = proxyType.first()
-                val proxyHost = proxyHost.first()
-                val proxyPort = proxyPort.first()
-                return@runBlocking Proxy(
-                    when (proxyType) {
-                        ProxyType.PROXY_TYPE_HTTP -> Proxy.Type.HTTP
-                        ProxyType.PROXY_TYPE_SOCKS -> Proxy.Type.SOCKS
-                    },
-                    java.net.InetSocketAddress(proxyHost, proxyPort)
-                )
-            } else {
+            try {
+                if (usingProxy.first() == TRUE) {
+                    val proxyType = proxyType.first()
+                    val proxyHost = proxyHost.first()
+                    val proxyPort = proxyPort.first()
+                    return@runBlocking Proxy(
+                        when (proxyType) {
+                            ProxyType.PROXY_TYPE_HTTP -> Proxy.Type.HTTP
+                            ProxyType.PROXY_TYPE_SOCKS -> Proxy.Type.SOCKS
+                        },
+                        java.net.InetSocketAddress(proxyHost, proxyPort)
+                    )
+                } else {
+                    return@runBlocking null
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
                 return@runBlocking null
             }
         }

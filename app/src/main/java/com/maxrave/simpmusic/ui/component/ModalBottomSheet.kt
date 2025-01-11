@@ -22,9 +22,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -296,6 +299,7 @@ fun NowPlayingBottomSheet(
             contentColor = Color.Transparent,
             dragHandle = null,
             scrimColor = Color.Black.copy(alpha = .5f),
+            contentWindowInsets = { WindowInsets(0, 0, 0, 0) }
         ) {
             Card(
                 modifier =
@@ -542,6 +546,7 @@ fun NowPlayingBottomSheet(
                     ) {
                         viewModel.onUIEvent(NowPlayingBottomSheetUIEvent.Share)
                     }
+                    EndOfModalBottomSheet()
                 }
             }
         }
@@ -714,6 +719,7 @@ fun AddToPlaylistModalBottomSheet(
             contentColor = Color.Transparent,
             dragHandle = null,
             scrimColor = Color.Black.copy(alpha = .5f),
+            contentWindowInsets = { WindowInsets(0, 0, 0, 0) }
         ) {
             Card(
                 modifier =
@@ -786,6 +792,7 @@ fun AddToPlaylistModalBottomSheet(
                             }
                         }
                     }
+                    EndOfModalBottomSheet()
                 }
             }
         }
@@ -814,6 +821,7 @@ fun SleepTimerBottomSheet(
         contentColor = Color.Transparent,
         dragHandle = null,
         scrimColor = Color.Black.copy(alpha = .5f),
+        contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
     ) {
         Card(
             modifier =
@@ -868,6 +876,7 @@ fun SleepTimerBottomSheet(
                     Text(text = stringResource(R.string.set), style = typo.labelSmall)
                 }
                 Spacer(modifier = Modifier.height(5.dp))
+                EndOfModalBottomSheet()
             }
         }
     }
@@ -901,6 +910,7 @@ fun ArtistModalBottomSheet(
             contentColor = Color.Transparent,
             dragHandle = null,
             scrimColor = Color.Black.copy(alpha = .5f),
+            contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
         ) {
             Card(
                 modifier =
@@ -965,6 +975,9 @@ fun ArtistModalBottomSheet(
                                     )
                                 }
                             }
+                        }
+                        item {
+                            EndOfModalBottomSheet()
                         }
                     }
                 }
@@ -1047,6 +1060,7 @@ fun LocalPlaylistBottomSheet(
             contentColor = Color.Transparent,
             dragHandle = null,
             scrimColor = Color.Black.copy(alpha = .5f),
+            contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
         ) {
             Card(
                 modifier =
@@ -1101,6 +1115,7 @@ fun LocalPlaylistBottomSheet(
                     ) {
                         Text(text = stringResource(id = R.string.save))
                     }
+                    EndOfModalBottomSheet()
                 }
             }
         }
@@ -1113,6 +1128,7 @@ fun LocalPlaylistBottomSheet(
             contentColor = Color.Transparent,
             dragHandle = null,
             scrimColor = Color.Black.copy(alpha = .5f),
+            contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
         ) {
             Card(
                 modifier =
@@ -1178,18 +1194,20 @@ fun LocalPlaylistBottomSheet(
                         onDelete()
                         hideModalBottomSheet()
                     }
+                    EndOfModalBottomSheet()
                 }
             }
         }
     }
 }
 
-@Preview(
-    uiMode = Configuration.UI_MODE_NIGHT_YES,
-    showBackground = true,
-    name = "Dark Mode",
-    group = "Local Playlist",
-)
 @Composable
-fun LocalPlaylistBottomSheetPreview() {
+fun EndOfModalBottomSheet() {
+    Box(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .height(WindowInsets.navigationBars.asPaddingValues()
+                    .calculateBottomPadding().value.toInt().dp + 8.dp),
+    ) {}
 }

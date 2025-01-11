@@ -276,7 +276,7 @@ private fun provideMediaSourceFactory(
                 downloadCache,
                 playerCache,
                 context,
-                dataStoreManager.getProxy()
+                dataStoreManager.getJVMProxy()
             ),
             downloadCache,
             playerCache,
