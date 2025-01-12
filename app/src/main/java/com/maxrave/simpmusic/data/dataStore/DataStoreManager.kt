@@ -562,6 +562,7 @@ class DataStoreManager(
         settingsDataStore.data.map { preferences ->
             preferences[USING_PROXY] ?: FALSE
         }
+
     suspend fun setUsingProxy(usingProxy: Boolean) {
         withContext(Dispatchers.IO) {
             if (usingProxy) {
@@ -575,30 +576,36 @@ class DataStoreManager(
             }
         }
     }
+
     val proxyType =
-        settingsDataStore.data.map { preferences ->
-            preferences[PROXY_TYPE]
-        }.map {
-            when (it) {
-                PROXY_TYPE_HTTP -> ProxyType.PROXY_TYPE_HTTP
-                PROXY_TYPE_SOCKS -> ProxyType.PROXY_TYPE_SOCKS
-                else -> ProxyType.PROXY_TYPE_HTTP
+        settingsDataStore.data
+            .map { preferences ->
+                preferences[PROXY_TYPE]
+            }.map {
+                when (it) {
+                    PROXY_TYPE_HTTP -> ProxyType.PROXY_TYPE_HTTP
+                    PROXY_TYPE_SOCKS -> ProxyType.PROXY_TYPE_SOCKS
+                    else -> ProxyType.PROXY_TYPE_HTTP
+                }
             }
-        }
+
     suspend fun setProxyType(proxyType: ProxyType) {
         withContext(Dispatchers.IO) {
             settingsDataStore.edit { settings ->
-                settings[PROXY_TYPE] = when (proxyType) {
-                    ProxyType.PROXY_TYPE_HTTP -> PROXY_TYPE_HTTP
-                    ProxyType.PROXY_TYPE_SOCKS -> PROXY_TYPE_SOCKS
-                }
+                settings[PROXY_TYPE] =
+                    when (proxyType) {
+                        ProxyType.PROXY_TYPE_HTTP -> PROXY_TYPE_HTTP
+                        ProxyType.PROXY_TYPE_SOCKS -> PROXY_TYPE_SOCKS
+                    }
             }
         }
     }
+
     val proxyHost =
         settingsDataStore.data.map { preferences ->
             preferences[PROXY_HOST] ?: ""
         }
+
     suspend fun setProxyHost(proxyHost: String) {
         withContext(Dispatchers.IO) {
             settingsDataStore.edit { settings ->
@@ -606,10 +613,12 @@ class DataStoreManager(
             }
         }
     }
+
     val proxyPort =
         settingsDataStore.data.map { preferences ->
             preferences[PROXY_PORT] ?: 8000
         }
+
     suspend fun setProxyPort(proxyPort: Int) {
         withContext(Dispatchers.IO) {
             settingsDataStore.edit { settings ->
@@ -630,7 +639,7 @@ class DataStoreManager(
                             ProxyType.PROXY_TYPE_HTTP -> Proxy.Type.HTTP
                             ProxyType.PROXY_TYPE_SOCKS -> Proxy.Type.SOCKS
                         },
-                        java.net.InetSocketAddress(proxyHost, proxyPort)
+                        java.net.InetSocketAddress(proxyHost, proxyPort),
                     )
                 } else {
                     return@runBlocking null
@@ -659,6 +668,7 @@ class DataStoreManager(
         val MUSIXMATCH_LOGGED_IN = stringPreferencesKey("musixmatch_logged_in")
         const val YOUTUBE = "youtube"
         const val MUSIXMATCH = "musixmatch"
+        const val LRCLIB = "lrclib"
         val LYRICS_PROVIDER = stringPreferencesKey("lyrics_provider")
         val TRANSLATION_LANGUAGE = stringPreferencesKey("translation_language")
         val USE_TRANSLATION_LANGUAGE = stringPreferencesKey("use_translation_language")
@@ -688,10 +698,11 @@ class DataStoreManager(
         const val FALSE = "FALSE"
         const val PROXY_TYPE_HTTP = "http"
         const val PROXY_TYPE_SOCKS = "socks"
+
         // Proxy type
         enum class ProxyType {
             PROXY_TYPE_HTTP,
-            PROXY_TYPE_SOCKS
+            PROXY_TYPE_SOCKS,
         }
     }
 }

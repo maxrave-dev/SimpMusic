@@ -16,7 +16,6 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
-import com.maxrave.spotify.model.response.spotify.CanvasResponse
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config.ALBUM_CLICK
@@ -63,6 +62,7 @@ import com.maxrave.simpmusic.service.test.download.DownloadUtils
 import com.maxrave.simpmusic.service.test.notification.NotifyWork
 import com.maxrave.simpmusic.utils.Resource
 import com.maxrave.simpmusic.viewModel.base.BaseViewModel
+import com.maxrave.spotify.model.response.spotify.CanvasResponse
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -1216,21 +1216,21 @@ class SharedViewModel(
         viewModelScope.launch {
             val videoId = song.videoId
             Log.w(tag, "Get Lyrics From Format for $videoId")
+            val artist =
+                if (song.artistName?.firstOrNull() != null &&
+                    song.artistName
+                        .firstOrNull()
+                        ?.contains("Various Artists") == false
+                ) {
+                    song.artistName.firstOrNull()
+                } else {
+                    simpleMediaServiceHandler.nowPlaying
+                        .first()
+                        ?.mediaMetadata
+                        ?.artist
+                        ?: ""
+                }
             if (dataStoreManager.lyricsProvider.first() == DataStoreManager.MUSIXMATCH) {
-                val artist =
-                    if (song.artistName?.firstOrNull() != null &&
-                        song.artistName
-                            .firstOrNull()
-                            ?.contains("Various Artists") == false
-                    ) {
-                        song.artistName.firstOrNull()
-                    } else {
-                        simpleMediaServiceHandler.nowPlaying
-                            .first()
-                            ?.mediaMetadata
-                            ?.artist
-                            ?: ""
-                    }
                 mainRepository
                     .getLyricsData(
                         (artist ?: "").toString(),
@@ -1303,6 +1303,37 @@ class SharedViewModel(
                                         )
                                     }
                                 }
+                            }
+                        }
+                    }
+            } else if (dataStoreManager.lyricsProvider.first() == DataStoreManager.LRCLIB) {
+                mainRepository
+                    .getLrclibLyricsData(
+                        (artist ?: "").toString(),
+                        song.title,
+                        duration,
+                    ).collectLatest { res ->
+                        when (res) {
+                            is Resource.Success -> {
+                                Log.d(tag, "Get Lyrics Data Success")
+                                updateLyrics(
+                                    videoId,
+                                    res.data,
+                                    false,
+                                    LyricsProvider.LRCLIB,
+                                )
+                                insertLyrics(
+                                    res.data?.toLyricsEntity(
+                                        videoId,
+                                    ) ?: return@collectLatest,
+                                )
+                            }
+                            is Resource.Error -> {
+                                getSavedLyrics(
+                                    song.toTrack().copy(
+                                        durationSeconds = duration,
+                                    ),
+                                )
                             }
                         }
                     }
@@ -1635,6 +1666,7 @@ enum class LyricsProvider {
     MUSIXMATCH,
     YOUTUBE,
     SPOTIFY,
+    LRCLIB,
     OFFLINE,
 }
 

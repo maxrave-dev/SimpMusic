@@ -22,10 +22,10 @@ import androidx.navigation.NavController
 import androidx.sqlite.db.SimpleSQLiteQuery
 import com.maxrave.kotlinytmusicscraper.models.SongItem
 import com.maxrave.kotlinytmusicscraper.models.VideoItem
-import com.maxrave.kotlinytmusicscraper.models.musixmatch.MusixmatchTranslationLyricsResponse
 import com.maxrave.kotlinytmusicscraper.models.response.PipedResponse
 import com.maxrave.kotlinytmusicscraper.models.youtube.Transcript
 import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
+import com.maxrave.lyricsproviders.models.response.MusixmatchTranslationLyricsResponse
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.SETTINGS_FILENAME
@@ -593,7 +593,7 @@ fun <T> Iterable<T>.indexMap(): Map<T, Int> {
     return map
 }
 
-fun com.maxrave.kotlinytmusicscraper.models.lyrics.Lyrics.toLyrics(): Lyrics {
+fun com.maxrave.lyricsproviders.models.lyrics.Lyrics.toLyrics(): Lyrics {
     val lines: ArrayList<Line> = arrayListOf()
     if (this.lyrics != null) {
         this.lyrics?.lines?.forEach {
@@ -865,7 +865,10 @@ fun LocalDateTime.formatTimeAgo(context: Context): String {
     }
 }
 
-fun formatDuration(duration: Long, context: Context): String {
+fun formatDuration(
+    duration: Long,
+    context: Context,
+): String {
     if (duration < 0L) return context.getString(R.string.na_na)
     val minutes: Long = TimeUnit.MINUTES.convert(duration, TimeUnit.MILLISECONDS)
     val seconds: Long = (

@@ -2,7 +2,6 @@ package com.maxrave.simpmusic.ui.component
 
 import android.app.Activity
 import android.content.Intent
-import android.content.res.Configuration
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -74,7 +73,6 @@ import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.text.isDigitsOnly
 import androidx.media3.common.util.UnstableApi
@@ -216,7 +214,12 @@ fun NowPlayingBottomSheet(
     if (mainLyricsProvider) {
         var selected by remember {
             mutableIntStateOf(
-                if (uiState.mainLyricsProvider == DataStoreManager.MUSIXMATCH) 0 else 1,
+                when (uiState.mainLyricsProvider) {
+                    DataStoreManager.MUSIXMATCH -> 0
+                    DataStoreManager.YOUTUBE -> 1
+                    DataStoreManager.LRCLIB -> 2
+                    else -> 0
+                },
             )
         }
 
@@ -263,6 +266,22 @@ fun NowPlayingBottomSheet(
                         Spacer(modifier = Modifier.size(10.dp))
                         Text(text = stringResource(id = R.string.youtube_transcript), style = typo.labelSmall)
                     }
+                    Row(
+                        modifier =
+                            Modifier
+                                .padding(horizontal = 4.dp)
+                                .fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        RadioButton(
+                            selected = selected == 2,
+                            onClick = {
+                                selected = 2
+                            },
+                        )
+                        Spacer(modifier = Modifier.size(10.dp))
+                        Text(text = stringResource(id = R.string.lrclib), style = typo.labelSmall)
+                    }
                 }
             },
             confirmButton = {
@@ -270,7 +289,12 @@ fun NowPlayingBottomSheet(
                     onClick = {
                         viewModel.onUIEvent(
                             NowPlayingBottomSheetUIEvent.ChangeLyricsProvider(
-                                if (selected == 0) DataStoreManager.MUSIXMATCH else DataStoreManager.YOUTUBE,
+                                when (selected) {
+                                    0 -> DataStoreManager.MUSIXMATCH
+                                    1 -> DataStoreManager.YOUTUBE
+                                    2 -> DataStoreManager.LRCLIB
+                                    else -> DataStoreManager.MUSIXMATCH
+                                },
                             ),
                         )
                         mainLyricsProvider = false
@@ -299,7 +323,7 @@ fun NowPlayingBottomSheet(
             contentColor = Color.Transparent,
             dragHandle = null,
             scrimColor = Color.Black.copy(alpha = .5f),
-            contentWindowInsets = { WindowInsets(0, 0, 0, 0) }
+            contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
         ) {
             Card(
                 modifier =
@@ -312,7 +336,7 @@ fun NowPlayingBottomSheet(
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.verticalScroll(rememberScrollState())
+                    modifier = Modifier.verticalScroll(rememberScrollState()),
                 ) {
                     Spacer(modifier = Modifier.height(5.dp))
                     Card(
@@ -719,7 +743,7 @@ fun AddToPlaylistModalBottomSheet(
             contentColor = Color.Transparent,
             dragHandle = null,
             scrimColor = Color.Black.copy(alpha = .5f),
-            contentWindowInsets = { WindowInsets(0, 0, 0, 0) }
+            contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
         ) {
             Card(
                 modifier =
@@ -1207,7 +1231,13 @@ fun EndOfModalBottomSheet() {
         modifier =
             Modifier
                 .fillMaxWidth()
-                .height(WindowInsets.navigationBars.asPaddingValues()
-                    .calculateBottomPadding().value.toInt().dp + 8.dp),
+                .height(
+                    WindowInsets.navigationBars
+                        .asPaddingValues()
+                        .calculateBottomPadding()
+                        .value
+                        .toInt()
+                        .dp + 8.dp,
+                ),
     ) {}
 }

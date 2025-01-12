@@ -1,7 +1,7 @@
-package com.maxrave.kotlinytmusicscraper.parser
+package com.maxrave.lyricsproviders.parser
 
-import com.maxrave.kotlinytmusicscraper.models.lyrics.Line
-import com.maxrave.kotlinytmusicscraper.models.lyrics.Lyrics
+import com.maxrave.lyricsproviders.models.lyrics.Line
+import com.maxrave.lyricsproviders.models.lyrics.Lyrics
 
 fun parseMusixmatchLyrics(data: String): Lyrics {
     val regex = Regex("\\[(\\d{2}):(\\d{2})\\.(\\d{2})\\](.+)")

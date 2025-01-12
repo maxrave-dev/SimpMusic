@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
+import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.LRCLIB
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.MUSIXMATCH
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.YOUTUBE
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
@@ -27,11 +28,9 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-
 import org.koin.core.component.inject
 
 @UnstableApi
-
 class NowPlayingBottomSheetViewModel(
     private val application: Application,
 ) : BaseViewModel(application) {
@@ -80,6 +79,9 @@ class NowPlayingBottomSheetViewModel(
                             }
                             YOUTUBE -> {
                                 _uiState.update { it.copy(mainLyricsProvider = YOUTUBE) }
+                            }
+                            LRCLIB -> {
+                                _uiState.update { it.copy(mainLyricsProvider = LRCLIB) }
                             }
                             else -> {
                                 log("Unknown lyrics provider", Log.ERROR)
@@ -216,7 +218,7 @@ class NowPlayingBottomSheetViewModel(
                     makeToast(getString(R.string.added_to_queue))
                 }
                 is NowPlayingBottomSheetUIEvent.ChangeLyricsProvider -> {
-                    if (listOf(MUSIXMATCH, YOUTUBE).contains(ev.lyricsProvider)) {
+                    if (listOf(MUSIXMATCH, YOUTUBE, LRCLIB).contains(ev.lyricsProvider)) {
                         dataStoreManager.setLyricsProvider(ev.lyricsProvider)
                     } else {
                         return@launch
