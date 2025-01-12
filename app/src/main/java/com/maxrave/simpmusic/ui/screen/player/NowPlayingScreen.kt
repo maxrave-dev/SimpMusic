@@ -17,6 +17,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -78,7 +79,6 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
@@ -91,6 +91,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.ComposeView
@@ -106,8 +107,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.os.bundleOf
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
-import androidx.compose.ui.input.pointer.pointerInput
 import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
@@ -376,52 +375,52 @@ fun NowPlayingScreen(
         }
     }
 
-Column(
-    Modifier
-        .verticalScroll(mainScrollState)
-        .pointerInput(Unit) {
-            var isSwipeHandled = false
-            detectHorizontalDragGestures(
-                onDragEnd = { isSwipeHandled = false }
-            ) { change, dragAmount ->
-                change.consume()
-                if (!isSwipeHandled) {
-                    when {
-                        // Swipe left (negative dragAmount)
-                        dragAmount < -90 -> {
-                            if (controllerState.isNextAvailable) {
-                                sharedViewModel.onUIEvent(UIEvent.Next)
-                                isSwipeHandled = true
+    Column(
+        Modifier
+            .verticalScroll(mainScrollState)
+            .pointerInput(Unit) {
+                var isSwipeHandled = false
+                detectHorizontalDragGestures(
+                    onDragEnd = { isSwipeHandled = false },
+                ) { change, dragAmount ->
+                    change.consume()
+                    if (!isSwipeHandled) {
+                        when {
+                            // Swipe left (negative dragAmount)
+                            dragAmount < -90 -> {
+                                if (controllerState.isNextAvailable) {
+                                    sharedViewModel.onUIEvent(UIEvent.Next)
+                                    isSwipeHandled = true
+                                }
                             }
-                        }
-                        // Swipe right (positive dragAmount)
-                        dragAmount > 90 -> {
-                            if (controllerState.isPreviousAvailable) {
-                                sharedViewModel.onUIEvent(UIEvent.Previous)
-                                isSwipeHandled = true
+                            // Swipe right (positive dragAmount)
+                            dragAmount > 90 -> {
+                                if (controllerState.isPreviousAvailable) {
+                                    sharedViewModel.onUIEvent(UIEvent.Previous)
+                                    isSwipeHandled = true
+                                }
                             }
                         }
                     }
                 }
-            }
-        }
-        .then(
-            if (showHideMiddleLayout) {
-                Modifier.background(
-                    Brush.linearGradient(
-                        colors = listOf(
-                            startColor.value,
-                            endColor.value,
+            }.then(
+                if (showHideMiddleLayout) {
+                    Modifier.background(
+                        Brush.linearGradient(
+                            colors =
+                                listOf(
+                                    startColor.value,
+                                    endColor.value,
+                                ),
+                            start = gradientOffset.start,
+                            end = gradientOffset.end,
                         ),
-                        start = gradientOffset.start,
-                        end = gradientOffset.end,
-                    ),
-                )
-            } else {
-                Modifier.background(md_theme_dark_background)
-            },
-        )
-) {
+                    )
+                } else {
+                    Modifier.background(md_theme_dark_background)
+                },
+            ),
+    ) {
         Box(modifier = Modifier.fillMaxWidth()) {
             // Canvas Layout
             Box(
@@ -1401,6 +1400,7 @@ Column(
                                         text =
                                             when (screenDataState.lyricsData?.lyricsProvider) {
                                                 LyricsProvider.MUSIXMATCH -> stringResource(id = R.string.lyrics_provider)
+                                                LyricsProvider.LRCLIB -> stringResource(id = R.string.lyrics_provider_lrc)
                                                 LyricsProvider.YOUTUBE -> stringResource(id = R.string.lyrics_provider_youtube)
                                                 LyricsProvider.SPOTIFY -> stringResource(id = R.string.spotify_lyrics_provider)
                                                 LyricsProvider.OFFLINE -> stringResource(id = R.string.offline_mode)

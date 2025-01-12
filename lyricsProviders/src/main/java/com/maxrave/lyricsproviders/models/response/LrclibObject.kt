@@ -1,4 +1,4 @@
-package com.maxrave.kotlinytmusicscraper.models
+package com.maxrave.lyricsproviders.models.response
 
 import kotlinx.serialization.Serializable
 

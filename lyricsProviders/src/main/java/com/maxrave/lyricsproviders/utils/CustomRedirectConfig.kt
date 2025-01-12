@@ -1,8 +1,4 @@
-package com.maxrave.kotlinytmusicscraper.utils
-
-/*
-* Copyright 2014-2021 JetBrains s.r.o and contributors. Use of this source code is governed by the Apache 2.0 license.
-*/
+package com.maxrave.lyricsproviders.utils
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.HttpClientCall
@@ -14,20 +10,31 @@ import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.statement.HttpResponse
 import io.ktor.events.EventDefinition
 import io.ktor.http.HttpHeaders
-import io.ktor.http.HttpMethod
-import io.ktor.http.HttpStatusCode
 import io.ktor.http.authority
 import io.ktor.http.isSecure
 import io.ktor.http.takeFrom
 import io.ktor.util.AttributeKey
-import io.ktor.util.logging.KtorSimpleLogger
 import io.ktor.utils.io.InternalAPI
 import io.ktor.utils.io.KtorDsl
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
+import io.ktor.util.logging.KtorSimpleLogger
 
 private val ALLOWED_FOR_REDIRECT: Set<HttpMethod> = setOf(HttpMethod.Get, HttpMethod.Head)
 
 private val LOGGER = KtorSimpleLogger("io.ktor.client.plugins.HttpRedirect")
 
+private fun HttpStatusCode.isRedirect(): Boolean =
+    when (value) {
+        HttpStatusCode.MovedPermanently.value,
+        HttpStatusCode.Found.value,
+        HttpStatusCode.TemporaryRedirect.value,
+        HttpStatusCode.PermanentRedirect.value,
+        HttpStatusCode.SeeOther.value,
+            -> true
+
+        else -> false
+    }
 /**
  * An [HttpClient] plugin that handles HTTP redirects
  * Use only for Musixmatch API
@@ -128,13 +135,13 @@ class CustomRedirectConfig private constructor(
                          * Disallow redirect with a security downgrade.
                          */
                         if (!allowHttpsDowngrade && originProtocol.isSecure() && !url.protocol.isSecure()) {
-                            LOGGER.trace("Can not redirect ${context.url} because of security downgrade")
+                            LOGGER.trace("Can not redirect {} because of security downgrade", context.url)
                             return call
                         }
 
                         if (originAuthority != url.authority) {
                             headers.remove(HttpHeaders.Authorization)
-                            LOGGER.trace("Removing Authorization header from redirect for ${context.url}")
+                            LOGGER.trace("Removing Authorization header from redirect for {}", context.url)
                         }
                     }
 
@@ -144,15 +151,3 @@ class CustomRedirectConfig private constructor(
         }
     }
 }
-
-private fun HttpStatusCode.isRedirect(): Boolean =
-    when (value) {
-        HttpStatusCode.MovedPermanently.value,
-        HttpStatusCode.Found.value,
-        HttpStatusCode.TemporaryRedirect.value,
-        HttpStatusCode.PermanentRedirect.value,
-        HttpStatusCode.SeeOther.value,
-        -> true
-
-        else -> false
-    }

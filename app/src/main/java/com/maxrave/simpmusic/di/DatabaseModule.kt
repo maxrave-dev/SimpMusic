@@ -12,6 +12,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.maxrave.kotlinytmusicscraper.YouTube
+import com.maxrave.lyricsproviders.LyricsClient
 import com.maxrave.simpmusic.common.DB_NAME
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.data.db.Converters
@@ -185,9 +186,21 @@ val databaseModule =
             Spotify()
         }
 
+        single(createdAtStart = true) {
+            LyricsClient(androidContext())
+        }
+
         // MainRepository
         single(createdAtStart = true) {
-            MainRepository(get<LocalDataSource>(), get<DataStoreManager>(), get<YouTube>(), get<Spotify>(), get<MusicDatabase>(), androidContext())
+            MainRepository(
+                get<LocalDataSource>(),
+                get<DataStoreManager>(),
+                get<YouTube>(),
+                get<Spotify>(),
+                get<LyricsClient>(),
+                get<MusicDatabase>(),
+                androidContext(),
+            )
         }
         // List of managers
 

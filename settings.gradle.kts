@@ -23,3 +23,4 @@ rootProject.name = "SimpMusic"
 include("app")
 include(":kotlinYtmusicScraper")
 include(":spotify")
+include(":lyricsProviders")

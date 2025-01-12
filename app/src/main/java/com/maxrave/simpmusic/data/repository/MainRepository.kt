@@ -12,18 +12,18 @@ import com.maxrave.kotlinytmusicscraper.models.SearchSuggestions
 import com.maxrave.kotlinytmusicscraper.models.SongItem
 import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
-import com.maxrave.kotlinytmusicscraper.models.musixmatch.MusixmatchCredential
-import com.maxrave.kotlinytmusicscraper.models.musixmatch.MusixmatchTranslationLyricsResponse
-import com.maxrave.kotlinytmusicscraper.models.musixmatch.SearchMusixmatchResponse
 import com.maxrave.kotlinytmusicscraper.models.response.LikeStatus
 import com.maxrave.kotlinytmusicscraper.models.response.SearchResponse
-import com.maxrave.spotify.model.response.spotify.CanvasResponse
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
 import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
 import com.maxrave.kotlinytmusicscraper.pages.BrowseResult
 import com.maxrave.kotlinytmusicscraper.pages.PlaylistPage
 import com.maxrave.kotlinytmusicscraper.pages.SearchPage
+import com.maxrave.lyricsproviders.LyricsClient
+import com.maxrave.lyricsproviders.models.response.MusixmatchCredential
+import com.maxrave.lyricsproviders.models.response.MusixmatchTranslationLyricsResponse
+import com.maxrave.lyricsproviders.models.response.SearchMusixmatchResponse
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.QUALITY
 import com.maxrave.simpmusic.common.VIDEO_QUALITY
@@ -123,6 +123,7 @@ class MainRepository(
     private val dataStoreManager: DataStoreManager,
     private val youTube: YouTube,
     private val spotify: Spotify,
+    private val lyricsClient: LyricsClient,
     private val database: MusicDatabase,
     private val context: Context,
 ) {
@@ -161,11 +162,15 @@ class MainRepository(
                     combine(dataStoreManager.location, dataStoreManager.language) { location, language ->
                         Pair(location, language)
                     }.collectLatest { (location, language) ->
-                        youTube.locale = YouTubeLocale(location, try {
-                            language.substring(0..1)
-                        } catch (e: Exception) {
-                            "en"
-                        })
+                        youTube.locale =
+                            YouTubeLocale(
+                                location,
+                                try {
+                                    language.substring(0..1)
+                                } catch (e: Exception) {
+                                    "en"
+                                },
+                            )
                     }
                 }
             val ytCookieJob =
@@ -181,7 +186,7 @@ class MainRepository(
             val musixmatchCookieJob =
                 launch {
                     dataStoreManager.musixmatchCookie.collectLatest { cookie ->
-                        youTube.musixMatchCookie = cookie
+                        lyricsClient.musixmatchCookie = cookie
                     }
                 }
             val usingProxy =
@@ -206,10 +211,16 @@ class MainRepository(
                                     data.second,
                                     data.third,
                                 )
+                                lyricsClient.setProxy(
+                                    data.first == DataStoreManager.Settings.ProxyType.PROXY_TYPE_HTTP,
+                                    data.second,
+                                    data.third,
+                                )
                             }
                         } else {
                             youTube.removeProxy()
                             spotify.removeProxy()
+                            lyricsClient.removeProxy()
                         }
                     }
                 }
@@ -221,7 +232,7 @@ class MainRepository(
         }
     }
 
-    fun getMusixmatchCookie() = youTube.getMusixmatchCookie()
+    fun getMusixmatchCookie() = lyricsClient.musixmatchCookie
 
     fun getYouTubeCookie() = youTube.cookie
 
@@ -2226,6 +2237,44 @@ class MainRepository(
             }
         }
 
+    fun getLrclibLyricsData(
+        sartist: String,
+        strack: String,
+        duration: Int? = null,
+    ): Flow<Resource<Lyrics>> =
+        flow {
+            val qartist =
+                sartist
+                    .replace(
+                        Regex("\\((feat\\.|ft.|cùng với|con|mukana|com|avec|合作音乐人: ) "),
+                        " ",
+                    ).replace(
+                        Regex("( và | & | и | e | und |, |和| dan)"),
+                        " ",
+                    ).replace("  ", " ")
+                    .replace(Regex("([()])"), "")
+                    .replace(".", " ")
+            val qtrack =
+                strack
+                    .replace(
+                        Regex("\\((feat\\.|ft.|cùng với|con|mukana|com|avec|合作音乐人: ) "),
+                        " ",
+                    ).replace(
+                        Regex("( và | & | и | e | und |, |和| dan)"),
+                        " ",
+                    ).replace("  ", " ")
+                    .replace(Regex("([()])"), "")
+                    .replace(".", " ")
+            lyricsClient
+                .getLrclibLyrics(qtrack, qartist, duration)
+                .onSuccess {
+                    it?.let { emit(Resource.Success<Lyrics>(it.toLyrics())) }
+                }.onFailure {
+                    it.printStackTrace()
+                    emit(Resource.Error<Lyrics>("Not found"))
+                }
+        }.flowOn(Dispatchers.IO)
+
     suspend fun getLyricsData(
         sartist: String,
         strack: String,
@@ -2260,12 +2309,12 @@ class MainRepository(
                         .replace(".", " ")
                 val q = "$qtrack $qartist"
                 Log.d(tag, "query: $q")
-                var musixMatchUserToken = youTube.musixmatchUserToken
+                var musixMatchUserToken = lyricsClient.musixmatchUserToken
                 if (musixMatchUserToken == null) {
-                    youTube
+                    lyricsClient
                         .getMusixmatchUserToken()
                         .onSuccess { usertoken ->
-                            youTube.musixmatchUserToken = usertoken.message.body.user_token
+                            lyricsClient.musixmatchUserToken = usertoken.message.body.user_token
                             Log.d(tag, "musixMatchUserToken: ${usertoken.message.body.user_token}")
                             musixMatchUserToken = usertoken.message.body.user_token
                         }.onFailure { throwable ->
@@ -2273,7 +2322,7 @@ class MainRepository(
                             emit(Pair("", Resource.Error<Lyrics>("Not found")))
                         }
                 }
-                youTube
+                lyricsClient
                     .searchMusixmatchTrackId(q, musixMatchUserToken!!)
                     .onSuccess { searchResult ->
                         Log.d(
@@ -2318,12 +2367,12 @@ class MainRepository(
                                     }
                                     val closestIndex =
                                         trackLengthList.minByOrNull {
-                                            kotlin.math.abs(
+                                            abs(
                                                 it - durationInt,
                                             )
                                         }
                                     if (closestIndex != null &&
-                                        kotlin.math.abs(
+                                        abs(
                                             closestIndex - durationInt,
                                         ) < 2
                                     ) {
@@ -2413,7 +2462,7 @@ class MainRepository(
                                 "item lyrics $track",
                             )
                             if (id != "" && track != null) {
-                                youTube
+                                lyricsClient
                                     .getMusixmatchLyricsByQ(track, musixMatchUserToken!!)
                                     .onSuccess {
                                         if (it != null) {
@@ -2429,7 +2478,7 @@ class MainRepository(
                                         }
                                     }.onFailure { throwable ->
                                         throwable.printStackTrace()
-                                        youTube
+                                        lyricsClient
                                             .getLrclibLyrics(qtrack, qartist, durationInt)
                                             .onSuccess {
                                                 it?.let { emit(Pair(id, Resource.Success<Lyrics>(it.toLyrics()))) }
@@ -2439,7 +2488,7 @@ class MainRepository(
                                             }
                                     }
                             } else {
-                                youTube
+                                lyricsClient
                                     .fixSearchMusixmatch(
                                         q_artist = qartist,
                                         q_track = qtrack,
@@ -2449,7 +2498,7 @@ class MainRepository(
                                         val trackX = it.message.body.track
                                         Log.w(tag, "Fix Search Musixmatch: $trackX")
                                         if (trackX != null && (abs(trackX.track_length - (durationInt ?: 0)) <= 10)) {
-                                            youTube
+                                            lyricsClient
                                                 .getMusixmatchLyricsByQ(trackX, musixMatchUserToken!!)
                                                 .onSuccess {
                                                     Log.w(tag, "Item lyrics ${it?.lyrics?.syncType}")
@@ -2462,7 +2511,7 @@ class MainRepository(
                                                         )
                                                     } else {
                                                         Log.w("Lyrics", "Error: Lỗi getLyrics $it")
-                                                        youTube.getLrclibLyrics(qtrack, qartist, durationInt)
+                                                        lyricsClient.getLrclibLyrics(qtrack, qartist, durationInt)
                                                         emit(Pair(id, Resource.Error<Lyrics>("Not found")))
                                                     }
                                                 }.onFailure {
@@ -2470,7 +2519,7 @@ class MainRepository(
                                                     emit(Pair(id, Resource.Error<Lyrics>("Not found")))
                                                 }
                                         } else {
-                                            youTube
+                                            lyricsClient
                                                 .getLrclibLyrics(qtrack, qartist, durationInt)
                                                 .onSuccess {
                                                     it?.let { emit(Pair(trackX?.track_id.toString(), Resource.Success<Lyrics>(it.toLyrics()))) }
@@ -2481,7 +2530,7 @@ class MainRepository(
                                         }
                                     }.onFailure {
                                         Log.e(tag, "Fix musixmatch search" + it.message.toString())
-                                        youTube
+                                        lyricsClient
                                             .getLrclibLyrics(qtrack, qartist, durationInt)
                                             .onSuccess {
                                                 Log.w(tag, "Liblrc Item lyrics ${it?.lyrics?.syncType}")
@@ -2499,231 +2548,14 @@ class MainRepository(
                         throwable.printStackTrace()
                         emit(Pair("", Resource.Error<Lyrics>("Not found")))
                     }
-
-//            youTube.authentication().onSuccess { token ->
-//                if (token.accessToken != null) {
-//                    youTube.getSongId(token.accessToken!!, q).onSuccess { spotifyResult ->
-//                        Log.d("SongId", "id: ${spotifyResult.tracks?.items?.get(0)?.id}")
-//                        if (!spotifyResult.tracks?.items.isNullOrEmpty()) {
-//                            val list = arrayListOf<String>()
-//                            for (index in spotifyResult.tracks?.items!!.indices) {
-//                                list.add(
-//                                    (spotifyResult.tracks?.items?.get(index)?.name ?: "") + " " + (spotifyResult.tracks?.items?.get(
-//                                        index
-//                                    )?.artists?.connectArtistsSpotify() ?: "")
-//                                )
-//                            }
-//                            Log.w("Lyrics", "list: $list")
-//                            var id = ""
-//                            val bestMatchingIndex = bestMatchingIndex(q, list)
-//                            if (q.contains(spotifyResult.tracks?.items?.get(bestMatchingIndex)?.name.toString()) && q.contains(spotifyResult.tracks?.items?.get(bestMatchingIndex)?.artists?.firstOrNull()?.name.toString())) {
-//                                id += spotifyResult.tracks?.items?.get(bestMatchingIndex)?.id
-//                                Log.w("Lyrics", "item: ${spotifyResult.tracks?.items?.get(bestMatchingIndex)?.name}")
-//                            }
-//                            else {
-//                                id += spotifyResult.tracks?.items?.get(0)?.id
-//                                Log.w("Lyrics", "item: ${spotifyResult.tracks?.items?.get(0)?.name}")
-//                            }
-//                            if (id != "") {
-//                                if (dataStoreManager.spotifyAccessTokenExpire.first() != 0L && dataStoreManager.spotifyAccessToken.first() != "" && (dataStoreManager.spotifyAccessTokenExpire.first()
-//                                        .toLong()) > Instant.now().toEpochMilli()) {
-//                                    Log.d(
-//                                        "Lyrics",
-//                                        "token: ${dataStoreManager.spotifyAccessToken.first()}"
-//                                    )
-//                                    youTube.getLyrics(
-//                                        id,
-//                                        dataStoreManager.spotifyAccessToken.first()
-//                                    ).onSuccess { lyrics ->
-//                                        emit(Resource.Success<Lyrics>(lyrics.toLyrics()))
-//                                    }.onFailure { throwable ->
-//                                        Log.d(
-//                                            "Lyrics",
-//                                            "Error: Lỗi getLyrics ${throwable.message}"
-//                                        )
-//                                        spotifyResult.tracks?.items?.firstOrNull()?.id?.let { it2 ->
-//                                            youTube.getLyrics(
-//                                                it2,
-//                                                dataStoreManager.spotifyAccessToken.first()
-//                                            ).onSuccess {
-//                                                emit(Resource.Success<Lyrics>(it.toLyrics()))
-//                                            }
-//                                                .onFailure {
-//                                                    Log.d(
-//                                                        "Lyrics",
-//                                                        "Error: Lỗi getLyrics lần 2 ${it.message}"
-//                                                    )
-//                                                    emit(Resource.Error<Lyrics>("Not found"))
-//                                                }
-//                                        }
-//                                        emit(Resource.Error<Lyrics>("Not found"))
-//                                    }
-//                                }
-//                                else {
-//                                    youTube.getAccessToken()
-//                                        .onSuccess { value: AccessToken ->
-//                                            dataStoreManager.setSpotifyAccessToken(value.accessToken!!)
-//                                            dataStoreManager.setSpotifyAccessTokenExpire(
-//                                                value.accessTokenExpirationTimestampMs!!
-//                                            )
-//                                            Log.d(
-//                                                "Lyrics",
-//                                                "token: ${value.accessToken}"
-//                                            )
-//                                            youTube.getLyrics(id, value.accessToken)
-//                                                .onSuccess { lyrics ->
-//                                                    emit(Resource.Success<Lyrics>(lyrics.toLyrics()))
-//                                                }.onFailure { throwable ->
-//                                                    throwable.printStackTrace()
-//                                                    spotifyResult.tracks?.items?.firstOrNull()?.id?.let { it2 ->
-//                                                        youTube.getLyrics(
-//                                                            it2,
-//                                                            value.accessToken
-//                                                        ).onSuccess {
-//                                                            emit(
-//                                                                Resource.Success<Lyrics>(
-//                                                                    it.toLyrics()
-//                                                                )
-//                                                            )
-//                                                        }
-//                                                            .onFailure {
-//                                                                Log.d(
-//                                                                    "Lyrics",
-//                                                                    "Error: Lỗi getLyrics lần 2 ${it.message}"
-//                                                                )
-//                                                                emit(
-//                                                                    Resource.Error<Lyrics>(
-//                                                                        "Not found"
-//                                                                    )
-//                                                                )
-//                                                            }
-//                                                    }
-//                                                    emit(Resource.Error<Lyrics>("Not found"))
-//                                                }
-//                                        }
-//                                        .onFailure { e ->
-//                                            e.printStackTrace()
-//                                            emit(Resource.Error<Lyrics>("Not found"))
-//                                        }
-//                                }
-//                            }
-//                            else {
-//                                Log.w("Lyrics", "Can't find song id")
-//                                emit(Resource.Error<Lyrics>("Not found"))
-//                            }
-//                            //                            bestMatchingIndex(q, list).let {
-// //                            bestMatchingIndex(q, list).let { index ->
-// //                                spotifyResult.tracks?.items?.get(index)?.let { item ->
-// //                                    if (list[index].contains(item.name.toString())) {
-// //                                        Log.w("Lyrics", "item: ${item.name}")
-// //                                        item.id?.let { it1 ->
-// //                                            Log.d("Lyrics", "id: $it1")
-// //                                            if (dataStoreManager.spotifyAccessTokenExpire.first() != 0L && dataStoreManager.spotifyAccessToken.first() != "" && (dataStoreManager.spotifyAccessTokenExpire.first()
-// //                                                    .toLong()) > Instant.now().toEpochMilli()
-// //                                            ) {
-// //                                                Log.d(
-// //                                                    "Lyrics",
-// //                                                    "token: ${dataStoreManager.spotifyAccessToken.first()}"
-// //                                                )
-// //                                                youTube.getLyrics(
-// //                                                    it1,
-// //                                                    dataStoreManager.spotifyAccessToken.first()
-// //                                                ).onSuccess { lyrics ->
-// //                                                    emit(Resource.Success<Lyrics>(lyrics.toLyrics()))
-// //                                                }.onFailure {
-// //                                                    Log.d(
-// //                                                        "Lyrics",
-// //                                                        "Error: Lỗi getLyrics ${it.message}"
-// //                                                    )
-// //                                                    spotifyResult.tracks?.items?.firstOrNull()?.id?.let { it2 ->
-// //                                                        youTube.getLyrics(
-// //                                                            it2,
-// //                                                            dataStoreManager.spotifyAccessToken.first()
-// //                                                        ).onSuccess {
-// //                                                            emit(Resource.Success<Lyrics>(it.toLyrics()))
-// //                                                        }
-// //                                                            .onFailure {
-// //                                                                Log.d(
-// //                                                                    "Lyrics",
-// //                                                                    "Error: Lỗi getLyrics lần 2 ${it.message}"
-// //                                                                )
-// //                                                                emit(Resource.Error<Lyrics>("Not found"))
-// //                                                            }
-// //                                                    }
-// //                                                    emit(Resource.Error<Lyrics>("Not found"))
-// //                                                }
-// //                                            } else {
-// //                                                youTube.getAccessToken()
-// //                                                    .onSuccess { value: AccessToken ->
-// //                                                        dataStoreManager.setSpotifyAccessToken(value.accessToken!!)
-// //                                                        dataStoreManager.setSpotifyAccessTokenExpire(
-// //                                                            value.accessTokenExpirationTimestampMs!!
-// //                                                        )
-// //                                                        Log.d(
-// //                                                            "Lyrics",
-// //                                                            "token: ${value.accessToken}"
-// //                                                        )
-// //                                                        youTube.getLyrics(it1, value.accessToken)
-// //                                                            .onSuccess { lyrics ->
-// //                                                                emit(Resource.Success<Lyrics>(lyrics.toLyrics()))
-// //                                                            }.onFailure {
-// //                                                                it.printStackTrace()
-// //                                                                spotifyResult.tracks?.items?.firstOrNull()?.id?.let { it2 ->
-// //                                                                    youTube.getLyrics(
-// //                                                                        it2,
-// //                                                                        value.accessToken
-// //                                                                    ).onSuccess {
-// //                                                                        emit(
-// //                                                                            Resource.Success<Lyrics>(
-// //                                                                                it.toLyrics()
-// //                                                                            )
-// //                                                                        )
-// //                                                                    }
-// //                                                                        .onFailure {
-// //                                                                            Log.d(
-// //                                                                                "Lyrics",
-// //                                                                                "Error: Lỗi getLyrics lần 2 ${it.message}"
-// //                                                                            )
-// //                                                                            emit(
-// //                                                                                Resource.Error<Lyrics>(
-// //                                                                                    "Not found"
-// //                                                                                )
-// //                                                                            )
-// //                                                                        }
-// //                                                                }
-// //                                                                emit(Resource.Error<Lyrics>("Not found"))
-// //                                                            }
-// //                                                    }
-// //                                                    .onFailure { e ->
-// //                                                        e.printStackTrace()
-// //                                                        emit(Resource.Error<Lyrics>("Not found"))
-// //                                                    }
-// //                                            }
-// //                                        }
-// //                                    }
-// //                                    else {
-// //
-// //                                    }
-// //                                }
-// //                            }
-//
-//                        }
-//                    }
-//                } else {
-//                    emit(Resource.Error<Lyrics>("Not found"))
-//                }
-//            }.onFailure {
-//                Log.d("SongId", "Error: ${it.message}")
-//                emit(Resource.Error<Lyrics>("Not found"))
-//            }
             }
         }.flowOn(Dispatchers.IO)
 
     suspend fun getTranslateLyrics(id: String): Flow<MusixmatchTranslationLyricsResponse?> =
         flow {
             runCatching {
-                youTube.musixmatchUserToken?.let {
-                    youTube
+                lyricsClient.musixmatchUserToken?.let {
+                    lyricsClient
                         .getMusixmatchTranslateLyrics(
                             id,
                             it,
@@ -3239,12 +3071,13 @@ class MainRepository(
     ): Flow<MusixmatchCredential?> =
         flow {
             runCatching {
-                if (youTube.musixmatchUserToken != null && youTube.musixmatchUserToken != "") {
-                    youTube
+                val userToken = lyricsClient.musixmatchUserToken
+                if (!userToken.isNullOrEmpty()) {
+                    lyricsClient
                         .postMusixmatchCredentials(
                             email,
                             password,
-                            youTube.musixmatchUserToken!!,
+                            userToken,
                         ).onSuccess { response ->
                             emit(response)
                         }.onFailure {
@@ -3252,16 +3085,17 @@ class MainRepository(
                             emit(null)
                         }
                 } else {
-                    youTube
+                    lyricsClient
                         .getMusixmatchUserToken()
                         .onSuccess { usertoken ->
-                            youTube.musixmatchUserToken = usertoken.message.body.user_token
+                            lyricsClient.musixmatchUserToken = usertoken.message.body.user_token
+                            val newUserToken = usertoken.message.body.user_token
                             delay(2000)
-                            youTube
+                            lyricsClient
                                 .postMusixmatchCredentials(
                                     email,
                                     password,
-                                    youTube.musixmatchUserToken!!,
+                                    newUserToken,
                                 ).onSuccess { response ->
                                     emit(response)
                                 }.onFailure {
