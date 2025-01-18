@@ -64,12 +64,15 @@ import com.maxrave.kotlinytmusicscraper.parser.getPlaylistContinuation
 import com.maxrave.kotlinytmusicscraper.parser.getReloadParams
 import com.maxrave.kotlinytmusicscraper.parser.getSuggestionSongItems
 import com.maxrave.kotlinytmusicscraper.parser.hasReloadParams
+import com.maxrave.kotlinytmusicscraper.utils.CustomNewPipeDownloader
 import com.mohamedrejeb.ksoup.html.parser.KsoupHtmlHandler
 import com.mohamedrejeb.ksoup.html.parser.KsoupHtmlParser
 import io.ktor.client.call.body
 import io.ktor.client.engine.ProxyBuilder
 import io.ktor.client.engine.http
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.URLBuilder
+import io.ktor.http.parseQueryString
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonPrimitive
@@ -77,6 +80,9 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
 import okhttp3.Interceptor
 import org.json.JSONArray
+import org.schabi.newpipe.extractor.NewPipe
+import org.schabi.newpipe.extractor.exceptions.ParsingException
+import org.schabi.newpipe.extractor.services.youtube.YoutubeJavaScriptPlayerManager
 import java.io.File
 import kotlin.random.Random
 
@@ -102,6 +108,7 @@ private fun List<PipedResponse.AudioStream>.toListFormat(): List<PlayerResponse.
                 audioChannels = 0,
                 loudnessDb = 0.0,
                 lastModified = 0,
+                signatureCipher = null,
             ),
         )
     }
@@ -119,6 +126,12 @@ private fun List<PipedResponse.AudioStream>.toListFormat(): List<PlayerResponse.
  */
 class YouTube {
     private val ytMusic = Ytmusic()
+    private val newPipeDownloader = CustomNewPipeDownloader(ytMusic.proxy)
+
+    // Init NewPipe
+    init {
+        NewPipe.init(newPipeDownloader)
+    }
 
     var cachePath: File?
         get() = ytMusic.cachePath
@@ -191,6 +204,7 @@ class YouTube {
      */
     fun removeProxy() {
         ytMusic.proxy = null
+        newPipeDownloader.updateProxy(null)
     }
 
     /**
@@ -205,6 +219,7 @@ class YouTube {
             if (isHttp) ProxyBuilder.http("$host:$port") else ProxyBuilder.socks(host, port)
         }.onSuccess {
             ytMusic.proxy = it
+            newPipeDownloader.updateProxy(it)
         }.onFailure {
             it.printStackTrace()
         }
@@ -1161,7 +1176,6 @@ class YouTube {
         playlistId: String? = null,
     ): Result<Triple<String?, PlayerResponse, MediaType>> =
         runCatching {
-            val (tempCookie, visitorData, playbackTracking) = getVisitorData(videoId, playlistId)
             val cpn =
                 (1..16)
                     .map {
@@ -1172,96 +1186,131 @@ class YouTube {
                             ),
                         ]
                     }.joinToString("")
-            val now = System.currentTimeMillis()
-            val poToken =
-                if (now < poTokenObject.second) {
-                    println("Use saved PoToken")
-                    poTokenObject.first
-                } else {
-                    ytMusic
-                        .createPoTokenChallenge()
-                        .bodyAsText()
-                        .let { challenge ->
-                            val listChallenge = poTokenJsonDeserializer.decodeFromString<List<String?>>(challenge)
-                            listChallenge.filterIsInstance<String>().firstOrNull()
-                        }?.let { poTokenChallenge ->
-                            ytMusic.generatePoToken(poTokenChallenge).bodyAsText().getPoToken().also { poToken ->
-                                if (poToken != null) {
-                                    poTokenObject = Pair(poToken, now + 21600000)
+            val sigTimestamp = getSignatureTimestamp(videoId)
+            val sigResponse = ytMusic.player(WEB_REMIX, videoId, playlistId, cpn, signatureTimestamp = sigTimestamp).body<PlayerResponse>()
+            val decodedSigResponse =
+                sigResponse.copy(
+                    streamingData =
+                        sigResponse.streamingData?.copy(
+                            formats =
+                                sigResponse.streamingData.formats?.map { format ->
+                                    format.copy(
+                                        url = format.signatureCipher?.let { decodeSignatureCipher(videoId, it) },
+                                    )
+                                },
+                            adaptiveFormats =
+                                sigResponse.streamingData.adaptiveFormats.map { adaptiveFormats ->
+                                    adaptiveFormats.copy(
+                                        url = adaptiveFormats.signatureCipher?.let { decodeSignatureCipher(videoId, it) },
+                                    )
+                                },
+                        ),
+                )
+            val listUrlSig =
+                (
+                    decodedSigResponse.streamingData
+                        ?.adaptiveFormats
+                        ?.mapNotNull { it.url }
+                        ?.toMutableList() ?: mutableListOf()
+                ).apply {
+                    decodedSigResponse.streamingData
+                        ?.formats
+                        ?.mapNotNull { it.url }
+                        ?.let { addAll(it) }
+                }
+            if (listUrlSig.isEmpty()) {
+                val (tempCookie, visitorData, playbackTracking) = getVisitorData(videoId, playlistId)
+                val now = System.currentTimeMillis()
+                val poToken =
+                    if (now < poTokenObject.second) {
+                        println("Use saved PoToken")
+                        poTokenObject.first
+                    } else {
+                        ytMusic
+                            .createPoTokenChallenge()
+                            .bodyAsText()
+                            .let { challenge ->
+                                val listChallenge = poTokenJsonDeserializer.decodeFromString<List<String?>>(challenge)
+                                listChallenge.filterIsInstance<String>().firstOrNull()
+                            }?.let { poTokenChallenge ->
+                                ytMusic.generatePoToken(poTokenChallenge).bodyAsText().getPoToken().also { poToken ->
+                                    if (poToken != null) {
+                                        poTokenObject = Pair(poToken, now + 21600000)
+                                    }
                                 }
                             }
-                        }
-                }
-            println("PoToken $poToken")
-            val playerResponse = ytMusic.noLogInPlayer(videoId, tempCookie, visitorData, poToken ?: "").body<PlayerResponse>()
-//                try {
-//                    println("Start logged in request")
-//                    ytMusic.player(
-//                        IOS,
-//                        videoId,
-//                        playlistId,
-//                        cpn,
-//                        poToken
-//                    ).body<PlayerResponse>().also {
-//                        if (it.playabilityStatus.status != "OK") throw Exception(it.playabilityStatus.status)
-//                    }
-//                } catch (e: Exception) {
-//                    println("Player Response Error $e")
-//                    println("Start no logged in request")
-//                    ytMusic.noLogInPlayer(videoId, tempCookie, visitorData, poToken ?: "").body<PlayerResponse>()
-//                }
-            println("Player Response $playerResponse")
-            println("Thumbnails " + playerResponse.videoDetails?.thumbnail)
-            println("Player Response status: ${playerResponse.playabilityStatus.status}")
-            val firstThumb =
-                playerResponse.videoDetails
-                    ?.thumbnail
-                    ?.thumbnails
-                    ?.firstOrNull()
-            val thumbnails =
-                if (firstThumb?.height == firstThumb?.width && firstThumb != null) MediaType.Song else MediaType.Video
-            val formatList = playerResponse.streamingData?.formats?.map { Pair(it.itag, it.isAudio) }
-            println("Player Response formatList $formatList")
-            val adaptiveFormatsList = playerResponse.streamingData?.adaptiveFormats?.map { Pair(it.itag, it.isAudio) }
-            println("Player Response adaptiveFormat $adaptiveFormatsList")
+                    }
+                println("PoToken $poToken")
+                val playerResponse = ytMusic.noLogInPlayer(videoId, tempCookie, visitorData, poToken ?: "").body<PlayerResponse>()
+                println("Player Response $playerResponse")
+                println("Thumbnails " + playerResponse.videoDetails?.thumbnail)
+                println("Player Response status: ${playerResponse.playabilityStatus.status}")
+                val firstThumb =
+                    playerResponse.videoDetails
+                        ?.thumbnail
+                        ?.thumbnails
+                        ?.firstOrNull()
+                val thumbnails =
+                    if (firstThumb?.height == firstThumb?.width && firstThumb != null) MediaType.Song else MediaType.Video
+                val formatList = playerResponse.streamingData?.formats?.map { Pair(it.itag, it.isAudio) }
+                println("Player Response formatList $formatList")
+                val adaptiveFormatsList = playerResponse.streamingData?.adaptiveFormats?.map { Pair(it.itag, it.isAudio) }
+                println("Player Response adaptiveFormat $adaptiveFormatsList")
 
-            if (playerResponse.playabilityStatus.status == "OK" && (formatList != null || adaptiveFormatsList != null)) {
+                if (playerResponse.playabilityStatus.status == "OK" && (formatList != null || adaptiveFormatsList != null)) {
+                    return@runCatching Triple(
+                        cpn,
+                        playerResponse.copy(
+                            videoDetails = playerResponse.videoDetails?.copy(),
+                            playbackTracking = playbackTracking ?: playerResponse.playbackTracking,
+                        ),
+                        thumbnails,
+                    )
+                } else {
+                    for (instance in listPipedInstances) {
+                        try {
+                            val piped = ytMusic.pipedStreams(videoId, instance).body<PipedResponse>()
+                            val audioStreams = piped.audioStreams
+                            val videoStreams = piped.videoStreams
+                            val stream = audioStreams + videoStreams
+                            return@runCatching Triple(
+                                null,
+                                playerResponse.copy(
+                                    streamingData =
+                                        PlayerResponse.StreamingData(
+                                            formats = stream.toListFormat(),
+                                            adaptiveFormats = stream.toListFormat(),
+                                            expiresInSeconds = 0,
+                                        ),
+                                    videoDetails = playerResponse.videoDetails?.copy(),
+                                    playbackTracking = playbackTracking ?: playerResponse.playbackTracking,
+                                ),
+                                thumbnails,
+                            )
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            continue
+                        }
+                    }
+                }
+                throw Exception(playerResponse.playabilityStatus.status ?: "Unknown error")
+            } else {
+                val firstThumb =
+                    decodedSigResponse.videoDetails
+                        ?.thumbnail
+                        ?.thumbnails
+                        ?.firstOrNull()
+                val thumbnails =
+                    if (firstThumb?.height == firstThumb?.width && firstThumb != null) MediaType.Song else MediaType.Video
                 return@runCatching Triple(
                     cpn,
-                    playerResponse.copy(
-                        videoDetails = playerResponse.videoDetails?.copy(),
-                        playbackTracking = playbackTracking ?: playerResponse.playbackTracking,
+                    decodedSigResponse.copy(
+                        videoDetails = decodedSigResponse.videoDetails?.copy(),
+                        playbackTracking = decodedSigResponse.playbackTracking,
                     ),
                     thumbnails,
                 )
-            } else {
-                for (instance in listPipedInstances) {
-                    try {
-                        val piped = ytMusic.pipedStreams(videoId, instance).body<PipedResponse>()
-                        val audioStreams = piped.audioStreams
-                        val videoStreams = piped.videoStreams
-                        val stream = audioStreams + videoStreams
-                        return@runCatching Triple(
-                            null,
-                            playerResponse.copy(
-                                streamingData =
-                                    PlayerResponse.StreamingData(
-                                        formats = stream.toListFormat(),
-                                        adaptiveFormats = stream.toListFormat(),
-                                        expiresInSeconds = 0,
-                                    ),
-                                videoDetails = playerResponse.videoDetails?.copy(),
-                                playbackTracking = playbackTracking ?: playerResponse.playbackTracking,
-                            ),
-                            thumbnails,
-                        )
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        continue
-                    }
-                }
             }
-            throw Exception(playerResponse.playabilityStatus.status ?: "Unknown error")
         }
 
     suspend fun updateWatchTime(
@@ -1681,6 +1730,34 @@ class YouTube {
     suspend fun removeFromLiked(mediaId: String) =
         runCatching {
             ytMusic.removeFromLiked(mediaId).status.value
+        }
+
+    /**
+     * NewPipeExtractor implement
+     */
+    private fun getSignatureTimestamp(videoId: String): Int? =
+        try {
+            YoutubeJavaScriptPlayerManager.getSignatureTimestamp(videoId)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+
+    private fun decodeSignatureCipher(
+        videoId: String,
+        signatureCipher: String,
+    ): String? =
+        try {
+            val params = parseQueryString(signatureCipher)
+            val obfuscatedSignature = params["s"] ?: throw ParsingException("Could not parse cipher signature")
+            val signatureParam = params["sp"] ?: throw ParsingException("Could not parse cipher signature parameter")
+            val url = params["url"]?.let { URLBuilder(it) } ?: throw ParsingException("Could not parse cipher url")
+            url.parameters[signatureParam] = YoutubeJavaScriptPlayerManager.deobfuscateSignature(videoId, obfuscatedSignature)
+            print("URL $url")
+            YoutubeJavaScriptPlayerManager.getUrlWithThrottlingParameterDeobfuscated(videoId, url.toString())
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
         }
 
     companion object {

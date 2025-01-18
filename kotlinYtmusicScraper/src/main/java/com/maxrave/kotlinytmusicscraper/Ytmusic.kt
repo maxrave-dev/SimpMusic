@@ -188,25 +188,27 @@ class Ytmusic {
             contentType(ContentType.Application.Json)
         }
 
-    suspend fun ghostRequest(videoId: String, playlistId: String?) =
-        httpClient
-            .get(
-                "https://www.youtube.com/watch?v=$videoId&bpctr=9999999999&has_verified=1"
-                    .let {
-                        if (playlistId != null) "$it&list=$playlistId" else it
-                    }
-            ) {
-                headers {
-                    header("Connection", "close")
-                    header("Host", "www.youtube.com")
-                    header("Cookie", if (cookie.isNullOrEmpty()) "PREF=hl=en&tz=UTC; SOCS=CAI" else cookie)
-                    header("Sec-Fetch-Mode", "navigate")
-                    header(
-                        "User-Agent",
-                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36",
-                    )
-                }
+    suspend fun ghostRequest(
+        videoId: String,
+        playlistId: String?,
+    ) = httpClient
+        .get(
+            "https://www.youtube.com/watch?v=$videoId&bpctr=9999999999&has_verified=1"
+                .let {
+                    if (playlistId != null) "$it&list=$playlistId" else it
+                },
+        ) {
+            headers {
+                header("Connection", "close")
+                header("Host", "www.youtube.com")
+                header("Cookie", if (cookie.isNullOrEmpty()) "PREF=hl=en&tz=UTC; SOCS=CAI" else cookie)
+                header("Sec-Fetch-Mode", "navigate")
+                header(
+                    "User-Agent",
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36",
+                )
             }
+        }
 
     private fun HttpRequestBuilder.poHeader() {
         headers {
@@ -223,25 +225,28 @@ class Ytmusic {
             header("sec-fetch-site", "cross-site")
             header(
                 "user-agent",
-                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0")
+                "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36 Edg/131.0.0.0",
+            )
             header("x-goog-api-key", "AIzaSyDyT5W0Jh49F30Pqqtyfdf7pDLFKLJoAnw")
             header("x-user-agent", "grpc-web-javascript/0.1")
         }
     }
 
-    suspend fun createPoTokenChallenge() = httpClient.post(
-        "https://jnn-pa.googleapis.com/\$rpc/google.internal.waa.v1.Waa/Create"
-    ) {
-        poHeader()
-        setBody("[\"$poTokenChallengeRequestKey\"]")
-    }
+    suspend fun createPoTokenChallenge() =
+        httpClient.post(
+            "https://jnn-pa.googleapis.com/\$rpc/google.internal.waa.v1.Waa/Create",
+        ) {
+            poHeader()
+            setBody("[\"$poTokenChallengeRequestKey\"]")
+        }
 
-    suspend fun generatePoToken(challenge: String) = httpClient.post(
-        "https://jnn-pa.googleapis.com/\$rpc/google.internal.waa.v1.Waa/GenerateIT"
-    ) {
-        poHeader()
-        setBody("[\"$poTokenChallengeRequestKey\", \"$challenge\"]")
-    }
+    suspend fun generatePoToken(challenge: String) =
+        httpClient.post(
+            "https://jnn-pa.googleapis.com/\$rpc/google.internal.waa.v1.Waa/GenerateIT",
+        ) {
+            poHeader()
+            setBody("[\"$poTokenChallengeRequestKey\", \"$challenge\"]")
+        }
 
 //    curl 'https://jnn-pa.googleapis.com/$rpc/google.internal.waa.v1.Waa/Create' \
 //    -H 'accept: */*' \
@@ -275,7 +280,7 @@ class Ytmusic {
         header(HttpHeaders.UserAgent, IOS.userAgent)
         header(
             "Set-Cookie",
-            cookie
+            cookie,
         )
         header("X-Goog-Visitor-Id", visitorData ?: this@Ytmusic.visitorData)
         header("X-YouTube-Client-Name", IOS.clientName)
@@ -287,9 +292,10 @@ class Ytmusic {
                 cpn = null,
                 videoId = videoId,
                 playbackContext = PlayerBody.PlaybackContext(),
-                serviceIntegrityDimensions = PlayerBody.ServiceIntegrityDimensions(
-                    poToken = poToken,
-                )
+                serviceIntegrityDimensions =
+                    PlayerBody.ServiceIntegrityDimensions(
+                        poToken = poToken,
+                    ),
             ),
         )
         parameter("prettyPrint", false)
@@ -301,6 +307,7 @@ class Ytmusic {
         playlistId: String?,
         cpn: String?,
         poToken: String? = null,
+        signatureTimestamp: Int? = null,
     ) = httpClient.post("player") {
         ytClient(client, setLogin = true)
         setBody(
@@ -321,10 +328,21 @@ class Ytmusic {
                 videoId = videoId,
                 playlistId = playlistId,
                 cpn = cpn,
-                playbackContext = PlayerBody.PlaybackContext(),
-                serviceIntegrityDimensions = if (poToken != null) PlayerBody.ServiceIntegrityDimensions(
-                    poToken = poToken
-                ) else null
+                playbackContext =
+                    PlayerBody.PlaybackContext(
+                        contentPlaybackContext =
+                            PlayerBody.PlaybackContext.ContentPlaybackContext(
+                                signatureTimestamp = signatureTimestamp ?: 20073,
+                            ),
+                    ),
+                serviceIntegrityDimensions =
+                    if (poToken != null) {
+                        PlayerBody.ServiceIntegrityDimensions(
+                            poToken = poToken,
+                        )
+                    } else {
+                        null
+                    },
             ),
         )
     }

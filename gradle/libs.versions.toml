@@ -7,9 +7,9 @@ android = "8.8.0"
 kotlin = "2.1.0"
 serialization = "2.1.0"
 ksp = "2.1.0-1.0.29"
-compose-bom = "2024.12.01"
+compose-bom = "2025.01.00"
 constraintlayout-compose = "1.1.0"
-activity-compose = "1.9.3"
+activity-compose = "1.10.0"
 lifecycle-viewmodel-compose = "2.8.7"
 lifecycle-runtime-ktx = "2.8.7"
 core-ktx = "1.15.0"
@@ -30,8 +30,8 @@ androidx-junit = "1.2.1"
 espresso-core = "3.6.1"
 room = "2.6.1"
 legacy-support-v4 = "1.0.0"
-coroutines-android = "1.9.0"
-coroutines-guava = "1.9.0"
+coroutines-android = "1.10.1"
+coroutines-guava = "1.10.1"
 navigation = "2.8.5"
 gson = "2.10.1"
 coil3 = "3.0.4"
@@ -39,7 +39,7 @@ kmpalette = "3.1.0"
 easypermissions = "3.0.0"
 preference-ktx = "1.2.1"
 fragment-ktx = "1.8.5"
-datastore-preferences = "1.1.1"
+datastore-preferences = "1.1.2"
 swiperefreshlayout = "1.2.0-alpha01"
 insetter = "0.6.1"
 shimmer = "0.5.0"
@@ -145,6 +145,8 @@ kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
 ksoup-html = { group = "com.mohamedrejeb.ksoup", name = "ksoup-html", version.ref = "ksoup" }
 ksoup-entities = { group = "com.mohamedrejeb.ksoup", name = "ksoup-entities", version.ref = "ksoup" }
 store = { module = "org.mobilenativefoundation.store:store5", version.ref = "store" }
+# Use NewPipeExtractor from the Outertune project (Thanks to @DD3Boh)
+newpipe-extractor = { group = "com.github.gechoto", name = "NewPipeExtractor", version = "00cf7dad9e49933c7faaa382c9c7b1e7afb28a7d" }
 
 #Koin
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }

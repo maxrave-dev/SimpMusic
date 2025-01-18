@@ -3,6 +3,7 @@ pluginManagement {
         google()
         mavenCentral()
         gradlePluginPortal()
+        maven { setUrl("https://jitpack.io") }
         maven {
             url = uri("https://oss.sonatype.org/content/repositories/snapshots/")
         }

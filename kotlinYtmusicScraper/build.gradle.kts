@@ -126,6 +126,7 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.espresso.core)
+    coreLibraryDesugaring(libs.desugaring)
 
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.cio)
@@ -135,6 +136,8 @@ dependencies {
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.xml)
     implementation(libs.ktor.serialization.kotlinx.protobuf)
+
+    implementation(libs.newpipe.extractor)
 
     implementation(libs.brotli.dec)
 
