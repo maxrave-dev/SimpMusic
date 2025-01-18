@@ -146,7 +146,7 @@ ksoup-html = { group = "com.mohamedrejeb.ksoup", name = "ksoup-html", version.re
 ksoup-entities = { group = "com.mohamedrejeb.ksoup", name = "ksoup-entities", version.ref = "ksoup" }
 store = { module = "org.mobilenativefoundation.store:store5", version.ref = "store" }
 # Use NewPipeExtractor from the Outertune project (Thanks to @DD3Boh)
-newpipe-extractor = { group = "com.github.gechoto", name = "NewPipeExtractor", version = "00cf7dad9e49933c7faaa382c9c7b1e7afb28a7d" }
+newpipe-extractor = { module = "com.github.gechoto:NewPipeExtractor", version = "00cf7dad9e49933c7faaa382c9c7b1e7afb28a7d" }
 
 #Koin
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }
