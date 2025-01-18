@@ -36,3 +36,8 @@
 # However, since in this case they will not be used, we can disable these warnings
 -dontwarn kotlinx.serialization.internal.ClassValueReferences
 -dontwarn org.slf4j.impl.StaticLoggerBinder
+## Rules for NewPipeExtractor
+-keep class org.schabi.newpipe.extractor.timeago.patterns.** { *; }
+-keep class org.mozilla.javascript.** { *; }
+-keep class org.mozilla.classfile.ClassFileWriter
+-dontwarn org.mozilla.javascript.tools.**
