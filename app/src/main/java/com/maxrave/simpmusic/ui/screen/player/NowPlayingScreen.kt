@@ -804,34 +804,29 @@ fun NowPlayingScreen(
                                                     ).focusable(),
                                         )
                                         Spacer(modifier = Modifier.height(3.dp))
-                                                                                Text(
+                                        Text(
                                             text = screenDataState.artistName,
                                             style = typo.bodyMedium,
                                             maxLines = 1,
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .wrapContentHeight(align = Alignment.CenterVertically)
-                                                .basicMarquee(
-                                                    iterations = Int.MAX_VALUE,
-                                                    animationMode = MarqueeAnimationMode.Immediately,
-                                                )
-                                                .focusable()
-                                                .clickable {
-                                                    val song = sharedViewModel.nowPlayingState.value?.songEntity
-                                                    if (song != null && song.artistId?.firstOrNull() != null) {
+                                            modifier =
+                                                Modifier
+                                                    .fillMaxWidth()
+                                                    .wrapContentHeight(align = Alignment.CenterVertically)
+                                                    .basicMarquee(
+                                                        iterations = Int.MAX_VALUE,
+                                                        animationMode = MarqueeAnimationMode.Immediately,
+                                                    ).focusable()
+                                                    .clickable {
+                                                        val song = sharedViewModel.nowPlayingState.value?.songEntity
                                                         navController.navigateSafe(
                                                             R.id.action_global_artistFragment,
-                                                            bundleOf("channelId" to song.artistId.firstOrNull())
+                                                            bundleOf(
+                                                                "channelId" to
+                                                                    (song?.artistId?.firstOrNull() ?: screenDataState.songInfoData?.authorId),
+                                                            ),
                                                         )
-                                                    } else {
-                                                        navController.navigateSafe(
-                                                            R.id.action_global_artistFragment,
-                                                            bundleOf("channelId" to screenDataState.songInfoData?.authorId)
-                                                        )
-                                                    }
-                                                }
-                                         )
-
+                                                    },
+                                        )
                                     }
                                     Spacer(modifier = Modifier.size(10.dp))
                                     HeartCheckBox(checked = controllerState.isLiked, size = 32) {
