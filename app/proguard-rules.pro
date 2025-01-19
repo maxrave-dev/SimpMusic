@@ -38,6 +38,11 @@
     public static int d(...);
     public static int v(...);
 }
+## Rules for NewPipeExtractor
+-keep class org.schabi.newpipe.extractor.timeago.patterns.** { *; }
+-keep class org.mozilla.javascript.** { *; }
+-keep class org.mozilla.classfile.ClassFileWriter
+-dontwarn org.mozilla.javascript.tools.**
 # Please add these rules to your existing keep rules in order to suppress warning
 # This is generated automatically by the Android Gradle plugin.
 -dontwarn java.beans.BeanDescriptor

@@ -1,7 +1,6 @@
 package com.maxrave.simpmusic.di
 
 import android.content.Context
-import java.net.Proxy
 import android.util.Log
 import androidx.annotation.OptIn
 import androidx.core.net.toUri
@@ -46,7 +45,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -55,6 +53,7 @@ import okhttp3.logging.HttpLoggingInterceptor
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.qualifier.named
 import org.koin.dsl.module
+import java.net.Proxy
 
 @UnstableApi
 val mediaServiceModule =
@@ -91,11 +90,11 @@ val mediaServiceModule =
             )
         }
         // MediaSession Callback for main player
-        single() {
+        single {
             SimpleMediaSessionCallback(androidContext(), get<MainRepository>())
         }
         // DownloadUtils
-        single() {
+        single {
             DownloadUtils(
                 context = androidContext(),
                 playerCache = get(named(PLAYER_CACHE)),
@@ -112,7 +111,7 @@ val mediaServiceModule =
         }
 
         // AudioAttributes
-        single<AudioAttributes>() {
+        single<AudioAttributes> {
             AudioAttributes
                 .Builder()
                 .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
@@ -121,7 +120,7 @@ val mediaServiceModule =
         }
 
         // ExoPlayer
-        single<ExoPlayer>() {
+        single<ExoPlayer> {
             ExoPlayer
                 .Builder(androidContext())
                 .setAudioAttributes(get(), true)
@@ -145,19 +144,19 @@ val mediaServiceModule =
                 }
         }
         // CoilBitmapLoader
-        single<CoilBitmapLoader>() {
+        single<CoilBitmapLoader> {
             provideCoilBitmapLoader(androidContext(), get(named(SERVICE_SCOPE)))
         }
 
         // MediaSessionCallback
-        single<SimpleMediaSessionCallback>() {
+        single<SimpleMediaSessionCallback> {
             SimpleMediaSessionCallback(
                 androidContext(),
                 get(),
             )
         }
         // MediaServiceHandler
-        single<SimpleMediaServiceHandler>() {
+        single<SimpleMediaServiceHandler> {
             SimpleMediaServiceHandler(
                 player = get(),
                 dataStoreManager = get(),
@@ -177,7 +176,7 @@ private fun provideResolvingDataSourceFactory(
     mainRepository: MainRepository,
     coroutineScope: CoroutineScope,
 ): DataSource.Factory {
-    val CHUNK_LENGTH = 8 * 512 * 1024L
+    val CHUNK_LENGTH = 10 * 512 * 1024L
     return ResolvingDataSource.Factory(cacheDataSourceFactory) { dataSpec ->
         val mediaId = dataSpec.key ?: error("No media id")
         Log.w("Stream", mediaId)
@@ -276,7 +275,7 @@ private fun provideMediaSourceFactory(
                 downloadCache,
                 playerCache,
                 context,
-                dataStoreManager.getJVMProxy()
+                dataStoreManager.getJVMProxy(),
             ),
             downloadCache,
             playerCache,
@@ -302,7 +301,7 @@ private fun provideMergingMediaSource(
             playerCache,
             mainRepository,
             dataStoreManager,
-            coroutineScope
+            coroutineScope,
         ),
         dataStoreManager,
     )
@@ -362,9 +361,8 @@ private fun provideCacheDataSource(
                                 OkHttpClient
                                     .Builder()
                                     .proxy(
-                                        proxy
-                                    )
-                                    .addInterceptor(
+                                        proxy,
+                                    ).addInterceptor(
                                         HttpLoggingInterceptor()
                                             .apply {
                                                 level = HttpLoggingInterceptor.Level.HEADERS

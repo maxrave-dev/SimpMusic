@@ -1772,7 +1772,6 @@ class YouTube {
      */
     private fun getSignatureTimestamp(videoId: String): Int? =
         try {
-            YoutubeJavaScriptPlayerManager.clearAllCaches()
             YoutubeJavaScriptPlayerManager.getSignatureTimestamp(videoId)
         } catch (e: Exception) {
             e.printStackTrace()
