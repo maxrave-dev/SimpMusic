@@ -1,18 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="demo_description">Puoi trovarci anche con: musica dance elettronica 2023 edm top canzoni dance elettroniche 2023 canzoni edm musica edm 2023 musica dance elettronica migliore musica electro dance popolare canzoni edm top canzoni edm 2023 musica edm top canzoni dance elettroniche 2023 canzoni edm popolari 2023 migliore musica electro dance 2023 Non importa come sia la tua giornata, puoi sempre ascoltare buona musica: 1. EDM Hits Playlist - Popular EDM Hits in 2023 - Vorremmo tenerti con noi per molti anni a partire da ora! Quindi, nel prossimo anno, potreste trovare la nostra playlist in questo modo: EDM 2024 ♫ Top EDM Songs 2024</string>
-    <string name="Song_and_artist_name">Brano • %1$s</string>
+    <string name="Song_and_artist_name">%1$s%1$sBrano • %1$s</string>
     <string name="playlist_and_author">Playlist • %1$s</string>
     <string name="album_and_artist_name">Album • %1$s</string>
     <string name="subscribers">%1$s iscritti</string>
     <string name="year_and_category">%1$s • %2$s</string>
     <string name="album_length">%1$s tracce  %2$s</string>
     <string name="view_count">%1$s visualizzazioni</string>
-    <string name="lyrics_provider">Testi  forniti da Musixmatch</string>
+    <string name="lyrics_provider">Testi forniti da Musixmatch</string>
     <string name="clear_search_history">Cancella la cronologia delle ricerche</string>
     <string name="liked">Salvato</string>
     <string name="like">Mi piace</string>
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="hello_blank_fragment">Rimuovi frammenti vuoti</string>
     <string name="download">Scarica</string>
     <string name="downloaded">Scaricato/i</string>
     <string name="downloading">In Download</string>
@@ -32,7 +31,7 @@
     <string name="your_playlists">Le tue playlist</string>
     <string name="no_playlists_added">Nessuna playlist aggiunta</string>
     <string name="recently_added">Aggiunti di recente</string>
-    <string name="search_for_songs_artists_albums_playlists_and_more">Cerca brani, artisti, album, playlist e molto altro ancora.</string>
+    <string name="search_for_songs_artists_albums_playlists_and_more">Cerca brani, artisti, album, playlist e altro</string>
     <string name="everything_you_need">Tutto ciò che ti serve</string>
     <string name="restore_failed">Ripristino Fallito</string>
     <string name="restore_success">Ripristino Effettuato</string>
@@ -64,7 +63,7 @@
     <string name="shared">Condivisi</string>
     <string name="line_synced">Linea Sincronizzata</string>
     <string name="unsynced">Non sincronizzato</string>
-    <string name="playlist_is_empty">La playlist è vuora</string>
+    <string name="playlist_is_empty">La playlist è vuota</string>
     <string name="option">Opzioni</string>
     <string name="no_description">Nessuna descrizione</string>
     <string name="in_search">nella Ricerca</string>
@@ -100,7 +99,7 @@
     <string name="chart">Classifica</string>
     <string name="global">Globale</string>
     <string name="top_tracks">Top tracce</string>
-    <string name="top_artists">Top artisti</string>
+    <string name="top_artists">Top artistsdalartistsdall</string>
     <string name="your_playlist">La tua playlist</string>
     <string name="lyrics">Testi</string>
     <string name="all">Tutto</string>
@@ -111,7 +110,7 @@
     <string name="downloaded_cache">Cache dei Download</string>
     <string name="thumbnail_cache">Cache delle Copertine</string>
     <string name="backup">Backup</string>
-    <string name="backup_your_data">Fai un backup dei tuoi dati</string>
+    <string name="backup_your_data">MPlaylist • %1$s</string>
     <string name="save_all_your_playlist_data">Salva tutti i dati delle tue playlist</string>
     <string name="restore_your_data">Ripristina i tuoi dati</string>
     <string name="restore_your_saved_data">Ripristina i tuoi dati salvari</string>
@@ -350,4 +349,15 @@
     <string name="party">Party</string>
     <string name="commute">In viaggio</string>
     <string name="focus">Concentrazione</string>
+    <string name="updated">Aggiornato</string>
+    <string name="updated_to_youtube_playlist">Aggiornato alla playlist di YouTube</string>
+    <string name="can_t_add_to_youtube_playlist">Impossibile aggiungere alla playlist di YouTube</string>
+    <string name="can_t_delete_from_youtube_playlist">Impossibile eliminare il brano dalla playlist di YouTube</string>
+    <string name="loading">Caricamento</string>
+    <string name="updating">Aggiornando</string>
+    <string name="go_to_log_in_page">Vai alla pagina di accesso</string>
+    <string name="log_in_warning">YouTube Music ora richiede di accedere per riprodurre musica, quindi l\'istanza Piped potrebbe occasionalmente non funzionare. Si consiglia di accedere a YouTube per ottenere un\'esperienza migliore con SimpMusic.</string>
+    <string name="spotify_canvas_cache">Spotify Canvas Cache</string>
+    <string name="clear_canvas_cache">Clear canvas cache</string>
+    <string name="five_seconds">Cinque secondi</string>
 </resources>
