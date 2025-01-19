@@ -1,6 +1,5 @@
 package com.maxrave.simpmusic.ui.component
 
-import android.os.Build
 import android.util.Log
 import android.view.TextureView
 import androidx.compose.animation.Crossfade
@@ -29,6 +28,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.Tracks
 import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultDataSource
@@ -46,9 +46,7 @@ import coil3.request.crossfade
 import coil3.toCoilUri
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.extension.KeepScreenOn
-import com.maxrave.simpmusic.extension.PipListenerPreAPI12
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
-import com.maxrave.simpmusic.extension.pipModifier
 import org.koin.compose.koinInject
 import org.koin.core.qualifier.named
 import kotlin.math.roundToInt
@@ -169,9 +167,7 @@ fun MediaPlayerView(
 fun MediaPlayerView(
     player: ExoPlayer,
     modifier: Modifier = Modifier,
-    pipSupport: Boolean = false,
 ) {
-    val context = LocalContext.current
     var videoRatio by rememberSaveable {
         mutableFloatStateOf(16f / 9)
     }
@@ -184,27 +180,29 @@ fun MediaPlayerView(
         mutableStateOf(false)
     }
 
-    if (pipSupport) {
-        PipListenerPreAPI12()
-    }
-
     val playerListener =
         remember {
             object : Player.Listener {
-                override fun onVideoSizeChanged(videoSize: VideoSize) {
-                    super.onVideoSizeChanged(videoSize)
-                    Log.w("MediaPlayerView", "Video size changed: ${videoSize.width} / ${videoSize.height}")
-                    if (videoSize.width != 0 && videoSize.height != 0) {
-                        showArtwork = false
-                        videoRatio = videoSize.width.toFloat() / videoSize.height.toFloat()
-                    } else if (videoSize.width == 0) {
-                        showArtwork = true
+                override fun onTracksChanged(tracks: Tracks) {
+                    super.onTracksChanged(tracks)
+                    if (!tracks.groups.isEmpty()) {
+                        for (arrayIndex in 0 until tracks.groups.size) {
+                            var done = false
+                            for (groupIndex in 0 until tracks.groups[arrayIndex].length) {
+                                val sampleMimeType = tracks.groups[arrayIndex].getTrackFormat(groupIndex).sampleMimeType
+                                if (sampleMimeType != null && sampleMimeType.contains("video")) {
+                                    showArtwork = false
+                                    done = true
+                                    break
+                                } else {
+                                    showArtwork = true
+                                }
+                            }
+                            if (done) {
+                                break
+                            }
+                        }
                     }
-                }
-
-                override fun onIsPlayingChanged(isPlaying: Boolean) {
-                    super.onIsPlayingChanged(isPlaying)
-                    keepScreenOn = isPlaying
                 }
             }
         }
@@ -218,24 +216,9 @@ fun MediaPlayerView(
     LaunchedEffect(player) {
         player.addListener(playerListener)
     }
-    LaunchedEffect(true) {
-        player.videoSize.let {
-            if (it.width == 0) {
-                showArtwork = true
-            } else {
-                showArtwork = false
-            }
-        }
-    }
 
     Box(
-        modifier.then(
-            if (pipSupport && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                Modifier.pipModifier(context)
-            } else {
-                Modifier
-            },
-        ),
+        modifier = modifier,
         contentAlignment = Alignment.Center,
     ) {
         if (keepScreenOn) {

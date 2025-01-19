@@ -142,6 +142,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
+import org.koin.compose.koinInject
 
 @OptIn(ExperimentalFoundationApi::class)
 @UnstableApi
@@ -222,7 +223,7 @@ fun NowPlayingScreen(
     }
 
     LaunchedEffect(true) {
-        val activity = context.findActivity() ?: return@LaunchedEffect
+        val activity = context.findActivity()
         val bottom = activity.findViewById<BottomNavigationView>(R.id.bottom_navigation_view)
         val miniplayer = activity.findViewById<ComposeView>(R.id.miniplayer)
         if (bottom.visibility != View.GONE || miniplayer.visibility != View.GONE) {
@@ -644,7 +645,7 @@ fun NowPlayingScreen(
                                 ) {
                                     // Player
                                     Box(Modifier.fillMaxSize()) {
-                                        MediaPlayerView(player = sharedViewModel.getPlayer(), modifier = Modifier.align(Alignment.Center))
+                                        MediaPlayerView(player = koinInject(), modifier = Modifier.align(Alignment.Center))
                                     }
                                     Box(
                                         modifier =

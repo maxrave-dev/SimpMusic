@@ -490,15 +490,17 @@ fun Context.findActivity(): ComponentActivity {
 }
 
 @Composable
-fun PipListenerPreAPI12() {
+fun PipListenerPreAPI12(isInFullscreen: Boolean) {
     // [START android_compose_pip_pre12_listener]
     if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) {
         val context = LocalContext.current
         DisposableEffect(context) {
             val onUserLeaveBehavior: () -> Unit = {
-                context
-                    .findActivity()
-                    .enterPictureInPictureMode(PictureInPictureParams.Builder().build())
+                if (isInFullscreen) {
+                    context
+                        .findActivity()
+                        .enterPictureInPictureMode(PictureInPictureParams.Builder().build())
+                }
             }
             context.findActivity().addOnUserLeaveHintListener(
                 onUserLeaveBehavior,
@@ -518,20 +520,25 @@ fun PipListenerPreAPI12() {
 /**
  * Android 12 and above Picture in Picture mode
  */
-fun Modifier.pipModifier(context: Context) =
-    this.onGloballyPositioned { layoutCoordinates ->
-        val builder = PictureInPictureParams.Builder()
+fun Modifier.pipModifier(
+    context: Context,
+    isInFullscreen: Boolean,
+) = this.onGloballyPositioned { layoutCoordinates ->
+    val builder = PictureInPictureParams.Builder()
+    Log.d("PiP", "isInFullscreen: $isInFullscreen")
+    if (isInFullscreen) {
         val sourceRect = layoutCoordinates.boundsInWindow().toAndroidRectF().toRect()
         builder.setSourceRectHint(sourceRect)
         builder.setAspectRatio(
             Rational(16, 9),
         )
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            builder.setAutoEnterEnabled(true)
-        }
-        Log.w("PiP info", "layoutCoordinates: $layoutCoordinates")
-        context.findActivity().setPictureInPictureParams(builder.build())
     }
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        builder.setAutoEnterEnabled(isInFullscreen)
+    }
+    Log.w("PiP info", "layoutCoordinates: $layoutCoordinates")
+    context.findActivity().setPictureInPictureParams(builder.build())
+}
 
 @RequiresOptIn(
     level = RequiresOptIn.Level.WARNING,

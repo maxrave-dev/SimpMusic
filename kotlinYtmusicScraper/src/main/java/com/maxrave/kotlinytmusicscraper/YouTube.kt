@@ -19,6 +19,7 @@ import com.maxrave.kotlinytmusicscraper.models.SongItem
 import com.maxrave.kotlinytmusicscraper.models.VideoItem
 import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
 import com.maxrave.kotlinytmusicscraper.models.YTItemType
+import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.TVHTML5
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.WEB
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.WEB_REMIX
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
@@ -1163,7 +1164,6 @@ class YouTube {
             println("Visitor Data $visitorData")
             println("New Cookie $cookie")
             println("Playback Tracking $playbackTracking")
-            if (!visitorData.isNullOrEmpty()) this@YouTube.visitorData = visitorData
             return Triple(cookie, visitorData ?: this@YouTube.visitorData, playbackTracking)
         } catch (e: Exception) {
             e.printStackTrace()
@@ -1187,38 +1187,70 @@ class YouTube {
                         ]
                     }.joinToString("")
             val sigTimestamp = getSignatureTimestamp(videoId)
-            val sigResponse = ytMusic.player(WEB_REMIX, videoId, playlistId, cpn, signatureTimestamp = sigTimestamp).body<PlayerResponse>()
+            val listClients = listOf(TVHTML5)
+            var sigResponse: PlayerResponse? = null
+            for (client in listClients) {
+                Log.w("YouTube", "Client $client")
+                val tempRes = ytMusic.player(client, videoId, playlistId, cpn, signatureTimestamp = sigTimestamp).body<PlayerResponse>()
+                Log.w("YouTube", "TempRes ${tempRes.playabilityStatus}")
+                if (tempRes.playabilityStatus.status != "OK") {
+                    continue
+                } else {
+                    sigResponse = tempRes
+                    break
+                }
+            }
             val decodedSigResponse =
-                sigResponse.copy(
+                sigResponse?.copy(
                     streamingData =
                         sigResponse.streamingData?.copy(
                             formats =
-                                sigResponse.streamingData.formats?.map { format ->
+                                sigResponse.streamingData?.formats?.map { format ->
                                     format.copy(
                                         url = format.signatureCipher?.let { decodeSignatureCipher(videoId, it) },
                                     )
                                 },
                             adaptiveFormats =
-                                sigResponse.streamingData.adaptiveFormats.map { adaptiveFormats ->
+                                sigResponse.streamingData?.adaptiveFormats?.map { adaptiveFormats ->
                                     adaptiveFormats.copy(
                                         url = adaptiveFormats.signatureCipher?.let { decodeSignatureCipher(videoId, it) },
                                     )
-                                },
+                                } ?: emptyList(),
                         ),
                 )
             val listUrlSig =
                 (
-                    decodedSigResponse.streamingData
+                    decodedSigResponse
+                        ?.streamingData
                         ?.adaptiveFormats
                         ?.mapNotNull { it.url }
                         ?.toMutableList() ?: mutableListOf()
                 ).apply {
-                    decodedSigResponse.streamingData
+                    decodedSigResponse
+                        ?.streamingData
                         ?.formats
                         ?.mapNotNull { it.url }
                         ?.let { addAll(it) }
                 }
-            if (listUrlSig.isEmpty()) {
+            Log.w("YouTube", "URL ${decodedSigResponse?.streamingData?.formats?.mapNotNull { it.url }}")
+            val listFormat =
+                (
+                    decodedSigResponse
+                        ?.streamingData
+                        ?.formats
+                        ?.mapNotNull { Pair(it.itag, it.url) }
+                        ?.toMutableList() ?: mutableListOf()
+                ).apply {
+                    addAll(
+                        decodedSigResponse?.streamingData?.adaptiveFormats?.map {
+                            Pair(it.itag, it.url)
+                        } ?: emptyList(),
+                    )
+                }
+            listFormat.forEach {
+                Log.d("YouTube", "Format ${it.first} ${it.second}")
+            }
+            if (listUrlSig.isEmpty() || decodedSigResponse == null) {
                 val (tempCookie, visitorData, playbackTracking) = getVisitorData(videoId, playlistId)
                 val now = System.currentTimeMillis()
                 val poToken =
@@ -1235,7 +1267,7 @@ class YouTube {
                             }?.let { poTokenChallenge ->
                                 ytMusic.generatePoToken(poTokenChallenge).bodyAsText().getPoToken().also { poToken ->
                                     if (poToken != null) {
-                                        poTokenObject = Pair(poToken, now + 21600000)
+                                        poTokenObject = Pair(poToken, now + 3600)
                                     }
                                 }
                             }
@@ -1595,8 +1627,8 @@ class YouTube {
                 }
         }
 
-    suspend fun visitorData(): Result<String> =
-        runCatching {
+    suspend fun visitorData(): String? =
+        try {
             Json
                 .parseToJsonElement(ytMusic.getSwJsData().bodyAsText().substring(5))
                 .jsonArray[0]
@@ -1604,6 +1636,9 @@ class YouTube {
                 .jsonArray
                 .first { (it as? JsonPrimitive)?.content?.startsWith(VISITOR_DATA_PREFIX) == true }
                 .jsonPrimitive.content
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
         }
 
     suspend fun accountInfo(): Result<AccountInfo?> =
@@ -1737,6 +1772,7 @@ class YouTube {
      */
     private fun getSignatureTimestamp(videoId: String): Int? =
         try {
+            YoutubeJavaScriptPlayerManager.clearAllCaches()
             YoutubeJavaScriptPlayerManager.getSignatureTimestamp(videoId)
         } catch (e: Exception) {
             e.printStackTrace()
