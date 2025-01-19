@@ -33,6 +33,7 @@ import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.maxrave.kotlinytmusicscraper.extension.stripMarkdown
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.FIRST_TIME_MIGRATION
@@ -173,10 +174,10 @@ class MainActivity : AppCompatActivity() {
 //            WindowCompat.setDecorFitsSystemWindows(window, false)
         enableEdgeToEdge(
             navigationBarStyle =
-            SystemBarStyle.auto(
-                lightScrim = Color.Transparent.toArgb(),
-                darkScrim = Color.Transparent.toArgb(),
-            ),
+                SystemBarStyle.auto(
+                    lightScrim = Color.Transparent.toArgb(),
+                    darkScrim = Color.Transparent.toArgb(),
+                ),
         )
         viewModel.checkIsRestoring()
         viewModel.runWorker()
@@ -216,15 +217,15 @@ class MainActivity : AppCompatActivity() {
             binding.miniplayer.visibility = View.GONE
         }
         binding.root.addOnLayoutChangeListener {
-                _,
-                left,
-                top,
-                right,
-                bottom,
-                oldLeft,
-                oldTop,
-                oldRight,
-                oldBottom,
+            _,
+            left,
+            top,
+            right,
+            bottom,
+            oldLeft,
+            oldTop,
+            oldRight,
+            oldBottom,
             ->
             val rect = Rect(left, top, right, bottom)
             val oldRect = Rect(oldLeft, oldTop, oldRight, oldBottom)
@@ -294,7 +295,7 @@ class MainActivity : AppCompatActivity() {
 
                 R.id.bottom_navigation_item_library,
                 R.id.favoriteFragment, R.id.localPlaylistFragment,
-                    -> {
+                -> {
                     binding.bottomNavigationView.menu
                         .findItem(
                             R.id.bottom_navigation_item_library,
@@ -307,7 +308,7 @@ class MainActivity : AppCompatActivity() {
                     when (currentBackStack) {
                         R.id.bottom_navigation_item_library,
                         R.id.favoriteFragment, R.id.localPlaylistFragment,
-                            -> {
+                        -> {
                             binding.bottomNavigationView.menu
                                 .findItem(
                                     R.id.bottom_navigation_item_library,
@@ -346,7 +347,7 @@ class MainActivity : AppCompatActivity() {
                         "fragment_log_in",
                         "MusixmatchFragment",
                     )
-                    ).contains(destination.label)
+                ).contains(destination.label)
             ) {
                 lifecycleScope.launch { viewModel.showOrHideMiniplayer.emit(false) }
                 Log.w("MainActivity", "onCreate: HIDE MINIPLAYER")
@@ -546,7 +547,7 @@ class MainActivity : AppCompatActivity() {
                                         "fragment_log_in",
                                         "MusixmatchFragment",
                                     )
-                                    ).contains(navController.currentDestination?.label) &&
+                                ).contains(navController.currentDestination?.label) &&
                                 it.nowPlayingTitle.isNotEmpty() &&
                                 binding.miniplayer.visibility != View.VISIBLE
                             ) {
@@ -709,7 +710,7 @@ class MainActivity : AppCompatActivity() {
                                 R.string.update_message,
                                 response.tagName,
                                 formatted,
-                                response.body,
+                                stripMarkdown(response.body ?: ""),
                             ),
                         ).setPositiveButton(getString(R.string.download)) { _, _ ->
                             val browserIntent =
