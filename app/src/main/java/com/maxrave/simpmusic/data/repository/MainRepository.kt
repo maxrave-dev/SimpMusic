@@ -178,6 +178,9 @@ class MainRepository(
                     dataStoreManager.cookie.distinctUntilChanged().collectLatest { cookie ->
                         if (cookie.isNotEmpty()) {
                             youTube.cookie = cookie
+                            youTube.visitorData()?.let {
+                                youTube.visitorData = it
+                            }
                         } else {
                             youTube.cookie = null
                         }

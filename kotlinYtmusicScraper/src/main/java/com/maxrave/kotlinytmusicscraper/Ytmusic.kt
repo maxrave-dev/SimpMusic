@@ -141,7 +141,7 @@ class Ytmusic {
     ) {
         contentType(ContentType.Application.Json)
         headers {
-//            append("X-Goog-Api-Format-Version", "1")
+            append("X-Goog-Api-Format-Version", "1")
             append("X-YouTube-Client-Name", "${client.xClientName ?: 1}")
             append("X-YouTube-Client-Version", client.clientVersion)
             append("x-origin", "https://music.youtube.com")
@@ -150,8 +150,6 @@ class Ytmusic {
             }
             if (setLogin) {
                 cookie?.let { cookie ->
-                    append("X-Goog-Authuser", "0")
-                    append("X-Goog-Visitor-Id", visitorData)
                     append("Cookie", cookie)
                     if ("SAPISID" !in cookieMap || "__Secure-3PAPISID" !in cookieMap) return@let
                     val currentTime = System.currentTimeMillis() / 1000

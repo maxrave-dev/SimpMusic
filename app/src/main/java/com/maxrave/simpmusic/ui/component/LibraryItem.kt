@@ -3,8 +3,12 @@ package com.maxrave.simpmusic.ui.component
 import android.os.Bundle
 import android.widget.Toast
 import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.MarqueeAnimationMode
+import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -100,8 +104,9 @@ fun LibraryItem(
             )
         }
         Column {
-            Box(
+            Row(
                 modifier = Modifier.padding(top = 15.dp, start = 10.dp, end = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     text = title,
@@ -111,13 +116,17 @@ fun LibraryItem(
                         Modifier
                             .fillMaxWidth()
                             .height(35.dp)
-                            .align(Alignment.CenterStart),
+                            .wrapContentHeight(align = Alignment.CenterVertically)
+                            .weight(1f)
+                            .basicMarquee(
+                                iterations = Int.MAX_VALUE,
+                                animationMode = MarqueeAnimationMode.Immediately,
+                            ).focusable(),
                 )
                 if (state.type is LibraryItemType.LocalPlaylist || state.type is LibraryItemType.YouTubePlaylist) {
                     TextButton(
                         modifier =
                             Modifier
-                                .align(Alignment.CenterEnd)
                                 .defaultMinSize(minWidth = 1.dp, minHeight = 1.dp),
                         onClick = {
                             if (state.type is LibraryItemType.LocalPlaylist) {

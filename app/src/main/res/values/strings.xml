@@ -377,4 +377,5 @@
     <string name="five_seconds">Five seconds</string>
     <string name="lrclib" translatable="false">LRCLIB</string>
     <string name="lyrics_provider_lrc">Lyrics provided by LRCLIB</string>
+    <string name="sync_first">Sync this playlist to YouTube Music first</string>
 </resources>

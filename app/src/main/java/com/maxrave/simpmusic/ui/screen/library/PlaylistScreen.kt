@@ -750,7 +750,7 @@ fun PlaylistScreen(
         }
         items(count = trackPagingItems.itemCount, key = { index ->
             val item = trackPagingItems[index]
-            item?.videoId ?: "item_$index"
+            (item?.videoId ?: "") + "item_$index"
         }) { index ->
             val item = trackPagingItems[index]
             if (item != null) {

@@ -74,6 +74,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat.startActivity
 import androidx.core.text.isDigitsOnly
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
@@ -1217,6 +1218,24 @@ fun LocalPlaylistBottomSheet(
                     ActionButton(icon = painterResource(id = R.drawable.baseline_delete_24), text = R.string.delete_playlist) {
                         onDelete()
                         hideModalBottomSheet()
+                    }
+                    ActionButton(
+                        icon = painterResource(id = R.drawable.baseline_share_24),
+                        text = if (ytPlaylistId != null) R.string.share else R.string.sync_first,
+                        enable = (ytPlaylistId != null),
+                    ) {
+                        val shareIntent = Intent(Intent.ACTION_SEND)
+                        shareIntent.type = "text/plain"
+                        val url = "https://music.youtube.com/playlist?list=${
+                            ytPlaylistId?.replaceFirst(
+                                "VL",
+                                "",
+                            )
+                        }"
+                        shareIntent.putExtra(Intent.EXTRA_TEXT, url)
+                        val chooserIntent =
+                            Intent.createChooser(shareIntent, context.getString(R.string.share_url))
+                        context.startActivity(chooserIntent)
                     }
                     EndOfModalBottomSheet()
                 }
