@@ -817,9 +817,13 @@ fun NowPlayingScreen(
                                                         animationMode = MarqueeAnimationMode.Immediately,
                                                     ).focusable()
                                                     .clickable {
+                                                        val song = sharedViewModel.nowPlayingState.value?.songEntity
                                                         navController.navigateSafe(
                                                             R.id.action_global_artistFragment,
-                                                            bundleOf("channelId" to screenDataState.songInfoData?.authorId),
+                                                            bundleOf(
+                                                                "channelId" to
+                                                                    (song?.artistId?.firstOrNull() ?: screenDataState.songInfoData?.authorId),
+                                                            ),
                                                         )
                                                     },
                                         )
