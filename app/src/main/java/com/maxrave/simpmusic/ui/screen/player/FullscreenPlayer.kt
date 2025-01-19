@@ -1,7 +1,7 @@
 package com.maxrave.simpmusic.ui.screen.player
 
 import android.content.pm.ActivityInfo
-import android.os.Build
+import android.util.Log
 import android.view.View
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.MarqueeAnimationMode
@@ -64,6 +64,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -89,10 +90,8 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.navigation.NavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.maxrave.simpmusic.R
-import com.maxrave.simpmusic.extension.PipListenerPreAPI12
 import com.maxrave.simpmusic.extension.findActivity
 import com.maxrave.simpmusic.extension.formatDuration
-import com.maxrave.simpmusic.extension.pipModifier
 import com.maxrave.simpmusic.ui.component.MediaPlayerView
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
 import com.maxrave.simpmusic.ui.component.RippleIconButton
@@ -114,6 +113,20 @@ fun FullscreenPlayer(
 ) {
     val context = LocalContext.current
     var isFullScreen by remember { mutableStateOf(true) }
+
+    var shouldEnterPipMode by rememberSaveable { mutableStateOf(false) }
+    val currentShouldEnterPipMode by rememberUpdatedState(newValue = shouldEnterPipMode)
+
+    navController.addOnDestinationChangedListener { _, des, _ ->
+        shouldEnterPipMode =
+            if (des.label == "FullscreenFragment") {
+                Log.w("FullscreenPlayer", "shouldEnterPipMode = true")
+                true
+            } else {
+                Log.w("FullscreenPlayer", "shouldEnterPipMode = false")
+                false
+            }
+    }
 
     DisposableEffect(true) {
         isFullScreen = true
@@ -192,6 +205,7 @@ fun FullscreenPlayer(
 
     var showBackwardText by remember { mutableStateOf(false) }
     var showForwardText by remember { mutableStateOf(false) }
+
     LaunchedEffect(key1 = showBackwardText) {
         if (showBackwardText) {
             delay(2000)
@@ -247,17 +261,7 @@ fun FullscreenPlayer(
         }
     }
 
-    Box(
-        modifier =
-            Modifier.then(
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    Modifier.pipModifier(context, isFullScreen)
-                } else {
-                    Modifier
-                },
-            ),
-    ) {
-        PipListenerPreAPI12(isFullScreen)
+    Box {
         MediaPlayerView(
             player = player,
             modifier = Modifier.fillMaxSize(),
