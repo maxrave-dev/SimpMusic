@@ -370,4 +370,6 @@
     <string name="proxy_host_message">Hãy nhập máy chủ Proxy của bạn</string>
     <string name="proxy_port_message">Hãy nhập cổng Proxy của bạn</string>
     <string name="five_seconds">5 giây</string>
+    <string name="lyrics_provider_lrc">Lời bài hát được cung cấp bởi LRCLIB</string>
+    <string name="sync_first">Đồng bộ danh sách phát này với YouTube Music trước</string>
 </resources>

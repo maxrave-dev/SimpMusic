@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="demo_description">يمكنك أيضًا العثور علينا باستخدام: موسيقى الرقص الإلكترونية 2023، أفضل أغاني الرقص الإلكترونية 2023، موسيقى EDM 2023، أفضل موسيقى الرقص الكهربائية، أغاني EDM الشهيرة، أفضل أغاني EDM، موسيقى الرقص الإلكترونية، أفضل موسيقى الرقص الكهربائية لعام 2023. بغض النظر عن كيفية جريان يومك، يمكنك دائمًا الاستماع إلى موسيقى جيدة. 1. قائمة تشغيل أفضل أغاني EDM - الأغاني الشهيرة في عام 2023. نود أن نحتفظ بك معنا لسنوات عديدة قادمة! لذا، في العام المقبل، يمكنك العثور على قائمة تشغيلنا مثل هذه: EDM 2024 ♫ أفضل أغاني EDM 2024</string>
     <string name="Song_and_artist_name">أغنية • %1$s</string>
     <string name="playlist_and_author">قائمة تشغيل • %1$s</string>
     <string name="album_and_artist_name">ألبوم • %1$s</string>
@@ -278,7 +277,7 @@
     <string name="video_quality">جودة الفيديو</string>
     <plurals name="n_song">
         <item quantity="zero"></item>
-        <item quantity="one">%d أغنية</item>
+        <item quantity="one">%d أغاني</item>
         <item quantity="two">%d أغاني</item>
         <item quantity="few">%d أغاني</item>
         <item quantity="many">%d أغاني</item>
@@ -335,23 +334,30 @@
     <string name="hour_s_ago">منذ %1$d ساعة</string>
     <string name="no_notification">لا إشعارات</string>
     <string name="created_at">تم الانشاء في %1$s</string>
-    <string name="unknown">Unknown</string>
-    <string name="repeat_one">Repeat One</string>
-    <string name="repeat_all">Repeat All</string>
-    <string name="repeat_off">Repeat Off</string>
+    <string name="unknown">غير معروف</string>
+    <string name="repeat_one">كرر مرة واحدة</string>
+    <string name="repeat_all">تكرار الكل</string>
+    <string name="repeat_off">التكرار معطل</string>
     <string name="youtube_transcript">YouTube Transcript</string>
-    <string name="user_interface">Interface</string>
+    <string name="user_interface">الواجهة</string>
     <string name="translucent_bottom_navigation_bar">Translucent bottom navigation bar</string>
     <string name="you_can_see_the_content_below_the_bottom_bar">You can see the content below the bottom bar</string>
     <string name="donation">If you love my work, give me a coffee</string>
-    <string name="relax">Relax</string>
-    <string name="sleep">Sleep</string>
-    <string name="energize">Energize</string>
-    <string name="sad">Sad</string>
-    <string name="romance">Romance</string>
+    <string name="relax">استرخاء</string>
+    <string name="sleep">نوم</string>
+    <string name="energize">تنشيط</string>
+    <string name="sad">حزين</string>
+    <string name="romance">رومانسية</string>
     <string name="feel_good">Feel Good</string>
-    <string name="workout">Workout</string>
-    <string name="party">Party</string>
+    <string name="workout">تمرين</string>
+    <string name="party">حفل</string>
     <string name="commute">Commute</string>
-    <string name="focus">Focus</string>
-</resources>
+    <string name="focus">تركيز</string>
+    <string name="updated">محدث</string>
+    <string name="updated_to_youtube_playlist">تم التحديث إلى قائمة تشغيل يوتيوب</string>
+    <string name="can_t_add_to_youtube_playlist">Can\'t add to YouTube Playlist</string>
+    <string name="can_t_delete_from_youtube_playlist">Can\'t delete song from YouTube Playlist</string>
+    <string name="loading">جاري التحميل</string>
+    <string name="updating">جاري التحديث</string>
+    <string name="go_to_log_in_page">الذهاب إلى صفحة تسجيل الدخول</string>
+ </resources>

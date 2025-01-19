@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="demo_description">Hiermit kannst du uns auch finden:  electronic dance music 2023 edm top electronic dance songs 2023 edm songs edm music 2023 electronic dance music best electro dance music popular edm songs top edm songs edm songs 2023 edm music top edm songs 2023 top electronic dance songs edm 2023 popular edm songs 2023 best electro dance music 2023  Egal wie du drauf bist, du kannst immer gute Musik hören:  1. EDM Hits Playlist - Popular EDM Hits in 2023 -  Wir würden dir gerne viele schöne Jahre bescheren! Das heißt, nächstes Jahr kannst du unsere Playlist so finden: EDM 2024 ♫ Top EDM Songs 2024</string>
     <string name="Song_and_artist_name">Song • %1$s</string>
     <string name="playlist_and_author">Playlist • %1$s</string>
     <string name="album_and_artist_name">Album • %1$s</string>
@@ -342,7 +341,7 @@
     <string name="donation">Wenn du meine Arbeit magst, fühl dich frei mir einen Kaffee zu spendieren</string>
     <string name="relax">Entspannen</string>
     <string name="sleep">Schlafen</string>
-    <string name="energize">Energize</string>
+    <string name="energize">Energie anziehen</string>
     <string name="sad">Traurig</string>
     <string name="romance">Romanze</string>
     <string name="feel_good">Feel Good</string>
@@ -350,4 +349,26 @@
     <string name="party">Party</string>
     <string name="commute">Pendeln</string>
     <string name="focus">Fokussieren</string>
+    <string name="updated">Aktualisiert</string>
+    <string name="updated_to_youtube_playlist">Zur YouTube-Playlist hinzugefügt</string>
+    <string name="can_t_add_to_youtube_playlist">Zur YouTube-Playlist hinzugefügt</string>
+    <string name="can_t_delete_from_youtube_playlist">Lied kann nicht von YouTube Playlist gelöscht werden</string>
+    <string name="loading">Wird geladen</string>
+    <string name="updating">Updating</string>
+    <string name="go_to_log_in_page">Zur Anmeldeseite</string>
+    <string name="log_in_warning">YouTube Music erfordert jetzt das Einloggen um Musik zu streamen, Piped Instance kann manchmal nicht funktionieren. Du solltest dich bei YouTube anmelden, um ein besseres Erlebnis mit SimpMusic zu bekommen.</string>
+    <string name="spotify_canvas_cache">Spotify Canvas Cache</string>
+    <string name="clear_canvas_cache">Leere Canvas-Zwischenspeicher</string>
+    <string name="proxy">Proxy</string>
+    <string name="proxy_description">Using Proxy to bypass country content blocking</string>
+    <string name="proxy_type">Proxy-Typ</string>
+    <string name="http">HTTP</string>
+    <string name="socks">Socks</string>
+    <string name="proxy_host">Proxy-Server</string>
+    <string name="invalid_host">Ungültiger Host</string>
+    <string name="proxy_port">Proxy-Port</string>
+    <string name="invalid_port">Ungültiger Port</string>
+    <string name="proxy_host_message">Bitte geben Sie Ihren Proxy-Host ein</string>
+    <string name="proxy_port_message">Bitte geben Sie Ihren Proxy-Port ein</string>
+    <string name="five_seconds">Five seconds</string>
 </resources>

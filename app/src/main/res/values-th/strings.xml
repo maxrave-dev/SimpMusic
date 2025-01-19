@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="demo_description">คุณสามารถค้นหาเราได้ด้วย: electronic dance music 2023 edm top electronic dance songs 2023 edm songs edm music 2023 electronic dance music best electro dance music popular edm songs top edm songs edm music 2023 edm music top edm songs 2023 top electronic dance songs edm 2023 popular edm songs 2023 best electro dance music 2023 ไม่ว่าวันของคุณจะเป็นยังไง คุณก็สามารถฟังเพลงดีๆ ได้เสมอ: 1. EDM Hits Playlist - Popular EDM Hits in 2023 - เราอยากให้คุณอยู่กับเราไปอีกหลายปีจากนี้! ดังนั้นในปีหน้า คุณจะพบเพลย์ลิสต์ของเราได้ดังนี้: EDM 2024 ♫ Top EDM Songs 2024</string>
     <string name="Song_and_artist_name">เพลง • %1$s</string>
     <string name="playlist_and_author">เพลย์ลิสต์ • %1$s</string>
     <string name="album_and_artist_name">อัลบั้ม • %1$s</string>
@@ -174,7 +173,7 @@
     <string name="save_last_played">บันทึกการเล่นครั้งล่าสุด</string>
     <string name="save_last_played_track_and_queue">บันทึกเพลงและคิวที่เล่นล่าสุด</string>
     <string name="update_available">อัปเดตใหม่พร้อมใช้งานแล้ว</string>
-    <string name="update_message">"เวอร์ชัน %1$s ที่มีอยู่\nรุ่น: %2$s\nบันทึกการเปลี่ยนแปลง:\n%3$s"</string>
+    <string name="update_message">"เวอร์ชั่น %1$s ใหม่\nปล่อยเมื่อ: %2$s\nบันทึกการเปลี่ยนแปลง:\n%3$s "</string>
     <string name="check_for_update">ตรวจสอบการอัปเดต</string>
     <string name="last_checked_at">ตรวจสอบล่าสุดเมื่อ %1$s</string>
     <string name="checking">กำลังตรวจสอบ</string>
@@ -357,4 +356,18 @@
     <string name="updating">กำลังอัพเดต</string>
     <string name="go_to_log_in_page">ไปที่หน้าเข้าสู่ระบบ</string>
     <string name="log_in_warning">ตอนนี้ YouTube Music ต้องการให้คุณเข้าสู่ระบบเพื่อสตรีมเพลง Piped Instance อาจไม่สามารถใช้งานได้ในบางครั้ง คุณควรเข้าสู่ระบบ YouTube เพื่อรับประสบการณ์ที่ดีขึ้นกับ SimpMusic</string>
+    <string name="spotify_canvas_cache">แคช Spotify Canvas</string>
+    <string name="clear_canvas_cache">ล้างแคช canvas</string>
+    <string name="proxy">พร็อกซี</string>
+    <string name="proxy_description">ใช้พร็อกซีเพื่อหลีกเลี่ยงข้อจำกัดด้านเนื้อหาของประเทศ</string>
+    <string name="proxy_type">ประเภทพร็อกซี</string>
+    <string name="http">HTTP</string>
+    <string name="socks">Socks</string>
+    <string name="proxy_host">โฮสต์พร็อกซี</string>
+    <string name="invalid_host">โฮสต์ไม่ถูกต้อง</string>
+    <string name="proxy_port">พอร์ตพร็อกซี</string>
+    <string name="invalid_port">พอร์ตไม่ถูกต้อง</string>
+    <string name="proxy_host_message">กรุณาป้อนพร็อกซีโฮสต์ของคุณ</string>
+    <string name="proxy_port_message">กรุณากรอกพอร์ตพร็อกซีของคุณ</string>
+    <string name="five_seconds">5 วินาที</string>
 </resources>
