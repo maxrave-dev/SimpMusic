@@ -650,6 +650,25 @@ class DataStoreManager(
             }
         }
 
+    val endlessQueue =
+        settingsDataStore.data.map { preferences ->
+            preferences[ENDLESS_QUEUE] ?: FALSE
+        }
+
+    suspend fun setEndlessQueue(endlessQueue: Boolean) {
+        withContext(Dispatchers.IO) {
+            if (endlessQueue) {
+                settingsDataStore.edit { settings ->
+                    settings[ENDLESS_QUEUE] = TRUE
+                }
+            } else {
+                settingsDataStore.edit { settings ->
+                    settings[ENDLESS_QUEUE] = FALSE
+                }
+            }
+        }
+    }
+
     companion object Settings {
         val COOKIE = stringPreferencesKey("cookie")
         val LOGGED_IN = stringPreferencesKey("logged_in")
@@ -691,6 +710,7 @@ class DataStoreManager(
         val PROXY_TYPE = stringPreferencesKey("proxy_type")
         val PROXY_HOST = stringPreferencesKey("proxy_host")
         val PROXY_PORT = intPreferencesKey("proxy_port")
+        val ENDLESS_QUEUE = stringPreferencesKey("endless_queue")
         const val REPEAT_MODE_OFF = "REPEAT_MODE_OFF"
         const val REPEAT_ONE = "REPEAT_ONE"
         const val REPEAT_ALL = "REPEAT_ALL"

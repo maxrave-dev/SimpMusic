@@ -1039,15 +1039,28 @@ class SimpleMediaServiceHandler(
                             if (list != null) {
                                 Log.w("Check loadMore response", response.toString())
                                 loadMoreCatalog(list)
+                                _queueData.value =
+                                    _queueData.value?.copy(
+                                        continuation = response.second,
+                                    )
+                            } else {
+                                _queueData.value =
+                                    _queueData.value?.copy(
+                                        continuation = null,
+                                    )
+                                if (runBlocking { dataStoreManager.endlessQueue.first() } == TRUE) {
+                                    Log.w(TAG, "loadMore: Endless Queue")
+                                    val lastTrack = queueData.value?.listTracks?.lastOrNull() ?: return@launch
+                                    getRelated(lastTrack.videoId)
+                                }
                             }
-                            _queueData.value =
-                                _queueData.value?.copy(
-                                    continuation = response?.second,
-                                )
-//                            loadingMore.value = false
                         }
                 }
             }
+        } else if (runBlocking { dataStoreManager.endlessQueue.first() } == TRUE) {
+            Log.w(TAG, "loadMore: Endless Queue")
+            val lastTrack = queueData.value?.listTracks?.lastOrNull() ?: return
+            getRelated(lastTrack.videoId)
         }
     }
 

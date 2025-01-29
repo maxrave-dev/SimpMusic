@@ -51,6 +51,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -128,6 +129,7 @@ fun QueueBottomSheet(
     onDismiss: () -> Unit,
     sharedViewModel: SharedViewModel = viewModel<SharedViewModel>(),
     musicServiceHandler: SimpleMediaServiceHandler = koinInject(),
+    dataStoreManager: DataStoreManager = koinInject(),
 ) {
     val coroutineScope = rememberCoroutineScope()
     val localDensity = LocalDensity.current
@@ -146,6 +148,7 @@ fun QueueBottomSheet(
         .mapLatest { it?.listTracks?.toList() ?: emptyList() }
         .collectAsState(emptyList())
     val loadMoreState by musicServiceHandler.stateFlow.collectAsState()
+    val endlessQueueEnable by dataStoreManager.endlessQueue.map { it == DataStoreManager.TRUE }.collectAsState(false)
 
     val shouldLoadMore =
         remember {
@@ -288,11 +291,32 @@ fun QueueBottomSheet(
                     isPlaying = false,
                     modifier = Modifier.fillMaxWidth().padding(10.dp),
                 )
-                Text(
-                    text = stringResource(R.string.queue),
-                    style = typo.titleMedium,
-                    modifier = Modifier.padding(horizontal = 20.dp),
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = stringResource(R.string.queue),
+                        style = typo.titleMedium,
+                        modifier =
+                            Modifier
+                                .padding(horizontal = 20.dp)
+                                .weight(1f),
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = stringResource(R.string.endless_queue),
+                            style = typo.bodySmall,
+                            modifier = Modifier.padding(horizontal = 8.dp),
+                        )
+                        Switch(
+                            checked = endlessQueueEnable,
+                            onCheckedChange = {
+                                coroutineScope.launch {
+                                    dataStoreManager.setEndlessQueue(it)
+                                }
+                            },
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                    }
+                }
                 Spacer(modifier = Modifier.height(10.dp))
                 LazyColumn(
                     horizontalAlignment = Alignment.Start,
