@@ -1,5 +1,6 @@
 package com.maxrave.kotlinytmusicscraper.utils
 
+import android.util.Log
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -14,6 +15,7 @@ class CustomNewPipeDownloader(
     proxy: Proxy?,
 ) : Downloader() {
     fun updateProxy(proxy: Proxy?) {
+        Log.d("CustomNewPipeDownloader", "updateProxy: $proxy")
         client.newBuilder().proxy(proxy).build()
     }
 

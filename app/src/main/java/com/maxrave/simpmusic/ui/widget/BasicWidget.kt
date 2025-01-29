@@ -91,27 +91,6 @@ class BasicWidget : BaseAppWidget() {
                 song?.mediaMetadata?.artist,
             )
         }
-
-        // Set correct drawable for pause state
-
-//        appWidgetView.setInt(
-//            R.id.button_prev,
-//            "setBackgroundColor",
-//            android.R.color.transparent
-//        )
-//
-//        appWidgetView.setInt(
-//            R.id.button_next,
-//            "setBackgroundColor",
-//            android.R.color.transparent
-//        )
-//
-//        appWidgetView.setInt(
-//            R.id.button_toggle_play_pause,
-//            "setBackgroundColor",
-//            android.R.color.transparent
-//        )
-
         // Set prev/next button drawables
         appWidgetView.setImageViewResource(
             R.id.button_next,
