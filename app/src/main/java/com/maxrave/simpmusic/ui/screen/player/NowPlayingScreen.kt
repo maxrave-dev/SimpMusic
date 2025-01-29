@@ -132,6 +132,7 @@ import com.maxrave.simpmusic.ui.component.HeartCheckBox
 import com.maxrave.simpmusic.ui.component.LyricsView
 import com.maxrave.simpmusic.ui.component.MediaPlayerView
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
+import com.maxrave.simpmusic.ui.component.QueueBottomSheet
 import com.maxrave.simpmusic.ui.theme.blackMoreOverlay
 import com.maxrave.simpmusic.ui.theme.md_theme_dark_background
 import com.maxrave.simpmusic.ui.theme.overlay
@@ -186,6 +187,10 @@ fun NowPlayingScreen(
     }
 
     var showFullscreenLyrics by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    var showQueueBottomSheet by rememberSaveable {
         mutableStateOf(false)
     }
 
@@ -376,6 +381,14 @@ fun NowPlayingScreen(
         ) {
             showFullscreenLyrics = false
         }
+    }
+
+    if (showQueueBottomSheet) {
+        QueueBottomSheet(
+            onDismiss = {
+                showQueueBottomSheet = false
+            },
+        )
     }
 
     Column(
@@ -1240,9 +1253,7 @@ fun NowPlayingScreen(
                                                         CircleShape,
                                                     ),
                                             onClick = {
-                                                navController.navigateSafe(
-                                                    R.id.action_global_queueFragment,
-                                                )
+                                                showQueueBottomSheet = true
                                             },
                                         ) {
                                             Icon(

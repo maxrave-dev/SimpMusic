@@ -610,7 +610,9 @@ class SimpleMediaServiceHandler(
         player.playWhenReady = true
     }
 
-    fun moveMediaItem(
+    fun currentSongIndex(): Int = player.currentMediaItemIndex
+
+    private fun moveMediaItem(
         fromIndex: Int,
         newIndex: Int,
     ) {

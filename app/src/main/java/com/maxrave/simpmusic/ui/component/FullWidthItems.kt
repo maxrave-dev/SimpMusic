@@ -198,9 +198,11 @@ fun SongFullWidthItems(
                     )
                 }
             }
-            RippleIconButton(resId = R.drawable.baseline_more_vert_24, fillMaxSize = false) {
-                val videoId = track?.videoId ?: songEntity?.videoId
-                videoId?.let { onMoreClickListener?.invoke(it) }
+            if (onMoreClickListener != null) {
+                RippleIconButton(resId = R.drawable.baseline_more_vert_24, fillMaxSize = false) {
+                    val videoId = track?.videoId ?: songEntity?.videoId
+                    videoId?.let { onMoreClickListener.invoke(it) }
+                }
             }
         }
     }
