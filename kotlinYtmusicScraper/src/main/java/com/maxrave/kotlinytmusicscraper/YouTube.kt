@@ -1,6 +1,7 @@
 package com.maxrave.kotlinytmusicscraper
 
 import android.util.Log
+import com.maxrave.kotlinytmusicscraper.extension.toListFormat
 import com.maxrave.kotlinytmusicscraper.models.AccountInfo
 import com.maxrave.kotlinytmusicscraper.models.AlbumItem
 import com.maxrave.kotlinytmusicscraper.models.Artist
@@ -86,36 +87,6 @@ import org.schabi.newpipe.extractor.exceptions.ParsingException
 import org.schabi.newpipe.extractor.services.youtube.YoutubeJavaScriptPlayerManager
 import java.io.File
 import kotlin.random.Random
-
-private fun List<PipedResponse.AudioStream>.toListFormat(): List<PlayerResponse.StreamingData.Format> {
-    val list = mutableListOf<PlayerResponse.StreamingData.Format>()
-    this.forEach {
-        list.add(
-            PlayerResponse.StreamingData.Format(
-                itag = it.itag,
-                url = it.url,
-                mimeType = it.mimeType ?: "",
-                bitrate = it.bitrate,
-                width = it.width,
-                height = it.height,
-                contentLength = it.contentLength.toLong(),
-                quality = it.quality,
-                fps = it.fps,
-                qualityLabel = "",
-                averageBitrate = it.bitrate,
-                audioQuality = it.quality,
-                approxDurationMs = "",
-                audioSampleRate = 0,
-                audioChannels = 0,
-                loudnessDb = 0.0,
-                lastModified = 0,
-                signatureCipher = null,
-            ),
-        )
-    }
-
-    return list
-}
 
 /**
  * Special thanks to [z-huang/InnerTune](https://github.com/z-huang/InnerTune)
@@ -479,7 +450,7 @@ class YouTube {
         return description
     }
 
-    suspend fun albumSongs(
+    private fun albumSongs(
         content: List<MusicShelfRenderer.Content>?,
         album: AlbumItem,
     ): Result<List<SongItem>> =

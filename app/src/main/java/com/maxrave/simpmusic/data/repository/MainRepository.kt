@@ -1685,7 +1685,7 @@ class MainRepository(
             }
         }.flowOn(Dispatchers.IO)
 
-    suspend fun getAlbumData(browseId: String): Flow<Resource<AlbumBrowse>> =
+    fun getAlbumData(browseId: String): Flow<Resource<AlbumBrowse>> =
         flow {
             runCatching {
                 youTube
