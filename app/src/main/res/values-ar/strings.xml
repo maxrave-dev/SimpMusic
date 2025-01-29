@@ -186,7 +186,7 @@
     <string name="preview">استعراض</string>
     <string name="music_off_topic">موسيقى خارج الموضوع</string>
     <string name="poi_highlight">تسليط الضوء على النقاط الهامة</string>
-    <string name="filter">فلتر</string>
+    <string name="filler">فلتر</string>
     <string name="sponsorBlock">SponsorBlock</string>
     <string name="enable_sponsor_block">تمكين SponsorBlock</string>
     <string name="categories_sponsor_block">حدد سلوك تخطي الجزء</string>

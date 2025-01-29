@@ -195,7 +195,7 @@ object SUPPORTED_LANGUAGE {
             "हिन्दी",
             "ภาษาไทย",
             "Nederlands",
-            "한국어"
+            "한국어",
         )
     val codes: Array<String> =
         arrayOf(
@@ -221,7 +221,7 @@ object SUPPORTED_LANGUAGE {
             "hi-IN",
             "th-TH",
             "nl-NL",
-            "ko-KR"
+            "ko-KR",
         )
 
     fun getLanguageFromCode(code: String?): String {
@@ -287,7 +287,7 @@ object SPONSOR_BLOCK {
             R.string.preview,
             R.string.music_off_topic,
             R.string.poi_highlight,
-            R.string.filter,
+            R.string.filler,
         )
 
     fun fromDbToName(

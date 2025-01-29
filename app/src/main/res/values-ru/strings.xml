@@ -186,7 +186,7 @@
     <string name="preview">Предварительный просмотр</string>
     <string name="music_off_topic">Музыкальные оффтопики</string>
     <string name="poi_highlight">Яркие моменты POI</string>
-    <string name="filter">Фильтр</string>
+    <string name="filler">Фильтр</string>
     <string name="sponsorBlock">SponsorBlock</string>
     <string name="enable_sponsor_block">Включить SponsorBlock</string>
     <string name="categories_sponsor_block">Выберите поведение пропуска-сегмента</string>

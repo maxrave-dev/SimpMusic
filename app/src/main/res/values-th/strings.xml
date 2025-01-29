@@ -186,7 +186,7 @@
     <string name="preview">ตัวอย่าง</string>
     <string name="music_off_topic">เพลงนอกประเด็น</string>
     <string name="poi_highlight">ไฮไลท์ POI</string>
-    <string name="filter">ตัวกรอง</string>
+    <string name="filler">ตัวกรอง</string>
     <string name="sponsorBlock">SponsorBlock</string>
     <string name="enable_sponsor_block">เปิดใช้งาน SponsorBlock</string>
     <string name="categories_sponsor_block">เลือกส่วนที่จะข้าม</string>

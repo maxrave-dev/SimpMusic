@@ -187,7 +187,7 @@
     <string name="preview">Pré-visualização</string>
     <string name="music_off_topic">Música Off-topic</string>
     <string name="poi_highlight">Destaque de POI</string>
-    <string name="filter">Filtro</string>
+    <string name="filler">Filtro</string>
     <string name="sponsorBlock">SponsorBlock</string>
     <string name="enable_sponsor_block">Ativar o Sponsorblock</string>
     <string name="categories_sponsor_block">Selecione o comportamento \"pula-segmentos\"</string>

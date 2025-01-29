@@ -187,7 +187,7 @@
     <string name="preview">Näyte</string>
     <string name="music_off_topic">Musiikki off-topic</string>
     <string name="poi_highlight">POI-nosto</string>
-    <string name="filter">Filter</string>
+    <string name="filler">Filter</string>
     <string name="sponsorBlock">SponsorBlock</string>
     <string name="enable_sponsor_block">Ota SponsorBlock käyttöön</string>
     <string name="categories_sponsor_block">Segmenttien ohitus</string>

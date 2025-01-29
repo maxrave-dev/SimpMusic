@@ -187,7 +187,7 @@
     <string name="preview">預覽</string>
     <string name="music_off_topic">相關音樂</string>
     <string name="poi_highlight">POI熱門</string>
-    <string name="filter">篩選器</string>
+    <string name="filler">篩選器</string>
     <string name="sponsorBlock">SponsorBlock</string>
     <string name="enable_sponsor_block">啟用 SponsorBlock</string>
     <string name="categories_sponsor_block">選擇跳過段行為</string>
