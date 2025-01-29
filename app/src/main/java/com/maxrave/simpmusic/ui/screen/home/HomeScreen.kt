@@ -742,7 +742,7 @@ fun ChartData(
                         state = lazyListState1,
                         flingBehavior = snapperFlingBehavior1,
                     ) {
-                        items(chart.songs, key = { it.videoId }) {
+                        items(chart.songs, key = { it.hashCode() }) {
                             ItemTrackChart(onClick = {
                                 viewModel.setQueueData(
                                     QueueData(
@@ -777,7 +777,7 @@ fun ChartData(
             state = lazyListState,
             flingBehavior = snapperFlingBehavior,
         ) {
-            items(chart.videos.items.size, key = { index -> chart.videos.items[index].videoId }) {
+            items(chart.videos.items.size, key = { index -> chart.videos.items[index].videoId + index }) {
                 val data = chart.videos.items[it]
                 ItemVideoChart(
                     onClick = {
@@ -819,7 +819,7 @@ fun ChartData(
         ) {
             items(chart.artists.itemArtists.size, key = { index ->
                 val item = chart.artists.itemArtists[index]
-                item.title + item.browseId
+                item.title + item.browseId + index
             }) {
                 val data = chart.artists.itemArtists[it]
                 ItemArtistChart(onClick = {
