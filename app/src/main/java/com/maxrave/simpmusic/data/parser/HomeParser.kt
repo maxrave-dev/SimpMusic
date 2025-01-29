@@ -429,7 +429,7 @@ fun parseMixedContent(
                                                 context,
                                             ) ?: listOf(),
                                         description = null,
-                                        isExplicit = false,
+                                        isExplicit = ytItem.explicit,
                                         playlistId = null,
                                         browseId = null,
                                         thumbnails =

@@ -163,7 +163,19 @@ fun SongFullWidthItems(
                                 contentDescription = "",
                                 modifier = Modifier.size(20.dp).padding(2.dp),
                             )
-                            Spacer(modifier = Modifier.width(10.dp))
+                            Spacer(modifier = Modifier.width(4.dp))
+                        }
+                    }
+                    AnimatedVisibility(
+                        visible =
+                            songEntity?.isExplicit
+                                ?: (track?.isExplicit ?: false),
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            ExplicitBadge(
+                                modifier = Modifier.size(20.dp).padding(1.dp),
+                            )
+                            Spacer(modifier = Modifier.width(5.dp))
                         }
                     }
                     Text(

@@ -37,6 +37,7 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -125,6 +126,7 @@ import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.parseTimestampToMilliseconds
 import com.maxrave.simpmusic.service.RepeatState
 import com.maxrave.simpmusic.ui.component.DescriptionView
+import com.maxrave.simpmusic.ui.component.ExplicitBadge
 import com.maxrave.simpmusic.ui.component.FullscreenLyricsSheet
 import com.maxrave.simpmusic.ui.component.HeartCheckBox
 import com.maxrave.simpmusic.ui.component.LyricsView
@@ -804,29 +806,44 @@ fun NowPlayingScreen(
                                                     ).focusable(),
                                         )
                                         Spacer(modifier = Modifier.height(3.dp))
-                                        Text(
-                                            text = screenDataState.artistName,
-                                            style = typo.bodyMedium,
-                                            maxLines = 1,
-                                            modifier =
-                                                Modifier
-                                                    .fillMaxWidth()
-                                                    .wrapContentHeight(align = Alignment.CenterVertically)
-                                                    .basicMarquee(
-                                                        iterations = Int.MAX_VALUE,
-                                                        animationMode = MarqueeAnimationMode.Immediately,
-                                                    ).focusable()
-                                                    .clickable {
-                                                        val song = sharedViewModel.nowPlayingState.value?.songEntity
-                                                        navController.navigateSafe(
-                                                            R.id.action_global_artistFragment,
-                                                            bundleOf(
-                                                                "channelId" to
-                                                                    (song?.artistId?.firstOrNull() ?: screenDataState.songInfoData?.authorId),
-                                                            ),
-                                                        )
-                                                    },
-                                        )
+                                        LazyRow(verticalAlignment = Alignment.CenterVertically) {
+                                            item {
+                                                androidx.compose.animation.AnimatedVisibility(visible = screenDataState.isExplicit) {
+                                                    ExplicitBadge(
+                                                        modifier =
+                                                            Modifier
+                                                                .size(20.dp)
+                                                                .padding(end = 4.dp)
+                                                                .weight(1f),
+                                                    )
+                                                }
+                                            }
+                                            item {
+                                                Text(
+                                                    text = screenDataState.artistName,
+                                                    style = typo.bodyMedium,
+                                                    maxLines = 1,
+                                                    modifier =
+                                                        Modifier
+                                                            .fillMaxWidth()
+                                                            .wrapContentHeight(align = Alignment.CenterVertically)
+                                                            .basicMarquee(
+                                                                iterations = Int.MAX_VALUE,
+                                                                animationMode = MarqueeAnimationMode.Immediately,
+                                                            ).focusable()
+                                                            .clickable {
+                                                                val song = sharedViewModel.nowPlayingState.value?.songEntity
+                                                                navController.navigateSafe(
+                                                                    R.id.action_global_artistFragment,
+                                                                    bundleOf(
+                                                                        "channelId" to
+                                                                            (song?.artistId?.firstOrNull() ?: screenDataState.songInfoData?.authorId),
+                                                                    ),
+                                                                )
+                                                            },
+                                                )
+                                            }
+                                        }
                                     }
                                     Spacer(modifier = Modifier.size(10.dp))
                                     HeartCheckBox(checked = controllerState.isLiked, size = 32) {
