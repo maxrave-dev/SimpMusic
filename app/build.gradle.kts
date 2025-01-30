@@ -321,6 +321,10 @@ dependencies {
 
     // Jetbrains Markdown
     api(libs.markdown)
+
+    // Blur Haze
+    implementation(libs.haze)
+    implementation(libs.haze.material)
 }
 aboutLibraries {
     prettyPrint = true

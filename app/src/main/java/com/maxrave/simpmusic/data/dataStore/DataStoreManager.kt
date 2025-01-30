@@ -707,6 +707,25 @@ class DataStoreManager(
         }
     }
 
+    val blurFullscreenLyrics =
+        settingsDataStore.data.map { preferences ->
+            preferences[BLUR_FULLSCREEN_LYRICS] ?: FALSE
+        }
+
+    suspend fun setBlurFullscreenLyrics(blur: Boolean) {
+        withContext(Dispatchers.IO) {
+            if (blur) {
+                settingsDataStore.edit { settings ->
+                    settings[BLUR_FULLSCREEN_LYRICS] = TRUE
+                }
+            } else {
+                settingsDataStore.edit { settings ->
+                    settings[BLUR_FULLSCREEN_LYRICS] = FALSE
+                }
+            }
+        }
+    }
+
     companion object Settings {
         val COOKIE = stringPreferencesKey("cookie")
         val LOGGED_IN = stringPreferencesKey("logged_in")
@@ -751,6 +770,7 @@ class DataStoreManager(
         val ENDLESS_QUEUE = stringPreferencesKey("endless_queue")
         val SHOULD_SHOW_LOG_IN_REQUIRED_ALERT = stringPreferencesKey("should_show_log_in_required_alert")
         val AUTO_CHECK_FOR_UPDATES = stringPreferencesKey("auto_check_for_updates")
+        val BLUR_FULLSCREEN_LYRICS = stringPreferencesKey("blur_fullscreen_lyrics")
         const val REPEAT_MODE_OFF = "REPEAT_MODE_OFF"
         const val REPEAT_ONE = "REPEAT_ONE"
         const val REPEAT_ALL = "REPEAT_ALL"

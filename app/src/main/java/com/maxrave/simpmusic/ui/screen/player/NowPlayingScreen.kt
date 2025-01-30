@@ -378,6 +378,7 @@ fun NowPlayingScreen(
             sharedViewModel = sharedViewModel,
             color = startColor.value,
             navController = navController,
+            shouldHaze = sharedViewModel.blurFullscreenLyrics(),
         ) {
             showFullscreenLyrics = false
         }

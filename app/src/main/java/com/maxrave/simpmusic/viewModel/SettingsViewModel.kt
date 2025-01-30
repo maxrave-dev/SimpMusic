@@ -123,6 +123,8 @@ class SettingsViewModel(
     val proxyPort: StateFlow<Int> = _proxyPort
     private var _autoCheckUpdate = MutableStateFlow(false)
     val autoCheckUpdate: StateFlow<Boolean> = _autoCheckUpdate
+    private var _blurFullscreenLyrics = MutableStateFlow(false)
+    val blurFullscreenLyrics: StateFlow<Boolean> = _blurFullscreenLyrics
 
     private var _alertData: MutableStateFlow<SettingAlertState?> = MutableStateFlow(null)
     val alertData: StateFlow<SettingAlertState?> = _alertData
@@ -170,8 +172,24 @@ class SettingsViewModel(
         getCanvasCache()
         getTranslucentBottomBar()
         getAutoCheckUpdate()
+        getBlurFullscreenLyrics()
         viewModelScope.launch {
             calculateDataFraction()
+        }
+    }
+
+    private fun getBlurFullscreenLyrics() {
+        viewModelScope.launch {
+            dataStoreManager.blurFullscreenLyrics.collect { blurFullscreenLyrics ->
+                _blurFullscreenLyrics.value = blurFullscreenLyrics == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setBlurFullscreenLyrics(blurFullscreenLyrics: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setBlurFullscreenLyrics(blurFullscreenLyrics)
+            getBlurFullscreenLyrics()
         }
     }
 
