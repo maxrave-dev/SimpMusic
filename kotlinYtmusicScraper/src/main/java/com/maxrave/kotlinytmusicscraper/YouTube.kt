@@ -177,6 +177,7 @@ class YouTube {
     fun removeProxy() {
         ytMusic.proxy = null
         newPipeDownloader.updateProxy(null)
+        NewPipe.init(newPipeDownloader)
     }
 
     /**
@@ -192,6 +193,7 @@ class YouTube {
         }.onSuccess {
             ytMusic.proxy = it
             newPipeDownloader.updateProxy(it)
+            NewPipe.init(newPipeDownloader)
         }.onFailure {
             it.printStackTrace()
         }

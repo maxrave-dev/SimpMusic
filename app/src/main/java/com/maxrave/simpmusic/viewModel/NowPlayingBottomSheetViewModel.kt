@@ -232,6 +232,10 @@ class NowPlayingBottomSheetViewModel(
                         simpleMediaServiceHandler.sleepStart(ev.minutes)
                     }
                 }
+                is NowPlayingBottomSheetUIEvent.ChangePlaybackSpeedPitch -> {
+                    dataStoreManager.setPlaybackSpeed(ev.speed)
+                    dataStoreManager.setPitch(ev.pitch)
+                }
                 is NowPlayingBottomSheetUIEvent.Share -> {
                     val shareIntent = Intent(Intent.ACTION_SEND)
                     shareIntent.type = "text/plain"
@@ -290,6 +294,11 @@ sealed class NowPlayingBottomSheetUIEvent {
     data class SetSleepTimer(
         val cancel: Boolean = false,
         val minutes: Int = 0,
+    ) : NowPlayingBottomSheetUIEvent()
+
+    data class ChangePlaybackSpeedPitch(
+        val speed: Float,
+        val pitch: Int,
     ) : NowPlayingBottomSheetUIEvent()
 
     data object Share : NowPlayingBottomSheetUIEvent()

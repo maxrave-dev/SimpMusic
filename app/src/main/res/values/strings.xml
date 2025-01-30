@@ -384,4 +384,7 @@
     <string name="auto_check_for_update_description">Checking for update when you open app</string>
     <string name="blur_fullscreen_lyrics">Blur fullscreen lyrics effect</string>
     <string name="blur_fullscreen_lyrics_description">Blurring the background of the Fullscreen lyrics screen effect</string>
+    <string name="playback_speed_pitch"><![CDATA[Playback speed & pitch]]></string>
+    <string name="playback_speed">Playback speed</string>
+    <string name="pitch">Pitch</string>
 </resources>

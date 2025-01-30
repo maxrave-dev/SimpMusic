@@ -18,6 +18,7 @@ import androidx.media3.common.MediaItem.SubtitleConfiguration
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.MimeTypes
 import androidx.media3.common.PlaybackException
+import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.Tracks
 import androidx.media3.common.util.UnstableApi
@@ -67,6 +68,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.filterNotNull
@@ -80,6 +82,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.time.LocalDateTime
+import kotlin.math.pow
 
 @UnstableApi
 class SimpleMediaServiceHandler(
@@ -291,8 +294,23 @@ class SimpleMediaServiceHandler(
                         }
                     }
                 }
+            val playbackSpeedPitchJob =
+                launch {
+                    combine(dataStoreManager.playbackSpeed, dataStoreManager.pitch) { speed, pitch ->
+                        Pair(speed, pitch)
+                    }.collectLatest { pair ->
+                        Log.w(TAG, "Playback speed: ${pair.first}, Pitch: ${pair.second}")
+                        player.playbackParameters =
+                            PlaybackParameters(
+                                pair.first,
+                                2f.pow(pair.second.toFloat() / 12),
+                            )
+                        Log.w(TAG, "Playback current speed: ${player.playbackParameters.speed}, Pitch: ${player.playbackParameters.pitch}")
+                    }
+                }
             skipSegmentsJob.join()
             playbackJob.join()
+            playbackSpeedPitchJob.join()
         }
     }
 

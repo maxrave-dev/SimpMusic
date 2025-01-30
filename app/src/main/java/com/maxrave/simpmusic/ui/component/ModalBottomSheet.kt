@@ -56,6 +56,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -612,6 +613,7 @@ fun NowPlayingBottomSheet(
     changeMainLyricsProviderEnable: Boolean = false,
     // Delete is specific to playlist
     onDelete: (() -> Unit)? = null,
+    dataStoreManager: DataStoreManager = koinInject(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val coroutineScope = rememberCoroutineScope()
@@ -639,6 +641,7 @@ fun NowPlayingBottomSheet(
         mutableStateOf(false)
     }
     var isBottomSheetVisible by rememberSaveable { mutableStateOf(false) }
+    var changePlaybackSpeedPitch by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState) {
         if (uiState.songUIState.videoId.isNotEmpty() && !isBottomSheetVisible) {
@@ -648,6 +651,23 @@ fun NowPlayingBottomSheet(
 
     LaunchedEffect(key1 = song) {
         viewModel.setSongEntity(song)
+    }
+
+    if (changePlaybackSpeedPitch) {
+        val playbackSpeed by dataStoreManager.playbackSpeed.collectAsState(1f)
+        val pitch by dataStoreManager.pitch.collectAsState(0)
+        PlaybackSpeedPitchBottomSheet(
+            onDismiss = { changePlaybackSpeedPitch = false },
+            playbackSpeed = playbackSpeed,
+            pitch = pitch,
+        ) { speed, p ->
+            viewModel.onUIEvent(
+                NowPlayingBottomSheetUIEvent.ChangePlaybackSpeedPitch(
+                    speed = speed,
+                    pitch = p,
+                ),
+            )
+        }
     }
 
     if (addToAPlaylist) {
@@ -1066,6 +1086,17 @@ fun NowPlayingBottomSheet(
                             }
                         }
                     }
+                    Crossfade(targetState = setSleepTimerEnable) {
+                        if (it) {
+                            // Sleep timer is enabled, so this screen is player screen
+                            ActionButton(
+                                icon = painterResource(R.drawable.round_speed_24),
+                                text = R.string.playback_speed_pitch,
+                            ) {
+                                changePlaybackSpeedPitch = true
+                            }
+                        }
+                    }
                     ActionButton(
                         icon = painterResource(id = R.drawable.baseline_share_24),
                         text = R.string.share,
@@ -1211,6 +1242,91 @@ fun HeartCheckBox(
                             .padding(4.dp),
                     colorFilter = ColorFilter.tint(Color.White),
                 )
+            }
+        }
+    }
+}
+
+@ExperimentalMaterial3Api
+@Composable
+fun PlaybackSpeedPitchBottomSheet(
+    onDismiss: () -> Unit,
+    playbackSpeed: Float,
+    pitch: Int,
+    onSet: (playbackSpeed: Float, pitch: Int) -> Unit,
+) {
+    val modelBottomSheetState =
+        rememberModalBottomSheetState(
+            skipPartiallyExpanded = true,
+        )
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = modelBottomSheetState,
+        containerColor = Color.Transparent,
+        contentColor = Color.Transparent,
+        dragHandle = null,
+        scrimColor = Color.Black.copy(alpha = .5f),
+        contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
+    ) {
+        Card(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight(),
+            shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
+            colors = CardDefaults.cardColors().copy(containerColor = Color(0xFF242424)),
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.padding(horizontal = 10.dp),
+            ) {
+                Spacer(modifier = Modifier.height(5.dp))
+                Card(
+                    modifier =
+                        Modifier
+                            .width(60.dp)
+                            .height(4.dp),
+                    colors =
+                        CardDefaults.cardColors().copy(
+                            containerColor = Color(0xFF474545),
+                        ),
+                    shape = RoundedCornerShape(50),
+                ) {}
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = stringResource(R.string.playback_speed) + " ${playbackSpeed}x",
+                    style = typo.labelSmall,
+                )
+                Spacer(modifier = Modifier.height(5.dp))
+                Slider(
+                    value = playbackSpeed,
+                    onValueChange = {
+                        onSet(it, pitch)
+                    },
+                    modifier = Modifier,
+                    enabled = true,
+                    valueRange = 0.25f..2f,
+                    steps = 6,
+                    onValueChangeFinished = {},
+                )
+                Spacer(modifier = Modifier.height(5.dp))
+                Text(
+                    text = stringResource(R.string.pitch) + " $pitch",
+                    style = typo.labelSmall,
+                )
+                Spacer(modifier = Modifier.height(5.dp))
+                Slider(
+                    value = pitch.toFloat(),
+                    onValueChange = {
+                        onSet(playbackSpeed, it.toInt())
+                    },
+                    modifier = Modifier,
+                    enabled = true,
+                    valueRange = -12f..12f,
+                    steps = 23,
+                    onValueChangeFinished = {},
+                )
+                EndOfModalBottomSheet()
             }
         }
     }

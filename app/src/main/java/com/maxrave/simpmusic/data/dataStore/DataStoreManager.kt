@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -726,6 +727,32 @@ class DataStoreManager(
         }
     }
 
+    val playbackSpeed =
+        settingsDataStore.data.map { preferences ->
+            preferences[PLAYBACK_SPEED] ?: 1.0f
+        }
+
+    fun setPlaybackSpeed(speed: Float) {
+        runBlocking {
+            settingsDataStore.edit { settings ->
+                settings[PLAYBACK_SPEED] = speed
+            }
+        }
+    }
+
+    val pitch =
+        settingsDataStore.data.map { preferences ->
+            preferences[PITCH] ?: 0
+        }
+
+    fun setPitch(pitch: Int) {
+        runBlocking {
+            settingsDataStore.edit { settings ->
+                settings[PITCH] = pitch
+            }
+        }
+    }
+
     companion object Settings {
         val COOKIE = stringPreferencesKey("cookie")
         val LOGGED_IN = stringPreferencesKey("logged_in")
@@ -771,6 +798,8 @@ class DataStoreManager(
         val SHOULD_SHOW_LOG_IN_REQUIRED_ALERT = stringPreferencesKey("should_show_log_in_required_alert")
         val AUTO_CHECK_FOR_UPDATES = stringPreferencesKey("auto_check_for_updates")
         val BLUR_FULLSCREEN_LYRICS = stringPreferencesKey("blur_fullscreen_lyrics")
+        val PLAYBACK_SPEED = floatPreferencesKey("playback_speed")
+        val PITCH = intPreferencesKey("pitch")
         const val REPEAT_MODE_OFF = "REPEAT_MODE_OFF"
         const val REPEAT_ONE = "REPEAT_ONE"
         const val REPEAT_ALL = "REPEAT_ALL"
