@@ -375,5 +375,5 @@
     <string name="five_seconds">Cinq secondes</string>
     <string name="lrclib" translatable="false">LRCLIB</string>
     <string name="lyrics_provider_lrc">Paroles fournies par LRCLIB</string>
-    <string name="sync_first">Synchronisez d'abord cette playlist avec YouTube Music</string>
+    <string name="sync_first">Synchronisez d\'abord cette playlist avec YouTube Music</string>
 </resources>
