@@ -32,6 +32,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -74,6 +75,7 @@ import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.data.db.entities.SongEntity
 import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.getColorFromPalette
+import com.maxrave.simpmusic.ui.component.ExplicitBadge
 import com.maxrave.simpmusic.ui.component.HeartCheckBox
 import com.maxrave.simpmusic.ui.component.PlayPauseButton
 import com.maxrave.simpmusic.ui.theme.typo
@@ -352,21 +354,36 @@ fun MiniPlayer(
                                                     animationMode = MarqueeAnimationMode.Immediately,
                                                 ).focusable(),
                                     )
-                                    Text(
-                                        text = (songEntity?.artistName?.connectArtists() ?: "").toString(),
-                                        style = typo.bodySmall,
-                                        color = Color.White,
-                                        maxLines = 1,
-                                        modifier =
-                                            Modifier
-                                                .fillMaxWidth()
-                                                .wrapContentHeight(
-                                                    align = Alignment.CenterVertically,
-                                                ).basicMarquee(
-                                                    iterations = Int.MAX_VALUE,
-                                                    animationMode = MarqueeAnimationMode.Immediately,
-                                                ).focusable(),
-                                    )
+                                    LazyRow(verticalAlignment = Alignment.CenterVertically) {
+                                        item {
+                                            androidx.compose.animation.AnimatedVisibility(visible = songEntity?.isExplicit == true) {
+                                                ExplicitBadge(
+                                                    modifier =
+                                                        Modifier
+                                                            .size(20.dp)
+                                                            .padding(end = 4.dp)
+                                                            .weight(1f),
+                                                )
+                                            }
+                                        }
+                                        item {
+                                            Text(
+                                                text = (songEntity?.artistName?.connectArtists() ?: "").toString(),
+                                                style = typo.bodySmall,
+                                                color = Color.White,
+                                                maxLines = 1,
+                                                modifier =
+                                                    Modifier
+                                                        .fillMaxWidth()
+                                                        .wrapContentHeight(
+                                                            align = Alignment.CenterVertically,
+                                                        ).basicMarquee(
+                                                            iterations = Int.MAX_VALUE,
+                                                            animationMode = MarqueeAnimationMode.Immediately,
+                                                        ).focusable(),
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }

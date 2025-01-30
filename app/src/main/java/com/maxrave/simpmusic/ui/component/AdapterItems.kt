@@ -485,20 +485,34 @@ fun QuickPicksItem(
                                 bottom = 3.dp,
                             ),
                 )
-
-                Text(
-                    text = data.artists.toListName().connectArtists(),
-                    style = typo.bodySmall,
-                    maxLines = 1,
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .wrapContentHeight(align = Alignment.CenterVertically)
-                            .basicMarquee(
-                                iterations = Int.MAX_VALUE,
-                                animationMode = MarqueeAnimationMode.Immediately,
-                            ).focusable(),
-                )
+                LazyRow(verticalAlignment = Alignment.CenterVertically) {
+                    item {
+                        androidx.compose.animation.AnimatedVisibility(visible = data.isExplicit == true) {
+                            ExplicitBadge(
+                                modifier =
+                                    Modifier
+                                        .size(20.dp)
+                                        .padding(end = 4.dp)
+                                        .weight(1f),
+                            )
+                        }
+                    }
+                    item {
+                        Text(
+                            text = data.artists.toListName().connectArtists(),
+                            style = typo.bodySmall,
+                            maxLines = 1,
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .wrapContentHeight(align = Alignment.CenterVertically)
+                                    .basicMarquee(
+                                        iterations = Int.MAX_VALUE,
+                                        animationMode = MarqueeAnimationMode.Immediately,
+                                    ).focusable(),
+                        )
+                    }
+                }
             }
         }
     }
@@ -573,20 +587,35 @@ fun HomeItemSong(
                             animationMode = MarqueeAnimationMode.Immediately,
                         ).focusable(),
             )
-            Text(
-                text = data.artists.toListName().connectArtists(),
-                style = typo.bodySmall,
-                maxLines = 1,
-                modifier =
-                    Modifier
-                        .width(180.dp)
-                        .wrapContentHeight(align = Alignment.CenterVertically)
-                        .basicMarquee(
-                            iterations = Int.MAX_VALUE,
-                            animationMode = MarqueeAnimationMode.Immediately,
-                        ).focusable()
-                        .padding(vertical = 3.dp),
-            )
+            LazyRow(verticalAlignment = Alignment.CenterVertically) {
+                item {
+                    androidx.compose.animation.AnimatedVisibility(visible = data.isExplicit == true) {
+                        ExplicitBadge(
+                            modifier =
+                                Modifier
+                                    .size(20.dp)
+                                    .padding(end = 4.dp)
+                                    .weight(1f),
+                        )
+                    }
+                }
+                item {
+                    Text(
+                        text = data.artists.toListName().connectArtists(),
+                        style = typo.bodySmall,
+                        maxLines = 1,
+                        modifier =
+                            Modifier
+                                .width(180.dp)
+                                .wrapContentHeight(align = Alignment.CenterVertically)
+                                .basicMarquee(
+                                    iterations = Int.MAX_VALUE,
+                                    animationMode = MarqueeAnimationMode.Immediately,
+                                ).focusable()
+                                .padding(vertical = 3.dp),
+                    )
+                }
+            }
             Text(
                 text = data.album?.name ?: stringResource(id = R.string.songs),
                 style = typo.bodySmall,

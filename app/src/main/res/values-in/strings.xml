@@ -187,7 +187,7 @@
     <string name="preview">Pratinjau</string>
     <string name="music_off_topic">Musik di luar topik</string>
     <string name="poi_highlight">Sorotan POI</string>
-    <string name="filter">Saringan</string>
+    <string name="filler">Saringan</string>
     <string name="sponsorBlock">Blokir Sponsor</string>
     <string name="enable_sponsor_block">Aktifkan Blokir Sponsor</string>
     <string name="categories_sponsor_block">Pilih segmen yg lewati</string>

@@ -186,7 +186,7 @@
     <string name="preview">Vorschau</string>
     <string name="music_off_topic">Off-Topic Musik</string>
     <string name="poi_highlight">POI Highlight</string>
-    <string name="filter">Filter</string>
+    <string name="filler">Filter</string>
     <string name="sponsorBlock">SponsorBlock</string>
     <string name="enable_sponsor_block">SponsorBlock aktivieren</string>
     <string name="categories_sponsor_block">Auswählen, welche Segmente übersprungen werden sollen</string>

@@ -187,7 +187,7 @@
     <string name="preview">Попередній перегляд</string>
     <string name="music_off_topic">Музика не по темі</string>
     <string name="poi_highlight">Виділення POI</string>
-    <string name="filter">Фільтр</string>
+    <string name="filler">Фільтр</string>
     <string name="sponsorBlock">SponsorBlock</string>
     <string name="enable_sponsor_block">Увімкнути SponsorBlock</string>
     <string name="categories_sponsor_block">Виберіть поведінку пропуску сегменту</string>

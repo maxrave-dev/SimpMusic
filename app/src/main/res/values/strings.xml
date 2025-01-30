@@ -187,7 +187,7 @@
     <string name="preview">Preview</string>
     <string name="music_off_topic">Music Off-topic</string>
     <string name="poi_highlight">POI Highlight</string>
-    <string name="filter">Filter</string>
+    <string name="filler">Filter</string>
     <string name="sponsorBlock">SponsorBlock</string>
     <string name="enable_sponsor_block">Enable SponsorBlock</string>
     <string name="categories_sponsor_block">Select skip-segment behavior</string>
@@ -378,4 +378,5 @@
     <string name="lrclib" translatable="false">LRCLIB</string>
     <string name="lyrics_provider_lrc">Lyrics provided by LRCLIB</string>
     <string name="sync_first">Sync this playlist to YouTube Music first</string>
+    <string name="endless_queue">Endless queue</string>
 </resources>

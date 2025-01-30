@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -34,6 +35,7 @@ import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -44,15 +46,22 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -60,22 +69,28 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.rememberNestedScrollInteropConnection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat.startActivity
 import androidx.core.text.isDigitsOnly
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
@@ -92,12 +107,429 @@ import com.maxrave.simpmusic.extension.connectArtists
 import com.maxrave.simpmusic.extension.greyScale
 import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.extension.toListName
+import com.maxrave.simpmusic.service.SimpleMediaServiceHandler
+import com.maxrave.simpmusic.service.StateSource
 import com.maxrave.simpmusic.ui.theme.seed
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetUIEvent
 import com.maxrave.simpmusic.viewModel.NowPlayingBottomSheetViewModel
+import com.maxrave.simpmusic.viewModel.SharedViewModel
+import com.moriatsushi.insetsx.systemBars
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
+import org.koin.compose.koinInject
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalCoroutinesApi::class, ExperimentalCoroutinesApi::class)
+@UnstableApi
+@Composable
+fun QueueBottomSheet(
+    onDismiss: () -> Unit,
+    sharedViewModel: SharedViewModel = viewModel<SharedViewModel>(),
+    musicServiceHandler: SimpleMediaServiceHandler = koinInject(),
+    dataStoreManager: DataStoreManager = koinInject(),
+) {
+    val coroutineScope = rememberCoroutineScope()
+    val localDensity = LocalDensity.current
+    val windowInsets = WindowInsets.systemBars
+    val sheetState =
+        rememberModalBottomSheetState(
+            skipPartiallyExpanded = true,
+        )
+    val nestedScrollInterop = rememberNestedScrollInteropConnection()
+    val lazyListState = rememberLazyListState()
+    var shouldShowQueueItemBottomSheet by rememberSaveable { mutableStateOf(false) }
+    var clickMoreIndex by rememberSaveable { mutableIntStateOf(0) }
+    val screenDataState by sharedViewModel.nowPlayingScreenData.collectAsState()
+    val songEntity by sharedViewModel.nowPlayingState.map { it?.songEntity }.collectAsState(null)
+    val queue by musicServiceHandler.queueData
+        .mapLatest { it?.listTracks?.toList() ?: emptyList() }
+        .collectAsState(emptyList())
+    val loadMoreState by musicServiceHandler.stateFlow.collectAsState()
+    val endlessQueueEnable by dataStoreManager.endlessQueue.map { it == DataStoreManager.TRUE }.collectAsState(false)
+
+    val shouldLoadMore =
+        remember {
+            derivedStateOf {
+                val layoutInfo = lazyListState.layoutInfo
+                val lastVisibleItem =
+                    layoutInfo.visibleItemsInfo.lastOrNull()
+                        ?: return@derivedStateOf true
+
+                lastVisibleItem.index >= layoutInfo.totalItemsCount - 3 && layoutInfo.totalItemsCount > 0
+            }
+        }
+
+    // Convert the state into a cold flow and collect
+    LaunchedEffect(shouldLoadMore) {
+        snapshotFlow { shouldLoadMore.value }
+            .collect {
+                // if should load more, then invoke loadMore
+                if (it && loadMoreState == StateSource.STATE_INITIALIZED) musicServiceHandler.loadMore()
+            }
+    }
+
+    DisposableEffect(Unit) {
+        val currentSongIndex = musicServiceHandler.currentSongIndex()
+        Log.d("QueueBottomSheet", "currentSongIndex: $currentSongIndex")
+        coroutineScope.launch {
+            lazyListState.requestScrollToItem(
+                currentSongIndex,
+            )
+        }
+        onDispose { }
+    }
+
+    val showQueueItemBottomSheet: (Int) -> Unit = { index ->
+        clickMoreIndex = index
+        shouldShowQueueItemBottomSheet = true
+    }
+
+    if (shouldShowQueueItemBottomSheet) {
+        QueueItemBottomSheet(
+            onDismiss = { shouldShowQueueItemBottomSheet = false },
+            index = clickMoreIndex,
+            musicServiceHandler = musicServiceHandler,
+        )
+    }
+
+    ModalBottomSheet(
+        onDismissRequest = {
+            onDismiss()
+        },
+        containerColor = Color.Black,
+        contentColor = Color.Transparent,
+        dragHandle = {},
+        scrimColor = Color.Black.copy(alpha = .5f),
+        sheetState = sheetState,
+        modifier = Modifier.fillMaxHeight(),
+        contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
+        shape = RectangleShape,
+    ) {
+        Card(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(),
+            shape = RectangleShape,
+            colors = CardDefaults.cardColors().copy(containerColor = Color.Black),
+        ) {
+            Column(
+                modifier =
+                    Modifier.padding(
+                        top =
+                            with(localDensity) {
+                                windowInsets.getTop(localDensity).toDp()
+                            },
+                    ),
+            ) {
+                TopAppBar(
+                    windowInsets = WindowInsets(0, 0, 0, 0),
+                    colors =
+                        TopAppBarDefaults.topAppBarColors().copy(
+                            containerColor = Color.Transparent,
+                        ),
+                    title = {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                        ) {
+                            Text(
+                                text = stringResource(id = R.string.now_playing_upper),
+                                style = typo.bodyMedium,
+                                color = Color.White,
+                            )
+                            Text(
+                                text = screenDataState.playlistName,
+                                style = typo.labelMedium,
+                                color = Color.White,
+                                textAlign = TextAlign.Center,
+                                maxLines = 1,
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .wrapContentHeight(align = Alignment.CenterVertically)
+                                        .basicMarquee(
+                                            iterations = Int.MAX_VALUE,
+                                            animationMode = MarqueeAnimationMode.Immediately,
+                                        ).focusable(),
+                            )
+                        }
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = {
+                            coroutineScope.launch {
+                                sheetState.hide()
+                                onDismiss()
+                            }
+                        }) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.baseline_keyboard_arrow_down_24),
+                                contentDescription = "",
+                                tint = Color.White,
+                            )
+                        }
+                    },
+                    actions = {
+                        Box(
+                            modifier = Modifier.size(32.dp),
+                        )
+                    },
+                )
+
+                Spacer(modifier = Modifier.height(20.dp))
+                Text(
+                    text = stringResource(R.string.now_playing),
+                    style = typo.titleMedium,
+                    modifier = Modifier.padding(horizontal = 20.dp),
+                )
+                SongFullWidthItems(
+                    songEntity = songEntity,
+                    isPlaying = false,
+                    modifier = Modifier.fillMaxWidth().padding(10.dp),
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = stringResource(R.string.queue),
+                        style = typo.titleMedium,
+                        modifier =
+                            Modifier
+                                .padding(horizontal = 20.dp)
+                                .weight(1f),
+                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = stringResource(R.string.endless_queue),
+                            style = typo.bodySmall,
+                            modifier = Modifier.padding(horizontal = 8.dp),
+                        )
+                        Switch(
+                            checked = endlessQueueEnable,
+                            onCheckedChange = {
+                                coroutineScope.launch {
+                                    dataStoreManager.setEndlessQueue(it)
+                                }
+                            },
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                    }
+                }
+                Spacer(modifier = Modifier.height(10.dp))
+                LazyColumn(
+                    horizontalAlignment = Alignment.Start,
+                    state = lazyListState,
+                    modifier = Modifier.nestedScroll(nestedScrollInterop),
+                ) {
+                    items(queue) { track ->
+                        val i = queue.indexOf(track)
+                        if (i != -1) {
+                            SongFullWidthItems(
+                                track = track,
+                                isPlaying = track.videoId == songEntity?.videoId,
+                                modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
+                                onClickListener = { videoId ->
+                                    if (videoId == track.videoId) {
+                                        musicServiceHandler.playMediaItemInMediaSource(i)
+                                    }
+                                },
+                                onMoreClickListener = {
+                                    showQueueItemBottomSheet(i)
+                                },
+                            )
+                        }
+                    }
+                    item {
+                        if (loadMoreState == StateSource.STATE_INITIALIZING) {
+                            CenterLoadingBox(
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .height(50.dp),
+                            )
+                        }
+                    }
+                    item {
+                        EndOfPage()
+                    }
+                }
+            }
+        }
+    }
+}
+
+private enum class QueueItemAction {
+    UP,
+    DOWN,
+    DELETE,
+}
+
+@Composable
+@UnstableApi
+@ExperimentalMaterial3Api
+fun QueueItemBottomSheet(
+    onDismiss: () -> Unit,
+    index: Int,
+    musicServiceHandler: SimpleMediaServiceHandler = koinInject(),
+) {
+    val coroutineScope = rememberCoroutineScope()
+    val modelBottomSheetState =
+        rememberModalBottomSheetState(
+            skipPartiallyExpanded = true,
+        )
+    val hideModalBottomSheet: () -> Unit =
+        {
+            coroutineScope.launch {
+                modelBottomSheetState.hide()
+                onDismiss()
+            }
+        }
+    val listAction =
+        listOf(
+            QueueItemAction.UP,
+            QueueItemAction.DOWN,
+            QueueItemAction.DELETE,
+        )
+    ModalBottomSheet(
+        onDismissRequest = onDismiss,
+        sheetState = modelBottomSheetState,
+        containerColor = Color.Transparent,
+        contentColor = Color.Transparent,
+        dragHandle = null,
+        scrimColor = Color.Black.copy(alpha = .5f),
+        contentWindowInsets = { WindowInsets(0, 0, 0, 0) },
+    ) {
+        Card(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .wrapContentHeight(),
+            shape = RoundedCornerShape(topStart = 8.dp, topEnd = 8.dp),
+            colors = CardDefaults.cardColors().copy(containerColor = Color(0xFF242424)),
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Spacer(modifier = Modifier.height(5.dp))
+                Card(
+                    modifier =
+                        Modifier
+                            .width(60.dp)
+                            .height(4.dp),
+                    colors =
+                        CardDefaults.cardColors().copy(
+                            containerColor = Color(0xFF474545),
+                        ),
+                    shape = RoundedCornerShape(50),
+                ) {}
+                Spacer(modifier = Modifier.height(5.dp))
+                LazyColumn {
+                    val canMoveUp =
+                        index > 0 &&
+                            index < (
+                                musicServiceHandler.queueData.value
+                                    ?.listTracks
+                                    ?.size ?: 0
+                            )
+                    val canMoveDown =
+                        index >= 0 &&
+                            index < (
+                                musicServiceHandler.queueData.value
+                                    ?.listTracks
+                                    ?.size ?: 0
+                            ) - 1
+                    items(listAction) { action ->
+                        val disable =
+                            when (action) {
+                                QueueItemAction.UP -> !canMoveUp
+                                QueueItemAction.DOWN -> !canMoveDown
+                                QueueItemAction.DELETE -> false
+                            }
+                        if (disable) return@items
+                        Box(
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        hideModalBottomSheet()
+                                        when (action) {
+                                            QueueItemAction.UP -> {
+                                                coroutineScope.launch {
+                                                    musicServiceHandler.moveItemUp(index)
+                                                }
+                                            }
+                                            QueueItemAction.DOWN -> {
+                                                coroutineScope.launch {
+                                                    musicServiceHandler.moveItemDown(index)
+                                                }
+                                            }
+                                            QueueItemAction.DELETE -> {
+                                                musicServiceHandler.removeMediaItem(index)
+                                            }
+                                        }
+                                    },
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier =
+                                    Modifier
+                                        .padding(20.dp)
+                                        .align(Alignment.CenterStart),
+                            ) {
+                                when (action) {
+                                    QueueItemAction.UP -> {
+                                        Image(
+                                            painter =
+                                                painterResource(
+                                                    id = R.drawable.baseline_keyboard_double_arrow_up_24,
+                                                ),
+                                            contentDescription = "Move up",
+                                        )
+                                    }
+                                    QueueItemAction.DOWN -> {
+                                        Image(
+                                            painter =
+                                                painterResource(
+                                                    id = R.drawable.baseline_keyboard_double_arrow_down_24,
+                                                ),
+                                            contentDescription = "Move down",
+                                        )
+                                    }
+                                    QueueItemAction.DELETE -> {
+                                        Image(
+                                            painter =
+                                                painterResource(
+                                                    id = R.drawable.baseline_delete_24,
+                                                ),
+                                            contentDescription = "Delete",
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.width(10.dp))
+                                Text(
+                                    text =
+                                        stringResource(
+                                            when (action) {
+                                                QueueItemAction.UP -> R.string.move_up
+                                                QueueItemAction.DOWN -> R.string.move_down
+                                                QueueItemAction.DELETE -> R.string.delete
+                                            },
+                                        ),
+                                    style = typo.labelSmall,
+                                )
+                            }
+                        }
+                    }
+                    item {
+                        EndOfModalBottomSheet()
+                    }
+                }
+            }
+        }
+    }
+}
 
 @UnstableApi
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)

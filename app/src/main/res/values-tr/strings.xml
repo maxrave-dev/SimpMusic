@@ -187,7 +187,7 @@
     <string name="preview">Ön İzleme</string>
     <string name="music_off_topic">Müzik Konu Dışı</string>
     <string name="poi_highlight">İlgi Çekici Vurgu</string>
-    <string name="filter">Filtre</string>
+    <string name="filler">Filtre</string>
     <string name="sponsorBlock">SponsorBlock</string>
     <string name="enable_sponsor_block">SponsorBlock\'u etkinleştir</string>
     <string name="categories_sponsor_block">Kısım atlama davranışını seçin</string>

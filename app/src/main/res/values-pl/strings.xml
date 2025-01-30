@@ -187,7 +187,7 @@
     <string name="preview">Podgląd</string>
     <string name="music_off_topic">Muzyka poza tematem</string>
     <string name="poi_highlight">Podświetlenie POI</string>
-    <string name="filter">Filtr</string>
+    <string name="filler">Filtr</string>
     <string name="sponsorBlock">Blok sponsora</string>
     <string name="enable_sponsor_block">Włącz SponsorBlock\'a</string>
     <string name="categories_sponsor_block">Wybierz zachowanie segmentu pomijanego</string>

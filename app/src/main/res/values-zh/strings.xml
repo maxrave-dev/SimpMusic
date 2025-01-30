@@ -187,7 +187,7 @@
     <string name="preview">预览</string>
     <string name="music_off_topic">音乐离题</string>
     <string name="poi_highlight">POI 高亮</string>
-    <string name="filter">筛选器</string>
+    <string name="filler">筛选器</string>
     <string name="sponsorBlock">SponsorBlock</string>
     <string name="enable_sponsor_block">启用 SponsorBlock</string>
     <string name="categories_sponsor_block">选择跳过区段行为</string>

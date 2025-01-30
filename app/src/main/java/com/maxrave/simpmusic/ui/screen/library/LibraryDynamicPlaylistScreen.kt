@@ -81,7 +81,7 @@ fun LibraryDynamicPlaylistScreen(
                     LibraryDynamicPlaylistType.MostPlayed -> mostPlayed
                     else -> emptyList()
                 },
-                key = { it.videoId },
+                key = { it.hashCode() },
             ) { song ->
                 SongFullWidthItems(
                     songEntity = song,
