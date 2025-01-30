@@ -691,90 +691,92 @@ class MainActivity : AppCompatActivity() {
 //    }
 
     private fun checkForUpdate() {
-        viewModel.checkForUpdate()
-        viewModel.githubResponse.observe(this) { response ->
-            if (response != null && !this.isInPictureInPictureMode && !viewModel.showedUpdateDialog) {
-                Log.w("MainActivity", "Check for update")
-                Log.w("MainActivity", "Current version: ${getString(R.string.version_format, VersionManager.getVersionName())}")
-                if (response.tagName != getString(R.string.version_format, VersionManager.getVersionName())) {
-                    viewModel.showedUpdateDialog = true
-                    val inputFormat =
-                        SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
-                    val outputFormat = SimpleDateFormat("dd MMM yyyy HH:mm:ss", Locale.getDefault())
-                    val formatted =
-                        response.publishedAt?.let { input ->
-                            inputFormat
-                                .parse(input)
-                                ?.let { outputFormat.format(it) }
-                        }
-                    val scrollView =
-                        ScrollView(this)
-                            .apply {
+        if (viewModel.shouldCheckForUpdate()) {
+            viewModel.checkForUpdate()
+            viewModel.githubResponse.observe(this) { response ->
+                if (response != null && !this.isInPictureInPictureMode && !viewModel.showedUpdateDialog) {
+                    Log.w("MainActivity", "Check for update")
+                    Log.w("MainActivity", "Current version: ${getString(R.string.version_format, VersionManager.getVersionName())}")
+                    if (response.tagName != getString(R.string.version_format, VersionManager.getVersionName())) {
+                        viewModel.showedUpdateDialog = true
+                        val inputFormat =
+                            SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault())
+                        val outputFormat = SimpleDateFormat("dd MMM yyyy HH:mm:ss", Locale.getDefault())
+                        val formatted =
+                            response.publishedAt?.let { input ->
+                                inputFormat
+                                    .parse(input)
+                                    ?.let { outputFormat.format(it) }
+                            }
+                        val scrollView =
+                            ScrollView(this)
+                                .apply {
+                                    layoutParams =
+                                        LinearLayout.LayoutParams(
+                                            LinearLayout.LayoutParams.MATCH_PARENT,
+                                            LinearLayout.LayoutParams.WRAP_CONTENT,
+                                        )
+                                }
+                        val layout =
+                            LinearLayout(this).apply {
+                                orientation = LinearLayout.VERTICAL
                                 layoutParams =
                                     LinearLayout.LayoutParams(
                                         LinearLayout.LayoutParams.MATCH_PARENT,
                                         LinearLayout.LayoutParams.WRAP_CONTENT,
                                     )
+                                setPadding(24, 24, 24, 12)
                             }
-                    val layout =
-                        LinearLayout(this).apply {
-                            orientation = LinearLayout.VERTICAL
-                            layoutParams =
-                                LinearLayout.LayoutParams(
-                                    LinearLayout.LayoutParams.MATCH_PARENT,
-                                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                                )
-                            setPadding(24, 24, 24, 12)
-                        }
-                    layout.addView(
-                        TextView(this).apply {
-                            text =
-                                getString(
-                                    R.string.update_message,
-                                    response.tagName,
-                                    formatted,
-                                    "",
-                                )
-                            textSize = 13f
-                            layoutParams =
-                                MarginLayoutParams(
-                                    MarginLayoutParams.MATCH_PARENT,
-                                    MarginLayoutParams.WRAP_CONTENT,
-                                ).apply {
-                                    setMargins(42, 8, 42, 0)
-                                }
-                        },
-                    )
-                    layout.addView(
-                        TextView(this).apply {
-                            text = markdownToHtml(response.body ?: "")
-                            textSize = 13f
-                            autoLinkMask = Linkify.ALL
-                            setLineSpacing(0f, 1.2f)
-                            layoutParams =
-                                MarginLayoutParams(
-                                    MarginLayoutParams.MATCH_PARENT,
-                                    MarginLayoutParams.WRAP_CONTENT,
-                                ).apply {
-                                    setMargins(42, 0, 42, 24)
-                                }
-                        },
-                    )
-                    scrollView.addView(layout)
+                        layout.addView(
+                            TextView(this).apply {
+                                text =
+                                    getString(
+                                        R.string.update_message,
+                                        response.tagName,
+                                        formatted,
+                                        "",
+                                    )
+                                textSize = 13f
+                                layoutParams =
+                                    MarginLayoutParams(
+                                        MarginLayoutParams.MATCH_PARENT,
+                                        MarginLayoutParams.WRAP_CONTENT,
+                                    ).apply {
+                                        setMargins(42, 8, 42, 0)
+                                    }
+                            },
+                        )
+                        layout.addView(
+                            TextView(this).apply {
+                                text = markdownToHtml(response.body ?: "")
+                                textSize = 13f
+                                autoLinkMask = Linkify.ALL
+                                setLineSpacing(0f, 1.2f)
+                                layoutParams =
+                                    MarginLayoutParams(
+                                        MarginLayoutParams.MATCH_PARENT,
+                                        MarginLayoutParams.WRAP_CONTENT,
+                                    ).apply {
+                                        setMargins(42, 0, 42, 24)
+                                    }
+                            },
+                        )
+                        scrollView.addView(layout)
 
-                    MaterialAlertDialogBuilder(this)
-                        .setTitle(getString(R.string.update_available))
-                        .setView(scrollView)
-                        .setPositiveButton(getString(R.string.download)) { _, _ ->
-                            val browserIntent =
-                                Intent(
-                                    Intent.ACTION_VIEW,
-                                    Uri.parse(response.assets?.firstOrNull()?.browserDownloadUrl),
-                                )
-                            startActivity(browserIntent)
-                        }.setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
-                            dialog.dismiss()
-                        }.show()
+                        MaterialAlertDialogBuilder(this)
+                            .setTitle(getString(R.string.update_available))
+                            .setView(scrollView)
+                            .setPositiveButton(getString(R.string.download)) { _, _ ->
+                                val browserIntent =
+                                    Intent(
+                                        Intent.ACTION_VIEW,
+                                        Uri.parse(response.assets?.firstOrNull()?.browserDownloadUrl),
+                                    )
+                                startActivity(browserIntent)
+                            }.setNegativeButton(getString(R.string.cancel)) { dialog, _ ->
+                                dialog.dismiss()
+                            }.show()
+                    }
                 }
             }
         }

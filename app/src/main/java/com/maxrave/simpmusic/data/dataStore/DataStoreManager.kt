@@ -669,6 +669,44 @@ class DataStoreManager(
         }
     }
 
+    val shouldShowLogInRequiredAlert =
+        settingsDataStore.data.map { preferences ->
+            preferences[SHOULD_SHOW_LOG_IN_REQUIRED_ALERT] ?: TRUE
+        }
+
+    suspend fun setShouldShowLogInRequiredAlert(shouldShow: Boolean) {
+        withContext(Dispatchers.IO) {
+            if (shouldShow) {
+                settingsDataStore.edit { settings ->
+                    settings[SHOULD_SHOW_LOG_IN_REQUIRED_ALERT] = TRUE
+                }
+            } else {
+                settingsDataStore.edit { settings ->
+                    settings[SHOULD_SHOW_LOG_IN_REQUIRED_ALERT] = FALSE
+                }
+            }
+        }
+    }
+
+    val autoCheckForUpdates =
+        settingsDataStore.data.map { preferences ->
+            preferences[AUTO_CHECK_FOR_UPDATES] ?: TRUE
+        }
+
+    suspend fun setAutoCheckForUpdates(autoCheck: Boolean) {
+        withContext(Dispatchers.IO) {
+            if (autoCheck) {
+                settingsDataStore.edit { settings ->
+                    settings[AUTO_CHECK_FOR_UPDATES] = TRUE
+                }
+            } else {
+                settingsDataStore.edit { settings ->
+                    settings[AUTO_CHECK_FOR_UPDATES] = FALSE
+                }
+            }
+        }
+    }
+
     companion object Settings {
         val COOKIE = stringPreferencesKey("cookie")
         val LOGGED_IN = stringPreferencesKey("logged_in")
@@ -711,6 +749,8 @@ class DataStoreManager(
         val PROXY_HOST = stringPreferencesKey("proxy_host")
         val PROXY_PORT = intPreferencesKey("proxy_port")
         val ENDLESS_QUEUE = stringPreferencesKey("endless_queue")
+        val SHOULD_SHOW_LOG_IN_REQUIRED_ALERT = stringPreferencesKey("should_show_log_in_required_alert")
+        val AUTO_CHECK_FOR_UPDATES = stringPreferencesKey("auto_check_for_updates")
         const val REPEAT_MODE_OFF = "REPEAT_MODE_OFF"
         const val REPEAT_ONE = "REPEAT_ONE"
         const val REPEAT_ALL = "REPEAT_ALL"

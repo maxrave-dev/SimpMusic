@@ -11,6 +11,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.snapping.SnapLayoutInfoProvider
 import androidx.compose.foundation.gestures.snapping.SnapPosition
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
@@ -38,6 +39,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -171,16 +173,39 @@ fun HomeScreen(
     }
 
     if (shouldShowLogInAlert) {
+        var doNotShowAgain by rememberSaveable {
+            mutableStateOf(false)
+        }
         AlertDialog(
             title = {
                 Text(stringResource(R.string.warning))
             },
             text = {
-                Text(text = stringResource(R.string.log_in_warning))
+                Column {
+                    Text(text = stringResource(R.string.log_in_warning))
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier =
+                            Modifier
+                                .clickable {
+                                    doNotShowAgain = !doNotShowAgain
+                                }.fillMaxWidth(),
+                    ) {
+                        Checkbox(
+                            checked = doNotShowAgain,
+                            onCheckedChange = {
+                                doNotShowAgain = it
+                            },
+                        )
+                        Spacer(modifier = Modifier.width(5.dp))
+                        Text(stringResource(R.string.do_not_show_again))
+                    }
+                }
             },
             confirmButton = {
                 TextButton(onClick = {
-                    viewModel.doneShowLogInAlert()
+                    viewModel.doneShowLogInAlert(doNotShowAgain)
                     navController.navigateSafe(R.id.action_global_logInFragment)
                 }) {
                     Text(stringResource(R.string.go_to_log_in_page))
@@ -188,7 +213,7 @@ fun HomeScreen(
             },
             dismissButton = {
                 TextButton(onClick = {
-                    viewModel.doneShowLogInAlert()
+                    viewModel.doneShowLogInAlert(doNotShowAgain)
                 }) {
                     Text(stringResource(R.string.cancel))
                 }

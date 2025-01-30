@@ -188,6 +188,7 @@ fun SettingScreen(
     val proxyType by viewModel.proxyType.collectAsStateWithLifecycle()
     val proxyHost by viewModel.proxyHost.collectAsStateWithLifecycle()
     val proxyPort by viewModel.proxyPort.collectAsStateWithLifecycle()
+    val autoCheckUpdate by viewModel.autoCheckUpdate.collectAsStateWithLifecycle()
     var checkForUpdateSubtitle by rememberSaveable {
         mutableStateOf("")
     }
@@ -1116,6 +1117,11 @@ fun SettingScreen(
                     onClick = {
                         navController.navigateSafe(R.id.action_global_creditFragment)
                     },
+                )
+                SettingItem(
+                    title = stringResource(R.string.auto_check_for_update),
+                    subtitle = stringResource(R.string.auto_check_for_update_description),
+                    switch = (autoCheckUpdate to { viewModel.setAutoCheckUpdate(it) }),
                 )
                 SettingItem(
                     title = stringResource(R.string.check_for_update),

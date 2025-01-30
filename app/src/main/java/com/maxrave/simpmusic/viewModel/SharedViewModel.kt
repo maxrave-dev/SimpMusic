@@ -1587,6 +1587,8 @@ class SharedViewModel(
         _homeRefresh.value = false
     }
 
+    fun shouldCheckForUpdate(): Boolean = runBlocking { dataStoreManager.autoCheckForUpdates.first() == TRUE }
+
     fun runWorker() {
         Log.w("Check Worker", "Worker")
         val request =

@@ -3,7 +3,6 @@ package com.maxrave.simpmusic.viewModel
 import android.app.Application
 import android.util.Log
 import android.widget.Toast
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.offline.Download
@@ -11,6 +10,7 @@ import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.DownloadState
 import com.maxrave.simpmusic.common.SELECTED_LANGUAGE
 import com.maxrave.simpmusic.common.SUPPORTED_LANGUAGE
+import com.maxrave.simpmusic.data.dataStore.DataStoreManager.Settings.TRUE
 import com.maxrave.simpmusic.data.db.entities.LocalPlaylistEntity
 import com.maxrave.simpmusic.data.db.entities.PairSongLocalPlaylist
 import com.maxrave.simpmusic.data.db.entities.SongEntity
@@ -34,11 +34,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-
 import java.time.LocalDateTime
 
 @UnstableApi
-
 class HomeViewModel(
     private val application: Application,
 ) : BaseViewModel(application) {
@@ -79,7 +77,11 @@ class HomeViewModel(
     val showLogInAlert: StateFlow<Boolean> = _showLogInAlert
 
     init {
-        if (runBlocking { dataStoreManager.cookie.first() }.isEmpty()) {
+        if (runBlocking { dataStoreManager.cookie.first() }.isEmpty() &&
+            runBlocking {
+                dataStoreManager.shouldShowLogInRequiredAlert.first() == TRUE
+            }
+        ) {
             _showLogInAlert.update { true }
         }
         homeJob = Job()
@@ -128,8 +130,13 @@ class HomeViewModel(
         }
     }
 
-    fun doneShowLogInAlert() {
-        _showLogInAlert.update { false }
+    fun doneShowLogInAlert(neverShowAgain: Boolean = false) {
+        viewModelScope.launch {
+            _showLogInAlert.update { false }
+            if (neverShowAgain) {
+                dataStoreManager.setShouldShowLogInRequiredAlert(false)
+            }
+        }
     }
 
     fun getHomeItemList(params: String? = null) {

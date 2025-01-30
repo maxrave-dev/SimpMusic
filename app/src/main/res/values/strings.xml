@@ -379,4 +379,7 @@
     <string name="lyrics_provider_lrc">Lyrics provided by LRCLIB</string>
     <string name="sync_first">Sync this playlist to YouTube Music first</string>
     <string name="endless_queue">Endless queue</string>
+    <string name="do_not_show_again">Do not show again</string>
+    <string name="auto_check_for_update">Automatic check for update</string>
+    <string name="auto_check_for_update_description">Checking for update when you open app</string>
 </resources>
