@@ -1619,11 +1619,13 @@ class SharedViewModel(
         simpleMediaServiceHandler.loadMore()
     }
 
-    suspend fun swapQueue(
+    fun swapQueue(
         from: Int,
         to: Int,
     ) {
-        simpleMediaServiceHandler.swap(from, to)
+        viewModelScope.launch {
+            simpleMediaServiceHandler.swap(from, to)
+        }
     }
 
     suspend fun moveItemUp(index: Int) {

@@ -11,9 +11,14 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.text.util.Linkify
 import android.util.Log
 import android.view.View
+import android.view.ViewGroup.MarginLayoutParams
 import android.view.animation.AnimationUtils
+import android.widget.LinearLayout
+import android.widget.ScrollView
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.SystemBarStyle
 import androidx.activity.enableEdgeToEdge
@@ -33,7 +38,6 @@ import androidx.media3.common.util.UnstableApi
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.maxrave.kotlinytmusicscraper.extension.stripMarkdown
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.common.FIRST_TIME_MIGRATION
@@ -44,6 +48,7 @@ import com.maxrave.simpmusic.common.SUPPORTED_LOCATION
 import com.maxrave.simpmusic.data.dataStore.DataStoreManager
 import com.maxrave.simpmusic.databinding.ActivityMainBinding
 import com.maxrave.simpmusic.extension.isMyServiceRunning
+import com.maxrave.simpmusic.extension.markdownToHtml
 import com.maxrave.simpmusic.extension.navigateSafe
 import com.maxrave.simpmusic.service.SimpleMediaService
 import com.maxrave.simpmusic.ui.screen.MiniPlayer
@@ -702,17 +707,65 @@ class MainActivity : AppCompatActivity() {
                                 .parse(input)
                                 ?.let { outputFormat.format(it) }
                         }
+                    val scrollView =
+                        ScrollView(this)
+                            .apply {
+                                layoutParams =
+                                    LinearLayout.LayoutParams(
+                                        LinearLayout.LayoutParams.MATCH_PARENT,
+                                        LinearLayout.LayoutParams.WRAP_CONTENT,
+                                    )
+                            }
+                    val layout =
+                        LinearLayout(this).apply {
+                            orientation = LinearLayout.VERTICAL
+                            layoutParams =
+                                LinearLayout.LayoutParams(
+                                    LinearLayout.LayoutParams.MATCH_PARENT,
+                                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                                )
+                            setPadding(24, 24, 24, 12)
+                        }
+                    layout.addView(
+                        TextView(this).apply {
+                            text =
+                                getString(
+                                    R.string.update_message,
+                                    response.tagName,
+                                    formatted,
+                                    "",
+                                )
+                            textSize = 13f
+                            layoutParams =
+                                MarginLayoutParams(
+                                    MarginLayoutParams.MATCH_PARENT,
+                                    MarginLayoutParams.WRAP_CONTENT,
+                                ).apply {
+                                    setMargins(42, 8, 42, 0)
+                                }
+                        },
+                    )
+                    layout.addView(
+                        TextView(this).apply {
+                            text = markdownToHtml(response.body ?: "")
+                            textSize = 13f
+                            autoLinkMask = Linkify.ALL
+                            setLineSpacing(0f, 1.2f)
+                            layoutParams =
+                                MarginLayoutParams(
+                                    MarginLayoutParams.MATCH_PARENT,
+                                    MarginLayoutParams.WRAP_CONTENT,
+                                ).apply {
+                                    setMargins(42, 0, 42, 24)
+                                }
+                        },
+                    )
+                    scrollView.addView(layout)
 
                     MaterialAlertDialogBuilder(this)
                         .setTitle(getString(R.string.update_available))
-                        .setMessage(
-                            getString(
-                                R.string.update_message,
-                                response.tagName,
-                                formatted,
-                                stripMarkdown(response.body ?: ""),
-                            ),
-                        ).setPositiveButton(getString(R.string.download)) { _, _ ->
+                        .setView(scrollView)
+                        .setPositiveButton(getString(R.string.download)) { _, _ ->
                             val browserIntent =
                                 Intent(
                                     Intent.ACTION_VIEW,

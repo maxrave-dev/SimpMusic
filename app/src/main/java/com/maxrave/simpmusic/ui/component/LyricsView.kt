@@ -286,6 +286,10 @@ fun FullscreenLyricsSheet(
         KeepScreenOn()
     }
 
+    var showQueueBottomSheet by rememberSaveable {
+        mutableStateOf(false)
+    }
+
     ModalBottomSheet(
         onDismissRequest = {
             onDismiss()
@@ -765,9 +769,7 @@ fun FullscreenLyricsSheet(
                                                 CircleShape,
                                             ),
                                     onClick = {
-                                        navController.navigateSafe(
-                                            R.id.action_global_queueFragment,
-                                        )
+                                        showQueueBottomSheet = true
                                     },
                                 ) {
                                     Icon(
@@ -783,5 +785,12 @@ fun FullscreenLyricsSheet(
                 Spacer(modifier = Modifier.height(20.dp))
             }
         }
+    }
+    if (showQueueBottomSheet) {
+        QueueBottomSheet(
+            onDismiss = {
+                showQueueBottomSheet = false
+            },
+        )
     }
 }

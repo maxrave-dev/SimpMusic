@@ -9,10 +9,13 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.text.Html
+import android.text.Spanned
+import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.TextView
+import androidx.compose.ui.text.fromHtml
 import androidx.core.net.toUri
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.media3.common.MediaItem
@@ -50,6 +53,9 @@ import com.maxrave.simpmusic.data.model.searchResult.songs.Thumbnail
 import com.maxrave.simpmusic.data.model.searchResult.videos.VideosResult
 import com.maxrave.simpmusic.data.parser.toListThumbnail
 import com.maxrave.simpmusic.service.test.source.MergingMediaSourceFactory
+import org.intellij.markdown.flavours.commonmark.CommonMarkFlavourDescriptor
+import org.intellij.markdown.html.HtmlGenerator
+import org.intellij.markdown.parser.MarkdownParser
 import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
@@ -962,4 +968,13 @@ fun isNetworkAvailable(context: Context?): Boolean {
         // else return false
         else -> false
     }
+}
+
+fun markdownToHtml(markdown: String): Spanned {
+    val src = markdown.trimIndent()
+    val flavour = CommonMarkFlavourDescriptor()
+    val parsedTree = MarkdownParser(flavour).buildMarkdownTreeFromString(src)
+    val html = HtmlGenerator(src, parsedTree, flavour).generateHtml()
+    Log.w("markdownToHtml", html)
+    return Html.fromHtml(html, Html.FROM_HTML_MODE_COMPACT)
 }

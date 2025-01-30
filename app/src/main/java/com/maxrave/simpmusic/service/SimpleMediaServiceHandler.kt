@@ -553,7 +553,7 @@ class SimpleMediaServiceHandler(
 
     fun removeMediaItem(position: Int) {
         player.removeMediaItem(position)
-        val temp = _queueData.value?.listTracks
+        val temp = _queueData.value?.listTracks?.toMutableList()
         temp?.removeAt(position)
         _queueData.value =
             _queueData.value?.copy(
@@ -572,7 +572,7 @@ class SimpleMediaServiceHandler(
         player.playWhenReady = playWhenReady
     }
 
-    fun addMediaItemNotSet(mediaItem: MediaItem) {
+    private fun addMediaItemNotSet(mediaItem: MediaItem) {
         player.addMediaItem(mediaItem)
         if (player.mediaItemCount == 1) {
             player.prepare()
@@ -945,7 +945,12 @@ class SimpleMediaServiceHandler(
             if (playlistId.startsWith(LOCAL_PLAYLIST_ID)) {
                 coroutineScope.launch {
                     _stateFlow.value = StateSource.STATE_INITIALIZING
-                    val longId = playlistId.replace(LOCAL_PLAYLIST_ID, "").toLong()
+                    val longId =
+                        try {
+                            playlistId.replace(LOCAL_PLAYLIST_ID, "").toLong()
+                        } catch (e: NumberFormatException) {
+                            return@launch
+                        }
                     Log.w("Check loadMore", longId.toString())
                     if (continuation.startsWith("SHUFFLE")) {
                         val regex = Regex("(?<=SHUFFLE)\\d+(?=_)")
@@ -1439,14 +1444,15 @@ class SimpleMediaServiceHandler(
     @UnstableApi
     suspend fun moveItemUp(position: Int) {
         moveMediaItem(position, position - 1)
-        queueData.first()?.listTracks?.let { list ->
+        queueData.first()?.listTracks?.toMutableList()?.let { list ->
             val temp = list[position]
             list[position] = list[position - 1]
             list[position - 1] = temp
-            _queueData.value =
-                queueData.first()?.copy(
+            _queueData.update {
+                it?.copy(
                     listTracks = list,
                 )
+            }
         }
         _currentSongIndex.value = player.currentMediaItemIndex
     }
@@ -1454,14 +1460,15 @@ class SimpleMediaServiceHandler(
     @UnstableApi
     suspend fun moveItemDown(position: Int) {
         moveMediaItem(position, position + 1)
-        queueData.first()?.listTracks?.let { list ->
+        queueData.first()?.listTracks?.toMutableList()?.let { list ->
             val temp = list[position]
             list[position] = list[position + 1]
             list[position + 1] = temp
-            _queueData.value =
-                queueData.first()?.copy(
+            _queueData.update {
+                it?.copy(
                     listTracks = list,
                 )
+            }
         }
         _currentSongIndex.value = player.currentMediaItemIndex
     }
@@ -1891,7 +1898,7 @@ class SimpleMediaServiceHandler(
 
     suspend fun playNext(track: Track) {
         _stateFlow.value = StateSource.STATE_INITIALIZING
-        val catalogMetadata: ArrayList<Track> = queueData.first()?.listTracks ?: arrayListOf()
+        val catalogMetadata: ArrayList<Track> = queueData.first()?.listTracks?.toCollection(arrayListOf()) ?: arrayListOf()
         var thumbUrl =
             track.thumbnails?.lastOrNull()?.url
                 ?: "http://i.ytimg.com/vi/${track.videoId}/maxresdefault.jpg"
@@ -2096,7 +2103,7 @@ data class ControlState(
 )
 
 data class QueueData(
-    val listTracks: ArrayList<Track> = arrayListOf(),
+    val listTracks: List<Track> = arrayListOf(),
     val firstPlayedTrack: Track? = null,
     val playlistId: String? = null,
     val playlistName: String? = null,
@@ -2104,7 +2111,7 @@ data class QueueData(
     val continuation: String? = null,
 ) {
     fun addTrackList(tracks: Collection<Track>): QueueData {
-        val temp = listTracks
+        val temp = listTracks.toMutableList()
         temp.addAll(tracks)
         return this.copy(
             listTracks = temp,
@@ -2115,7 +2122,7 @@ data class QueueData(
         track: Track,
         index: Int,
     ): QueueData {
-        val temp = listTracks
+        val temp = listTracks.toMutableList()
         temp.add(index, track)
         return this.copy(
             listTracks = temp,
@@ -2123,7 +2130,7 @@ data class QueueData(
     }
 
     fun removeFirstTrackForPlaylistAndAlbum(): QueueData {
-        val temp = listTracks
+        val temp = listTracks.toMutableList()
         temp.removeAt(0)
         return this.copy(
             listTracks = temp,
@@ -2131,7 +2138,7 @@ data class QueueData(
     }
 
     fun removeTrackWithIndex(index: Int): QueueData {
-        val temp = listTracks
+        val temp = listTracks.toMutableList()
         temp.removeAt(index)
         return this.copy(
             listTracks = temp,

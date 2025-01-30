@@ -1,13 +1,13 @@
 [versions]
 # App version
-version-name="0.2.9"
-version-code="26"
+version-name="0.2.10"
+version-code="27"
 
 android = "8.8.0"
 kotlin = "2.1.0"
 serialization = "2.1.0"
 ksp = "2.1.0-1.0.29"
-compose-bom = "2025.01.00"
+compose-bom = "2025.01.01"
 constraintlayout-compose = "1.1.0"
 activity-compose = "1.10.0"
 lifecycle-viewmodel-compose = "2.8.7"
@@ -19,7 +19,7 @@ material = "1.12.0"
 startup-runtime = "1.2.0"
 lifecycle-livedata-ktx = "2.8.7"
 lifecycle-viewmodel-ktx = "2.8.7"
-ui-tooling = "1.7.6"
+ui-tooling = "1.7.7"
 media3 = "1.5.1"
 okhttp3 = "4.12.0"
 palette-ktx = "1.0.0"
@@ -32,7 +32,7 @@ room = "2.6.1"
 legacy-support-v4 = "1.0.0"
 coroutines-android = "1.10.1"
 coroutines-guava = "1.10.1"
-navigation = "2.8.5"
+navigation = "2.8.6"
 gson = "2.10.1"
 coil3 = "3.0.4"
 kmpalette = "3.1.0"
@@ -57,7 +57,9 @@ brotli = "0.1.2"
 ksoup = "0.3.1"
 desugaring = "2.1.4"
 koin-bom = "4.0.0-RC1"
+md = "0.7.3"
 store = "5.1.0-alpha05"
+ui-text-android = "1.7.7"
 
 [libraries]
 desugaring = { group = "com.android.tools", name = "desugar_jdk_libs", version.ref = "desugaring"}
@@ -144,6 +146,7 @@ brotli-dec = { group = "org.brotli", name = "dec", version.ref = "brotli" }
 kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect" }
 ksoup-html = { group = "com.mohamedrejeb.ksoup", name = "ksoup-html", version.ref = "ksoup" }
 ksoup-entities = { group = "com.mohamedrejeb.ksoup", name = "ksoup-entities", version.ref = "ksoup" }
+markdown = { module = "org.jetbrains:markdown", version.ref = "md" }
 store = { module = "org.mobilenativefoundation.store:store5", version.ref = "store" }
 # Use NewPipeExtractor from the Outertune project (Thanks to @DD3Boh)
 newpipe-extractor = { module = "com.github.gechoto:NewPipeExtractor", version = "00cf7dad9e49933c7faaa382c9c7b1e7afb28a7d" }
@@ -154,6 +157,7 @@ koin-core = { module = "io.insert-koin:koin-core" }
 koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose" }
 koin-android = { module = "io.insert-koin:koin-android"}
 koin-workmanager = { module = "io.insert-koin:koin-androidx-workmanager" }
+androidx-ui-text-android = { group = "androidx.compose.ui", name = "ui-text-android", version.ref = "ui-text-android" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "android" }
