@@ -373,4 +373,7 @@
     <string name="proxy_host_message">Veuillez saisir votre hôte proxy</string>
     <string name="proxy_port_message">Veuillez entrer votre port proxy</string>
     <string name="five_seconds">Cinq secondes</string>
+    <string name="lrclib" translatable="false">LRCLIB</string>
+    <string name="lyrics_provider_lrc">Paroles fournies par LRCLIB</string>
+    <string name="sync_first">Synchronisez d'abord cette playlist avec YouTube Music</string>
 </resources>
