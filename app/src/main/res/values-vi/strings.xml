@@ -372,4 +372,13 @@
     <string name="five_seconds">5 giây</string>
     <string name="lyrics_provider_lrc">Lời bài hát được cung cấp bởi LRCLIB</string>
     <string name="sync_first">Đồng bộ danh sách phát này với YouTube Music trước</string>
+    <string name="endless_queue">Hàng đợi không dừng</string>
+    <string name="do_not_show_again">Không hiển thị lại</string>
+    <string name="auto_check_for_update">Kiểm tra cập nhật tự động</string>
+    <string name="auto_check_for_update_description">Kiểm tra cập nhật mỗi khi bạn mở ứng dụng</string>
+    <string name="blur_fullscreen_lyrics">Làm mờ màn hình lời bài hát toàn màn hình</string>
+    <string name="blur_fullscreen_lyrics_description">Hiệu ứng làm mờ nền màn hình lời bài hát toàn màn hình</string>
+    <string name="playback_speed_pitch"><![CDATA[Tốc độ phát lại và cao độ]]></string>
+    <string name="playback_speed">Tốc độ phát lại</string>
+    <string name="pitch">Cao độ</string>
 </resources>
