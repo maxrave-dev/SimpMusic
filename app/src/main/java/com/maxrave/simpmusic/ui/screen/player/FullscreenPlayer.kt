@@ -80,6 +80,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import android.view.WindowManager
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -138,6 +139,9 @@ fun FullscreenPlayer(
         val insetsController = WindowCompat.getInsetsController(window, window.decorView)
 
         onDispose {
+
+            window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
             insetsController.apply {
                 show(WindowInsetsCompat.Type.systemBars())
                 systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_DEFAULT
@@ -152,6 +156,9 @@ fun FullscreenPlayer(
     LaunchedEffect(true) {
         val activity = context.findActivity()
         val window = activity.window
+        
+        window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+
         val insetsController = WindowCompat.getInsetsController(window, window.decorView)
         insetsController.apply {
             hide(WindowInsetsCompat.Type.systemBars())
