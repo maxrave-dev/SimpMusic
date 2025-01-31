@@ -127,7 +127,11 @@ class MainRepository(
     private val database: MusicDatabase,
     private val context: Context,
 ) {
+    var init = false
+
     fun initYouTube(scope: CoroutineScope) {
+        if (init) return
+        init = true
         youTube.cacheControlInterceptor =
             object : Interceptor {
                 override fun intercept(chain: Interceptor.Chain): Response {

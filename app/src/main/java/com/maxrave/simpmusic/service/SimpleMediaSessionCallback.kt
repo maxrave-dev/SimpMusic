@@ -47,8 +47,14 @@ class SimpleMediaSessionCallback(
 ) : MediaLibrarySession.Callback {
     var toggleLike: () -> Unit = {}
     private val scope = CoroutineScope(Dispatchers.Main + Job())
-    val searchTempList = mutableListOf<Track>()
-    val listHomeItem = mutableListOf<HomeItem>()
+    private val searchTempList = mutableListOf<Track>()
+    private val listHomeItem = mutableListOf<HomeItem>()
+
+    init {
+        if (!mainRepository.init) {
+            mainRepository.initYouTube(scope)
+        }
+    }
 
     override fun onConnect(
         session: MediaSession,
