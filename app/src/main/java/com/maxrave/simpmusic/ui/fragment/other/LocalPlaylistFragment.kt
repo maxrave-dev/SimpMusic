@@ -925,7 +925,8 @@ class LocalPlaylistFragment : Fragment() {
 //                                    binding.btSort.setIconResource(
 //                                        R.drawable.baseline_arrow_drop_down_24,
 //                                    )
-//                                    listTrack.sortBy {
+//                                    listTrack.
+        //                                    sortBy {
 //                                        viewModel.listPair.value?.find {
 //                                                pair ->
 //                                            pair.songId == (it as SongEntity).videoId

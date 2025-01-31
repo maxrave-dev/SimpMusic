@@ -276,6 +276,9 @@ interface DatabaseDao {
     suspend fun insertPlaylist(playlist: PlaylistEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertAndReplacePlaylist(playlist: PlaylistEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertRadioPlaylist(playlist: PlaylistEntity)
 
     @Query("UPDATE playlist SET liked = :liked WHERE id = :playlistId")
