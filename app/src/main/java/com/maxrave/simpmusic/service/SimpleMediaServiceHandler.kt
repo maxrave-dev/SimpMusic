@@ -801,7 +801,7 @@ class SimpleMediaServiceHandler(
             }
         }
         _queueData.value?.listTracks?.let { list ->
-            if (list.size > 3 &&
+            if ((list.size > 3 || runBlocking { dataStoreManager.endlessQueue.first() == TRUE }) &&
                 list.size - player.currentMediaItemIndex < 3 &&
                 list.size - player.currentMediaItemIndex >= 0 &&
                 _stateFlow.value == StateSource.STATE_INITIALIZED
