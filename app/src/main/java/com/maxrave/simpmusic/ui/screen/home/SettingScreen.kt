@@ -190,6 +190,7 @@ fun SettingScreen(
     val proxyPort by viewModel.proxyPort.collectAsStateWithLifecycle()
     val autoCheckUpdate by viewModel.autoCheckUpdate.collectAsStateWithLifecycle()
     val blurFullscreenLyrics by viewModel.blurFullscreenLyrics.collectAsStateWithLifecycle()
+    val blurPlayerBackground by viewModel.blurPlayerBackground.collectAsStateWithLifecycle()
     var checkForUpdateSubtitle by rememberSaveable {
         mutableStateOf("")
     }
@@ -275,6 +276,12 @@ fun SettingScreen(
                     subtitle = stringResource(R.string.blur_fullscreen_lyrics_description),
                     smallSubtitle = true,
                     switch = (blurFullscreenLyrics to { viewModel.setBlurFullscreenLyrics(it) }),
+                )
+                SettingItem(
+                    title = stringResource(R.string.blur_player_background),
+                    subtitle = stringResource(R.string.blur_player_background_description),
+                    smallSubtitle = true,
+                    switch = (blurPlayerBackground to { viewModel.setBlurPlayerBackground(it) }),
                 )
             }
         }

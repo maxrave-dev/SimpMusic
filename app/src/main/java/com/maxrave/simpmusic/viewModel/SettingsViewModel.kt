@@ -125,6 +125,8 @@ class SettingsViewModel(
     val autoCheckUpdate: StateFlow<Boolean> = _autoCheckUpdate
     private var _blurFullscreenLyrics = MutableStateFlow(false)
     val blurFullscreenLyrics: StateFlow<Boolean> = _blurFullscreenLyrics
+    private var _blurPlayerBackground = MutableStateFlow(false)
+    val blurPlayerBackground: StateFlow<Boolean> = _blurPlayerBackground
 
     private var _alertData: MutableStateFlow<SettingAlertState?> = MutableStateFlow(null)
     val alertData: StateFlow<SettingAlertState?> = _alertData
@@ -173,6 +175,7 @@ class SettingsViewModel(
         getTranslucentBottomBar()
         getAutoCheckUpdate()
         getBlurFullscreenLyrics()
+        getBlurPlayerBackground()
         viewModelScope.launch {
             calculateDataFraction()
         }
@@ -190,6 +193,21 @@ class SettingsViewModel(
         viewModelScope.launch {
             dataStoreManager.setBlurFullscreenLyrics(blurFullscreenLyrics)
             getBlurFullscreenLyrics()
+        }
+    }
+
+    private fun getBlurPlayerBackground() {
+        viewModelScope.launch {
+            dataStoreManager.blurPlayerBackground.collect { blurPlayerBackground ->
+                _blurPlayerBackground.value = blurPlayerBackground == DataStoreManager.TRUE
+            }
+        }
+    }
+
+    fun setBlurPlayerBackground(blurPlayerBackground: Boolean) {
+        viewModelScope.launch {
+            dataStoreManager.setBlurPlayerBackground(blurPlayerBackground)
+            getBlurPlayerBackground()
         }
     }
 

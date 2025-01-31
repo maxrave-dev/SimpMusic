@@ -105,8 +105,8 @@ import com.moriatsushi.insetsx.systemBars
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
+import dev.chrisbanes.haze.materials.CupertinoMaterials
 import dev.chrisbanes.haze.materials.ExperimentalHazeMaterialsApi
-import dev.chrisbanes.haze.materials.HazeMaterials
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
@@ -354,7 +354,7 @@ fun FullscreenLyricsSheet(
                                 if (shouldHaze) {
                                     Modifier.hazeEffect(
                                         hazeState,
-                                        style = HazeMaterials.thin(),
+                                        style = CupertinoMaterials.thin(),
                                     )
                                 } else {
                                     Modifier

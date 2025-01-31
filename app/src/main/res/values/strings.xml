@@ -387,4 +387,6 @@
     <string name="playback_speed_pitch"><![CDATA[Playback speed & pitch]]></string>
     <string name="playback_speed">Playback speed</string>
     <string name="pitch">Pitch</string>
+    <string name="blur_player_background">Blur player background</string>
+    <string name="blur_player_background_description">Blurring the background of the now playing screen effect</string>
 </resources>

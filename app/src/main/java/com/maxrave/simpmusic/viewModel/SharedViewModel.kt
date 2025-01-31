@@ -69,6 +69,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -78,7 +79,9 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.singleOrNull
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -156,6 +159,15 @@ class SharedViewModel(
 
     private var _nowPlayingState = MutableStateFlow<NowPlayingTrackState?>(null)
     val nowPlayingState: StateFlow<NowPlayingTrackState?> = _nowPlayingState
+
+    val blurBg: StateFlow<Boolean> =
+        dataStoreManager.blurPlayerBackground
+            .map { it == TRUE }
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(500L),
+                initialValue = false,
+            )
 
     private var _controllerState =
         MutableStateFlow<ControlState>(
