@@ -51,12 +51,10 @@ import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
 import org.koin.core.component.inject
 import java.time.LocalDateTime
 
 @UnstableApi
-
 class LocalPlaylistViewModel(
     private val application: Application,
 ) : BaseViewModel(application) {
@@ -411,6 +409,7 @@ class LocalPlaylistViewModel(
     fun deletePlaylist(id: Long) {
         showLoadingDialog(message = getString(R.string.delete))
         viewModelScope.launch {
+            _uiState.value = LocalPlaylistState.initial()
             localPlaylistManager.deleteLocalPlaylist(id).collectLatestResource(
                 onSuccess = {
                     makeToast(it)

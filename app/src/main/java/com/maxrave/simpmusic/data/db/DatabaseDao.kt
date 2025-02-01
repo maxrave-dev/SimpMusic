@@ -307,7 +307,7 @@ interface DatabaseDao {
     suspend fun getAllLocalPlaylists(): List<LocalPlaylistEntity>
 
     @Query("SELECT * FROM local_playlist WHERE id = :id")
-    suspend fun getLocalPlaylist(id: Long): LocalPlaylistEntity
+    suspend fun getLocalPlaylist(id: Long): LocalPlaylistEntity?
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertLocalPlaylist(localPlaylist: LocalPlaylistEntity)

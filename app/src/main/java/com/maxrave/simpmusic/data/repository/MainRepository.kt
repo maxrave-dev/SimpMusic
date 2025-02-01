@@ -495,7 +495,7 @@ class MainRepository(
 
     suspend fun getAllLocalPlaylists(): Flow<List<LocalPlaylistEntity>> = flow { emit(localDataSource.getAllLocalPlaylists()) }.flowOn(Dispatchers.IO)
 
-    suspend fun getLocalPlaylist(id: Long): Flow<LocalPlaylistEntity> = flow { emit(localDataSource.getLocalPlaylist(id)) }.flowOn(Dispatchers.IO)
+    suspend fun getLocalPlaylist(id: Long): Flow<LocalPlaylistEntity?> = flow { emit(localDataSource.getLocalPlaylist(id)) }.flowOn(Dispatchers.IO)
 
     suspend fun insertLocalPlaylist(localPlaylistEntity: LocalPlaylistEntity) =
         withContext(Dispatchers.IO) { localDataSource.insertLocalPlaylist(localPlaylistEntity) }

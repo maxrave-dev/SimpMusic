@@ -314,14 +314,18 @@ class SimpleMediaSessionCallback(
                                 if (playlistId != null) {
                                     val playlist =
                                         mainRepository.getLocalPlaylist(playlistId.toLong()).first()
-                                    Log.w(tag, "onGetChildren: $playlist")
-                                    if (playlist.tracks.isNullOrEmpty()) {
-                                        emptyList()
+                                    if (playlist != null) {
+                                        Log.w(tag, "onGetChildren: $playlist")
+                                        if (playlist.tracks.isNullOrEmpty()) {
+                                            emptyList()
+                                        } else {
+                                            mainRepository
+                                                .getSongsByListVideoId(playlist.tracks)
+                                                .first()
+                                                .map { it.toMediaItem(parentId) }
+                                        }
                                     } else {
-                                        mainRepository
-                                            .getSongsByListVideoId(playlist.tracks)
-                                            .first()
-                                            .map { it.toMediaItem(parentId) }
+                                        emptyList()
                                     }
                                 } else {
                                     emptyList()
@@ -399,7 +403,7 @@ class SimpleMediaSessionCallback(
                         mainRepository
                             .getLocalPlaylist(playlistId.toLong())
                             .first()
-                            .tracks
+                            ?.tracks
                             ?.let {
                                 mainRepository.getSongsByListVideoId(it)
                             }?.first()
