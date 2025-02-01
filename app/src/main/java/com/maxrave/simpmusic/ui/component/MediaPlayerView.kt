@@ -43,7 +43,6 @@ import coil3.compose.AsyncImage
 import coil3.request.CachePolicy
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import coil3.toCoilUri
 import com.maxrave.simpmusic.common.Config
 import com.maxrave.simpmusic.extension.KeepScreenOn
 import com.maxrave.simpmusic.extension.getScreenSizeInfo
@@ -180,9 +179,21 @@ fun MediaPlayerView(
         mutableStateOf(false)
     }
 
+    var artworkUri by rememberSaveable {
+        mutableStateOf<String?>(null)
+    }
+
     val playerListener =
         remember {
             object : Player.Listener {
+                override fun onMediaItemTransition(
+                    mediaItem: MediaItem?,
+                    reason: Int,
+                ) {
+                    super.onMediaItemTransition(mediaItem, reason)
+                    artworkUri = mediaItem?.mediaMetadata?.artworkUri?.toString()
+                }
+
                 override fun onTracksChanged(tracks: Tracks) {
                     super.onTracksChanged(tracks)
                     if (!tracks.groups.isEmpty()) {
@@ -231,16 +242,10 @@ fun MediaPlayerView(
                         ImageRequest
                             .Builder(LocalContext.current)
                             .data(
-                                player.currentMediaItem
-                                    ?.mediaMetadata
-                                    ?.artworkUri
-                                    ?.toCoilUri(),
+                                artworkUri,
                             ).diskCachePolicy(CachePolicy.ENABLED)
                             .diskCacheKey(
-                                player.currentMediaItem
-                                    ?.mediaMetadata
-                                    ?.artworkUri
-                                    ?.toString(),
+                                artworkUri,
                             ).crossfade(550)
                             .build(),
                     contentDescription = null,
