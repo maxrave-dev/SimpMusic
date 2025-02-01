@@ -114,9 +114,6 @@ class MainActivity : AppCompatActivity() {
     @UnstableApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-//        if (viewModel.simpleMediaServiceHandler == null) {
-//            startMusicService()
-//        }
         VersionManager.initialize(applicationContext)
         checkForUpdate()
         if (viewModel.recreateActivity.value == true) {

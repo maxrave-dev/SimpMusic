@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -187,6 +188,7 @@ fun MiniPlayer(
 
     ElevatedCard(
         elevation = CardDefaults.elevatedCardElevation(10.dp),
+        shape = RoundedCornerShape(8.dp),
         colors =
             CardDefaults.elevatedCardColors(
                 containerColor = background.value,
@@ -228,12 +230,12 @@ fun MiniPlayer(
                     )
                 },
     ) {
-        Column(modifier = Modifier.fillMaxHeight()) {
+        Box(modifier = Modifier.fillMaxHeight()) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier =
                     Modifier
-                        .weight(1F),
+                        .fillMaxSize(),
             ) {
                 Spacer(modifier = Modifier.size(8.dp))
                 Box(modifier = Modifier.weight(1F)) {
@@ -300,14 +302,16 @@ fun MiniPlayer(
                             modifier =
                                 Modifier
                                     .size(40.dp)
+                                    .align(Alignment.CenterVertically)
                                     .clip(
-                                        RoundedCornerShape(8.dp),
+                                        RoundedCornerShape(4.dp),
                                     ),
                         )
                         Spacer(modifier = Modifier.width(10.dp))
                         AnimatedContent(
                             targetState = songEntity,
-                            modifier = Modifier.weight(1F),
+                            modifier = Modifier.weight(1F).fillMaxHeight(),
+                            contentAlignment = Alignment.CenterStart,
                             transitionSpec = {
                                 // Compare the incoming number with the previous number.
                                 if (targetState != initialState) {
@@ -338,10 +342,14 @@ fun MiniPlayer(
                             },
                         ) { target ->
                             if (target != null) {
-                                Column {
+                                Column(
+                                    Modifier
+                                        .wrapContentHeight()
+                                        .align(Alignment.CenterVertically),
+                                ) {
                                     Text(
                                         text = (songEntity?.title ?: "").toString(),
-                                        style = typo.labelMedium,
+                                        style = typo.labelSmall,
                                         color = Color.White,
                                         maxLines = 1,
                                         modifier =
@@ -370,7 +378,6 @@ fun MiniPlayer(
                                             Text(
                                                 text = (songEntity?.artistName?.connectArtists() ?: "").toString(),
                                                 style = typo.bodySmall,
-                                                color = Color.White,
                                                 maxLines = 1,
                                                 modifier =
                                                     Modifier
@@ -418,19 +425,19 @@ fun MiniPlayer(
                         .wrapContentSize(Alignment.Center)
                         .padding(
                             horizontal = 10.dp,
-                        ),
+                        ).align(Alignment.BottomCenter),
             ) {
                 LinearProgressIndicator(
                     progress = { animatedProgress },
                     modifier =
                         Modifier
                             .fillMaxWidth()
-                            .height(3.dp)
+                            .height(1.dp)
                             .background(
                                 color = Color.Transparent,
-                                shape = RoundedCornerShape(8.dp),
+                                shape = RoundedCornerShape(4.dp),
                             ),
-                    color = Color(0xB2FFFFFF),
+                    color = Color.White,
                     trackColor = Color.Transparent,
                     strokeCap = StrokeCap.Round,
                     drawStopIndicator = {},
