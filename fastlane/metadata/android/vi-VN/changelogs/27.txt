@@ -1,0 +1,11 @@
+- Ngăn tắt màn hình khi xem video ở chế độ toàn màn hình
+- Biểu tượng lời bài hát "rõ ràng" (Explicit)
+- Thay số bằng hình ảnh xem trước trong hàng đợi
+- Hàng đợi vô tận
+- Bật/tắt kiểm tra cập nhật tự động
+- Làm mờ nền lời bài hát toàn màn hình và nền màn hình đang phát
+- Tốc độ phát & cao độ
+- Tìm kiếm trong màn hình thư viện
+- Cải thiện hỗ trợ Android Auto
+- Cập nhật bản dịch
+- Sửa lỗi và cải thiện hiệu suất
