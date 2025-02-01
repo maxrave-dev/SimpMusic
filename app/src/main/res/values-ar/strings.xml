@@ -186,7 +186,6 @@
     <string name="preview">استعراض</string>
     <string name="music_off_topic">موسيقى خارج الموضوع</string>
     <string name="poi_highlight">تسليط الضوء على النقاط الهامة</string>
-    <string name="filler">فلتر</string>
     <string name="sponsorBlock">SponsorBlock</string>
     <string name="enable_sponsor_block">تمكين SponsorBlock</string>
     <string name="categories_sponsor_block">حدد سلوك تخطي الجزء</string>
@@ -338,26 +337,18 @@
     <string name="repeat_one">كرر مرة واحدة</string>
     <string name="repeat_all">تكرار الكل</string>
     <string name="repeat_off">التكرار معطل</string>
-    <string name="youtube_transcript">YouTube Transcript</string>
     <string name="user_interface">الواجهة</string>
-    <string name="translucent_bottom_navigation_bar">Translucent bottom navigation bar</string>
-    <string name="you_can_see_the_content_below_the_bottom_bar">You can see the content below the bottom bar</string>
-    <string name="donation">If you love my work, give me a coffee</string>
     <string name="relax">استرخاء</string>
     <string name="sleep">نوم</string>
     <string name="energize">تنشيط</string>
     <string name="sad">حزين</string>
     <string name="romance">رومانسية</string>
-    <string name="feel_good">Feel Good</string>
     <string name="workout">تمرين</string>
     <string name="party">حفل</string>
-    <string name="commute">Commute</string>
     <string name="focus">تركيز</string>
     <string name="updated">محدث</string>
     <string name="updated_to_youtube_playlist">تم التحديث إلى قائمة تشغيل يوتيوب</string>
-    <string name="can_t_add_to_youtube_playlist">Can\'t add to YouTube Playlist</string>
-    <string name="can_t_delete_from_youtube_playlist">Can\'t delete song from YouTube Playlist</string>
     <string name="loading">جاري التحميل</string>
     <string name="updating">جاري التحديث</string>
     <string name="go_to_log_in_page">الذهاب إلى صفحة تسجيل الدخول</string>
- </resources>
+</resources>

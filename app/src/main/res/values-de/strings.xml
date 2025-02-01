@@ -186,7 +186,6 @@
     <string name="preview">Vorschau</string>
     <string name="music_off_topic">Off-Topic Musik</string>
     <string name="poi_highlight">POI Highlight</string>
-    <string name="filler">Filter</string>
     <string name="sponsorBlock">SponsorBlock</string>
     <string name="enable_sponsor_block">SponsorBlock aktivieren</string>
     <string name="categories_sponsor_block">Auswählen, welche Segmente übersprungen werden sollen</string>
@@ -357,10 +356,8 @@
     <string name="updating">Updating</string>
     <string name="go_to_log_in_page">Zur Anmeldeseite</string>
     <string name="log_in_warning">YouTube Music erfordert jetzt das Einloggen um Musik zu streamen, Piped Instance kann manchmal nicht funktionieren. Du solltest dich bei YouTube anmelden, um ein besseres Erlebnis mit SimpMusic zu bekommen.</string>
-    <string name="spotify_canvas_cache">Spotify Canvas Cache</string>
     <string name="clear_canvas_cache">Leere Canvas-Zwischenspeicher</string>
     <string name="proxy">Proxy</string>
-    <string name="proxy_description">Using Proxy to bypass country content blocking</string>
     <string name="proxy_type">Proxy-Typ</string>
     <string name="http">HTTP</string>
     <string name="socks">Socks</string>
@@ -370,5 +367,4 @@
     <string name="invalid_port">Ungültiger Port</string>
     <string name="proxy_host_message">Bitte geben Sie Ihren Proxy-Host ein</string>
     <string name="proxy_port_message">Bitte geben Sie Ihren Proxy-Port ein</string>
-    <string name="five_seconds">Five seconds</string>
 </resources>

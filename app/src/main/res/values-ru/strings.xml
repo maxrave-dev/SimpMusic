@@ -18,7 +18,7 @@
     <string name="preparing">Подготовка</string>
     <string name="hide">Скрыть</string>
     <string name="show">Показать</string>
-    <string name="na_na">н/д</string>
+    <string name="na_na">Н/Д</string>
     <string name="cache_size">%1$s МБ</string>
     <string name="favorite">Избранное</string>
     <string name="followed">Подписки</string>
@@ -186,7 +186,6 @@
     <string name="preview">Предварительный просмотр</string>
     <string name="music_off_topic">Музыкальные оффтопики</string>
     <string name="poi_highlight">Яркие моменты POI</string>
-    <string name="filler">Фильтр</string>
     <string name="sponsorBlock">SponsorBlock</string>
     <string name="enable_sponsor_block">Включить SponsorBlock</string>
     <string name="categories_sponsor_block">Выберите поведение пропуска-сегмента</string>
@@ -219,7 +218,7 @@
     <string name="videos_inArtist">Видео</string>
     <string name="your_youtube_playlists">Ваши плейлисты YouTube</string>
     <string name="no_YouTube_playlists">Нет плейлистов YouTube</string>
-    <string name="track">песня</string>
+    <string name="track">трек(и)</string>
     <string name="save_to_local_playlist">Сохранить в локальный плейлист</string>
     <string name="added_local_playlist">Добавлен локальный плейлист</string>
     <string name="sync">Синхронизировать с YouTube Music</string>
@@ -353,8 +352,8 @@
     <string name="focus">Концентрация</string>
     <string name="updated">Синхронизация успешна</string>
     <string name="updated_to_youtube_playlist">Синхронизировано с плейлистом YouTube</string>
-    <string name="can_t_add_to_youtube_playlist">Ошибка синхронизации</string>
-    <string name="can_t_delete_from_youtube_playlist">Не удается удалить песню из плейлиста</string>
+    <string name="can_t_add_to_youtube_playlist">Не удается добавить в плейлист YouTube</string>
+    <string name="can_t_delete_from_youtube_playlist">Не удается удалить песню из плейлиста YouTube</string>
     <string name="loading">Загрузка</string>
     <string name="updating">Обновление</string>
     <string name="go_to_log_in_page">Войти в аккаунт</string>
@@ -373,4 +372,6 @@
     <string name="proxy_host_message">Пожалуйста, укажите хост прокси</string>
     <string name="proxy_port_message">Пожалуйста, укажите порт прокси</string>
     <string name="five_seconds">Пять секунд</string>
+    <string name="lyrics_provider_lrc">Источник текста LRCLIB</string>
+    <string name="sync_first">Сначала синхронизируйте этот плейлист с YouTube Music</string>
 </resources>

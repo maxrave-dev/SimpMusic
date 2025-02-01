@@ -186,7 +186,7 @@
     <string name="preview">ตัวอย่าง</string>
     <string name="music_off_topic">เพลงนอกประเด็น</string>
     <string name="poi_highlight">ไฮไลท์ POI</string>
-    <string name="filler">ตัวกรอง</string>
+    <string name="filler">ฟิลเลอร์</string>
     <string name="sponsorBlock">SponsorBlock</string>
     <string name="enable_sponsor_block">เปิดใช้งาน SponsorBlock</string>
     <string name="categories_sponsor_block">เลือกส่วนที่จะข้าม</string>
@@ -370,4 +370,15 @@
     <string name="proxy_host_message">กรุณาป้อนพร็อกซีโฮสต์ของคุณ</string>
     <string name="proxy_port_message">กรุณากรอกพอร์ตพร็อกซีของคุณ</string>
     <string name="five_seconds">5 วินาที</string>
+    <string name="lyrics_provider_lrc">เนื้อเพลงโดย LRCLIB</string>
+    <string name="sync_first">ซิงค์เพลย์ลิสต์นี้กับ YouTube Music ก่อน</string>
+    <string name="endless_queue">คิวไม่มีที่สิ้นสุด</string>
+    <string name="do_not_show_again">อย่าแสดงอีก</string>
+    <string name="auto_check_for_update">ตรวจสอบการอัปเดตอัตโนมัติ</string>
+    <string name="auto_check_for_update_description">ตรวจสอบการอัปเดตทุกครั้งที่คุณเปิดแอป</string>
+    <string name="blur_fullscreen_lyrics">เอฟเฟกต์เบลอในหน้าจอเนื้อเพลงเต็มจอ</string>
+    <string name="blur_fullscreen_lyrics_description">เอฟเฟกต์เบลอพื้นหลังหน้าจอเมื่อเปิดเนื้อเพลงแบบเต็มจอ</string>
+    <string name="playback_speed_pitch"><![CDATA[ความเร็วในการเล่นและความสูง-ต่ำของเสียง]]></string>
+    <string name="playback_speed">ความเร็วในการเล่น</string>
+    <string name="pitch">ความสูง-ต่ำของเสียง</string>
 </resources>

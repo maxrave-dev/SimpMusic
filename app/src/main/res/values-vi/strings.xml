@@ -381,4 +381,6 @@
     <string name="playback_speed_pitch"><![CDATA[Tốc độ phát lại và cao độ]]></string>
     <string name="playback_speed">Tốc độ phát lại</string>
     <string name="pitch">Cao độ</string>
+    <string name="blur_player_background">Làm mờ nền trình phát</string>
+    <string name="blur_player_background_description">Hiệu ứng làm mờ nền màn hình đang phát</string>
 </resources>

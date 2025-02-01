@@ -1,10 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="demo_description" translatable="false">You can also find us with:  electronic dance music 2023 edm top electronic dance songs 2023 edm songs edm music 2023 electronic dance music best electro dance music popular edm songs top edm songs edm songs 2023 edm music top edm songs 2023 top electronic dance songs edm 2023 popular edm songs 2023 best electro dance music 2023  No matter how your day is, you can always listen to good music:  1. EDM Hits Playlist - Popular EDM Hits in 2023 -  We would like to keep you with us many years from now on! So, in the next year, you could find our playlist like this: EDM 2024 ♫ Top EDM Songs 2024</string>
     <string name="Song_and_artist_name">गाना • %1$s</string>
     <string name="playlist_and_author">प्लेलिस्ट • %1$s</string>
     <string name="album_and_artist_name">एल्बम • %1$s</string>
     <string name="subscribers">%1$s सब्सक्राइबर</string>
-    <string name="year_and_category">%1$s • %2$s</string>
+    <string name="year_and_category">%1$s %2$s</string>
     <string name="album_length">%1$s ट्रैक  %2$s</string>
     <string name="view_count">%1$s व्यूज</string>
     <string name="lyrics_provider">गीत Musixmatch द्वारा प्रदान किए गए</string>
@@ -18,8 +18,6 @@
     <string name="preparing">तैयारी हो रही है</string>
     <string name="hide">छिपाएं</string>
     <string name="show">दिखाएं</string>
-    <string name="na_na">NA:NA</string>
-    <string name="cache_size">%1$s MB</string>
     <string name="favorite">पसंदीदा</string>
     <string name="followed">फॉलो किया</string>
     <string name="most_played">सबसे ज्यादा बजाया गया</string>
@@ -93,7 +91,7 @@
     <string name="about">बारे में</string>
     <string name="let_s_start_with_a_radio">रेडियो से शुरू करें</string>
     <string name="let_s_pick_a_playlist_for_you">आपके लिए एक प्लेलिस्ट चुनें</string>
-    <string name="moods_amp_moment">मूड और पल</string>
+    <string name="moods_amp_moment"><![CDATA[मूड और पल]]></string>
     <string name="genre">शैली</string>
     <string name="what_is_best_choice_today">आज का सर्वश्रेष्ठ चयन क्या है</string>
     <string name="chart">चार्ट</string>
@@ -116,13 +114,9 @@
     <string name="restore_your_saved_data">अपना सहेजा गया डेटा पुनर्स्थापित करें</string>
     <string name="about_us">हमारे बारे में</string>
     <string name="version">संस्करण</string>
-    <string name="github">Github</string>
-    <string name="maxrave_dev">maxrave-dev</string>
     <string name="buy_me_a_coffee">मुझे एक कॉफी खरीदें</string>
-    <string name="paypal">PayPal</string>
     <string name="title">शीर्षक</string>
     <string name="album">एल्बम</string>
-    <string name="youtube_url">YouTube URL</string>
     <string name="download_url">डाउनलोड URL</string>
     <string name="now_playing">अभी चल रहा है</string>
     <string name="queue">कतार</string>
@@ -153,7 +147,7 @@
     <string name="normalize_volume">वॉल्यूम सामान्य करें</string>
     <string name="audio">ऑडियो</string>
     <string name="no_equalizer">आपके डिवाइस में इक्वलाइज़र नहीं है</string>
-     <string name="open_system_equalizer">सिस्टम इक्वलाइज़र खोलें</string>
+    <string name="open_system_equalizer">सिस्टम इक्वलाइज़र खोलें</string>
     <string name="use_your_system_equalizer">अपना सिस्टम इक्वलाइज़र उपयोग करें</string>
     <string name="streaming_data_provider_piped">स्ट्रीमिंग डेटा प्रोवाइडर (पाइप्ड)</string>
     <string name="itag">आईटैग</string>
@@ -173,7 +167,7 @@
     <string name="save_last_played">अंतिम चलाया गया सहेजें</string>
     <string name="save_last_played_track_and_queue">अंतिम चलाया गया गाना और कतार सहेजें</string>
     <string name="update_available">नया अपडेट उपलब्ध है</string>
-    <string name="update_message">संस्करण %1$s उपलब्ध है\nरिलीज़: %2$s\nबदलाव:\n%3$s</string>
+    <string name="update_message">"संस्करण %1$s उपलब्ध है\nरिलीज़: %2$s\nबदलाव:\n%3$s"</string>
     <string name="check_for_update">अपडेट के लिए जांचें</string>
     <string name="last_checked_at">आखिरी जांच %1$s को</string>
     <string name="checking">जांच हो रही है</string>
@@ -186,7 +180,6 @@
     <string name="preview">पूर्वावलोकन</string>
     <string name="music_off_topic">संगीत से हटकर</string>
     <string name="poi_highlight">पीओआई हाइलाइट</string>
-    <string name="filler">फ़िल्टर</string>
     <string name="sponsorBlock">स्पॉन्सरब्लॉक</string>
     <string name="enable_sponsor_block">स्पॉन्सरब्लॉक सक्षम करें</string>
     <string name="categories_sponsor_block">सेगमेंट छोड़ने का व्यवहार चुनें</string>
@@ -231,7 +224,7 @@
     <string name="log_in_to_get_YouTube_playlist">यूट्यूब प्लेलिस्ट पाने के लिए लॉग इन करें</string>
     <string name="sync_playlist_warning">सिम्पम्यूजिक स्वचालित रूप से एक यूट्यूब म्यूजिक प्लेलिस्ट बनाएगा। क्या आप सुनिश्चित हैं?</string>
     <string name="syncing">सिंक हो रहा है</string>
-    <string name="unsync_playlist_warning">इस प्लेलिस्ट को असिंक करें? यह प्लेलिस्ट यूट्यूब म्यूजिक से नहीं हटाई जाएगी</string>
+    <string name="unsync_playlist_warning">"इस प्लेलिस्ट को असिंक करें? यह प्लेलिस्ट यूट्यूब म्यूजिक से नहीं हटाई जाएगी"</string>
     <string name="unsyncing">असिंक हो रहा है</string>
     <string name="added_to_youtube_playlist">यूट्यूब प्लेलिस्ट में जोड़ा गया</string>
     <string name="removed_from_YouTube_playlist">यूट्यूब प्लेलिस्ट से हटाया गया</string>
@@ -267,9 +260,7 @@
     <string name="added_date">जोड़ने की तिथि</string>
     <string name="credit_app">बैकएंड के लिए YouTube Music का उपयोग करने वाला एक सरल संगीत ऐप \n\nSimpMusic YouTube और YouTube Music से बिना विज्ञापनों और ट्रैकिंग के संगीत स्ट्रीम करने के लिए एक ओपन सोर्स प्रोजेक्ट है। SimpMusic कई सुविधाएं प्रदान करता है:\n\n - संगीत स्ट्रीमिंग \n - सिंक किए गए गाने के बोल\n - व्यक्तिगत डेटा\n - और बहुत कुछ… \n\nSimpMusic हमेशा मुफ्त और बिना विज्ञापनों के है\n\nतुआन मिन्ह न्गुयेन डक (maxrave-dev) द्वारा ❤️ से बनाया गया</string>
     <string name="issue_tracker">समस्या ट्रैकर</string>
-    <string name="copyright" translatable="false">©2023 Tuan Minh Nguyen Duc (maxrave-dev)</string>
     <string name="featured_playlists">विशेष प्लेलिस्ट</string>
-    <string name="podcasts" translatable="false">Podcasts</string>
     <string name="featured_inArtist">पर प्रदर्शित</string>
     <string name="audio_quality">ऑडियो गुणवत्ता</string>
     <string name="play_video_for_video_track_instead_of_audio_only">केवल ऑडियो के बजाय वीडियो ट्रैक के लिए वीडियो चलाएं</string>
@@ -301,7 +292,6 @@
     <string name="like_and_dislike">%1$d पसंद, %2$d नापसंद</string>
     <string name="published_at">%1$s को प्रकाशित</string>
     <string name="less">कम</string>
-    <string name="spotify">Spotify</string>
     <string name="log_in_to_spotify">Spotify में लॉग इन करें</string>
     <string name="intro_login_to_spotify">Spotify लिरिक्स, कैनवास और बहुत कुछ के लिए लॉग इन करें</string>
     <string name="enable_spotify_lyrics">Spotify लिरिक्स सक्षम करें</string>

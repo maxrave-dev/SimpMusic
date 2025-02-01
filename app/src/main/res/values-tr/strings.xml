@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="demo_description">Bizi şunlarla da bulabilirsiniz: electronic dance music 2023 edm top electronic dance songs 2023 edm songs edm music 2023 electronic dance music best electro dance music popular edm songs top edm songs edm songs 2023 edm music top edm songs 2023 top electronic dance songs edm 2023 popular edm songs 2023 best electro dance music 2023 Gününüz nasıl geçerse geçsin, her zaman iyi müzik dinleyebilirsiniz: 1. EDM Hits Playlist - Popular EDM Hits in 2023 - Sizi bundan sonra da uzun yıllar bizimle tutmak istiyoruz! Yani, gelecek yıl, çalma listemizi bu şekilde bulabilirsiniz: EDM 2024 ♫ En İyi EDM Şarkıları 2024</string>
     <string name="Song_and_artist_name">Şarkı • %1$s</string>
     <string name="playlist_and_author">Oynatma listesi • %1$s</string>
     <string name="album_and_artist_name">Albüm • %1$s</string>
@@ -187,7 +186,6 @@
     <string name="preview">Ön İzleme</string>
     <string name="music_off_topic">Müzik Konu Dışı</string>
     <string name="poi_highlight">İlgi Çekici Vurgu</string>
-    <string name="filler">Filtre</string>
     <string name="sponsorBlock">SponsorBlock</string>
     <string name="enable_sponsor_block">SponsorBlock\'u etkinleştir</string>
     <string name="categories_sponsor_block">Kısım atlama davranışını seçin</string>

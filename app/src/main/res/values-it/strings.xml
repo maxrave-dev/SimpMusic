@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="Song_and_artist_name">%1$s%1$sBrano • %1$s</string>
+    <string name="Song_and_artist_name">Brano • %1$s</string>
     <string name="playlist_and_author">Playlist • %1$s</string>
     <string name="album_and_artist_name">Album • %1$s</string>
     <string name="subscribers">%1$s iscritti</string>
@@ -186,7 +186,6 @@
     <string name="preview">Anteprima</string>
     <string name="music_off_topic">Musica fuori tema</string>
     <string name="poi_highlight">Evidenziare</string>
-    <string name="filler">Filtro</string>
     <string name="sponsorBlock">SponsorBlock</string>
     <string name="enable_sponsor_block">Abilitare SponsorBlock</string>
     <string name="categories_sponsor_block">Seleziona il comportamento di salto del segmento</string>
@@ -357,7 +356,5 @@
     <string name="updating">Aggiornando</string>
     <string name="go_to_log_in_page">Vai alla pagina di accesso</string>
     <string name="log_in_warning">YouTube Music ora richiede di accedere per riprodurre musica, quindi l\'istanza Piped potrebbe occasionalmente non funzionare. Si consiglia di accedere a YouTube per ottenere un\'esperienza migliore con SimpMusic.</string>
-    <string name="spotify_canvas_cache">Spotify Canvas Cache</string>
-    <string name="clear_canvas_cache">Clear canvas cache</string>
     <string name="five_seconds">Cinque secondi</string>
 </resources>

@@ -186,7 +186,6 @@
     <string name="preview">Ön baxış</string>
     <string name="music_off_topic">Mövzudan kənar musiqi</string>
     <string name="poi_highlight">POI Vurğulama</string>
-    <string name="filler">Filtr</string>
     <string name="sponsorBlock">SponsorBlock</string>
     <string name="enable_sponsor_block">SponsorBlock-u Aktivləşdir</string>
     <string name="categories_sponsor_block">Bölüm ötürmə davranışın seç</string>
@@ -371,4 +370,6 @@
     <string name="proxy_host_message">Xahiş olunur, Proksi serverinizi daxil edin</string>
     <string name="proxy_port_message">Lütfən, Proksi portunuzu daxil edin</string>
     <string name="five_seconds">Beş saniyə</string>
+    <string name="lyrics_provider_lrc">Lirika LRCLIB tərəfindən təmin edilib</string>
+    <string name="sync_first">Əvvəlcə bu pleylisti YouTube Music ilə sinxronlaşdır</string>
 </resources>

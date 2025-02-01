@@ -186,7 +186,6 @@
     <string name="preview">Vista previa</string>
     <string name="music_off_topic">Musica Off-topic</string>
     <string name="poi_highlight">Resaltar POI</string>
-    <string name="filler">Filtro</string>
     <string name="sponsorBlock">Bloqueo de patrocinadores</string>
     <string name="enable_sponsor_block">Activar SponsorBlock</string>
     <string name="categories_sponsor_block">Seleccionar segmentos a saltar</string>
@@ -357,6 +356,20 @@
     <string name="updating">Actualizando</string>
     <string name="go_to_log_in_page">Ir a la página de inicio de sesión</string>
     <string name="log_in_warning">YouTube Music ahora requiere que inicie sesión para transmitir música, Piped Instance en algún momento no puede funcionar también. Deberías iniciar sesión en YouTube para tener una mejor experiencia con SimpMusic.</string>
-    <string name="spotify_canvas_cache">Spotify Canvas Cache</string>
-    <string name="clear_canvas_cache">Clear canvas cache</string>
+    <string name="spotify_canvas_cache">Caché de Spotify Canvas</string>
+    <string name="clear_canvas_cache">Limpiar el caché del canvas</string>
+    <string name="proxy">Proxy</string>
+    <string name="proxy_description">Usar el Proxy para evitar el bloqueo de contenido regional</string>
+    <string name="proxy_type">Tipo de proxy</string>
+    <string name="http">HTTP</string>
+    <string name="socks">Socks</string>
+    <string name="proxy_host">Host del proxy</string>
+    <string name="invalid_host">Host inválido</string>
+    <string name="proxy_port">Puerto del proxy</string>
+    <string name="invalid_port">Puerto inválido</string>
+    <string name="proxy_host_message">Por favor introduzca su host de Proxy</string>
+    <string name="proxy_port_message">Por favor introduzca su puerto Proxy</string>
+    <string name="five_seconds">Cinco segundos</string>
+    <string name="lyrics_provider_lrc">Lyrics proporcionados por LRCLIB</string>
+    <string name="sync_first">Primero sincroniza esta playlist a Youtube Music</string>
 </resources>
