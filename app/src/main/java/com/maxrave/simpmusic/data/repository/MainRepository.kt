@@ -18,6 +18,7 @@ import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.kotlinytmusicscraper.models.sponsorblock.SkipSegments
 import com.maxrave.kotlinytmusicscraper.models.youtube.YouTubeInitialPage
 import com.maxrave.kotlinytmusicscraper.pages.BrowseResult
+import com.maxrave.kotlinytmusicscraper.pages.NextPage
 import com.maxrave.kotlinytmusicscraper.pages.PlaylistPage
 import com.maxrave.kotlinytmusicscraper.pages.SearchPage
 import com.maxrave.lyricsproviders.LyricsClient
@@ -1563,11 +1564,11 @@ class MainRepository(
                     } else {
                         playlistId
                     }
-                Log.d("Repository", "playlist id: $id")
+                Log.d("getPlaylistData", "playlist id: $id")
                 youTube
                     .customQuery(browseId = id, setLogin = true)
                     .onSuccess { result ->
-                        val listContent: ArrayList<MusicShelfRenderer.Content> = arrayListOf()
+                        val listContent: ArrayList<Track> = arrayListOf()
                         val data: List<MusicShelfRenderer.Content>? =
                             result.contents
                                 ?.singleColumnBrowseResultsRenderer
@@ -1591,9 +1592,8 @@ class MainRepository(
                                     ?.musicPlaylistShelfRenderer
                                     ?.contents
                         if (data != null) {
-                            Log.d("Data", "data: $data")
-                            Log.d("Data", "data size: ${data.size}")
-                            listContent.addAll(data)
+                            Log.d("getPlaylistData", "data: $data")
+                            Log.d("getPlaylistData", "data size: ${data.size}")
                         }
                         val header =
                             result.header?.musicDetailHeaderRenderer
@@ -1620,7 +1620,7 @@ class MainRepository(
                                     ?.musicEditablePlaylistDetailHeaderRenderer
                                     ?.header
                                     ?.musicResponsiveHeaderRenderer
-                        Log.d("Header", "header: $header")
+                        Log.d("getPlaylistData", "header: $header")
                         var continueParam =
                             result.contents
                                 ?.singleColumnBrowseResultsRenderer
@@ -1650,45 +1650,82 @@ class MainRepository(
                                     ?.firstOrNull()
                                     ?.nextContinuationData
                                     ?.continuation
+                                ?: result.contents
+                                    ?.twoColumnBrowseResultsRenderer
+                                    ?.secondaryContents
+                                    ?.sectionListRenderer
+                                    ?.contents
+                                    ?.firstOrNull()
+                                    ?.musicPlaylistShelfRenderer
+                                    ?.contents
+                                    ?.lastOrNull()
+                                    ?.continuationItemRenderer
+                                    ?.continuationEndpoint
+                                    ?.continuationCommand
+                                    ?.token
                         var count = 0
-                        Log.d("Repository", "playlist data: ${listContent.size}")
-                        Log.d("Repository", "continueParam: $continueParam")
+                        Log.d("getPlaylistData", "playlist data: ${listContent.size}")
+                        Log.d("getPlaylistData", "continueParam: $continueParam")
 //                        else {
 //                            var listTrack = playlistBrowse.tracks.toMutableList()
                         while (continueParam != null) {
                             youTube
                                 .customQuery(
-                                    browseId = "",
+                                    browseId = null,
                                     continuation = continueParam,
                                     setLogin = true,
                                 ).onSuccess { values ->
-                                    Log.d("Continue", "continue: $continueParam")
-                                    val dataMore: List<MusicShelfRenderer.Content>? =
-                                        values.continuationContents?.musicPlaylistShelfContinuation?.contents
-                                    if (dataMore != null) {
-                                        listContent.addAll(dataMore)
-                                    }
+                                    Log.d("getPlaylistData", "continue: $continueParam")
+                                    Log.d(
+                                        "getPlaylistData",
+                                        "values: ${values.onResponseReceivedActions}",
+                                    )
+                                    val dataMore: List<SongItem> =
+                                        values.onResponseReceivedActions
+                                            ?.firstOrNull()
+                                            ?.appendContinuationItemsAction
+                                            ?.continuationItems
+                                            ?.apply {
+                                                Log.w("getPlaylistData", "dataMore: ${this.size}")
+                                            }?.mapNotNull {
+                                                NextPage.fromMusicResponsiveListItemRenderer(
+                                                    it.musicResponsiveListItemRenderer ?: return@mapNotNull null,
+                                                )
+                                            } ?: emptyList()
+                                    listContent.addAll(dataMore.map { it.toTrack() })
                                     continueParam =
-                                        values.continuationContents
-                                            ?.musicPlaylistShelfContinuation
-                                            ?.continuations
-                                            ?.get(
-                                                0,
-                                            )?.nextContinuationData
-                                            ?.continuation
+                                        values.onResponseReceivedActions
+                                            ?.firstOrNull()
+                                            ?.appendContinuationItemsAction
+                                            ?.continuationItems
+                                            ?.lastOrNull()
+                                            ?.continuationItemRenderer
+                                            ?.continuationEndpoint
+                                            ?.continuationCommand
+                                            ?.token
                                     count++
                                 }.onFailure {
-                                    Log.e("Continue", "Error: ${it.message}")
+                                    Log.e("getPlaylistData", "Error: ${it.message}")
                                     continueParam = null
                                     count++
                                 }
                         }
-                        Log.d("Repository", "playlist final data: ${listContent.size}")
-                        parsePlaylistData(header, listContent, playlistId, context)?.let { playlist ->
-                            emit(Resource.Success<PlaylistBrowse>(playlist))
+                        Log.d("getPlaylistData", "playlist final data: ${listContent.size}")
+                        parsePlaylistData(header, data ?: emptyList(), playlistId, context)?.let { playlist ->
+                            emit(
+                                Resource.Success<PlaylistBrowse>(
+                                    playlist.copy(
+                                        tracks =
+                                            playlist.tracks.toMutableList().apply {
+                                                addAll(listContent)
+                                            },
+                                        trackCount = (playlist.trackCount + listContent.size),
+                                    ),
+                                ),
+                            )
                         } ?: emit(Resource.Error<PlaylistBrowse>("Error"))
                     }.onFailure { e ->
-                        Log.e("Playlist Data", e.message ?: "Error")
+                        Log.e("getPlaylistData", e.message ?: "Error")
                         emit(Resource.Error<PlaylistBrowse>(e.message.toString()))
                     }
             }

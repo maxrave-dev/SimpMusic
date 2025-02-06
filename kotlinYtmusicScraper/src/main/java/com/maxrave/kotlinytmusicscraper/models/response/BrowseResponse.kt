@@ -3,6 +3,7 @@ package com.maxrave.kotlinytmusicscraper.models.response
 import com.maxrave.kotlinytmusicscraper.models.Button
 import com.maxrave.kotlinytmusicscraper.models.Continuation
 import com.maxrave.kotlinytmusicscraper.models.Menu
+import com.maxrave.kotlinytmusicscraper.models.MusicResponsiveListItemRenderer
 import com.maxrave.kotlinytmusicscraper.models.MusicShelfRenderer
 import com.maxrave.kotlinytmusicscraper.models.ResponseContext
 import com.maxrave.kotlinytmusicscraper.models.Runs
@@ -10,6 +11,7 @@ import com.maxrave.kotlinytmusicscraper.models.SectionListRenderer
 import com.maxrave.kotlinytmusicscraper.models.SubscriptionButton
 import com.maxrave.kotlinytmusicscraper.models.Tabs
 import com.maxrave.kotlinytmusicscraper.models.ThumbnailRenderer
+import com.maxrave.kotlinytmusicscraper.models.youtube.data.YouTubeDataPage
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -20,7 +22,26 @@ data class BrowseResponse(
     val microformat: Microformat?,
     val responseContext: ResponseContext,
     val background: Background?,
+    val onResponseReceivedActions: List<OnResponseReceivedActions>?,
 ) {
+    @Serializable
+    data class OnResponseReceivedActions(
+        val appendContinuationItemsAction: AppendContinuationItemsAction?,
+    ) {
+        @Serializable
+        data class AppendContinuationItemsAction(
+            val continuationItems: List<ContinuationItem>,
+            val targetId: String,
+        ) {
+            @Serializable
+            data class ContinuationItem(
+                val musicResponsiveListItemRenderer: MusicResponsiveListItemRenderer?,
+                val continuationItemRenderer:
+                    YouTubeDataPage.Contents.TwoColumnWatchNextResults.Results.Results.Content.ItemSectionRenderer.Content.ContinuationItemRenderer?,
+            )
+        }
+    }
+
     @Serializable
     data class Background(
         val musicThumbnailRenderer: ThumbnailRenderer.MusicThumbnailRenderer?,

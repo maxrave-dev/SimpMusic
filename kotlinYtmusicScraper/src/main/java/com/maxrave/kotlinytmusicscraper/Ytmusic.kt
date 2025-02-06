@@ -20,6 +20,8 @@ import com.maxrave.kotlinytmusicscraper.models.body.LikeBody
 import com.maxrave.kotlinytmusicscraper.models.body.NextBody
 import com.maxrave.kotlinytmusicscraper.models.body.PlayerBody
 import com.maxrave.kotlinytmusicscraper.models.body.SearchBody
+import com.maxrave.kotlinytmusicscraper.utils.CurlLogger
+import com.maxrave.kotlinytmusicscraper.utils.KtorToCurl
 import com.maxrave.kotlinytmusicscraper.utils.parseCookieString
 import com.maxrave.kotlinytmusicscraper.utils.sha1
 import io.ktor.client.HttpClient
@@ -97,6 +99,15 @@ class Ytmusic {
     private fun createClient() =
         HttpClient(OkHttp) {
             expectSuccess = true
+            install(KtorToCurl) {
+                converter =
+                    object : CurlLogger {
+                        override fun log(curl: String) {
+                            println("Curl command:")
+                            println(curl)
+                        }
+                    }
+            }
             install(ContentNegotiation) {
                 protobuf()
                 json(
@@ -499,11 +510,20 @@ class Ytmusic {
     ) = httpClient.post("browse") {
         ytClient(client, if (setLogin) true else cookie != "" && cookie != null)
 
-        if (countryCode != null) {
+        if (continuation != null) {
             setBody(
                 BrowseBody(
                     context = client.toContext(locale, visitorData),
-                    browseId = browseId,
+                    browseId = if (browseId.isNullOrEmpty()) null else browseId,
+                    params = params,
+                    continuation = continuation,
+                ),
+            )
+        } else if (countryCode != null) {
+            setBody(
+                BrowseBody(
+                    context = client.toContext(locale, visitorData),
+                    browseId = if (browseId.isNullOrEmpty()) null else browseId,
                     params = params,
                     formData = FormData(listOf(countryCode)),
                 ),
@@ -512,16 +532,10 @@ class Ytmusic {
             setBody(
                 BrowseBody(
                     context = client.toContext(locale, visitorData),
-                    browseId = browseId,
+                    browseId = if (browseId.isNullOrEmpty()) null else browseId,
                     params = params,
                 ),
             )
-        }
-        parameter("alt", "json")
-        if (continuation != null) {
-            parameter("ctoken", continuation)
-            parameter("continuation", continuation)
-            parameter("type", "next")
         }
     }
 

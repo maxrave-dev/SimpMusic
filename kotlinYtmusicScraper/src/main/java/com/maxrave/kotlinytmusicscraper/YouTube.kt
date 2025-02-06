@@ -786,7 +786,7 @@ class YouTube {
      * @return a [Result]<[BrowseResponse]> object
      */
     suspend fun customQuery(
-        browseId: String,
+        browseId: String?,
         params: String? = null,
         continuation: String? = null,
         country: String? = null,

@@ -1,5 +1,6 @@
 package com.maxrave.kotlinytmusicscraper.models
 
+import com.maxrave.kotlinytmusicscraper.models.youtube.data.YouTubeDataPage
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -14,6 +15,8 @@ data class MusicShelfRenderer(
     data class Content(
         val musicResponsiveListItemRenderer: MusicResponsiveListItemRenderer?,
         val musicMultiRowListItemRenderer: MusicMultiRowListItemRenderer?,
+        val continuationItemRenderer:
+            YouTubeDataPage.Contents.TwoColumnWatchNextResults.Results.Results.Content.ItemSectionRenderer.Content.ContinuationItemRenderer?,
     ) {
         @Serializable
         data class MusicMultiRowListItemRenderer(

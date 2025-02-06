@@ -1,7 +1,6 @@
 package com.maxrave.kotlinytmusicscraper.test
 
 import com.google.gson.annotations.SerializedName
-import com.maxrave.kotlinytmusicscraper.YouTube
 import com.maxrave.kotlinytmusicscraper.Ytmusic
 import com.maxrave.kotlinytmusicscraper.models.GridRenderer
 import com.maxrave.kotlinytmusicscraper.models.MusicResponsiveListItemRenderer
@@ -10,6 +9,7 @@ import com.maxrave.kotlinytmusicscraper.models.Run
 import com.maxrave.kotlinytmusicscraper.models.SectionListRenderer
 import com.maxrave.kotlinytmusicscraper.models.Thumbnail
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient
+import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.WEB_REMIX
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.runBlocking
@@ -22,16 +22,11 @@ fun main() {
 
 fun testPlayer() {
     runBlocking {
-        val yt = YouTube()
+        val yt = Ytmusic()
+        val id = "VLPL_pRLf9CPBPEvMTXA4rb-RNECtiH9C2NP"
         yt
-            .player(
-                "iqgYmB5vPfI",
-                "RDAMVMiqgYmB5vPfI",
-            ).onSuccess {
-                println(it)
-            }.onFailure {
-                it.printStackTrace()
-            }
+            .browse(WEB_REMIX, id, null, null, "VN", true)
+            .bodyAsText()
     }
 }
 
