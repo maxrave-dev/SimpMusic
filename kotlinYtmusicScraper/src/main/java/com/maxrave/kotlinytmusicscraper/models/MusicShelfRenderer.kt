@@ -22,10 +22,26 @@ data class MusicShelfRenderer(
         data class MusicMultiRowListItemRenderer(
             val description: Description?,
             val subtitle: Subtitle?,
+            val playbackProgress: PlaybackProgress?,
             val title: Title?,
             val thumbnail: Thumbnail?,
             val onTap: OnTap?,
         ) {
+            @Serializable
+            data class PlaybackProgress(
+                val musicPlaybackProgressRenderer: MusicPlaybackProgressRenderer?,
+            ) {
+                @Serializable
+                data class MusicPlaybackProgressRenderer(
+                    val durationText: DurationText?,
+                ) {
+                    @Serializable
+                    data class DurationText(
+                        val runs: List<Run>?,
+                    )
+                }
+            }
+
             @Serializable
             data class Description(
                 val runs: List<Run>?,

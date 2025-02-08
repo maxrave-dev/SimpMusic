@@ -114,6 +114,57 @@ fun BrowseResponse.getPlaylistContinuation(): String? =
             ?.sectionListRenderer
             ?.continuations
             ?.getContinuation()
+        ?: this.contents
+            ?.singleColumnBrowseResultsRenderer
+            ?.tabs
+            ?.firstOrNull()
+            ?.tabRenderer
+            ?.content
+            ?.sectionListRenderer
+            ?.contents
+            ?.firstOrNull()
+            ?.musicPlaylistShelfRenderer
+            ?.continuations
+            ?.firstOrNull()
+            ?.nextContinuationData
+            ?.continuation
+        ?: this.contents
+            ?.twoColumnBrowseResultsRenderer
+            ?.secondaryContents
+            ?.sectionListRenderer
+            ?.contents
+            ?.firstOrNull()
+            ?.musicPlaylistShelfRenderer
+            ?.continuations
+            ?.firstOrNull()
+            ?.nextContinuationData
+            ?.continuation
+        ?: this.contents
+            ?.twoColumnBrowseResultsRenderer
+            ?.secondaryContents
+            ?.sectionListRenderer
+            ?.contents
+            ?.firstOrNull()
+            ?.musicPlaylistShelfRenderer
+            ?.contents
+            ?.lastOrNull()
+            ?.continuationItemRenderer
+            ?.continuationEndpoint
+            ?.continuationCommand
+            ?.token
+        ?: this.continuationContents
+            ?.musicPlaylistShelfContinuation
+            ?.continuations
+            ?.getContinuation()
+        ?: this.onResponseReceivedActions
+            ?.firstOrNull()
+            ?.appendContinuationItemsAction
+            ?.continuationItems
+            ?.lastOrNull()
+            ?.continuationItemRenderer
+            ?.continuationEndpoint
+            ?.continuationCommand
+            ?.token
 
 fun BrowseResponse.getContinuePlaylistContinuation(): String? =
     this.continuationContents

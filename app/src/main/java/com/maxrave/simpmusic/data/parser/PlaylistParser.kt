@@ -428,11 +428,12 @@ fun parsePodcastData(
                             ?: "",
                     durationString =
                         content.musicMultiRowListItemRenderer
-                            ?.subtitle
+                            ?.playbackProgress
+                            ?.musicPlaybackProgressRenderer
+                            ?.durationText
                             ?.runs
-                            ?.getOrNull(
-                                1,
-                            )?.text ?: "",
+                            ?.lastOrNull()
+                            ?.text ?: "",
                     videoId =
                         content.musicMultiRowListItemRenderer
                             ?.onTap

@@ -21,6 +21,7 @@ import com.maxrave.kotlinytmusicscraper.pages.BrowseResult
 import com.maxrave.kotlinytmusicscraper.pages.NextPage
 import com.maxrave.kotlinytmusicscraper.pages.PlaylistPage
 import com.maxrave.kotlinytmusicscraper.pages.SearchPage
+import com.maxrave.kotlinytmusicscraper.parser.getPlaylistContinuation
 import com.maxrave.lyricsproviders.LyricsClient
 import com.maxrave.lyricsproviders.models.response.MusixmatchCredential
 import com.maxrave.lyricsproviders.models.response.MusixmatchTranslationLyricsResponse
@@ -1468,69 +1469,13 @@ class MainRepository(
                                     ?.header
                                     ?.musicResponsiveHeaderRenderer
                         Log.d("Header", "header: $header")
-                        var continueParam =
-                            result.contents
-                                ?.singleColumnBrowseResultsRenderer
-                                ?.tabs
-                                ?.get(
-                                    0,
-                                )?.tabRenderer
-                                ?.content
-                                ?.sectionListRenderer
-                                ?.contents
-                                ?.get(
-                                    0,
-                                )?.musicPlaylistShelfRenderer
-                                ?.continuations
-                                ?.get(
-                                    0,
-                                )?.nextContinuationData
-                                ?.continuation
-                                ?: result.contents
-                                    ?.twoColumnBrowseResultsRenderer
-                                    ?.secondaryContents
-                                    ?.sectionListRenderer
-                                    ?.contents
-                                    ?.firstOrNull()
-                                    ?.musicPlaylistShelfRenderer
-                                    ?.continuations
-                                    ?.firstOrNull()
-                                    ?.nextContinuationData
-                                    ?.continuation
-                        var count = 0
+                        val finalContinueParam =
+                            result.getPlaylistContinuation()
                         Log.d("Repository", "playlist data: ${listContent.size}")
-                        Log.d("Repository", "continueParam: $continueParam")
+                        Log.d("Repository", "continueParam: $finalContinueParam")
 //                        else {
 //                            var listTrack = playlistBrowse.tracks.toMutableList()
-                        while (count < 1 && continueParam != null) {
-                            youTube
-                                .customQuery(
-                                    browseId = "",
-                                    continuation = continueParam,
-                                    setLogin = true,
-                                ).onSuccess { values ->
-                                    Log.d("Continue", "continue: $continueParam")
-                                    val dataMore: List<MusicShelfRenderer.Content>? =
-                                        values.continuationContents?.musicPlaylistShelfContinuation?.contents
-                                    if (dataMore != null) {
-                                        listContent.addAll(dataMore)
-                                    }
-                                    continueParam =
-                                        values.continuationContents
-                                            ?.musicPlaylistShelfContinuation
-                                            ?.continuations
-                                            ?.get(
-                                                0,
-                                            )?.nextContinuationData
-                                            ?.continuation
-                                    count++
-                                }.onFailure {
-                                    Log.e("Continue", "Error: ${it.message}")
-                                    count = 3
-                                }
-                        }
                         Log.d("Repository", "playlist final data: ${listContent.size}")
-                        val finalContinueParam = continueParam
                         if (finalContinueParam != null) {
                             parsePlaylistData(header, listContent, radioId, context)?.let { playlist ->
                                 emit(
@@ -1622,47 +1567,7 @@ class MainRepository(
                                     ?.musicResponsiveHeaderRenderer
                         Log.d("getPlaylistData", "header: $header")
                         var continueParam =
-                            result.contents
-                                ?.singleColumnBrowseResultsRenderer
-                                ?.tabs
-                                ?.get(
-                                    0,
-                                )?.tabRenderer
-                                ?.content
-                                ?.sectionListRenderer
-                                ?.contents
-                                ?.get(
-                                    0,
-                                )?.musicPlaylistShelfRenderer
-                                ?.continuations
-                                ?.get(
-                                    0,
-                                )?.nextContinuationData
-                                ?.continuation
-                                ?: result.contents
-                                    ?.twoColumnBrowseResultsRenderer
-                                    ?.secondaryContents
-                                    ?.sectionListRenderer
-                                    ?.contents
-                                    ?.firstOrNull()
-                                    ?.musicPlaylistShelfRenderer
-                                    ?.continuations
-                                    ?.firstOrNull()
-                                    ?.nextContinuationData
-                                    ?.continuation
-                                ?: result.contents
-                                    ?.twoColumnBrowseResultsRenderer
-                                    ?.secondaryContents
-                                    ?.sectionListRenderer
-                                    ?.contents
-                                    ?.firstOrNull()
-                                    ?.musicPlaylistShelfRenderer
-                                    ?.contents
-                                    ?.lastOrNull()
-                                    ?.continuationItemRenderer
-                                    ?.continuationEndpoint
-                                    ?.continuationCommand
-                                    ?.token
+                            result.getPlaylistContinuation()
                         var count = 0
                         Log.d("getPlaylistData", "playlist data: ${listContent.size}")
                         Log.d("getPlaylistData", "continueParam: $continueParam")
@@ -1694,15 +1599,7 @@ class MainRepository(
                                             } ?: emptyList()
                                     listContent.addAll(dataMore.map { it.toTrack() })
                                     continueParam =
-                                        values.onResponseReceivedActions
-                                            ?.firstOrNull()
-                                            ?.appendContinuationItemsAction
-                                            ?.continuationItems
-                                            ?.lastOrNull()
-                                            ?.continuationItemRenderer
-                                            ?.continuationEndpoint
-                                            ?.continuationCommand
-                                            ?.token
+                                        values.getPlaylistContinuation()
                                     count++
                                 }.onFailure {
                                     Log.e("getPlaylistData", "Error: ${it.message}")
@@ -2948,7 +2845,7 @@ class MainRepository(
                 youTube
                     .customQuery(browseId = id, setLogin = true)
                     .onSuccess { result ->
-                        val listContent: ArrayList<MusicShelfRenderer.Content> = arrayListOf()
+                        val listContent: ArrayList<SongItem> = arrayListOf()
                         val data: List<MusicShelfRenderer.Content>? =
                             result.contents
                                 ?.singleColumnBrowseResultsRenderer
@@ -2963,29 +2860,8 @@ class MainRepository(
                                     0,
                                 )?.musicPlaylistShelfRenderer
                                 ?.contents
-                        if (data != null) {
-                            Log.d("Data", "data: $data")
-                            Log.d("Data", "data size: ${data.size}")
-                            listContent.addAll(data)
-                        }
                         var continueParam =
-                            result.contents
-                                ?.singleColumnBrowseResultsRenderer
-                                ?.tabs
-                                ?.get(
-                                    0,
-                                )?.tabRenderer
-                                ?.content
-                                ?.sectionListRenderer
-                                ?.contents
-                                ?.get(
-                                    0,
-                                )?.musicPlaylistShelfRenderer
-                                ?.continuations
-                                ?.get(
-                                    0,
-                                )?.nextContinuationData
-                                ?.continuation
+                            result.getPlaylistContinuation()
                         var count = 0
                         Log.d("Repository", "playlist data: ${listContent.size}")
                         Log.d("Repository", "continueParam: $continueParam")
@@ -2996,20 +2872,26 @@ class MainRepository(
                                     continuation = continueParam,
                                     setLogin = true,
                                 ).onSuccess { values ->
-                                    Log.d("Continue", "continue: $continueParam")
-                                    val dataMore: List<MusicShelfRenderer.Content>? =
-                                        values.continuationContents?.musicPlaylistShelfContinuation?.contents
-                                    if (dataMore != null) {
-                                        listContent.addAll(dataMore)
-                                    }
+                                    Log.d("getPlaylistData", "continue: $continueParam")
+                                    Log.d(
+                                        "getPlaylistData",
+                                        "values: ${values.onResponseReceivedActions}",
+                                    )
+                                    val dataMore: List<SongItem> =
+                                        values.onResponseReceivedActions
+                                            ?.firstOrNull()
+                                            ?.appendContinuationItemsAction
+                                            ?.continuationItems
+                                            ?.apply {
+                                                Log.w("getPlaylistData", "dataMore: ${this.size}")
+                                            }?.mapNotNull {
+                                                NextPage.fromMusicResponsiveListItemRenderer(
+                                                    it.musicResponsiveListItemRenderer ?: return@mapNotNull null,
+                                                )
+                                            } ?: emptyList()
+                                    listContent.addAll(dataMore)
                                     continueParam =
-                                        values.continuationContents
-                                            ?.musicPlaylistShelfContinuation
-                                            ?.continuations
-                                            ?.get(
-                                                0,
-                                            )?.nextContinuationData
-                                            ?.continuation
+                                        values.getPlaylistContinuation()
                                     count++
                                 }.onFailure {
                                     Log.e("Continue", "Error: ${it.message}")
@@ -3018,10 +2900,18 @@ class MainRepository(
                                 }
                         }
                         Log.d("Repository", "playlist final data: ${listContent.size}")
-                        parseSetVideoId(youtubePlaylistId, listContent).let { playlist ->
-                            Log.d("Repository", "playlist final data setVideoId: $playlist")
+                        parseSetVideoId(youtubePlaylistId, data ?: emptyList()).let { playlist ->
                             playlist.forEach { item ->
                                 insertSetVideoId(item)
+                            }
+                            listContent.forEach { item ->
+                                insertSetVideoId(
+                                    SetVideoIdEntity(
+                                        videoId = item.id,
+                                        setVideoId = item.setVideoId,
+                                        youtubePlaylistId = youtubePlaylistId,
+                                    ),
+                                )
                             }
                             emit(playlist)
                         }
@@ -3031,61 +2921,6 @@ class MainRepository(
                     }
             }
         }.flowOn(Dispatchers.IO)
-
-    suspend fun createYouTubePlaylist(playlist: LocalPlaylistEntity): Flow<String?> =
-        flow {
-            runCatching {
-                youTube
-                    .createPlaylist(playlist.title, playlist.tracks)
-                    .onSuccess {
-                        emit(it.playlistId)
-                    }.onFailure {
-                        it.printStackTrace()
-                        emit(null)
-                    }
-            }
-        }
-
-    suspend fun editYouTubePlaylist(
-        title: String,
-        youtubePlaylistId: String,
-    ): Flow<Int> =
-        flow {
-            runCatching {
-                youTube
-                    .editPlaylist(youtubePlaylistId, title)
-                    .onSuccess { response ->
-                        emit(response)
-                    }.onFailure {
-                        it.printStackTrace()
-                        emit(0)
-                    }
-            }
-        }
-
-    suspend fun removeYouTubePlaylistItem(
-        youtubePlaylistId: String,
-        videoId: String,
-    ) = flow {
-        runCatching {
-            getSetVideoId(videoId).collect { setVideoId ->
-                if (setVideoId?.setVideoId != null) {
-                    youTube
-                        .removeItemYouTubePlaylist(
-                            youtubePlaylistId,
-                            videoId,
-                            setVideoId.setVideoId,
-                        ).onSuccess {
-                            emit(it)
-                        }.onFailure {
-                            emit(0)
-                        }
-                } else {
-                    emit(0)
-                }
-            }
-        }
-    }
 
     suspend fun addYouTubePlaylistItem(
         youtubePlaylistId: String,
