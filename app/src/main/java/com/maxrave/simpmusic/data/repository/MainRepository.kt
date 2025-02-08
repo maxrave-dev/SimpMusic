@@ -12,6 +12,7 @@ import com.maxrave.kotlinytmusicscraper.models.SearchSuggestions
 import com.maxrave.kotlinytmusicscraper.models.SongItem
 import com.maxrave.kotlinytmusicscraper.models.WatchEndpoint
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
+import com.maxrave.kotlinytmusicscraper.models.response.DownloadProgress
 import com.maxrave.kotlinytmusicscraper.models.response.LikeStatus
 import com.maxrave.kotlinytmusicscraper.models.response.SearchResponse
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
@@ -1039,7 +1040,7 @@ class MainRepository(
                         Log.w("Repository", "data: ${data.size}")
                         val playlistBrowse =
                             PlaylistBrowse(
-                                author = Author(id = "", name = "youTube Music"),
+                                author = Author(id = "", name = "YouTube Music"),
                                 description =
                                     context.getString(
                                         R.string.auto_created_by_youtube_music,
@@ -1482,7 +1483,7 @@ class MainRepository(
                                     Resource.Success(
                                         Pair(
                                             playlist.copy(
-                                                author = Author("", "youTube Music"),
+                                                author = Author("", "YouTube Music"),
                                             ),
                                             finalContinueParam,
                                         ),
@@ -3068,4 +3069,10 @@ class MainRepository(
                 }
             }
         }.flowOn(Dispatchers.IO)
+
+    fun downloadToFile(
+        path: String,
+        videoId: String,
+        isVideo: Boolean,
+    ): Flow<DownloadProgress> = youTube.download(path, videoId, isVideo)
 }

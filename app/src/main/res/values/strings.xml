@@ -389,4 +389,9 @@
     <string name="pitch">Pitch</string>
     <string name="blur_player_background">Blur player background</string>
     <string name="blur_player_background_description">Blurring the background of the now playing screen effect</string>
+    <string name="merging_audio_and_video">Merging audio and video</string>
+    <string name="error_occurred">Error occurred</string>
+    <string name="downloading_audio">Downloading audio: %1$s </string>
+    <string name="downloading_video">Downloading video: %1$s </string>
+    <string name="ok">OK</string>
 </resources>

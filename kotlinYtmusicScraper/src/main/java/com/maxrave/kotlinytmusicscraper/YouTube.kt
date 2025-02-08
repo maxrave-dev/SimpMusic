@@ -1,6 +1,8 @@
 package com.maxrave.kotlinytmusicscraper
 
 import android.util.Log
+import com.arthenica.ffmpegkit.FFmpegKit
+import com.arthenica.ffmpegkit.ReturnCode
 import com.maxrave.kotlinytmusicscraper.extension.toListFormat
 import com.maxrave.kotlinytmusicscraper.models.AccountInfo
 import com.maxrave.kotlinytmusicscraper.models.AlbumItem
@@ -30,6 +32,7 @@ import com.maxrave.kotlinytmusicscraper.models.response.AccountMenuResponse
 import com.maxrave.kotlinytmusicscraper.models.response.AddItemYouTubePlaylistResponse
 import com.maxrave.kotlinytmusicscraper.models.response.BrowseResponse
 import com.maxrave.kotlinytmusicscraper.models.response.CreatePlaylistResponse
+import com.maxrave.kotlinytmusicscraper.models.response.DownloadProgress
 import com.maxrave.kotlinytmusicscraper.models.response.GetQueueResponse
 import com.maxrave.kotlinytmusicscraper.models.response.GetSearchSuggestionsResponse
 import com.maxrave.kotlinytmusicscraper.models.response.LikeStatus
@@ -75,12 +78,21 @@ import io.ktor.client.engine.http
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.URLBuilder
 import io.ktor.http.parseQueryString
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
 import okhttp3.Interceptor
+import okio.FileSystem
+import okio.IOException
+import okio.Path.Companion.toPath
 import org.json.JSONArray
 import org.schabi.newpipe.extractor.NewPipe
 import org.schabi.newpipe.extractor.exceptions.ParsingException
@@ -1163,9 +1175,9 @@ class YouTube {
             val listClients = listOf(TVHTML5)
             var sigResponse: PlayerResponse? = null
             for (client in listClients) {
-                Log.w("YouTube", "Client $client")
+                println("YouTube Client $client")
                 val tempRes = ytMusic.player(client, videoId, playlistId, cpn, signatureTimestamp = sigTimestamp).body<PlayerResponse>()
-                Log.w("YouTube", "TempRes ${tempRes.playabilityStatus}")
+                println("YouTube TempRes ${tempRes.playabilityStatus}")
                 if (tempRes.playabilityStatus.status != "OK") {
                     continue
                 } else {
@@ -1205,7 +1217,7 @@ class YouTube {
                         ?.mapNotNull { it.url }
                         ?.let { addAll(it) }
                 }
-            Log.w("YouTube", "URL ${decodedSigResponse?.streamingData?.formats?.mapNotNull { it.url }}")
+            println("YouTube URL ${decodedSigResponse?.streamingData?.formats?.mapNotNull { it.url }}")
             val listFormat =
                 (
                     decodedSigResponse
@@ -1221,7 +1233,7 @@ class YouTube {
                     )
                 }
             listFormat.forEach {
-                Log.d("YouTube", "Format ${it.first} ${it.second}")
+                println("YouTube Format ${it.first} ${it.second}")
             }
             if (listUrlSig.isEmpty() || decodedSigResponse == null) {
                 val (tempCookie, visitorData, playbackTracking) = getVisitorData(videoId, playlistId)
@@ -1739,6 +1751,143 @@ class YouTube {
         runCatching {
             ytMusic.removeFromLiked(mediaId).status.value
         }
+
+    fun download(
+        filePath: String,
+        videoId: String,
+        isVideo: Boolean = false,
+    ): Flow<DownloadProgress> =
+        channelFlow {
+            // Video if videoId is not null
+            player(videoId = videoId)
+                .onSuccess { playerResponse ->
+                    val audioFormat =
+                        listOf(
+                            playerResponse.second.streamingData
+                                ?.formats
+                                ?.filter { it.isAudio }
+                                ?.maxByOrNull { it.bitrate },
+                            playerResponse.second.streamingData
+                                ?.adaptiveFormats
+                                ?.filter { it.isAudio }
+                                ?.maxByOrNull { it.bitrate },
+                        ).maxByOrNull { it?.bitrate ?: 0 }
+                    val videoFormat =
+                        listOf(
+                            playerResponse.second.streamingData
+                                ?.formats
+                                ?.filter { !it.isAudio }
+                                ?.maxByOrNull { it.bitrate },
+                            playerResponse.second.streamingData
+                                ?.adaptiveFormats
+                                ?.filter { !it.isAudio }
+                                ?.maxByOrNull { it.bitrate },
+                        ).maxByOrNull { it?.bitrate ?: 0 }
+                    println("Audio Format $audioFormat")
+                    println("Video Format $videoFormat")
+                    val audioUrl = audioFormat?.url ?: return@channelFlow
+                    val videoUrl = videoFormat?.url ?: return@channelFlow
+                    if (isVideo) {
+                        runCatching {
+                            val downloadAudioJob = ytMusic.download(audioUrl, ("$filePath.webm").toPath())
+                            val downloadVideoJob = ytMusic.download(videoUrl, ("$filePath.mp4").toPath())
+                            combine(downloadVideoJob, downloadAudioJob) { videoProgress, audioProgress ->
+                                Pair(videoProgress, audioProgress)
+                            }.collectLatest { (videoProgress, audioProgress) ->
+                                if (videoProgress != 1f || audioProgress != 1f) {
+                                    trySend(DownloadProgress(videoDownloadProgress = videoProgress, audioDownloadProgress = audioProgress))
+                                } else {
+                                    trySend(DownloadProgress.MERGING)
+                                    val command =
+                                        listOf(
+                                            "-i",
+                                            ("$filePath.mp4"),
+                                            "-i",
+                                            ("$filePath.webm"),
+                                            "-c:v",
+                                            "copy",
+                                            "-c:a",
+                                            "aac",
+                                            "-map",
+                                            "0:v:0",
+                                            "-map",
+                                            "1:a:0",
+                                            "-shortest",
+                                            "$filePath-SimpMusic.mp4",
+                                        ).joinToString(" ")
+
+                                    if (FileSystem.SYSTEM.exists("$filePath-SimpMusic.mp4".toPath())) {
+                                        FileSystem.SYSTEM.delete("$filePath-SimpMusic.mp4".toPath())
+                                    }
+
+                                    val session =
+                                        FFmpegKit.execute(
+                                            command,
+                                        )
+                                    if (ReturnCode.isSuccess(session.returnCode)) {
+                                        // SUCCESS
+                                        println("Command succeeded ${session.state}, ${session.returnCode}")
+                                        try {
+                                            FileSystem.SYSTEM.delete("$filePath.webm".toPath())
+                                            FileSystem.SYSTEM.delete("$filePath.mp4".toPath())
+                                        } catch (e: IOException) {
+                                            e.printStackTrace()
+                                        }
+                                        trySend(DownloadProgress.VIDEO_DONE)
+                                    } else if (ReturnCode.isCancel(session.returnCode)) {
+                                        // CANCEL
+                                        println("Command cancelled ${session.state}, ${session.returnCode}")
+                                        try {
+                                            FileSystem.SYSTEM.delete("$filePath.webm".toPath())
+                                            FileSystem.SYSTEM.delete("$filePath.mp4".toPath())
+                                        } catch (e: IOException) {
+                                            e.printStackTrace()
+                                        }
+                                        trySend(DownloadProgress.FAILED)
+                                    } else {
+                                        // FAILURE
+                                        println("Command failed ${session.state}, ${session.returnCode}, ${session.failStackTrace}")
+                                        try {
+                                            FileSystem.SYSTEM.delete("$filePath.webm".toPath())
+                                            FileSystem.SYSTEM.delete("$filePath.mp4".toPath())
+                                        } catch (e: IOException) {
+                                            e.printStackTrace()
+                                        }
+                                        trySend(DownloadProgress.FAILED)
+                                    }
+                                }
+                            }
+                        }.onSuccess {
+                            println("Download Video Success")
+                        }.onFailure {
+                            it.printStackTrace()
+                        }
+                    } else {
+                        // Song if url is not null
+                        runCatching {
+                            ytMusic
+                                .download(audioUrl, ("$filePath.webm").toPath())
+                                .collect { downloadProgress ->
+                                    if (downloadProgress != 1f) {
+                                        trySend(DownloadProgress(audioDownloadProgress = downloadProgress))
+                                    } else {
+                                        trySend(DownloadProgress(audioDownloadProgress = 1f, isDone = true))
+                                    }
+                                }
+                        }.onSuccess {
+                            println("Download only Audio Success")
+                            trySend(DownloadProgress.AUDIO_DONE)
+                        }.onFailure { e ->
+                            e.printStackTrace()
+                            trySend(DownloadProgress.FAILED)
+                        }
+                    }
+                }.onFailure {
+                    it.printStackTrace()
+                    println("Player Response is null")
+                    trySend(DownloadProgress.FAILED)
+                }
+        }.flowOn(Dispatchers.IO)
 
     /**
      * NewPipeExtractor implement

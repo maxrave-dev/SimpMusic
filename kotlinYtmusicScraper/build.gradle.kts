@@ -147,6 +147,8 @@ dependencies {
 
     implementation(libs.ksoup.html)
     implementation(libs.ksoup.entities)
+
+    implementation(libs.ffmpeg.kit)
 }
 tasks.withType<CompileArtProfileTask> {
     enabled = false

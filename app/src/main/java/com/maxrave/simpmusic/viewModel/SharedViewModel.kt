@@ -3,6 +3,7 @@ package com.maxrave.simpmusic.viewModel
 import android.app.Application
 import android.content.Intent
 import android.graphics.drawable.GradientDrawable
+import android.os.Environment
 import android.util.Log
 import android.widget.Toast
 import androidx.lifecycle.LiveData
@@ -16,6 +17,7 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.maxrave.kotlinytmusicscraper.models.response.DownloadProgress
 import com.maxrave.kotlinytmusicscraper.models.simpmusic.GithubResponse
 import com.maxrave.simpmusic.R
 import com.maxrave.simpmusic.common.Config.ALBUM_CLICK
@@ -79,6 +81,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.singleOrNull
 import kotlinx.coroutines.flow.stateIn
@@ -1473,37 +1476,34 @@ class SharedViewModel(
         )
     }
 
-    fun getPlayer() = simpleMediaServiceHandler.player
+    private var _downloadFileProgress = MutableStateFlow<DownloadProgress>(DownloadProgress.INIT)
+    val downloadFileProgress: StateFlow<DownloadProgress> get() = _downloadFileProgress
 
-    fun getQueueDataFlow() = simpleMediaServiceHandler.queueData
-
-    fun getHandlerStateFlow() = simpleMediaServiceHandler.stateFlow
-
-    fun getCurrentSongIndex() = simpleMediaServiceHandler.currentSongIndex
-
-    fun startLoadMore() {
-        simpleMediaServiceHandler.loadMore()
-    }
-
-    fun swapQueue(
-        from: Int,
-        to: Int,
-    ) {
+    fun downloadFile() {
+        val fileName =
+            "${nowPlayingScreenData.value.nowPlayingTitle} - ${nowPlayingScreenData.value.artistName}"
+                .replace(Regex("""[|\\?*<":>]"""), "")
+                .replace(" ", "_")
+        val path =
+            "${Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOWNLOADS,
+            ).path}/$fileName"
         viewModelScope.launch {
-            simpleMediaServiceHandler.swap(from, to)
+            nowPlayingState.value?.songEntity?.videoId?.let { videoId ->
+                mainRepository
+                    .downloadToFile(
+                        videoId = videoId,
+                        path = path,
+                        isVideo = nowPlayingScreenData.value.isVideo,
+                    ).collectLatest {
+                        _downloadFileProgress.value = it
+                    }
+            }
         }
     }
 
-    suspend fun moveItemUp(index: Int) {
-        simpleMediaServiceHandler.moveItemUp(index)
-    }
-
-    suspend fun moveItemDown(index: Int) {
-        simpleMediaServiceHandler.moveItemDown(index)
-    }
-
-    fun removeItem(index: Int) {
-        simpleMediaServiceHandler.removeMediaItem(index)
+    fun downloadFileDone() {
+        _downloadFileProgress.value = DownloadProgress.INIT
     }
 }
 

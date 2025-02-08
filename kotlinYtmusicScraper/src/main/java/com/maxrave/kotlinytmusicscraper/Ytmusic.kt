@@ -32,11 +32,13 @@ import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.accept
 import io.ktor.client.request.get
+import io.ktor.client.request.head
 import io.ktor.client.request.header
 import io.ktor.client.request.headers
 import io.ktor.client.request.parameter
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsBytes
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
@@ -44,14 +46,22 @@ import io.ktor.http.userAgent
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.serialization.kotlinx.protobuf.protobuf
 import io.ktor.serialization.kotlinx.xml.xml
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import nl.adaptivity.xmlutil.XmlDeclMode
 import nl.adaptivity.xmlutil.serialization.XML
 import okhttp3.Interceptor
+import okio.FileSystem
+import okio.IOException
+import okio.Path
+import okio.buffer
+import okio.use
 import java.io.File
 import java.net.Proxy
 import java.util.Locale
+import kotlin.math.min
 
 class Ytmusic {
     private var httpClient = createClient()
@@ -688,5 +698,52 @@ class Ytmusic {
                     target = LikeBody.Target(videoId),
                 ),
             )
+        }
+
+    fun download(
+        url: String,
+        path: Path,
+    ): Flow<Float> =
+        flow {
+            val fileSystem = FileSystem.SYSTEM
+            with(httpClient) {
+                val chunkSize = 1024 * 512 * 10
+                val length = head(url).headers[HttpHeaders.ContentLength]?.toLong() ?: 0
+                val lastByte = length - 1
+                val isExist = fileSystem.exists(path)
+                if (isExist) {
+                    try {
+                        fileSystem.delete(path)
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                    }
+                }
+                var start =
+                    try {
+                        fileSystem.openReadOnly(path).size()
+                    } catch (e: Exception) {
+                        0
+                    }
+                emit(0f)
+                fileSystem.appendingSink(path).buffer().use { sink ->
+                    while (true) {
+                        val end = min(start + chunkSize - 1, lastByte)
+
+                        get(url) {
+                            header("Range", "bytes=$start-$end")
+                        }.bodyAsBytes().let { bytes ->
+                            sink.write(bytes)
+                        }
+
+                        if (end >= lastByte) {
+                            emit(1f)
+                            break
+                        } else {
+                            emit(end.toFloat() / lastByte)
+                        }
+                        start += chunkSize
+                    }
+                }
+            }
         }
 }

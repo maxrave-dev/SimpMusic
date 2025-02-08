@@ -67,6 +67,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.common.util.UnstableApi
 import androidx.navigation.NavController
 import coil3.compose.AsyncImage
@@ -104,6 +105,7 @@ import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.HomeViewModel
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
 
@@ -113,11 +115,9 @@ import java.util.Calendar
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel =
-        androidx.lifecycle.viewmodel.compose
-            .viewModel(),
+        koinViewModel(),
     sharedViewModel: SharedViewModel =
-        androidx.lifecycle.viewmodel.compose
-            .viewModel(),
+        viewModel(),
     navController: NavController,
 ) {
     val context = LocalContext.current
@@ -335,12 +335,30 @@ fun HomeScreen(
                             ) {
                                 QuickPicks(
                                     homeItem =
-                                        homeData.find {
-                                            it.title ==
-                                                context.getString(
-                                                    R.string.quick_picks,
-                                                )
-                                        } ?: return@AnimatedVisibility,
+                                        (
+                                            homeData.find {
+                                                it.title ==
+                                                    context.getString(
+                                                        R.string.quick_picks,
+                                                    )
+                                            } ?: return@AnimatedVisibility
+                                        ).let { content ->
+                                            content.copy(
+                                                contents =
+                                                    content.contents.mapNotNull { ct ->
+                                                        ct?.copy(
+                                                            artists =
+                                                                ct.artists?.let { art ->
+                                                                    if (art.size > 1) {
+                                                                        art.dropLast(1)
+                                                                    } else {
+                                                                        art
+                                                                    }
+                                                                },
+                                                        )
+                                                    },
+                                            )
+                                        },
                                     viewModel = viewModel,
                                 )
                             }
@@ -348,7 +366,6 @@ fun HomeScreen(
                         items(homeData, key = { it.hashCode() }) {
                             if (it.title != context.getString(R.string.quick_picks)) {
                                 HomeItem(
-                                    homeViewModel = viewModel,
                                     navController = navController,
                                     data = it,
                                 )
@@ -359,7 +376,6 @@ fun HomeScreen(
                                 visible = newRelease.isNotEmpty(),
                             ) {
                                 HomeItem(
-                                    homeViewModel = viewModel,
                                     navController = navController,
                                     data = it,
                                 )
@@ -555,7 +571,7 @@ fun AccountLayout(
 @Composable
 fun QuickPicks(
     homeItem: HomeItem,
-    viewModel: HomeViewModel,
+    viewModel: HomeViewModel = koinViewModel(),
 ) {
     val lazyListState = rememberLazyGridState()
     val snapperFlingBehavior = rememberSnapFlingBehavior(SnapLayoutInfoProvider(lazyGridState = lazyListState, snapPosition = SnapPosition.Start))

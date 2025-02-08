@@ -82,11 +82,12 @@ import com.maxrave.simpmusic.service.PlaylistType
 import com.maxrave.simpmusic.service.QueueData
 import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.HomeViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @UnstableApi
 @Composable
 fun HomeItem(
-    homeViewModel: HomeViewModel,
+    homeViewModel: HomeViewModel = koinViewModel(),
     navController: NavController,
     data: HomeItem,
 ) {

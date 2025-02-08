@@ -130,6 +130,7 @@ import com.maxrave.simpmusic.ui.component.DescriptionView
 import com.maxrave.simpmusic.ui.component.ExplicitBadge
 import com.maxrave.simpmusic.ui.component.FullscreenLyricsSheet
 import com.maxrave.simpmusic.ui.component.HeartCheckBox
+import com.maxrave.simpmusic.ui.component.InfoPlayerBottomSheet
 import com.maxrave.simpmusic.ui.component.LyricsView
 import com.maxrave.simpmusic.ui.component.MediaPlayerView
 import com.maxrave.simpmusic.ui.component.NowPlayingBottomSheet
@@ -142,7 +143,6 @@ import com.maxrave.simpmusic.ui.theme.typo
 import com.maxrave.simpmusic.viewModel.LyricsProvider
 import com.maxrave.simpmusic.viewModel.SharedViewModel
 import com.maxrave.simpmusic.viewModel.UIEvent
-import dev.chrisbanes.haze.HazeProgressive
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeEffect
 import dev.chrisbanes.haze.hazeSource
@@ -193,6 +193,10 @@ fun NowPlayingScreen(
     }
 
     var showQueueBottomSheet by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    var showInfoBottomSheet by rememberSaveable {
         mutableStateOf(false)
     }
 
@@ -405,6 +409,14 @@ fun NowPlayingScreen(
         )
     }
 
+    if (showInfoBottomSheet) {
+        InfoPlayerBottomSheet(
+            onDismiss = {
+                showInfoBottomSheet = false
+            },
+        )
+    }
+
     val hazeState = remember { HazeState() }
 
     Box {
@@ -460,9 +472,7 @@ fun NowPlayingScreen(
                         if (blurBg) {
                             Modifier
                                 .background(Color.Transparent)
-                                .hazeEffect(hazeState, style = CupertinoMaterials.thin()) {
-                                    progressive = HazeProgressive.verticalGradient(startIntensity = 1f, endIntensity = 0f)
-                                }
+                                .hazeEffect(hazeState, style = CupertinoMaterials.thin())
                         } else {
                             Modifier
                                 .background(
@@ -1265,9 +1275,7 @@ fun NowPlayingScreen(
                                                         CircleShape,
                                                     ),
                                             onClick = {
-                                                navController.navigateSafe(
-                                                    R.id.action_global_infoFragment,
-                                                )
+                                                showInfoBottomSheet = true
                                             },
                                         ) {
                                             Icon(imageVector = Icons.Outlined.Info, tint = Color.White, contentDescription = "")
@@ -1276,7 +1284,7 @@ fun NowPlayingScreen(
                                             Modifier.align(Alignment.CenterEnd),
                                         ) {
                                             Crossfade(
-                                                targetState = likeStatus == true,
+                                                targetState = likeStatus,
                                             ) {
                                                 if (it) {
                                                     IconButton(
