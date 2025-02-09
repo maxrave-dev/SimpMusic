@@ -20,8 +20,6 @@ import com.maxrave.kotlinytmusicscraper.models.body.LikeBody
 import com.maxrave.kotlinytmusicscraper.models.body.NextBody
 import com.maxrave.kotlinytmusicscraper.models.body.PlayerBody
 import com.maxrave.kotlinytmusicscraper.models.body.SearchBody
-import com.maxrave.kotlinytmusicscraper.utils.CurlLogger
-import com.maxrave.kotlinytmusicscraper.utils.KtorToCurl
 import com.maxrave.kotlinytmusicscraper.utils.parseCookieString
 import com.maxrave.kotlinytmusicscraper.utils.sha1
 import io.ktor.client.HttpClient
@@ -46,8 +44,12 @@ import io.ktor.http.userAgent
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.serialization.kotlinx.protobuf.protobuf
 import io.ktor.serialization.kotlinx.xml.xml
+import kotlinx.coroutines.channels.onFailure
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import nl.adaptivity.xmlutil.XmlDeclMode
@@ -56,6 +58,7 @@ import okhttp3.Interceptor
 import okio.FileSystem
 import okio.IOException
 import okio.Path
+import okio.Path.Companion.toPath
 import okio.buffer
 import okio.use
 import java.io.File
@@ -109,15 +112,15 @@ class Ytmusic {
     private fun createClient() =
         HttpClient(OkHttp) {
             expectSuccess = true
-            install(KtorToCurl) {
-                converter =
-                    object : CurlLogger {
-                        override fun log(curl: String) {
-                            println("Curl command:")
-                            println(curl)
-                        }
-                    }
-            }
+//            install(KtorToCurl) {
+//                converter =
+//                    object : CurlLogger {
+//                        override fun log(curl: String) {
+//                            println("Curl command:")
+//                            println(curl)
+//                        }
+//                    }
+//            }
             install(ContentNegotiation) {
                 protobuf()
                 json(
@@ -702,14 +705,31 @@ class Ytmusic {
 
     fun download(
         url: String,
-        path: Path,
-    ): Flow<Float> =
-        flow {
+        pathString: String,
+    ): Flow<Pair<Boolean, Float>> =
+        // Boolean is for isDone
+        channelFlow {
             val fileSystem = FileSystem.SYSTEM
+            val path = pathString.toPath()
+            // Separate the download file to 8 parts
+            val listTemp =
+                mutableListOf<Path>(
+                    "$pathString.part1".toPath(),
+                    "$pathString.part2".toPath(),
+                    "$pathString.part3".toPath(),
+                    "$pathString.part4".toPath(),
+                )
             with(httpClient) {
-                val chunkSize = 1024 * 512 * 10
                 val length = head(url).headers[HttpHeaders.ContentLength]?.toLong() ?: 0
                 val lastByte = length - 1
+                val listPathLength =
+                    listOf(
+                        Pair(0L, (length - 1) / 4),
+                        Pair((length - 1) / 4 + 1, (length - 1) / 2),
+                        Pair((length - 1) / 2 + 1, (length - 1) / 4 * 3),
+                        Pair((length - 1) / 4 * 3 + 1, lastByte),
+                    )
+                val chunkSize = min(1024 * 512, length / 8)
                 val isExist = fileSystem.exists(path)
                 if (isExist) {
                     try {
@@ -718,31 +738,65 @@ class Ytmusic {
                         e.printStackTrace()
                     }
                 }
-                var start =
+                var jobDoneCount = 0
+                var downloadedBytes = 0L
+                coroutineScope {
+                    val listJob =
+                        listTemp.mapIndexed { i, temp ->
+                            launch {
+                                print("Downloading part ${i + 1}... $listPathLength")
+                                var start = listPathLength[i].first
+                                fileSystem.appendingSink(temp).buffer().use { sink ->
+                                    while (true) {
+                                        val end = min(start + chunkSize - 1, listPathLength[i].second)
+
+                                        get(url) {
+                                            header("Range", "bytes=$start-$end")
+                                        }.bodyAsBytes().let { bytes ->
+                                            sink.write(bytes)
+                                        }
+                                        downloadedBytes += (end - start + 1)
+
+                                        if (end >= listPathLength[i].second) {
+                                            jobDoneCount++
+                                            break
+                                        }
+                                        start += chunkSize
+                                    }
+                                }
+                            }
+                        }
+                    val emitJob =
+                        launch {
+                            while (jobDoneCount < 4 && downloadedBytes < length) {
+                                delay(100)
+                                println("Downloaded: ${downloadedBytes.toFloat() / length}")
+                                trySend(Pair(false, downloadedBytes.toFloat() / length))
+                                    .onFailure { e ->
+                                        e?.printStackTrace()
+                                    }
+                            }
+                        }
+                    listJob.forEach { it.join() }
+                    emitJob.join()
+                }
+                listTemp.forEachIndexed { i, p ->
+                    println("Merging part $i")
+                    fileSystem.appendingSink(path).buffer().use { sink ->
+                        fileSystem.source(p).buffer().use { source ->
+                            sink.writeAll(source)
+                        }
+                    }
                     try {
-                        fileSystem.openReadOnly(path).size()
-                    } catch (e: Exception) {
-                        0
+                        fileSystem.delete(p)
+                    } catch (e: IOException) {
+                        e.printStackTrace()
                     }
-                emit(0f)
-                fileSystem.appendingSink(path).buffer().use { sink ->
-                    while (true) {
-                        val end = min(start + chunkSize - 1, lastByte)
-
-                        get(url) {
-                            header("Range", "bytes=$start-$end")
-                        }.bodyAsBytes().let { bytes ->
-                            sink.write(bytes)
-                        }
-
-                        if (end >= lastByte) {
-                            emit(1f)
-                            break
-                        } else {
-                            emit(end.toFloat() / lastByte)
-                        }
-                        start += chunkSize
-                    }
+                }
+                println("Downloaded $downloadedBytes bytes")
+                println("Merged $pathString")
+                trySend(Pair(true, 1f)).onFailure { e ->
+                    e?.printStackTrace()
                 }
             }
         }

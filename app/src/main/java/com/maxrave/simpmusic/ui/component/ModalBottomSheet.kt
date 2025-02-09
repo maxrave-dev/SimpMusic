@@ -200,14 +200,21 @@ fun InfoPlayerBottomSheet(
                                         style = typo.bodyMedium,
                                     )
                                 } else if (it.isError) {
-                                    Text(
-                                        text = stringResource(R.string.error_occurred),
-                                        modifier = Modifier.padding(vertical = 5.dp),
-                                        style = typo.bodyMedium,
-                                    )
+                                    Column {
+                                        Text(
+                                            text = stringResource(R.string.error_occurred),
+                                            modifier = Modifier.padding(vertical = 5.dp),
+                                            style = typo.bodyMedium,
+                                        )
+                                        Text(
+                                            text = downloadProgress.errorMessage,
+                                            modifier = Modifier.padding(bottom = 5.dp),
+                                            style = typo.bodyMedium,
+                                        )
+                                    }
                                 } else if (it.isDone) {
                                     Text(
-                                        text = stringResource(R.string.downloaded),
+                                        text = stringResource(R.string.downloaded) + stringResource(R.string.to_download_folder),
                                         modifier = Modifier.padding(vertical = 5.dp),
                                         style = typo.bodyMedium,
                                     )
