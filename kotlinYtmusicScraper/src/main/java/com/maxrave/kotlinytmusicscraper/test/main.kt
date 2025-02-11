@@ -12,11 +12,19 @@ import com.maxrave.kotlinytmusicscraper.models.YouTubeClient
 import com.maxrave.kotlinytmusicscraper.models.YouTubeClient.Companion.WEB_REMIX
 import com.maxrave.kotlinytmusicscraper.models.YouTubeLocale
 import io.ktor.client.statement.bodyAsText
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.runBlocking
 
 fun main() {
     runBlocking {
-        testPlayer()
+        val yt = Ytmusic()
+        val url =
+            "https://rr2---sn-42u-nbosl.googlevideo.com/videoplayback?expire=1739137430&ei=Ns2oZ52NO8Xi7OsP--q90Ag&ip=1.53.115.112&id=o-AGpKjogqfSvf4-wKGDDwJJKoD6DFXLjqpCMJ6IEaaQ9T&itag=137&aitags=133%2C134%2C135%2C136%2C137%2C160%2C242%2C243%2C244%2C247%2C248%2C271%2C278%2C313%2C394%2C395%2C396%2C397%2C398%2C399%2C400%2C401&source=youtube&requiressl=yes&xpc=EgVo2aDSNQ%3D%3D&met=1739115830%2C&mh=f_&mm=31%2C26&mn=sn-42u-nbosl%2Csn-ogueln67&ms=au%2Conr&mv=m&mvi=2&pl=23&rms=au%2Cau&initcwndbps=3388750&siu=1&bui=AUWDL3x-P8wuQgcOTzlTqZ2OuiVK_IomijyLknxr63uBLGpSB2IO7Uzdcc-cnScW1J35DeKmeQ&vprv=1&svpuc=1&mime=video%2Fmp4&ns=klRDif9pFVoJBZv0WZbDDrEQ&rqh=1&gir=yes&clen=53760016&dur=203.720&lmt=1734741222425996&mt=1739115450&fvip=5&keepalive=yes&fexp=51326932&c=TVHTML5_SIMPLY_EMBEDDED_PLAYER&sefc=1&txp=4532434&n=LbebTA4sfGOF4g&sparams=expire%2Cei%2Cip%2Cid%2Caitags%2Csource%2Crequiressl%2Cxpc%2Csiu%2Cbui%2Cvprv%2Csvpuc%2Cmime%2Cns%2Crqh%2Cgir%2Cclen%2Cdur%2Clmt&lsparams=met%2Cmh%2Cmm%2Cmn%2Cms%2Cmv%2Cmvi%2Cpl%2Crms%2Cinitcwndbps&lsig=AGluJ3MwRQIgRvlecG4jVBcN0xlhwNUn52K0v_DDoBDpkhb7e5x7lvkCIQCupkhle2KC5I3lgUSwtzyfaAoRwJWrjjUj-EOQtwtWcw%3D%3D&sig=AJfQdSswRgIhAKyEFxd5BNujJIWYP5tfWuyKiU9TrQo4QW-j9sPqtPYnAiEAssl97wI-bW66kAFsVhVKAKuUDg1BhAcDBGgkSFA2GCU%3D&cpn=ZgrGXcvBnyQe76HZ&range=0-53760016"
+        yt
+            .download(url, "kotlinYtmusicScraper/src/main/java/com/maxrave/kotlinytmusicscraper/test/test.mp4")
+            .collectLatest {
+                println(it)
+            }
     }
 }
 

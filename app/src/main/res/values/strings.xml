@@ -394,4 +394,5 @@
     <string name="downloading_audio">Downloading audio: %1$s </string>
     <string name="downloading_video">Downloading video: %1$s </string>
     <string name="ok">OK</string>
+    <string name="to_download_folder">" to Download folder"</string>
 </resources>

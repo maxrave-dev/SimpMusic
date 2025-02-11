@@ -79,6 +79,8 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.URLBuilder
 import io.ktor.http.parseQueryString
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.onFailure
+import kotlinx.coroutines.channels.onSuccess
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
@@ -1165,7 +1167,7 @@ class YouTube {
                 (1..16)
                     .map {
                         "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"[
-                            Random.Default.nextInt(
+                            Random.nextInt(
                                 0,
                                 64,
                             ),
@@ -1759,6 +1761,7 @@ class YouTube {
     ): Flow<DownloadProgress> =
         channelFlow {
             // Video if videoId is not null
+            trySend(DownloadProgress(0.00001f))
             player(videoId = videoId)
                 .onSuccess { playerResponse ->
                     val audioFormat =
@@ -1789,13 +1792,15 @@ class YouTube {
                     val videoUrl = videoFormat?.url ?: return@channelFlow
                     if (isVideo) {
                         runCatching {
-                            val downloadAudioJob = ytMusic.download(audioUrl, ("$filePath.webm").toPath())
-                            val downloadVideoJob = ytMusic.download(videoUrl, ("$filePath.mp4").toPath())
+                            val downloadAudioJob = ytMusic.download(audioUrl, ("$filePath.webm"))
+                            val downloadVideoJob = ytMusic.download(videoUrl, ("$filePath.mp4"))
                             combine(downloadVideoJob, downloadAudioJob) { videoProgress, audioProgress ->
                                 Pair(videoProgress, audioProgress)
                             }.collectLatest { (videoProgress, audioProgress) ->
-                                if (videoProgress != 1f || audioProgress != 1f) {
-                                    trySend(DownloadProgress(videoDownloadProgress = videoProgress, audioDownloadProgress = audioProgress))
+                                if (!videoProgress.first || !audioProgress.first) {
+                                    trySend(
+                                        DownloadProgress(videoDownloadProgress = videoProgress.second, audioDownloadProgress = audioProgress.second),
+                                    )
                                 } else {
                                     trySend(DownloadProgress.MERGING)
                                     val command =
@@ -1843,7 +1848,7 @@ class YouTube {
                                         } catch (e: IOException) {
                                             e.printStackTrace()
                                         }
-                                        trySend(DownloadProgress.FAILED)
+                                        trySend(DownloadProgress.failed(session.failStackTrace))
                                     } else {
                                         // FAILURE
                                         println("Command failed ${session.state}, ${session.returnCode}, ${session.failStackTrace}")
@@ -1853,7 +1858,7 @@ class YouTube {
                                         } catch (e: IOException) {
                                             e.printStackTrace()
                                         }
-                                        trySend(DownloadProgress.FAILED)
+                                        trySend(DownloadProgress.failed(session.failStackTrace))
                                     }
                                 }
                             }
@@ -1866,10 +1871,10 @@ class YouTube {
                         // Song if url is not null
                         runCatching {
                             ytMusic
-                                .download(audioUrl, ("$filePath.webm").toPath())
+                                .download(audioUrl, ("$filePath.webm"))
                                 .collect { downloadProgress ->
-                                    if (downloadProgress != 1f) {
-                                        trySend(DownloadProgress(audioDownloadProgress = downloadProgress))
+                                    if (!downloadProgress.first) {
+                                        trySend(DownloadProgress(audioDownloadProgress = downloadProgress.second))
                                     } else {
                                         trySend(DownloadProgress(audioDownloadProgress = 1f, isDone = true))
                                     }
@@ -1879,13 +1884,13 @@ class YouTube {
                             trySend(DownloadProgress.AUDIO_DONE)
                         }.onFailure { e ->
                             e.printStackTrace()
-                            trySend(DownloadProgress.FAILED)
+                            trySend(DownloadProgress.failed(e.message ?: "Download failed"))
                         }
                     }
                 }.onFailure {
                     it.printStackTrace()
                     println("Player Response is null")
-                    trySend(DownloadProgress.FAILED)
+                    trySend(DownloadProgress.failed(it.message ?: "Player response is null"))
                 }
         }.flowOn(Dispatchers.IO)
 
