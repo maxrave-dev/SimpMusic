@@ -706,7 +706,7 @@ class Ytmusic {
     fun download(
         url: String,
         pathString: String,
-    ): Flow<Pair<Boolean, Float>> =
+    ): Flow<Triple<Boolean, Float, Int>> =
         // Boolean is for isDone
         channelFlow {
             val fileSystem = FileSystem.SYSTEM
@@ -718,18 +718,26 @@ class Ytmusic {
                     "$pathString.part2".toPath(),
                     "$pathString.part3".toPath(),
                     "$pathString.part4".toPath(),
+                    "$pathString.part5".toPath(),
+                    "$pathString.part6".toPath(),
+                    "$pathString.part7".toPath(),
+                    "$pathString.part8".toPath(),
                 )
             with(httpClient) {
                 val length = head(url).headers[HttpHeaders.ContentLength]?.toLong() ?: 0
                 val lastByte = length - 1
                 val listPathLength =
                     listOf(
-                        Pair(0L, (length - 1) / 4),
-                        Pair((length - 1) / 4 + 1, (length - 1) / 2),
-                        Pair((length - 1) / 2 + 1, (length - 1) / 4 * 3),
-                        Pair((length - 1) / 4 * 3 + 1, lastByte),
+                        Pair(0L, (length - 1) / 8),
+                        Pair((length - 1) / 8 + 1, (length - 1) / 4),
+                        Pair((length - 1) / 4 + 1, (length - 1) * 3 / 8),
+                        Pair((length - 1) * 3 / 8 + 1, (length - 1) / 2),
+                        Pair((length - 1) / 2 + 1, (length - 1) * 5 / 8),
+                        Pair((length - 1) * 5 / 8 + 1, (length - 1) * 3 / 4),
+                        Pair((length - 1) * 3 / 4 + 1, (length - 1) * 7 / 8),
+                        Pair((length - 1) * 7 / 8 + 1, lastByte),
                     )
-                val chunkSize = min(1024 * 512, length / 8)
+                val chunkSize = min(1024 * 512, length / 12)
                 val isExist = fileSystem.exists(path)
                 if (isExist) {
                     try {
@@ -756,6 +764,7 @@ class Ytmusic {
                                             sink.write(bytes)
                                         }
                                         downloadedBytes += (end - start + 1)
+                                        println("Downloading part ${i + 1}... ${downloadedBytes.toFloat() / length}")
 
                                         if (end >= listPathLength[i].second) {
                                             jobDoneCount++
@@ -768,10 +777,15 @@ class Ytmusic {
                         }
                     val emitJob =
                         launch {
-                            while (jobDoneCount < 4 && downloadedBytes < length) {
+                            var seconds = 0f
+                            while (jobDoneCount < 8 && downloadedBytes < length) {
                                 delay(100)
-                                println("Downloaded: ${downloadedBytes.toFloat() / length}")
-                                trySend(Pair(false, downloadedBytes.toFloat() / length))
+                                seconds += 0.1f
+                                val progress = downloadedBytes.toFloat() / length
+                                val speed = (downloadedBytes / seconds / 1024).toInt()
+                                println("Downloaded: $progress")
+                                println("Speed: $speed KB/s")
+                                trySend(Triple(false, progress, speed))
                                     .onFailure { e ->
                                         e?.printStackTrace()
                                     }
@@ -795,7 +809,7 @@ class Ytmusic {
                 }
                 println("Downloaded $downloadedBytes bytes")
                 println("Merged $pathString")
-                trySend(Pair(true, 1f)).onFailure { e ->
+                trySend(Triple(true, 1f, 0)).onFailure { e ->
                     e?.printStackTrace()
                 }
             }

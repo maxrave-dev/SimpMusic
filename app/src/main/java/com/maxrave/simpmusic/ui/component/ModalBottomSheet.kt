@@ -209,6 +209,7 @@ fun InfoPlayerBottomSheet(
                                         Text(
                                             text = downloadProgress.errorMessage,
                                             modifier = Modifier.padding(bottom = 5.dp),
+                                            maxLines = 2,
                                             style = typo.bodyMedium,
                                         )
                                     }
@@ -237,6 +238,17 @@ fun InfoPlayerBottomSheet(
                                                     stringResource(
                                                         R.string.downloading_video,
                                                         (downloadProgress.videoDownloadProgress * 100).toString() + "%",
+                                                    ),
+                                                modifier = Modifier.padding(vertical = 5.dp),
+                                                style = typo.bodyMedium,
+                                            )
+                                        }
+                                        if (downloadProgress.downloadSpeed != 0) {
+                                            Text(
+                                                text =
+                                                    stringResource(
+                                                        R.string.download_speed,
+                                                        downloadProgress.downloadSpeed.toString() + " kb/s",
                                                     ),
                                                 modifier = Modifier.padding(vertical = 5.dp),
                                                 style = typo.bodyMedium,
@@ -1835,7 +1847,7 @@ fun PlaybackSpeedPitchBottomSheet(
                     modifier = Modifier,
                     enabled = true,
                     valueRange = 0.25f..2f,
-                    steps = 6,
+                    steps = 13,
                     onValueChangeFinished = {},
                 )
                 Spacer(modifier = Modifier.height(5.dp))

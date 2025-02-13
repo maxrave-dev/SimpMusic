@@ -69,6 +69,14 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",
             )
+            splits {
+                abi {
+                    isEnable = true
+                    reset()
+                    isUniversalApk = false
+                    include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+                }
+            }
         }
         debug {
             isMinifyEnabled = false

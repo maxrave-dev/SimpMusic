@@ -153,8 +153,7 @@ markdown = { module = "org.jetbrains:markdown", version.ref = "md" }
 haze = { module = "dev.chrisbanes.haze:haze", version.ref = "haze" }
 haze-material = { module = "dev.chrisbanes.haze:haze-materials", version.ref = "haze" }
 store = { module = "org.mobilenativefoundation.store:store5", version.ref = "store" }
-# Use NewPipeExtractor from the Outertune project (Thanks to @DD3Boh)
-newpipe-extractor = { module = "com.github.gechoto:NewPipeExtractor", version = "00cf7dad9e49933c7faaa382c9c7b1e7afb28a7d" }
+newpipe-extractor = { module = "com.github.teamnewpipe:NewPipeExtractor", version = "9f83b385a4d080edcd652373b0d48b3f43fc9146" }
 
 #Koin
 koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }

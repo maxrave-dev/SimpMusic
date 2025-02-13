@@ -1799,7 +1799,11 @@ class YouTube {
                             }.collectLatest { (videoProgress, audioProgress) ->
                                 if (!videoProgress.first || !audioProgress.first) {
                                     trySend(
-                                        DownloadProgress(videoDownloadProgress = videoProgress.second, audioDownloadProgress = audioProgress.second),
+                                        DownloadProgress(
+                                            videoDownloadProgress = videoProgress.second,
+                                            audioDownloadProgress = audioProgress.second,
+                                            downloadSpeed = if (videoProgress.third != 0) videoProgress.third else audioProgress.third,
+                                        ),
                                     )
                                 } else {
                                     trySend(DownloadProgress.MERGING)
@@ -1866,6 +1870,7 @@ class YouTube {
                             println("Download Video Success")
                         }.onFailure {
                             it.printStackTrace()
+                            trySend(DownloadProgress.failed(it.message ?: "Download failed"))
                         }
                     } else {
                         // Song if url is not null
