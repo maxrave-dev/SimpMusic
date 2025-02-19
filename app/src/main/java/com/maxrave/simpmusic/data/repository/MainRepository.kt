@@ -1500,7 +1500,7 @@ class MainRepository(
             }
         }.flowOn(Dispatchers.IO)
 
-    suspend fun getPlaylistData(playlistId: String): Flow<Resource<PlaylistBrowse>> =
+    fun getPlaylistData(playlistId: String): Flow<Resource<PlaylistBrowse>> =
         flow {
             runCatching {
                 var id = ""

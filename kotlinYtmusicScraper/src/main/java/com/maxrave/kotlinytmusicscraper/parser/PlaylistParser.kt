@@ -99,15 +99,37 @@ fun BrowseResponse.fromPlaylistContinuationToTrackWithSetVideoId(): List<Pair<So
     } ?: emptyList()
 
 fun BrowseResponse.getPlaylistContinuation(): String? =
-    this.contents
-        ?.singleColumnBrowseResultsRenderer
-        ?.tabs
+    this.onResponseReceivedActions
         ?.firstOrNull()
-        ?.tabRenderer
-        ?.content
-        ?.sectionListRenderer
-        ?.continuations
-        ?.getContinuation()
+        ?.appendContinuationItemsAction
+        ?.continuationItems
+        ?.lastOrNull()
+        ?.continuationItemRenderer
+        ?.continuationEndpoint
+        ?.continuationCommand
+        ?.token
+        ?: this.contents
+            ?.twoColumnBrowseResultsRenderer
+            ?.secondaryContents
+            ?.sectionListRenderer
+            ?.contents
+            ?.lastOrNull()
+            ?.musicPlaylistShelfRenderer
+            ?.contents
+            ?.lastOrNull()
+            ?.continuationItemRenderer
+            ?.continuationEndpoint
+            ?.continuationCommand
+            ?.token
+        ?: this.contents
+            ?.singleColumnBrowseResultsRenderer
+            ?.tabs
+            ?.firstOrNull()
+            ?.tabRenderer
+            ?.content
+            ?.sectionListRenderer
+            ?.continuations
+            ?.getContinuation()
         ?: this.contents
             ?.twoColumnBrowseResultsRenderer
             ?.secondaryContents
@@ -156,15 +178,6 @@ fun BrowseResponse.getPlaylistContinuation(): String? =
             ?.musicPlaylistShelfContinuation
             ?.continuations
             ?.getContinuation()
-        ?: this.onResponseReceivedActions
-            ?.firstOrNull()
-            ?.appendContinuationItemsAction
-            ?.continuationItems
-            ?.lastOrNull()
-            ?.continuationItemRenderer
-            ?.continuationEndpoint
-            ?.continuationCommand
-            ?.token
 
 fun BrowseResponse.getContinuePlaylistContinuation(): String? =
     this.continuationContents

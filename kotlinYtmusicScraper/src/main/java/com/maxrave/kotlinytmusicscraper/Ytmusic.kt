@@ -20,6 +20,8 @@ import com.maxrave.kotlinytmusicscraper.models.body.LikeBody
 import com.maxrave.kotlinytmusicscraper.models.body.NextBody
 import com.maxrave.kotlinytmusicscraper.models.body.PlayerBody
 import com.maxrave.kotlinytmusicscraper.models.body.SearchBody
+import com.maxrave.kotlinytmusicscraper.utils.CurlLogger
+import com.maxrave.kotlinytmusicscraper.utils.KtorToCurl
 import com.maxrave.kotlinytmusicscraper.utils.parseCookieString
 import com.maxrave.kotlinytmusicscraper.utils.sha1
 import io.ktor.client.HttpClient
@@ -112,15 +114,15 @@ class Ytmusic {
     private fun createClient() =
         HttpClient(OkHttp) {
             expectSuccess = true
-//            install(KtorToCurl) {
-//                converter =
-//                    object : CurlLogger {
-//                        override fun log(curl: String) {
-//                            println("Curl command:")
-//                            println(curl)
-//                        }
-//                    }
-//            }
+            install(KtorToCurl) {
+                converter =
+                    object : CurlLogger {
+                        override fun log(curl: String) {
+                            println("Curl command:")
+                            println(curl)
+                        }
+                    }
+            }
             install(ContentNegotiation) {
                 protobuf()
                 json(
@@ -162,6 +164,7 @@ class Ytmusic {
     private fun HttpRequestBuilder.ytClient(
         client: YouTubeClient,
         setLogin: Boolean = false,
+        isUsingReferer: Boolean = true,
     ) {
         contentType(ContentType.Application.Json)
         headers {
@@ -169,7 +172,7 @@ class Ytmusic {
             append("X-YouTube-Client-Name", "${client.xClientName ?: 1}")
             append("X-YouTube-Client-Version", client.clientVersion)
             append("x-origin", "https://music.youtube.com")
-            if (client.referer != null) {
+            if (client.referer != null && isUsingReferer) {
                 append("Referer", client.referer)
             }
             if (setLogin) {
@@ -521,13 +524,21 @@ class Ytmusic {
         countryCode: String? = null,
         setLogin: Boolean = false,
     ) = httpClient.post("browse") {
-        ytClient(client, if (setLogin) true else cookie != "" && cookie != null)
+        ytClient(client, if (setLogin) true else cookie != "" && cookie != null, isUsingReferer = false)
 
-        if (continuation != null) {
+        if (continuation != null && browseId != null) {
             setBody(
                 BrowseBody(
                     context = client.toContext(locale, visitorData),
-                    browseId = if (browseId.isNullOrEmpty()) null else browseId,
+                    browseId = browseId.ifEmpty { null },
+                    params = params,
+                    continuation = continuation,
+                ),
+            )
+        } else if (continuation != null) {
+            setBody(
+                BrowseBody(
+                    context = client.toContext(locale, visitorData),
                     params = params,
                     continuation = continuation,
                 ),
