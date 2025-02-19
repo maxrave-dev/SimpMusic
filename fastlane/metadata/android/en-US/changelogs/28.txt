@@ -2,3 +2,4 @@ Thanks for using SimpMusic! We update the app regularly to make it better for yo
 - Fixed YouTube Playlist API changes
 - Download videos, audio files from YouTube
 - Improved performance
+- Update translations

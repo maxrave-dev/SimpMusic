@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="Song_and_artist_name">Трек • %1$s</string>
+    <string name="Song_and_artist_name">Композиція • %1$s</string>
     <string name="playlist_and_author">Плейлист • %1$s</string>
     <string name="album_and_artist_name">Альбом • %1$s</string>
     <string name="subscribers">%1$s підписників</string>
@@ -186,6 +186,7 @@
     <string name="preview">Попередній перегляд</string>
     <string name="music_off_topic">Музика не по темі</string>
     <string name="poi_highlight">Виділення POI</string>
+    <string name="filler">Наповнення</string>
     <string name="sponsorBlock">SponsorBlock</string>
     <string name="enable_sponsor_block">Увімкнути SponsorBlock</string>
     <string name="categories_sponsor_block">Виберіть поведінку пропуску сегменту</string>
@@ -374,4 +375,22 @@
     <string name="five_seconds">П\'ять секунд</string>
     <string name="lyrics_provider_lrc">Тексти пісень надано LRCLIB</string>
     <string name="sync_first">Спочатку синхронізуйте цей список відтворення з YouTube Music</string>
+    <string name="endless_queue">Нескінченна черга</string>
+    <string name="do_not_show_again">Більше не показувати</string>
+    <string name="auto_check_for_update">Автоматично перевіряти оновлення</string>
+    <string name="auto_check_for_update_description">Перевірка наявності оновлень, коли ви відкриєте застосунок</string>
+    <string name="blur_fullscreen_lyrics">Ефект розмиття екрана тексту пісень</string>
+    <string name="blur_fullscreen_lyrics_description">Розмиття фону в повноекранному перегляді текстів пісень</string>
+    <string name="playback_speed_pitch"><![CDATA[Швидкість відтворення та висота тону]]></string>
+    <string name="playback_speed">Швидкість відтворення</string>
+    <string name="pitch">Тон</string>
+    <string name="blur_player_background">Розмити фон плеєра</string>
+    <string name="blur_player_background_description">Розмиття фону екрана, що зараз відтворюється</string>
+    <string name="merging_audio_and_video">Об\'єднання аудіо та відео</string>
+    <string name="error_occurred">Сталася помилка</string>
+    <string name="downloading_audio">Завантаження аудіо: %1$s </string>
+    <string name="downloading_video">Завантаження відео: %1$s </string>
+    <string name="ok">Гаразд</string>
+    <string name="to_download_folder">" в теку Завантажене"</string>
+    <string name="download_speed">Швидкість завантаження:  %1$s </string>
 </resources>

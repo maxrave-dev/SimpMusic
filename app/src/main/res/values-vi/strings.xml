@@ -383,4 +383,11 @@
     <string name="pitch">Cao độ</string>
     <string name="blur_player_background">Làm mờ nền trình phát</string>
     <string name="blur_player_background_description">Hiệu ứng làm mờ nền màn hình đang phát</string>
+    <string name="merging_audio_and_video">Đang ghép tệp âm thanh vào video</string>
+    <string name="error_occurred">Đã xảy ra lỗi</string>
+    <string name="downloading_audio">Đang tải xuống âm thanh: %1$s </string>
+    <string name="downloading_video">Đang tải xuống video: %1$s </string>
+    <string name="ok">OK</string>
+    <string name="to_download_folder">" vào thư mục Tải xuống"</string>
+    <string name="download_speed">Tốc độ tải xuống: %1$s </string>
 </resources>

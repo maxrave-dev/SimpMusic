@@ -17,7 +17,7 @@
     <string name="downloading">Baixando</string>
     <string name="preparing">Preparando</string>
     <string name="hide">Ocultar</string>
-    <string name="show">Mostrar</string>
+    <string name="show">Exibir</string>
     <string name="na_na">NA:NA</string>
     <string name="cache_size">%1$s MB</string>
     <string name="favorite">Favoritos</string>
@@ -35,7 +35,7 @@
     <string name="everything_you_need">Tudo que você precisa</string>
     <string name="restore_failed">Falha ao restaurar!</string>
     <string name="restore_success">Restauração bem-sucedida</string>
-    <string name="search">Procurar</string>
+    <string name="search">Buscar</string>
     <string name="songs">Músicas</string>
     <string name="albums">Álbuns</string>
     <string name="playlists">Playlists</string>
@@ -57,7 +57,7 @@
     <string name="good_night">Boa Noite</string>
     <string name="quick_picks">Escolhas rápidas</string>
     <string name="this_song_is_not_available">Esta música não está disponível</string>
-    <string name="in_charts">nos Gráficos</string>
+    <string name="in_charts">nas Paradas</string>
     <string name="playlist_name_cannot_be_empty">O nome da playlist não pode estar vazio</string>
     <string name="this_app_needs_to_access_your_notification">Este aplicativo precisa de acesso às suas notificações</string>
     <string name="shared">Compartilhado</string>
@@ -146,9 +146,9 @@
     <string name="login_success">Login efetuado com sucesso</string>
     <string name="log_out">Sair do YouTube</string>
     <string name="logged_in">Sessão iniciada</string>
-    <string name="logged_out">Desconectado</string>
+    <string name="logged_out">Sessão finalizada</string>
     <string name="playlist">Playlist</string>
-    <string name="restart_app">Reinicie o aplicativo para que as alterações sejam aplicadas</string>
+    <string name="restart_app">Reinicie o aplicativo para aplicar as alterações</string>
     <string name="balance_media_loudness">Equilibrar som da música</string>
     <string name="normalize_volume">Normalizar Volume</string>
     <string name="audio">Áudio</string>
@@ -329,4 +329,23 @@
     <string name="hour_s_ago">Há %1$d hora(s) atrás</string>
     <string name="no_notification">Sem notificação</string>
     <string name="created_at">Criado em: %1$s</string>
+    <string name="unknown">Desconhecido</string>
+    <string name="repeat_one">Repetir Uma</string>
+    <string name="repeat_all">Repetir Todas</string>
+    <string name="user_interface">Interface</string>
+    <string name="translucent_bottom_navigation_bar">Barra de navegação inferior translúcida</string>
+    <string name="donation">Se curtiu o meu trabalho, me paga um café</string>
+    <string name="relax">Relaxante</string>
+    <string name="sad">Triste</string>
+    <string name="romance">Romance</string>
+    <string name="feel_good">Sinta-se Bem</string>
+    <string name="party">Festa</string>
+    <string name="focus">Foco</string>
+    <string name="loading">Carregando</string>
+    <string name="updating">Atualizando</string>
+    <string name="http">HTTP</string>
+    <string name="invalid_host">Hospedeiro Inválido</string>
+    <string name="five_seconds">Cinco segundos</string>
+    <string name="endless_queue">Fila infinita</string>
+    <string name="do_not_show_again">Não mostrar novamente</string>
 </resources>

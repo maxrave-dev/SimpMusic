@@ -372,4 +372,16 @@
     <string name="five_seconds">Cinco segundos</string>
     <string name="lyrics_provider_lrc">Lyrics proporcionados por LRCLIB</string>
     <string name="sync_first">Primero sincroniza esta playlist a Youtube Music</string>
+    <string name="endless_queue">Cola infinita</string>
+    <string name="do_not_show_again">No mostrar de nuevo</string>
+    <string name="auto_check_for_update">Comprobar actualizaciones automáticamente</string>
+    <string name="auto_check_for_update_description">Comprobando actualizaciones al abrir la aplicación</string>
+    <string name="blur_fullscreen_lyrics">Efecto de desenfoque de letra a pantalla completa</string>
+    <string name="playback_speed">Velocidad de reproducción</string>
+    <string name="error_occurred">Ocurrió un error</string>
+    <string name="downloading_audio">Descargando audio: %1$s </string>
+    <string name="downloading_video">Descargando video: %1$s </string>
+    <string name="ok">OK</string>
+    <string name="to_download_folder">" a la carpeta de Descargas"</string>
+    <string name="download_speed">Velocidad de descarga:  %1$s </string>
 </resources>

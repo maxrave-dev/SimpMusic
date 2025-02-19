@@ -186,6 +186,7 @@
     <string name="preview">Anteprima</string>
     <string name="music_off_topic">Musica fuori tema</string>
     <string name="poi_highlight">Evidenziare</string>
+    <string name="filler">Riempitivo</string>
     <string name="sponsorBlock">SponsorBlock</string>
     <string name="enable_sponsor_block">Abilitare SponsorBlock</string>
     <string name="categories_sponsor_block">Seleziona il comportamento di salto del segmento</string>
@@ -356,5 +357,20 @@
     <string name="updating">Aggiornando</string>
     <string name="go_to_log_in_page">Vai alla pagina di accesso</string>
     <string name="log_in_warning">YouTube Music ora richiede di accedere per riprodurre musica, quindi l\'istanza Piped potrebbe occasionalmente non funzionare. Si consiglia di accedere a YouTube per ottenere un\'esperienza migliore con SimpMusic.</string>
+    <string name="invalid_host">Host non valido</string>
+    <string name="proxy_port">Porta proxy</string>
+    <string name="invalid_port">Porta non valida</string>
+    <string name="proxy_host_message">Inserisci il tuo host proxy</string>
+    <string name="proxy_port_message">Inserisci la tua porta proxy</string>
     <string name="five_seconds">Cinque secondi</string>
+    <string name="lyrics_provider_lrc">Testi forniti da LRCLIB</string>
+    <string name="sync_first">Sincronizza prima questa playlist con YouTube Music</string>
+    <string name="endless_queue">Coda infinita</string>
+    <string name="do_not_show_again">Non mostrare più</string>
+    <string name="auto_check_for_update">Controllo automatico degli aggiornamenti</string>
+    <string name="auto_check_for_update_description">Controllo degli aggiornamenti all\'apertura dell\'app</string>
+    <string name="blur_fullscreen_lyrics">Sfoca effetto testo a schermo intero</string>
+    <string name="playback_speed_pitch"><![CDATA[Velocità di riproduzione e tono]]></string>
+    <string name="playback_speed">Velocità di riproduzione</string>
+    <string name="pitch">Tono</string>
 </resources>

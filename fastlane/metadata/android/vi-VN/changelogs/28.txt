@@ -2,3 +2,4 @@ Cảm ơn bạn đã sử dụng SimpMusic! Chúng tôi cập nhật ứng dụn
 - Sửa lỗi YouTube Playlist API
 - Tải video, tệp âm thanh từ YouTube
 - Cải thiện hiệu suất
+- Cập nhật bản dịch

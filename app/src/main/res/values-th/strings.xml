@@ -118,7 +118,7 @@
     <string name="version">เวอร์ชัน</string>
     <string name="github">Github</string>
     <string name="maxrave_dev">maxrave-dev</string>
-    <string name="buy_me_a_coffee">ซื้อกาแฟให้ฉัน</string>
+    <string name="buy_me_a_coffee">เลี้ยงกาแฟให้ฉัน</string>
     <string name="paypal">PayPal</string>
     <string name="title">ชื่อ</string>
     <string name="album">อัลบั้ม</string>
@@ -337,7 +337,7 @@
     <string name="user_interface">อินเทอร์เฟซ</string>
     <string name="translucent_bottom_navigation_bar">แถบนำทางด้านล่างโปร่งแสง</string>
     <string name="you_can_see_the_content_below_the_bottom_bar">คุณสามารถดูเนื้อหาได้ที่แถบด้านล่าง</string>
-    <string name="donation">ถ้าคุณชอบแอปนี้ สามารถจ่ายค่ากาแฟให้ฉันได้</string>
+    <string name="donation">ถ้าคุณชอบแอปนี้ สามารถเลี้ยงกาแฟให้ฉันได้</string>
     <string name="relax">ผ่อนคลาย</string>
     <string name="sleep">นอน</string>
     <string name="energize">เพิ่มพลัง</string>
@@ -381,4 +381,13 @@
     <string name="playback_speed_pitch"><![CDATA[ความเร็วในการเล่นและความสูง-ต่ำของเสียง]]></string>
     <string name="playback_speed">ความเร็วในการเล่น</string>
     <string name="pitch">ความสูง-ต่ำของเสียง</string>
+    <string name="blur_player_background">เบลอพื้นหลังของตัวเล่น</string>
+    <string name="blur_player_background_description">การเบลอพื้นหลังของเอฟเฟกต์หน้าจอขณะเล่น</string>
+    <string name="merging_audio_and_video">รวมเสียงและวิดีโอ</string>
+    <string name="error_occurred">เกิดข้อผิดพลาด</string>
+    <string name="downloading_audio">กำลังดาวน์โหลดเสียง:%1$s </string>
+    <string name="downloading_video">กำลังดาวน์โหลดวิดีโอ:%1$s </string>
+    <string name="ok">ตกลง</string>
+    <string name="to_download_folder">" ไปที่โฟลเดอร์ดาวน์โหลด"</string>
+    <string name="download_speed">ความเร็วในการดาวน์โหลด: %1$s </string>
 </resources>

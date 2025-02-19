@@ -186,6 +186,7 @@
     <string name="preview">Ön baxış</string>
     <string name="music_off_topic">Mövzudan kənar musiqi</string>
     <string name="poi_highlight">POI Vurğulama</string>
+    <string name="filler">Doldurucu</string>
     <string name="sponsorBlock">SponsorBlock</string>
     <string name="enable_sponsor_block">SponsorBlock-u Aktivləşdir</string>
     <string name="categories_sponsor_block">Bölüm ötürmə davranışın seç</string>
@@ -372,4 +373,22 @@
     <string name="five_seconds">Beş saniyə</string>
     <string name="lyrics_provider_lrc">Lirika LRCLIB tərəfindən təmin edilib</string>
     <string name="sync_first">Əvvəlcə bu pleylisti YouTube Music ilə sinxronlaşdır</string>
+    <string name="endless_queue">Sonsuz növbə</string>
+    <string name="do_not_show_again">Təkrar göstərmə</string>
+    <string name="auto_check_for_update">Yeniləmə üçün avtomatik yoxla</string>
+    <string name="auto_check_for_update_description">Tətbiqi açdığınızda yeniləmə yoxlanılır</string>
+    <string name="blur_fullscreen_lyrics">Tam ekran lirika effektini tutqunlaşdır</string>
+    <string name="blur_fullscreen_lyrics_description">Tam ekran lirika ekran effekti arxa planı, tutqunlaşır</string>
+    <string name="playback_speed_pitch"><![CDATA[Səslənmə sürəti və ucalıq]]></string>
+    <string name="playback_speed">Səslənmə sürəti</string>
+    <string name="pitch">Ucalıq</string>
+    <string name="blur_player_background">Səsləndirici arxa planın tutqunlaşdır</string>
+    <string name="blur_player_background_description">İndi səslənən ekran effekti fonunu tutqunlaşdır</string>
+    <string name="merging_audio_and_video">Səs və videonun birləşdirilməsi</string>
+    <string name="error_occurred">Xəta baş verdi</string>
+    <string name="downloading_audio">Səs endirilir: %1$s </string>
+    <string name="downloading_video">Video endirilir: %1$s </string>
+    <string name="ok">Oldu</string>
+    <string name="to_download_folder">" bu endirmə qovluğuna"</string>
+    <string name="download_speed">Yüklənmə sürəti: %1$s </string>
 </resources>

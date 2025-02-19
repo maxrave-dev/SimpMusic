@@ -374,4 +374,5 @@
     <string name="five_seconds">Пять секунд</string>
     <string name="lyrics_provider_lrc">Источник текста LRCLIB</string>
     <string name="sync_first">Сначала синхронизируйте этот плейлист с YouTube Music</string>
+    <string name="playback_speed_pitch"></string>
 </resources>
