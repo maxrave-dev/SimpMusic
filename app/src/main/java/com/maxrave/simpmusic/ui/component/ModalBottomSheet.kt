@@ -1936,10 +1936,13 @@ fun AddToPlaylistModalBottomSheet(
                                     Modifier
                                         .fillMaxWidth()
                                         .padding(vertical = 3.dp)
-                                        .clickable {
-                                            onClick(playlist)
-                                            hideModalBottomSheet()
-                                        },
+                                        .clickable(
+                                            enabled = playlist.tracks?.contains(videoId) == false,
+                                            onClick = {
+                                                onClick(playlist)
+                                                hideModalBottomSheet()
+                                            },
+                                        ),
                             ) {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
@@ -1948,29 +1951,30 @@ fun AddToPlaylistModalBottomSheet(
                                             .padding(12.dp)
                                             .align(Alignment.CenterStart),
                                 ) {
-                                    Image(
-                                        painter =
-                                            painterResource(
-                                                id = R.drawable.baseline_playlist_add_24,
-                                            ),
-                                        contentDescription = "",
-                                    )
+                                    Crossfade(
+                                        targetState = playlist.tracks?.contains(videoId) == true,
+                                    ) {
+                                        if (it) {
+                                            Image(
+                                                painter = painterResource(id = R.drawable.done),
+                                                contentDescription = "",
+                                            )
+                                        } else {
+                                            Image(
+                                                painter =
+                                                    painterResource(
+                                                        id = R.drawable.baseline_playlist_add_24,
+                                                    ),
+                                                contentDescription = "",
+                                            )
+                                        }
+                                    }
                                     Spacer(modifier = Modifier.width(10.dp))
                                     Text(
                                         text = playlist.title,
                                         style = typo.labelSmall,
+                                        color = if (playlist.tracks?.contains(videoId) == true) Color.Gray else Color.White,
                                     )
-                                }
-                                Crossfade(
-                                    targetState = playlist.tracks?.contains(videoId) == true,
-                                ) {
-                                    if (it) {
-                                        Image(
-                                            painter = painterResource(id = R.drawable.done),
-                                            contentDescription = "",
-                                            modifier = Modifier.align(Alignment.CenterEnd),
-                                        )
-                                    }
                                 }
                             }
                         }

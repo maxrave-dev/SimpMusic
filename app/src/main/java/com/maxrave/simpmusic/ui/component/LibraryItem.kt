@@ -99,8 +99,6 @@ fun LibraryItem(
                 },
                 navController = navController,
                 song = songEntity ?: return,
-                onDelete = {
-                },
             )
         }
         Column {
