@@ -37,8 +37,10 @@ import io.ktor.client.request.header
 import io.ktor.client.request.headers
 import io.ktor.client.request.parameter
 import io.ktor.client.request.post
+import io.ktor.client.request.prepareRequest
 import io.ktor.client.request.setBody
-import io.ktor.client.statement.bodyAsBytes
+import io.ktor.client.request.url
+import io.ktor.client.statement.bodyAsChannel
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.contentType
@@ -46,12 +48,14 @@ import io.ktor.http.userAgent
 import io.ktor.serialization.kotlinx.json.json
 import io.ktor.serialization.kotlinx.protobuf.protobuf
 import io.ktor.serialization.kotlinx.xml.xml
+import io.ktor.utils.io.readRemaining
 import kotlinx.coroutines.channels.onFailure
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.launch
+import kotlinx.io.readByteArray
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import nl.adaptivity.xmlutil.XmlDeclMode
@@ -59,14 +63,12 @@ import nl.adaptivity.xmlutil.serialization.XML
 import okhttp3.Interceptor
 import okio.FileSystem
 import okio.IOException
-import okio.Path
 import okio.Path.Companion.toPath
 import okio.buffer
 import okio.use
 import java.io.File
 import java.net.Proxy
 import java.util.Locale
-import kotlin.math.min
 
 class Ytmusic {
     private var httpClient = createClient()
@@ -722,33 +724,7 @@ class Ytmusic {
         channelFlow {
             val fileSystem = FileSystem.SYSTEM
             val path = pathString.toPath()
-            // Separate the download file to 8 parts
-            val listTemp =
-                mutableListOf<Path>(
-                    "$pathString.part1".toPath(),
-                    "$pathString.part2".toPath(),
-                    "$pathString.part3".toPath(),
-                    "$pathString.part4".toPath(),
-                    "$pathString.part5".toPath(),
-                    "$pathString.part6".toPath(),
-                    "$pathString.part7".toPath(),
-                    "$pathString.part8".toPath(),
-                )
             with(httpClient) {
-                val length = head(url).headers[HttpHeaders.ContentLength]?.toLong() ?: 0
-                val lastByte = length - 1
-                val listPathLength =
-                    listOf(
-                        Pair(0L, (length - 1) / 8),
-                        Pair((length - 1) / 8 + 1, (length - 1) / 4),
-                        Pair((length - 1) / 4 + 1, (length - 1) * 3 / 8),
-                        Pair((length - 1) * 3 / 8 + 1, (length - 1) / 2),
-                        Pair((length - 1) / 2 + 1, (length - 1) * 5 / 8),
-                        Pair((length - 1) * 5 / 8 + 1, (length - 1) * 3 / 4),
-                        Pair((length - 1) * 3 / 4 + 1, (length - 1) * 7 / 8),
-                        Pair((length - 1) * 7 / 8 + 1, lastByte),
-                    )
-                val chunkSize = min(1024 * 512, length / 12)
                 val isExist = fileSystem.exists(path)
                 if (isExist) {
                     try {
@@ -757,39 +733,40 @@ class Ytmusic {
                         e.printStackTrace()
                     }
                 }
-                var jobDoneCount = 0
+                val length = head(url).headers[HttpHeaders.ContentLength]?.toLong() ?: 0
                 var downloadedBytes = 0L
+                var jobDone = 0
                 coroutineScope {
-                    val listJob =
-                        listTemp.mapIndexed { i, temp ->
-                            launch {
-                                print("Downloading part ${i + 1}... $listPathLength")
-                                var start = listPathLength[i].first
-                                fileSystem.appendingSink(temp).buffer().use { sink ->
-                                    while (true) {
-                                        val end = min(start + chunkSize - 1, listPathLength[i].second)
-
-                                        get(url) {
-                                            header("Range", "bytes=$start-$end")
-                                        }.bodyAsBytes().let { bytes ->
-                                            sink.write(bytes)
+                    val downloadJob =
+                        launch {
+                            runCatching {
+                                prepareRequest {
+                                    url(url)
+                                }.execute { res ->
+                                    val channel = res.bodyAsChannel()
+                                    fileSystem.appendingSink(path).buffer().use { sink ->
+                                        while (!channel.isClosedForRead) {
+                                            val packet = channel.readRemaining(DEFAULT_BUFFER_SIZE.toLong())
+                                            while (!packet.exhausted()) {
+                                                val bytes = packet.readByteArray()
+                                                sink.write(bytes)
+                                                downloadedBytes += bytes.size
+                                            }
                                         }
-                                        downloadedBytes += (end - start + 1)
-                                        println("Downloading part ${i + 1}... ${downloadedBytes.toFloat() / length}")
-
-                                        if (end >= listPathLength[i].second) {
-                                            jobDoneCount++
-                                            break
-                                        }
-                                        start += chunkSize
                                     }
                                 }
+                            }.onSuccess {
+                                println("Downloaded $downloadedBytes bytes")
+                                jobDone = 1
+                            }.onFailure { e ->
+                                e.printStackTrace()
+                                jobDone = 1
                             }
                         }
                     val emitJob =
                         launch {
                             var seconds = 0f
-                            while (jobDoneCount < 8 && downloadedBytes < length) {
+                            while (jobDone < 1 && downloadedBytes < length) {
                                 delay(100)
                                 seconds += 0.1f
                                 val progress = downloadedBytes.toFloat() / length
@@ -802,21 +779,8 @@ class Ytmusic {
                                     }
                             }
                         }
-                    listJob.forEach { it.join() }
+                    downloadJob.join()
                     emitJob.join()
-                }
-                listTemp.forEachIndexed { i, p ->
-                    println("Merging part $i")
-                    fileSystem.appendingSink(path).buffer().use { sink ->
-                        fileSystem.source(p).buffer().use { source ->
-                            sink.writeAll(source)
-                        }
-                    }
-                    try {
-                        fileSystem.delete(p)
-                    } catch (e: IOException) {
-                        e.printStackTrace()
-                    }
                 }
                 println("Downloaded $downloadedBytes bytes")
                 println("Merged $pathString")
