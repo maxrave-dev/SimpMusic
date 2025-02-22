@@ -2222,7 +2222,7 @@ class MainRepository(
                 }
         }.flowOn(Dispatchers.IO)
 
-    suspend fun getLyricsData(
+    fun getLyricsData(
         sartist: String,
         strack: String,
         durationInt: Int? = null,

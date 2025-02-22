@@ -1065,6 +1065,17 @@ class SharedViewModel(
                                     ),
                             )
                         }
+                        // Save lyrics to database
+                        viewModelScope.launch {
+                            mainRepository.insertLyrics(
+                                LyricsEntity(
+                                    videoId = videoId,
+                                    error = false,
+                                    lines = lyrics.lines,
+                                    syncType = lyrics.syncType,
+                                ),
+                            )
+                        }
                     } else {
                         _nowPlayingScreenData.update {
                             it.copy(
