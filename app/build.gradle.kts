@@ -9,6 +9,13 @@ plugins {
     alias(libs.plugins.aboutlibraries)
 }
 
+kotlin {
+    jvmToolchain(17) // or appropriate version
+    compilerOptions {
+        freeCompilerArgs.add("-Xwhen-guards")
+    }
+}
+
 android {
     namespace = "com.maxrave.simpmusic"
     compileSdk = 35
